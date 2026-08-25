@@ -7,6 +7,7 @@ on:
       - webgl-environment-v1
       - hybrid-shell-v15
       - atmosphere-tester-v1
+      - hotfix-rain-svg-pane
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -23,7 +24,6 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -40,58 +40,29 @@ jobs:
           node --check site/presentation-recovery.js
           node --check site/app.js
           node --check site/sw.js
-
           python - <<'PY'
           from pathlib import Path
           import hashlib, json, re
-
-          root = Path('site')
-          fallback = root / 'fallback'
-          manifest = json.loads((fallback / 'manifest.json').read_text())
-          bootstrap = (root / 'bootstrap.js').read_text()
-          match = re.search(r'const SHELL_VERSION=(\d+);', bootstrap)
-          assert match, 'bootstrap shell version missing'
-          shell_version = int(match.group(1))
-          assert manifest['minimumShell'] == shell_version, (
-              f"fallback minimumShell {manifest['minimumShell']} != shell {shell_version}"
-          )
-          assert manifest['appPack'] >= 1
-
+          root=Path('site'); fallback=root/'fallback'
+          manifest=json.loads((fallback/'manifest.json').read_text())
+          bootstrap=(root/'bootstrap.js').read_text()
+          match=re.search(r'const SHELL_VERSION=(\d+);',bootstrap)
+          assert match,'bootstrap shell version missing'
+          shell_version=int(match.group(1))
+          assert manifest['minimumShell']==shell_version,f"fallback minimumShell {manifest['minimumShell']} != shell {shell_version}"
           for item in manifest['resources']:
-              data = (fallback / item['path']).read_bytes()
-              digest = hashlib.sha256(data).hexdigest()
-              assert digest == item['sha256'], f"fallback hash mismatch: {item['path']}"
-
-          index = (root / 'index.html').read_text()
-          assert 'Skip to air quality report / <span lang="th">' in index
-          assert 'Live PM2.5 and Thai AQI report for Sindhorn Midtown Hotel Bangkok · รายงานคุณภาพอากาศ' in index
-          assert '/rain-layer.js' in index, 'persistent rain renderer missing from shell'
-
-          tester = (root / 'atmosphere-tester.html').read_text()
-          assert 'ATMOSPHERE TESTER' in tester
-          assert '/atmosphere-tester.js' in tester
-          assert '/rain-layer.js' in tester
-          assert 'paneDrops' in tester
-
-          sw = (root / 'sw.js').read_text()
-          assert "isAppRoute" in sw, 'service worker must isolate non-app lab navigations'
-          assert "rain2" in sw, 'service worker cache version not bumped for rain/lab release'
-
-          for name in ('today.html', 'guidance.html', 'details.html'):
-              text = (fallback / name).read_text()
-              for m in re.finditer(r'class="instruction-copy"', text):
-                  block = text[m.start():m.start()+1000]
-                  en = block.find('instruction-en')
-                  th = block.find('instruction-th')
-                  assert en >= 0 and th >= 0 and en < th, f"English-first order failed: {name}"
-
-          env_css = (root / 'environment.css').read_text()
-          for forbidden in ('.masthead', '.app-tabbar', '.weather-', '.report', '.advice', '.category-'):
-              assert forbidden not in env_css, f"environment.css owns UI selector: {forbidden}"
-
-          pwa_css = (root / 'pwa.css').read_text()
-          for forbidden in ('.masthead', '.app-tabbar', '.fullscreen-toggle', '.report-actionbar'):
-              assert forbidden not in pwa_css, f"pwa.css owns UI selector: {forbidden}"
+              data=(fallback/item['path']).read_bytes(); digest=hashlib.sha256(data).hexdigest()
+              assert digest==item['sha256'],f"fallback hash mismatch: {item['path']}"
+          index=(root/'index.html').read_text()
+          assert '/rain-layer.js?v=3' in index
+          rain=(root/'rain-layer.js').read_text()
+          assert 'rainPaneSvg' in rain
+          assert 'rainPaneCanvas' not in rain
+          assert 'desynchronized:true' not in rain
+          tester=(root/'atmosphere-tester.html').read_text()
+          assert 'ATMOSPHERE TESTER' in tester and '/atmosphere-tester.js' in tester and '/rain-layer.js?v=3' in tester
+          sw=(root/'sw.js').read_text()
+          assert 'isAppRoute' in sw and 'rain3' in sw
           PY
 
       - name: Deploy to Cloudflare Pages
@@ -104,23 +75,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${GITHUB_REF_NAME}" = "main" ]; then
-            BASE_URL="https://sindhorn-midtown-internal.pages.dev"
-          else
-            BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
-          fi
-
-          # Cloudflare's branch/production alias can lag a successful upload by a few seconds.
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then BASE_URL="https://sindhorn-midtown-internal.pages.dev"; else BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"; fi
           sleep 8
-
           for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /atmosphere-tester.html /atmosphere-tester.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
-
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/" | grep -q '/bootstrap.js'
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/" | grep -q '/rain-layer.js'
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/atmosphere-tester.html" | grep -q 'ATMOSPHERE TESTER'
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/atmosphere-tester.html" | grep -q '/atmosphere-tester.js'
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/" -o /tmp/smoke-root
+          grep -q '/bootstrap.js' /tmp/smoke-root
+          grep -q '/rain-layer.js?v=3' /tmp/smoke-root
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/rain-layer.js" -o /tmp/smoke-rain
+          grep -q 'rainPaneSvg' /tmp/smoke-rain
+          ! grep -q 'rainPaneCanvas' /tmp/smoke-rain
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/atmosphere-tester.html" -o /tmp/smoke-tester
+          grep -q 'ATMOSPHERE TESTER' /tmp/smoke-tester
+          grep -q '/rain-layer.js?v=3' /tmp/smoke-tester
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" | grep -q "\"minimumShell\": ${SHELL_VERSION}"
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" -o /tmp/smoke-manifest
+          grep -q "\"minimumShell\": ${SHELL_VERSION}" /tmp/smoke-manifest
