@@ -1,4 +1,4 @@
-import * as THREE from '/vendor/three.module.js';
+import * as THREE from './vendor/three.module.js';
 
 const HOTEL = { lat: 13.74135, lon: 100.54274, timezone: 'Asia/Bangkok' };
 const WEATHER_ENDPOINT = 'https://api.open-meteo.com/v1/forecast?latitude=13.74135&longitude=100.54274&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,rain,showers,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,is_day&timezone=Asia%2FBangkok';
@@ -38,83 +38,60 @@ function bangkokParts(date = new Date()) {
   return out;
 }
 
-// NOAA-style solar position approximation; enough for visual placement, not legal/astronomical use.
+function julianDay(date) { return date.getTime() / 86400000 + 2440587.5; }
 function solarPosition(date = new Date()) {
-  const rad = Math.PI / 180;
-  const ms = date.getTime();
-  const jd = ms / 86400000 + 2440587.5;
-  const t = (jd - 2451545.0) / 36525;
-  const L0 = (280.46646 + t * (36000.76983 + 0.0003032 * t)) % 360;
-  const M = 357.52911 + t * (35999.05029 - 0.0001537 * t);
-  const e = 0.016708634 - t * (0.000042037 + 0.0000001267 * t);
-  const C = Math.sin(M * rad) * (1.914602 - t * (0.004817 + 0.000014 * t))
-    + Math.sin(2 * M * rad) * (0.019993 - 0.000101 * t)
-    + Math.sin(3 * M * rad) * 0.000289;
-  const trueLong = L0 + C;
-  const omega = 125.04 - 1934.136 * t;
-  const lambda = trueLong - 0.00569 - 0.00478 * Math.sin(omega * rad);
-  const eps0 = 23 + (26 + (21.448 - t * (46.815 + t * (0.00059 - t * 0.001813))) / 60) / 60;
-  const eps = eps0 + 0.00256 * Math.cos(omega * rad);
-  const decl = Math.asin(Math.sin(eps * rad) * Math.sin(lambda * rad));
-  const y = Math.tan((eps * rad) / 2) ** 2;
-  const eqTime = 4 / rad * (
-    y * Math.sin(2 * L0 * rad)
-    - 2 * e * Math.sin(M * rad)
-    + 4 * e * y * Math.sin(M * rad) * Math.cos(2 * L0 * rad)
-    - 0.5 * y * y * Math.sin(4 * L0 * rad)
-    - 1.25 * e * e * Math.sin(2 * M * rad)
-  );
-  const p = bangkokParts(date);
-  const localMinutes = Number(p.hour) * 60 + Number(p.minute) + Number(p.second) / 60;
-  const timezoneMinutes = 7 * 60;
-  let trueSolarMinutes = (localMinutes + eqTime + 4 * HOTEL.lon - timezoneMinutes) % 1440;
-  if (trueSolarMinutes < 0) trueSolarMinutes += 1440;
-  let hourAngle = trueSolarMinutes / 4 - 180;
-  if (hourAngle < -180) hourAngle += 360;
-  const lat = HOTEL.lat * rad;
-  const ha = hourAngle * rad;
-  const cosZenith = clamp(Math.sin(lat) * Math.sin(decl) + Math.cos(lat) * Math.cos(decl) * Math.cos(ha), -1, 1);
-  const zenith = Math.acos(cosZenith);
-  const altitude = 90 - zenith / rad;
-  const az = Math.atan2(Math.sin(ha), Math.cos(ha) * Math.sin(lat) - Math.tan(decl) * Math.cos(lat));
-  const azimuth = (az / rad + 180 + 360) % 360;
-  return { altitude, azimuth, localMinutes };
+  const jd = julianDay(date);
+  const n = jd - 2451545.0;
+  const L = (280.46 + 0.9856474 * n) % 360;
+  const g = ((357.528 + 0.9856003 * n) % 360) * Math.PI / 180;
+  const lambda = (L + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * Math.PI / 180;
+  const epsilon = (23.439 - 0.0000004 * n) * Math.PI / 180;
+  const alpha = Math.atan2(Math.cos(epsilon) * Math.sin(lambda), Math.cos(lambda));
+  const delta = Math.asin(Math.sin(epsilon) * Math.sin(lambda));
+  const parts = bangkokParts(date);
+  const localHours = Number(parts.hour) + Number(parts.minute) / 60 + Number(parts.second) / 3600;
+  const offsetHours = 7;
+  const ut = localHours - offsetHours;
+  const gst = ((6.697375 + 0.0657098242 * n + ut) % 24 + 24) % 24;
+  const lst = ((gst + HOTEL.lon / 15) % 24 + 24) % 24;
+  let hourAngle = lst * 15 * Math.PI / 180 - alpha;
+  while (hourAngle < -Math.PI) hourAngle += Math.PI * 2;
+  while (hourAngle > Math.PI) hourAngle -= Math.PI * 2;
+  const lat = HOTEL.lat * Math.PI / 180;
+  const altitude = Math.asin(Math.sin(lat) * Math.sin(delta) + Math.cos(lat) * Math.cos(delta) * Math.cos(hourAngle));
+  const azimuth = Math.atan2(-Math.sin(hourAngle), Math.tan(delta) * Math.cos(lat) - Math.sin(lat) * Math.cos(hourAngle));
+  return { altitude: altitude * 180 / Math.PI, azimuth: (azimuth * 180 / Math.PI + 360) % 360 };
 }
 
 function readAir() {
-  const pm = Number(pmEl.textContent.trim());
-  const aqi = Number(aqiEl.textContent.trim());
-  return {
-    pm25: Number.isFinite(pm) ? pm : null,
-    aqi: Number.isFinite(aqi) ? aqi : null
-  };
+  const pm25 = Number.parseFloat(pmEl.textContent || '');
+  const aqi = Number.parseFloat(aqiEl.textContent || '');
+  return { pm25: Number.isFinite(pm25) ? pm25 : null, aqi: Number.isFinite(aqi) ? aqi : null };
 }
 
-function pollutionStrength(pm25) {
-  if (!Number.isFinite(pm25)) return 0.18;
-  return clamp(
-    0.08 * smoothstep(8, 18, pm25)
-    + 0.32 * smoothstep(18, 37.5, pm25)
-    + 0.35 * smoothstep(37.5, 75, pm25)
-    + 0.25 * smoothstep(75, 150, pm25)
-  );
+function pollutionStrength(pm) {
+  if (!Number.isFinite(pm)) return 0.18;
+  if (pm <= 15) return mix(0.04, 0.13, pm / 15);
+  if (pm <= 25) return mix(0.13, 0.25, (pm - 15) / 10);
+  if (pm <= 37.5) return mix(0.25, 0.42, (pm - 25) / 12.5);
+  if (pm <= 75) return mix(0.42, 0.72, (pm - 37.5) / 37.5);
+  return clamp(0.72 + (pm - 75) / 150 * 0.28, 0.72, 1);
 }
-
 
 function weatherLabel(code) {
   const c = Number(code);
-  if (c === 0) return ['Clear sky','ท้องฟ้าแจ่มใส'];
-  if (c === 1) return ['Mainly clear','ท้องฟ้าส่วนใหญ่แจ่มใส'];
-  if (c === 2) return ['Partly cloudy','มีเมฆบางส่วน'];
-  if (c === 3) return ['Overcast','มีเมฆมาก'];
-  if (c === 45 || c === 48) return ['Foggy','มีหมอก'];
-  if ([51,53,55,56,57].includes(c)) return ['Drizzle','ฝนปรอย'];
-  if ([61,63,65,66,67].includes(c)) return ['Rain','ฝนตก'];
-  if ([71,73,75,77].includes(c)) return ['Snow','หิมะ'];
-  if ([80,81,82].includes(c)) return ['Rain showers','ฝนตกเป็นช่วง'];
-  if ([85,86].includes(c)) return ['Snow showers','หิมะตกเป็นช่วง'];
-  if ([95,96,99].includes(c)) return ['Thunderstorm','พายุฝนฟ้าคะนอง'];
-  return ['Current weather','สภาพอากาศขณะนี้'];
+  if (c === 0) return ['Clear', 'ท้องฟ้าแจ่มใส'];
+  if (c === 1) return ['Mainly clear', 'ท้องฟ้าโปร่ง'];
+  if (c === 2) return ['Partly cloudy', 'มีเมฆบางส่วน'];
+  if (c === 3) return ['Overcast', 'มีเมฆมาก'];
+  if ([45,48].includes(c)) return ['Fog', 'มีหมอก'];
+  if ([51,53,55,56,57].includes(c)) return ['Drizzle', 'ฝนละออง'];
+  if ([61,63,65,66,67].includes(c)) return ['Rain', 'ฝนตก'];
+  if ([71,73,75,77].includes(c)) return ['Snow', 'หิมะ'];
+  if ([80,81,82].includes(c)) return ['Rain showers', 'ฝนตกเป็นช่วง'];
+  if ([85,86].includes(c)) return ['Snow showers', 'หิมะตกเป็นช่วง'];
+  if ([95,96,99].includes(c)) return ['Thunderstorm', 'พายุฝนฟ้าคะนอง'];
+  return ['Current weather', 'สภาพอากาศขณะนี้'];
 }
 
 function windPoint(deg) {
