@@ -1,4 +1,5 @@
 const SVG_NS='http://www.w3.org/2000/svg';
+const CELESTIAL_IDS=['sunEclipse','moonEclipse'];
 const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
 const num=(id,fallback=0)=>{const el=document.getElementById(id);const n=Number(el?.value);return Number.isFinite(n)?n:fallback};
 
@@ -116,7 +117,6 @@ if(stage){
     raf=requestAnimationFrame(frame);
     const solar=num('solarAltitude',38);
     const {clear,diffuse,cloud}=visibilityFactors();
-    const aspect=Math.max(.55,Math.min(2.3,width/Math.max(1,height)));
     const baseScale=clamp((Math.min(width,height)/690),.72,1.28);
     const sunVisible=clamp((solar+3)/7);
     const moonVisible=clamp((-solar-1)/8);
