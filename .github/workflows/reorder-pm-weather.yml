@@ -1,0 +1,46 @@
+name: Reorder PM2.5 and weather
+on:
+  push:
+    paths:
+      - '.github/workflows/reorder-pm-weather.yml'
+permissions:
+  contents: write
+jobs:
+  reorder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: webgl-environment-v1
+      - name: Move weather below PM2.5 report
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('site/index.html')
+          s=p.read_text()
+          weather='''    <div class="weather-now" id="weatherNow" hidden aria-live="polite">\n      <div class="weather-primary">\n        <span class="weather-temp" id="weatherTemp">—°</span>\n        <span class="weather-condition"><strong id="weatherConditionEn">Current weather</strong><span lang="th" id="weatherConditionTh">สภาพอากาศขณะนี้</span></span>\n      </div>\n      <p class="weather-meta"><span id="weatherMetaEn">Loading weather</span><span lang="th" id="weatherMetaTh">กำลังโหลดข้อมูลอากาศ</span></p>\n      <a class="weather-credit" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Weather data by Open-Meteo.com</a>\n    </div>\n'''
+          if s.count(weather)!=1:
+              raise SystemExit(f'weather block count={s.count(weather)}')
+          s=s.replace(weather,'',1)
+          anchor='''  <div class="report-actionbar">\n    <button class="action quick-save" type="button" id="saveImageBtn">Save compact image / <span lang="th">บันทึกภาพ</span></button>\n  </div>\n'''
+          if s.count(anchor)!=1:
+              raise SystemExit(f'actionbar count={s.count(anchor)}')
+          moved='''\n  <div class="weather-now" id="weatherNow" hidden aria-live="polite">\n    <div class="weather-primary">\n      <span class="weather-temp" id="weatherTemp">—°</span>\n      <span class="weather-condition"><strong id="weatherConditionEn">Current weather</strong><span lang="th" id="weatherConditionTh">สภาพอากาศขณะนี้</span></span>\n    </div>\n    <p class="weather-meta"><span id="weatherMetaEn">Loading weather</span><span lang="th" id="weatherMetaTh">กำลังโหลดข้อมูลอากาศ</span></p>\n    <a class="weather-credit" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Weather data by Open-Meteo.com</a>\n  </div>\n'''
+          s=s.replace(anchor,anchor+moved,1)
+          p.write_text(s)
+          PY
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('site/index.html').read_text()
+          assert s.index('class="report"') < s.index('class="weather-now"')
+          assert s.count('id="weatherNow"') == 1
+          print('PM2.5 report now precedes weather block')
+          PY
+      - name: Commit reorder and remove helper
+        run: |
+          git rm .github/workflows/reorder-pm-weather.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/index.html
+          git commit -m "Place PM2.5 report above current weather"
+          git push
