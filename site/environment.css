@@ -126,3 +126,71 @@ body.environment-ready .weather-now[hidden]{display:none!important}
 }
 
 /* Weather UI and the WebGL atmosphere are driven by the same realtime weather state. */
+
+/* Typography hierarchy v2 — fewer sizes, stronger readability, same composition. */
+body.environment-ready{
+  --type-label:clamp(.82rem,.28vw + .76rem,.92rem);
+  --type-body:clamp(1rem,.30vw + .93rem,1.10rem);
+  --type-subhead:clamp(1.14rem,.38vw + 1.04rem,1.30rem);
+  --type-weather:clamp(3rem,4.2vw,3.85rem);
+}
+
+/* Tier 1: utility labels / navigation / metadata headings. */
+body.environment-ready .today,
+body.environment-ready .today .en,
+body.environment-ready .eyebrow,
+body.environment-ready .station strong,
+body.environment-ready .connection,
+body.environment-ready .metric-label strong,
+body.environment-ready .aqi-label,
+body.environment-ready .status-index,
+body.environment-ready .section-title,
+body.environment-ready .advice h3,
+body.environment-ready .fact dt,
+body.environment-ready .action,
+body.environment-ready .weather-condition strong,
+body.environment-ready .weather-credit{
+  font-size:var(--type-label)!important;
+}
+
+/* Tier 2: all supporting/readable copy. */
+body.environment-ready .intro-copy,
+body.environment-ready .station span,
+body.environment-ready .metric-label span,
+body.environment-ready .unit,
+body.environment-ready .observed,
+body.environment-ready .observed b,
+body.environment-ready .guidance-lead,
+body.environment-ready .advice p,
+body.environment-ready .scale-labels,
+body.environment-ready .fact dd,
+body.environment-ready .source-note,
+body.environment-ready .disclaimer,
+body.environment-ready .weather-condition span,
+body.environment-ready .weather-meta{
+  font-size:var(--type-body)!important;
+}
+
+/* Tier 3: bilingual status emphasis. */
+body.environment-ready .category-th{
+  font-size:var(--type-subhead)!important;
+}
+
+/* Weather temperature is a display value, aligned with the same system. */
+body.environment-ready .weather-temp{
+  font-size:var(--type-weather)!important;
+}
+
+/* Preserve the intentional display hierarchy: title, PM2.5, AQI and status remain the only large exceptions. */
+body.environment-ready .category-en{font-size:clamp(2.8rem,5.6vw,4.1rem)!important}
+
+@media (max-width:699px){
+  body.environment-ready{
+    --type-label:.82rem;
+    --type-body:.98rem;
+    --type-subhead:1.16rem;
+    --type-weather:2.75rem;
+  }
+  body.environment-ready .weather-now{margin-top:16px}
+  body.environment-ready .category-en{font-size:clamp(2.15rem,9vw,2.9rem)!important}
+}
