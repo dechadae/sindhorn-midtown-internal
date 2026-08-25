@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - webgl-environment-v1
+      - hybrid-shell-v15
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -26,8 +27,72 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
+      - name: Validate v15 shell candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/bootstrap.js
+          node --check site/live-data.js
+          node --check site/environment.js
+          node --check site/app.js
+          node --check site/sw.js
+
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json, re
+
+          root = Path('site')
+          fallback = root / 'fallback'
+          manifest = json.loads((fallback / 'manifest.json').read_text())
+          assert manifest['minimumShell'] == 15
+          assert manifest['appPack'] >= 1
+
+          for item in manifest['resources']:
+              data = (fallback / item['path']).read_bytes()
+              digest = hashlib.sha256(data).hexdigest()
+              assert digest == item['sha256'], f"fallback hash mismatch: {item['path']}"
+
+          index = (root / 'index.html').read_text()
+          assert 'Skip to air quality report / <span lang="th">' in index
+          assert 'Live PM2.5 and Thai AQI report for Sindhorn Midtown Hotel Bangkok · รายงานคุณภาพอากาศ' in index
+
+          for name in ('today.html', 'guidance.html', 'details.html'):
+              text = (fallback / name).read_text()
+              for m in re.finditer(r'class="instruction-copy"', text):
+                  block = text[m.start():m.start()+1000]
+                  en = block.find('instruction-en')
+                  th = block.find('instruction-th')
+                  assert en >= 0 and th >= 0 and en < th, f"English-first order failed: {name}"
+
+          env_css = (root / 'environment.css').read_text()
+          for forbidden in ('.masthead', '.app-tabbar', '.weather-', '.report', '.advice', '.category-'):
+              assert forbidden not in env_css, f"environment.css owns UI selector: {forbidden}"
+
+          pwa_css = (root / 'pwa.css').read_text()
+          for forbidden in ('.masthead', '.app-tabbar', '.fullscreen-toggle', '.report-actionbar'):
+              assert forbidden not in pwa_css, f"pwa.css owns UI selector: {forbidden}"
+          PY
+
       - name: Deploy to Cloudflare Pages
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx --yes wrangler@latest pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke test deployed shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            BASE_URL="https://sindhorn-midtown-internal.pages.dev"
+          else
+            BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
+          fi
+
+          for path in / /guidance /details /bootstrap.js /environment.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
+            curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
+            test -s /tmp/smoke-response
+          done
+
+          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}/" | grep -q '/bootstrap.js'
+          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" | grep -q '"minimumShell": 15'

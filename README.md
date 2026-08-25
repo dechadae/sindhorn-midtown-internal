@@ -1,19 +1,17 @@
 # Sindhorn Midtown Internal
 
-Canonical frontend repository for the Sindhorn Midtown internal web app.
+Production PWA for Sindhorn Midtown Hotel Bangkok environmental reporting.
 
-- Production: `https://sindhorn-midtown-internal.pages.dev`
-- Cloudflare Pages project: `sindhorn-midtown-internal`
-- Shared Supabase project: `sjpvhgxacsiorrtijqua`
+## Architecture
 
-## Current state
+- Cloudflare Pages hosts the persistent v15 PWA shell and WebGL renderer.
+- Supabase `public.sindhorn_app_files` supplies versioned, SHA-256-validated UI packs.
+- AirBKK remains authoritative for PM2.5 / Thai AQI.
+- Open-Meteo supplies current weather used by both the UI and atmospheric renderer.
+- English is first throughout the bilingual interface; Thai follows as direct operational support.
 
-`main` contains the approved migrated PM2.5 v5 baseline.
+## Release model
 
-The experimental branch `webgl-environment-v1` contains the realtime atmospheric redesign. Its current visual direction uses the WebGL atmosphere as the full-page background, with all PM2.5/AQI/status/guidance information layered directly above it and no filled dashboard cards.
+Stable executable infrastructure is released through GitHub → GitHub Actions → Cloudflare Pages. Routine UI/content/art-direction changes should be published as a new immutable Supabase app pack compatible with the installed shell.
 
-Weather, astronomy and pollution remain independent realtime inputs. See `docs/REALTIME-ENVIRONMENT-PLAN.md` for the architecture and safety rules.
-
-## Deployment
-
-GitHub Actions deploys `site/` through Wrangler to Cloudflare Pages. Production deploys come from `main`; the WebGL branch deploys to its Cloudflare preview alias for review before merge.
+Production: https://sindhorn-midtown-internal.pages.dev
