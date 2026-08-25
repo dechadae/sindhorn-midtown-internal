@@ -36,6 +36,8 @@ const paneDrops=Array.from({length:MAX_PANE_DROPS},(_,i)=>({
   drift:(seeded(i*11+11)-.5)*.7
 }));
 
+function paneEnabled(){return window.__sindhornRainPaneEnabled!==false}
+
 function rainIntensity(){
   const weather=window.SindhornEnvironment?.getState?.()?.weather;
   if(!weather?.known)return 0;
@@ -167,8 +169,10 @@ function frame(now){
     ctx.lineCap='round';
     for(let i=0;i<active;i++)drawDrop(drops[i],i,dt,currentIntensity);
 
-    const paneActive=Math.round(8+currentIntensity*(MAX_PANE_DROPS-8));
-    for(let i=0;i<paneActive;i++)drawPaneDrop(paneDrops[i],i,dt,currentIntensity,now/1000);
+    if(paneEnabled()){
+      const paneActive=Math.round(8+currentIntensity*(MAX_PANE_DROPS-8));
+      for(let i=0;i<paneActive;i++)drawPaneDrop(paneDrops[i],i,dt,currentIntensity,now/1000);
+    }
   }
   raf=requestAnimationFrame(frame);
 }
@@ -194,7 +198,7 @@ function init(){
   paneCanvas=document.createElement('canvas');
   paneCanvas.id='rainPaneCanvas';
   paneCanvas.setAttribute('aria-hidden','true');
-  Object.assign(paneCanvas.style,{position:'fixed',inset:'0',zIndex:'145',pointerEvents:'none',display:'block',transform:'translateZ(0)'});
+  Object.assign(paneCanvas.style,{position:'fixed',inset:'0',zIndex:'240',pointerEvents:'none',display:'block',transform:'translateZ(0)'});
   document.body.appendChild(paneCanvas);
   paneCtx=paneCanvas.getContext('2d',{alpha:true,desynchronized:true});
   if(!paneCtx){paneCanvas.remove();paneCanvas=null;return;}
