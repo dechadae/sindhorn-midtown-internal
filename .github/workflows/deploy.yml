@@ -81,7 +81,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${GITHUB_REF_NAME}" = "main" ]; then BASE_URL="https://sindhorn-midtown-internal.pages.dev"; else BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"; fi
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            BASE_URL="https://sindhorn-midtown-internal.pages.dev"
+          else
+            BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
+            BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
+          fi
           sleep 8
           for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
