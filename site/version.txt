@@ -1,4 +1,4 @@
 production-build: main
-rendering-fix: seamless-cloud-field-v7-adaptive
+rendering-fix: night-atmosphere-v8-moon-clouds
 renderer: display-synced-adaptive-resolution
-pwa-spa: fullscreen-top-header-frosted-save-v7
+pwa-spa: fullscreen-top-header-frosted-save-v8
