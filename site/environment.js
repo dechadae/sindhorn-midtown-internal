@@ -184,6 +184,8 @@ async function fetchWeather() {
   }
 }
 
+const lowPowerDevice=((navigator.deviceMemory||8)<=4)||((navigator.hardwareConcurrency||8)<=4);
+
 const renderer = new THREE.WebGLRenderer({
   canvas,
   antialias: false,
@@ -192,7 +194,7 @@ const renderer = new THREE.WebGLRenderer({
   preserveDrawingBuffer: false
 });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowPowerDevice ? 1.0 : 1.25));
 
 const scene = new THREE.Scene();
 const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -238,7 +240,7 @@ const material = new THREE.ShaderMaterial({
       vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);
       return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);
     }
-    float fbm(vec2 p){float v=0.,a=.52;for(int i=0;i<5;i++){v+=a*noise(p);p=p*2.03+17.13;a*=.5;}return v;}
+    float fbm(vec2 p){float v=0.,a=.52;for(int i=0;i<4;i++){v+=a*noise(p);p=p*2.03+17.13;a*=.5;}return v;}
     vec3 sat(vec3 c,float s){float l=dot(c,vec3(.2126,.7152,.0722));return mix(vec3(l),c,s);}
 
     void main(){
@@ -267,9 +269,13 @@ const material = new THREE.ShaderMaterial({
       polluted=mix(polluted,vec3(.63,.63,.64),weatherFog*pow(horizon,.8)*.58);
 
       float cloudiness=uCloud*uWeatherKnown;
-      vec2 wind=uWind*uTime*.035;
-      float cloudNoise=fbm(fieldUv*vec2(3.2,2.1)+wind+vec2(0.,uTime*.002));
-      float cloudMask=smoothstep(.52-.26*cloudiness,.82-.34*cloudiness,cloudNoise)*cloudiness;
+      vec2 wind=uWind*uTime*.028;
+      vec2 cloudUv=fieldUv*vec2(1.55,1.02)+wind*.65;
+      float broad=fbm(cloudUv+vec2(0.,uTime*.0012));
+      float detail=fbm(cloudUv*1.73+vec2(broad*.45,-broad*.28)+wind*.35+vec2(9.7,3.4));
+      float cloudNoise=mix(broad,detail,.38);
+      float cloudMask=smoothstep(.49-.22*cloudiness,.82-.30*cloudiness,cloudNoise)*cloudiness;
+      cloudMask*=smoothstep(.00,.18,uv.y);
       float cloudLight=mix(.86,.63,pollution*.65);
       vec3 cloudColor=mix(vec3(cloudLight),vec3(.38,.37,.40),smoothstep(.65,1.,cloudiness));
       polluted=mix(polluted,cloudColor,cloudMask*.74);
@@ -374,7 +380,7 @@ const start = performance.now();
 function render(now) {
   raf = 0;
   if (!visible || !pageVisible) return;
-  if (!reducedMotion && now - lastFrame < 32) {
+  if (!reducedMotion && now - lastFrame < 15) {
     raf = requestAnimationFrame(render);
     return;
   }
