@@ -1,13 +1,19 @@
 # Pull-to-refresh
 
-The installed Sindhorn Midtown PWA must provide an app-owned pull-down refresh gesture on iOS and Android rather than relying on browser-native pull-to-refresh behavior.
+The installed Sindhorn Midtown PWA must provide an app-owned pull-down refresh gesture on iOS and Android rather than relying on inconsistent browser-native pull-to-refresh behavior.
 
-## Contract
+This specialist document is subordinate to `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`.
 
-- Start only when the page is already at scroll position 0.
+## Final contract
+
+- Gesture engine belongs to the stable Cloudflare bootstrap shell.
+- Start only when the active route is already at scroll position 0.
 - Track a single-finger downward gesture and ignore horizontal swipes.
-- Show a restrained Sindhorn/Flipgazine-style frosted indicator with three states: Pull to refresh, Release to refresh, Refreshing.
-- Crossing the threshold and releasing reloads the current route (`/`, `/guidance`, or `/details`) so both AirBKK and Open-Meteo are fetched again through their existing no-store/live-data paths.
-- The gesture must work in installed PWA mode on Android and iOS/iPadOS.
-- Do not require uninstall/reinstall after release; bump the service-worker shell version so installed clients receive the implementation.
 - Preserve normal scrolling when the page is not at the top.
+- Show three states: `Pull to refresh`, `Release to refresh`, `Refreshing`, with Thai supporting/operational copy.
+- The indicator must use the **same glass material tokens as the persistent header/footer**: same base opacity, border opacity, blur/saturation family and restrained shadow. It must not appear as a visually solid pill.
+- On release after threshold, refresh the current environmental data sources (AirBKK and Open-Meteo) and revalidate the current Supabase UI-pack manifest if appropriate.
+- Do **not** require a full document reload merely to refresh live data in the final persistent-shell architecture.
+- Keep the current Today / Guidance / Details route and preserve WebGL continuity.
+- The gesture must work in installed PWA mode on Android and iOS/iPadOS.
+- Normal releases must never require uninstall/reinstall; service-worker/core-shell updates use the standard update lifecycle and Supabase presentation changes update through the remote UI pack.
