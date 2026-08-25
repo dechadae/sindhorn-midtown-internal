@@ -31,17 +31,17 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://sjpvhgxacsiorrtijqua.supabase.co" crossorigin>
 <link rel="preconnect" href="https://stations.airbkk.com" crossorigin>
-<link rel="preload" as="font" type="font/woff" crossorigin href="https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/vignette/v1/fonts/vignette-sans-light.woff">
-<link rel="preload" as="font" type="font/woff2" crossorigin href="https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/vignette/v1/fonts/ibm-plex-sans-thai-light.woff2">
-<link rel="preload" as="image" href="https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/sindhorn-midtown/v1/sindhorn-midtown-vignette-black.png">
-<link rel="preload" as="image" href="https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/sindhorn-midtown/v1/sindhorn-midtown-vignette-white.png">
+<link rel="preload" as="font" type="font/woff" crossorigin href="/assets/fonts/vignette-sans-light.woff">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/ibm-plex-sans-thai-light.woff2">
+<link rel="preload" as="image" href="/assets/brand/sindhorn-midtown-vignette-black.png">
+<link rel="preload" as="image" href="/assets/brand/sindhorn-midtown-vignette-white.png">
 <style>
-@font-face{font-family:"Vignette Sans";src:url("https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/vignette/v1/fonts/vignette-sans-light.woff") format("woff");font-style:normal;font-weight:200;font-display:swap}
-@font-face{font-family:"Vignette Sans";src:url("https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/vignette/v1/fonts/vignette-sans-regular.woff") format("woff");font-style:normal;font-weight:400;font-display:swap}
-@font-face{font-family:"Vignette Sans";src:url("https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/vignette/v1/fonts/vignette-sans-semibold.woff") format("woff");font-style:normal;font-weight:600;font-display:swap}
-@font-face{font-family:"IBM Plex Sans Thai";src:url("https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/vignette/v1/fonts/ibm-plex-sans-thai-light.woff2") format("woff2");font-style:normal;font-weight:300;font-display:swap}
-@font-face{font-family:"IBM Plex Sans Thai";src:url("https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/vignette/v1/fonts/ibm-plex-sans-thai-regular.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
-@font-face{font-family:"IBM Plex Sans Thai";src:url("https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/vignette/v1/fonts/ibm-plex-sans-thai-semibold.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}
+@font-face{font-family:"Vignette Sans";src:url("/assets/fonts/vignette-sans-light.woff") format("woff");font-style:normal;font-weight:200;font-display:swap}
+@font-face{font-family:"Vignette Sans";src:url("/assets/fonts/vignette-sans-regular.woff") format("woff");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"Vignette Sans";src:url("/assets/fonts/vignette-sans-semibold.woff") format("woff");font-style:normal;font-weight:600;font-display:swap}
+@font-face{font-family:"IBM Plex Sans Thai";src:url("/assets/fonts/ibm-plex-sans-thai-light.woff2") format("woff2");font-style:normal;font-weight:300;font-display:swap}
+@font-face{font-family:"IBM Plex Sans Thai";src:url("/assets/fonts/ibm-plex-sans-thai-regular.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"IBM Plex Sans Thai";src:url("/assets/fonts/ibm-plex-sans-thai-semibold.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}
 :root{
   --twilight:#2E273B;
   --burgundy:#5F2836;
@@ -354,8 +354,8 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
   <div class="masthead-inner">
     <div class="brand-lockup">
       <span class="screen-reader" role="img" aria-label="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></span>
-      <img class="logo-light" src="https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/sindhorn-midtown/v1/sindhorn-midtown-vignette-black.png" width="1200" height="600" alt="" aria-hidden="true">
-      <img class="logo-dark" src="https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/sindhorn-midtown/v1/sindhorn-midtown-vignette-white.png" width="1200" height="600" alt="" aria-hidden="true">
+      <img class="logo-light" src="/assets/brand/sindhorn-midtown-vignette-black.png" width="1200" height="600" alt="" aria-hidden="true">
+      <img class="logo-dark" src="/assets/brand/sindhorn-midtown-vignette-white.png" width="1200" height="600" alt="" aria-hidden="true">
     </div>
     <div class="masthead-tools">
       <div class="today" aria-label="Today">
@@ -709,7 +709,7 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
       var waitOriginal=els.saveImage.innerHTML;els.saveImage.textContent='Waiting for data / รอข้อมูล';setTimeout(function(){els.saveImage.innerHTML=waitOriginal;},1800);return;
     }
     var original=els.saveImage.innerHTML;els.saveImage.disabled=true;els.saveImage.textContent='Preparing / กำลังสร้าง';
-    var logoUrl='https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/sindhorn-midtown/v1/sindhorn-midtown-vignette-white.png';
+    var logoUrl='/assets/brand/sindhorn-midtown-vignette-white.png';
     var fontReady=document.fonts&&document.fonts.ready?Promise.race([document.fonts.ready,new Promise(function(resolve){setTimeout(resolve,800);})]):Promise.resolve();
     fontReady.then(function(){return Promise.race([canvasImage(logoUrl).catch(function(){return null;}),new Promise(function(resolve){setTimeout(function(){resolve(null);},1400);})]);}).then(function(logo){
       var canvas=document.createElement('canvas');canvas.width=1200;canvas.height=1200;var ctx=canvas.getContext('2d');

@@ -1,7 +1,10 @@
-const VERSION='sindhorn-midtown-internal-pwa-v1';
+const VERSION='sindhorn-midtown-internal-pwa-v2';
 const SHELL=[
   '/', '/index.html', '/environment.css', '/environment.js', '/pwa.css', '/app.js', '/manifest.webmanifest',
-  '/icons/app-192.png','/icons/app-512.png','/icons/maskable-512.png','/icons/apple-touch-icon.png'
+  '/icons/app-192.png','/icons/app-512.png','/icons/maskable-512.png','/icons/apple-touch-icon.png',
+  '/vendor/three.module.js','/assets/brand/sindhorn-midtown-vignette-white.png','/assets/brand/sindhorn-midtown-vignette-black.png',
+  '/assets/fonts/vignette-sans-light.woff','/assets/fonts/vignette-sans-regular.woff','/assets/fonts/vignette-sans-semibold.woff',
+  '/assets/fonts/ibm-plex-sans-thai-light.woff2','/assets/fonts/ibm-plex-sans-thai-regular.woff2','/assets/fonts/ibm-plex-sans-thai-semibold.woff2'
 ];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(VERSION).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting()));
