@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v10.1';
+const VERSION='sindhorn-midtown-internal-pwa-v11';
 const SHELL=[
   '/', '/index.html', '/environment.css', '/environment.bundle.js', '/pwa.css', '/ci-ui.css', '/app.js', '/manifest.webmanifest',
   '/icons/app-192.png','/icons/app-512.png','/icons/maskable-512.png','/icons/apple-touch-icon.png','/assets/brand/sindhorn-midtown-vignette-white.png','/assets/brand/sindhorn-midtown-vignette-black.png',

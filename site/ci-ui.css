@@ -264,3 +264,57 @@ body.environment-ready .weather-now[data-app-route-hidden]{display:none!importan
   body[data-route="today"] .guidance-lead{margin:10px 0 0!important;padding-top:9px!important;font-size:.90rem!important;line-height:1.42!important}
   body[data-route="today"] .guidance-lead :lang(th){display:inline!important;margin-left:.32em!important;font-size:1em!important}
 }
+
+
+/* v11 bilingual hierarchy — English typography remains eminent.
+   English owns brand/editorial structure. Thai leads only where comprehension,
+   health, warning or recovery instructions are the primary job. */
+body.environment-ready .instruction-copy .instruction-th{
+  display:block!important;
+  margin:0!important;
+  color:var(--sm-text)!important;
+  font-family:"IBM Plex Sans Thai","Noto Sans Thai",sans-serif!important;
+  font-size:1em!important;
+  font-weight:400!important;
+  letter-spacing:0!important;
+  line-height:1.58!important;
+  text-transform:none!important;
+}
+body.environment-ready .instruction-copy .instruction-en{
+  display:block!important;
+  margin-top:6px!important;
+  color:var(--sm-muted)!important;
+  font-family:"Vignette Sans","Trebuchet MS",sans-serif!important;
+  font-size:.88em!important;
+  font-weight:300!important;
+  letter-spacing:.005em!important;
+  line-height:1.5!important;
+  text-transform:none!important;
+}
+body.environment-ready .guidance-lead.instruction-copy{font-size:1.02rem!important}
+body.environment-ready .advice p.instruction-copy{font-size:.96rem!important}
+body.environment-ready .disclaimer.instruction-copy{font-size:.82rem!important}
+body.environment-ready .disclaimer.instruction-copy .instruction-th{color:rgba(250,247,245,.82)!important}
+body.environment-ready .disclaimer.instruction-copy .instruction-en{color:rgba(250,247,245,.58)!important}
+
+/* English remains visually eminent in every structural/UI pairing. */
+body.environment-ready h1,
+body.environment-ready .route-hero h1,
+body.environment-ready .category-en{
+  font-family:"Vignette Sans","Trebuchet MS",sans-serif!important;
+  font-weight:200!important;
+}
+body.environment-ready .eyebrow,
+body.environment-ready .section-title,
+body.environment-ready .station strong,
+body.environment-ready .aqi-label,
+body.environment-ready .weather-condition strong,
+body.environment-ready .action,
+body.environment-ready .app-footer-kicker{
+  font-family:"Vignette Sans","Trebuchet MS",sans-serif!important;
+}
+@media(max-width:520px){
+  body.environment-ready .guidance-lead.instruction-copy{font-size:.92rem!important}
+  body.environment-ready .advice p.instruction-copy{font-size:.90rem!important}
+  body.environment-ready .instruction-copy .instruction-en{margin-top:4px!important;font-size:.86em!important}
+}
