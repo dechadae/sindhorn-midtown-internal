@@ -34,16 +34,16 @@ const allRouteNodes=[...new Set(Object.values(groups).flat())];
 
 function applyRoute(route,{replace=false,scroll=true}={}){
   if(!ROUTES[route])route='today';
-  const mutate=()=>{
-    document.body.dataset.route=route;
-    allRouteNodes.forEach(node=>node.toggleAttribute('data-app-route-hidden',!groups[route].includes(node)));
-    nav.querySelectorAll('[data-app-route]').forEach(link=>{
-      const active=link.dataset.appRoute===route;
-      link.toggleAttribute('aria-current',active);
-      link.classList.toggle('is-active',active);
-    });
-  };
-  if(document.startViewTransition&&!reducedMotion.matches)document.startViewTransition(mutate);else mutate();
+  document.body.dataset.route=route;
+  allRouteNodes.forEach(node=>node.toggleAttribute('data-app-route-hidden',!groups[route].includes(node)));
+  nav.querySelectorAll('[data-app-route]').forEach(link=>{
+    const active=link.dataset.appRoute===route;
+    link.toggleAttribute('aria-current',active);
+    link.classList.toggle('is-active',active);
+  });
+  if(!reducedMotion.matches&&main?.animate){
+    main.animate([{opacity:.78,transform:'translate3d(0,6px,0)'},{opacity:1,transform:'translate3d(0,0,0)'}],{duration:240,easing:'cubic-bezier(.2,.75,.2,1)'});
+  }
   const target=ROUTES[route];
   if(location.pathname!==target)history[replace?'replaceState':'pushState']({route},'',target);
   if(scroll)window.scrollTo({top:0,behavior:reducedMotion.matches?'auto':'smooth'});
