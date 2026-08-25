@@ -296,7 +296,12 @@ const material = new THREE.ShaderMaterial({
       polluted=mix(polluted,cloudColor,cloudMask*.74);
 
       float sunRadius=mix(.018,.032,pollution)+cloudiness*.008;
-      float sunDist=distance(uv,uSun);
+      // Measure the sun in aspect-correct screen space so it stays circular
+      // on phones, desktop windows, and ultrawide viewports. Radius is expressed
+      // relative to viewport height; horizontal UV distance is corrected by W/H.
+      vec2 sunDelta=uv-uSun;
+      sunDelta.x*=uResolution.x/max(uResolution.y,1.0);
+      float sunDist=length(sunDelta);
       float sunDisc=1.0-smoothstep(sunRadius,sunRadius+.006,sunDist);
       float sunGlow=exp(-sunDist*mix(38.0,13.0,pollution));
       float sunAbove=smoothstep(-4.0,1.5,uSolarAltitude);
