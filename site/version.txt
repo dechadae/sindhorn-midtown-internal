@@ -3,3 +3,4 @@ rendering-fix: atmosphere-projection-v9
 renderer: display-synced-adaptive-resolution
 pwa-spa: flipgazine-ci-aligned-sindhorn-v10
 ui: twilight-sorbet-glass-hairline-v10
+ui-polish: route-isolation-date-visible-first-view-v10.1
