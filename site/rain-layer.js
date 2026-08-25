@@ -45,6 +45,13 @@ function rainIntensity(){
   return Math.min(.72,.36+mm*.09);
 }
 
+function positionPaneBeads(){
+  for(const bead of paneBeads){
+    if(!bead.node)continue;
+    bead.node.setAttribute('transform',`translate(${(bead.x*width).toFixed(2)} ${(bead.y*height).toFixed(2)}) rotate(${bead.rotation.toFixed(2)})`);
+  }
+}
+
 function resize(){
   if(!stage||!canvas||!ctx)return;
   const rect=stage.getBoundingClientRect();
@@ -53,6 +60,7 @@ function resize(){
   canvas.width=Math.max(1,Math.round(width*DPR));canvas.height=Math.max(1,Math.round(height*DPR));
   canvas.style.width=width+'px';canvas.style.height=height+'px';ctx.setTransform(DPR,0,0,DPR,0,0);
   if(paneSvg)paneSvg.setAttribute('viewBox',`0 0 ${width} ${height}`);
+  positionPaneBeads();
 }
 
 function drawDrop(drop,index,dt,intensity){
@@ -101,7 +109,7 @@ function buildPaneSvg(){
   paneBeads.forEach((bead,i)=>{
     const p=makeSvgNode('path',{
       d:dropPath(bead.radius,bead.aspect,(seeded(i*19+4)-.5)*.22,.82+seeded(i*19+5)*.28),
-      fill:'url(#rainBeadBody)',stroke:'none',transform:`translate(${(bead.x*width).toFixed(2)} ${(bead.y*height).toFixed(2)}) rotate(${bead.rotation.toFixed(2)})`
+      fill:'url(#rainBeadBody)',stroke:'none'
     });
     p.style.opacity=String(bead.alpha);beadLayer.appendChild(p);bead.node=p;
   });
@@ -192,3 +200,5 @@ function init(){
   start();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+
+if(location.pathname.includes('atmosphere-tester'))import('./tester-celestials.js?v=1').catch(()=>{});
