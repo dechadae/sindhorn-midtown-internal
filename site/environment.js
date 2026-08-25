@@ -243,6 +243,8 @@ const material = new THREE.ShaderMaterial({
 
     void main(){
       vec2 uv=vUv;
+      float aspect=clamp(uResolution.x/max(uResolution.y,1.0),.50,2.20);
+      vec2 fieldUv=vec2(uv.x*aspect,uv.y);
       float daylight=smoothstep(-7.0,8.0,uSolarAltitude);
       float twilight=1.0-smoothstep(-5.0,5.0,abs(uSolarAltitude));
       float horizon=pow(1.0-uv.y,1.35);
@@ -266,7 +268,7 @@ const material = new THREE.ShaderMaterial({
 
       float cloudiness=uCloud*uWeatherKnown;
       vec2 wind=uWind*uTime*.035;
-      float cloudNoise=fbm(uv*vec2(3.2,2.1)+wind+vec2(0.,uTime*.002));
+      float cloudNoise=fbm(fieldUv*vec2(3.2,2.1)+wind+vec2(0.,uTime*.002));
       float cloudMask=smoothstep(.52-.26*cloudiness,.82-.34*cloudiness,cloudNoise)*cloudiness;
       float cloudLight=mix(.86,.63,pollution*.65);
       vec3 cloudColor=mix(vec3(cloudLight),vec3(.38,.37,.40),smoothstep(.65,1.,cloudiness));
@@ -291,14 +293,16 @@ const material = new THREE.ShaderMaterial({
 
       float rainAmount=clamp(uRain/6.0,0.,1.)*uWeatherKnown;
       if(rainAmount>0.001){
-        vec2 ruv=uv*vec2(58.0,22.0);
+        vec2 ruv=fieldUv*vec2(44.0,22.0);
         ruv.x+=uTime*1.7+ruv.y*.42;
         float streak=step(.965,hash(floor(ruv)))*smoothstep(.88,.1,fract(ruv.y));
         polluted+=vec3(.72,.79,.84)*streak*rainAmount*.45;
         polluted=mix(polluted,vec3(.25,.27,.31),rainAmount*.14);
       }
 
-      float vignette=smoothstep(1.08,.28,distance(uv,vec2(.5,.48)));
+      vec2 vignetteDelta=uv-vec2(.5,.48);
+      vignetteDelta.x*=aspect;
+      float vignette=smoothstep(1.08,.28,length(vignetteDelta));
       polluted*=mix(.86,1.0,vignette);
       gl_FragColor=vec4(polluted,1.0);
     }
