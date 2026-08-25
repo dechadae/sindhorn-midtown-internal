@@ -6,6 +6,7 @@ on:
       - main
       - webgl-environment-v1
       - hybrid-shell-v15
+      - atmosphere-tester-v1
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -35,6 +36,7 @@ jobs:
           node --check site/live-data.js
           node --check site/environment.js
           node --check site/rain-layer.js
+          node --check site/atmosphere-tester.js
           node --check site/presentation-recovery.js
           node --check site/app.js
           node --check site/sw.js
@@ -64,6 +66,16 @@ jobs:
           assert 'Skip to air quality report / <span lang="th">' in index
           assert 'Live PM2.5 and Thai AQI report for Sindhorn Midtown Hotel Bangkok · รายงานคุณภาพอากาศ' in index
           assert '/rain-layer.js' in index, 'persistent rain renderer missing from shell'
+
+          tester = (root / 'atmosphere-tester.html').read_text()
+          assert 'ATMOSPHERE TESTER' in tester
+          assert '/atmosphere-tester.js' in tester
+          assert '/rain-layer.js' in tester
+          assert 'paneDrops' in tester
+
+          sw = (root / 'sw.js').read_text()
+          assert "isAppRoute" in sw, 'service worker must isolate non-app lab navigations'
+          assert "rain2" in sw, 'service worker cache version not bumped for rain/lab release'
 
           for name in ('today.html', 'guidance.html', 'details.html'):
               text = (fallback / name).read_text()
@@ -98,12 +110,17 @@ jobs:
             BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           fi
 
-          for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
-            curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
+          # Cloudflare's branch/production alias can lag a successful upload by a few seconds.
+          sleep 8
+
+          for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /atmosphere-tester.html /atmosphere-tester.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
 
-          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}/" | grep -q '/bootstrap.js'
-          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}/" | grep -q '/rain-layer.js'
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/" | grep -q '/bootstrap.js'
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/" | grep -q '/rain-layer.js'
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/atmosphere-tester.html" | grep -q 'ATMOSPHERE TESTER'
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/atmosphere-tester.html" | grep -q '/atmosphere-tester.js'
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
-          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" | grep -q "\"minimumShell\": ${SHELL_VERSION}"
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" | grep -q "\"minimumShell\": ${SHELL_VERSION}"
