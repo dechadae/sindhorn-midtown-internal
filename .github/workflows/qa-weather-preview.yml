@@ -1,0 +1,87 @@
+name: Validate realtime weather preview
+
+on:
+  push:
+    branches:
+      - webgl-environment-v1
+    paths:
+      - ".github/workflows/qa-weather-preview.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Test live weather and atmosphere
+        run: |
+          cat > qa.cjs <<'NODE'
+          const { chromium } = require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            for (const cfg of [{name:'mobile',width:390,height:844},{name:'desktop',width:1440,height:1000}]) {
+              const page=await browser.newPage({viewport:{width:cfg.width,height:cfg.height}});
+              const errors=[];
+              page.on('pageerror',e=>errors.push('pageerror: '+e.message));
+              page.on('console',m=>{if(m.type()==='error'&&!m.text().includes('favicon'))errors.push('console: '+m.text());});
+              const response=await page.goto('https://webgl-environment-v1.sindhorn-midtown-internal.pages.dev/?debug=1',{waitUntil:'domcontentloaded',timeout:60000});
+              if(!response||response.status()!==200)throw new Error(cfg.name+' HTTP '+(response&&response.status()));
+              await page.waitForFunction(()=>document.body.classList.contains('environment-ready'),null,{timeout:30000});
+              await page.waitForFunction(()=>document.body.dataset.environmentWeather==='live',null,{timeout:30000});
+              await page.waitForFunction(()=>{const e=document.querySelector('#weatherNow');return e&&!e.hidden&&/^\d+°$/.test(document.querySelector('#weatherTemp')?.textContent?.trim()||'')},null,{timeout:30000});
+              await page.waitForFunction(()=>/^\d+(\.\d+)?$/.test(document.querySelector('#pmValue')?.textContent?.trim()||''),null,{timeout:30000});
+              const state=await page.evaluate(()=>({
+                weather:document.body.dataset.environmentWeather,
+                air:document.body.dataset.environmentAir,
+                temp:document.querySelector('#weatherTemp')?.textContent?.trim(),
+                condition:document.querySelector('#weatherConditionEn')?.textContent?.trim(),
+                thai:document.querySelector('#weatherConditionTh')?.textContent?.trim(),
+                meta:document.querySelector('#weatherMetaEn')?.textContent?.trim(),
+                credit:document.querySelector('.weather-credit')?.getAttribute('href'),
+                pm:document.querySelector('#pmValue')?.textContent?.trim(),
+                aqi:document.querySelector('#aqiValue')?.textContent?.trim(),
+                debug:document.querySelector('.environment-debug')?.textContent||''
+              }));
+              if(state.weather!=='live')throw new Error(cfg.name+' weather not live');
+              if(!state.condition||state.condition==='Current weather')throw new Error(cfg.name+' weather condition not resolved');
+              if(!state.meta.includes('RH')||!state.meta.includes('Wind'))throw new Error(cfg.name+' weather meta incomplete');
+              if(state.credit!=='https://open-meteo.com/')throw new Error(cfg.name+' weather attribution missing');
+              if(!state.debug.includes('weather: LIVE'))throw new Error(cfg.name+' shader weather state not live');
+              if(errors.length)throw new Error(cfg.name+' browser errors: '+errors.join(' | '));
+              console.log(cfg.name,JSON.stringify(state));
+              await page.screenshot({path:`${cfg.name}-weather.png`,fullPage:true});
+              await page.close();
+            }
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+          node qa.cjs
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: weather-preview-screenshots
+          path: |
+            mobile-weather.png
+            desktop-weather.png
+          retention-days: 7
+
+      - name: Remove one-time QA workflow
+        if: always()
+        run: |
+          rm -f qa.cjs package.json package-lock.json
+          git rm .github/workflows/qa-weather-preview.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Remove one-time weather QA workflow"
+          git push
