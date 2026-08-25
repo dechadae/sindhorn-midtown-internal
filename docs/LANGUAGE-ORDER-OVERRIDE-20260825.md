@@ -1,46 +1,24 @@
-# Sindhorn Midtown Internal — English-First Bilingual Override
+# Language order override — 25 August 2026
 
-**Approved:** 25 August 2026  
-**Status:** Current language-order authority
+This document is the latest language-order authority for Sindhorn Midtown Internal and overrides earlier Thai-first exceptions in older planning text.
 
-This file records a later approved product decision made during the v15 hybrid-shell migration.
+## Final rule
 
-## Rule
+The application is bilingual **English first throughout**.
 
-> **The application remains fully bilingual, but English comes first throughout the entire app. Thai follows immediately as supporting translation.**
+- English appears first in DOM/read order and is visually primary.
+- Thai follows immediately as direct operational support.
+- This applies to navigation, status, health guidance, actionable instructions, warnings, errors, recovery states, permissions, safety/medical disclaimers, pull-to-refresh states, save/share feedback and push notifications.
+- Critical information must remain understandable without a language selector.
+- English uses Vignette Sans; Thai uses Noto Sans Thai.
+- The official Sindhorn Midtown / Vignette lockup remains artwork and is never re-typeset.
 
-This supersedes every earlier rule that made Thai first for health guidance, actionable instructions, warnings, errors/recovery, permissions, operational information, safety/medical disclaimers, or Web Push notifications.
+## Implementation contract
 
-## Applies to
+For paired instructional copy, use English before Thai in source markup. The stable shell also includes a small `bilingual.css` contract that preserves English-first visual ordering for `.instruction-copy` even if a future UI pack accidentally changes flex ordering.
 
-- Today, Guidance and Details routes
-- header/footer/navigation
-- live PM2.5/AQI status
-- weather labels
-- health guidance
-- actionable instructions
-- warnings and unavailable states
-- recovery/error text
-- permission/operational UI
-- pull-to-refresh
-- Save/Share feedback
-- disclaimers
-- Web Push notification title and body
+Web Push title/body composition is English first, then Thai. Plain-text push payload fallback is treated as English.
 
-## DOM/read order
+## Remote UI packs
 
-When both languages are present, English must precede Thai in source/DOM/read order. Do not rely only on CSS visual reordering.
-
-## Typography
-
-- English / Latin: Vignette Sans
-- Thai: Noto Sans Thai
-- Official hotel/Vignette logo remains artwork
-
-Thai remains clearly legible and directly associated with its English counterpart. It must not be reduced to decorative microcopy.
-
-## Architecture impact
-
-This is primarily presentation/copy policy and belongs in the Supabase UI-pack layer. Stable shell surfaces that exist before the UI pack loads, such as skip/recovery copy and service-worker notification composition, must follow the same English-first rule.
-
-No language selector is required.
+Every future Supabase app pack must preserve this language order. Pack publication remains versioned and immutable: edit a new pack version rather than silently mutating an already deployed pack. The v15 loader validates pack version, content type and SHA-256 integrity before activation.
