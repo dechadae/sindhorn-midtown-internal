@@ -1,0 +1,96 @@
+name: QA live production v6
+on:
+  push:
+    branches: [qa-live-v6]
+    paths: ['.github/workflows/qa-live-v6.yml']
+permissions:
+  contents: read
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+      - name: Test live app
+        run: |
+          cat > live-check.cjs <<'JS'
+          const { chromium }=require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1});
+            const page=await context.newPage();
+            const errors=[];
+            page.on('pageerror',e=>errors.push('page:'+e.message));
+            page.on('console',m=>{if(m.type()==='error')errors.push('console:'+m.text())});
+            const resp=await page.goto('https://sindhorn-midtown-internal.pages.dev/',{waitUntil:'networkidle',timeout:60000});
+            if(!resp||resp.status()!==200)throw new Error('production HTTP '+(resp&&resp.status()));
+            await page.waitForTimeout(3000);
+            const normal=await page.evaluate(()=>{
+              const stage=document.getElementById('environmentStage');
+              const canvas=document.getElementById('environmentCanvas');
+              const save=document.getElementById('saveImageBtn');
+              const weather=document.getElementById('weatherNow');
+              const nav=document.querySelector('.app-tabbar');
+              const mast=document.querySelector('.masthead');
+              const r=stage.getBoundingClientRect();
+              const cs=getComputedStyle(save);
+              return {
+                stage:{x:r.x,y:r.y,w:r.width,h:r.height},
+                canvas:{w:canvas.width,h:canvas.height,opacity:getComputedStyle(canvas).opacity},
+                environmentReady:document.body.classList.contains('environment-ready'),
+                saveAfterWeather:!!(weather.compareDocumentPosition(save)&Node.DOCUMENT_POSITION_FOLLOWING),
+                saveBackdrop:cs.backdropFilter||cs.webkitBackdropFilter,
+                navBackdrop:getComputedStyle(nav).backdropFilter||getComputedStyle(nav).webkitBackdropFilter,
+                mastTop:getComputedStyle(mast).top,
+                pm:document.getElementById('pmValue')?.textContent,
+                aqi:document.getElementById('aqiValue')?.textContent,
+                weather:document.getElementById('weatherTemp')?.textContent,
+                version:fetch('/version.txt',{cache:'no-store'}).then(r=>r.text())
+              };
+            });
+            normal.version=await normal.version;
+            console.log('NORMAL',JSON.stringify(normal));
+            if(!normal.version.includes('seamless-cloud-field-v6'))throw new Error('live version is not v6');
+            if(!normal.environmentReady)throw new Error('environment not ready');
+            if(normal.stage.x>-8||normal.stage.y>-8||normal.stage.w<406||normal.stage.h<860)throw new Error('stage does not overfill viewport');
+            if(!normal.saveAfterWeather)throw new Error('save button is not after weather');
+            if(!normal.saveBackdrop||normal.saveBackdrop==='none')throw new Error('save button lacks frosted glass');
+            if(!normal.navBackdrop||normal.navBackdrop==='none')throw new Error('nav lacks frosted glass');
+            await page.screenshot({path:'live-normal.png',fullPage:false});
+
+            // Measure actual browser animation cadence over 2 seconds; the app itself may skip frames under load.
+            const cadence=await page.evaluate(()=>new Promise(resolve=>{
+              let n=0;const times=[];const start=performance.now();let prev=start;
+              function tick(t){times.push(t-prev);prev=t;n++;if(t-start<2000)requestAnimationFrame(tick);else resolve({frames:n,avg:times.reduce((a,b)=>a+b,0)/times.length,max:Math.max(...times)});}
+              requestAnimationFrame(tick);
+            }));
+            console.log('CADENCE',JSON.stringify(cadence));
+
+            await page.evaluate(()=>document.body.classList.add('is-fullscreen'));
+            const fs=await page.evaluate(()=>{
+              const mast=document.querySelector('.masthead');
+              const r=mast.getBoundingClientRect();
+              const cs=getComputedStyle(mast);
+              return {top:r.top,position:cs.position,z:cs.zIndex};
+            });
+            console.log('FULLSCREEN',JSON.stringify(fs));
+            if(fs.position!=='fixed'||Math.abs(fs.top)>1)throw new Error('fullscreen masthead is not at physical top');
+            await page.screenshot({path:'live-fullscreen.png',fullPage:false});
+            if(errors.length)throw new Error(errors.join('\n'));
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
+          node live-check.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-v6-qa
+          path: |
+            live-normal.png
+            live-fullscreen.png
+          if-no-files-found: ignore
