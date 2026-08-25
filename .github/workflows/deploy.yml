@@ -8,6 +8,7 @@ on:
       - hybrid-shell-v15
       - atmosphere-tester-v1
       - hotfix-rain-svg-pane
+      - rain-realism-type-consistency
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -37,6 +38,7 @@ jobs:
           node --check site/environment.js
           node --check site/rain-layer.js
           node --check site/atmosphere-tester.js
+          node --check site/tester-celestials.js
           node --check site/presentation-recovery.js
           node --check site/app.js
           node --check site/sw.js
@@ -54,15 +56,19 @@ jobs:
               data=(fallback/item['path']).read_bytes(); digest=hashlib.sha256(data).hexdigest()
               assert digest==item['sha256'],f"fallback hash mismatch: {item['path']}"
           index=(root/'index.html').read_text()
-          assert '/rain-layer.js?v=3' in index
+          assert '/rain-layer.js?v=4' in index
           rain=(root/'rain-layer.js').read_text()
           assert 'rainPaneSvg' in rain
           assert 'rainPaneCanvas' not in rain
           assert 'desynchronized:true' not in rain
+          assert 'tester-celestials.js?v=1' in rain
           tester=(root/'atmosphere-tester.html').read_text()
-          assert 'ATMOSPHERE TESTER' in tester and '/atmosphere-tester.js' in tester and '/rain-layer.js?v=3' in tester
+          assert 'ATMOSPHERE TESTER' in tester and '/atmosphere-tester.js' in tester and '/rain-layer.js?v=4' in tester
+          assert '/tester-celestials.js?v=1' in tester
+          celestial=(root/'tester-celestials.js').read_text()
+          assert 'sunEclipse' in celestial and 'moonEclipse' in celestial
           sw=(root/'sw.js').read_text()
-          assert 'isAppRoute' in sw and 'rain3' in sw
+          assert 'isAppRoute' in sw and 'rain4' in sw
           PY
 
       - name: Deploy to Cloudflare Pages
@@ -77,19 +83,24 @@ jobs:
           set -euo pipefail
           if [ "${GITHUB_REF_NAME}" = "main" ]; then BASE_URL="https://sindhorn-midtown-internal.pages.dev"; else BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"; fi
           sleep 8
-          for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /atmosphere-tester.html /atmosphere-tester.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
+          for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/" -o /tmp/smoke-root
           grep -q '/bootstrap.js' /tmp/smoke-root
-          grep -q '/rain-layer.js?v=3' /tmp/smoke-root
+          grep -q '/rain-layer.js?v=4' /tmp/smoke-root
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/rain-layer.js" -o /tmp/smoke-rain
           grep -q 'rainPaneSvg' /tmp/smoke-rain
           ! grep -q 'rainPaneCanvas' /tmp/smoke-rain
+          grep -q 'tester-celestials.js?v=1' /tmp/smoke-rain
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/atmosphere-tester.html" -o /tmp/smoke-tester
           grep -q 'ATMOSPHERE TESTER' /tmp/smoke-tester
-          grep -q '/rain-layer.js?v=3' /tmp/smoke-tester
+          grep -q '/rain-layer.js?v=4' /tmp/smoke-tester
+          grep -q '/tester-celestials.js?v=1' /tmp/smoke-tester
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/tester-celestials.js" -o /tmp/smoke-celestial
+          grep -q 'sunEclipse' /tmp/smoke-celestial
+          grep -q 'moonEclipse' /tmp/smoke-celestial
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" -o /tmp/smoke-manifest
           grep -q "\"minimumShell\": ${SHELL_VERSION}" /tmp/smoke-manifest
