@@ -1,0 +1,41 @@
+name: Bundle Three.js environment
+on:
+  push:
+    branches: [webgl-environment-v1]
+    paths: ['.github/workflows/bundle-environment-once.yml']
+permissions:
+  contents: write
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Bundle environment module
+        run: |
+          npx --yes esbuild@0.25.9 site/environment.js --bundle --format=esm --platform=browser --target=es2020 --outfile=site/environment.bundle.js
+          node --check site/environment.bundle.js
+      - name: Switch shell to bundled environment
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('site/index.html');s=p.read_text().replace('<script type="module" src="/environment.js"></script>','<script type="module" src="/environment.bundle.js"></script>');p.write_text(s)
+          p=Path('site/sw.js');s=p.read_text().replace("sindhorn-midtown-internal-pwa-v3","sindhorn-midtown-internal-pwa-v4")
+          s=s.replace("'/environment.css', '/environment.js', '/pwa.css'","'/environment.css', '/environment.bundle.js', '/pwa.css'")
+          s=s.replace(",'/vendor/three.module.js'","")
+          p.write_text(s)
+          PY
+      - name: Verify bundle and shell
+        run: |
+          test -s site/environment.bundle.js
+          grep -q 'environment.bundle.js' site/index.html
+          ! grep -q 'src="/environment.js"' site/index.html
+          grep -q "pwa-v4" site/sw.js
+          grep -q 'environment.bundle.js' site/sw.js
+      - name: Commit and remove helper
+        run: |
+          rm -f .github/workflows/bundle-environment-once.yml
+          git config user.name "dechadae"
+          git config user.email "decha.dae@gmail.com"
+          git add site .github/workflows/bundle-environment-once.yml
+          git commit -m "Bundle Three.js environment for offline PWA"
+          git push origin HEAD:webgl-environment-v1
