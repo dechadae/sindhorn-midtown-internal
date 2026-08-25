@@ -124,3 +124,5 @@ body.environment-ready .weather-now[hidden]{display:none!important}
   .weather-primary{gap:11px}.weather-temp{font-size:2.15rem}.weather-condition strong{font-size:.72rem}.weather-condition span{font-size:.88rem}
   .weather-meta{font-size:.70rem}.weather-credit{justify-self:start;font-size:.56rem;margin-top:1px}
 }
+
+/* Weather UI and the WebGL atmosphere are driven by the same realtime weather state. */
