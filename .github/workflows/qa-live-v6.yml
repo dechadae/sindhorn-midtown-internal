@@ -49,11 +49,10 @@ jobs:
                 mastTop:getComputedStyle(mast).top,
                 pm:document.getElementById('pmValue')?.textContent,
                 aqi:document.getElementById('aqiValue')?.textContent,
-                weather:document.getElementById('weatherTemp')?.textContent,
-                version:fetch('/version.txt',{cache:'no-store'}).then(r=>r.text())
+                weather:document.getElementById('weatherTemp')?.textContent
               };
             });
-            normal.version=await normal.version;
+            normal.version=await page.evaluate(()=>fetch('/version.txt',{cache:'no-store'}).then(r=>r.text()));
             console.log('NORMAL',JSON.stringify(normal));
             if(!normal.version.includes('seamless-cloud-field-v6'))throw new Error('live version is not v6');
             if(!normal.environmentReady)throw new Error('environment not ready');
@@ -63,7 +62,6 @@ jobs:
             if(!normal.navBackdrop||normal.navBackdrop==='none')throw new Error('nav lacks frosted glass');
             await page.screenshot({path:'live-normal.png',fullPage:false});
 
-            // Measure actual browser animation cadence over 2 seconds; the app itself may skip frames under load.
             const cadence=await page.evaluate(()=>new Promise(resolve=>{
               let n=0;const times=[];const start=performance.now();let prev=start;
               function tick(t){times.push(t-prev);prev=t;n++;if(t-start<2000)requestAnimationFrame(tick);else resolve({frames:n,avg:times.reduce((a,b)=>a+b,0)/times.length,max:Math.max(...times)});}
