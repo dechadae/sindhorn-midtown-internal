@@ -380,14 +380,6 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
     <p class="eyebrow">Live air quality <span aria-hidden="true">·</span> <span lang="th">คุณภาพอากาศสด</span></p>
     <h1 id="pageTitle">Breathe well <span lang="th">อากาศวันนี้</span></h1>
     <p class="intro-copy">PM2.5 + Thai AQI near Sindhorn Midtown. <span lang="th">ค่าฝุ่นล่าสุดใกล้<span class="hotel-name">สินธร&nbsp;มิดทาวน์</span></span></p>
-    <div class="weather-now" id="weatherNow" hidden aria-live="polite">
-      <div class="weather-primary">
-        <span class="weather-temp" id="weatherTemp">—°</span>
-        <span class="weather-condition"><strong id="weatherConditionEn">Current weather</strong><span lang="th" id="weatherConditionTh">สภาพอากาศขณะนี้</span></span>
-      </div>
-      <p class="weather-meta"><span id="weatherMetaEn">Loading weather</span><span lang="th" id="weatherMetaTh">กำลังโหลดข้อมูลอากาศ</span></p>
-      <a class="weather-credit" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Weather data by Open-Meteo.com</a>
-    </div>
   </section>
 
   <section class="report" id="report" tabindex="-1" aria-labelledby="reportTitle" aria-busy="true">
@@ -432,6 +424,15 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
   </section>
   <div class="report-actionbar">
     <button class="action quick-save" type="button" id="saveImageBtn">Save compact image / <span lang="th">บันทึกภาพ</span></button>
+  </div>
+
+  <div class="weather-now" id="weatherNow" hidden aria-live="polite">
+    <div class="weather-primary">
+      <span class="weather-temp" id="weatherTemp">—°</span>
+      <span class="weather-condition"><strong id="weatherConditionEn">Current weather</strong><span lang="th" id="weatherConditionTh">สภาพอากาศขณะนี้</span></span>
+    </div>
+    <p class="weather-meta"><span id="weatherMetaEn">Loading weather</span><span lang="th" id="weatherMetaTh">กำลังโหลดข้อมูลอากาศ</span></p>
+    <a class="weather-credit" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Weather data by Open-Meteo.com</a>
   </div>
 
   <section class="section" aria-labelledby="adviceTitle">
