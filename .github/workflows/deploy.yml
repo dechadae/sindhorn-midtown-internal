@@ -34,6 +34,7 @@ jobs:
           node --check site/bootstrap.js
           node --check site/live-data.js
           node --check site/environment.js
+          node --check site/rain-layer.js
           node --check site/presentation-recovery.js
           node --check site/app.js
           node --check site/sw.js
@@ -62,6 +63,7 @@ jobs:
           index = (root / 'index.html').read_text()
           assert 'Skip to air quality report / <span lang="th">' in index
           assert 'Live PM2.5 and Thai AQI report for Sindhorn Midtown Hotel Bangkok · รายงานคุณภาพอากาศ' in index
+          assert '/rain-layer.js' in index, 'persistent rain renderer missing from shell'
 
           for name in ('today.html', 'guidance.html', 'details.html'):
               text = (fallback / name).read_text()
@@ -96,11 +98,12 @@ jobs:
             BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           fi
 
-          for path in / /guidance /details /bootstrap.js /environment.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
+          for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
             curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
 
           curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}/" | grep -q '/bootstrap.js'
+          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}/" | grep -q '/rain-layer.js'
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" | grep -q "\"minimumShell\": ${SHELL_VERSION}"
