@@ -1,0 +1,85 @@
+name: Validate WebGL environment preview
+
+on:
+  push:
+    branches:
+      - webgl-environment-v1
+    paths:
+      - ".github/workflows/qa-environment-preview.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Test mobile and desktop preview
+        run: |
+          cat > qa.cjs <<'NODE'
+          const { chromium } = require('playwright');
+          const fs = require('fs');
+          const url = 'https://webgl-environment-v1.sindhorn-midtown-internal.pages.dev/?debug=1';
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            for (const cfg of [{name:'mobile',width:390,height:844},{name:'desktop',width:1440,height:1000}]) {
+              const page=await browser.newPage({viewport:{width:cfg.width,height:cfg.height}});
+              const errors=[];
+              page.on('pageerror',e=>errors.push('pageerror: '+e.message));
+              page.on('console',m=>{if(m.type()==='error'&&!m.text().includes('favicon'))errors.push('console: '+m.text());});
+              const response=await page.goto(url,{waitUntil:'domcontentloaded',timeout:60000});
+              if(!response||response.status()!==200)throw new Error(cfg.name+' HTTP '+(response&&response.status()));
+              await page.waitForFunction(()=>document.body.classList.contains('environment-ready'),null,{timeout:30000});
+              await page.waitForFunction(()=>/^\d+(\.\d+)?$/.test(document.querySelector('#pmValue')?.textContent?.trim()||''),null,{timeout:30000});
+              await page.waitForTimeout(1800);
+              const state=await page.evaluate(()=>({
+                ready:document.body.classList.contains('environment-ready'),
+                weather:document.body.dataset.environmentWeather,
+                air:document.body.dataset.environmentAir,
+                pm:document.querySelector('#pmValue')?.textContent?.trim(),
+                aqi:document.querySelector('#aqiValue')?.textContent?.trim(),
+                canvas:[document.querySelector('#environmentCanvas')?.width,document.querySelector('#environmentCanvas')?.height],
+                debug:document.querySelector('.environment-debug')?.textContent||'',
+                stage:document.querySelector('#environmentStage')?.getBoundingClientRect().toJSON?.()||null
+              }));
+              if(!state.ready)throw new Error(cfg.name+' environment not ready');
+              if(!state.canvas[0]||!state.canvas[1])throw new Error(cfg.name+' canvas has no render size');
+              if(state.air!=='live')throw new Error(cfg.name+' AirBKK did not reach live render state: '+state.air);
+              if(!state.debug.includes('cloud/rain deliberately not inferred'))throw new Error(cfg.name+' unknown-weather safety fallback missing');
+              if(errors.length)throw new Error(cfg.name+' browser errors: '+errors.join(' | '));
+              console.log(cfg.name,JSON.stringify(state));
+              await page.screenshot({path:`${cfg.name}.png`,fullPage:true});
+              await page.close();
+            }
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+          node qa.cjs
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: environment-preview-screenshots
+          path: |
+            mobile.png
+            desktop.png
+          retention-days: 7
+
+      - name: Remove one-time QA workflow
+        if: always()
+        run: |
+          rm -f qa.cjs package.json package-lock.json
+          git rm .github/workflows/qa-environment-preview.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Remove one-time environment QA workflow"
+          git push
