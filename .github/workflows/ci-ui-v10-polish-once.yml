@@ -1,4 +1,4 @@
-name: Sindhorn CI UI v10 polish
+name: Sindhorn CI UI v10 finalize
 on:
   push:
     branches: [flipgazine-ci-ui-v10]
@@ -6,25 +6,22 @@ on:
 permissions:
   contents: write
 jobs:
-  polish:
+  finalize:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
 
-      - name: Apply route visibility and compact mobile hierarchy
+      - name: Apply final route isolation and mobile hierarchy
         run: |
           cat >> site/ci-ui.css <<'CSS'
 
-          /* v10 final route + mobile polish. Hidden SPA groups must beat every
-             surface/component display declaration, including environment-ready rules. */
+          /* v10 final route + mobile polish. */
           [data-app-route-hidden],
           body.environment-ready [data-app-route-hidden],
           body.environment-ready .report-actionbar[data-app-route-hidden],
           body.environment-ready .weather-now[data-app-route-hidden]{display:none!important}
 
-          /* Keep the date visible on the smallest supported phone. The prior baseline
-             hid it below 360px; the CI header has enough room after compacting type. */
           @media(max-width:359px){
             .today{display:block!important;min-width:76px!important}
             .today .en{font-size:.56rem!important;letter-spacing:.11em!important}
@@ -33,14 +30,8 @@ jobs:
             .masthead-tools{gap:6px!important}
           }
 
-          /* Today must remain immediately useful on launch. Use the original compact
-             information geometry, but retain the larger/readable v10 type and CI styling. */
           @media(max-width:520px){
-            body[data-route="today"].environment-ready{
-              --type-label:.72rem;
-              --type-body:.90rem;
-              --type-subhead:1.06rem;
-            }
+            body[data-route="today"].environment-ready{--type-label:.72rem;--type-body:.90rem;--type-subhead:1.06rem}
             body[data-route="today"] .intro{padding:24px 0 17px!important}
             body[data-route="today"] .eyebrow{margin-bottom:8px!important;font-size:.64rem!important}
             body[data-route="today"] h1{font-size:clamp(2.4rem,11.3vw,3.05rem)!important;line-height:.94!important}
@@ -69,18 +60,15 @@ jobs:
             body[data-route="today"] .guidance-lead :lang(th){display:inline!important;margin-left:.32em!important;font-size:1em!important}
           }
           CSS
-
-          # Service worker cache identity changes because ci-ui.css changed.
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('site/sw.js')
-          s=p.read_text()
-          assert "sindhorn-midtown-internal-pwa-v10" in s
-          p.write_text(s.replace("sindhorn-midtown-internal-pwa-v10","sindhorn-midtown-internal-pwa-v10.1",1))
-          p=Path('site/version.txt')
-          s=p.read_text()
-          if 'ui-polish:' not in s:
-            s += 'ui-polish: route-isolation-date-visible-first-view-v10.1\n'
+          p=Path('site/sw.js'); s=p.read_text()
+          if 'pwa-v10.1' not in s:
+            assert 'pwa-v10' in s
+            s=s.replace('pwa-v10','pwa-v10.1',1)
+          p.write_text(s)
+          p=Path('site/version.txt'); s=p.read_text()
+          if 'ui-polish:' not in s: s += 'ui-polish: route-isolation-date-visible-first-view-v10.1\n'
           p.write_text(s)
           PY
 
@@ -100,7 +88,7 @@ jobs:
           python3 -m http.server 4173 --directory site >/tmp/http.log 2>&1 &
           SERVER_PID=$!
           trap 'kill $SERVER_PID || true' EXIT
-          cat > polish-check.cjs <<'JS'
+          cat > final-check.cjs <<'JS'
           const { chromium }=require('playwright');
           (async()=>{
             const browser=await chromium.launch({headless:true});
@@ -118,70 +106,45 @@ jobs:
                 const guidance=document.querySelector('.guidance-lead');
                 const nav=document.querySelector('.app-tabbar');
                 const sr=status.getBoundingClientRect(), gr=guidance.getBoundingClientRect(), nr=nav.getBoundingClientRect();
-                return {
-                  route:document.body.dataset.route,
-                  dateDisplay:getComputedStyle(date).display,
-                  dateWidth:date.getBoundingClientRect().width,
-                  statusTop:sr.top,statusBottom:sr.bottom,
-                  guidanceTop:gr.top,guidanceBottom:gr.bottom,
-                  navTop:nr.top,
-                  width:document.documentElement.scrollWidth,
-                  envReady:document.body.classList.contains('environment-ready')
-                };
+                return {route:document.body.dataset.route,dateDisplay:getComputedStyle(date).display,dateWidth:date.getBoundingClientRect().width,statusTop:sr.top,guidanceTop:gr.top,navTop:nr.top,width:document.documentElement.scrollWidth,envReady:document.body.classList.contains('environment-ready')};
               });
               console.log('TODAY '+vp.label,JSON.stringify(today));
-              await page.screenshot({path:`today-polish-${vp.label}.png`,fullPage:false});
-              if(today.route!=='today'||today.dateDisplay==='none'||today.dateWidth<40)throw new Error('date missing '+vp.label);
-              if(today.width>vp.w+1)throw new Error('horizontal overflow '+vp.label);
-              // At 390x844 the status meaning and beginning of guidance must be visible above the fixed nav.
-              if(vp.w===390&&(today.statusTop>=today.navTop||today.guidanceTop>=today.navTop))throw new Error('today meaning is still below nav');
+              if(today.route!=='today'||today.dateDisplay==='none'||today.dateWidth<40||today.width>vp.w+1)throw new Error('today layout failed '+vp.label);
+              if(vp.w===390&&(today.statusTop>=today.navTop||today.guidanceTop>=today.navTop))throw new Error('today meaning below nav');
+              await page.screenshot({path:`today-final-${vp.label}.png`,fullPage:false});
 
-              await page.click('[data-app-route="guidance"]');
-              await page.waitForTimeout(350);
-              const guidanceRoute=await page.evaluate(()=>({
-                route:document.body.dataset.route,
-                saveDisplay:getComputedStyle(document.getElementById('saveImageBtn')).display,
-                weatherDisplay:getComputedStyle(document.getElementById('weatherNow')).display,
-                hero:document.querySelector('.route-hero h1')?.textContent.trim(),
-                width:document.documentElement.scrollWidth
-              }));
-              console.log('GUIDANCE '+vp.label,JSON.stringify(guidanceRoute));
-              if(vp.w===390)await page.screenshot({path:'guidance-polish-390.png',fullPage:false});
-              if(guidanceRoute.route!=='guidance'||guidanceRoute.saveDisplay!=='none'||guidanceRoute.weatherDisplay!=='none'||!guidanceRoute.hero.includes('Guidance')||guidanceRoute.width>vp.w+1)throw new Error('guidance route isolation failed');
+              await page.click('[data-app-route="guidance"]'); await page.waitForTimeout(350);
+              const g=await page.evaluate(()=>({route:document.body.dataset.route,saveParent:getComputedStyle(document.querySelector('.report-actionbar')).display,weather:getComputedStyle(document.getElementById('weatherNow')).display,hero:document.querySelector('.route-hero h1')?.textContent.trim(),width:document.documentElement.scrollWidth}));
+              console.log('GUIDANCE '+vp.label,JSON.stringify(g));
+              if(g.route!=='guidance'||g.saveParent!=='none'||g.weather!=='none'||!g.hero.includes('Guidance')||g.width>vp.w+1)throw new Error('guidance isolation failed');
+              if(vp.w===390)await page.screenshot({path:'guidance-final-390.png',fullPage:false});
 
-              await page.click('[data-app-route="details"]');
-              await page.waitForTimeout(350);
-              const detailsRoute=await page.evaluate(()=>({
-                route:document.body.dataset.route,
-                saveDisplay:getComputedStyle(document.getElementById('saveImageBtn')).display,
-                weatherDisplay:getComputedStyle(document.getElementById('weatherNow')).display,
-                hero:document.querySelector('.route-hero h1')?.textContent.trim(),
-                width:document.documentElement.scrollWidth
-              }));
-              console.log('DETAILS '+vp.label,JSON.stringify(detailsRoute));
-              if(vp.w===390)await page.screenshot({path:'details-polish-390.png',fullPage:false});
-              if(detailsRoute.route!=='details'||detailsRoute.saveDisplay!=='none'||detailsRoute.weatherDisplay!=='none'||!detailsRoute.hero.includes('Reading details')||detailsRoute.width>vp.w+1)throw new Error('details route isolation failed');
+              await page.click('[data-app-route="details"]'); await page.waitForTimeout(350);
+              const d=await page.evaluate(()=>({route:document.body.dataset.route,saveParent:getComputedStyle(document.querySelector('.report-actionbar')).display,weather:getComputedStyle(document.getElementById('weatherNow')).display,hero:document.querySelector('.route-hero h1')?.textContent.trim(),refresh:!!document.getElementById('refreshBtn'),width:document.documentElement.scrollWidth}));
+              console.log('DETAILS '+vp.label,JSON.stringify(d));
+              if(d.route!=='details'||d.saveParent!=='none'||d.weather!=='none'||!d.hero.includes('Reading details')||!d.refresh||d.width>vp.w+1)throw new Error('details isolation failed');
+              if(vp.w===390)await page.screenshot({path:'details-final-390.png',fullPage:false});
 
               await page.evaluate(()=>document.body.classList.add('is-fullscreen'));
               const full=await page.evaluate(()=>{const h=document.querySelector('.masthead');const r=h.getBoundingClientRect();return{top:r.top,position:getComputedStyle(h).position}});
-              if(full.position!=='fixed'||Math.abs(full.top)>1)throw new Error('fullscreen top header failed');
+              if(full.position!=='fixed'||Math.abs(full.top)>1)throw new Error('fullscreen header failed');
               if(errors.length)throw new Error(errors.join('\n'));
               await context.close();
             }
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
           JS
-          node polish-check.cjs
+          node final-check.cjs
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: sindhorn-ci-ui-v10-polish
+          name: sindhorn-ci-ui-v10-final
           path: |
-            today-polish-390.png
-            today-polish-320.png
-            guidance-polish-390.png
-            details-polish-390.png
+            today-final-390.png
+            today-final-320.png
+            guidance-final-390.png
+            details-final-390.png
           if-no-files-found: ignore
 
       - name: Commit verified polish and remove helper
@@ -190,5 +153,5 @@ jobs:
           git config user.name dechadae
           git config user.email decha.dae@gmail.com
           git add site/ci-ui.css site/sw.js site/version.txt .github/workflows/ci-ui-v10-polish-once.yml
-          git commit -m 'Polish route isolation and mobile first view'
+          git commit -m 'Finalize Flipgazine CI app UI polish'
           git push origin HEAD:flipgazine-ci-ui-v10
