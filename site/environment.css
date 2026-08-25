@@ -1,29 +1,107 @@
-/* Realtime environment preview v1. Progressive enhancement over approved PM2.5 v5. */
+/* Realtime environment preview v2. Full-page atmosphere with all information layered above it. */
 .environment-stage[hidden]{display:none!important}
-.environment-stage{position:absolute;z-index:0;top:0;left:0;width:100%;height:clamp(360px,58svh,610px);overflow:hidden;background:linear-gradient(180deg,#536b83 0%,#9b9390 58%,#2E273B 100%);pointer-events:none;isolation:isolate}
-.environment-stage::before{content:"";position:absolute;z-index:2;inset:0;background:linear-gradient(180deg,rgba(25,22,34,.18) 0%,rgba(25,22,34,.20) 46%,rgba(46,39,59,.68) 82%,var(--page-bg) 100%);pointer-events:none}
+.environment-stage{position:fixed;z-index:0;inset:0;width:100%;height:100svh;overflow:hidden;background:linear-gradient(180deg,#536b83 0%,#8a8585 62%,#2E273B 100%);pointer-events:none;isolation:isolate}
+.environment-stage::before{content:"";position:absolute;z-index:2;inset:0;background:linear-gradient(180deg,rgba(22,19,29,.18) 0%,rgba(22,19,29,.10) 32%,rgba(25,21,31,.20) 66%,rgba(24,20,30,.34) 100%);pointer-events:none}
 .environment-canvas{position:absolute;z-index:1;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity .75s cubic-bezier(.2,.75,.2,1)}
 body.environment-ready .environment-canvas{opacity:1}
-body.environment-ready{position:relative}
-body.environment-ready .masthead{position:relative;z-index:4;background:transparent;border-bottom-color:rgba(250,247,245,.22)}
+
+/* The atmosphere is the page surface. All former filled panels become transparent. */
+body.environment-ready{position:relative;background:transparent!important;color:var(--blossom-soft)}
+body.environment-ready .masthead,
+body.environment-ready main,
+body.environment-ready .report,
+body.environment-ready .reading,
+body.environment-ready .reading:before,
+body.environment-ready .status-panel,
+body.environment-ready .status-panel:before,
+body.environment-ready .section,
+body.environment-ready .facts,
+body.environment-ready .fact,
+body.environment-ready .advice,
+body.environment-ready .report-actionbar{background:transparent!important}
+body.environment-ready .masthead{position:relative;z-index:4;border-bottom-color:rgba(250,247,245,.20)}
 body.environment-ready main{position:relative;z-index:3}
+
+/* Keep the white hotel lockup independent from UI theme. */
 body.environment-ready .brand-lockup .logo-light{opacity:0}
 body.environment-ready .brand-lockup .logo-dark{opacity:1}
+
+/* One coherent type color system over the atmosphere. */
 body.environment-ready .today,
 body.environment-ready .theme-toggle,
 body.environment-ready .intro h1,
+body.environment-ready .intro-copy,
 body.environment-ready .station strong,
-body.environment-ready .connection{color:var(--blossom-soft)}
-body.environment-ready .intro .eyebrow{color:var(--pink)}
-body.environment-ready .station span{color:rgba(250,247,245,.72)}
-body.environment-ready .theme-toggle{border-color:rgba(250,247,245,.72)}
-body.environment-ready .theme-toggle:hover{background:rgba(250,247,245,.12);color:var(--blossom-soft)}
-body.environment-ready .report{border-top-color:rgba(250,247,245,.72)}
-body.environment-ready .report-head{border-bottom-color:rgba(250,247,245,.24)}
-body.environment-ready .connection[data-state="live"] .connection-dot{box-shadow:0 0 0 4px rgba(92,135,76,.2)}
-.environment-debug{position:fixed;z-index:80;right:10px;bottom:max(10px,env(safe-area-inset-bottom));max-width:min(320px,calc(100vw - 20px));padding:10px 12px;border:1px solid rgba(250,247,245,.25);background:rgba(30,25,39,.78);backdrop-filter:blur(14px);color:#FAF7F5;font:500 11px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;pointer-events:none}
-@media (max-width:699px){
-  .environment-stage{height:clamp(350px,52svh,470px)}
-  .environment-stage::before{background:linear-gradient(180deg,rgba(25,22,34,.18) 0%,rgba(25,22,34,.22) 44%,rgba(46,39,59,.70) 80%,var(--page-bg) 100%)}
+body.environment-ready .connection,
+body.environment-ready .reading,
+body.environment-ready .metric-label,
+body.environment-ready .pm-value,
+body.environment-ready .unit,
+body.environment-ready .observed b,
+body.environment-ready .aqi-label,
+body.environment-ready .aqi-value,
+body.environment-ready .category-en,
+body.environment-ready .guidance-lead,
+body.environment-ready .section-title,
+body.environment-ready .advice h3,
+body.environment-ready .scale-labels b,
+body.environment-ready .fact dd,
+body.environment-ready .source-note a,
+body.environment-ready .action{color:var(--blossom-soft)!important}
+
+body.environment-ready .intro .eyebrow,
+body.environment-ready .status-index,
+body.environment-ready .category-th{color:var(--sorbet)!important}
+
+body.environment-ready .station span,
+body.environment-ready .metric-label span,
+body.environment-ready .unit span,
+body.environment-ready .observed,
+body.environment-ready .advice p,
+body.environment-ready .scale-labels,
+body.environment-ready .fact dt,
+body.environment-ready .source-note,
+body.environment-ready .disclaimer{color:rgba(250,247,245,.72)!important}
+
+/* Fine rules provide structure without colored cards. */
+body.environment-ready .report{border-top-color:rgba(250,247,245,.62);border-bottom-color:rgba(250,247,245,.34)}
+body.environment-ready .report-head,
+body.environment-ready .aqi-line,
+body.environment-ready .guidance-lead,
+body.environment-ready .section,
+body.environment-ready .facts,
+body.environment-ready .fact,
+body.environment-ready .scale-labels>div{border-color:rgba(250,247,245,.22)!important}
+body.environment-ready .theme-toggle{border-color:rgba(250,247,245,.64)}
+body.environment-ready .theme-toggle:hover{background:rgba(250,247,245,.10);color:var(--blossom-soft)}
+body.environment-ready .advice-icon{border-color:rgba(250,247,245,.34);color:var(--sorbet)}
+body.environment-ready .action{border-color:rgba(250,247,245,.52);background:transparent!important}
+body.environment-ready .action:hover{background:rgba(250,247,245,.10)!important;color:var(--blossom-soft)!important}
+
+/* Status is expressed by type/accent only, never by a filled surface. */
+body.environment-ready .signal-bar{background:var(--signal)!important}
+body.environment-ready .status-panel,
+body.environment-ready .status-panel:before,
+body.environment-ready[data-level="unhealthy"] .status-panel,
+body.environment-ready[data-level="unhealthy"] .status-panel:before{background:transparent!important;color:var(--blossom-soft)!important}
+body.environment-ready[data-level="unhealthy"] .category-en,
+body.environment-ready[data-level="unhealthy"] .guidance-lead{color:var(--blossom-soft)!important}
+body.environment-ready[data-level="unhealthy"] .category-th,
+body.environment-ready[data-level="unhealthy"] .status-index{color:var(--pink)!important}
+
+/* Desktop: two information fields separated by a rule, not two boxes. */
+@media (min-width:700px){
+  body.environment-ready .reading{padding-right:52px}
+  body.environment-ready .status-panel{padding-left:52px;border-left:1px solid rgba(250,247,245,.24)}
 }
+
+/* Mobile: same composition in one column with a light separator. */
+@media (max-width:699px){
+  .environment-stage{height:100svh}
+  .environment-stage::before{background:linear-gradient(180deg,rgba(22,19,29,.16) 0%,rgba(22,19,29,.09) 30%,rgba(24,20,30,.22) 66%,rgba(24,20,30,.38) 100%)}
+  body.environment-ready .status-panel{border-top:1px solid rgba(250,247,245,.22)}
+}
+
+/* Debug remains intentionally separate from the guest-facing visual language. */
+.environment-debug{position:fixed;z-index:80;right:10px;bottom:max(10px,env(safe-area-inset-bottom));max-width:min(320px,calc(100vw - 20px));padding:10px 12px;border:1px solid rgba(250,247,245,.25);background:rgba(30,25,39,.78);backdrop-filter:blur(14px);color:#FAF7F5;font:500 11px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.environment-canvas{transition:none}}
