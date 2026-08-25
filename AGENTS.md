@@ -2,91 +2,242 @@
 
 ## Project identity
 
-This repository is the canonical frontend source for the Sindhorn Midtown internal web app.
+This repository is the canonical **core-shell / engine** source for the Sindhorn Midtown internal environmental PWA.
 
 - Repository: `dechadae/sindhorn-midtown-internal`
 - Cloudflare Pages project: `sindhorn-midtown-internal`
-- Production URL: `https://sindhorn-midtown-internal.pages.dev`
-- Existing shared Supabase project: `sjpvhgxacsiorrtijqua`
+- Current production URL: `https://sindhorn-midtown-internal.pages.dev`
+- Shared Supabase project: `sjpvhgxacsiorrtijqua`
+- Canonical final plan: `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
 
-## Source-of-truth rules
+## Mandatory first read
 
-1. GitHub is canonical for this app's frontend source.
-2. Deploy the built/static app directly to the Cloudflare Pages project with Wrangler from GitHub Actions.
-3. Do not duplicate this app into Flipgazine `public.site_files`.
-4. Supabase may be reused for approved shared brand assets, data, storage, or backend services only.
-5. Never print, commit, expose, or request secret values. GitHub Actions deployment secrets are `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+Before consequential implementation work, read:
 
-## Current approved PM2.5 baseline
+1. this `AGENTS.md`;
+2. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`.
 
-The existing production PM2.5 page at `https://flipgazine.pages.dev/sindhornmidtown/pm25.html` is the approved visual/functional baseline as of v5. It must be migrated before major redesign work. Preserve its bilingual content, AirBKK behavior, caching, accessibility, and readability improvements unless the user explicitly changes them. The user has explicitly removed the UI theme system in favor of a realtime environment plus fullscreen app control.
+The final plan supersedes conflicting rules in older documents.
 
-## Governing bilingual typography rule
+## Current state vs target architecture
 
-This is the highest visual-language rule for the app:
+The currently deployed application is still the GitHub/Cloudflare monolithic PWA through v14. The approved next architectural move is a **persistent Cloudflare bootstrap shell + Supabase Sindhorn UI pack**.
+
+Do not confuse current implementation state with the final architecture target.
+
+### Final ownership after migration
+
+GitHub / Cloudflare owns stable executable core infrastructure:
+
+- bootstrap shell;
+- manifest/service worker/PWA identity;
+- persistent Three.js/WebGL renderer engine;
+- astronomy engine;
+- SPA/bootstrap router;
+- remote UI-pack loader;
+- offline/recovery engine;
+- pull-to-refresh gesture engine;
+- full-page capture engine;
+- push notification receiver;
+- stable brand/font assets.
+
+Supabase owns frequently edited presentation/configuration through a dedicated Sindhorn namespace/table, preferably `public.sindhorn_app_files`:
+
+- Today / Guidance / Details route content;
+- header/footer presentation;
+- UI/component CSS;
+- typography/layout/copy;
+- buttons/glass/spacing;
+- route transition configuration;
+- atmosphere art-direction parameters.
+
+Do **not** use Flipgazine `public.site_files` as the Sindhorn app's canonical content namespace.
+
+AirBKK remains the direct PM2.5/Thai AQI source. Open-Meteo remains the direct weather source. Astronomy is calculated locally. Supabase is not the live environmental database.
+
+## Highest visual-language rule
 
 > **English typography is eminent. English defines the premium editorial composition; Thai guarantees operational understanding.**
 
-Implementation rules:
+Final typography authority:
 
-- Brand/editorial headings, navigation, section labels, data labels, weather labels, status/display words, ordinary utility buttons and reference/footer typography are English-first and may carry the strongest typographic treatment.
-- Thai must remain clearly readable and visible; never reduce it to an illegible caption.
-- Health guidance, actionable instructions, warnings, error/recovery instructions, permission/operational instructions and safety/medical disclaimers are Thai-first in reading order, with English immediately supporting.
-- Do not require a language selector to understand critical information.
-- Numeric data remains language-neutral.
-- A future language preference may change emphasis/order for long-form copy, but it must not remove either language from critical operational information.
-- Detailed UI authority: `docs/CI-UI-ADAPTATION.md`.
+- English / Latin UI and editorial copy: **Vignette Sans**.
+- Thai: **Noto Sans Thai**.
+- Official Sindhorn Midtown / Vignette lockup remains image artwork.
+- The earlier v13 global Noto Sans English override is superseded and must not be treated as final authority.
 
-## PWA / SPA architecture
+English leads brand/editorial headings, navigation, section/data/weather/status labels and ordinary utility UI.
 
-- This app is a full installable PWA with a single persistent HTML/WebGL shell.
-- Use History API client-side routes for `/`, `/guidance`, and `/details`; never force a full page reload for in-app navigation.
-- `manifest.webmanifest`, `sw.js`, `app.js`, and `pwa.css` are part of the canonical app shell.
-- The official Sindhorn Midtown / Vignette hotel lockup is the app icon artwork.
-- The top-right utility control is fullscreen, not a light/dark theme switch.
-- Day/night appearance is driven by realtime Bangkok astronomy and weather, never by a UI theme preference.
-- Service-worker navigation fallback must keep direct SPA routes and cached/offline use functional.
+Thai appears first for health guidance, actionable instructions, warnings, errors/recovery, permissions, operational instructions and safety/medical disclaimers. Thai must always remain readable and critical comprehension must never require a language selector.
 
-## Real-time environment architecture
+## CI / product styling
 
-The next product phase will add a premium WebGL/Three.js environmental scene. It must represent three independent real-world systems:
+Use Flipgazine CI / Voice-page interaction grammar while preserving Sindhorn Midtown identity:
 
-- Bangkok local time / astronomy → sun, moon, daylight angle.
-- Real weather → cloud cover, rain, storm state, wind, visibility, humidity.
-- AirBKK PM2.5 / Thai AQI → haze, atmospheric extinction, Mie scattering, sun diffusion, saturation and contrast loss.
+- Twilight `#2E273B` base;
+- warm off-white `#FAF7F5` text;
+- Sorbet `#E5ECBE` accent;
+- fine hairlines;
+- restrained frosted glass;
+- premium typographic hierarchy;
+- edge-to-edge Voice-style sticky footer/navigation;
+- one parent glass layer where possible rather than nested expensive blur surfaces.
 
-Critical rules:
+Header/footer/buttons/pull-refresh must feel like one coherent Sindhorn system, not generic dashboard cards.
 
-- Weather and pollution are independent. Clear weather with hazardous PM2.5 must still show the sun in its real position but through a grey/hazy atmosphere rather than a clean blue sky.
-- UI light/dark preference must not change physical day/night conditions.
-- Never animate through fake numeric PM2.5/AQI readings. Values replace/crossfade directly; only the visual atmosphere may interpolate.
-- WebGL is progressive enhancement. HTML data and controls must remain fully usable if WebGL, weather data, or animation is unavailable.
-- The user explicitly requires full atmospheric motion and full visual quality on mobile; do not lower renderer DPR, cloud complexity, animation cadence, or celestial quality relative to desktop.
-- Mobile device tilt is part of the default atmosphere. Use DeviceOrientation continuously where the platform allows it; on iOS request permission from the first user gesture because the OS requires that gesture.
-- Stop rendering only when the document is actually hidden; do not degrade the visible scene.
+## PWA / persistent-shell architecture
 
-## Deployment
+The final app is a full installable PWA with a single persistent shell.
 
-Production deploys from `main` through `.github/workflows/deploy.yml`.
+Persistent across `/`, `/guidance`, `/details`:
 
-The workflow must:
+- WebGL canvas;
+- weather/AirBKK/astronomy state;
+- device tilt state;
+- app header host;
+- app footer/navigation host;
+- service-worker session.
 
-1. Check out the repository.
-2. Deploy `site/` with Wrangler.
-3. Target `--project-name=sindhorn-midtown-internal --branch=main`.
-4. Use only the repository Actions secrets listed above.
+Only the route content mounted in the route view changes.
 
-## Change discipline
+Never force full document reloads for normal tab navigation. Do not recreate Three.js on route changes.
 
-- Inspect the current canonical repository state before consequential edits.
-- Make the smallest coherent change that solves the task.
-- Do not alter the existing Flipgazine production page unless the user explicitly asks.
-- Keep experimental WebGL work isolated from the approved baseline until it is verified.
-- Verify mobile first, especially 320–390 px wide viewports.
+## Zero-reinstall release requirement
 
-## v13 visual authority
+This is non-negotiable after employee rollout:
 
-- App typography is Noto Sans / Noto Sans Thai throughout UI and content. The official hotel logo remains artwork.
-- Realtime atmosphere resolves **weather first** (sky, sun/moon, clouds, precipitation, visibility), then applies PM2.5 haze/extinction and suspended particulate as the final optical layer.
-- The sticky footer follows the Flipgazine Voice bottom-nav contract: full-width frosted rail with independent compact navigation chips.
-- Save Image means a full-length capture of the Today route atmosphere/content; masthead, sticky footer, app footer and the Save button itself are excluded.
+> **Normal releases must never require employees to uninstall and reinstall the PWA.**
+
+Before broad launch, finalize/freeze the permanent production origin, manifest `id`, scope, `start_url`, service-worker scope and app identity. If a custom official production domain is desired, decide/migrate before broad installation.
+
+Routine Supabase UI-pack changes hot-update in the existing installation. Rare shell/engine changes use the service-worker lifecycle. Preserve push subscriptions, permissions, local preferences and cached known-good app state.
+
+A normal release requiring reinstall is an architectural regression.
+
+## Realtime environment authority
+
+The environment is a realtime simulation of three independent systems:
+
+1. Bangkok astronomy → sun/moon/daylight position;
+2. Open-Meteo weather → clouds/rain/storm/fog/wind/visibility/humidity;
+3. AirBKK PM2.5/AQI → optical haze/extinction/scattering/contrast/saturation/particles.
+
+Required rendering order:
+
+```text
+weather → sky → clouds → sun/moon → rain/storm/fog → PM2.5 optical layer → HTML UI
+```
+
+Weather and pollution remain independent. Example: clear noon + hazardous PM2.5 still has the real noon sun but through grey/desaturated haze.
+
+Weather-code state must visibly agree with the atmosphere. Overcast may not look clear. Clouds must be a clearly visible rendering layer, not barely perceptible noise.
+
+Do not animate through fake PM2.5/AQI numbers. Numeric readings crossfade directly; the atmosphere may interpolate visually.
+
+## Rendering fidelity and performance
+
+The user explicitly requires equivalent visual quality on mobile and desktop.
+
+Do not improve mobile performance by lowering DPR, cloud complexity, visible animation cadence, sun/moon quality or tilt compared with desktop.
+
+Performance improvements must remove waste instead:
+
+- no full-page CSS `filter: blur()` route transitions;
+- no giant filtered DOM layers over WebGL;
+- minimize nested backdrop filters;
+- use transform + opacity for route transitions;
+- keep active route DOM small;
+- stop environment rendering only when the document is hidden.
+
+The environment must look like one uninterrupted sky with no square/rectangular/block renderer boundary.
+
+## Mobile tilt
+
+Tilt is always part of the atmosphere where the platform permits it.
+
+- Android/device-orientation capable browsers: attach continuously.
+- iOS/iPadOS: request DeviceOrientation permission from the first valid user gesture as required by the OS; once granted, keep it active.
+- Tilt may affect cloud/celestial/haze parallax subtly, never tilt the HTML UI.
+
+## Route transitions
+
+Use only `transform` + `opacity` (and tiny scale if useful), approximately 260–340 ms with premium easing. Full-page CSS blur is prohibited because it causes costly rasterization while WebGL is active.
+
+## Pull-to-refresh
+
+Pull-to-refresh must work from scroll position 0 on every route in installed iOS and Android PWAs.
+
+- Gesture engine belongs to stable shell.
+- Visual material/config may come from Supabase.
+- Pull indicator must use the same opacity/glass tokens as header/footer; never a visually solid pill.
+- Refresh current route/environmental sources.
+
+## Save full page
+
+The old compact image concept is retired.
+
+Save means full-length Today route capture with current atmosphere, excluding:
+
+- header/masthead;
+- sticky bottom navigation/footer;
+- reference footer if present;
+- Save button itself.
+
+This is browser capture, not generative image creation.
+
+## Notifications
+
+Cross-platform standards-based Web Push remains the target for iOS/iPadOS Home Screen PWAs and Android installed PWAs.
+
+Backend target:
+
+- Cloudflare scheduled Worker;
+- AirBKK/Open-Meteo checks;
+- threshold/deduplication logic;
+- D1 or KV push-subscription store;
+- VAPID Web Push.
+
+Do not add Supabase as the notification database unless explicitly approved later.
+
+Notify meaningful category/severe-weather changes, not every numeric refresh. Critical notification copy is Thai-first with English support.
+
+## Offline / atomic UI-pack rules
+
+The future Supabase UI pack must be versioned and atomic.
+
+- Download complete pack.
+- Validate resource presence/type/hash/schema.
+- Cache as a known-good version.
+- Promote only after complete validation.
+- If update fails, continue using previous known-good pack.
+- Never expose users to mixed old/new pack resources.
+
+The stable shell must boot cached UI offline and remain usable if Supabase, Open-Meteo, AirBKK or WebGL is temporarily unavailable.
+
+## Deployment discipline
+
+Current production deploys from `main` through `.github/workflows/deploy.yml` to Cloudflare Pages project `sindhorn-midtown-internal`.
+
+Until the hybrid migration is complete, avoid repeated tiny `site/**` commits because each triggers a deployment.
+
+For core-shell changes:
+
+1. inspect current canonical repo/live state;
+2. create one coherent branch;
+3. implement the requested batch;
+4. QA mobile + desktop + environmental fixtures;
+5. merge once;
+6. deploy once;
+7. verify actual production URL before claiming live.
+
+After migration, ordinary UI/content/art-direction edits should happen in the Supabase Sindhorn UI pack without Cloudflare deployment.
+
+## Documentation authority
+
+Authority order:
+
+1. `AGENTS.md`
+2. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
+3. specialist docs where they do not conflict with the final plan
+
+Update the final plan and this file whenever the actual live architecture materially changes so a fresh session can recover canonical state without relying on chat history.
