@@ -185,6 +185,8 @@ async function fetchWeather() {
 }
 
 const lowPowerDevice=((navigator.deviceMemory||8)<=4)||((navigator.hardwareConcurrency||8)<=4);
+const maxPixelRatio=lowPowerDevice ? 0.72 : 1.0;
+let activePixelRatio=Math.min(window.devicePixelRatio || 1,maxPixelRatio);
 
 const renderer = new THREE.WebGLRenderer({
   canvas,
@@ -194,7 +196,8 @@ const renderer = new THREE.WebGLRenderer({
   preserveDrawingBuffer: false
 });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, lowPowerDevice ? 1.0 : 1.25));
+renderer.setPixelRatio(activePixelRatio);
+document.body.dataset.environmentQuality=activePixelRatio.toFixed(2);
 
 const scene = new THREE.Scene();
 const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -221,7 +224,7 @@ const material = new THREE.ShaderMaterial({
     void main(){vUv=uv;gl_Position=vec4(position,1.0);}
   `,
   fragmentShader: `
-    precision highp float;
+    precision mediump float;
     varying vec2 vUv;
     uniform float uTime;
     uniform vec2 uResolution;
@@ -240,7 +243,7 @@ const material = new THREE.ShaderMaterial({
       vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);
       return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);
     }
-    float fbm(vec2 p){float v=0.,a=.52;for(int i=0;i<4;i++){v+=a*noise(p);p=p*2.03+17.13;a*=.5;}return v;}
+    float fbm(vec2 p){float v=0.,a=.54;for(int i=0;i<3;i++){v+=a*noise(p);p=p*2.03+17.13;a*=.5;}return v;}
     vec3 sat(vec3 c,float s){float l=dot(c,vec3(.2126,.7152,.0722));return mix(vec3(l),c,s);}
 
     void main(){
@@ -367,7 +370,7 @@ function updateDebug() {
     `pollution shader: ${(uniforms.uPollution.value * 100).toFixed(0)}%`,
     `weather: ${w.known ? (w.cached ? 'CACHED' : 'LIVE') : 'provider pending'}`,
     w.known ? `temp ${Math.round(w.temperatureC)}° · cloud ${Math.round(w.cloudCover * 100)}% · rain ${w.precipitationMm.toFixed(1)} mm · RH ${Math.round(w.humidity * 100)}% · vis ${w.visibilityKm.toFixed(1)} km` : 'cloud/rain deliberately not inferred',
-    `renderer: ${reducedMotion ? 'static/reduced motion' : '30 fps adaptive'}`
+    `renderer: ${reducedMotion ? 'static/reduced motion' : 'display-synced adaptive'} · scale ${activePixelRatio.toFixed(2)}`
   ].join('\n');
 }
 
@@ -375,16 +378,31 @@ let visible = true;
 let pageVisible = !document.hidden;
 let raf = 0;
 let lastFrame = 0;
+let perfSamples = [];
+let lastQualityChange = 0;
 const start = performance.now();
+
+function adaptQuality(delta,now) {
+  if (reducedMotion || !Number.isFinite(delta) || delta <= 0 || now-lastQualityChange < 1500) return;
+  perfSamples.push(delta);
+  if (perfSamples.length < 36) return;
+  const avg=perfSamples.reduce((a,b)=>a+b,0)/perfSamples.length;
+  perfSamples=[];
+  if (avg > 24 && activePixelRatio > 0.50) {
+    activePixelRatio=Math.max(0.50,activePixelRatio*0.82);
+    renderer.setPixelRatio(activePixelRatio);
+    document.body.dataset.environmentQuality=activePixelRatio.toFixed(2);
+    lastQualityChange=now;
+    resize();
+  }
+}
 
 function render(now) {
   raf = 0;
   if (!visible || !pageVisible) return;
-  if (!reducedMotion && now - lastFrame < 15) {
-    raf = requestAnimationFrame(render);
-    return;
-  }
+  const delta=lastFrame ? now-lastFrame : 16.7;
   lastFrame = now;
+  adaptQuality(delta,now);
   uniforms.uTime.value = reducedMotion ? 0 : (now - start) / 1000;
   renderer.render(scene, camera);
   if (!reducedMotion) raf = requestAnimationFrame(render);
