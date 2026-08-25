@@ -1,0 +1,59 @@
+<section class="intro" aria-labelledby="pageTitle">
+  <p class="eyebrow">Live air quality <span aria-hidden="true">·</span> <span lang="th">คุณภาพอากาศสด</span></p>
+  <h1 id="pageTitle">Breathe well <span lang="th">อากาศวันนี้</span></h1>
+  <p class="intro-copy">PM2.5 + Thai AQI near Sindhorn Midtown. <span lang="th">ค่าฝุ่นล่าสุดใกล้<span class="hotel-name">สินธร&nbsp;มิดทาวน์</span></span></p>
+</section>
+
+<section class="report" id="report" tabindex="-1" aria-labelledby="reportTitle" aria-busy="true">
+  <h2 class="screen-reader" id="reportTitle">Current PM2.5 report / <span lang="th">รายงานค่าฝุ่น PM2.5 ปัจจุบัน</span></h2>
+  <div class="report-head">
+    <div class="station">
+      <strong id="stationEn">Lumpini Park · Pathum Wan</strong>
+      <span lang="th" id="stationTh">สวนลุมพินี · เขตปทุมวัน</span>
+    </div>
+    <div class="connection" id="connection" data-state="loading" role="status" aria-live="polite">
+      <i class="connection-dot" aria-hidden="true"></i>
+      <span id="connectionText"><span id="connectionEn">Connecting</span><span aria-hidden="true"> / </span><span id="connectionTh" lang="th">กำลังเชื่อมต่อ</span></span>
+    </div>
+  </div>
+  <div class="report-grid">
+    <div class="reading">
+      <div class="reading-inner">
+        <div class="metric-label">
+          <strong>PM2.5</strong>
+          <span>24h average / <span lang="th">เฉลี่ย 24 ชม.</span></span>
+        </div>
+        <div class="number-line">
+          <span class="pm-value" id="pmValue" aria-label="PM2.5 value">—</span>
+          <span class="unit">µg/m³<span lang="th">มคก./ลบ.ม.</span></span>
+        </div>
+        <p class="observed"><span id="observedEn">Waiting for the latest observation</span><br><b lang="th" id="observedTh">กำลังรอข้อมูลล่าสุด</b></p>
+        <div class="aqi-line">
+          <span class="aqi-label">Thai AQI <span aria-hidden="true">/</span> <span lang="th">ดัชนีคุณภาพอากาศ</span></span>
+          <span class="aqi-value" id="aqiValue" aria-label="Thai AQI value">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="status-panel">
+      <div class="status-inner">
+        <div class="status-index"><i class="signal-bar" aria-hidden="true"></i><span id="levelIndex">Level — / 5</span></div>
+        <h2 class="category-en" id="categoryEn">Loading</h2>
+        <p class="category-th" lang="th" id="categoryTh">กำลังโหลด</p>
+        <p class="guidance-lead instruction-copy"><span class="instruction-th" lang="th" id="guidanceTh">กำลังเรียกข้อมูลล่าสุดจากแหล่งข้อมูลทางการ</span><span class="instruction-en" id="guidanceEn">Retrieving the latest official reading.</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="weather-now" id="weatherNow" hidden aria-live="polite">
+  <div class="weather-primary">
+    <span class="weather-temp" id="weatherTemp">—°</span>
+    <span class="weather-condition"><strong id="weatherConditionEn">Current weather</strong><span lang="th" id="weatherConditionTh">สภาพอากาศขณะนี้</span></span>
+  </div>
+  <p class="weather-meta"><span id="weatherMetaEn">Loading weather</span><span lang="th" id="weatherMetaTh">กำลังโหลดข้อมูลอากาศ</span></p>
+  <a class="weather-credit" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Weather data by Open-Meteo.com</a>
+</div>
+
+<div class="report-actionbar">
+  <button class="action quick-save" type="button" id="saveImageBtn">Save full page / <span lang="th">บันทึกทั้งหน้า</span></button>
+</div>

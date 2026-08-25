@@ -1,0 +1,43 @@
+{
+  "appPack": 1,
+  "minimumShell": 15,
+  "environmentConfig": 1,
+  "updatedAt": "2026-08-25T22:42:00+07:00",
+  "resources": [
+    {
+      "path": "header.html",
+      "contentType": "text/html",
+      "sha256": "990156c6379ee79019f2be5dd0345b4d03f0706be4fe83eb7ff3d3e2bdfd1e5a"
+    },
+    {
+      "path": "environment-config.json",
+      "contentType": "application/json",
+      "sha256": "43b30fe50497ede36a8939fabb42f4d2c85a3761669cb070eaf7dc87e8f943f5"
+    },
+    {
+      "path": "guidance.html",
+      "contentType": "text/html",
+      "sha256": "99652218789ccff9136d14d2b9b4c6ac56653a56e48daf1a74b222200e0c259e"
+    },
+    {
+      "path": "footer.html",
+      "contentType": "text/html",
+      "sha256": "024812503cf985358a5efc354ca03882ca1165f319668e0f132d987f9763319e"
+    },
+    {
+      "path": "ui.css",
+      "contentType": "text/css",
+      "sha256": "135de4847375db47d6c2ded84cf442839fe7efd5259ac594cace28a98e81073c"
+    },
+    {
+      "path": "details.html",
+      "contentType": "text/html",
+      "sha256": "717af8269cc5f90820642c589fd10969a2a30140706c5e87469d03843e333833"
+    },
+    {
+      "path": "today.html",
+      "contentType": "text/html",
+      "sha256": "e70444dee7746d194b27b715a17c8f2aeb3ef135e679bddbc22cf338863f7b55"
+    }
+  ]
+}
