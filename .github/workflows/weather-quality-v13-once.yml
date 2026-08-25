@@ -1,0 +1,473 @@
+name: Weather fidelity and premium UI v13
+on:
+  push:
+    branches: [weather-quality-v13]
+    paths: ['.github/workflows/weather-quality-v13-once.yml']
+permissions:
+  contents: write
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install build dependencies and self-host Noto fonts
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install @fontsource/noto-sans @fontsource/noto-sans-thai html2canvas@1.4.1 playwright@1.55.0 >/dev/null 2>&1
+          mkdir -p site/assets/fonts site/vendor
+          python3 - <<'PY'
+          from pathlib import Path
+          import shutil
+
+          def pick(root, script, weight):
+              root=Path(root)
+              patterns=[f'*{script}-{weight}-normal.woff2',f'*-{weight}-normal.woff2']
+              for pattern in patterns:
+                  found=sorted(root.glob(pattern))
+                  if found:
+                      return found[0]
+              raise SystemExit(f'font missing: {root} {script} {weight}')
+
+          for w in (200,300,400,500,600):
+              src=pick('node_modules/@fontsource/noto-sans/files','latin',w)
+              shutil.copyfile(src,f'site/assets/fonts/noto-sans-{w}.woff2')
+          for w in (300,400,500,600):
+              src=pick('node_modules/@fontsource/noto-sans-thai/files','thai',w)
+              shutil.copyfile(src,f'site/assets/fonts/noto-sans-thai-{w}.woff2')
+          shutil.copyfile('node_modules/html2canvas/dist/html2canvas.min.js','site/vendor/html2canvas.min.js')
+          PY
+
+      - name: Replace environment with weather-first high-fidelity renderer
+        run: |
+          cat > site/environment.js <<'JS'
+          import * as THREE from './vendor/three.module.js';
+
+          const HOTEL={lat:13.74135,lon:100.54274,timezone:'Asia/Bangkok'};
+          const WEATHER_ENDPOINT='https://api.open-meteo.com/v1/forecast?latitude=13.74135&longitude=100.54274&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,rain,showers,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,is_day&timezone=Asia%2FBangkok';
+          const WEATHER_CACHE_KEY='sindhorn-midtown:weather:v1';
+          const WEATHER_CACHE_MAX_AGE=45*60*1000;
+          const stage=document.getElementById('environmentStage');
+          const canvas=document.getElementById('environmentCanvas');
+          const pmEl=document.getElementById('pmValue');
+          const aqiEl=document.getElementById('aqiValue');
+          const weatherNow=document.getElementById('weatherNow');
+          const weatherTemp=document.getElementById('weatherTemp');
+          const weatherConditionEn=document.getElementById('weatherConditionEn');
+          const weatherConditionTh=document.getElementById('weatherConditionTh');
+          const weatherMetaEn=document.getElementById('weatherMetaEn');
+          const weatherMetaTh=document.getElementById('weatherMetaTh');
+          if(!stage||!canvas||!pmEl||!aqiEl||!window.WebGLRenderingContext)throw new Error('Realtime environment unavailable');
+
+          const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+          const mix=(a,b,t)=>a+(b-a)*t;
+
+          function bangkokParts(date=new Date()){
+            const parts=new Intl.DateTimeFormat('en-GB',{timeZone:HOTEL.timezone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).formatToParts(date);
+            const out={};for(const p of parts)out[p.type]=p.value;return out;
+          }
+          function julianDay(date){return date.getTime()/86400000+2440587.5}
+          function solarPosition(date=new Date()){
+            const jd=julianDay(date),n=jd-2451545.0;
+            const L=(280.46+0.9856474*n)%360;
+            const g=((357.528+0.9856003*n)%360)*Math.PI/180;
+            const lambda=(L+1.915*Math.sin(g)+0.02*Math.sin(2*g))*Math.PI/180;
+            const epsilon=(23.439-0.0000004*n)*Math.PI/180;
+            const alpha=Math.atan2(Math.cos(epsilon)*Math.sin(lambda),Math.cos(lambda));
+            const delta=Math.asin(Math.sin(epsilon)*Math.sin(lambda));
+            const parts=bangkokParts(date);
+            const localHours=Number(parts.hour)+Number(parts.minute)/60+Number(parts.second)/3600;
+            const ut=localHours-7;
+            const gst=((6.697375+0.0657098242*n+ut)%24+24)%24;
+            const lst=((gst+HOTEL.lon/15)%24+24)%24;
+            let hourAngle=lst*15*Math.PI/180-alpha;
+            while(hourAngle< -Math.PI)hourAngle+=Math.PI*2;
+            while(hourAngle> Math.PI)hourAngle-=Math.PI*2;
+            const lat=HOTEL.lat*Math.PI/180;
+            const altitude=Math.asin(Math.sin(lat)*Math.sin(delta)+Math.cos(lat)*Math.cos(delta)*Math.cos(hourAngle));
+            const azimuth=Math.atan2(-Math.sin(hourAngle),Math.tan(delta)*Math.cos(lat)-Math.sin(lat)*Math.cos(hourAngle));
+            return{altitude:altitude*180/Math.PI,azimuth:(azimuth*180/Math.PI+360)%360};
+          }
+          function lunarPosition(date=new Date()){
+            const jd=julianDay(date),d=jd-2451543.5,rad=Math.PI/180;
+            const N=((125.1228-0.0529538083*d)%360)*rad,i=5.1454*rad,w=((318.0634+0.1643573223*d)%360)*rad,a=60.2666,e=0.0549,M=((115.3654+13.0649929509*d)%360)*rad;
+            const E=M+e*Math.sin(M)*(1+e*Math.cos(M)),xv=a*(Math.cos(E)-e),yv=a*Math.sqrt(1-e*e)*Math.sin(E),v=Math.atan2(yv,xv),r=Math.hypot(xv,yv);
+            const xh=r*(Math.cos(N)*Math.cos(v+w)-Math.sin(N)*Math.sin(v+w)*Math.cos(i));
+            const yh=r*(Math.sin(N)*Math.cos(v+w)+Math.cos(N)*Math.sin(v+w)*Math.cos(i));
+            const zh=r*Math.sin(v+w)*Math.sin(i),lon=Math.atan2(yh,xh),lat=Math.atan2(zh,Math.hypot(xh,yh)),ob=(23.4393-3.563e-7*d)*rad;
+            const xe=Math.cos(lon)*Math.cos(lat),ye=Math.sin(lon)*Math.cos(lat)*Math.cos(ob)-Math.sin(lat)*Math.sin(ob),ze=Math.sin(lon)*Math.cos(lat)*Math.sin(ob)+Math.sin(lat)*Math.cos(ob);
+            const ra=Math.atan2(ye,xe),dec=Math.atan2(ze,Math.hypot(xe,ye)),T=(jd-2451545.0)/36525,gmst=(280.46061837+360.98564736629*(jd-2451545.0)+0.000387933*T*T-T*T*T/38710000)%360,lst=((gmst+HOTEL.lon)%360+360)%360*rad;
+            let hourAngle=lst-ra;while(hourAngle< -Math.PI)hourAngle+=Math.PI*2;while(hourAngle>Math.PI)hourAngle-=Math.PI*2;
+            const phi=HOTEL.lat*rad,altitude=Math.asin(Math.sin(phi)*Math.sin(dec)+Math.cos(phi)*Math.cos(dec)*Math.cos(hourAngle)),azimuth=Math.atan2(-Math.sin(hourAngle),Math.tan(dec)*Math.cos(phi)-Math.sin(phi)*Math.cos(hourAngle));
+            const phase=(((jd-2451550.1)/29.53058867)%1+1)%1,illumination=0.5*(1-Math.cos(phase*Math.PI*2));
+            return{altitude:altitude/rad,azimuth:(azimuth/rad+360)%360,phase,illumination};
+          }
+          function readAir(){const pm25=Number.parseFloat(pmEl.textContent||''),aqi=Number.parseFloat(aqiEl.textContent||'');return{pm25:Number.isFinite(pm25)?pm25:null,aqi:Number.isFinite(aqi)?aqi:null}}
+          function pollutionStrength(pm){if(!Number.isFinite(pm))return .18;if(pm<=15)return mix(.02,.10,pm/15);if(pm<=25)return mix(.10,.24,(pm-15)/10);if(pm<=37.5)return mix(.24,.42,(pm-25)/12.5);if(pm<=75)return mix(.42,.72,(pm-37.5)/37.5);return clamp(.72+(pm-75)/150*.28,.72,1)}
+          function weatherLabel(code){const c=Number(code);if(c===0)return['Clear','ท้องฟ้าแจ่มใส'];if(c===1)return['Mainly clear','ท้องฟ้าโปร่ง'];if(c===2)return['Partly cloudy','มีเมฆบางส่วน'];if(c===3)return['Overcast','มีเมฆมาก'];if([45,48].includes(c))return['Fog','มีหมอก'];if([51,53,55,56,57].includes(c))return['Drizzle','ฝนละออง'];if([61,63,65,66,67].includes(c))return['Rain','ฝนตก'];if([80,81,82].includes(c))return['Rain showers','ฝนตกเป็นช่วง'];if([95,96,99].includes(c))return['Thunderstorm','พายุฝนฟ้าคะนอง'];return['Current weather','สภาพอากาศขณะนี้']}
+          function weatherVisual(weather){
+            const c=Number(weather.weatherCode),raw=clamp(weather.cloudCover||0);let cloud=raw,type=0,name='clear';
+            if(c===1){cloud=Math.max(cloud,.18);type=.5;name='mainly-clear'}
+            if(c===2){cloud=Math.max(cloud,.48);type=1;name='partly-cloudy'}
+            if(c===3){cloud=Math.max(cloud,.92);type=2;name='overcast'}
+            if([45,48].includes(c)){cloud=Math.max(cloud,.78);type=3;name='fog'}
+            if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(c)){cloud=Math.max(cloud,.82);type=4;name='rain'}
+            if([95,96,99].includes(c)){cloud=Math.max(cloud,.94);type=5;name='thunderstorm'}
+            if((weather.precipitationMm||0)>.2){cloud=Math.max(cloud,.80);type=Math.max(type,4);if(name==='clear')name='rain'}
+            return{cloud:clamp(cloud),type,name};
+          }
+          function windPoint(deg){const labels=['N','NE','E','SE','S','SW','W','NW'];return labels[Math.round(((((Number(deg)||0)%360)+360)%360)/45)%8]}
+          function renderWeather(){if(!weatherNow||!state.weather.known||!Number.isFinite(state.weather.temperatureC))return;const w=state.weather,[en,th]=weatherLabel(w.weatherCode);weatherTemp.textContent=`${Math.round(w.temperatureC)}°`;weatherConditionEn.textContent=en;weatherConditionTh.textContent=th;const feels=Number.isFinite(w.apparentTemperatureC)?Math.round(w.apparentTemperatureC):Math.round(w.temperatureC),rh=Math.round(w.humidity*100),wind=Math.round(w.windSpeedKmh),dir=windPoint(w.windDirectionDeg);weatherMetaEn.textContent=`Feels ${feels}° · RH ${rh}% · Wind ${dir} ${wind} km/h`;weatherMetaTh.textContent=`รู้สึกเหมือน ${feels}° · ความชื้น ${rh}% · ลม ${dir} ${wind} กม./ชม.`;weatherNow.hidden=false}
+          function cachedWeather(){try{const cached=JSON.parse(localStorage.getItem(WEATHER_CACHE_KEY)||'null');if(!cached||!cached.savedAt||Date.now()-cached.savedAt>WEATHER_CACHE_MAX_AGE)return null;return cached.value||null}catch(_){return null}}
+          function saveWeather(value){try{localStorage.setItem(WEATHER_CACHE_KEY,JSON.stringify({savedAt:Date.now(),value}))}catch(_){}}
+
+          const state={air:readAir(),weather:{known:false,cloudCover:0,precipitationMm:0,humidity:.68,windSpeedKmh:4,windDirectionDeg:180,windGustKmh:null,visibilityKm:20,temperatureC:null,apparentTemperatureC:null,weatherCode:null,isDay:null,observedAt:null},solar:solarPosition(),lunar:lunarPosition()};
+          async function fetchWeather(){
+            const cached=cachedWeather();if(cached&&!state.weather.known){state.weather={...cached,known:true,cached:true};renderWeather();syncState()}
+            try{const response=await fetch(WEATHER_ENDPOINT,{cache:'no-store',credentials:'omit'});if(!response.ok)throw new Error('weather '+response.status);const value=await response.json(),current=value.current||{},n=(x,fallback=null)=>Number.isFinite(Number(x))?Number(x):fallback;const weather={known:true,cached:false,cloudCover:clamp(n(current.cloud_cover,0)/100),precipitationMm:Math.max(0,n(current.precipitation,0)),humidity:clamp(n(current.relative_humidity_2m,68)/100),windSpeedKmh:Math.max(0,n(current.wind_speed_10m,4)),windDirectionDeg:((n(current.wind_direction_10m,180)%360)+360)%360,windGustKmh:n(current.wind_gusts_10m),visibilityKm:Math.max(.1,n(current.visibility,20000)/1000),temperatureC:n(current.temperature_2m),apparentTemperatureC:n(current.apparent_temperature),weatherCode:n(current.weather_code),isDay:n(current.is_day),observedAt:current.time||null};state.weather=weather;saveWeather(weather);renderWeather()}catch(_){if(!state.weather.known)state.weather.known=false}
+          }
+
+          const activePixelRatio=2;
+          const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance',preserveDrawingBuffer:true,precision:'highp'});
+          renderer.outputColorSpace=THREE.SRGBColorSpace;
+          renderer.setPixelRatio(activePixelRatio);
+          document.body.dataset.environmentQuality=activePixelRatio.toFixed(2);
+          const scene=new THREE.Scene(),camera=new THREE.OrthographicCamera(-1,1,1,-1,0,1),geometry=new THREE.PlaneGeometry(2,2);
+          const uniforms={uTime:{value:0},uResolution:{value:new THREE.Vector2(1,1)},uSun:{value:new THREE.Vector2(.5,.35)},uSolarAltitude:{value:45},uMoon:{value:new THREE.Vector2(.5,.42)},uMoonAltitude:{value:-20},uMoonPhase:{value:.5},uMoonIllumination:{value:1},uPollution:{value:.2},uCloud:{value:0},uWeatherType:{value:0},uRain:{value:0},uHumidity:{value:.68},uVisibilityKm:{value:20},uWind:{value:new THREE.Vector2(.02,0)},uTilt:{value:new THREE.Vector2(0,0)},uWeatherKnown:{value:0}};
+          const material=new THREE.ShaderMaterial({uniforms,vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position,1.0);}`,fragmentShader:`
+            precision highp float;
+            varying vec2 vUv;
+            uniform float uTime;uniform vec2 uResolution;uniform vec2 uSun;uniform float uSolarAltitude;uniform vec2 uMoon;uniform float uMoonAltitude;uniform float uMoonPhase;uniform float uMoonIllumination;uniform float uPollution;uniform float uCloud;uniform float uWeatherType;uniform float uRain;uniform float uHumidity;uniform float uVisibilityKm;uniform vec2 uWind;uniform vec2 uTilt;uniform float uWeatherKnown;
+            float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}
+            float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),f.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.,1.)),f.x),f.y);}
+            float fbm(vec2 p){float v=0.0,a=.52;for(int i=0;i<5;i++){v+=a*noise(p);p=p*2.03+vec2(17.13,9.37);a*=.5;}return v;}
+            vec3 sat(vec3 c,float s){float l=dot(c,vec3(.2126,.7152,.0722));return mix(vec3(l),c,s);}
+            float aaDisc(float d,float r){float aa=2.25/max(1.0,min(uResolution.x,uResolution.y));return 1.0-smoothstep(r-aa,r+aa,d);}
+            void main(){
+              vec2 uv=vUv;
+              float aspect=clamp(uResolution.x/max(uResolution.y,1.0),.35,2.5);
+              vec2 tilt=uTilt*vec2(.022,.016);
+              vec2 skyUv=uv+tilt;
+              vec2 fieldUv=vec2(skyUv.x*aspect,skyUv.y);
+              float daylight=smoothstep(-7.0,8.0,uSolarAltitude);
+              float nightness=1.0-daylight;
+              float horizon=pow(clamp(1.0-skyUv.y,0.0,1.0),1.25);
+              float lowSun=1.0-smoothstep(7.0,34.0,max(uSolarAltitude,0.0));
+
+              vec3 nightTop=vec3(.025,.032,.065),nightHorizon=vec3(.105,.092,.145);
+              vec3 dayTop=vec3(.24,.48,.76),dayHorizon=vec3(.74,.79,.82);
+              vec3 sky=mix(mix(nightHorizon,dayHorizon,daylight),mix(nightTop,dayTop,daylight),smoothstep(.04,.94,skyUv.y));
+              sky=mix(sky,vec3(.72,.36,.25),lowSun*daylight*horizon*.17);
+
+              // Celestial bodies are placed from real astronomy before weather is layered over them.
+              vec2 sunDelta=skyUv-uSun;sunDelta.x*=aspect;float sunDist=length(sunDelta),sunRadius=.018;
+              float sunDisc=aaDisc(sunDist,sunRadius),sunGlow=exp(-sunDist*28.0),sunAbove=smoothstep(-4.0,1.5,uSolarAltitude);
+              vec3 sunWarm=mix(vec3(1.0,.58,.30),vec3(1.0,.95,.79),smoothstep(6.0,42.0,uSolarAltitude));
+              sky+=sunWarm*(sunDisc*1.22+sunGlow*.19)*sunAbove;
+
+              vec2 moonDelta=skyUv-uMoon;moonDelta.x*=aspect;float moonDist=length(moonDelta),moonRadius=.0215;
+              vec2 mp=moonDelta/max(moonRadius,.001);float mr=length(mp),moonDisc=aaDisc(moonDist,moonRadius),moonZ=sqrt(max(0.0,1.0-dot(mp,mp)));
+              float phaseAngle=uMoonPhase*6.28318530718;vec3 mn=normalize(vec3(mp.x,mp.y,moonZ)),ml=normalize(vec3(sin(phaseAngle),0.0,-cos(phaseAngle)));
+              float moonLit=smoothstep(-.045,.055,dot(mn,ml)),moonAbove=smoothstep(-3.0,2.0,uMoonAltitude);
+              float moonGlow=exp(-moonDist*24.0);
+              sky+=vec3(.97,.955,.88)*moonDisc*moonLit*moonAbove*1.08;
+              sky+=vec3(.24,.28,.42)*moonGlow*moonAbove*uMoonIllumination*.11;
+
+              // WEATHER FIRST: condition code enforces cloud character even if raw cloud-cover lags.
+              float cloudiness=clamp(uCloud*uWeatherKnown,0.0,1.0);
+              vec2 drift=uWind*uTime*.012;
+              vec2 q=fieldUv+drift+tilt*1.8;
+              float broad=fbm(q*vec2(1.35,.92)+vec2(0.0,uTime*.0015));
+              float warp=fbm(q*vec2(2.15,1.42)+vec2(broad*.72,-broad*.36)+vec2(11.4,4.7));
+              float detail=fbm(q*vec2(3.45,2.05)-drift*.7+vec2(warp*.48,7.2));
+              float cloudField=broad*.50+warp*.34+detail*.16;
+              float threshold=mix(.76,.38,cloudiness);
+              float cloudMask=smoothstep(threshold-.13,threshold+.11,cloudField);
+              float overcast=smoothstep(.72,.94,cloudiness);
+              cloudMask=max(cloudMask,overcast*(.72+.23*broad));
+              float fogWeather=smoothstep(2.5,3.2,uWeatherType);
+              cloudMask=max(cloudMask,fogWeather*(.48+.40*warp));
+              float relief=smoothstep(.30,.82,cloudField);
+              vec3 dayCloud=mix(vec3(.48,.50,.54),vec3(.88,.89,.90),relief);
+              vec3 nightCloud=mix(vec3(.105,.12,.17),vec3(.29,.31,.37),relief);
+              float moonSilver=moonAbove*exp(-moonDist*9.0)*nightness;
+              nightCloud+=vec3(.10,.12,.18)*moonSilver;
+              float storm=smoothstep(4.5,5.0,uWeatherType);
+              vec3 cloudColor=mix(dayCloud,nightCloud,nightness);
+              cloudColor=mix(cloudColor,vec3(.12,.13,.17),storm*.72);
+              float cloudOpacity=mix(.42,.94,cloudiness);
+              cloudOpacity=max(cloudOpacity,overcast*.90);
+              sky=mix(sky,cloudColor,cloudMask*cloudOpacity);
+
+              float visFog=uWeatherKnown*(1.0-smoothstep(2.0,18.0,uVisibilityKm));
+              vec3 fogColor=mix(vec3(.63,.66,.69),vec3(.20,.21,.27),nightness);
+              sky=mix(sky,fogColor,visFog*(.18+.58*horizon));
+
+              float rainAmount=clamp(uRain/5.0,0.0,1.0)*uWeatherKnown;
+              rainAmount=max(rainAmount,smoothstep(3.8,4.2,uWeatherType)*.12);
+              if(rainAmount>.001){vec2 ruv=fieldUv*vec2(58.0,30.0);ruv.x+=uTime*2.0+ruv.y*.48;float streak=step(.972,hash(floor(ruv)))*smoothstep(.96,.06,fract(ruv.y));sky+=vec3(.72,.79,.86)*streak*rainAmount*.42;sky=mix(sky,vec3(.16,.18,.23),rainAmount*.13);}
+
+              // POLLUTION SECOND: it modifies the already-resolved weather, never invents weather.
+              float pollution=clamp(uPollution,0.0,1.0);
+              sky=sat(sky,1.0-pollution*.58);
+              vec3 dirty=vec3(.50,.47,.44);
+              sky=mix(sky,dirty,pollution*(.07+.35*horizon));
+              float haze=pow(horizon,1.75)*pollution*(.18+.36*uHumidity);
+              sky=mix(sky,vec3(.60,.56,.52),haze);
+              float sunHaze=exp(-sunDist*10.0)*sunAbove*pollution;
+              sky+=vec3(.60,.49,.38)*sunHaze*.09;
+
+              // Suspended PM2.5 particulate is the final optical layer.
+              vec2 puv=(fieldUv+drift*.22+vec2(uTime*.0015,-uTime*.0008))*vec2(74.0,58.0);
+              vec2 cell=floor(puv),fp=fract(puv)-.5;float seed=hash(cell),radius=mix(.035,.15,hash(cell+19.7));float particle=1.0-smoothstep(radius,radius+.04,length(fp));
+              float particleDensity=smoothstep(.10,.82,pollution);float keep=step(mix(.997,.935,particleDensity),seed);float pmDust=particle*keep*particleDensity;
+              sky=mix(sky,vec3(.77,.72,.66),pmDust*.34);
+
+              vec2 vig=skyUv-vec2(.5,.50);vig.x*=aspect;float vignette=smoothstep(1.10,.26,length(vig));sky*=mix(.90,1.0,vignette);
+              gl_FragColor=vec4(sky,1.0);
+            }
+          `,depthWrite:false,depthTest:false});
+          scene.add(new THREE.Mesh(geometry,material));
+
+          function resize(){const rect=stage.getBoundingClientRect(),width=Math.max(1,Math.round(rect.width)),height=Math.max(1,Math.round(rect.height));renderer.setSize(width,height,false);uniforms.uResolution.value.set(width*activePixelRatio,height*activePixelRatio)}
+          function skyY(altitude){return clamp(.12+clamp((altitude+2)/82,0,1)*.72,.08,.88)}
+          function syncState(){
+            state.solar=solarPosition();state.lunar=lunarPosition();state.air=readAir();
+            const pollution=pollutionStrength(state.air.pm25),alt=state.solar.altitude,az=state.solar.azimuth*Math.PI/180,sunX=clamp(.5-Math.sin(az)*.42,.06,.94),sunY=skyY(alt),moonAlt=state.lunar.altitude,moonAz=state.lunar.azimuth*Math.PI/180,moonX=clamp(.5-Math.sin(moonAz)*.42,.06,.94),moonY=skyY(moonAlt),speed=clamp(state.weather.windSpeedKmh/30,.02,1),dir=state.weather.windDirectionDeg*Math.PI/180,visual=weatherVisual(state.weather);
+            uniforms.uSun.value.set(sunX,sunY);uniforms.uSolarAltitude.value=alt;uniforms.uMoon.value.set(moonX,moonY);uniforms.uMoonAltitude.value=moonAlt;uniforms.uMoonPhase.value=state.lunar.phase;uniforms.uMoonIllumination.value=state.lunar.illumination;uniforms.uPollution.value=pollution;uniforms.uCloud.value=visual.cloud;uniforms.uWeatherType.value=visual.type;uniforms.uRain.value=state.weather.precipitationMm;uniforms.uHumidity.value=state.weather.humidity;uniforms.uVisibilityKm.value=Number.isFinite(state.weather.visibilityKm)?state.weather.visibilityKm:20;uniforms.uWind.value.set(Math.sin(dir)*speed,-Math.cos(dir)*speed);uniforms.uWeatherKnown.value=state.weather.known?1:0;
+            document.body.dataset.environmentWeather=state.weather.known?'live':'unavailable';document.body.dataset.environmentWeatherType=visual.name;document.body.dataset.environmentCloud=state.weather.known?state.weather.cloudCover.toFixed(2):'unknown';document.body.dataset.environmentCloudEffective=state.weather.known?visual.cloud.toFixed(2):'unknown';document.body.dataset.environmentAir=Number.isFinite(state.air.pm25)?'live':'loading';document.body.dataset.environmentMoonAltitude=moonAlt.toFixed(1);document.body.dataset.environmentMoonIllumination=state.lunar.illumination.toFixed(2);updateDebug();
+          }
+
+          let debug;
+          function updateDebug(){if(!new URLSearchParams(location.search).has('debug'))return;if(!debug){debug=document.createElement('div');debug.className='environment-debug';document.body.appendChild(debug)}const w=state.weather,v=weatherVisual(w);debug.textContent=['ENVIRONMENT v13 · WEATHER FIRST',`sun ${state.solar.altitude.toFixed(1)}° / moon ${state.lunar.altitude.toFixed(1)}° · ${(state.lunar.illumination*100).toFixed(0)}% lit`,`PM2.5 ${state.air.pm25??'—'} / AQI ${state.air.aqi??'—'} · pollution ${(uniforms.uPollution.value*100).toFixed(0)}%`,`weather ${w.known?(w.cached?'CACHED':'LIVE'):'pending'} · ${v.name}`,w.known?`raw cloud ${Math.round(w.cloudCover*100)}% · render cloud ${Math.round(v.cloud*100)}% · rain ${w.precipitationMm.toFixed(1)}mm · vis ${w.visibilityKm.toFixed(1)}km`:'weather not inferred',`renderer DPR ${activePixelRatio.toFixed(2)} · full quality / full motion`,`tilt ${uniforms.uTilt.value.x.toFixed(2)}, ${uniforms.uTilt.value.y.toFixed(2)}`].join('\n')}
+
+          let raf=0,pageVisible=!document.hidden,lastNow=0;const start=performance.now();
+          function render(now){raf=0;if(!pageVisible)return;lastNow=now;uniforms.uTime.value=(now-start)/1000;renderer.render(scene,camera);raf=requestAnimationFrame(render)}
+          function requestRender(){if(!raf&&pageVisible)raf=requestAnimationFrame(render)}
+          document.addEventListener('visibilitychange',()=>{pageVisible=!document.hidden;if(pageVisible)requestRender();else if(raf){cancelAnimationFrame(raf);raf=0}});
+          const airObserver=new MutationObserver(()=>{syncState();requestRender()});airObserver.observe(pmEl,{childList:true,characterData:true,subtree:true});airObserver.observe(aqiEl,{childList:true,characterData:true,subtree:true});new ResizeObserver(()=>{resize();requestRender()}).observe(stage);
+
+          const tiltTarget=new THREE.Vector2(),tiltCurrent=uniforms.uTilt.value;
+          function applyOrientation(event){if(!Number.isFinite(event.gamma)&&!Number.isFinite(event.beta))return;const x=clamp((Number(event.gamma)||0)/28,-1,1),y=clamp(((Number(event.beta)||45)-45)/38,-1,1);tiltTarget.set(x,y);tiltCurrent.lerp(tiltTarget,.18);document.body.dataset.environmentTilt=`${tiltCurrent.x.toFixed(2)},${tiltCurrent.y.toFixed(2)}`;requestRender()}
+          function attachOrientation(){window.addEventListener('deviceorientation',applyOrientation,{passive:true});document.body.dataset.environmentTiltMode='device'}
+          if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+            const requestTilt=()=>{DeviceOrientationEvent.requestPermission().then(result=>{if(result==='granted')attachOrientation();else document.body.dataset.environmentTiltMode='pointer'}).catch(()=>{document.body.dataset.environmentTiltMode='pointer'})};
+            window.addEventListener('pointerdown',requestTilt,{once:true,capture:true,passive:true});
+          }else if('DeviceOrientationEvent'in window)attachOrientation();
+          else document.body.dataset.environmentTiltMode='pointer';
+          window.addEventListener('pointermove',event=>{if(event.pointerType==='mouse'||document.body.dataset.environmentTiltMode==='pointer'){const x=clamp(event.clientX/Math.max(innerWidth,1)*2-1,-1,1),y=clamp(event.clientY/Math.max(innerHeight,1)*2-1,-1,1);tiltTarget.set(x,-y);tiltCurrent.lerp(tiltTarget,.10);document.body.dataset.environmentTilt=`${tiltCurrent.x.toFixed(2)},${tiltCurrent.y.toFixed(2)}`}}, {passive:true});
+
+          function renderExport(width,height){
+            return new Promise((resolve,reject)=>{try{const exportRenderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance',preserveDrawingBuffer:true,precision:'highp'});exportRenderer.outputColorSpace=THREE.SRGBColorSpace;exportRenderer.setPixelRatio(1);exportRenderer.setSize(Math.max(1,Math.round(width)),Math.max(1,Math.round(height)),false);const exportMaterial=material.clone();exportMaterial.uniforms=THREE.UniformsUtils.clone(uniforms);exportMaterial.uniforms.uResolution.value.set(width,height);exportMaterial.uniforms.uTime.value=uniforms.uTime.value;const exportScene=new THREE.Scene();exportScene.add(new THREE.Mesh(geometry.clone(),exportMaterial));exportRenderer.render(exportScene,camera);const data=exportRenderer.domElement.toDataURL('image/png',1);exportScene.children[0].geometry.dispose();exportMaterial.dispose();exportRenderer.dispose();resolve(data)}catch(error){reject(error)}})
+          }
+          window.SindhornEnvironment={renderExport,getState:()=>({weather:{...state.weather,visual:weatherVisual(state.weather)},air:{...state.air},solar:{...state.solar},lunar:{...state.lunar},quality:activePixelRatio})};
+
+          stage.hidden=false;resize();syncState();document.body.classList.add('environment-ready');requestRender();fetchWeather().finally(()=>{syncState();requestRender()});setInterval(()=>fetchWeather().finally(()=>{syncState();requestRender()}),10*60*1000);setInterval(()=>{syncState();requestRender()},60*1000);
+          JS
+
+      - name: Replace app typography, save capture and mixed-language status markup
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('site/index.html'); s=p.read_text()
+
+          s=s.replace('<link rel="preload" as="font" type="font/woff" crossorigin href="/assets/fonts/vignette-sans-light.woff">\n<link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/ibm-plex-sans-thai-light.woff2">', '<link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/noto-sans-300.woff2">\n<link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/noto-sans-thai-300.woff2">')
+          start=s.index('@font-face{font-family:"Vignette Sans"')
+          end=s.index(':root{',start)
+          fonts='''@font-face{font-family:"Noto Sans";src:url("/assets/fonts/noto-sans-200.woff2") format("woff2");font-style:normal;font-weight:200;font-display:swap}\n@font-face{font-family:"Noto Sans";src:url("/assets/fonts/noto-sans-300.woff2") format("woff2");font-style:normal;font-weight:300;font-display:swap}\n@font-face{font-family:"Noto Sans";src:url("/assets/fonts/noto-sans-400.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}\n@font-face{font-family:"Noto Sans";src:url("/assets/fonts/noto-sans-500.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}\n@font-face{font-family:"Noto Sans";src:url("/assets/fonts/noto-sans-600.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}\n@font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-300.woff2") format("woff2");font-style:normal;font-weight:300;font-display:swap}\n@font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-400.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}\n@font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-500.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}\n@font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-600.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}\n'''
+          s=s[:start]+fonts+s[end:]
+          s=s.replace('font-family:"Vignette Sans","Trebuchet MS",sans-serif','font-family:"Noto Sans",system-ui,sans-serif')
+          s=s.replace(':lang(th){font-family:"IBM Plex Sans Thai","Noto Sans Thai",sans-serif;', ':lang(th){font-family:"Noto Sans Thai","Noto Sans",sans-serif;')
+          s=s.replace('.brand-lockup{position:relative;width:clamp(132px,38vw,188px);', '.brand-lockup{position:relative;width:clamp(119px,34vw,169px);')
+          s=s.replace('.brand-lockup{width:clamp(150px,20vw,188px)}', '.brand-lockup{width:clamp(135px,18vw,169px)}')
+          s=s.replace('<span id="connectionText">Connecting</span>', '<span id="connectionText"><span id="connectionEn">Connecting</span><span aria-hidden="true"> / </span><span id="connectionTh" lang="th">กำลังเชื่อมต่อ</span></span>')
+          s=s.replace("connectionText:document.getElementById('connectionText'),", "connectionText:document.getElementById('connectionText'),\n    connectionEn:document.getElementById('connectionEn'),\n    connectionTh:document.getElementById('connectionTh'),")
+          old="""  function connection(state,en,th){\n    els.connection.setAttribute('data-state',state);\n    setText(els.connectionText,en+' / '+th);\n  }"""
+          new="""  function connection(state,en,th){\n    els.connection.setAttribute('data-state',state);\n    setText(els.connectionEn,en);\n    setText(els.connectionTh,th);\n  }"""
+          assert old in s
+          s=s.replace(old,new,1)
+          s=s.replace('Save compact image / <span lang="th">บันทึกภาพ</span>', 'Save full page / <span lang="th">บันทึกทั้งหน้า</span>')
+          s=s.replace('<link rel="stylesheet" href="/ci-ui.css">', '<link rel="stylesheet" href="/ci-ui.css">\n<script src="/vendor/html2canvas.min.js" defer></script>')
+
+          start=s.index('  function roundedRect(ctx')
+          end=s.index('  function onVisibility()',start)
+          save='''  function homeImageFilename(){\n    var parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());\n    var obj={};parts.forEach(function(part){obj[part.type]=part.value;});return 'sindhorn-midtown-air-quality-full-'+obj.year+'-'+obj.month+'-'+obj.day+'.png';\n  }\n  function blobFromCanvas(canvas){return new Promise(function(resolve){canvas.toBlob(resolve,'image/png',1);});}\n  async function saveFullPage(){\n    if(!els.saveImage)return;\n    var pm=els.pm.textContent.trim(),aqi=els.aqi.textContent.trim();\n    if(!/^\\d+(\\.\\d+)?$/.test(pm)||!/^\\d+$/.test(aqi)){var waitOriginal=els.saveImage.innerHTML;els.saveImage.textContent='Waiting for data / รอข้อมูล';setTimeout(function(){els.saveImage.innerHTML=waitOriginal;},1800);return;}\n    if(!window.html2canvas){els.saveImage.textContent='Capture unavailable / ไม่สามารถบันทึกภาพ';return;}\n    var original=els.saveImage.innerHTML,atmosphere=null;els.saveImage.disabled=true;els.saveImage.textContent='Preparing full page / กำลังสร้างภาพทั้งหน้า';\n    try{\n      if(document.fonts&&document.fonts.ready)await Promise.race([document.fonts.ready,new Promise(function(resolve){setTimeout(resolve,1200);})]);\n      document.body.classList.add('capture-home');\n      await new Promise(function(resolve){requestAnimationFrame(function(){requestAnimationFrame(resolve);});});\n      var width=Math.ceil(document.documentElement.clientWidth);\n      var height=Math.ceil(document.body.scrollHeight);\n      if(window.SindhornEnvironment&&window.SindhornEnvironment.renderExport){\n        var data=await window.SindhornEnvironment.renderExport(width*2,height*2);\n        atmosphere=document.createElement('img');atmosphere.className='capture-atmosphere';atmosphere.alt='';atmosphere.setAttribute('aria-hidden','true');\n        await new Promise(function(resolve,reject){atmosphere.onload=resolve;atmosphere.onerror=reject;atmosphere.src=data;document.body.prepend(atmosphere);});\n      }\n      var canvas=await window.html2canvas(document.body,{backgroundColor:'#2E273B',scale:2,useCORS:true,logging:false,width:width,height:height,windowWidth:width,windowHeight:height,scrollX:0,scrollY:0});\n      var blob=await blobFromCanvas(canvas);if(!blob)throw new Error('PNG failed');\n      var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=homeImageFilename();document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},2500);els.saveImage.textContent='Saved / บันทึกแล้ว';\n    }catch(error){console.warn('Full-page capture failed',error);els.saveImage.textContent='Try again / ลองอีกครั้ง';}\n    finally{if(atmosphere)atmosphere.remove();document.body.classList.remove('capture-home');setTimeout(function(){els.saveImage.innerHTML=original;els.saveImage.disabled=false;},1800);}\n  }\n'''
+          s=s[:start]+save+s[end:]
+          s=s.replace("if(els.saveImage)els.saveImage.addEventListener('click',saveCompactImage);", "if(els.saveImage)els.saveImage.addEventListener('click',saveFullPage);")
+          p.write_text(s)
+          PY
+
+      - name: Rewrite SPA chrome and route motion
+        run: |
+          cat > site/app.js <<'JS'
+          const ROUTES=Object.freeze({today:'/',guidance:'/guidance',details:'/details'});
+          const ROUTE_META=Object.freeze({
+            today:{title:'Live Air Quality | Sindhorn Midtown Hotel Bangkok'},
+            guidance:{title:'Air Quality Guidance | Sindhorn Midtown Hotel Bangkok',kicker:'Air quality care',heading:'Guidance',thai:'คำแนะนำ',copy:'Practical guidance and the Thailand air-quality scale for the current conditions.',copyTh:'คำแนะนำสำหรับสภาพอากาศปัจจุบันและเกณฑ์คุณภาพอากาศของประเทศไทย'},
+            details:{title:'Reading Details | Sindhorn Midtown Hotel Bangkok',kicker:'Current observation',heading:'Reading details',thai:'รายละเอียดข้อมูล',copy:'Monitoring point, source, refresh and sharing controls for the current observation.',copyTh:'รายละเอียดจุดตรวจวัด แหล่งข้อมูล และเครื่องมือสำหรับข้อมูลล่าสุด'}
+          });
+          const main=document.querySelector('main'),fullscreenButton=document.getElementById('fullscreenToggle'),intro=main?.querySelector('.intro'),report=main?.querySelector('#report'),saveBar=main?.querySelector('.report-actionbar'),weather=main?.querySelector('.weather-now'),sections=main?[...main.querySelectorAll(':scope > .section')]:[],progressFill=document.querySelector('.fg-progress-rule i');
+          const routeForSection=section=>{const heading=(section.querySelector('.section-title')?.textContent||'').toLowerCase();return heading.includes('guidance')||heading.includes('คำแนะนำ')||heading.includes('scale')||heading.includes('ระดับ')?'guidance':'details'};
+          const routeHero=document.createElement('section');routeHero.className='route-hero';routeHero.hidden=true;routeHero.innerHTML='<p class="route-kicker"></p><h1></h1><p class="route-copy"></p>';if(main)main.insertBefore(routeHero,sections[0]||null);
+          const groups={today:[intro,report,weather,saveBar].filter(Boolean),guidance:[routeHero,...sections.filter(section=>routeForSection(section)==='guidance')],details:[routeHero,...sections.filter(section=>routeForSection(section)==='details')]};
+          const nav=document.createElement('nav');nav.className='app-tabbar bottom-nav';nav.setAttribute('aria-label','App navigation / เมนูแอป');nav.innerHTML=`<a class="nav-chip" href="/" data-app-route="today"><span>Today <small lang="th">วันนี้</small></span></a><a class="nav-chip" href="/guidance" data-app-route="guidance"><span>Guidance <small lang="th">คำแนะนำ</small></span></a><a class="nav-chip" href="/details" data-app-route="details"><span>Details <small lang="th">ข้อมูล</small></span></a>`;document.body.appendChild(nav);
+          const pathToRoute=path=>path.startsWith('/guidance')?'guidance':path.startsWith('/details')?'details':'today',allRouteNodes=[...new Set(Object.values(groups).flat())],routeOrder={today:0,guidance:1,details:2};
+          let currentRoute=pathToRoute(location.pathname),transitionToken=0;
+          function renderRouteHero(route){const meta=ROUTE_META[route];if(!meta||route==='today'){routeHero.hidden=true;return}routeHero.hidden=false;routeHero.querySelector('.route-kicker').textContent=meta.kicker;routeHero.querySelector('h1').innerHTML=`${meta.heading}<span lang="th">${meta.thai}</span>`;routeHero.querySelector('.route-copy').innerHTML=`${meta.copy}<span lang="th" style="display:block;margin-top:5px">${meta.copyTh}</span>`}
+          function updateProgress(){if(!progressFill)return;const root=document.documentElement,max=Math.max(1,root.scrollHeight-innerHeight),value=Math.max(0,Math.min(1,scrollY/max));progressFill.style.width=`${(value*100).toFixed(2)}%`}
+          function commitRoute(route,{replace=false,scroll=true}={}){document.body.dataset.route=route;allRouteNodes.forEach(node=>node.toggleAttribute('data-app-route-hidden',!groups[route].includes(node)));renderRouteHero(route);nav.querySelectorAll('[data-app-route]').forEach(link=>{const active=link.dataset.appRoute===route;link.toggleAttribute('aria-current',active);link.classList.toggle('is-active',active);link.classList.toggle('on',active)});document.title=ROUTE_META[route].title;const target=ROUTES[route];if(location.pathname!==target)history[replace?'replaceState':'pushState']({route},'',target);if(scroll)window.scrollTo({top:0,behavior:'auto'});currentRoute=route;requestAnimationFrame(updateProgress)}
+          async function applyRoute(route,{replace=false,scroll=true}={}){if(!ROUTES[route])route='today';if(route===currentRoute&&!replace){if(scroll)window.scrollTo({top:0,behavior:'smooth'});return}const token=++transitionToken,direction=Math.sign(routeOrder[route]-routeOrder[currentRoute])||1;if(!replace&&main?.animate){const out=main.animate([{opacity:1,filter:'blur(0px)',transform:'translate3d(0,0,0)'},{opacity:.18,filter:'blur(2px)',transform:`translate3d(${-10*direction}px,0,0)`}],{duration:150,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});try{await out.finished}catch(_){}if(token!==transitionToken)return}commitRoute(route,{replace,scroll});if(!replace&&main?.animate){main.animate([{opacity:.16,filter:'blur(2px)',transform:`translate3d(${14*direction}px,0,0)`},{opacity:1,filter:'blur(0px)',transform:'translate3d(0,0,0)'}],{duration:460,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'})}}
+          nav.addEventListener('click',event=>{const link=event.target.closest('[data-app-route]');if(!link)return;event.preventDefault();applyRoute(link.dataset.appRoute)});addEventListener('popstate',()=>applyRoute(pathToRoute(location.pathname),{replace:true,scroll:false}));addEventListener('scroll',updateProgress,{passive:true});addEventListener('resize',updateProgress,{passive:true});commitRoute(currentRoute,{replace:true,scroll:false});document.body.classList.add('app-spa-ready');updateProgress();
+          function updateFullscreenState(){const active=!!document.fullscreenElement;document.body.classList.toggle('is-fullscreen',active);fullscreenButton?.classList.toggle('is-active',active);fullscreenButton?.setAttribute('aria-pressed',active?'true':'false');fullscreenButton?.setAttribute('aria-label',active?'Exit full screen / ออกจากเต็มหน้าจอ':'Enter full screen / เต็มหน้าจอ')}
+          if(fullscreenButton){if(!document.documentElement.requestFullscreen&&!document.exitFullscreen)fullscreenButton.hidden=true;fullscreenButton.addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen({navigationUI:'hide'})}catch(_){}});document.addEventListener('fullscreenchange',updateFullscreenState);updateFullscreenState()}
+          if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(()=>{}),{once:true});
+          JS
+
+      - name: Apply Noto CI, Voice-style footer and capture surface
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('site/ci-ui.css'); s=p.read_text()
+          s=s.replace('Vignette Sans + IBM Plex Sans Thai','Noto Sans + Noto Sans Thai')
+          s=s.replace('"Vignette Sans","Trebuchet MS",sans-serif','"Noto Sans",system-ui,sans-serif')
+          s=s.replace('"IBM Plex Sans Thai","Noto Sans Thai",sans-serif','"Noto Sans Thai","Noto Sans",sans-serif')
+          s += r'''
+
+/* v13 — weather fidelity / Noto / Voice-footer authority. */
+body,button,a,input,textarea,select{font-family:"Noto Sans",system-ui,sans-serif!important}
+:lang(th),.connection-th{font-family:"Noto Sans Thai","Noto Sans",sans-serif!important}
+.brand-lockup{width:clamp(97px,25vw,122px)!important}
+.connection #connectionTh{font-family:"Noto Sans Thai","Noto Sans",sans-serif!important;font-weight:400!important;letter-spacing:0!important;text-transform:none!important}
+
+/* Flipgazine Voice footer contract: full-width frosted rail + independent chips. */
+body.app-spa-ready{padding-bottom:calc(58px + env(safe-area-inset-bottom))!important}
+.app-tabbar.bottom-nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:100!important;transform:none!important;width:100%!important;max-width:none!important;min-height:50px!important;display:flex!important;gap:8px!important;align-items:center!important;justify-content:safe center!important;overflow-x:auto!important;overscroll-behavior-x:contain!important;scrollbar-width:none!important;-webkit-overflow-scrolling:touch!important;padding-block:9px!important;padding-bottom:calc(9px + env(safe-area-inset-bottom))!important;padding-inline:max(var(--sm-gutter),calc((100% - var(--sm-max))/2 + var(--sm-gutter)))!important;border:0!important;border-top:1px solid var(--sm-glass-brd)!important;border-radius:0!important;background:rgba(46,39,59,.68)!important;box-shadow:none!important;backdrop-filter:blur(22px) saturate(1.35)!important;-webkit-backdrop-filter:blur(22px) saturate(1.35)!important}
+.app-tabbar.bottom-nav::-webkit-scrollbar{display:none!important}
+.app-tabbar.bottom-nav .nav-chip{flex:0 0 auto!important;white-space:nowrap!important;min-width:0!important;height:32px!important;min-height:32px!important;padding:0 14px!important;border-radius:16px!important;border:1px solid var(--sm-glass-brd)!important;background:rgba(46,39,59,.34)!important;color:var(--sm-muted)!important;font-size:.64rem!important;font-weight:600!important;letter-spacing:.09em!important;text-transform:uppercase!important;transition:color .28s var(--sm-soft),border-color .28s var(--sm-soft),background .28s var(--sm-soft),transform .16s var(--sm-ease),box-shadow .28s var(--sm-soft)!important}
+.app-tabbar.bottom-nav .nav-chip small{display:inline!important;margin-left:4px!important;color:inherit!important;font-family:"Noto Sans Thai","Noto Sans",sans-serif!important;font-size:.95em!important;font-weight:400!important;letter-spacing:0!important;text-transform:none!important;opacity:.76!important}
+.app-tabbar.bottom-nav .nav-chip.is-active,.app-tabbar.bottom-nav .nav-chip.on{color:var(--sm-accent)!important;border-color:var(--sm-accent)!important;background:rgba(var(--sm-accent-rgb),.055)!important;box-shadow:0 0 18px rgba(var(--sm-accent-rgb),.07)!important;transform:translateY(-1px)!important}
+.app-tabbar.bottom-nav .nav-chip:active{transform:scale(.965)!important}
+
+/* Capture the complete Today route only; app chrome and capture button never appear in the saved image. */
+body.capture-home{position:relative!important;padding-bottom:0!important;background:#2E273B!important;overflow:visible!important}
+body.capture-home .masthead,body.capture-home .app-footer,body.capture-home .app-tabbar,body.capture-home .report-actionbar,body.capture-home .environment-stage{display:none!important}
+body.capture-home main{position:relative!important;z-index:2!important;padding-top:0!important;padding-bottom:38px!important}
+.capture-atmosphere{position:absolute!important;z-index:0!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;pointer-events:none!important}
+
+@media(max-width:520px){.brand-lockup{width:99px!important}.app-tabbar.bottom-nav{gap:7px!important;padding-left:20px!important;padding-right:20px!important}.app-tabbar.bottom-nav .nav-chip{font-size:.61rem!important;padding-inline:12px!important}}
+@media(max-width:350px){.brand-lockup{width:94px!important}.app-tabbar.bottom-nav{justify-content:flex-start!important}}
+'''
+          p.write_text(s)
+
+          p=Path('site/environment.css'); s=p.read_text(); s += r'''
+
+/* v13 high-fidelity environment: same renderer quality on mobile and desktop. */
+.environment-stage::before{background:linear-gradient(180deg,rgba(22,19,29,.08) 0%,rgba(22,19,29,.055) 34%,rgba(25,21,31,.13) 68%,rgba(24,20,30,.24) 100%)}
+.environment-canvas{image-rendering:auto;transform:translateZ(0);will-change:transform}
+@media(max-width:699px){.environment-stage::before{background:linear-gradient(180deg,rgba(22,19,29,.08) 0%,rgba(22,19,29,.055) 34%,rgba(25,21,31,.13) 68%,rgba(24,20,30,.24) 100%)}}
+'''; p.write_text(s)
+          PY
+
+      - name: Update service worker and canonical documentation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('site/sw.js'); s=p.read_text(); s=s.replace("sindhorn-midtown-internal-pwa-v12","sindhorn-midtown-internal-pwa-v13",1)
+          old="'/assets/fonts/vignette-sans-light.woff','/assets/fonts/vignette-sans-regular.woff','/assets/fonts/vignette-sans-semibold.woff',\n  '/assets/fonts/ibm-plex-sans-thai-light.woff2','/assets/fonts/ibm-plex-sans-thai-regular.woff2','/assets/fonts/ibm-plex-sans-thai-semibold.woff2'"
+          new="'/assets/fonts/noto-sans-200.woff2','/assets/fonts/noto-sans-300.woff2','/assets/fonts/noto-sans-400.woff2','/assets/fonts/noto-sans-500.woff2','/assets/fonts/noto-sans-600.woff2',\n  '/assets/fonts/noto-sans-thai-300.woff2','/assets/fonts/noto-sans-thai-400.woff2','/assets/fonts/noto-sans-thai-500.woff2','/assets/fonts/noto-sans-thai-600.woff2','/vendor/html2canvas.min.js'"
+          assert old in s; s=s.replace(old,new,1); p.write_text(s)
+
+          p=Path('site/version.txt'); s=p.read_text(); s += 'environment: weather-first-full-quality-tilt-v13\nui: noto-voice-footer-luxury-transitions-v13\ncapture: full-home-atmosphere-v13\n'; p.write_text(s)
+
+          p=Path('AGENTS.md'); s=p.read_text(); s=s.replace('- Respect `prefers-reduced-motion` and mobile performance constraints.\n- Stop or heavily throttle rendering when hidden or offscreen.', '- The user explicitly requires full atmospheric motion and full visual quality on mobile; do not lower renderer DPR, cloud complexity, animation cadence, or celestial quality relative to desktop.\n- Mobile device tilt is part of the default atmosphere. Use DeviceOrientation continuously where the platform allows it; on iOS request permission from the first user gesture because the OS requires that gesture.\n- Stop rendering only when the document is actually hidden; do not degrade the visible scene.')
+          s += '\n## v13 visual authority\n\n- App typography is Noto Sans / Noto Sans Thai throughout UI and content. The official hotel logo remains artwork.\n- Realtime atmosphere resolves **weather first** (sky, sun/moon, clouds, precipitation, visibility), then applies PM2.5 haze/extinction and suspended particulate as the final optical layer.\n- The sticky footer follows the Flipgazine Voice bottom-nav contract: full-width frosted rail with independent compact navigation chips.\n- Save Image means a full-length capture of the Today route atmosphere/content; masthead, sticky footer, app footer and the Save button itself are excluded.\n'; p.write_text(s)
+
+          p=Path('docs/REALTIME-ENVIRONMENT-PLAN.md'); s=p.read_text(); s=s.replace('## Performance\n\n- HTML is always the functional layer.\n- Cap mobile device pixel ratio.\n- Prefer approximately 30 fps for slow ambient motion.\n- Respect `prefers-reduced-motion`.\n- Stop rendering when the page is hidden; throttle where appropriate.\n- Avoid heavy post-processing and large environment textures.', '## Rendering fidelity authority\n\n- HTML remains the functional layer, but the visible WebGL environment must use the same quality target on mobile and desktop.\n- Renderer DPR is fixed at 2 for the current app; do not reduce quality based on device-memory or hardware-concurrency heuristics.\n- Render ambient motion on every display-synchronised animation frame while the app is visible.\n- Do not disable atmospheric motion because of `prefers-reduced-motion`; the user explicitly chose a continuously living environmental surface.\n- Stop rendering when the document is actually hidden.\n- Mobile tilt is always part of the visual system. Android/device-orientation capable browsers attach immediately; iOS requests orientation permission from the first user gesture as required by the platform.\n- Weather resolves first. Clouds, overcast, fog, rain and storm state must be visibly represented from the weather code and cloud cover before any PM2.5 optics are applied.\n- PM2.5 is a final optical layer: haze, saturation/contrast loss, solar diffusion and suspended particulate. It never invents cloud/rain/weather.\n- Celestial edges must be high precision and anti-aliased; the moon must not degrade to a pixelated sprite.')
+          s += '\n## Full-page capture\n\nThe Save action captures the complete Today route as a long PNG using the live HTML composition plus an offscreen full-resolution render of the same current environment state. It excludes the masthead, sticky navigation/footer, reference footer and Save control. This is a web-app capture feature, not generated imagery.\n'; p.write_text(s)
+
+          p=Path('docs/CI-UI-ADAPTATION.md'); s=p.read_text(); s += '\n\n## v13 typography and footer authority\n\n- Noto Sans is the app-wide English/UI typeface; Noto Sans Thai is mandatory for Thai glyphs, including mixed status copy such as `ข้อมูลล่าสุด`.\n- English remains eminent through scale, tracking and placement; Thai remains correctly shaped and readable.\n- Header logo artwork is reduced by 10% from the v12 size.\n- Guidance/Details route kickers are semantic (`AIR QUALITY CARE`, `CURRENT OBSERVATION`) with no redundant page numbers.\n- Sticky navigation uses the Flipgazine Voice-page footer contract: edge-to-edge frosted rail, compact independent chips, no oversized rounded dock.\n- Route changes use a short out/in depth transition while header, environment and sticky footer remain persistent.\n'; p.write_text(s)
+          PY
+
+      - name: Build Three.js bundle and verify syntax
+        run: |
+          npx --yes esbuild@0.25.9 site/environment.js --bundle --format=esm --platform=browser --target=es2020 --outfile=site/environment.bundle.js
+          node --check site/environment.bundle.js
+          node --check site/app.js
+          node --check site/sw.js
+
+      - name: Static contract checks
+        run: |
+          grep -q 'precision highp float' site/environment.js
+          grep -q 'const activePixelRatio=2' site/environment.js
+          grep -q 'WEATHER FIRST' site/environment.js
+          grep -q 'uWeatherType' site/environment.js
+          grep -q 'DeviceOrientationEvent.requestPermission' site/environment.js
+          ! grep -q 'lowPowerDevice' site/environment.js
+          ! grep -q 'adaptQuality' site/environment.js
+          grep -q 'Noto Sans Thai' site/index.html
+          grep -q 'id="connectionTh" lang="th"' site/index.html
+          grep -q 'Save full page' site/index.html
+          grep -q 'html2canvas.min.js' site/index.html
+          grep -q 'Air quality care' site/app.js
+          grep -q 'Current observation' site/app.js
+          grep -q 'bottom-nav' site/app.js
+          grep -q 'pwa-v13' site/sw.js
+          test -s site/vendor/html2canvas.min.js
+          test -s site/assets/fonts/noto-sans-300.woff2
+          test -s site/assets/fonts/noto-sans-thai-400.woff2
+
+      - name: Mobile and desktop browser QA
+        run: |
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+          python3 -m http.server 4173 --directory site >/tmp/v13-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          cat > /tmp/v13-check.cjs <<'JS'
+          const {chromium}=require(process.cwd()+'/node_modules/playwright');
+          const fs=require('fs');
+          function airPayload(){return {status:'Success',message:[{MeasIndex:'114','PM2.5':8.6,aqi:14,DateTime:'2026-08-25 20:00:00',Area:'ถนนพระราม 4 แขวงวังใหม่ เขตปทุมวัน',District:'ปทุมวัน'}]};}
+          function weatherPayload(){return {current:{temperature_2m:30,apparent_temperature:35,relative_humidity_2m:72,precipitation:0,rain:0,showers:0,weather_code:3,cloud_cover:100,wind_speed_10m:9,wind_direction_10m:270,wind_gusts_10m:18,visibility:9000,is_day:0,time:'2026-08-25T20:00'}};}
+          async function setup(page){
+            await page.route('**/api.open-meteo.com/**',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(weatherPayload())}));
+            await page.route('**/stations.airbkk.com/api/web/data',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(airPayload())}));
+          }
+          async function inspect(page){
+            await page.goto('http://127.0.0.1:4173/',{waitUntil:'load',timeout:60000});
+            await page.waitForFunction(()=>document.body.classList.contains('environment-ready')&&document.body.dataset.environmentWeather==='live',{timeout:15000});
+            await page.waitForTimeout(800);
+            return page.evaluate(()=>{
+              const c=document.getElementById('environmentCanvas'),r=c.getBoundingClientRect(),logo=document.querySelector('.brand-lockup'),th=document.getElementById('connectionTh'),nav=document.querySelector('.app-tabbar');
+              return{quality:document.body.dataset.environmentQuality,effectiveCloud:Number(document.body.dataset.environmentCloudEffective),weatherType:document.body.dataset.environmentWeatherType,canvasCss:[r.width,r.height],canvasPixels:[c.width,c.height],logoWidth:logo.getBoundingClientRect().width,thaiFont:getComputedStyle(th).fontFamily,nav:{left:nav.getBoundingClientRect().left,right:nav.getBoundingClientRect().right,width:nav.getBoundingClientRect().width,radius:getComputedStyle(nav).borderRadius},kicker:document.querySelector('.route-kicker')?.textContent||''};
+            });
+          }
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const mobile=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2});
+            const mp=await mobile.newPage();await setup(mp);const mi=await inspect(mp);console.log('mobile',mi);
+            if(mi.quality!=='2.00')throw new Error('mobile renderer is not full DPR2');
+            if(mi.effectiveCloud<.90||mi.weatherType!=='overcast')throw new Error('overcast weather is not authoritative');
+            if(mi.canvasPixels[0]<mi.canvasCss[0]*1.9)throw new Error('mobile backing resolution reduced');
+            if(!/Noto Sans Thai/i.test(mi.thaiFont))throw new Error('Thai live status is not Noto Sans Thai');
+            if(Math.abs(mi.logoWidth-99)>2)throw new Error('mobile logo is not 10% reduced');
+            if(mi.nav.left>1||Math.abs(mi.nav.width-390)>2||mi.nav.radius!=='0px')throw new Error('footer is not Voice-style edge rail');
+            await mp.click('[data-app-route="guidance"]');await mp.waitForTimeout(700);const g=await mp.evaluate(()=>({route:document.body.dataset.route,kicker:document.querySelector('.route-kicker').textContent,heading:document.querySelector('.route-hero h1').textContent}));if(g.route!=='guidance'||/^\d/.test(g.kicker)||!g.kicker.toLowerCase().includes('air quality'))throw new Error('guidance kicker/transition failed');
+            await mp.click('[data-app-route="today"]');await mp.waitForTimeout(650);
+            const downloadPromise=mp.waitForEvent('download',{timeout:30000});await mp.click('#saveImageBtn');const download=await downloadPromise;const path=await download.path();const b=fs.readFileSync(path);const w=b.readUInt32BE(16),h=b.readUInt32BE(20);console.log('capture',download.suggestedFilename(),w,h);if(w<760||h<1600||Math.abs(w/h-1)<.08)throw new Error('save is not a long full-page capture');
+            const tilt=await mp.evaluate(async()=>{const e=new Event('deviceorientation');Object.defineProperty(e,'gamma',{value:16});Object.defineProperty(e,'beta',{value:55});window.dispatchEvent(e);await new Promise(r=>setTimeout(r,60));return document.body.dataset.environmentTilt||''});console.log('tilt',tilt);
+            await mobile.close();
+            const desktop=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:2});const dp=await desktop.newPage();await setup(dp);const di=await inspect(dp);console.log('desktop',di);if(di.quality!=='2.00')throw new Error('desktop renderer differs from mobile quality');if(di.effectiveCloud<.90)throw new Error('desktop weather cloud mismatch');await desktop.close();await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
+          node /tmp/v13-check.cjs
+
+      - name: Commit verified v13 and remove helper workflow
+        run: |
+          rm -f .github/workflows/weather-quality-v13-once.yml
+          rm -f package.json package-lock.json
+          git config user.name "dechadae"
+          git config user.email "decha.dae@gmail.com"
+          git add site docs AGENTS.md .github/workflows/weather-quality-v13-once.yml
+          git commit -m "Upgrade weather fidelity and premium mobile experience"
+          git push origin HEAD:weather-quality-v13
