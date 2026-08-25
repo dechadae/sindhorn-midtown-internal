@@ -1,0 +1,29 @@
+name: Inspect live PWA MIME
+on:
+  push:
+    branches: [webgl-environment-v1]
+    paths: ['.github/workflows/inspect-pwa-mime-once.yml']
+permissions:
+  contents: write
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Inspect responses
+        run: |
+          BASE='https://webgl-environment-v1.sindhorn-midtown-internal.pages.dev'
+          for p in / /guidance /app.js /environment.js /vendor/three.module.js /sw.js; do
+            echo "===== $p ====="
+            curl -sSI "$BASE$p" | grep -iE 'HTTP/|content-type|content-length|cache-control|etag' || true
+            curl -fsS "$BASE$p" | head -c 100 | tr '\n' ' '; echo
+          done
+      - name: Remove helper
+        if: always()
+        run: |
+          rm -f .github/workflows/inspect-pwa-mime-once.yml
+          git config user.name "dechadae"
+          git config user.email "decha.dae@gmail.com"
+          git add .github/workflows/inspect-pwa-mime-once.yml
+          git commit -m "Remove live PWA MIME inspector" || true
+          git push origin HEAD:webgl-environment-v1 || true
