@@ -1,0 +1,89 @@
+name: Definitive PWA SPA QA
+on:
+  push:
+    branches: [webgl-environment-v1]
+    paths: ['.github/workflows/pwa-spa-qa3-once.yml']
+permissions:
+  contents: write
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Endpoint and shell checks
+        run: |
+          set -euo pipefail
+          BASE='https://webgl-environment-v1.sindhorn-midtown-internal.pages.dev'
+          for PATHNAME in / /guidance /details /manifest.webmanifest /sw.js /app.js /environment.js /vendor/three.module.js /icons/app-192.png /assets/brand/sindhorn-midtown-vignette-white.png /assets/fonts/vignette-sans-light.woff; do
+            code=$(curl -sS -o /tmp/out -w '%{http_code}' "$BASE$PATHNAME")
+            test "$code" = 200 || { echo "$PATHNAME returned $code"; exit 1; }
+          done
+          curl -fsS "$BASE/" | grep -q 'fullscreenToggle'
+          curl -fsS "$BASE/" | grep -q 'manifest.webmanifest'
+          curl -fsS "$BASE/environment.js" | grep -q "from '/vendor/three.module.js'"
+      - name: Browser QA
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+          cat > qa.cjs <<'EOF'
+          const {chromium}=require('playwright');
+          const BASE='https://webgl-environment-v1.sindhorn-midtown-internal.pages.dev';
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            for(const viewport of [{width:390,height:844},{width:1440,height:1000}]){
+              const context=await browser.newContext({viewport});
+              const page=await context.newPage();
+              const errors=[];
+              page.on('pageerror',e=>errors.push('page:'+String(e)));
+              page.on('console',m=>{if(m.type()==='error')errors.push('console:'+m.text())});
+              await page.goto(BASE+'/',{waitUntil:'domcontentloaded',timeout:30000});
+              await page.waitForSelector('.app-tabbar');
+              if(await page.locator('#themeToggle').count())throw new Error('theme toggle remains');
+              if(await page.locator('#fullscreenToggle').count()!==1)throw new Error('fullscreen toggle missing');
+              if(await page.locator('.app-tabbar a').count()!==3)throw new Error('tabbar missing');
+              if(await page.locator('link[rel="manifest"]').getAttribute('href')!='/manifest.webmanifest')throw new Error('manifest link missing');
+              const order=await page.evaluate(()=>{const r=document.querySelector('#report'),w=document.querySelector('#weatherNow');return !!(r&&w&&(r.compareDocumentPosition(w)&Node.DOCUMENT_POSITION_FOLLOWING));});
+              if(!order)throw new Error('PM2.5 report not above weather');
+              const navCount=await page.evaluate(()=>performance.getEntriesByType('navigation').length);
+              await page.click('[data-app-route="guidance"]');
+              await page.waitForFunction(()=>document.body.dataset.route==='guidance');
+              if(locationPath(page)!='/guidance')throw new Error('guidance route URL failed');
+              if(await page.locator('main > .section:not([data-app-route-hidden])').count()<1)throw new Error('guidance content hidden');
+              await page.click('[data-app-route="details"]');
+              await page.waitForFunction(()=>document.body.dataset.route==='details');
+              if(locationPath(page)!='/details')throw new Error('details route URL failed');
+              if(await page.locator('main > .section:not([data-app-route-hidden])').count()<1)throw new Error('details content hidden');
+              if(await page.evaluate(()=>performance.getEntriesByType('navigation').length)!==navCount)throw new Error('in-app navigation caused reload');
+              await page.goto(BASE+'/guidance',{waitUntil:'domcontentloaded',timeout:30000});
+              await page.waitForFunction(()=>document.body.dataset.route==='guidance');
+              if(locationPath(page)!='/guidance')throw new Error('direct guidance route failed');
+              const sw=await page.evaluate(async()=>{if(!('serviceWorker'in navigator))return false;const r=await navigator.serviceWorker.ready;return !!r.active;});
+              if(!sw)throw new Error('service worker inactive');
+              if(errors.length)throw new Error(errors.join(' | '));
+              await context.close();
+            }
+            const context=await browser.newContext({viewport:{width:390,height:844}});
+            const page=await context.newPage();
+            await page.goto(BASE+'/',{waitUntil:'domcontentloaded'});
+            await page.evaluate(async()=>{await navigator.serviceWorker.ready});
+            await page.reload({waitUntil:'domcontentloaded'});
+            await context.setOffline(true);
+            await page.goto(BASE+'/guidance',{waitUntil:'domcontentloaded',timeout:15000});
+            await page.waitForFunction(()=>document.body.dataset.route==='guidance');
+            if(await page.locator('.app-tabbar a').count()!==3)throw new Error('offline SPA shell missing');
+            await context.close();
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          function locationPath(page){return new URL(page.url()).pathname;}
+          EOF
+          node qa.cjs
+      - name: Remove QA helper
+        if: always()
+        run: |
+          rm -f .github/workflows/pwa-spa-qa3-once.yml
+          git config user.name "dechadae"
+          git config user.email "decha.dae@gmail.com"
+          git add .github/workflows/pwa-spa-qa3-once.yml
+          git commit -m "Remove definitive PWA SPA QA helper" || true
+          git push origin HEAD:webgl-environment-v1 || true
