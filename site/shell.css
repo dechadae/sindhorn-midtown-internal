@@ -1,0 +1,18 @@
+@font-face{font-family:"Vignette Sans";src:url("/assets/fonts/vignette-sans-light.woff") format("woff");font-style:normal;font-weight:200;font-display:swap}
+@font-face{font-family:"Vignette Sans";src:url("/assets/fonts/vignette-sans-regular.woff") format("woff");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"Vignette Sans";src:url("/assets/fonts/vignette-sans-semibold.woff") format("woff");font-style:normal;font-weight:600;font-display:swap}
+@font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-300.woff2") format("woff2");font-style:normal;font-weight:300;font-display:swap}
+@font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-400.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-500.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
+@font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-600.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}
+:root{color-scheme:dark;background:#2E273B;color:#FAF7F5}
+html,body{min-height:100%;margin:0;background:#2E273B;color:#FAF7F5}
+body{overflow-x:hidden}
+#app-header,#route-view,#app-footer{position:relative}
+#app-header,#app-footer{z-index:20}
+#route-view{z-index:2;min-height:calc(100dvh - 140px)}
+#app-footer{position:relative}
+.environment-stage{z-index:0}
+.environment-stage+*{position:relative}
+[data-shell-loading="true"] #route-view{opacity:.001}
+[data-shell-loading="false"] #route-view{opacity:1;transition:opacity .22s ease}
