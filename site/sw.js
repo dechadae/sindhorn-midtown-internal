@@ -1,6 +1,6 @@
-const VERSION='sindhorn-midtown-internal-pwa-v9';
+const VERSION='sindhorn-midtown-internal-pwa-v10';
 const SHELL=[
-  '/', '/index.html', '/environment.css', '/environment.bundle.js', '/pwa.css', '/app.js', '/manifest.webmanifest',
+  '/', '/index.html', '/environment.css', '/environment.bundle.js', '/pwa.css', '/ci-ui.css', '/app.js', '/manifest.webmanifest',
   '/icons/app-192.png','/icons/app-512.png','/icons/maskable-512.png','/icons/apple-touch-icon.png','/assets/brand/sindhorn-midtown-vignette-white.png','/assets/brand/sindhorn-midtown-vignette-black.png',
   '/assets/fonts/vignette-sans-light.woff','/assets/fonts/vignette-sans-regular.woff','/assets/fonts/vignette-sans-semibold.woff',
   '/assets/fonts/ibm-plex-sans-thai-light.woff2','/assets/fonts/ibm-plex-sans-thai-regular.woff2','/assets/fonts/ibm-plex-sans-thai-semibold.woff2'
