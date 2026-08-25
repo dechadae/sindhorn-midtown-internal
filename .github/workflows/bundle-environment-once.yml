@@ -10,6 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Complete Three.js source dependency
+        run: |
+          curl -fsSL 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.core.js' -o site/vendor/three.core.js
+          test -s site/vendor/three.core.js
       - name: Bundle environment module
         run: |
           npx --yes esbuild@0.25.9 site/environment.js --bundle --format=esm --platform=browser --target=es2020 --outfile=site/environment.bundle.js
