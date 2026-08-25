@@ -1,12 +1,20 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js';
 
 const HOTEL = { lat: 13.74135, lon: 100.54274, timezone: 'Asia/Bangkok' };
-const WEATHER_ENDPOINT = '/api/weather';
+const WEATHER_ENDPOINT = 'https://api.open-meteo.com/v1/forecast?latitude=13.74135&longitude=100.54274&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,rain,showers,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,is_day&timezone=Asia%2FBangkok';
+const WEATHER_CACHE_KEY = 'sindhorn-midtown:weather:v1';
+const WEATHER_CACHE_MAX_AGE = 45 * 60 * 1000;
 const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false;
 const stage = document.getElementById('environmentStage');
 const canvas = document.getElementById('environmentCanvas');
 const pmEl = document.getElementById('pmValue');
 const aqiEl = document.getElementById('aqiValue');
+const weatherNow = document.getElementById('weatherNow');
+const weatherTemp = document.getElementById('weatherTemp');
+const weatherConditionEn = document.getElementById('weatherConditionEn');
+const weatherConditionTh = document.getElementById('weatherConditionTh');
+const weatherMetaEn = document.getElementById('weatherMetaEn');
+const weatherMetaTh = document.getElementById('weatherMetaTh');
 
 if (!stage || !canvas || !pmEl || !aqiEl || !window.WebGLRenderingContext) {
   throw new Error('Realtime environment unavailable');
@@ -92,41 +100,110 @@ function pollutionStrength(pm25) {
   );
 }
 
+
+function weatherLabel(code) {
+  const c = Number(code);
+  if (c === 0) return ['Clear sky','ท้องฟ้าแจ่มใส'];
+  if (c === 1) return ['Mainly clear','ท้องฟ้าส่วนใหญ่แจ่มใส'];
+  if (c === 2) return ['Partly cloudy','มีเมฆบางส่วน'];
+  if (c === 3) return ['Overcast','มีเมฆมาก'];
+  if (c === 45 || c === 48) return ['Foggy','มีหมอก'];
+  if ([51,53,55,56,57].includes(c)) return ['Drizzle','ฝนปรอย'];
+  if ([61,63,65,66,67].includes(c)) return ['Rain','ฝนตก'];
+  if ([71,73,75,77].includes(c)) return ['Snow','หิมะ'];
+  if ([80,81,82].includes(c)) return ['Rain showers','ฝนตกเป็นช่วง'];
+  if ([85,86].includes(c)) return ['Snow showers','หิมะตกเป็นช่วง'];
+  if ([95,96,99].includes(c)) return ['Thunderstorm','พายุฝนฟ้าคะนอง'];
+  return ['Current weather','สภาพอากาศขณะนี้'];
+}
+
+function windPoint(deg) {
+  const labels = ['N','NE','E','SE','S','SW','W','NW'];
+  return labels[Math.round(((((Number(deg) || 0) % 360) + 360) % 360) / 45) % 8];
+}
+
+function renderWeather() {
+  if (!weatherNow || !state.weather.known || !Number.isFinite(state.weather.temperatureC)) return;
+  const w = state.weather;
+  const [en, th] = weatherLabel(w.weatherCode);
+  weatherTemp.textContent = `${Math.round(w.temperatureC)}°`;
+  weatherConditionEn.textContent = en;
+  weatherConditionTh.textContent = th;
+  const feels = Number.isFinite(w.apparentTemperatureC) ? Math.round(w.apparentTemperatureC) : Math.round(w.temperatureC);
+  const rh = Math.round(w.humidity * 100);
+  const wind = Math.round(w.windSpeedKmh);
+  const dir = windPoint(w.windDirectionDeg);
+  weatherMetaEn.textContent = `Feels ${feels}° · RH ${rh}% · Wind ${dir} ${wind} km/h`;
+  weatherMetaTh.textContent = `รู้สึกเหมือน ${feels}° · ความชื้น ${rh}% · ลม ${dir} ${wind} กม./ชม.`;
+  weatherNow.hidden = false;
+}
+
+function cachedWeather() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(WEATHER_CACHE_KEY) || 'null');
+    if (!cached || !cached.savedAt || Date.now() - cached.savedAt > WEATHER_CACHE_MAX_AGE) return null;
+    return cached.value || null;
+  } catch (_) { return null; }
+}
+
+function saveWeather(value) {
+  try { localStorage.setItem(WEATHER_CACHE_KEY, JSON.stringify({savedAt: Date.now(), value})); } catch (_) {}
+}
+
 const state = {
   air: readAir(),
   weather: {
     known: false,
     cloudCover: 0,
     precipitationMm: 0,
-    humidity: 68,
+    humidity: 0.68,
     windSpeedKmh: 4,
     windDirectionDeg: 180,
-    visibilityKm: null,
+    windGustKmh: null,
+    visibilityKm: 20,
     temperatureC: null,
+    apparentTemperatureC: null,
+    weatherCode: null,
+    isDay: null,
     observedAt: null
   },
   solar: solarPosition()
 };
 
 async function fetchWeather() {
+  const cached = cachedWeather();
+  if (cached && !state.weather.known) {
+    state.weather = { ...cached, known: true, cached: true };
+    renderWeather();
+    syncState();
+  }
   try {
-    const response = await fetch(WEATHER_ENDPOINT, { cache: 'no-store', credentials: 'same-origin' });
+    const response = await fetch(WEATHER_ENDPOINT, { cache: 'no-store', credentials: 'omit' });
     if (!response.ok) throw new Error('weather ' + response.status);
     const value = await response.json();
+    const current = value.current || {};
     const n = (x, fallback = null) => Number.isFinite(Number(x)) ? Number(x) : fallback;
-    state.weather = {
+    const weather = {
       known: true,
-      cloudCover: clamp(n(value.cloudCover, 0) / 100),
-      precipitationMm: Math.max(0, n(value.precipitationMm, 0)),
-      humidity: clamp(n(value.humidity, 68) / 100),
-      windSpeedKmh: Math.max(0, n(value.windSpeedKmh, 4)),
-      windDirectionDeg: ((n(value.windDirectionDeg, 180) % 360) + 360) % 360,
-      visibilityKm: n(value.visibilityKm),
-      temperatureC: n(value.temperatureC),
-      observedAt: value.observedAt || null
+      cached: false,
+      cloudCover: clamp(n(current.cloud_cover, 0) / 100),
+      precipitationMm: Math.max(0, n(current.precipitation, 0)),
+      humidity: clamp(n(current.relative_humidity_2m, 68) / 100),
+      windSpeedKmh: Math.max(0, n(current.wind_speed_10m, 4)),
+      windDirectionDeg: ((n(current.wind_direction_10m, 180) % 360) + 360) % 360,
+      windGustKmh: n(current.wind_gusts_10m),
+      visibilityKm: Math.max(0.1, n(current.visibility, 20000) / 1000),
+      temperatureC: n(current.temperature_2m),
+      apparentTemperatureC: n(current.apparent_temperature),
+      weatherCode: n(current.weather_code),
+      isDay: n(current.is_day),
+      observedAt: current.time || null
     };
+    state.weather = weather;
+    saveWeather(weather);
+    renderWeather();
   } catch (_) {
-    state.weather.known = false;
+    if (!state.weather.known) state.weather.known = false;
   }
 }
 
@@ -153,6 +230,7 @@ const uniforms = {
   uCloud: { value: 0 },
   uRain: { value: 0 },
   uHumidity: { value: 0.68 },
+  uVisibilityKm: { value: 20 },
   uWind: { value: new THREE.Vector2(0.02, 0) },
   uWeatherKnown: { value: 0 }
 };
@@ -174,6 +252,7 @@ const material = new THREE.ShaderMaterial({
     uniform float uCloud;
     uniform float uRain;
     uniform float uHumidity;
+    uniform float uVisibilityKm;
     uniform vec2 uWind;
     uniform float uWeatherKnown;
 
@@ -204,6 +283,9 @@ const material = new THREE.ShaderMaterial({
 
       float unknownVeil=(1.0-uWeatherKnown)*.06;
       polluted=mix(polluted,vec3(.40,.39,.42),unknownVeil*horizon);
+
+      float weatherFog=uWeatherKnown*(1.0-smoothstep(2.0,18.0,uVisibilityKm));
+      polluted=mix(polluted,vec3(.63,.63,.64),weatherFog*pow(horizon,.8)*.58);
 
       float cloudiness=uCloud*uWeatherKnown;
       vec2 wind=uWind*uTime*.035;
@@ -269,6 +351,7 @@ function syncState() {
   uniforms.uCloud.value = state.weather.cloudCover;
   uniforms.uRain.value = state.weather.precipitationMm;
   uniforms.uHumidity.value = state.weather.humidity;
+  uniforms.uVisibilityKm.value = Number.isFinite(state.weather.visibilityKm) ? state.weather.visibilityKm : 20;
   uniforms.uWind.value.set(Math.sin(dir) * speed, -Math.cos(dir) * speed);
   uniforms.uWeatherKnown.value = state.weather.known ? 1 : 0;
   document.body.dataset.environmentWeather = state.weather.known ? 'live' : 'unavailable';
@@ -290,8 +373,8 @@ function updateDebug() {
     `sun: ${state.solar.altitude.toFixed(1)}° alt / ${state.solar.azimuth.toFixed(1)}° az`,
     `pm2.5: ${state.air.pm25 ?? '—'} / AQI: ${state.air.aqi ?? '—'}`,
     `pollution shader: ${(uniforms.uPollution.value * 100).toFixed(0)}%`,
-    `weather: ${w.known ? 'LIVE' : 'provider pending'}`,
-    w.known ? `cloud ${Math.round(w.cloudCover * 100)}% · rain ${w.precipitationMm.toFixed(1)} mm · RH ${Math.round(w.humidity * 100)}%` : 'cloud/rain deliberately not inferred',
+    `weather: ${w.known ? (w.cached ? 'CACHED' : 'LIVE') : 'provider pending'}`,
+    w.known ? `temp ${Math.round(w.temperatureC)}° · cloud ${Math.round(w.cloudCover * 100)}% · rain ${w.precipitationMm.toFixed(1)} mm · RH ${Math.round(w.humidity * 100)}% · vis ${w.visibilityKm.toFixed(1)} km` : 'cloud/rain deliberately not inferred',
     `renderer: ${reducedMotion ? 'static/reduced motion' : '30 fps adaptive'}`
   ].join('\n');
 }

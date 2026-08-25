@@ -105,3 +105,22 @@ body.environment-ready[data-level="unhealthy"] .status-index{color:var(--pink)!i
 /* Debug remains intentionally separate from the guest-facing visual language. */
 .environment-debug{position:fixed;z-index:80;right:10px;bottom:max(10px,env(safe-area-inset-bottom));max-width:min(320px,calc(100vw - 20px));padding:10px 12px;border:1px solid rgba(250,247,245,.25);background:rgba(30,25,39,.78);backdrop-filter:blur(14px);color:#FAF7F5;font:500 11px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.environment-canvas{transition:none}}
+
+/* Current weather readout v1 — information, not another panel. */
+body.environment-ready .weather-now{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"primary primary" "meta credit";align-items:end;column-gap:22px;row-gap:6px;max-width:660px;margin:23px 0 2px;color:var(--blossom-soft)}
+body.environment-ready .weather-now[hidden]{display:none!important}
+.weather-primary{grid-area:primary;display:flex;align-items:center;gap:15px}
+.weather-temp{font-size:clamp(2.2rem,5vw,3.3rem);font-weight:200;line-height:.9;letter-spacing:-.035em;font-variant-numeric:tabular-nums}
+.weather-condition{display:flex;flex-direction:column;gap:1px;line-height:1.25}
+.weather-condition strong{font-size:.82rem;font-weight:600;letter-spacing:.105em;text-transform:uppercase}
+.weather-condition span{font-size:.96rem;font-weight:300}
+.weather-meta{grid-area:meta;margin:0;color:rgba(250,247,245,.75);font-size:.73rem;line-height:1.45}
+.weather-meta span{display:block}
+.weather-meta span[lang="th"]{margin-top:1px;font-size:1.04em}
+.weather-credit{grid-area:credit;justify-self:end;align-self:end;color:rgba(250,247,245,.55)!important;font-size:.59rem;font-weight:400!important;letter-spacing:.02em;text-decoration:none;white-space:nowrap}
+.weather-credit:hover{text-decoration:underline}
+@media (max-width:699px){
+  body.environment-ready .weather-now{grid-template-columns:1fr;grid-template-areas:"primary" "meta" "credit";gap:5px;margin:14px 0 5px}
+  .weather-primary{gap:11px}.weather-temp{font-size:2.15rem}.weather-condition strong{font-size:.72rem}.weather-condition span{font-size:.88rem}
+  .weather-meta{font-size:.70rem}.weather-credit{justify-self:start;font-size:.56rem;margin-top:1px}
+}
