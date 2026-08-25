@@ -61,8 +61,9 @@ Critical rules:
 - UI light/dark preference must not change physical day/night conditions.
 - Never animate through fake numeric PM2.5/AQI readings. Values replace/crossfade directly; only the visual atmosphere may interpolate.
 - WebGL is progressive enhancement. HTML data and controls must remain fully usable if WebGL, weather data, or animation is unavailable.
-- Respect `prefers-reduced-motion` and mobile performance constraints.
-- Stop or heavily throttle rendering when hidden or offscreen.
+- The user explicitly requires full atmospheric motion and full visual quality on mobile; do not lower renderer DPR, cloud complexity, animation cadence, or celestial quality relative to desktop.
+- Mobile device tilt is part of the default atmosphere. Use DeviceOrientation continuously where the platform allows it; on iOS request permission from the first user gesture because the OS requires that gesture.
+- Stop rendering only when the document is actually hidden; do not degrade the visible scene.
 
 ## Deployment
 
@@ -82,3 +83,10 @@ The workflow must:
 - Do not alter the existing Flipgazine production page unless the user explicitly asks.
 - Keep experimental WebGL work isolated from the approved baseline until it is verified.
 - Verify mobile first, especially 320–390 px wide viewports.
+
+## v13 visual authority
+
+- App typography is Noto Sans / Noto Sans Thai throughout UI and content. The official hotel logo remains artwork.
+- Realtime atmosphere resolves **weather first** (sky, sun/moon, clouds, precipitation, visibility), then applies PM2.5 haze/extinction and suspended particulate as the final optical layer.
+- The sticky footer follows the Flipgazine Voice bottom-nav contract: full-width frosted rail with independent compact navigation chips.
+- Save Image means a full-length capture of the Today route atmosphere/content; masthead, sticky footer, app footer and the Save button itself are excluded.

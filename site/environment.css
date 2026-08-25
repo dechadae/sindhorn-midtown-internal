@@ -194,3 +194,9 @@ body.environment-ready .category-en{font-size:clamp(2.8rem,5.6vw,4.1rem)!importa
   body.environment-ready .weather-now{margin-top:16px}
   body.environment-ready .category-en{font-size:clamp(2.15rem,9vw,2.9rem)!important}
 }
+
+
+/* v13 high-fidelity environment: equal visible quality on mobile and desktop. */
+.environment-stage::before{background:linear-gradient(180deg,rgba(22,19,29,.08) 0%,rgba(22,19,29,.055) 34%,rgba(25,21,31,.13) 68%,rgba(24,20,30,.24) 100%)}
+.environment-canvas{image-rendering:auto;transform:translateZ(0);will-change:transform}
+@media(max-width:699px){.environment-stage::before{background:linear-gradient(180deg,rgba(22,19,29,.08) 0%,rgba(22,19,29,.055) 34%,rgba(25,21,31,.13) 68%,rgba(24,20,30,.24) 100%)}}

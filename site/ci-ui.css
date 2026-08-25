@@ -1,7 +1,7 @@
 /* Sindhorn Midtown Internal — Flipgazine CI-aligned product UI
    Geometry, motion, glass and hierarchy follow the Flipgazine CI system.
    Brand identity remains Sindhorn Midtown / Vignette: Twilight base, Sorbet accent,
-   Vignette Sans + IBM Plex Sans Thai, and the existing realtime environment. */
+   Noto Sans + Noto Sans Thai, and the existing realtime environment. */
 :root{
   --sm-bg:#2E273B;
   --sm-bg-rgb:46,39,59;
@@ -27,9 +27,9 @@ html.app-shell{background:var(--sm-bg)!important;color:var(--sm-text)!important;
 html.app-shell::-webkit-scrollbar{width:10px;height:10px}
 html.app-shell::-webkit-scrollbar-track{background:transparent}
 html.app-shell::-webkit-scrollbar-thumb{background:var(--sm-glass-brd);border:2px solid transparent;background-clip:padding-box;border-radius:5px}
-body{background:var(--sm-bg)!important;color:var(--sm-text)!important;font-family:"Vignette Sans","Trebuchet MS",sans-serif!important;font-weight:300!important}
+body{background:var(--sm-bg)!important;color:var(--sm-text)!important;font-family:"Noto Sans",system-ui,sans-serif!important;font-weight:300!important}
 body.app-spa-ready{padding-bottom:calc(84px + env(safe-area-inset-bottom))!important}
-:lang(th){font-family:"IBM Plex Sans Thai","Noto Sans Thai",sans-serif!important}
+:lang(th){font-family:"Noto Sans Thai","Noto Sans",sans-serif!important}
 
 /* Shared column: same editorial measure on header, pages and footer. */
 .masthead-inner,main,.app-footer-inner{width:min(100%,var(--sm-max))!important;max-width:var(--sm-max)!important;margin-inline:auto!important;padding-left:var(--sm-gutter)!important;padding-right:var(--sm-gutter)!important}
@@ -273,7 +273,7 @@ body.environment-ready .instruction-copy .instruction-th{
   display:block!important;
   margin:0!important;
   color:var(--sm-text)!important;
-  font-family:"IBM Plex Sans Thai","Noto Sans Thai",sans-serif!important;
+  font-family:"Noto Sans Thai","Noto Sans",sans-serif!important;
   font-size:1em!important;
   font-weight:400!important;
   letter-spacing:0!important;
@@ -284,7 +284,7 @@ body.environment-ready .instruction-copy .instruction-en{
   display:block!important;
   margin-top:6px!important;
   color:var(--sm-muted)!important;
-  font-family:"Vignette Sans","Trebuchet MS",sans-serif!important;
+  font-family:"Noto Sans",system-ui,sans-serif!important;
   font-size:.88em!important;
   font-weight:300!important;
   letter-spacing:.005em!important;
@@ -301,7 +301,7 @@ body.environment-ready .disclaimer.instruction-copy .instruction-en{color:rgba(2
 body.environment-ready h1,
 body.environment-ready .route-hero h1,
 body.environment-ready .category-en{
-  font-family:"Vignette Sans","Trebuchet MS",sans-serif!important;
+  font-family:"Noto Sans",system-ui,sans-serif!important;
   font-weight:200!important;
 }
 body.environment-ready .eyebrow,
@@ -311,10 +311,30 @@ body.environment-ready .aqi-label,
 body.environment-ready .weather-condition strong,
 body.environment-ready .action,
 body.environment-ready .app-footer-kicker{
-  font-family:"Vignette Sans","Trebuchet MS",sans-serif!important;
+  font-family:"Noto Sans",system-ui,sans-serif!important;
 }
 @media(max-width:520px){
   body.environment-ready .guidance-lead.instruction-copy{font-size:.92rem!important}
   body.environment-ready .advice p.instruction-copy{font-size:.90rem!important}
   body.environment-ready .instruction-copy .instruction-en{margin-top:4px!important;font-size:.86em!important}
 }
+
+
+/* v13 — Noto typography, Voice footer, full-page capture. */
+body,button,a,input,textarea,select{font-family:"Noto Sans",system-ui,sans-serif!important}
+:lang(th),.connection-th{font-family:"Noto Sans Thai","Noto Sans",sans-serif!important}
+.brand-lockup{width:clamp(97px,25vw,122px)!important}
+.connection #connectionTh{font-family:"Noto Sans Thai","Noto Sans",sans-serif!important;font-weight:400!important;letter-spacing:0!important;text-transform:none!important}
+body.app-spa-ready{padding-bottom:calc(58px + env(safe-area-inset-bottom))!important}
+.app-tabbar.bottom-nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:100!important;transform:none!important;width:100%!important;max-width:none!important;min-height:50px!important;display:flex!important;gap:8px!important;align-items:center!important;justify-content:safe center!important;overflow-x:auto!important;overscroll-behavior-x:contain!important;scrollbar-width:none!important;-webkit-overflow-scrolling:touch!important;padding-block:9px!important;padding-bottom:calc(9px + env(safe-area-inset-bottom))!important;padding-inline:max(var(--sm-gutter),calc((100% - var(--sm-max))/2 + var(--sm-gutter)))!important;border:0!important;border-top:1px solid var(--sm-glass-brd)!important;border-radius:0!important;background:rgba(46,39,59,.68)!important;box-shadow:none!important;backdrop-filter:blur(22px) saturate(1.35)!important;-webkit-backdrop-filter:blur(22px) saturate(1.35)!important}
+.app-tabbar.bottom-nav::-webkit-scrollbar{display:none!important}
+.app-tabbar.bottom-nav .nav-chip{flex:0 0 auto!important;white-space:nowrap!important;min-width:0!important;height:32px!important;min-height:32px!important;padding:0 14px!important;border-radius:16px!important;border:1px solid var(--sm-glass-brd)!important;background:rgba(46,39,59,.34)!important;color:var(--sm-muted)!important;font-size:.64rem!important;font-weight:600!important;letter-spacing:.09em!important;text-transform:uppercase!important;transition:color .28s var(--sm-soft),border-color .28s var(--sm-soft),background .28s var(--sm-soft),transform .16s var(--sm-ease),box-shadow .28s var(--sm-soft)!important}
+.app-tabbar.bottom-nav .nav-chip small{display:inline!important;margin-left:4px!important;color:inherit!important;font-family:"Noto Sans Thai","Noto Sans",sans-serif!important;font-size:.95em!important;font-weight:400!important;letter-spacing:0!important;text-transform:none!important;opacity:.76!important}
+.app-tabbar.bottom-nav .nav-chip.is-active,.app-tabbar.bottom-nav .nav-chip.on{color:var(--sm-accent)!important;border-color:var(--sm-accent)!important;background:rgba(var(--sm-accent-rgb),.055)!important;box-shadow:0 0 18px rgba(var(--sm-accent-rgb),.07)!important;transform:translateY(-1px)!important}
+.app-tabbar.bottom-nav .nav-chip:active{transform:scale(.965)!important}
+body.capture-home{position:relative!important;padding-bottom:0!important;background:#2E273B!important;overflow:visible!important}
+body.capture-home .masthead,body.capture-home .app-footer,body.capture-home .app-tabbar,body.capture-home .report-actionbar,body.capture-home .environment-stage{display:none!important}
+body.capture-home main{position:relative!important;z-index:2!important;padding-top:0!important;padding-bottom:38px!important}
+.capture-atmosphere{position:absolute!important;z-index:0!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;pointer-events:none!important}
+@media(max-width:520px){.brand-lockup{width:99px!important}.app-tabbar.bottom-nav{gap:7px!important;padding-left:20px!important;padding-right:20px!important}.app-tabbar.bottom-nav .nav-chip{font-size:.61rem!important;padding-inline:12px!important}}
+@media(max-width:350px){.brand-lockup{width:94px!important}.app-tabbar.bottom-nav{justify-content:flex-start!important}}

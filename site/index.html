@@ -31,17 +31,20 @@
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://sjpvhgxacsiorrtijqua.supabase.co" crossorigin>
 <link rel="preconnect" href="https://stations.airbkk.com" crossorigin>
-<link rel="preload" as="font" type="font/woff" crossorigin href="/assets/fonts/vignette-sans-light.woff">
-<link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/ibm-plex-sans-thai-light.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/noto-sans-300.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/noto-sans-thai-300.woff2">
 <link rel="preload" as="image" href="/assets/brand/sindhorn-midtown-vignette-black.png">
 <link rel="preload" as="image" href="/assets/brand/sindhorn-midtown-vignette-white.png">
 <style>
-@font-face{font-family:"Vignette Sans";src:url("/assets/fonts/vignette-sans-light.woff") format("woff");font-style:normal;font-weight:200;font-display:swap}
-@font-face{font-family:"Vignette Sans";src:url("/assets/fonts/vignette-sans-regular.woff") format("woff");font-style:normal;font-weight:400;font-display:swap}
-@font-face{font-family:"Vignette Sans";src:url("/assets/fonts/vignette-sans-semibold.woff") format("woff");font-style:normal;font-weight:600;font-display:swap}
-@font-face{font-family:"IBM Plex Sans Thai";src:url("/assets/fonts/ibm-plex-sans-thai-light.woff2") format("woff2");font-style:normal;font-weight:300;font-display:swap}
-@font-face{font-family:"IBM Plex Sans Thai";src:url("/assets/fonts/ibm-plex-sans-thai-regular.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
-@font-face{font-family:"IBM Plex Sans Thai";src:url("/assets/fonts/ibm-plex-sans-thai-semibold.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}
+@font-face{font-family:"Noto Sans";src:url("/assets/fonts/noto-sans-200.woff2") format("woff2");font-style:normal;font-weight:200;font-display:swap}
+@font-face{font-family:"Noto Sans";src:url("/assets/fonts/noto-sans-300.woff2") format("woff2");font-style:normal;font-weight:300;font-display:swap}
+@font-face{font-family:"Noto Sans";src:url("/assets/fonts/noto-sans-400.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"Noto Sans";src:url("/assets/fonts/noto-sans-500.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
+@font-face{font-family:"Noto Sans";src:url("/assets/fonts/noto-sans-600.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}
+@font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-300.woff2") format("woff2");font-style:normal;font-weight:300;font-display:swap}
+@font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-400.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-500.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
+@font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-600.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}
 :root{
   --twilight:#2E273B;
   --burgundy:#5F2836;
@@ -87,8 +90,8 @@ html[data-theme="dark"]{
 }
 *{box-sizing:border-box}
 html{min-height:100%;scroll-behavior:smooth;background:var(--page-bg);color:var(--page-ink);-webkit-text-size-adjust:100%}
-body{min-height:100%;margin:0;background:var(--page-bg);color:var(--page-ink);font-family:"Vignette Sans","Trebuchet MS",sans-serif;font-size:16px;font-weight:400;line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-:lang(th){font-family:"IBM Plex Sans Thai","Noto Sans Thai",sans-serif;letter-spacing:0;word-break:normal;overflow-wrap:normal;line-break:loose}
+body{min-height:100%;margin:0;background:var(--page-bg);color:var(--page-ink);font-family:"Noto Sans",system-ui,sans-serif;font-size:16px;font-weight:400;line-height:1.5;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+:lang(th){font-family:"Noto Sans Thai","Noto Sans",sans-serif;letter-spacing:0;word-break:normal;overflow-wrap:normal;line-break:loose}
 .hotel-name{white-space:nowrap}
 button,a{font:inherit}
 button{color:inherit}
@@ -99,7 +102,7 @@ a{color:inherit;text-underline-offset:.22em}
 :focus-visible{outline:2px solid var(--focus);outline-offset:3px}
 .masthead{width:100%;border-bottom:1px solid var(--page-line);background:var(--page-bg)}
 .masthead-inner{width:min(100%,var(--content));margin:0 auto;padding:18px var(--page-pad) 16px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.brand-lockup{position:relative;width:clamp(132px,38vw,188px);flex:0 0 auto}
+.brand-lockup{position:relative;width:clamp(119px,34vw,169px);flex:0 0 auto}
 .brand-lockup img{width:100%;height:auto;transition:opacity .36s ease}
 .brand-lockup .logo-light{opacity:1}
 .brand-lockup .logo-dark{position:absolute;inset:0;opacity:0}
@@ -257,7 +260,7 @@ body[data-level="unhealthy"] .guidance-lead{border-top-color:rgba(250,247,245,.2
 }
 @media (min-width:700px){
   .masthead-inner{padding-top:20px;padding-bottom:18px}
-  .brand-lockup{width:clamp(150px,20vw,188px)}
+  .brand-lockup{width:clamp(135px,18vw,169px)}
   .intro{padding:70px 0 42px}
   .report-grid{grid-template-columns:minmax(0,1.18fr) minmax(300px,.82fr)}
   .reading,.status-panel{padding:48px 42px 50px}
@@ -347,6 +350,7 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
 <link rel="stylesheet" href="/environment.css">
 <link rel="stylesheet" href="/pwa.css">
 <link rel="stylesheet" href="/ci-ui.css">
+<script src="/vendor/html2canvas.min.js" defer></script>
 </head>
 <body data-level="very-good">
 <div class="environment-stage" id="environmentStage" hidden aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
@@ -387,7 +391,7 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
       </div>
       <div class="connection" id="connection" data-state="loading" role="status" aria-live="polite">
         <i class="connection-dot" aria-hidden="true"></i>
-        <span id="connectionText">Connecting</span>
+        <span id="connectionText"><span id="connectionEn">Connecting</span><span aria-hidden="true"> / </span><span id="connectionTh" lang="th">กำลังเชื่อมต่อ</span></span>
       </div>
     </div>
     <div class="report-grid">
@@ -428,7 +432,7 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
   </div>
 
   <div class="report-actionbar">
-    <button class="action quick-save" type="button" id="saveImageBtn">Save compact image / <span lang="th">บันทึกภาพ</span></button>
+    <button class="action quick-save" type="button" id="saveImageBtn">Save full page / <span lang="th">บันทึกทั้งหน้า</span></button>
   </div>
 
 
@@ -512,6 +516,8 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
     todayTh:document.getElementById('todayTh'),
     connection:document.getElementById('connection'),
     connectionText:document.getElementById('connectionText'),
+    connectionEn:document.getElementById('connectionEn'),
+    connectionTh:document.getElementById('connectionTh'),
     stationEn:document.getElementById('stationEn'),
     stationTh:document.getElementById('stationTh'),
     pm:document.getElementById('pmValue'),
@@ -594,7 +600,8 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
   function updateToday(){var now=new Date();setText(els.todayEn,englishDate(now,true));setText(els.todayTh,thaiDate(now,true));}
   function connection(state,en,th){
     els.connection.setAttribute('data-state',state);
-    setText(els.connectionText,en+' / '+th);
+    setText(els.connectionEn,en);
+    setText(els.connectionTh,th);
   }
   function normalize(payload){
     if(!payload||payload.status!=='Success'||!Array.isArray(payload.message))throw new Error('Unexpected AirBKK response');
@@ -686,62 +693,36 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
     function done(ok){els.share.textContent=ok?'Link copied / คัดลอกลิงก์แล้ว':'Copy unavailable / ไม่สามารถคัดลอก';setTimeout(function(){els.share.innerHTML=original;},2200);}
     if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(shareData.url).then(function(){done(true);},function(){done(false);});}else done(false);
   }
-  function roundedRect(ctx,x,y,w,h,r){
-    r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
-  }
-  function canvasImage(url){
-    return fetch(url,{mode:'cors',credentials:'omit',cache:'force-cache'}).then(function(response){if(!response.ok)throw new Error('Logo '+response.status);return response.blob();}).then(function(blob){
-      return new Promise(function(resolve,reject){var objectUrl=URL.createObjectURL(blob);var image=new Image();image.onload=function(){URL.revokeObjectURL(objectUrl);resolve(image);};image.onerror=function(){URL.revokeObjectURL(objectUrl);reject(new Error('Logo decode failed'));};image.src=objectUrl;});
-    });
-  }
-  function fitText(ctx,text,maxWidth,startSize,minSize,fontFamily,weight){
-    var size=startSize;while(size>minSize){ctx.font=(weight||400)+' '+size+'px '+fontFamily;if(ctx.measureText(text).width<=maxWidth)break;size-=2;}return size;
-  }
-  function drawWrapped(ctx,text,x,y,maxWidth,lineHeight,maxLines){
-    text=String(text||'');var thai=/[\u0E00-\u0E7F]/.test(text);var parts;
-    if(thai&&window.Intl&&Intl.Segmenter){parts=Array.from(new Intl.Segmenter('th',{granularity:'word'}).segment(text),function(item){return item.segment;});}
-    else{parts=text.split(/(\s+)/).filter(Boolean);}
-    var line='',lines=[];
-    for(var i=0;i<parts.length;i++){var test=line+parts[i];if(ctx.measureText(test).width>maxWidth&&line){lines.push(line.trim());line=parts[i].trimStart();if(lines.length===maxLines-1)break;}else line=test;}
-    if(line&&lines.length<maxLines)lines.push(line.trim());
-    for(var j=0;j<lines.length;j++)ctx.fillText(lines[j],x,y+(j*lineHeight));
-    return y+(lines.length*lineHeight);
-  }
-  function compactImageFilename(){
+  function homeImageFilename(){
     var parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
-    var obj={};parts.forEach(function(part){obj[part.type]=part.value;});return 'sindhorn-midtown-air-quality-'+obj.year+'-'+obj.month+'-'+obj.day+'.png';
+    var obj={};parts.forEach(function(part){obj[part.type]=part.value;});return 'sindhorn-midtown-air-quality-full-'+obj.year+'-'+obj.month+'-'+obj.day+'.png';
   }
-  function saveCompactImage(){
+  function blobFromCanvas(canvas){return new Promise(function(resolve){canvas.toBlob(resolve,'image/png',1);});}
+  async function saveFullPage(){
     if(!els.saveImage)return;
     var pm=els.pm.textContent.trim(),aqi=els.aqi.textContent.trim();
     if(!/^\d+(\.\d+)?$/.test(pm)||!/^\d+$/.test(aqi)){
-      var waitOriginal=els.saveImage.innerHTML;els.saveImage.textContent='Waiting for data / รอข้อมูล';setTimeout(function(){els.saveImage.innerHTML=waitOriginal;},1800);return;
+      var waiting=els.saveImage.innerHTML;els.saveImage.textContent='Waiting for data / รอข้อมูล';setTimeout(function(){els.saveImage.innerHTML=waiting;},1800);return;
     }
-    var original=els.saveImage.innerHTML;els.saveImage.disabled=true;els.saveImage.textContent='Preparing / กำลังสร้าง';
-    var logoUrl='/assets/brand/sindhorn-midtown-vignette-white.png';
-    var fontReady=document.fonts&&document.fonts.ready?Promise.race([document.fonts.ready,new Promise(function(resolve){setTimeout(resolve,800);})]):Promise.resolve();
-    fontReady.then(function(){return Promise.race([canvasImage(logoUrl).catch(function(){return null;}),new Promise(function(resolve){setTimeout(function(){resolve(null);},1400);})]);}).then(function(logo){
-      var canvas=document.createElement('canvas');canvas.width=1200;canvas.height=1200;var ctx=canvas.getContext('2d');
-      var twilight='#2E273B',soft='#FAF7F5',muted='rgba(250,247,245,.68)';var css=getComputedStyle(document.body);var signal=(css.getPropertyValue('--signal')||'#4E94B5').trim();var signalSurface=(css.getPropertyValue('--signal-surface')||'#E5ECBE').trim();
-      ctx.fillStyle=twilight;ctx.fillRect(0,0,1200,1200);
-      ctx.fillStyle='rgba(255,255,255,.045)';roundedRect(ctx,54,54,1092,1092,34);ctx.fill();
-      if(logo){var lw=292,lh=146;ctx.drawImage(logo,70,65,lw,lh);}else{ctx.fillStyle=soft;ctx.font='200 52px "Vignette Sans", sans-serif';ctx.fillText('sindhorn midtown',70,126);ctx.font='600 18px "Vignette Sans", sans-serif';ctx.fillText('VIGNETTE COLLECTION',72,160);}
-      ctx.textAlign='right';ctx.fillStyle=soft;ctx.font='600 25px "Vignette Sans", sans-serif';ctx.fillText(els.todayEn.textContent.toUpperCase(),1122,104);ctx.font='400 25px "IBM Plex Sans Thai", sans-serif';ctx.fillText(els.todayTh.textContent,1122,141);ctx.textAlign='left';
-      ctx.fillStyle='#E9D0D5';ctx.font='600 24px "Vignette Sans", sans-serif';ctx.letterSpacing='0';ctx.fillText('LIVE AIR QUALITY',72,254);ctx.fillStyle=soft;ctx.font='400 28px "IBM Plex Sans Thai", sans-serif';ctx.fillText('รายงานคุณภาพอากาศ',72,294);
-      ctx.fillStyle=muted;ctx.font='600 24px "Vignette Sans", sans-serif';ctx.fillText(els.stationEn.textContent,72,346);ctx.font='400 25px "IBM Plex Sans Thai", sans-serif';ctx.fillText(els.stationTh.textContent,72,383);
-      ctx.fillStyle=signal;ctx.beginPath();ctx.arc(1080,344,9,0,Math.PI*2);ctx.fill();ctx.textAlign='right';ctx.fillStyle=soft;ctx.font='600 22px "Vignette Sans", sans-serif';ctx.fillText(els.connectionText.textContent,1058,352);ctx.textAlign='left';
-      var cardY=430,cardH=350,cardW=506,gap=34;
-      ctx.fillStyle='rgba(250,247,245,.075)';roundedRect(ctx,72,cardY,cardW,cardH,28);ctx.fill();roundedRect(ctx,72+cardW+gap,cardY,cardW,cardH,28);ctx.fill();
-      ctx.fillStyle=soft;ctx.font='600 30px "Vignette Sans", sans-serif';ctx.fillText('PM 2.5',110,488);ctx.fillText('AQI TH',650,488);
-      ctx.fillStyle=signal;ctx.font='200 148px "Vignette Sans", sans-serif';ctx.fillText(pm,106,650);ctx.fillText(aqi,646,650);
-      ctx.fillStyle=soft;ctx.font='400 34px "Vignette Sans", sans-serif';ctx.fillText('µg/m³',112,712);ctx.font='400 24px "Vignette Sans", sans-serif';ctx.fillStyle=muted;ctx.fillText('24H AVERAGE',112,751);
-      ctx.fillStyle=soft;var catSize=fitText(ctx,els.categoryEn.textContent.toUpperCase(),420,54,34,'"Vignette Sans", sans-serif',200);ctx.font='200 '+catSize+'px "Vignette Sans", sans-serif';ctx.fillText(els.categoryEn.textContent.toUpperCase(),650,704);ctx.font='400 34px "IBM Plex Sans Thai", sans-serif';ctx.fillText(els.categoryTh.textContent,650,752);
-      ctx.fillStyle=signalSurface;roundedRect(ctx,72,820,1046,214,28);ctx.fill();ctx.fillStyle=twilight;ctx.font='600 24px "Vignette Sans", sans-serif';ctx.fillText('TODAY',110,874);ctx.font='400 30px "Vignette Sans", sans-serif';drawWrapped(ctx,els.guidanceEn.textContent,110,922,930,39,2);ctx.font='400 29px "IBM Plex Sans Thai", sans-serif';drawWrapped(ctx,els.guidanceTh.textContent,110,998,930,40,2);
-      ctx.fillStyle=muted;ctx.font='400 21px "Vignette Sans", sans-serif';ctx.fillText(els.observedEn.textContent,72,1091);ctx.fillStyle='rgba(250,247,245,.54)';ctx.font='400 19px "Vignette Sans", sans-serif';ctx.fillText('Source: Bangkok Metropolitan Administration · AirBKK',72,1132);
-      return new Promise(function(resolve){canvas.toBlob(function(blob){resolve(blob);},'image/png',1);});
-    }).then(function(blob){
-      if(!blob)throw new Error('PNG failed');var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=compactImageFilename();document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},2000);els.saveImage.textContent='Saved / บันทึกแล้ว';
-    }).catch(function(){els.saveImage.textContent='Try again / ลองอีกครั้ง';}).finally(function(){setTimeout(function(){els.saveImage.innerHTML=original;els.saveImage.disabled=false;},1800);});
+    if(!window.html2canvas){els.saveImage.textContent='Capture unavailable / ไม่สามารถบันทึกภาพ';return;}
+    var original=els.saveImage.innerHTML,atmosphere=null;
+    els.saveImage.disabled=true;els.saveImage.textContent='Preparing full page / กำลังสร้างภาพทั้งหน้า';
+    try{
+      if(document.fonts&&document.fonts.ready)await Promise.race([document.fonts.ready,new Promise(function(resolve){setTimeout(resolve,1200);})]);
+      document.body.classList.add('capture-home');
+      await new Promise(function(resolve){requestAnimationFrame(function(){requestAnimationFrame(resolve);});});
+      var width=Math.ceil(document.documentElement.clientWidth);
+      var height=Math.ceil(document.body.scrollHeight);
+      if(window.SindhornEnvironment&&window.SindhornEnvironment.renderExport){
+        var data=await window.SindhornEnvironment.renderExport(width*2,height*2);
+        atmosphere=document.createElement('img');atmosphere.className='capture-atmosphere';atmosphere.alt='';atmosphere.setAttribute('aria-hidden','true');
+        await new Promise(function(resolve,reject){atmosphere.onload=resolve;atmosphere.onerror=reject;atmosphere.src=data;document.body.prepend(atmosphere);});
+      }
+      var canvas=await window.html2canvas(document.body,{backgroundColor:'#2E273B',scale:2,useCORS:true,logging:false,width:width,height:height,windowWidth:width,windowHeight:height,scrollX:0,scrollY:0});
+      var blob=await blobFromCanvas(canvas);if(!blob)throw new Error('PNG failed');
+      var url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=homeImageFilename();document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url);},2500);els.saveImage.textContent='Saved / บันทึกแล้ว';
+    }catch(error){console.warn('Full-page capture failed',error);els.saveImage.textContent='Try again / ลองอีกครั้ง';}
+    finally{if(atmosphere)atmosphere.remove();document.body.classList.remove('capture-home');setTimeout(function(){els.saveImage.innerHTML=original;els.saveImage.disabled=false;},1800);}
   }
   function onVisibility(){
     if(document.hidden)return;
@@ -762,7 +743,7 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
   els.skip.addEventListener('click',function(){setTimeout(function(){try{els.report.focus({preventScroll:true});}catch(e){els.report.focus();}},0);});
   els.refresh.addEventListener('click',function(){refresh(true);});
   els.share.addEventListener('click',share);
-  if(els.saveImage)els.saveImage.addEventListener('click',saveCompactImage);
+  if(els.saveImage)els.saveImage.addEventListener('click',saveFullPage);
   document.addEventListener('visibilitychange',onVisibility);
   window.addEventListener('online',function(){refresh(false);});
   window.addEventListener('pageshow',onPageShow);

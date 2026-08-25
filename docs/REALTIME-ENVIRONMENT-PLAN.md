@@ -61,14 +61,17 @@ Example: clear weather at noon with hazardous PM2.5 still shows the real high no
 
 Never animate through fabricated PM2.5/AQI numbers. Numeric readings replace/crossfade directly. The WebGL atmosphere may interpolate visually after a genuine observation changes.
 
-## Performance
+## Rendering fidelity authority
 
-- HTML is always the functional layer.
-- Cap mobile device pixel ratio.
-- Prefer approximately 30 fps for slow ambient motion.
-- Respect `prefers-reduced-motion`.
-- Stop rendering when the page is hidden; throttle where appropriate.
-- Avoid heavy post-processing and large environment textures.
+- HTML remains the functional layer, but the visible WebGL environment must use the same quality target on mobile and desktop.
+- Renderer DPR is fixed at 2 for the current app; do not reduce quality based on device-memory or hardware-concurrency heuristics.
+- Render ambient motion on every display-synchronised animation frame while the app is visible.
+- Do not disable atmospheric motion because of `prefers-reduced-motion`; the user explicitly chose a continuously living environmental surface.
+- Stop rendering when the document is actually hidden.
+- Mobile tilt is always part of the visual system. Android/device-orientation capable browsers attach immediately; iOS requests orientation permission from the first user gesture as required by the platform.
+- Weather resolves first. Clouds, overcast, fog, rain and storm state must be visibly represented from the weather code and cloud cover before any PM2.5 optics are applied.
+- PM2.5 is a final optical layer: haze, saturation/contrast loss, solar diffusion and suspended particulate. It never invents cloud/rain/weather.
+- Celestial edges must be high precision and anti-aliased; the moon must not degrade to a pixelated sprite.
 
 ## Current preview status
 
@@ -82,3 +85,7 @@ The experimental branch `webgl-environment-v1` currently implements:
 - weather-provider interface with cloud/rain disabled when the provider is unavailable
 
 Do not merge the experimental branch into production until visual direction and weather-provider behavior are approved.
+
+## Full-page capture
+
+The Save action captures the complete Today route as a long PNG using the live HTML composition plus an offscreen full-resolution render of the same current environment state. It excludes the masthead, sticky navigation/footer, reference footer and Save control. This is a web-app capture feature, not generated imagery.

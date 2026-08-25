@@ -127,3 +127,13 @@ Normal utility controls: English first. Primary styling uses accent tint + accen
 - Do not obscure the realtime WebGL atmosphere with opaque page backgrounds.
 - WebGL remains progressive enhancement and HTML remains fully usable without it.
 - Preserve mobile-first behavior at 320–390px widths and installed/fullscreen PWA behavior.
+
+
+## v13 typography and footer authority
+
+- Noto Sans is the app-wide English/UI typeface; Noto Sans Thai is mandatory for Thai glyphs, including mixed status copy such as `ข้อมูลล่าสุด`.
+- English remains eminent through scale, tracking and placement; Thai remains correctly shaped and readable.
+- Header logo artwork is reduced by 10% from the v12 size.
+- Guidance/Details route kickers are semantic (`AIR QUALITY CARE`, `CURRENT OBSERVATION`) with no redundant page numbers.
+- Sticky navigation uses the Flipgazine Voice-page footer contract: edge-to-edge frosted rail, compact independent chips, no oversized rounded dock.
+- Route changes use a short out/in depth transition while header, environment and sticky footer remain persistent.
