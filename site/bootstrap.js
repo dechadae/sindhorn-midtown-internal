@@ -1,4 +1,4 @@
-const SHELL_VERSION=15;
+const SHELL_VERSION=16;
 const SUPABASE_URL='https://sjpvhgxacsiorrtijqua.supabase.co';
 const SUPABASE_KEY='sb_publishable_NcIExScIXkqsK1ZNNu5a-Q_zZ4afIHz';
 const TABLE='sindhorn_app_files';
@@ -12,6 +12,7 @@ const encoder=new TextEncoder();
 
 let activePack=null;
 let refreshPromise=null;
+let presentationRecovery=null;
 const headerHost=document.getElementById('app-header');
 const routeHost=document.getElementById('route-view');
 const footerHost=document.getElementById('app-footer');
@@ -111,7 +112,17 @@ async function applyPack(pack,{mount=true}={}){
 }
 async function refreshPack(){
   if(refreshPromise)return refreshPromise;
-  refreshPromise=(async()=>{try{const next=await remotePack();if(activePack&&next.manifest.appPack<activePack.manifest.appPack)return activePack;await cachePack(next);if(!activePack||next.manifest.appPack!==activePack.manifest.appPack||next.source!==activePack.source)await applyPack(next,{mount:true});return next}finally{refreshPromise=null}})();
+  refreshPromise=(async()=>{try{
+    const next=await remotePack();
+    if(activePack&&next.manifest.appPack<activePack.manifest.appPack)return activePack;
+    await cachePack(next);
+    const versionChanged=!activePack||next.manifest.appPack!==activePack.manifest.appPack;
+    if(versionChanged){
+      await applyPack(next,{mount:true});
+      await presentationRecovery?.recoverPresentationSwap?.();
+    }
+    return next;
+  }finally{refreshPromise=null}})();
   return refreshPromise;
 }
 
@@ -120,5 +131,6 @@ document.documentElement.dataset.shellLoading='true';
 const initial=(await readCachedPack())||(await fallbackPack());await applyPack(initial,{mount:true});
 const live=await import('./live-data.js');await live.initLiveData();
 const environment=await import('./environment.js');await environment.initEnvironment();
+presentationRecovery=await import('./presentation-recovery.js');
 const app=await import('./app.js');await app.initApp();
 refreshPack().catch(error=>console.warn('Sindhorn UI pack update unavailable; using known-good pack.',error));
