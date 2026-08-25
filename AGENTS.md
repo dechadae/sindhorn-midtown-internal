@@ -21,6 +21,22 @@ This repository is the canonical frontend source for the Sindhorn Midtown intern
 
 The existing production PM2.5 page at `https://flipgazine.pages.dev/sindhornmidtown/pm25.html` is the approved visual/functional baseline as of v5. It must be migrated before major redesign work. Preserve its bilingual content, AirBKK behavior, caching, accessibility, and readability improvements unless the user explicitly changes them. The user has explicitly removed the UI theme system in favor of a realtime environment plus fullscreen app control.
 
+## Governing bilingual typography rule
+
+This is the highest visual-language rule for the app:
+
+> **English typography is eminent. English defines the premium editorial composition; Thai guarantees operational understanding.**
+
+Implementation rules:
+
+- Brand/editorial headings, navigation, section labels, data labels, weather labels, status/display words, ordinary utility buttons and reference/footer typography are English-first and may carry the strongest typographic treatment.
+- Thai must remain clearly readable and visible; never reduce it to an illegible caption.
+- Health guidance, actionable instructions, warnings, error/recovery instructions, permission/operational instructions and safety/medical disclaimers are Thai-first in reading order, with English immediately supporting.
+- Do not require a language selector to understand critical information.
+- Numeric data remains language-neutral.
+- A future language preference may change emphasis/order for long-form copy, but it must not remove either language from critical operational information.
+- Detailed UI authority: `docs/CI-UI-ADAPTATION.md`.
+
 ## PWA / SPA architecture
 
 - This app is a full installable PWA with a single persistent HTML/WebGL shell.
