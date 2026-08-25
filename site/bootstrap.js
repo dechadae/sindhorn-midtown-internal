@@ -83,6 +83,7 @@ async function remotePack(){
   if(!manifestRow)throw new Error('Remote UI pack has no manifest');
   if(await digest(manifestRow.content)!==manifestRow.content_sha256)throw new Error('Remote manifest integrity mismatch');
   const manifest=parseJson(manifestRow.content,'remote manifest'),resources={};
+  if(Number(manifest.appPack)!==packId)throw new Error('Remote pack version mismatch');
   for(const item of manifest.resources){
     const row=rowMap[item.path];
     if(!row||row.content_type!==item.contentType||row.content_sha256!==item.sha256)throw new Error('Remote resource metadata mismatch: '+item.path);
