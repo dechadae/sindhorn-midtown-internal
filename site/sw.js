@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v11';
+const VERSION='sindhorn-midtown-internal-pwa-v12';
 const SHELL=[
   '/', '/index.html', '/environment.css', '/environment.bundle.js', '/pwa.css', '/ci-ui.css', '/app.js', '/manifest.webmanifest',
   '/icons/app-192.png','/icons/app-512.png','/icons/maskable-512.png','/icons/apple-touch-icon.png','/assets/brand/sindhorn-midtown-vignette-white.png','/assets/brand/sindhorn-midtown-vignette-black.png',
@@ -79,6 +79,61 @@ self.addEventListener('fetch',event=>{
       if(cached)return cached;
       throw error;
     }
+  })());
+});
+
+function safePushPayload(event){
+  if(!event.data)return{};
+  try{return event.data.json()||{}}catch(_){
+    try{return{bodyTh:event.data.text()}}catch(__){return{}}
+  }
+}
+
+function sameOriginRoute(route){
+  try{
+    const url=new URL(route||'/',self.location.origin);
+    if(url.origin!==self.location.origin)return'/';
+    if(url.pathname.startsWith('/guidance'))return'/guidance';
+    if(url.pathname.startsWith('/details'))return'/details';
+    return'/';
+  }catch(_){return'/'}
+}
+
+self.addEventListener('push',event=>{
+  const payload=safePushPayload(event);
+  const titleTh=String(payload.titleTh||'อัปเดตจากสินธร มิดทาวน์').trim();
+  const titleEn=String(payload.titleEn||'SINDHORN MIDTOWN UPDATE').trim();
+  const bodyTh=String(payload.bodyTh||'มีข้อมูลใหม่ในแอป').trim();
+  const bodyEn=String(payload.bodyEn||'New information is available in the app.').trim();
+  const title=titleEn?`${titleTh} · ${titleEn}`:titleTh;
+  const body=bodyEn?`${bodyTh}\n${bodyEn}`:bodyTh;
+  const route=sameOriginRoute(payload.route);
+  const options={
+    body,
+    icon:'/icons/app-192.png',
+    badge:'/icons/app-192.png',
+    tag:String(payload.tag||'sindhorn-midtown-environment'),
+    renotify:Boolean(payload.renotify),
+    requireInteraction:Boolean(payload.requireInteraction),
+    data:{route,kind:String(payload.kind||'environment-update')}
+  };
+  event.waitUntil(self.registration.showNotification(title,options));
+});
+
+self.addEventListener('notificationclick',event=>{
+  event.notification.close();
+  const route=sameOriginRoute(event.notification?.data?.route);
+  const target=new URL(route,self.location.origin).href;
+  event.waitUntil((async()=>{
+    const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    for(const client of windows){
+      try{
+        if(new URL(client.url).origin!==self.location.origin)continue;
+        if('navigate'in client&&client.url!==target)await client.navigate(target);
+        if('focus'in client)return client.focus();
+      }catch(_){}
+    }
+    return self.clients.openWindow?self.clients.openWindow(target):undefined;
   })());
 });
 
