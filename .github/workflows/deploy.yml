@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - webgl-environment-v1
+      - hybrid-shell-v15
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
