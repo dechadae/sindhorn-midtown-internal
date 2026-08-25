@@ -27,13 +27,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Validate v15 shell candidate
+      - name: Validate shell candidate
         shell: bash
         run: |
           set -euo pipefail
           node --check site/bootstrap.js
           node --check site/live-data.js
           node --check site/environment.js
+          node --check site/presentation-recovery.js
           node --check site/app.js
           node --check site/sw.js
 
@@ -44,7 +45,13 @@ jobs:
           root = Path('site')
           fallback = root / 'fallback'
           manifest = json.loads((fallback / 'manifest.json').read_text())
-          assert manifest['minimumShell'] == 15
+          bootstrap = (root / 'bootstrap.js').read_text()
+          match = re.search(r'const SHELL_VERSION=(\d+);', bootstrap)
+          assert match, 'bootstrap shell version missing'
+          shell_version = int(match.group(1))
+          assert manifest['minimumShell'] == shell_version, (
+              f"fallback minimumShell {manifest['minimumShell']} != shell {shell_version}"
+          )
           assert manifest['appPack'] >= 1
 
           for item in manifest['resources']:
@@ -89,10 +96,11 @@ jobs:
             BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           fi
 
-          for path in / /guidance /details /bootstrap.js /environment.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
+          for path in / /guidance /details /bootstrap.js /environment.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
             curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
 
           curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}/" | grep -q '/bootstrap.js'
-          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" | grep -q '"minimumShell": 15'
+          SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
+          curl --fail --silent --show-error --location --retry 6 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" | grep -q "\"minimumShell\": ${SHELL_VERSION}"
