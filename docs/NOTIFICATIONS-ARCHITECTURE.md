@@ -6,9 +6,34 @@ Provide useful lock-screen notifications for installed Sindhorn Midtown web-app 
 
 ## Capability
 
-The installed PWA can use standards-based Web Push through its existing service worker. Notifications may appear on the device Lock Screen / notification center when the employee has explicitly granted notification permission and the operating system allows them.
+The installed PWA uses standards-based Web Push through its existing service worker. Notifications may appear on the device Lock Screen / notification center when the employee has explicitly granted notification permission and the operating system allows them.
 
 The PWA must not rely on browser-side periodic polling while closed. Periodic Background Sync is not sufficiently portable or guaranteed for a critical employee alerting mechanism.
+
+## Cross-platform support requirement
+
+This feature must work on both supported mobile platforms through standards-based Web Push and feature detection rather than browser-name detection.
+
+### iOS / iPadOS
+
+- Target iOS/iPadOS 16.4 or newer for Web Push.
+- The site must be installed as a Home Screen web app before push can be enabled.
+- The manifest must continue to use standalone/fullscreen app behavior.
+- Notification permission must be requested only in direct response to an employee action such as tapping `AIR QUALITY ALERTS`.
+- Once granted, notifications can appear on the Lock Screen and Notification Center and participate in Focus settings like other applications.
+- Use the same standards-based `PushManager`, service worker `push`, and `showNotification()` implementation as other platforms.
+- Do not require Apple Developer Program membership for standards-based Web Push.
+
+### Android
+
+- Support modern Chromium-based installed PWAs using the same Push API / Notifications API / service-worker implementation.
+- Permission UX remains employee-initiated rather than automatically prompting on first launch.
+- Notifications may be presented on the Lock Screen subject to Android notification-channel, device, battery, Focus/Do Not Disturb, and user settings.
+- Do not depend on a native foreground service or continuously running browser process.
+
+### Shared implementation rule
+
+Use capability detection such as service-worker, Notification API, and `registration.pushManager` availability. If a capability is unavailable, hide or disable the opt-in control with a clear bilingual explanation rather than attempting a broken subscription flow.
 
 ## Canonical architecture
 
@@ -80,6 +105,8 @@ AIR QUALITY ALERTS
 
 Explain the value first, then request permission only after the employee taps to enable alerts.
 
+On iOS, if the site is not installed as a Home Screen web app, explain that installation is required before notifications can be enabled. On Android, use the same control and standards-based permission flow.
+
 The app must remain fully usable if permission is denied.
 
 ## Service-worker behavior
@@ -115,8 +142,8 @@ This architecture supports native-style OS notifications and lock-screen deliver
 1. Finish current CI/bilingual UI stabilization.
 2. Add notification preference surface to Details or a dedicated Settings sheet.
 3. Add service-worker `push` and `notificationclick` handlers.
-4. Add VAPID public-key subscription flow in the PWA.
+4. Add VAPID public-key subscription flow in the PWA with cross-platform feature detection.
 5. Add Cloudflare Worker + D1 subscription API.
 6. Add scheduled AirBKK/Open-Meteo evaluation job.
 7. Add category-change deduplication and bilingual notification templates.
-8. QA Android installed PWA, iOS Home Screen PWA, denied permission, offline state, expired subscriptions, and notification deep links.
+8. QA Android installed PWA and iOS 16.4+ Home Screen PWA, including denied permission, Focus/Do Not Disturb, offline state, expired subscriptions, notification replacement tags, and notification deep links.
