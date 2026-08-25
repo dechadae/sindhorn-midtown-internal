@@ -1,0 +1,62 @@
+name: Final PWA smoke test
+on:
+  push:
+    branches: [webgl-environment-v1]
+    paths: ['.github/workflows/pwa-final-smoke-once.yml']
+permissions:
+  contents: write
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Browser smoke
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+          cat > qa.cjs <<'EOF'
+          const {chromium}=require('playwright');
+          const BASE='https://webgl-environment-v1.sindhorn-midtown-internal.pages.dev';
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            const context=await browser.newContext({viewport:{width:390,height:844}});
+            const page=await context.newPage();
+            const errors=[];
+            page.on('pageerror',e=>errors.push(String(e)));
+            page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
+            await page.goto(BASE+'/',{waitUntil:'domcontentloaded'});
+            await page.waitForSelector('.app-tabbar');
+            if(await page.locator('#themeToggle').count())throw new Error('theme toggle remains');
+            if(await page.locator('#fullscreenToggle').count()!==1)throw new Error('fullscreen toggle missing');
+            if(await page.locator('.app-tabbar a').count()!==3)throw new Error('tabbar missing');
+            const n0=await page.evaluate(()=>performance.getEntriesByType('navigation').length);
+            await page.click('[data-app-route="guidance"]');
+            await page.waitForFunction(()=>document.body.dataset.route==='guidance');
+            await page.click('[data-app-route="details"]');
+            await page.waitForFunction(()=>document.body.dataset.route==='details');
+            if(await page.evaluate(()=>performance.getEntriesByType('navigation').length)!==n0)throw new Error('SPA caused reload');
+            await page.goto(BASE+'/guidance',{waitUntil:'domcontentloaded'});
+            await page.waitForFunction(()=>document.body.dataset.route==='guidance');
+            const sw=await page.evaluate(async()=>!!(await navigator.serviceWorker.ready).active);
+            if(!sw)throw new Error('service worker inactive');
+            await page.reload({waitUntil:'domcontentloaded'});
+            await context.setOffline(true);
+            await page.goto(BASE+'/details',{waitUntil:'domcontentloaded',timeout:15000});
+            await page.waitForFunction(()=>document.body.dataset.route==='details');
+            if(await page.locator('.app-tabbar a').count()!==3)throw new Error('offline shell missing');
+            const relevant=errors.filter(x=>!x.includes('api.open-meteo.com')&&!x.includes('stations.airbkk.com')&&!x.includes('ERR_INTERNET_DISCONNECTED'));
+            if(relevant.length)throw new Error('browser errors: '+relevant.join(' | '));
+            await context.close();await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          EOF
+          node qa.cjs
+      - name: Remove helper
+        if: always()
+        run: |
+          rm -f .github/workflows/pwa-final-smoke-once.yml
+          git config user.name "dechadae"
+          git config user.email "decha.dae@gmail.com"
+          git add .github/workflows/pwa-final-smoke-once.yml
+          git commit -m "Remove final PWA smoke helper" || true
+          git push origin HEAD:webgl-environment-v1 || true
