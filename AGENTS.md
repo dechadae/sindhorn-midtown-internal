@@ -2,242 +2,204 @@
 
 ## Project identity
 
-This repository is the canonical **core-shell / engine** source for the Sindhorn Midtown internal environmental PWA.
+This repository is the canonical core-shell / engine source for the Sindhorn Midtown internal environmental PWA.
 
 - Repository: `dechadae/sindhorn-midtown-internal`
 - Cloudflare Pages project: `sindhorn-midtown-internal`
-- Current production URL: `https://sindhorn-midtown-internal.pages.dev`
+- Production origin: `https://sindhorn-midtown-internal.pages.dev`
 - Shared Supabase project: `sjpvhgxacsiorrtijqua`
-- Canonical final plan: `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
+- Dedicated presentation table: `public.sindhorn_app_files`
+- Canonical architecture: `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
+- Latest language-order override: `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md`
 
-## Mandatory first read
+Before consequential work, read this file and the final architecture plan. The language-order override is a later approved product decision and supersedes any older Thai-first clauses in the final plan or specialist documents.
 
-Before consequential implementation work, read:
+## Current release state
 
-1. this `AGENTS.md`;
-2. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`.
+Production remains the v14 monolithic PWA until PR #9 / `hybrid-shell-v15` is fully QA'd, merged and deployed.
 
-The final plan supersedes conflicting rules in older documents.
+The approved v15 target is:
 
-## Current state vs target architecture
+- Cloudflare/GitHub = stable installed shell and executable engines.
+- Supabase `public.sindhorn_app_files` = versioned presentation/configuration pack.
+- AirBKK = authoritative PM2.5 / Thai AQI.
+- Open-Meteo = realtime weather.
+- Bangkok sun/moon = local astronomy.
+- Cloudflare Worker + D1/KV = future Web Push backend.
 
-The currently deployed application is still the GitHub/Cloudflare monolithic PWA through v14. The approved next architectural move is a **persistent Cloudflare bootstrap shell + Supabase Sindhorn UI pack**.
+Do not use Flipgazine `public.site_files` as Sindhorn's canonical application source.
 
-Do not confuse current implementation state with the final architecture target.
+## Final bilingual rule — English first everywhere
 
-### Final ownership after migration
+This is the current highest language rule:
 
-GitHub / Cloudflare owns stable executable core infrastructure:
+> **The app is fully bilingual, with English first throughout the entire experience and Thai immediately supporting it.**
 
-- bootstrap shell;
+This applies to every visible or announced app surface, including:
+
+- brand/editorial copy;
+- headings and labels;
+- navigation and buttons;
+- live status and weather;
+- health guidance and actionable instructions;
+- warnings, errors and recovery states;
+- permissions and operational instructions;
+- safety/medical disclaimers;
+- pull-to-refresh;
+- Save/Share feedback;
+- Web Push notification titles and bodies.
+
+English must precede Thai in DOM/read order where both are presented. Thai remains clearly readable and must not be reduced to tiny decorative caption text. No language selector is required for critical comprehension.
+
+Typography remains:
+
+- English / Latin = **Vignette Sans**.
+- Thai = **Noto Sans Thai**.
+- Official Sindhorn Midtown / Vignette lockup = artwork.
+
+The earlier Thai-first exception for safety/actionable copy is retired.
+
+## Persistent hybrid architecture
+
+GitHub / Cloudflare owns relatively stable executable infrastructure:
+
+- thin bootstrap `index.html`;
 - manifest/service worker/PWA identity;
-- persistent Three.js/WebGL renderer engine;
+- official assets/fonts/icons;
+- Three.js dependency;
+- persistent WebGL renderer;
 - astronomy engine;
-- SPA/bootstrap router;
-- remote UI-pack loader;
-- offline/recovery engine;
+- History API router/bootstrap;
+- Supabase UI-pack loader;
 - pull-to-refresh gesture engine;
 - full-page capture engine;
-- push notification receiver;
-- stable brand/font assets.
+- offline/recovery shell;
+- Web Push receiver.
 
-Supabase owns frequently edited presentation/configuration through a dedicated Sindhorn namespace/table, preferably `public.sindhorn_app_files`:
+Supabase owns frequently edited presentation/configuration:
 
-- Today / Guidance / Details route content;
+- Today / Guidance / Details markup;
 - header/footer presentation;
 - UI/component CSS;
 - typography/layout/copy;
-- buttons/glass/spacing;
-- route transition configuration;
-- atmosphere art-direction parameters.
+- spacing/glass/buttons;
+- route-transition configuration;
+- environment art-direction parameters.
 
-Do **not** use Flipgazine `public.site_files` as the Sindhorn app's canonical content namespace.
+The WebGL canvas, weather/AirBKK/astronomy state, device tilt, header host and footer host stay alive while route fragments change.
 
-AirBKK remains the direct PM2.5/Thai AQI source. Open-Meteo remains the direct weather source. Astronomy is calculated locally. Supabase is not the live environmental database.
+## Atomic UI-pack rules
 
-## Highest visual-language rule
+UI packs are versioned and atomic.
 
-> **English typography is eminent. English defines the premium editorial composition; Thai guarantees operational understanding.**
-
-Final typography authority:
-
-- English / Latin UI and editorial copy: **Vignette Sans**.
-- Thai: **Noto Sans Thai**.
-- Official Sindhorn Midtown / Vignette lockup remains image artwork.
-- The earlier v13 global Noto Sans English override is superseded and must not be treated as final authority.
-
-English leads brand/editorial headings, navigation, section/data/weather/status labels and ordinary utility UI.
-
-Thai appears first for health guidance, actionable instructions, warnings, errors/recovery, permissions, operational instructions and safety/medical disclaimers. Thai must always remain readable and critical comprehension must never require a language selector.
-
-## CI / product styling
-
-Use Flipgazine CI / Voice-page interaction grammar while preserving Sindhorn Midtown identity:
-
-- Twilight `#2E273B` base;
-- warm off-white `#FAF7F5` text;
-- Sorbet `#E5ECBE` accent;
-- fine hairlines;
-- restrained frosted glass;
-- premium typographic hierarchy;
-- edge-to-edge Voice-style sticky footer/navigation;
-- one parent glass layer where possible rather than nested expensive blur surfaces.
-
-Header/footer/buttons/pull-refresh must feel like one coherent Sindhorn system, not generic dashboard cards.
-
-## PWA / persistent-shell architecture
-
-The final app is a full installable PWA with a single persistent shell.
-
-Persistent across `/`, `/guidance`, `/details`:
-
-- WebGL canvas;
-- weather/AirBKK/astronomy state;
-- device tilt state;
-- app header host;
-- app footer/navigation host;
-- service-worker session.
-
-Only the route content mounted in the route view changes.
-
-Never force full document reloads for normal tab navigation. Do not recreate Three.js on route changes.
-
-## Zero-reinstall release requirement
-
-This is non-negotiable after employee rollout:
-
-> **Normal releases must never require employees to uninstall and reinstall the PWA.**
-
-Before broad launch, finalize/freeze the permanent production origin, manifest `id`, scope, `start_url`, service-worker scope and app identity. If a custom official production domain is desired, decide/migrate before broad installation.
-
-Routine Supabase UI-pack changes hot-update in the existing installation. Rare shell/engine changes use the service-worker lifecycle. Preserve push subscriptions, permissions, local preferences and cached known-good app state.
-
-A normal release requiring reinstall is an architectural regression.
+- Fetch manifest.
+- Fetch all declared resources.
+- Validate presence, content type, schema and SHA-256.
+- Cache a complete known-good pack.
+- Promote only after full validation.
+- If anything fails, keep the previous known-good pack.
+- Never expose a mixed old/new pack.
+- Bundled fallback pack must allow first boot/offline recovery.
 
 ## Realtime environment authority
 
-The environment is a realtime simulation of three independent systems:
-
-1. Bangkok astronomy → sun/moon/daylight position;
-2. Open-Meteo weather → clouds/rain/storm/fog/wind/visibility/humidity;
-3. AirBKK PM2.5/AQI → optical haze/extinction/scattering/contrast/saturation/particles.
-
-Required rendering order:
+Required order:
 
 ```text
-weather → sky → clouds → sun/moon → rain/storm/fog → PM2.5 optical layer → HTML UI
+REAL WEATHER
+→ SKY
+→ CLOUDS
+→ SUN / MOON
+→ RAIN / STORM / FOG
+→ PM2.5 OPTICAL HAZE / PARTICLES
+→ HTML UI
 ```
 
-Weather and pollution remain independent. Example: clear noon + hazardous PM2.5 still has the real noon sun but through grey/desaturated haze.
+Weather and PM2.5 remain independent. Overcast must visibly look overcast. Clear weather plus hazardous PM2.5 still retains the physical sun through pollution haze.
 
-Weather-code state must visibly agree with the atmosphere. Overcast may not look clear. Clouds must be a clearly visible rendering layer, not barely perceptible noise.
+The v15 renderer is Oscar-inspired conceptually but remains our own Three.js/GLSL engine. Art-direction parameters may be Supabase-configurable; executable shader/renderer code stays in GitHub/Cloudflare.
 
-Do not animate through fake PM2.5/AQI numbers. Numeric readings crossfade directly; the atmosphere may interpolate visually.
+## Rendering / mobile rules
 
-## Rendering fidelity and performance
+Mobile must visually match desktop.
 
-The user explicitly requires equivalent visual quality on mobile and desktop.
+Do not lower mobile DPR, cloud complexity, frame cadence, celestial quality or tilt. Improve performance by removing waste:
 
-Do not improve mobile performance by lowering DPR, cloud complexity, visible animation cadence, sun/moon quality or tilt compared with desktop.
-
-Performance improvements must remove waste instead:
-
-- no full-page CSS `filter: blur()` route transitions;
-- no giant filtered DOM layers over WebGL;
+- no full-page CSS blur transitions;
+- no giant filtered DOM layers;
 - minimize nested backdrop filters;
-- use transform + opacity for route transitions;
-- keep active route DOM small;
-- stop environment rendering only when the document is hidden.
+- use opacity/translate3d/tiny scale only for routes;
+- keep only active route DOM mounted;
+- stop WebGL only when the document is hidden.
 
-The environment must look like one uninterrupted sky with no square/rectangular/block renderer boundary.
+With HTML hidden, the atmosphere must be one uninterrupted sky with no square/rectangular tonal boundary.
 
-## Mobile tilt
-
-Tilt is always part of the atmosphere where the platform permits it.
+## Tilt
 
 - Android/device-orientation capable browsers: attach continuously.
-- iOS/iPadOS: request DeviceOrientation permission from the first valid user gesture as required by the OS; once granted, keep it active.
-- Tilt may affect cloud/celestial/haze parallax subtly, never tilt the HTML UI.
-
-## Route transitions
-
-Use only `transform` + `opacity` (and tiny scale if useful), approximately 260–340 ms with premium easing. Full-page CSS blur is prohibited because it causes costly rasterization while WebGL is active.
+- iOS/iPadOS: request DeviceOrientation permission from the first valid user gesture.
+- Once approved, keep it active.
+- Tilt clouds/celestial/haze subtly, never HTML UI.
 
 ## Pull-to-refresh
 
-Pull-to-refresh must work from scroll position 0 on every route in installed iOS and Android PWAs.
+Installed iOS and Android PWAs must support pull-to-refresh at scroll top.
 
-- Gesture engine belongs to stable shell.
-- Visual material/config may come from Supabase.
-- Pull indicator must use the same opacity/glass tokens as header/footer; never a visually solid pill.
-- Refresh current route/environmental sources.
+- Same glass material family as header/footer.
+- Pull → Release → Refreshing.
+- Refresh AirBKK, Open-Meteo and UI pack in place.
+- Never reload/destroy the persistent shell for normal refresh.
 
 ## Save full page
 
-The old compact image concept is retired.
+`SAVE FULL PAGE / บันทึกทั้งหน้า` captures the full Today route with current atmosphere while excluding:
 
-Save means full-length Today route capture with current atmosphere, excluding:
-
-- header/masthead;
-- sticky bottom navigation/footer;
-- reference footer if present;
+- masthead/header;
+- sticky footer/navigation;
+- reference footer;
 - Save button itself.
 
-This is browser capture, not generative image creation.
+This is browser capture, never image generation.
+
+## Zero-reinstall rule
+
+After employee rollout, normal releases must never require uninstall/reinstall.
+
+Freeze production origin, manifest id/scope/start_url, service-worker scope and app identity before broad installation. Routine Supabase pack changes hot-update. Rare shell changes use the normal service-worker lifecycle while preserving installation, push permission/subscription, preferences and cached known-good pack.
 
 ## Notifications
 
-Cross-platform standards-based Web Push remains the target for iOS/iPadOS Home Screen PWAs and Android installed PWAs.
+Target:
 
-Backend target:
+Cloudflare scheduled Worker → AirBKK/Open-Meteo → meaningful threshold/category-change policy → Web Push → installed iOS/Android PWA.
 
-- Cloudflare scheduled Worker;
-- AirBKK/Open-Meteo checks;
-- threshold/deduplication logic;
-- D1 or KV push-subscription store;
-- VAPID Web Push.
+Store subscriptions in Cloudflare D1 or KV, use VAPID, and do not use Supabase as notification storage unless explicitly approved later.
 
-Do not add Supabase as the notification database unless explicitly approved later.
-
-Notify meaningful category/severe-weather changes, not every numeric refresh. Critical notification copy is Thai-first with English support.
-
-## Offline / atomic UI-pack rules
-
-The future Supabase UI pack must be versioned and atomic.
-
-- Download complete pack.
-- Validate resource presence/type/hash/schema.
-- Cache as a known-good version.
-- Promote only after complete validation.
-- If update fails, continue using previous known-good pack.
-- Never expose users to mixed old/new pack resources.
-
-The stable shell must boot cached UI offline and remain usable if Supabase, Open-Meteo, AirBKK or WebGL is temporarily unavailable.
+Notification titles/bodies are English first, Thai second.
 
 ## Deployment discipline
 
-Current production deploys from `main` through `.github/workflows/deploy.yml` to Cloudflare Pages project `sindhorn-midtown-internal`.
+Production deploys from `main`. Avoid tiny production commits.
 
-Until the hybrid migration is complete, avoid repeated tiny `site/**` commits because each triggers a deployment.
+For the v15 migration:
 
-For core-shell changes:
-
-1. inspect current canonical repo/live state;
-2. create one coherent branch;
-3. implement the requested batch;
-4. QA mobile + desktop + environmental fixtures;
+1. work on `hybrid-shell-v15`;
+2. seed and validate Supabase Pack 1;
+3. run structural/syntax/offline/environment QA;
+4. keep PR #9 draft until QA passes;
 5. merge once;
-6. deploy once;
-7. verify actual production URL before claiming live.
+6. deploy production once;
+7. verify the actual production origin before claiming live.
 
-After migration, ordinary UI/content/art-direction edits should happen in the Supabase Sindhorn UI pack without Cloudflare deployment.
+After migration, normal visual/content/art-direction edits should be Supabase-only.
 
 ## Documentation authority
 
-Authority order:
+Use this order:
 
 1. `AGENTS.md`
-2. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
-3. specialist docs where they do not conflict with the final plan
+2. `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md` for language-order conflicts
+3. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
+4. specialist docs where they do not conflict
 
-Update the final plan and this file whenever the actual live architecture materially changes so a fresh session can recover canonical state without relying on chat history.
+Update canonical documentation when the live architecture materially changes.

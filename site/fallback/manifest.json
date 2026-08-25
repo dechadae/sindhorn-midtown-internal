@@ -2,7 +2,7 @@
   "appPack": 1,
   "minimumShell": 15,
   "environmentConfig": 1,
-  "updatedAt": "2026-08-25T22:42:00+07:00",
+  "updatedAt": "2026-08-25T23:11:00+07:00",
   "resources": [
     {
       "path": "header.html",
@@ -17,7 +17,7 @@
     {
       "path": "guidance.html",
       "contentType": "text/html",
-      "sha256": "99652218789ccff9136d14d2b9b4c6ac56653a56e48daf1a74b222200e0c259e"
+      "sha256": "b050540cff025d1f2899544a9b0c25a06cdad2de1b5d8b342c69c6da4e4435b3"
     },
     {
       "path": "footer.html",
@@ -32,12 +32,12 @@
     {
       "path": "details.html",
       "contentType": "text/html",
-      "sha256": "717af8269cc5f90820642c589fd10969a2a30140706c5e87469d03843e333833"
+      "sha256": "369a13a0deb73a10fc1904c3de6be1547009387fb21a7756accfad81c3f8ece9"
     },
     {
       "path": "today.html",
       "contentType": "text/html",
-      "sha256": "e70444dee7746d194b27b715a17c8f2aeb3ef135e679bddbc22cf338863f7b55"
+      "sha256": "3b7ce522640169b95e0bc356ed5175cb2cde055dbb621a6d858d9fbd9956f0cb"
     }
   ]
 }
