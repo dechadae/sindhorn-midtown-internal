@@ -208,3 +208,15 @@ body.is-fullscreen main{padding-top:72px!important}
   body>main{animation:none!important}
   .fg-progress-rule i,.fullscreen-toggle,.action,.app-tabbar a{transition:none!important}
 }
+
+/* Legacy v6 PWA rules are intentionally outranked here so all app chrome
+   resolves to the CI component system instead of mixed generations. */
+body.environment-ready .report-actionbar .quick-save{
+  min-height:46px!important;padding:12px 22px!important;border:1px solid rgba(var(--sm-accent-rgb),.55)!important;border-radius:999px!important;
+  background:rgba(var(--sm-accent-rgb),.14)!important;color:var(--sm-text)!important;box-shadow:none!important;
+  backdrop-filter:blur(12px) saturate(1.5)!important;-webkit-backdrop-filter:blur(12px) saturate(1.5)!important
+}
+body.environment-ready .app-tabbar{
+  background:var(--sm-glass-strong)!important;border-color:var(--sm-glass-brd)!important;
+  backdrop-filter:blur(18px) saturate(1.3)!important;-webkit-backdrop-filter:blur(18px) saturate(1.3)!important
+}

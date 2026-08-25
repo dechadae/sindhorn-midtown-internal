@@ -1,4 +1,5 @@
 production-build: main
 rendering-fix: atmosphere-projection-v9
 renderer: display-synced-adaptive-resolution
-pwa-spa: fullscreen-top-header-frosted-save-v9
+pwa-spa: flipgazine-ci-aligned-sindhorn-v10
+ui: twilight-sorbet-glass-hairline-v10
