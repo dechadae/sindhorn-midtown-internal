@@ -19,7 +19,17 @@ This repository is the canonical frontend source for the Sindhorn Midtown intern
 
 ## Current approved PM2.5 baseline
 
-The existing production PM2.5 page at `https://flipgazine.pages.dev/sindhornmidtown/pm25.html` is the approved visual/functional baseline as of v5. It must be migrated before major redesign work. Preserve its bilingual content, AirBKK behavior, caching, theme handling, accessibility, and readability improvements unless the user explicitly changes them.
+The existing production PM2.5 page at `https://flipgazine.pages.dev/sindhornmidtown/pm25.html` is the approved visual/functional baseline as of v5. It must be migrated before major redesign work. Preserve its bilingual content, AirBKK behavior, caching, accessibility, and readability improvements unless the user explicitly changes them. The user has explicitly removed the UI theme system in favor of a realtime environment plus fullscreen app control.
+
+## PWA / SPA architecture
+
+- This app is a full installable PWA with a single persistent HTML/WebGL shell.
+- Use History API client-side routes for `/`, `/guidance`, and `/details`; never force a full page reload for in-app navigation.
+- `manifest.webmanifest`, `sw.js`, `app.js`, and `pwa.css` are part of the canonical app shell.
+- The official Sindhorn Midtown / Vignette hotel lockup is the app icon artwork.
+- The top-right utility control is fullscreen, not a light/dark theme switch.
+- Day/night appearance is driven by realtime Bangkok astronomy and weather, never by a UI theme preference.
+- Service-worker navigation fallback must keep direct SPA routes and cached/offline use functional.
 
 ## Real-time environment architecture
 
