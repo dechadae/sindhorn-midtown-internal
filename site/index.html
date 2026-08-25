@@ -351,8 +351,10 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
   .disclaimer{font-size:.78rem}
 }
 </style>
+<link rel="stylesheet" href="/environment.css">
 </head>
 <body data-level="very-good">
+<div class="environment-stage" id="environmentStage" hidden aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
 <a class="skip" href="#report">Skip to air quality report / ไปยังรายงานคุณภาพอากาศ</a>
 <div class="masthead" role="banner">
   <div class="masthead-inner">
@@ -781,5 +783,6 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
   pollTimer=setInterval(function(){updateToday();if(!document.hidden)refresh(false);},POLL_MS);
 })();
 </script>
+<script type="module" src="/environment.js"></script>
 </body>
 </html>
