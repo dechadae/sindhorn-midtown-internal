@@ -1,0 +1,159 @@
+name: Sindhorn CI UI v10 rerun
+on:
+  push:
+    branches: [flipgazine-ci-ui-v10]
+    paths: ['.github/workflows/ci-ui-v10-rerun.yml']
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve legacy specificity and patch shared shell
+        run: |
+          cat >> site/ci-ui.css <<'CSS'
+
+          /* Legacy v6 PWA rules are intentionally outranked here so all app chrome
+             resolves to the CI component system instead of mixed generations. */
+          body.environment-ready .report-actionbar .quick-save{
+            min-height:46px!important;padding:12px 22px!important;border:1px solid rgba(var(--sm-accent-rgb),.55)!important;border-radius:999px!important;
+            background:rgba(var(--sm-accent-rgb),.14)!important;color:var(--sm-text)!important;box-shadow:none!important;
+            backdrop-filter:blur(12px) saturate(1.5)!important;-webkit-backdrop-filter:blur(12px) saturate(1.5)!important
+          }
+          body.environment-ready .app-tabbar{
+            background:var(--sm-glass-strong)!important;border-color:var(--sm-glass-brd)!important;
+            backdrop-filter:blur(18px) saturate(1.3)!important;-webkit-backdrop-filter:blur(18px) saturate(1.3)!important
+          }
+          CSS
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('site/index.html')
+          s=p.read_text()
+          css='<link rel="stylesheet" href="/pwa.css">'
+          assert css in s and '/ci-ui.css' not in s
+          s=s.replace(css,css+'\n<link rel="stylesheet" href="/ci-ui.css">',1)
+          header_end='''  </div>\n</div>\n<main>'''
+          assert header_end in s
+          s=s.replace(header_end,'''  </div>\n  <div class="fg-progress-rule" aria-hidden="true"><i></i></div>\n</div>\n<main>''',1)
+          main_end='''</main>\n<script>\n(function(){'''
+          assert main_end in s
+          footer='''</main>\n<footer class="app-footer" role="contentinfo">\n  <div class="app-footer-inner">\n    <p class="app-footer-kicker">Reference</p>\n    <p><strong>Sindhorn Midtown Hotel Bangkok · Vignette Collection.</strong> Live PM2.5 / Thai AQI from Bangkok Metropolitan Administration (AirBKK). Weather conditions by <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>.</p>\n  </div>\n</footer>\n<script>\n(function(){'''
+          s=s.replace(main_end,footer,1)
+          p.write_text(s)
+          Path('site/version.txt').write_text(
+            'production-build: main\n'
+            'rendering-fix: atmosphere-projection-v9\n'
+            'renderer: display-synced-adaptive-resolution\n'
+            'pwa-spa: flipgazine-ci-aligned-sindhorn-v10\n'
+            'ui: twilight-sorbet-glass-hairline-v10\n'
+          )
+          PY
+
+      - name: Static checks
+        run: |
+          grep -q '/ci-ui.css' site/index.html
+          grep -q 'fg-progress-rule' site/index.html
+          grep -q 'app-footer' site/index.html
+          grep -q -- '--sm-accent:#E5ECBE' site/ci-ui.css
+          grep -q 'body.environment-ready .report-actionbar .quick-save' site/ci-ui.css
+          grep -q 'route-hero' site/app.js
+          grep -q 'pwa-v10' site/sw.js
+          node --check site/app.js
+          node --check site/environment.bundle.js
+
+      - name: Browser QA all routes
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+          python3 -m http.server 4173 --directory site >/tmp/http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          cat > ci-check.cjs <<'JS'
+          const { chromium }=require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            for(const vp of [{w:390,h:844,label:'390'},{w:320,h:720,label:'320'}]){
+              const context=await browser.newContext({viewport:{width:vp.w,height:vp.h},deviceScaleFactor:1});
+              const page=await context.newPage();
+              const errors=[];
+              page.on('pageerror',e=>errors.push('page:'+e.message));
+              page.on('console',m=>{if(m.type()==='error')errors.push('console:'+m.text())});
+              const response=await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle',timeout:60000});
+              if(!response||response.status()!==200)throw new Error('HTTP '+(response&&response.status()));
+              await page.waitForTimeout(1800);
+
+              const today=await page.evaluate(()=>{
+                const root=getComputedStyle(document.documentElement);
+                const header=document.querySelector('.masthead');
+                const progress=document.querySelector('.fg-progress-rule');
+                const save=document.getElementById('saveImageBtn');
+                const nav=document.querySelector('.app-tabbar');
+                const active=nav.querySelector('.is-active');
+                return {
+                  bg:root.getPropertyValue('--sm-bg').trim(),accent:root.getPropertyValue('--sm-accent').trim(),
+                  headerBackdrop:getComputedStyle(header).backdropFilter||getComputedStyle(header).webkitBackdropFilter,
+                  progressHeight:getComputedStyle(progress).height,saveRadius:getComputedStyle(save).borderRadius,
+                  saveBackdrop:getComputedStyle(save).backdropFilter||getComputedStyle(save).webkitBackdropFilter,
+                  navRadius:getComputedStyle(nav).borderRadius,navBackdrop:getComputedStyle(nav).backdropFilter||getComputedStyle(nav).webkitBackdropFilter,
+                  activeColor:getComputedStyle(active).color,footer:!!document.querySelector('.app-footer'),width:document.documentElement.scrollWidth,
+                  route:document.body.dataset.route,envReady:document.body.classList.contains('environment-ready')
+                };
+              });
+              console.log('TODAY '+vp.label,JSON.stringify(today));
+              await page.screenshot({path:`today-${vp.label}.png`,fullPage:false});
+              if(today.bg.toLowerCase()!=='#2e273b'||today.accent.toLowerCase()!=='#e5ecbe')throw new Error('brand token mismatch');
+              if(!today.headerBackdrop||today.headerBackdrop==='none')throw new Error('header glass missing');
+              if(parseFloat(today.progressHeight)<1.9)throw new Error('progress rule wrong');
+              if(parseFloat(today.saveRadius)<100)throw new Error('save button is not CI pill');
+              if(!today.saveBackdrop||today.saveBackdrop==='none')throw new Error('save glass missing');
+              if(parseFloat(today.navRadius)<14||!today.navBackdrop||today.navBackdrop==='none')throw new Error('nav rail wrong');
+              if(!today.footer||today.width>vp.w+1||today.route!=='today')throw new Error('today shell failed');
+
+              await page.click('[data-app-route="guidance"]');
+              await page.waitForTimeout(450);
+              const guidance=await page.evaluate(()=>({route:document.body.dataset.route,hero:document.querySelector('.route-hero h1')?.textContent.trim(),visible:[...document.querySelectorAll('main > .section')].filter(x=>!x.hasAttribute('data-app-route-hidden')).length,width:document.documentElement.scrollWidth}));
+              console.log('GUIDANCE '+vp.label,JSON.stringify(guidance));
+              if(vp.w===390)await page.screenshot({path:'guidance-390.png',fullPage:false});
+              if(guidance.route!=='guidance'||!guidance.hero.includes('Guidance')||guidance.visible<1||guidance.width>vp.w+1)throw new Error('guidance route failed');
+
+              await page.click('[data-app-route="details"]');
+              await page.waitForTimeout(450);
+              const details=await page.evaluate(()=>({route:document.body.dataset.route,hero:document.querySelector('.route-hero h1')?.textContent.trim(),facts:!!document.querySelector('main > .section:not([data-app-route-hidden]) .facts'),refresh:!!document.getElementById('refreshBtn'),width:document.documentElement.scrollWidth}));
+              console.log('DETAILS '+vp.label,JSON.stringify(details));
+              if(vp.w===390)await page.screenshot({path:'details-390.png',fullPage:false});
+              if(details.route!=='details'||!details.hero.includes('Reading details')||!details.facts||!details.refresh||details.width>vp.w+1)throw new Error('details route failed');
+
+              await page.evaluate(()=>document.body.classList.add('is-fullscreen'));
+              const fsState=await page.evaluate(()=>{const h=document.querySelector('.masthead');const r=h.getBoundingClientRect();return{top:r.top,position:getComputedStyle(h).position}});
+              if(fsState.position!=='fixed'||Math.abs(fsState.top)>1)throw new Error('fullscreen header failed');
+              if(errors.length)throw new Error(errors.join('\n'));
+              await context.close();
+            }
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
+          node ci-check.cjs
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sindhorn-ci-ui-v10-rerun
+          path: |
+            today-390.png
+            today-320.png
+            guidance-390.png
+            details-390.png
+          if-no-files-found: ignore
+
+      - name: Commit verified app UI and remove helpers
+        run: |
+          rm -f .github/workflows/ci-ui-v10-once.yml .github/workflows/ci-ui-v10-rerun.yml
+          git config user.name dechadae
+          git config user.email decha.dae@gmail.com
+          git add site/ci-ui.css site/index.html site/version.txt .github/workflows/ci-ui-v10-once.yml .github/workflows/ci-ui-v10-rerun.yml
+          git commit -m 'Apply Flipgazine CI system across app UI'
+          git push origin HEAD:flipgazine-ci-ui-v10
