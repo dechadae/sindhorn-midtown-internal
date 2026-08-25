@@ -1,0 +1,218 @@
+name: Sindhorn bilingual hierarchy v11
+on:
+  push:
+    branches: [bilingual-hierarchy-v11]
+    paths: ['.github/workflows/bilingual-hierarchy-v11-once.yml']
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Apply Thai-first instruction order while preserving eminent English typography
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('site/index.html')
+          s=p.read_text()
+
+          replacements={
+            '<a class="skip" href="#report">Skip to air quality report / ไปยังรายงานคุณภาพอากาศ</a>':
+            '<a class="skip" href="#report"><span lang="th">ไปยังรายงานคุณภาพอากาศ</span> / Skip to air quality report</a>',
+
+            '<p class="guidance-lead"><span id="guidanceEn">Retrieving the latest official reading.</span><span lang="th" id="guidanceTh">กำลังเรียกข้อมูลล่าสุดจากแหล่งข้อมูลทางการ</span></p>':
+            '<p class="guidance-lead instruction-copy"><span class="instruction-th" lang="th" id="guidanceTh">กำลังเรียกข้อมูลล่าสุดจากแหล่งข้อมูลทางการ</span><span class="instruction-en" id="guidanceEn">Retrieving the latest official reading.</span></p>',
+
+            '<p><span id="everyoneEn">Please wait for the latest reading.</span><span lang="th" id="everyoneTh">โปรดรอข้อมูลล่าสุด</span></p>':
+            '<p class="instruction-copy"><span class="instruction-th" lang="th" id="everyoneTh">โปรดรอข้อมูลล่าสุด</span><span class="instruction-en" id="everyoneEn">Please wait for the latest reading.</span></p>',
+
+            '<p><span id="sensitiveEn">Please wait for the latest reading.</span><span lang="th" id="sensitiveTh">โปรดรอข้อมูลล่าสุด</span></p>':
+            '<p class="instruction-copy"><span class="instruction-th" lang="th" id="sensitiveTh">โปรดรอข้อมูลล่าสุด</span><span class="instruction-en" id="sensitiveEn">Please wait for the latest reading.</span></p>',
+
+            '<p class="disclaimer">This report provides general air-quality information and is not medical advice. Data may be delayed during monitoring-system maintenance. <span lang="th">รายงานนี้เป็นข้อมูลคุณภาพอากาศทั่วไป ไม่ใช่คำแนะนำทางการแพทย์ และข้อมูลอาจล่าช้าในช่วงบำรุงรักษาระบบตรวจวัด</span></p>':
+            '<p class="disclaimer instruction-copy"><span class="instruction-th" lang="th">รายงานนี้เป็นข้อมูลคุณภาพอากาศทั่วไป ไม่ใช่คำแนะนำทางการแพทย์ และข้อมูลอาจล่าช้าในช่วงบำรุงรักษาระบบตรวจวัด</span><span class="instruction-en">This report provides general air-quality information and is not medical advice. Data may be delayed during monitoring-system maintenance.</span></p>'
+          }
+
+          for old,new in replacements.items():
+              if s.count(old)!=1:
+                  raise SystemExit(f'Expected exactly one source block, found {s.count(old)}: {old[:80]}')
+              s=s.replace(old,new,1)
+
+          p.write_text(s)
+
+          p=Path('site/ci-ui.css')
+          css=p.read_text()
+          marker='/* v11 bilingual hierarchy — English typography remains eminent. */'
+          if marker in css:
+              raise SystemExit('v11 hierarchy already present')
+          css += r'''
+
+/* v11 bilingual hierarchy — English typography remains eminent.
+   English owns brand/editorial structure. Thai leads only where comprehension,
+   health, warning or recovery instructions are the primary job. */
+body.environment-ready .instruction-copy .instruction-th{
+  display:block!important;
+  margin:0!important;
+  color:var(--sm-text)!important;
+  font-family:"IBM Plex Sans Thai","Noto Sans Thai",sans-serif!important;
+  font-size:1em!important;
+  font-weight:400!important;
+  letter-spacing:0!important;
+  line-height:1.58!important;
+  text-transform:none!important;
+}
+body.environment-ready .instruction-copy .instruction-en{
+  display:block!important;
+  margin-top:6px!important;
+  color:var(--sm-muted)!important;
+  font-family:"Vignette Sans","Trebuchet MS",sans-serif!important;
+  font-size:.88em!important;
+  font-weight:300!important;
+  letter-spacing:.005em!important;
+  line-height:1.5!important;
+  text-transform:none!important;
+}
+body.environment-ready .guidance-lead.instruction-copy{
+  font-size:1.02rem!important;
+}
+body.environment-ready .advice p.instruction-copy{
+  font-size:.96rem!important;
+}
+body.environment-ready .disclaimer.instruction-copy{
+  font-size:.82rem!important;
+}
+body.environment-ready .disclaimer.instruction-copy .instruction-th{
+  color:rgba(250,247,245,.82)!important;
+}
+body.environment-ready .disclaimer.instruction-copy .instruction-en{
+  color:rgba(250,247,245,.58)!important;
+}
+
+/* English remains visually eminent in every structural/UI pairing. */
+body.environment-ready h1,
+body.environment-ready .route-hero h1,
+body.environment-ready .category-en{
+  font-family:"Vignette Sans","Trebuchet MS",sans-serif!important;
+  font-weight:200!important;
+}
+body.environment-ready .eyebrow,
+body.environment-ready .section-title,
+body.environment-ready .station strong,
+body.environment-ready .aqi-label,
+body.environment-ready .weather-condition strong,
+body.environment-ready .action,
+body.environment-ready .app-footer-kicker{
+  font-family:"Vignette Sans","Trebuchet MS",sans-serif!important;
+}
+
+@media(max-width:520px){
+  body.environment-ready .guidance-lead.instruction-copy{font-size:.92rem!important}
+  body.environment-ready .advice p.instruction-copy{font-size:.90rem!important}
+  body.environment-ready .instruction-copy .instruction-en{margin-top:4px!important;font-size:.86em!important}
+}
+'''
+          p.write_text(css)
+
+          p=Path('site/sw.js')
+          sw=p.read_text()
+          if "sindhorn-midtown-internal-pwa-v10.1" not in sw:
+              raise SystemExit('Unexpected service-worker version')
+          p.write_text(sw.replace("sindhorn-midtown-internal-pwa-v10.1","sindhorn-midtown-internal-pwa-v11",1))
+
+          p=Path('site/version.txt')
+          v=p.read_text()
+          v += 'language-hierarchy: english-eminent-thai-first-critical-instructions-v11\n'
+          p.write_text(v)
+          PY
+
+      - name: Static checks
+        run: |
+          grep -q 'English typography remains eminent' site/ci-ui.css
+          grep -q 'class="guidance-lead instruction-copy"><span class="instruction-th"' site/index.html
+          grep -q 'id="everyoneTh".*id="everyoneEn"' site/index.html
+          grep -q 'id="sensitiveTh".*id="sensitiveEn"' site/index.html
+          grep -q 'disclaimer instruction-copy' site/index.html
+          grep -q 'pwa-v11' site/sw.js
+          node --check site/app.js
+          node --check site/environment.bundle.js
+
+      - name: Browser QA bilingual hierarchy and routes
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+          python3 -m http.server 4173 --directory site >/tmp/http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          cat > hierarchy-check.cjs <<'JS'
+          const { chromium }=require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true});
+            for(const vp of [{w:390,h:844,label:'390'},{w:320,h:720,label:'320'}]){
+              const context=await browser.newContext({viewport:{width:vp.w,height:vp.h},deviceScaleFactor:1});
+              const page=await context.newPage();
+              const errors=[];
+              page.on('pageerror',e=>errors.push('page:'+e.message));
+              page.on('console',m=>{if(m.type()==='error')errors.push('console:'+m.text())});
+              await page.goto('http://127.0.0.1:4173/',{waitUntil:'domcontentloaded',timeout:60000});
+              await page.waitForTimeout(1500);
+
+              const today=await page.evaluate(()=>{
+                const h1=document.querySelector('.intro h1');
+                const h1th=h1.querySelector(':scope > [lang="th"]');
+                const g=document.querySelector('.guidance-lead');
+                const e=document.getElementById('everyoneEn');
+                const t=document.getElementById('everyoneTh');
+                const d=document.querySelector('.disclaimer');
+                const firstElement=el=>Array.from(el.children)[0];
+                return {
+                  route:document.body.dataset.route,
+                  width:document.documentElement.scrollWidth,
+                  h1En:parseFloat(getComputedStyle(h1).fontSize),
+                  h1Th:parseFloat(getComputedStyle(h1th).fontSize),
+                  guidanceFirst:firstElement(g)?.id,
+                  everyoneFirst:firstElement(t.parentElement)?.id,
+                  disclaimerFirstLang:firstElement(d)?.lang,
+                  thaiInstructionSize:parseFloat(getComputedStyle(t).fontSize),
+                  englishInstructionSize:parseFloat(getComputedStyle(e).fontSize),
+                  header:!!document.querySelector('.masthead'),
+                  footer:!!document.querySelector('.app-footer'),
+                  nav:!!document.querySelector('.app-tabbar')
+                };
+              });
+              console.log('TODAY '+vp.label,JSON.stringify(today));
+              if(today.route!=='today'||today.width>vp.w+1)throw new Error('today layout failed '+vp.label);
+              if(!(today.h1En>today.h1Th))throw new Error('English display typography is not eminent '+vp.label);
+              if(today.guidanceFirst!=='guidanceTh'||today.everyoneFirst!=='everyoneTh'||today.disclaimerFirstLang!=='th')throw new Error('Thai-first instruction order failed '+vp.label);
+              if(today.thaiInstructionSize<today.englishInstructionSize)throw new Error('Thai instruction readability failed '+vp.label);
+              if(!today.header||!today.footer||!today.nav)throw new Error('shared shell missing '+vp.label);
+
+              await page.click('[data-app-route="guidance"]');
+              await page.waitForTimeout(250);
+              const guidance=await page.evaluate(()=>({route:document.body.dataset.route,width:document.documentElement.scrollWidth,hero:document.querySelector('.route-hero h1')?.textContent.trim()}));
+              if(guidance.route!=='guidance'||guidance.width>vp.w+1||!guidance.hero.includes('Guidance'))throw new Error('guidance route failed '+vp.label);
+
+              await page.click('[data-app-route="details"]');
+              await page.waitForTimeout(250);
+              const details=await page.evaluate(()=>({route:document.body.dataset.route,width:document.documentElement.scrollWidth,hero:document.querySelector('.route-hero h1')?.textContent.trim()}));
+              if(details.route!=='details'||details.width>vp.w+1||!details.hero.includes('Reading details'))throw new Error('details route failed '+vp.label);
+              if(errors.length)throw new Error(errors.join('\n'));
+              await context.close();
+            }
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          JS
+          node hierarchy-check.cjs
+
+      - name: Commit verified hierarchy and remove helper
+        run: |
+          rm -f .github/workflows/bilingual-hierarchy-v11-once.yml
+          git config user.name "dechadae"
+          git config user.email "decha.dae@gmail.com"
+          git add site .github/workflows/bilingual-hierarchy-v11-once.yml
+          git commit -m "Apply bilingual hierarchy with eminent English typography"
+          git push origin HEAD:bilingual-hierarchy-v11
