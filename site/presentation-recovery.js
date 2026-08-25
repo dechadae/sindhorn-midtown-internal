@@ -10,13 +10,16 @@ export async function recoverPresentationSwap(){
   try{
     const oldStageTransform=stage.style.transform;
     const oldCanvasTransform=canvas.style.transform;
+    const oldWidth=stage.style.width;
     stage.style.transform='translateZ(0) scale(1.000001)';
     canvas.style.transform='translateZ(0) scale(1.000001)';
+    stage.style.width='calc(100vw - .25px)';
     await nextFrame();
+    stage.style.width=oldWidth||'';
     stage.style.transform=oldStageTransform||'';
     canvas.style.transform=oldCanvasTransform||'';
     await nextFrame();
-    window.dispatchEvent(new Event('resize'));
+    await nextFrame();
     document.dispatchEvent(new CustomEvent('sindhorn:environment-rebind'));
   }finally{
     recovering=false;
