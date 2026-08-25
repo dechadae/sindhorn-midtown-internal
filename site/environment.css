@@ -1,0 +1,29 @@
+/* Realtime environment preview v1. Progressive enhancement over approved PM2.5 v5. */
+.environment-stage[hidden]{display:none!important}
+.environment-stage{position:absolute;z-index:0;top:0;left:0;width:100%;height:clamp(360px,58svh,610px);overflow:hidden;background:linear-gradient(180deg,#536b83 0%,#9b9390 58%,#2E273B 100%);pointer-events:none;isolation:isolate}
+.environment-stage::before{content:"";position:absolute;z-index:2;inset:0;background:linear-gradient(180deg,rgba(25,22,34,.18) 0%,rgba(25,22,34,.20) 46%,rgba(46,39,59,.68) 82%,var(--page-bg) 100%);pointer-events:none}
+.environment-canvas{position:absolute;z-index:1;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity .75s cubic-bezier(.2,.75,.2,1)}
+body.environment-ready .environment-canvas{opacity:1}
+body.environment-ready{position:relative}
+body.environment-ready .masthead{position:relative;z-index:4;background:transparent;border-bottom-color:rgba(250,247,245,.22)}
+body.environment-ready main{position:relative;z-index:3}
+body.environment-ready .brand-lockup .logo-light{opacity:0}
+body.environment-ready .brand-lockup .logo-dark{opacity:1}
+body.environment-ready .today,
+body.environment-ready .theme-toggle,
+body.environment-ready .intro h1,
+body.environment-ready .station strong,
+body.environment-ready .connection{color:var(--blossom-soft)}
+body.environment-ready .intro .eyebrow{color:var(--pink)}
+body.environment-ready .station span{color:rgba(250,247,245,.72)}
+body.environment-ready .theme-toggle{border-color:rgba(250,247,245,.72)}
+body.environment-ready .theme-toggle:hover{background:rgba(250,247,245,.12);color:var(--blossom-soft)}
+body.environment-ready .report{border-top-color:rgba(250,247,245,.72)}
+body.environment-ready .report-head{border-bottom-color:rgba(250,247,245,.24)}
+body.environment-ready .connection[data-state="live"] .connection-dot{box-shadow:0 0 0 4px rgba(92,135,76,.2)}
+.environment-debug{position:fixed;z-index:80;right:10px;bottom:max(10px,env(safe-area-inset-bottom));max-width:min(320px,calc(100vw - 20px));padding:10px 12px;border:1px solid rgba(250,247,245,.25);background:rgba(30,25,39,.78);backdrop-filter:blur(14px);color:#FAF7F5;font:500 11px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;pointer-events:none}
+@media (max-width:699px){
+  .environment-stage{height:clamp(350px,52svh,470px)}
+  .environment-stage::before{background:linear-gradient(180deg,rgba(25,22,34,.18) 0%,rgba(25,22,34,.22) 44%,rgba(46,39,59,.70) 80%,var(--page-bg) 100%)}
+}
+@media (prefers-reduced-motion:reduce){.environment-canvas{transition:none}}
