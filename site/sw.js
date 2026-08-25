@@ -1,6 +1,6 @@
-const VERSION='sindhorn-midtown-internal-pwa-v3';
+const VERSION='sindhorn-midtown-internal-pwa-v4';
 const SHELL=[
-  '/', '/index.html', '/environment.css', '/environment.js', '/pwa.css', '/app.js', '/manifest.webmanifest',
+  '/', '/index.html', '/environment.css', '/environment.bundle.js', '/pwa.css', '/app.js', '/manifest.webmanifest',
   '/icons/app-192.png','/icons/app-512.png','/icons/maskable-512.png','/icons/apple-touch-icon.png',
   '/vendor/three.module.js','/assets/brand/sindhorn-midtown-vignette-white.png','/assets/brand/sindhorn-midtown-vignette-black.png',
   '/assets/fonts/vignette-sans-light.woff','/assets/fonts/vignette-sans-regular.woff','/assets/fonts/vignette-sans-semibold.woff',
