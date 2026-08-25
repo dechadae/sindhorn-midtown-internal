@@ -346,6 +346,7 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
 </style>
 <link rel="stylesheet" href="/environment.css">
 <link rel="stylesheet" href="/pwa.css">
+<link rel="stylesheet" href="/ci-ui.css">
 </head>
 <body data-level="very-good">
 <div class="environment-stage" id="environmentStage" hidden aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
@@ -368,6 +369,7 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
       </button>
     </div>
   </div>
+  <div class="fg-progress-rule" aria-hidden="true"><i></i></div>
 </div>
 <main>
   <section class="intro" aria-labelledby="pageTitle">
@@ -483,6 +485,12 @@ body,.masthead,.today,h1,.intro-copy,.report,.report-head,.station strong,.stati
     <p class="disclaimer">This report provides general air-quality information and is not medical advice. Data may be delayed during monitoring-system maintenance. <span lang="th">รายงานนี้เป็นข้อมูลคุณภาพอากาศทั่วไป ไม่ใช่คำแนะนำทางการแพทย์ และข้อมูลอาจล่าช้าในช่วงบำรุงรักษาระบบตรวจวัด</span></p>
   </section>
 </main>
+<footer class="app-footer" role="contentinfo">
+  <div class="app-footer-inner">
+    <p class="app-footer-kicker">Reference</p>
+    <p><strong>Sindhorn Midtown Hotel Bangkok · Vignette Collection.</strong> Live PM2.5 / Thai AQI from Bangkok Metropolitan Administration (AirBKK). Weather conditions by <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>.</p>
+  </div>
+</footer>
 <script>
 (function(){
   'use strict';

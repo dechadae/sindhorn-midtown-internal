@@ -333,11 +333,15 @@ const material = new THREE.ShaderMaterial({
       cloudMask*=smoothstep(.00,.18,uv.y);
       float nightness=1.0-daylight;
       float cloudLight=mix(.86,.63,pollution*.65);
-      vec3 dayCloud=mix(vec3(cloudLight),vec3(.38,.37,.40),smoothstep(.65,1.,cloudiness));
-      vec3 nightCloud=mix(vec3(.27,.29,.36),vec3(.18,.19,.25),pollution*.55);
+      float cloudRelief=smoothstep(.16,.88,mix(broad,detail,.58));
+      vec3 dayCloud=mix(vec3(.43,.44,.47),vec3(cloudLight),cloudRelief);
+      vec3 nightCloud=mix(vec3(.14,.16,.22),vec3(.33,.35,.42),cloudRelief);
+      nightCloud=mix(nightCloud,vec3(.25,.24,.30),pollution*.30);
       vec3 cloudColor=mix(dayCloud,nightCloud,nightness);
-      float cloudOpacity=mix(.72,.91,nightness);
+      float cloudOpacity=mix(.72,.93,nightness);
       polluted=mix(polluted,cloudColor,cloudMask*cloudOpacity);
+      float urbanGlow=nightness*pow(horizon,1.55)*(.025+.10*pollution)*(.30+.70*cloudiness);
+      polluted+=vec3(.12,.075,.14)*urbanGlow;
 
       float sunRadius=mix(.018,.032,pollution)+cloudiness*.008;
       // Measure the sun in aspect-correct screen space so it stays circular
@@ -367,13 +371,14 @@ const material = new THREE.ShaderMaterial({
       vec3 moonLightDir=normalize(vec3(sin(phaseAngle),0.0,-cos(phaseAngle)));
       float moonLit=smoothstep(-.035,.065,dot(moonNormal,moonLightDir));
       float moonAbove=smoothstep(-3.0,2.0,uMoonAltitude);
-      float cloudTransmission=mix(1.0,.18,cloudMask);
+      float denseCloud=smoothstep(.48,.92,cloudMask);
+      float moonDiscTransmission=mix(1.0,.025,denseCloud);
       float moonPollution=mix(1.0,.58,pollution);
       float moonVisible=moonAbove*moonPollution;
       vec3 moonColor=vec3(.96,.94,.83);
-      polluted+=moonColor*moonDisc*moonLit*moonVisible*cloudTransmission*1.35;
-      float moonGlow=exp(-moonDist*mix(32.0,14.0,cloudMask+.55*pollution));
-      polluted+=vec3(.34,.37,.48)*moonGlow*moonAbove*uMoonIllumination*mix(.12,.44,cloudMask)*moonPollution;
+      polluted+=moonColor*moonDisc*moonLit*moonVisible*moonDiscTransmission*1.28;
+      float moonGlow=exp(-moonDist*mix(32.0,12.0,denseCloud+.50*pollution));
+      polluted+=vec3(.34,.37,.48)*moonGlow*moonAbove*uMoonIllumination*mix(.08,.31,denseCloud)*moonPollution;
 
       float haze=pow(horizon,2.15)*pollution*(.22+.38*uHumidity);
       polluted=mix(polluted,vec3(.64,.59,.54),haze);
@@ -414,12 +419,13 @@ function syncState() {
   const pollution = pollutionStrength(state.air.pm25);
   const alt = state.solar.altitude;
   const az = state.solar.azimuth * Math.PI / 180;
+  const skyY = altitude => clamp(0.12 + clamp((altitude + 2) / 82, 0, 1) * 0.72, 0.08, 0.88);
   const sunX = clamp(0.5 - Math.sin(az) * 0.42, 0.06, 0.94);
-  const sunY = clamp(0.82 - clamp(alt / 90, 0, 1) * 0.62, 0.12, 0.86);
+  const sunY = skyY(alt);
   const moonAlt = state.lunar.altitude;
   const moonAz = state.lunar.azimuth * Math.PI / 180;
   const moonX = clamp(0.5 - Math.sin(moonAz) * 0.42, 0.06, 0.94);
-  const moonY = clamp(0.82 - clamp(moonAlt / 90, 0, 1) * 0.62, 0.12, 0.86);
+  const moonY = skyY(moonAlt);
   const speed = clamp(state.weather.windSpeedKmh / 30, 0.02, 1);
   const dir = state.weather.windDirectionDeg * Math.PI / 180;
 
@@ -441,6 +447,8 @@ function syncState() {
   document.body.dataset.environmentMoonAltitude = moonAlt.toFixed(1);
   document.body.dataset.environmentMoonIllumination = state.lunar.illumination.toFixed(2);
   document.body.dataset.environmentCloud = state.weather.known ? state.weather.cloudCover.toFixed(2) : 'unknown';
+  document.body.dataset.environmentSunY = sunY.toFixed(3);
+  document.body.dataset.environmentMoonY = moonY.toFixed(3);
   updateDebug();
 }
 
