@@ -1,4 +1,4 @@
 production-build: main
-rendering-fix: night-atmosphere-v8-moon-clouds
+rendering-fix: atmosphere-projection-v9
 renderer: display-synced-adaptive-resolution
-pwa-spa: fullscreen-top-header-frosted-save-v8
+pwa-spa: fullscreen-top-header-frosted-save-v9
