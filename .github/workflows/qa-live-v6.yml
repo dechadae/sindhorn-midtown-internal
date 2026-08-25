@@ -1,4 +1,4 @@
-name: QA live production v6
+name: QA live production v7
 on:
   push:
     branches: [qa-live-v6]
@@ -29,7 +29,7 @@ jobs:
             page.on('console',m=>{if(m.type()==='error')errors.push('console:'+m.text())});
             const resp=await page.goto('https://sindhorn-midtown-internal.pages.dev/',{waitUntil:'networkidle',timeout:60000});
             if(!resp||resp.status()!==200)throw new Error('production HTTP '+(resp&&resp.status()));
-            await page.waitForTimeout(3000);
+            await page.waitForTimeout(3500);
             const normal=await page.evaluate(()=>{
               const stage=document.getElementById('environmentStage');
               const canvas=document.getElementById('environmentCanvas');
@@ -42,6 +42,7 @@ jobs:
               return {
                 stage:{x:r.x,y:r.y,w:r.width,h:r.height},
                 canvas:{w:canvas.width,h:canvas.height,opacity:getComputedStyle(canvas).opacity},
+                quality:document.body.dataset.environmentQuality,
                 environmentReady:document.body.classList.contains('environment-ready'),
                 saveAfterWeather:!!(weather.compareDocumentPosition(save)&Node.DOCUMENT_POSITION_FOLLOWING),
                 saveBackdrop:cs.backdropFilter||cs.webkitBackdropFilter,
@@ -54,20 +55,14 @@ jobs:
             });
             normal.version=await page.evaluate(()=>fetch('/version.txt',{cache:'no-store'}).then(r=>r.text()));
             console.log('NORMAL',JSON.stringify(normal));
-            if(!normal.version.includes('seamless-cloud-field-v6'))throw new Error('live version is not v6');
+            if(!normal.version.includes('seamless-cloud-field-v7-adaptive'))throw new Error('live version is not v7');
             if(!normal.environmentReady)throw new Error('environment not ready');
             if(normal.stage.x>-8||normal.stage.y>-8||normal.stage.w<406||normal.stage.h<860)throw new Error('stage does not overfill viewport');
             if(!normal.saveAfterWeather)throw new Error('save button is not after weather');
             if(!normal.saveBackdrop||normal.saveBackdrop==='none')throw new Error('save button lacks frosted glass');
             if(!normal.navBackdrop||normal.navBackdrop==='none')throw new Error('nav lacks frosted glass');
-            await page.screenshot({path:'live-normal.png',fullPage:false});
-
-            const cadence=await page.evaluate(()=>new Promise(resolve=>{
-              let n=0;const times=[];const start=performance.now();let prev=start;
-              function tick(t){times.push(t-prev);prev=t;n++;if(t-start<2000)requestAnimationFrame(tick);else resolve({frames:n,avg:times.reduce((a,b)=>a+b,0)/times.length,max:Math.max(...times)});}
-              requestAnimationFrame(tick);
-            }));
-            console.log('CADENCE',JSON.stringify(cadence));
+            if(!(Number(normal.quality)>0&&Number(normal.quality)<=1))throw new Error('adaptive quality marker invalid');
+            await page.screenshot({path:'live-v7-normal.png',fullPage:false});
 
             await page.evaluate(()=>document.body.classList.add('is-fullscreen'));
             const fs=await page.evaluate(()=>{
@@ -78,7 +73,7 @@ jobs:
             });
             console.log('FULLSCREEN',JSON.stringify(fs));
             if(fs.position!=='fixed'||Math.abs(fs.top)>1)throw new Error('fullscreen masthead is not at physical top');
-            await page.screenshot({path:'live-fullscreen.png',fullPage:false});
+            await page.screenshot({path:'live-v7-fullscreen.png',fullPage:false});
             if(errors.length)throw new Error(errors.join('\n'));
             await browser.close();
           })().catch(e=>{console.error(e);process.exit(1)});
@@ -87,8 +82,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: live-v6-qa
+          name: live-v7-qa
           path: |
-            live-normal.png
-            live-fullscreen.png
+            live-v7-normal.png
+            live-v7-fullscreen.png
           if-no-files-found: ignore
