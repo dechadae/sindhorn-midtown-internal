@@ -14,6 +14,65 @@ This is an adaptation, not a Flipgazine rebrand.
 - Typography remains Vignette Sans + IBM Plex Sans Thai.
 - Realtime AQI/weather semantics may retain their data meaning inside visualizations; UI chrome does not introduce another brand accent.
 
+## Governing bilingual typography rule
+
+> **English typography is eminent. This is the highest visual-language rule for the app. English defines the premium editorial composition; Thai guarantees operational understanding.**
+
+The app remains bilingual by default. There is no mandatory language switch.
+
+### English leads visual identity
+
+English appears first and carries the strongest typographic treatment for:
+
+- brand/editorial headings;
+- navigation;
+- section labels;
+- data labels;
+- weather labels;
+- status/display words;
+- normal utility buttons;
+- reference/footer typography.
+
+English may be larger, lighter, more widely tracked, uppercase, or otherwise used as the structural typography of the interface. Thai must remain clearly readable and must never be reduced to illegible caption text.
+
+### Thai leads comprehension when action or safety matters
+
+Thai appears first in reading order for:
+
+- health guidance;
+- actionable instructions;
+- warning states;
+- error/recovery instructions;
+- permission or operational instructions;
+- safety/medical disclaimers where comprehension is more important than visual hierarchy.
+
+English follows as the supporting international-language version. This exception does not reverse the overall visual system: English remains the eminent typographic language across the app.
+
+### Practical hierarchy
+
+```text
+BRAND / AESTHETIC / STRUCTURE
+English first and visually eminent
+Thai second and fully readable
+
+NAVIGATION
+English first
+Thai always visible
+
+DATA / STATUS / WEATHER LABELS
+English first
+Thai supporting
+
+ACTIONABLE GUIDANCE / WARNINGS / ERRORS
+Thai first for comprehension
+English second
+
+NUMERIC DATA
+language-neutral
+```
+
+Never hide essential Thai comprehension behind a language selector. A future language preference may change emphasis/order for long-form copy, but it must not remove the other language from critical operational information.
+
 ## Flipgazine CI rules adopted
 
 - One 1px hairline system for structure.
@@ -40,26 +99,28 @@ Preserve the approved PM2.5/AQI information hierarchy. Data sits directly over t
 
 ### Guidance
 
-Route heading + Today’s Guidance + Thailand AQI scale. Advice rows use circular glass icons and hairlines; the scale uses one shared glass container.
+Route heading + Today’s Guidance + Thailand AQI scale. Advice rows use circular glass icons and hairlines; the scale uses one shared glass container. Instruction copy follows the Thai-first comprehension exception while English remains eminent in headings and UI structure.
 
 ### Details
 
-Route heading + reading facts + Refresh/Share + source/disclaimer. Facts use glass only as one container, with hairline rows inside.
+Route heading + reading facts + Refresh/Share + source/disclaimer. Facts use glass only as one container, with hairline rows inside. Safety/medical disclaimers use Thai-first reading order.
 
 ### Footer
 
-Shared reference footer on every route using the same small-label + hairline grammar as the CI reference.
+Shared reference footer on every route using the same small-label + hairline grammar as the CI reference. English remains the primary editorial/reference language.
 
 ### Bottom navigation
 
-Fixed glass rail. Today / Guidance / Details are editorial pills; only the active route carries the accent border and accent text.
+Fixed glass rail. Today / Guidance / Details are editorial pills; only the active route carries the accent border and accent text. English is the primary label; Thai remains visible underneath.
 
 ### Buttons
 
-Primary: accent tint + accent border. Secondary: transparent glass border. 999px radius, 1px border, uppercase tracked label, tactile press scale.
+Normal utility controls: English first. Primary styling uses accent tint + accent border; secondary uses transparent glass border. 999px radius, 1px border, uppercase tracked English label, tactile press scale. Critical recovery/action instructions may use Thai first.
 
 ## Non-negotiables
 
+- **English typography must remain eminent across the app.**
+- Important instructions, health guidance, warnings and recovery states must be understandable in Thai without changing language settings.
 - Do not alter AirBKK or Open-Meteo data behavior for UI styling.
 - Do not couple UI theme to physical day/night; there is no manual theme system.
 - Do not animate through fabricated PM2.5/AQI values.
