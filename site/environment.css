@@ -22,13 +22,13 @@ body.environment-ready .report-actionbar{background:transparent!important}
 body.environment-ready .masthead{position:relative;z-index:4;border-bottom-color:rgba(250,247,245,.20)}
 body.environment-ready main{position:relative;z-index:3}
 
-/* Keep the white hotel lockup independent from UI theme. */
+/* Keep the white hotel lockup independent from app chrome. */
 body.environment-ready .brand-lockup .logo-light{opacity:0}
 body.environment-ready .brand-lockup .logo-dark{opacity:1}
 
 /* One coherent type color system over the atmosphere. */
 body.environment-ready .today,
-body.environment-ready .theme-toggle,
+body.environment-ready .fullscreen-toggle,
 body.environment-ready .intro h1,
 body.environment-ready .intro-copy,
 body.environment-ready .station strong,
@@ -72,8 +72,8 @@ body.environment-ready .section,
 body.environment-ready .facts,
 body.environment-ready .fact,
 body.environment-ready .scale-labels>div{border-color:rgba(250,247,245,.22)!important}
-body.environment-ready .theme-toggle{border-color:rgba(250,247,245,.64)}
-body.environment-ready .theme-toggle:hover{background:rgba(250,247,245,.10);color:var(--blossom-soft)}
+body.environment-ready .fullscreen-toggle{border-color:rgba(250,247,245,.64)}
+body.environment-ready .fullscreen-toggle:hover{background:rgba(250,247,245,.10);color:var(--blossom-soft)}
 body.environment-ready .advice-icon{border-color:rgba(250,247,245,.34);color:var(--sorbet)}
 body.environment-ready .action{border-color:rgba(250,247,245,.52);background:transparent!important}
 body.environment-ready .action:hover{background:rgba(250,247,245,.10)!important;color:var(--blossom-soft)!important}
