@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/weather-quality-v13-once.yml'
       - '.github/scripts/v13_patch.py'
+      - '.github/scripts/v13_qa.cjs'
 permissions:
   contents: write
 jobs:
