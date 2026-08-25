@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2E273B">
+<title>Atmosphere Tester · Sindhorn Midtown</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400&family=Poppins:wght@300;400&display=swap');
+:root{--twilight:#2E273B;--paper:#FAF7F5;--sorbet:#E5ECBE;--line:rgba(250,247,245,.18);--glass:rgba(38,33,50,.72);--muted:rgba(250,247,245,.66)}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#1c2230;color:var(--paper);font-family:Poppins,"Noto Sans Thai",system-ui,sans-serif;font-weight:300}body{overflow:hidden}.environment-stage{position:fixed;inset:0;z-index:0;overflow:hidden;background:#465667}.atmosphere-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}.stage-vignette{position:absolute;inset:0;z-index:8;pointer-events:none;background:linear-gradient(180deg,rgba(20,18,28,.05),rgba(20,18,28,.02) 35%,rgba(20,18,28,.18) 100%)}
+.lab-title{position:fixed;z-index:210;left:max(18px,env(safe-area-inset-left));top:max(16px,env(safe-area-inset-top));pointer-events:none;text-shadow:0 1px 18px rgba(0,0,0,.22)}.lab-title .eyebrow{font-size:10px;letter-spacing:.1em;font-weight:400;color:var(--sorbet)}.lab-title h1{margin:6px 0 0;font-size:clamp(28px,4vw,54px);line-height:.98;letter-spacing:-.03em;font-weight:300}.lab-title p{margin:8px 0 0;font-size:12px;color:var(--muted);max-width:480px;line-height:1.45}.condition-badge{margin-top:12px;display:inline-flex;align-items:center;gap:8px;min-height:30px;padding:0 12px;border:1px solid rgba(229,236,190,.45);border-radius:999px;background:rgba(46,39,59,.34);font-size:10px;letter-spacing:.1em;font-weight:400;color:var(--sorbet)}
+.panel{position:fixed;z-index:260;top:max(16px,env(safe-area-inset-top));right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));width:min(410px,calc(100vw - 32px));overflow:auto;padding:18px;border:1px solid rgba(250,247,245,.2);border-radius:24px;background:var(--glass);backdrop-filter:blur(24px) saturate(115%);-webkit-backdrop-filter:blur(24px) saturate(115%);box-shadow:0 20px 60px rgba(0,0,0,.22);transition:transform .28s cubic-bezier(.4,0,.2,1),opacity .28s cubic-bezier(.4,0,.2,1)}.panel.hidden{transform:translateX(calc(100% + 30px));opacity:0;pointer-events:none}.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--line)}.panel-head h2{margin:0;font-size:18px;font-weight:300;letter-spacing:-.03em}.panel-head p{margin:5px 0 0;font-size:11px;line-height:1.5;color:var(--muted)}button,select,input{font:inherit}.icon-btn,.action-btn,.show-btn{border:1px solid rgba(229,236,190,.42);background:rgba(250,247,245,.045);color:var(--paper);border-radius:999px;min-height:38px;padding:0 14px;font-size:10px;letter-spacing:.1em;font-weight:400;cursor:pointer}.icon-btn{width:38px;padding:0;font-size:15px}.show-btn{position:fixed;z-index:270;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));display:none}.show-btn.visible{display:block}.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.toolbar .wide{grid-column:1/-1}.preset-select{width:100%;height:42px;border:1px solid rgba(229,236,190,.35);border-radius:14px;padding:0 12px;background:rgba(15,17,24,.35);color:var(--paper);outline:none}.group{padding:18px 0;border-bottom:1px solid var(--line)}.group:last-of-type{border-bottom:0}.group-title{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:13px}.group-title h3{margin:0;font-size:10px;letter-spacing:.1em;font-weight:400;color:var(--sorbet)}.group-title span{font-size:9px;color:var(--muted)}.control{display:grid;grid-template-columns:minmax(105px,1fr) minmax(140px,1.25fr) 62px;gap:10px;align-items:center;min-height:36px}.control+.control{margin-top:8px}.control label{font-size:11px;line-height:1.3;color:rgba(250,247,245,.86)}.control output{font-size:10px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}.control input[type=range]{width:100%;accent-color:#E5ECBE}.switch-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px}.switch-row label{font-size:11px}.switch-row input{width:18px;height:18px;accent-color:#E5ECBE}.state-readout{margin-top:14px;padding:12px;border-radius:14px;background:rgba(10,12,18,.26);font:300 10px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:rgba(250,247,245,.72);white-space:pre-wrap}.hint{font-size:10px;line-height:1.5;color:var(--muted);margin:12px 0 0}.thai{font-family:"Noto Sans Thai",sans-serif;letter-spacing:0}
+@media(max-width:760px){.lab-title{left:18px;top:max(14px,env(safe-area-inset-top));max-width:calc(100vw - 94px)}.lab-title h1{font-size:32px}.lab-title p{display:none}.panel{top:auto;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));width:auto;max-height:58dvh;border-radius:22px;padding:16px}.panel.hidden{transform:translateY(calc(100% + 24px))}.show-btn{top:auto;bottom:calc(14px + env(safe-area-inset-bottom));right:14px}.control{grid-template-columns:102px minmax(120px,1fr) 56px;gap:8px}.toolbar{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="environment-stage" id="environmentStage" aria-hidden="true">
+  <canvas class="atmosphere-canvas" id="testerAtmosphereCanvas"></canvas>
+  <div class="stage-vignette"></div>
+</div>
+
+<div class="lab-title">
+  <div class="eyebrow">SINDHORN MIDTOWN · ENVIRONMENT LAB</div>
+  <h1>ATMOSPHERE TESTER</h1>
+  <p>Independent weather layers. Combine real-world phenomena freely and inspect the same rain + window-pane system used by the app.</p>
+  <div class="condition-badge" id="conditionBadge">CLEAR</div>
+</div>
+
+<button class="show-btn" id="showControls" type="button">CONTROLS</button>
+<aside class="panel" id="controlsPanel" aria-label="Atmosphere controls">
+  <div class="panel-head">
+    <div><h2>Weather composition</h2><p>Presets are physically plausible starting points. Every layer remains independently adjustable.</p></div>
+    <button class="icon-btn" id="hideControls" type="button" aria-label="Hide controls">×</button>
+  </div>
+
+  <div class="group">
+    <div class="group-title"><h3>PRESETS</h3><span>real-world combinations</span></div>
+    <select class="preset-select" id="presetSelect" aria-label="Weather preset"></select>
+    <div class="toolbar">
+      <button class="action-btn" id="applyPreset" type="button">APPLY</button>
+      <button class="action-btn" id="randomPreset" type="button">RANDOM REAL</button>
+      <button class="action-btn" id="resetPreset" type="button">RESET</button>
+      <button class="action-btn" id="copyState" type="button">COPY STATE LINK</button>
+      <button class="action-btn wide" id="fullscreenToggle" type="button">FULLSCREEN</button>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title"><h3>SKY + AIR</h3><span>continuous controls</span></div>
+    <div class="control"><label for="solarAltitude">Sun altitude</label><input data-key="solarAltitude" id="solarAltitude" type="range" min="-18" max="90" step="1"><output></output></div>
+    <div class="control"><label for="temperature">Temperature</label><input data-key="temperature" id="temperature" type="range" min="-40" max="55" step="1"><output></output></div>
+    <div class="control"><label for="humidity">Humidity</label><input data-key="humidity" id="humidity" type="range" min="0" max="100" step="1"><output></output></div>
+    <div class="control"><label for="visibility">Visibility</label><input data-key="visibility" id="visibility" type="range" min="0.2" max="50" step="0.2"><output></output></div>
+    <div class="control"><label for="cloudCover">Cloud cover</label><input data-key="cloudCover" id="cloudCover" type="range" min="0" max="100" step="1"><output></output></div>
+    <div class="control"><label for="stormDarkness">Storm darkness</label><input data-key="stormDarkness" id="stormDarkness" type="range" min="0" max="100" step="1"><output></output></div>
+    <div class="control"><label for="fog">Fog / mist</label><input data-key="fog" id="fog" type="range" min="0" max="100" step="1"><output></output></div>
+    <div class="control"><label for="heatHaze">Heat shimmer</label><input data-key="heatHaze" id="heatHaze" type="range" min="0" max="100" step="1"><output></output></div>
+  </div>
+
+  <div class="group">
+    <div class="group-title"><h3>PRECIPITATION</h3><span>mix freely</span></div>
+    <div class="control"><label for="rain">Rain</label><input data-key="rain" id="rain" type="range" min="0" max="100" step="1"><output></output></div>
+    <div class="control"><label for="snow">Snow</label><input data-key="snow" id="snow" type="range" min="0" max="100" step="1"><output></output></div>
+    <div class="control"><label for="hail">Hail / ice pellets</label><input data-key="hail" id="hail" type="range" min="0" max="100" step="1"><output></output></div>
+    <div class="control"><label for="lightning">Lightning</label><input data-key="lightning" id="lightning" type="range" min="0" max="100" step="1"><output></output></div>
+    <div class="switch-row"><label for="paneDrops">Window-pane droplets over UI</label><input id="paneDrops" type="checkbox" checked></div>
+  </div>
+
+  <div class="group">
+    <div class="group-title"><h3>WIND + AEROSOLS</h3><span>optical modifiers</span></div>
+    <div class="control"><label for="windSpeed">Wind speed</label><input data-key="windSpeed" id="windSpeed" type="range" min="0" max="220" step="1"><output></output></div>
+    <div class="control"><label for="windDirection">Wind direction</label><input data-key="windDirection" id="windDirection" type="range" min="0" max="359" step="1"><output></output></div>
+    <div class="control"><label for="pm25">PM2.5</label><input data-key="pm25" id="pm25" type="range" min="0" max="500" step="1"><output></output></div>
+    <div class="control"><label for="dust">Dust / sand</label><input data-key="dust" id="dust" type="range" min="0" max="100" step="1"><output></output></div>
+    <div class="control"><label for="smoke">Smoke haze</label><input data-key="smoke" id="smoke" type="range" min="0" max="100" step="1"><output></output></div>
+  </div>
+
+  <div class="group">
+    <div class="group-title"><h3>STATE</h3><span>shareable in URL</span></div>
+    <div class="state-readout" id="stateReadout"></div>
+    <p class="hint">Examples you can build directly: rain through snow (sleet), thundersnow, blizzard, freezing rain, tropical cyclone, monsoon, heat wave + haze, dust storm + lightning, dense fog + drizzle.</p>
+  </div>
+</aside>
+
+<script>
+window.__atmosphereTesterState={weather:{known:true,weatherCode:0,precipitationMm:0}};
+window.__sindhornRainPaneEnabled=true;
+window.SindhornEnvironment={getState:()=>window.__atmosphereTesterState};
+</script>
+<script type="module" src="/atmosphere-tester.js"></script>
+<script type="module" src="/rain-layer.js"></script>
+</body>
+</html>
