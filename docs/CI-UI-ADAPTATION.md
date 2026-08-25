@@ -1,8 +1,10 @@
 # Sindhorn Midtown CI-aligned App UI
 
+This specialist document is subordinate to `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`.
+
 ## Purpose
 
-Use the interaction grammar and component system documented on Flipgazine `/ci.html` while preserving Sindhorn Midtown / Vignette identity and the realtime environmental architecture.
+Use the interaction grammar and component system documented on Flipgazine `/ci.html` and the Voice-page footer while preserving Sindhorn Midtown / Vignette identity and the realtime environmental architecture.
 
 This is an adaptation, not a Flipgazine rebrand.
 
@@ -11,8 +13,11 @@ This is an adaptation, not a Flipgazine rebrand.
 - Base / environment fallback: `#2E273B` — Sindhorn Midtown Twilight.
 - Primary text: `#FAF7F5` — warm off-white.
 - Accent: `#E5ECBE` — Sindhorn Midtown Sorbet.
-- Typography remains Vignette Sans + IBM Plex Sans Thai.
+- **English / Latin editorial and UI typography: Vignette Sans.**
+- **Thai typography: Noto Sans Thai.**
 - Realtime AQI/weather semantics may retain their data meaning inside visualizations; UI chrome does not introduce another brand accent.
+
+The previous v13 global Noto Sans English override is explicitly superseded.
 
 ## Governing bilingual typography rule
 
@@ -77,63 +82,97 @@ Never hide essential Thai comprehension behind a language selector. A future lan
 
 - One 1px hairline system for structure.
 - Glass surface = translucent base + 1px translucent border + restrained blur/saturation.
-- Panel radius 12–14px.
-- Buttons and navigation chips use pill geometry.
-- Small uppercase labels use wide tracking and medium weight.
-- Large display type stays light-weight with negative tracking.
+- Buttons and navigation chips use compact premium geometry.
+- Small uppercase English labels use wide tracking and medium weight.
+- Large display type stays light-weight with negative or restrained tracking as appropriate to Vignette Sans.
 - In-place changing numerals use tabular figures.
-- Header owns a 2px accent progress rule.
-- Bottom navigation is a fixed glass rail with one current accent chip.
-- Shared motion curves: `cubic-bezier(.22,1,.36,1)` for entrances and `cubic-bezier(.4,0,.2,1)` for color/opacity changes.
+- Shared motion curve: `cubic-bezier(.22,1,.36,1)` for premium entrances/transitions and `cubic-bezier(.4,0,.2,1)` for restrained state changes.
 - Avoid heavy shadows, thick borders, filled dashboard cards and unrelated accent hues.
+- Avoid nested backdrop filters when one parent frosted layer produces the same visual result.
 
 ## App surfaces
 
 ### Header
 
-Persistent smoked glass, hotel lockup left, date + fullscreen utility right, 2px reading progress rule on the lower edge.
+Persistent restrained frosted glass, hotel lockup, date + fullscreen utility, fine structural line and safe-area support.
 
 ### Today
 
-Preserve the approved PM2.5/AQI information hierarchy. Data sits directly over the realtime atmosphere. Use hairlines and typography for structure. Weather may use the standard glass surface.
+Preserve the approved PM2.5/AQI information hierarchy. Data sits directly over the realtime atmosphere. Use hairlines and typography for structure rather than opaque cards. Weather may use a restrained glass treatment where necessary for legibility.
 
 ### Guidance
 
-Route heading + Today’s Guidance + Thailand AQI scale. Advice rows use circular glass icons and hairlines; the scale uses one shared glass container. Instruction copy follows the Thai-first comprehension exception while English remains eminent in headings and UI structure.
+Route heading + Today’s Guidance + Thailand AQI scale. Advice rows use typography, small icon treatments and hairlines. Instruction copy follows the Thai-first comprehension exception while English remains eminent in headings/UI structure.
+
+The route must not use redundant numeric kickers such as `02 · Guidance`. Use a semantic non-numbered kicker only if useful.
 
 ### Details
 
-Route heading + reading facts + Refresh/Share + source/disclaimer. Facts use glass only as one container, with hairline rows inside. Safety/medical disclaimers use Thai-first reading order.
+Route heading + reading facts + Refresh/Share + source/disclaimer. Safety/medical disclaimers use Thai-first reading order.
 
-### Footer
+The route must not use redundant numeric kickers such as `03 · Details`. Use a semantic non-numbered kicker only if useful.
 
-Shared reference footer on every route using the same small-label + hairline grammar as the CI reference. English remains the primary editorial/reference language.
+### Footer / bottom navigation
 
-### Bottom navigation
+Follow the Flipgazine Voice-page footer grammar using Sindhorn colors:
 
-Fixed glass rail. Today / Guidance / Details are editorial pills; only the active route carries the accent border and accent text. English is the primary label; Thai remains visible underneath.
+- edge-to-edge persistent rail;
+- one parent frosted-glass surface;
+- compact independent Today / Guidance / Details chips;
+- English first, Thai always visible;
+- active chip receives restrained Sorbet emphasis;
+- safe-area-aware bottom padding;
+- no oversized rounded floating dock;
+- no separate expensive backdrop blur per chip unless absolutely necessary.
 
 ### Buttons
 
-Normal utility controls: English first. Primary styling uses accent tint + accent border; secondary uses transparent glass border. 999px radius, 1px border, uppercase tracked English label, tactile press scale. Critical recovery/action instructions may use Thai first.
+Normal utility controls are English-first. Use restrained Sindhorn glass/accent styling, 1px borders and tactile press scale. Critical recovery/action instructions may be Thai-first.
+
+### Pull-to-refresh indicator
+
+The pull indicator uses the **same material tokens as header/footer**. It must not look like an opaque/solid toast floating over the app.
+
+## Motion authority
+
+Route transition performance takes priority over decorative blur.
+
+Use:
+
+- `opacity`;
+- `transform: translate3d(...)`;
+- optional tiny scale shift.
+
+Do **not** animate `filter: blur()` on the whole `main` or another large full-page DOM surface. That can trigger expensive rasterization while WebGL is active and is prohibited by the final plan.
+
+Target approximately 260–340 ms with premium easing while header/footer/environment remain persistent.
+
+## Supabase UI-pack ownership
+
+After the final bootstrap migration, frequently edited presentation is supplied from the Sindhorn Supabase app pack rather than requiring a Cloudflare deployment.
+
+This includes:
+
+- header/footer presentation;
+- route markup;
+- typography/layout CSS;
+- buttons and glass styling;
+- bilingual copy;
+- transition configuration;
+- atmosphere art-direction parameters.
+
+Core PWA/WebGL/router/service-worker code remains in GitHub/Cloudflare.
 
 ## Non-negotiables
 
 - **English typography must remain eminent across the app.**
+- **English uses Vignette Sans; Thai uses Noto Sans Thai.**
+- Thai including mixed live copy such as `ข้อมูลล่าสุด` must shape/render correctly.
 - Important instructions, health guidance, warnings and recovery states must be understandable in Thai without changing language settings.
-- Do not alter AirBKK or Open-Meteo data behavior for UI styling.
-- Do not couple UI theme to physical day/night; there is no manual theme system.
+- Do not alter AirBKK or Open-Meteo data meaning for styling.
+- Do not couple UI chrome to physical day/night; there is no manual theme system.
 - Do not animate through fabricated PM2.5/AQI values.
 - Do not obscure the realtime WebGL atmosphere with opaque page backgrounds.
-- WebGL remains progressive enhancement and HTML remains fully usable without it.
 - Preserve mobile-first behavior at 320–390px widths and installed/fullscreen PWA behavior.
-
-
-## v13 typography and footer authority
-
-- Noto Sans is the app-wide English/UI typeface; Noto Sans Thai is mandatory for Thai glyphs, including mixed status copy such as `ข้อมูลล่าสุด`.
-- English remains eminent through scale, tracking and placement; Thai remains correctly shaped and readable.
-- Header logo artwork is reduced by 10% from the v12 size.
-- Guidance/Details route kickers are semantic (`AIR QUALITY CARE`, `CURRENT OBSERVATION`) with no redundant page numbers.
-- Sticky navigation uses the Flipgazine Voice-page footer contract: edge-to-edge frosted rail, compact independent chips, no oversized rounded dock.
-- Route changes use a short out/in depth transition while header, environment and sticky footer remain persistent.
+- Preserve equivalent atmospheric rendering quality on mobile and desktop.
+- Normal releases must not require PWA reinstall.
