@@ -1,20 +1,19 @@
 # Sindhorn Midtown Internal
 
-Private source repository for Sindhorn Midtown Hotel Bangkok internal web applications.
+Canonical frontend repository for the Sindhorn Midtown internal web app.
 
-## Production
-
+- Production: `https://sindhorn-midtown-internal.pages.dev`
 - Cloudflare Pages project: `sindhorn-midtown-internal`
-- Production URL: `https://sindhorn-midtown-internal.pages.dev`
-- Deployment: GitHub Actions → Wrangler → Cloudflare Pages
-- Deploy directory: `site/`
+- Shared Supabase project: `sjpvhgxacsiorrtijqua`
 
-## Backend and shared assets
+## Current state
 
-This app may reuse the existing Flipgazine Supabase project (`sjpvhgxacsiorrtijqua`) for approved shared assets and backend services. GitHub is the canonical source of truth for this app's frontend code; the app must not be stored in Flipgazine `public.site_files`.
+`main` contains the approved migrated PM2.5 v5 baseline.
 
-## Current status
+The experimental branch `webgl-environment-v1` contains the realtime atmospheric redesign. Its current visual direction uses the WebGL atmosphere as the full-page background, with all PM2.5/AQI/status/guidance information layered directly above it and no filled dashboard cards.
 
-Repository/deployment bootstrap. The approved PM2.5 v5 interface will be migrated here before the real-time weather + astronomy + PM2.5 WebGL environment is developed.
+Weather, astronomy and pollution remain independent realtime inputs. See `docs/REALTIME-ENVIRONMENT-PLAN.md` for the architecture and safety rules.
 
-Read `AGENTS.md` before making consequential changes.
+## Deployment
+
+GitHub Actions deploys `site/` through Wrangler to Cloudflare Pages. Production deploys come from `main`; the WebGL branch deploys to its Cloudflare preview alias for review before merge.
