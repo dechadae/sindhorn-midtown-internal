@@ -151,6 +151,7 @@ jobs:
           tester_js=(root/'atmosphere-tester.js').read_text()
           assert "'clear-1700'" in tester_js and "'clear-1800'" in tester_js and "'rain-1700'" in tester_js
           assert 'resolveFixtureLocation' in tester_js and 'solarPosition' in tester_js and 'localFixtureDate' in tester_js
+          assert "new CustomEvent('sindhorn:location-updated'" in tester_js
           assert "environmentRenderer='unavailable'" in tester_js
           celestial=(root/'tester-celestials.js').read_text()
           assert 'sunEclipse' not in celestial
@@ -274,6 +275,7 @@ jobs:
           grep -q "'rain-1700'" /tmp/smoke-tester-js
           grep -q 'resolveFixtureLocation' /tmp/smoke-tester-js
           grep -q 'localFixtureDate' /tmp/smoke-tester-js
+          grep -q "new CustomEvent('sindhorn:location-updated'" /tmp/smoke-tester-js
           grep -q "environmentRenderer='unavailable'" /tmp/smoke-tester-js
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/tester-celestials.js" -o /tmp/smoke-celestial
           ! grep -q 'sunEclipse' /tmp/smoke-celestial
