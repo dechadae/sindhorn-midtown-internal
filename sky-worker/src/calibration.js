@@ -49,8 +49,8 @@ export function calibrationMode(solar){
 
 export function directionalBase(facing,mode){
   const side=String(facing||'central');
-  if(mode==='sunrise-east')return side==='east'?1:side==='west'?.18:.42;
-  if(mode==='sunset-west')return side==='west'?1:side==='east'?.18:.42;
+  if(mode==='sunrise-east')return side==='east'?1:(side==='west'?.18:.42);
+  if(mode==='sunset-west')return side==='west'?1:(side==='east'?.18:.42);
   if(mode==='twilight')return side==='central'?.72:.62;
   if(mode==='night')return side==='central'?.68:.56;
   return side==='central'?.82:.68;
@@ -79,7 +79,7 @@ export function validateObservation(raw,camera,now=Date.now()){
 function observationWeight(observation,mode,now,medians){
   const age=Math.max(0,now-Date.parse(observation.frameFetchedAt)),freshness=clamp(1-age/OBSERVATION_TTL_MS),base=directionalBase(observation.facing,mode)*observation.reliability*observation.quality*observation.confidence*mean(.35,1,freshness);
   const delta=Math.abs(observation.luminance-medians.luminance)+Math.abs(observation.warmth-medians.warmth)+Math.abs(observation.cloudOpacity-medians.cloudOpacity)+Math.abs(observation.haze-medians.haze);
-  const outlierPenalty=delta>1.6?.2:delta>1.15?.45:delta>.85?.72:1;
+  const outlierPenalty=delta>1.6?.2:(delta>1.15?.45:(delta>.85?.72:1));
   return Math.max(.001,base*outlierPenalty);
 }
 
