@@ -1,0 +1,85 @@
+name: Phase 6 Pages Preview
+
+on:
+  push:
+    branches:
+      - phase6-web-push
+    paths:
+      - "site/**"
+      - "worker/**"
+      - ".github/workflows/phase6-pages-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: sindhorn-midtown-phase6-pages-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate Phase 6 shell without backend credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/push-config.js
+          node --check site/push-client.js
+          node --check site/sw.js
+          node --check worker/src/index.js
+          grep -q '/push-client.js?v=1' site/index.html
+          grep -q "Notification.requestPermission" site/push-client.js
+          grep -q "pushManager.subscribe" site/push-client.js
+          grep -q "'/vapid-public-key'" site/push-client.js
+          grep -q "'/subscribe'" site/push-client.js
+          grep -q "pwa-v18-web-push" site/sw.js
+          grep -q "push-config.js" site/sw.js
+          grep -q "push-client.js" site/sw.js
+          grep -q "addEventListener('push'" site/sw.js
+          grep -q "addEventListener('notificationclick'" site/sw.js
+          grep -q "buildPushPayload" worker/src/index.js
+          grep -q "scheduled" worker/src/index.js
+          grep -q "push_subscriptions" worker/src/index.js
+          grep -q "monitor_state" worker/src/index.js
+
+      - name: Validate Worker bundle locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix worker --no-audit --no-fund
+          npx --yes wrangler@4.125.0 deploy --dry-run --config worker/wrangler.jsonc --outdir /tmp/phase6-worker
+          test -n "$(find /tmp/phase6-worker -type f -maxdepth 2 -print -quit)"
+
+      - name: Deploy Pages branch preview
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke test Pages branch preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
+          BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /guidance /details /push-config.js /push-client.js /sw.js /app.js /environment.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
+            test -s /tmp/smoke-response
+          done
+          curl --fail --silent --show-error "${BASE_URL}/" -o /tmp/root
+          grep -q '/push-client.js?v=1' /tmp/root
+          curl --fail --silent --show-error "${BASE_URL}/push-client.js" -o /tmp/push-client
+          grep -q "Notification.requestPermission" /tmp/push-client
+          grep -q "pushManager.subscribe" /tmp/push-client
+          curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/sw
+          grep -q "pwa-v18-web-push" /tmp/sw
+          grep -q "addEventListener('push'" /tmp/sw
+          grep -q "addEventListener('notificationclick'" /tmp/sw
