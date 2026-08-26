@@ -15,6 +15,7 @@ on:
       - fix-soft-luminous-sun
       - sun-post-cloud-composite
       - fix-blue-cloudy-sky
+      - fix-sun-statusbar
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -43,6 +44,7 @@ jobs:
           node --check site/live-data.js
           node --check site/environment.js
           node --check site/rain-layer.js
+          node --check site/screen-capture.js
           node --check site/atmosphere-tester.js
           node --check site/tester-celestials.js
           node --check site/presentation-recovery.js
@@ -63,6 +65,17 @@ jobs:
               assert digest==item['sha256'],f"fallback hash mismatch: {item['path']}"
           index=(root/'index.html').read_text()
           assert '/rain-layer.js?v=4' in index
+          assert '/screen-capture.js?v=1' in index
+          assert '/manifest.webmanifest?v=2' in index
+          pwa=json.loads((root/'manifest.webmanifest').read_text())
+          assert pwa.get('display')=='standalone'
+          assert 'display_override' not in pwa
+          capture=(root/'screen-capture.js').read_text()
+          assert 'html2canvas(document.documentElement' in capture
+          assert "window.scrollTo({top:0,left:0,behavior:'auto'})" in capture
+          assert 'stopImmediatePropagation' in capture
+          assert 'document.exitFullscreen' in capture
+          assert 'renderExport' not in capture
           environment=(root/'environment.js').read_text()
           assert 'ATMOSPHERE TESTER CORE · LIVE' in environment
           assert 'snowfall' in environment and 'environmentSnowCanvas' in environment and 'environmentHailCanvas' in environment
@@ -89,7 +102,8 @@ jobs:
           assert 'moonEclipse' in celestial
           assert 'testerWetReflection' in celestial
           sw=(root/'sw.js').read_text()
-          assert 'isAppRoute' in sw and 'atmosphere5' in sw
+          assert 'isAppRoute' in sw and 'atmosphere5-screen1' in sw
+          assert "'/screen-capture.js'" in sw
           PY
 
       - name: Deploy to Cloudflare Pages
@@ -109,13 +123,22 @@ jobs:
             BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           fi
           sleep 8
-          for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
+          for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/" -o /tmp/smoke-root
           grep -q '/bootstrap.js' /tmp/smoke-root
           grep -q '/rain-layer.js?v=4' /tmp/smoke-root
+          grep -q '/screen-capture.js?v=1' /tmp/smoke-root
+          grep -q '/manifest.webmanifest?v=2' /tmp/smoke-root
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/screen-capture.js" -o /tmp/smoke-capture
+          grep -q 'html2canvas(document.documentElement' /tmp/smoke-capture
+          grep -q 'stopImmediatePropagation' /tmp/smoke-capture
+          ! grep -q 'renderExport' /tmp/smoke-capture
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/manifest.webmanifest" -o /tmp/smoke-pwa
+          grep -q '"display":"standalone"' /tmp/smoke-pwa
+          ! grep -q 'display_override' /tmp/smoke-pwa
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/environment.js" -o /tmp/smoke-environment
           grep -q 'ATMOSPHERE TESTER CORE' /tmp/smoke-environment
           grep -q 'environmentSnowCanvas' /tmp/smoke-environment
@@ -149,7 +172,8 @@ jobs:
           grep -q 'moonEclipse' /tmp/smoke-celestial
           grep -q 'testerWetReflection' /tmp/smoke-celestial
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/smoke-sw
-          grep -q 'atmosphere5' /tmp/smoke-sw
+          grep -q 'atmosphere5-screen1' /tmp/smoke-sw
+          grep -q "'/screen-capture.js'" /tmp/smoke-sw
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" -o /tmp/smoke-manifest
           grep -q "\"minimumShell\": ${SHELL_VERSION}" /tmp/smoke-manifest
