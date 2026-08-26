@@ -27,7 +27,36 @@ function saveDeviceLocation(next){
 function clearSavedLocation(){try{localStorage.removeItem(STORAGE_KEY)}catch(_){ }}
 function clearWeatherCache(){try{localStorage.removeItem(WEATHER_CACHE_KEY)}catch(_){ }}
 function movedEnough(a,b){return!a||!b||Math.abs(Number(a.latitude)-Number(b.latitude))>.01||Math.abs(Number(a.longitude)-Number(b.longitude))>.01||a.source!==b.source}
-function dispatch(){setDataset();updateHeaderDate();document.dispatchEvent(new CustomEvent('sindhorn:location-updated',{detail:cloneState()}))}
+function coordinate(value,positive,negative){const n=Number(value);return`${Math.abs(n).toFixed(4)}° ${n>=0?positive:negative}`}
+function ensureWeatherLocation(){
+  const host=document.getElementById('weatherNow');if(!host)return null;
+  let row=document.getElementById('weatherLocation');
+  if(!row){
+    row=document.createElement('p');row.className='weather-location';row.id='weatherLocation';
+    row.innerHTML='<span id="weatherLocationEn"></span><span lang="th" id="weatherLocationTh"></span>';
+    const meta=host.querySelector('.weather-meta');if(meta)host.insertBefore(row,meta);else host.appendChild(row);
+  }
+  return row;
+}
+function updateWeatherLocation(){
+  const row=ensureWeatherLocation();if(!row)return;
+  const en=document.getElementById('weatherLocationEn'),th=document.getElementById('weatherLocationTh');
+  if(state.source==='device'){
+    const lat=coordinate(state.latitude,'N','S'),lon=coordinate(state.longitude,'E','W');
+    if(en)en.textContent=`Current location · ${lat} · ${lon}`;
+    if(th)th.textContent=`ตำแหน่งปัจจุบัน · ${lat} · ${lon}`;
+    return;
+  }
+  if(state.source==='cached'){
+    const lat=coordinate(state.latitude,'N','S'),lon=coordinate(state.longitude,'E','W');
+    if(en)en.textContent=`Last known location · ${lat} · ${lon}`;
+    if(th)th.textContent=`ตำแหน่งล่าสุด · ${lat} · ${lon}`;
+    return;
+  }
+  if(en)en.textContent='Weather location · Sindhorn Midtown, Bangkok';
+  if(th)th.textContent='ตำแหน่งสภาพอากาศ · สินธร มิดทาวน์ กรุงเทพฯ';
+}
+function dispatch(){setDataset();updateHeaderDate();updateWeatherLocation();document.dispatchEvent(new CustomEvent('sindhorn:location-updated',{detail:cloneState()}))}
 function finish(next){const previous=state;if(movedEnough(previous,next))clearWeatherCache();state=next;dispatch();resolveReady?.(cloneState())}
 function deviceTimezone(){try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'}catch(_){return'UTC'}}
 function setTimezone(timezone){
@@ -89,14 +118,15 @@ window.SindhornLocation={
     resolveReady=resolve;requestLocation();
   }),
   setTimezone,
-  updateHeaderDate
+  updateHeaderDate,
+  updateWeatherLocation
 };
 
-document.addEventListener('sindhorn:route-mounted',updateHeaderDate);
-document.addEventListener('sindhorn:pack-updated',updateHeaderDate);
+document.addEventListener('sindhorn:route-mounted',()=>{updateHeaderDate();updateWeatherLocation()});
+document.addEventListener('sindhorn:pack-updated',()=>{updateHeaderDate();updateWeatherLocation()});
 document.addEventListener('sindhorn:air-updated',updateHeaderDate);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)updateHeaderDate()});
-window.addEventListener('pageshow',updateHeaderDate);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){updateHeaderDate();updateWeatherLocation()}});
+window.addEventListener('pageshow',()=>{updateHeaderDate();updateWeatherLocation()});
 setInterval(updateHeaderDate,60*1000);
 setDataset();
 requestLocation();
