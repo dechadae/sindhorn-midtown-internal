@@ -38,8 +38,9 @@ jobs:
           node --check site/sw.js
           node --check worker/src/index.js
           grep -q '/push-client.js?v=1' site/index.html
-          grep -q "Notification.requestPermission" site/push-client.js
           grep -q "pushManager.subscribe" site/push-client.js
+          grep -q "enableFromGesture" site/push-client.js
+          ! grep -q "Notification.requestPermission" site/push-client.js
           grep -q "'/vapid-public-key'" site/push-client.js
           grep -q "'/subscribe'" site/push-client.js
           grep -q "pwa-v18-web-push" site/sw.js
@@ -77,8 +78,9 @@ jobs:
           curl --fail --silent --show-error "${BASE_URL}/" -o /tmp/root
           grep -q '/push-client.js?v=1' /tmp/root
           curl --fail --silent --show-error "${BASE_URL}/push-client.js" -o /tmp/push-client
-          grep -q "Notification.requestPermission" /tmp/push-client
           grep -q "pushManager.subscribe" /tmp/push-client
+          grep -q "enableFromGesture" /tmp/push-client
+          ! grep -q "Notification.requestPermission" /tmp/push-client
           curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/sw
           grep -q "pwa-v18-web-push" /tmp/sw
           grep -q "addEventListener('push'" /tmp/sw
