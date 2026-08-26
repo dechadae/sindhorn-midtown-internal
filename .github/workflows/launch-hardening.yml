@@ -1,0 +1,148 @@
+name: Launch Hardening
+
+on:
+  push:
+    branches:
+      - phase7-launch-hardening
+      - main
+    paths:
+      - "site/**"
+      - ".github/workflows/launch-hardening.yml"
+      - "docs/PHASE6-WEB-PUSH-IMPLEMENTATION-20260826.md"
+      - "docs/PHASE7-LAUNCH-HARDENING-20260827.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sindhorn-midtown-launch-hardening-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Verify frozen PWA identity and resilient shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/bootstrap.js
+          node --check site/app.js
+          node --check site/push-client.js
+          node --check site/sw.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, re
+          root=Path('site')
+          pwa=json.loads((root/'manifest.webmanifest').read_text())
+          assert pwa['id']=='/'
+          assert pwa['start_url']=='/'
+          assert pwa['scope']=='/'
+          assert pwa['display']=='standalone'
+          assert 'display_override' not in pwa
+
+          bootstrap=(root/'bootstrap.js').read_text()
+          fallback=json.loads((root/'fallback/manifest.json').read_text())
+          shell=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
+          assert fallback['minimumShell']==shell
+          assert "next.manifest.appPack<activePack.manifest.appPack" in bootstrap
+          assert "readCachedPack())||(await fallbackPack())" in bootstrap
+          assert "cachePack(next)" in bootstrap
+
+          app=(root/'app.js').read_text()
+          assert "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app
+          assert 'performPullRefresh' in app and 'touchStart' in app and 'touchMove' in app
+          assert 'toggleFullscreen' in app and 'fullscreenchange' in app
+
+          pwa_css=(root/'pwa.css').read_text()
+          assert 'safe-area-inset-top' in pwa_css
+          assert '100dvh' in pwa_css
+
+          sw=(root/'sw.js').read_text()
+          assert "UI_PACK_CACHE='sindhorn-midtown-ui-pack-v1'" in sw
+          assert "'/fallback/manifest.json'" in sw
+          assert "'/push-client.js'" in sw and "'/push-config.js'" in sw
+          assert "addEventListener('push'" in sw
+          assert "addEventListener('notificationclick'" in sw
+          assert "event.data==='SKIP_WAITING'" in sw
+
+          push=(root/'push-client.js').read_text()
+          assert 'pushManager.subscribe' in push
+          assert 'enableFromGesture' in push
+          assert 'Notification.requestPermission' not in push
+          PY
+
+      - name: Verify production shell and alert Worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://sindhorn-midtown-internal.pages.dev"
+          WORKER_URL="https://sindhorn-midtown-alerts.decha-dae.workers.dev"
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/" -o /tmp/root.html
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/location.js" -o /tmp/location.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/push-config.js" -o /tmp/push-config.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/push-client.js" -o /tmp/push-client.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/sw.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/manifest.webmanifest" -o /tmp/manifest.webmanifest
+          curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${WORKER_URL}/health" -o /tmp/health.json
+          grep -q '/push-client.js?v=1' /tmp/root.html
+          grep -q 'Current location' /tmp/location.js
+          grep -q 'pushManager.subscribe' /tmp/push-client.js
+          ! grep -q 'Notification.requestPermission' /tmp/push-client.js
+          grep -q 'pwa-v19-web-push-location-fixtures-current-location' /tmp/sw.js
+          grep -q "addEventListener('push'" /tmp/sw.js
+          grep -q "addEventListener('notificationclick'" /tmp/sw.js
+          python3 - <<'PY'
+          import json
+          pwa=json.load(open('/tmp/manifest.webmanifest'))
+          assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
+          health=json.load(open('/tmp/health.json'))
+          assert health.get('ok') is True
+          assert health.get('service')=='sindhorn-midtown-alerts'
+          assert health.get('vapidConfigured') is True
+          last=health.get('lastEvaluation') or {}
+          assert last.get('airOk') is True
+          assert last.get('weatherOk') is True
+          PY
+
+      - name: Verify active Supabase UI pack integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib, json, re, urllib.parse, urllib.request
+          bootstrap=Path('site/bootstrap.js').read_text()
+          base=re.search(r"const SUPABASE_URL='([^']+)'",bootstrap).group(1)
+          key=re.search(r"const SUPABASE_KEY='([^']+)'",bootstrap).group(1)
+          table=re.search(r"const TABLE='([^']+)'",bootstrap).group(1)
+          query=urllib.parse.urlencode({'select':'pack_id,path,content,content_type,content_sha256,enabled','enabled':'eq.true','order':'pack_id.desc,path.asc'})
+          req=urllib.request.Request(f'{base}/rest/v1/{table}?{query}',headers={'apikey':key,'Accept':'application/json'})
+          with urllib.request.urlopen(req,timeout=20) as response:
+              rows=json.load(response)
+          assert len(rows)==8
+          packs={int(row['pack_id']) for row in rows}
+          assert packs=={37}
+          rowmap={row['path']:row for row in rows}
+          manifest_row=rowmap['manifest.json']
+          assert hashlib.sha256(manifest_row['content'].encode()).hexdigest()==manifest_row['content_sha256']
+          manifest=json.loads(manifest_row['content'])
+          assert manifest['appPack']==37
+          assert manifest['minimumShell']==16
+          assert len(manifest['resources'])==7
+          for item in manifest['resources']:
+              row=rowmap[item['path']]
+              assert row['content_type']==item['contentType']
+              assert row['content_sha256']==item['sha256']
+              assert hashlib.sha256(row['content'].encode()).hexdigest()==item['sha256']
+          assert 'alertsBtn' in rowmap['details.html']['content']
+          assert 'weatherLocationEn' in rowmap['today.html']['content']
+          ui=rowmap['ui.css']['content']
+          for token in ('safe-area-inset-top','safe-area-inset-bottom','safe-area-inset-left','safe-area-inset-right','.pull-refresh','is-fullscreen'):
+              assert token in ui
+          PY
