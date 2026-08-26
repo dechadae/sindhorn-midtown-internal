@@ -24,6 +24,7 @@ on:
       - fix-lunar-phase-v2
       - fix-lunar-phase-shader
       - live-location-fixtures
+      - phase6-web-push
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -62,6 +63,8 @@ jobs:
           node --check site/presentation-recovery.js
           node --check site/app.js
           node --check site/sw.js
+          if [ -f site/push-config.js ]; then node --check site/push-config.js; fi
+          if [ -f site/push-client.js ]; then node --check site/push-client.js; fi
           python - <<'PY'
           from pathlib import Path
           import hashlib, json, re
@@ -84,6 +87,7 @@ jobs:
           assert '/sun-dimmer.js?v=1' in index
           assert '/screen-capture.js?v=3' in index
           assert '/manifest.webmanifest?v=2' in index
+          if (root/'push-client.js').exists(): assert '/push-client.js?v=1' in index
           shell=(root/'shell.css').read_text()
           assert '.skip:not(:focus):not(:focus-visible)' in shell
           assert 'left:-10000px!important' in shell
@@ -161,6 +165,9 @@ jobs:
           assert 'isAppRoute' in sw and 'location-fixtures' in sw
           assert "'/location.js'" in sw and "'/storm-effects.js'" in sw and "'/seasonal-sky.js'" in sw
           assert "'/sun-dimmer.js'" in sw and "'/screen-capture.js'" in sw
+          if (root/'push-client.js').exists():
+              assert 'pwa-v18-web-push' in sw
+              assert "'/push-config.js'" in sw and "'/push-client.js'" in sw
           PY
 
       - name: Deploy to Cloudflare Pages
@@ -184,6 +191,12 @@ jobs:
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
+          if [ -f site/push-config.js ]; then
+            for path in /push-config.js /push-client.js; do
+              curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
+              test -s /tmp/smoke-response
+            done
+          fi
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/" -o /tmp/smoke-root
           grep -q '/location.js' /tmp/smoke-root
           grep -q '/bootstrap.js' /tmp/smoke-root
@@ -194,6 +207,7 @@ jobs:
           grep -q '/sun-dimmer.js?v=1' /tmp/smoke-root
           grep -q '/screen-capture.js?v=3' /tmp/smoke-root
           grep -q '/manifest.webmanifest?v=2' /tmp/smoke-root
+          if [ -f site/push-client.js ]; then grep -q '/push-client.js?v=1' /tmp/smoke-root; fi
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/shell.css?v=2" -o /tmp/smoke-shell
           grep -q '.skip:not(:focus):not(:focus-visible)' /tmp/smoke-shell
           grep -q 'left:-10000px!important' /tmp/smoke-shell
@@ -288,6 +302,38 @@ jobs:
           grep -q "'/seasonal-sky.js'" /tmp/smoke-sw
           grep -q "'/sun-dimmer.js'" /tmp/smoke-sw
           grep -q "'/screen-capture.js'" /tmp/smoke-sw
+          if [ -f site/push-client.js ]; then
+            grep -q 'pwa-v18-web-push' /tmp/smoke-sw
+            grep -q "'/push-config.js'" /tmp/smoke-sw
+            grep -q "'/push-client.js'" /tmp/smoke-sw
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/push-config.js" -o /tmp/smoke-push-config
+            grep -Fq 'https://sindhorn-midtown-alerts.decha-dae.workers.dev' /tmp/smoke-push-config
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/push-client.js" -o /tmp/smoke-push-client
+            grep -q 'pushManager.subscribe' /tmp/smoke-push-client
+            grep -q 'enableFromGesture' /tmp/smoke-push-client
+          fi
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" -o /tmp/smoke-manifest
           grep -q "\"minimumShell\": ${SHELL_VERSION}" /tmp/smoke-manifest
+
+      - name: Verify Phase 6 Web Push backend
+        if: github.ref_name == 'phase6-web-push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          WORKER_URL="https://sindhorn-midtown-alerts.decha-dae.workers.dev"
+          curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${WORKER_URL}/health" -o /tmp/push-health.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/push-health.json'))
+          assert d.get('ok') is True
+          assert d.get('service')=='sindhorn-midtown-alerts'
+          assert d.get('vapidConfigured') is True
+          assert isinstance(d.get('subscriptions'),int)
+          PY
+          curl --fail --silent --show-error -H "Origin: https://phase6-web-push.sindhorn-midtown-internal.pages.dev" "${WORKER_URL}/vapid-public-key" -o /tmp/vapid-public.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/vapid-public.json'))
+          assert isinstance(d.get('publicKey'),str) and len(d['publicKey'])>50
+          PY
