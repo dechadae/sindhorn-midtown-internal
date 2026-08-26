@@ -12,6 +12,7 @@ on:
       - promote-atmosphere-tester
       - fix-duplicate-sun-final
       - fix-celestial-v2-import
+      - fix-soft-luminous-sun
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -64,7 +65,8 @@ jobs:
           assert 'ATMOSPHERE TESTER CORE · LIVE' in environment
           assert 'snowfall' in environment and 'environmentSnowCanvas' in environment and 'environmentHailCanvas' in environment
           assert "renderer:'atmosphere-tester-core'" in environment
-          assert 'sunCore' not in environment
+          assert 'sunCoreGlow' in environment
+          assert 'sunRim' not in environment and 'sunCorona' not in environment
           assert 'moonCore' in environment
           rain=(root/'rain-layer.js').read_text()
           assert 'rainPaneSvg' in rain
@@ -81,7 +83,7 @@ jobs:
           assert 'moonEclipse' in celestial
           assert 'testerWetReflection' in celestial
           sw=(root/'sw.js').read_text()
-          assert 'isAppRoute' in sw and 'atmosphere2' in sw
+          assert 'isAppRoute' in sw and 'atmosphere3' in sw
           PY
 
       - name: Deploy to Cloudflare Pages
@@ -113,7 +115,9 @@ jobs:
           grep -q 'environmentSnowCanvas' /tmp/smoke-environment
           grep -q 'environmentHailCanvas' /tmp/smoke-environment
           grep -q 'atmosphere-tester-core' /tmp/smoke-environment
-          ! grep -q 'sunCore' /tmp/smoke-environment
+          grep -q 'sunCoreGlow' /tmp/smoke-environment
+          ! grep -q 'sunRim' /tmp/smoke-environment
+          ! grep -q 'sunCorona' /tmp/smoke-environment
           grep -q 'moonCore' /tmp/smoke-environment
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/rain-layer.js" -o /tmp/smoke-rain
           grep -q 'rainPaneSvg' /tmp/smoke-rain
@@ -130,7 +134,7 @@ jobs:
           grep -q 'moonEclipse' /tmp/smoke-celestial
           grep -q 'testerWetReflection' /tmp/smoke-celestial
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/smoke-sw
-          grep -q 'atmosphere2' /tmp/smoke-sw
+          grep -q 'atmosphere3' /tmp/smoke-sw
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" -o /tmp/smoke-manifest
           grep -q "\"minimumShell\": ${SHELL_VERSION}" /tmp/smoke-manifest
