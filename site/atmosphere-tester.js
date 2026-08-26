@@ -208,10 +208,11 @@ function initControls(){
 
 loadHash();
 await applyFixtureFromQuery();
-initRenderer();
+let rendererReady=false;
+try{initRenderer();rendererReady=true}catch(error){canvas.hidden=true;document.body.dataset.environmentRenderer='unavailable';console.warn('Atmosphere WebGL unavailable',error)}
 initPrecipOverlays();
 initControls();
 syncControls();
 window.addEventListener('resize',resize,{passive:true});
 new ResizeObserver(resize).observe(stage);
-raf=requestAnimationFrame(frame);
+if(rendererReady)raf=requestAnimationFrame(frame);
