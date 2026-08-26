@@ -3,10 +3,10 @@
 
 const FALLBACK={latitude:13.74135,longitude:100.54274,timezone:'Asia/Bangkok',source:'hotel',permission:'fallback',updatedAt:null};
 const STORAGE_KEY='sindhorn-midtown:user-location:v1';
+const WEATHER_CACHE_KEY='sindhorn-midtown:weather:v2';
 const MAX_CACHE_AGE=24*60*60*1000;
 const nativeFetch=window.fetch.bind(window);
 let state=loadCached()||{...FALLBACK};
-let settled=false;
 let resolveReady;
 const ready=new Promise(resolve=>{resolveReady=resolve});
 
@@ -25,8 +25,10 @@ function saveDeviceLocation(next){
   try{localStorage.setItem(STORAGE_KEY,JSON.stringify({latitude:next.latitude,longitude:next.longitude,timezone:next.timezone,savedAt:Date.now()}))}catch(_){ }
 }
 function clearSavedLocation(){try{localStorage.removeItem(STORAGE_KEY)}catch(_){ }}
+function clearWeatherCache(){try{localStorage.removeItem(WEATHER_CACHE_KEY)}catch(_){ }}
+function movedEnough(a,b){return!a||!b||Math.abs(Number(a.latitude)-Number(b.latitude))>.01||Math.abs(Number(a.longitude)-Number(b.longitude))>.01||a.source!==b.source}
 function dispatch(){setDataset();updateHeaderDate();document.dispatchEvent(new CustomEvent('sindhorn:location-updated',{detail:cloneState()}))}
-function finish(next){state=next;settled=true;dispatch();resolveReady?.(cloneState())}
+function finish(next){const previous=state;if(movedEnough(previous,next))clearWeatherCache();state=next;dispatch();resolveReady?.(cloneState())}
 function deviceTimezone(){try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'}catch(_){return'UTC'}}
 function setTimezone(timezone){
   if(!timezone||timezone===state.timezone)return;
@@ -84,8 +86,9 @@ window.SindhornLocation={
   ready,
   getState:cloneState,
   refresh:()=>new Promise(resolve=>{
-    settled=false;resolveReady=resolve;requestLocation();
+    resolveReady=resolve;requestLocation();
   }),
+  setTimezone,
   updateHeaderDate
 };
 
