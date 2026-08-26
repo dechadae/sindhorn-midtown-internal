@@ -1,0 +1,66 @@
+name: Recover Current Location Deploy
+
+on:
+  workflow_run:
+    workflows:
+      - Deploy Sindhorn Midtown Internal
+    types:
+      - completed
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: recover-current-location-production
+  cancel-in-progress: false
+
+jobs:
+  deploy-current-main:
+    if: github.event.workflow_run.id == 32975793543 && github.event.workflow_run.run_attempt > 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check out current main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Validate current-location release
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/location.js
+          node --check site/sw.js
+          grep -q "Current location" site/location.js
+          grep -q "Last known location" site/location.js
+          grep -q "weatherLocationEn" site/location.js
+          grep -q "weatherLocationTh" site/location.js
+          grep -q "navigator.geolocation.getCurrentPosition" site/location.js
+          grep -q "url.searchParams.set('latitude'" site/location.js
+          grep -q "url.searchParams.set('longitude'" site/location.js
+          grep -q "pwa-v18-location-fixtures-current-location" site/sw.js
+
+      - name: Deploy current main to production
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=main
+
+      - name: Smoke test production current location
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /location.js /sw.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
+            test -s /tmp/smoke
+          done
+          curl --fail --silent --show-error "${BASE_URL}/location.js" -o /tmp/location
+          grep -q "Current location" /tmp/location
+          grep -q "Last known location" /tmp/location
+          grep -q "weatherLocationEn" /tmp/location
+          grep -q "weatherLocationTh" /tmp/location
+          curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/sw
+          grep -q "pwa-v18-location-fixtures-current-location" /tmp/sw
