@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "sindhorn-midtown-alerts",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-26",
+  "workers_dev": true,
+  "triggers": {
+    "crons": ["*/10 * * * *"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB"
+    }
+  ],
+  "vars": {
+    "VAPID_SUBJECT": "https://sindhorn-midtown-internal.pages.dev",
+    "ALLOWED_ORIGIN": "https://sindhorn-midtown-internal.pages.dev"
+  }
+}
