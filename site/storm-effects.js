@@ -21,6 +21,12 @@ function stormState(){
 }
 function rand(seed){const x=Math.sin(seed*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function strikeDelay(intensity){const span=MAX_STRIKE_MS-MIN_STRIKE_MS;return MIN_STRIKE_MS+Math.random()*span*(1-intensity*.34)}
+function skyY(altitude){return clamp(.12+clamp((Number(altitude)+2)/82,0,1)*.72,.08,.88)}
+function daytimeMoonPoint(env,w,h){
+  const solar=env?.solar,lunar=env?.lunar;if(!solar||!lunar||Number(solar.altitude)<=0||Number(lunar.altitude)<=-2)return null;
+  const az=Number(lunar.azimuth)*Math.PI/180,x=clamp(.5-Math.sin(az)*.42,.06,.94)*w,y=(1-skyY(lunar.altitude))*h,r=Math.max(7,h*.026);
+  return{x,y,r};
+}
 function ensureCanvas(){
   if(canvas?.isConnected)return true;
   stage=document.getElementById('environmentStage');if(!stage)return false;
@@ -33,6 +39,23 @@ function ensureCanvas(){
 function resize(){
   if(!canvas||!stage||!ctx)return;const rect=stage.getBoundingClientRect();width=Math.max(1,Math.round(rect.width||innerWidth||1));height=Math.max(1,Math.round(rect.height||innerHeight||1));
   const dpr=Math.min(2,Math.max(1,devicePixelRatio||1));canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function sampleRegionColor(source,logicalW,logicalH,x,y,r){
+  if(!sampleCtx||!source)return null;
+  try{
+    const sx=source.width/Math.max(1,logicalW),sy=source.height/Math.max(1,logicalH),box=Math.max(4,r*5),left=clamp(x-box*.5,0,Math.max(0,logicalW-box)),top=clamp(y-box*.5,0,Math.max(0,logicalH-box));
+    sampleCtx.clearRect(0,0,2,2);sampleCtx.drawImage(source,left*sx,top*sy,Math.min(box,logicalW)*sx,Math.min(box,logicalH)*sy,0,0,2,2);
+    const p=sampleCtx.getImageData(0,0,2,2).data;let red=0,green=0,blue=0,count=0;
+    for(let i=0;i<p.length;i+=4){red+=p[i];green+=p[i+1];blue+=p[i+2];count++}
+    return{r:Math.round(red/count),g:Math.round(green/count),b:Math.round(blue/count)};
+  }catch(_){return null}
+}
+function drawDayMoonRepair(target,w,h,env,source,sourceW=w,sourceH=h){
+  const moon=daytimeMoonPoint(env,w,h);if(!moon)return false;
+  const color=sampleRegionColor(source,sourceW,sourceH,moon.x,moon.y,moon.r)||{r:119,g:160,b:194};
+  const g=target.createRadialGradient(moon.x,moon.y,0,moon.x,moon.y,moon.r*1.7);
+  g.addColorStop(0,`rgba(${color.r},${color.g},${color.b},.98)`);g.addColorStop(.62,`rgba(${color.r},${color.g},${color.b},.94)`);g.addColorStop(1,`rgba(${color.r},${color.g},${color.b},0)`);
+  target.save();target.fillStyle=g;target.beginPath();target.arc(moon.x,moon.y,moon.r*1.75,0,Math.PI*2);target.fill();target.restore();return true;
 }
 function sampleUnderlying(now,storm){
   if(!sampleCtx||storm<.08||now-lastSampleAt<SAMPLE_INTERVAL_MS)return;lastSampleAt=now;
@@ -96,22 +119,30 @@ function scheduleLightning(now,state){
 }
 function frame(now){
   raf=requestAnimationFrame(frame);if(!ensureCanvas())return;const dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;
-  const state=stormState();sampleUnderlying(now,state.storm);flashShield=Math.max(0,flashShield-dt*.90);scheduleLightning(now,state);
-  ctx.clearRect(0,0,width,height);drawWetAtmosphere(ctx,width,height,state,now,flashShield);drawStrike(ctx,width,height,now);
-  canvas.style.opacity=(state.rain>.02||state.storm>.02||state.lightning>.02)?'1':'0';
+  const state=stormState(),env=environmentState(),source=document.getElementById('environmentCanvas');sampleUnderlying(now,state.storm);flashShield=Math.max(0,flashShield-dt*.90);scheduleLightning(now,state);
+  ctx.clearRect(0,0,width,height);const moonRepaired=drawDayMoonRepair(ctx,width,height,env,source,width,height);drawWetAtmosphere(ctx,width,height,state,now,flashShield);drawStrike(ctx,width,height,now);
+  canvas.style.opacity=(moonRepaired||state.rain>.02||state.storm>.02||state.lightning>.02)?'1':'0';
 }
 function averageLuminance(target,w,h){
   try{const s=document.createElement('canvas'),sc=s.getContext('2d',{willReadFrequently:true});s.width=1;s.height=1;sc.drawImage(target,0,0,w,h,0,0,1,1);const p=sc.getImageData(0,0,1,1).data;return(p[0]*.2126+p[1]*.7152+p[2]*.0722)/255}catch(_){return.5}
 }
 function imageFromData(data){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=data})}
+function extendViewportAtmosphere(base,w,liveH,fullH){
+  const out=document.createElement('canvas');out.width=Math.max(1,Math.round(w));out.height=Math.max(1,Math.round(fullH));const c=out.getContext('2d',{alpha:false});
+  c.drawImage(base,0,0,w,liveH,0,0,w,liveH);
+  if(fullH>liveH){const start=Math.max(0,Math.floor(liveH*.76)),slice=Math.max(1,liveH-start);c.drawImage(base,0,start,w,slice,0,start,w,fullH-start)}
+  return out;
+}
 function wrapExport(){
   if(exportWrapped||!window.SindhornEnvironment?.renderExport)return false;exportWrapped=true;
   const original=window.SindhornEnvironment.renderExport.bind(window.SindhornEnvironment);
   window.SindhornEnvironment.renderExport=async(w,h)=>{
-    const data=await original(w,h),state=stormState();if(state.rain<.03&&state.storm<.03)return data;
-    const img=await imageFromData(data),out=document.createElement('canvas');out.width=Math.max(1,Math.round(w));out.height=Math.max(1,Math.round(h));const c=out.getContext('2d',{alpha:false});c.drawImage(img,0,0,out.width,out.height);
-    const lum=averageLuminance(out,out.width,out.height),extra=state.storm>.08?clamp((lum-.56)*.42,0,.12):0;
-    drawWetAtmosphere(c,out.width,out.height,state,performance.now(),extra);return out.toDataURL('image/png',1);
+    const scale=w/Math.max(1,window.innerWidth),liveH=Math.max(1,Math.min(Math.round(h),Math.round(window.innerHeight*scale))),env=environmentState(),state=stormState();
+    const data=await original(w,liveH),img=await imageFromData(data),base=document.createElement('canvas');base.width=Math.max(1,Math.round(w));base.height=liveH;const bc=base.getContext('2d',{alpha:false});bc.drawImage(img,0,0,base.width,base.height);
+    drawDayMoonRepair(bc,base.width,base.height,env,base,base.width,base.height);
+    const out=extendViewportAtmosphere(base,base.width,base.height,h),c=out.getContext('2d',{alpha:false});
+    if(state.rain>=.03||state.storm>=.03){const lum=averageLuminance(out,out.width,out.height),extra=state.storm>.08?clamp((lum-.56)*.42,0,.12):0;drawWetAtmosphere(c,out.width,out.height,state,performance.now(),extra)}
+    return out.toDataURL('image/png',1);
   };return true;
 }
 function waitForEnvironment(){if(wrapExport())return;const timer=setInterval(()=>{if(wrapExport())clearInterval(timer)},100);setTimeout(()=>clearInterval(timer),12000)}
