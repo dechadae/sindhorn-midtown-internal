@@ -201,4 +201,4 @@ function init(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 
-if(location.pathname.includes('atmosphere-tester'))import('./tester-celestials.js?v=1').catch(()=>{});
+if(location.pathname.includes('atmosphere-tester'))import('./tester-celestials.js?v=2').catch(()=>{});
