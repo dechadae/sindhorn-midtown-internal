@@ -7,9 +7,12 @@ on:
       - main
     paths:
       - "site/**"
+      - "sky-worker/**"
       - ".github/workflows/launch-hardening.yml"
       - "docs/PHASE6-WEB-PUSH-IMPLEMENTATION-20260826.md"
       - "docs/PHASE7-LAUNCH-HARDENING-20260827.md"
+      - "docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md"
+      - "docs/PHASE8-DIRECTIONAL-LIVE-BANGKOK-SKY-CALIBRATION-20260827.md"
   workflow_dispatch:
 
 permissions:
@@ -22,7 +25,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -34,6 +37,7 @@ jobs:
           node --check site/bootstrap.js
           node --check site/app.js
           node --check site/push-client.js
+          node --check site/sky-calibration.js
           node --check site/sw.js
           python3 - <<'PY'
           from pathlib import Path
@@ -58,15 +62,21 @@ jobs:
           assert "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app
           assert 'performPullRefresh' in app and 'touchStart' in app and 'touchMove' in app
           assert 'toggleFullscreen' in app and 'fullscreenchange' in app
+          assert 'SindhornSkyCalibration?.refresh' in app
 
           pwa_css=(root/'pwa.css').read_text()
           assert 'safe-area-inset-top' in pwa_css
           assert '100dvh' in pwa_css
 
+          index=(root/'index.html').read_text()
+          assert '/sky-calibration.js?v=1' in index
+
           sw=(root/'sw.js').read_text()
           assert "UI_PACK_CACHE='sindhorn-midtown-ui-pack-v1'" in sw
           assert "'/fallback/manifest.json'" in sw
           assert "'/push-client.js'" in sw and "'/push-config.js'" in sw
+          assert "'/sky-calibration.js'" in sw
+          assert 'pwa-v20-live-sky-calibration' in sw
           assert "addEventListener('push'" in sw
           assert "addEventListener('notificationclick'" in sw
           assert "event.data==='SKIP_WAITING'" in sw
@@ -75,39 +85,71 @@ jobs:
           assert 'pushManager.subscribe' in push
           assert 'enableFromGesture' in push
           assert 'Notification.requestPermission' not in push
+
+          sky=(root/'sky-calibration.js').read_text()
+          assert 'sindhorn-midtown-sky.decha-dae.workers.dev' in sky
+          assert 'sindhorn-midtown-sky-preview.decha-dae.workers.dev' in sky
+          assert 'SindhornSkyCalibration' in sky
+          assert 'confidence' in sky and 'fallback' in sky
           PY
 
-      - name: Verify production shell and alert Worker
+      - name: Verify production shell and environmental Workers
         shell: bash
         run: |
           set -euo pipefail
           BASE_URL="https://sindhorn-midtown-internal.pages.dev"
-          WORKER_URL="https://sindhorn-midtown-alerts.decha-dae.workers.dev"
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/" -o /tmp/root.html
+          ALERT_WORKER="https://sindhorn-midtown-alerts.decha-dae.workers.dev"
+          SKY_WORKER="https://sindhorn-midtown-sky.decha-dae.workers.dev"
+
+          promoted=false
+          for attempt in $(seq 1 24); do
+            if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
+              && curl --fail --silent --show-error --location "${BASE_URL}/sky-calibration.js" -o /tmp/sky-calibration.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
+              && grep -q '/sky-calibration.js?v=1' /tmp/root.html \
+              && grep -q 'SindhornSkyCalibration' /tmp/sky-calibration.js \
+              && grep -q 'pwa-v20-live-sky-calibration' /tmp/sw.js; then
+              promoted=true
+              break
+            fi
+            sleep 3
+          done
+          test "$promoted" = true
+
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/location.js" -o /tmp/location.js
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/push-config.js" -o /tmp/push-config.js
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/push-client.js" -o /tmp/push-client.js
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/sw.js
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/manifest.webmanifest" -o /tmp/manifest.webmanifest
-          curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${WORKER_URL}/health" -o /tmp/health.json
+          curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${ALERT_WORKER}/health" -o /tmp/alert-health.json
+          curl --fail --silent --show-error --retry 24 --retry-all-errors --retry-delay 3 "${SKY_WORKER}/health" -o /tmp/sky-health.json
+          curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${SKY_WORKER}/calibration" -o /tmp/sky-vector.json
+
           grep -q '/push-client.js?v=1' /tmp/root.html
           grep -q 'Current location' /tmp/location.js
           grep -q 'pushManager.subscribe' /tmp/push-client.js
           ! grep -q 'Notification.requestPermission' /tmp/push-client.js
-          grep -q 'pwa-v19-web-push-location-fixtures-current-location' /tmp/sw.js
           grep -q "addEventListener('push'" /tmp/sw.js
           grep -q "addEventListener('notificationclick'" /tmp/sw.js
           python3 - <<'PY'
           import json
           pwa=json.load(open('/tmp/manifest.webmanifest'))
           assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
-          health=json.load(open('/tmp/health.json'))
-          assert health.get('ok') is True
-          assert health.get('service')=='sindhorn-midtown-alerts'
-          assert health.get('vapidConfigured') is True
-          last=health.get('lastEvaluation') or {}
+
+          alert=json.load(open('/tmp/alert-health.json'))
+          assert alert.get('ok') is True
+          assert alert.get('service')=='sindhorn-midtown-alerts'
+          assert alert.get('vapidConfigured') is True
+          last=alert.get('lastEvaluation') or {}
           assert last.get('airOk') is True
           assert last.get('weatherOk') is True
+
+          sky=json.load(open('/tmp/sky-health.json'))
+          assert sky.get('ok') is True
+          assert sky.get('service')=='sindhorn-midtown-sky'
+          assert sky.get('aiConfigured') is True
+          vector=json.load(open('/tmp/sky-vector.json'))
+          assert vector.get('schema')==1
+          assert 0 <= float(vector.get('confidence',0)) <= 1
           PY
 
       - name: Verify active Supabase UI pack integrity
