@@ -207,7 +207,7 @@ jobs:
           grep -q 'original(w,liveH)' /tmp/smoke-storm
           grep -q 'makeMoonSprite' /tmp/smoke-storm
           grep -q 'buildMoonBackgroundPatch' /tmp/smoke-storm
-          grep -q 'theta=phase*Math.PI\*2' /tmp/smoke-storm
+          grep -Fq 'theta=phase*Math.PI*2' /tmp/smoke-storm
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/seasonal-sky.js" -o /tmp/smoke-seasonal
           grep -q 'seasonFor' /tmp/smoke-seasonal
           grep -q 'twilightStrength' /tmp/smoke-seasonal
