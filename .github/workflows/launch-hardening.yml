@@ -83,19 +83,24 @@ jobs:
           set -euo pipefail
           BASE_URL="https://sindhorn-midtown-internal.pages.dev"
           WORKER_URL="https://sindhorn-midtown-alerts.decha-dae.workers.dev"
-          for path in / /location.js /push-config.js /push-client.js /sw.js /manifest.webmanifest; do
-            curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o "/tmp/$(echo "$path" | tr '/.' '__')"
-          done
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/" -o /tmp/root.html
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/location.js" -o /tmp/location.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/push-config.js" -o /tmp/push-config.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/push-client.js" -o /tmp/push-client.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/sw.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/manifest.webmanifest" -o /tmp/manifest.webmanifest
           curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${WORKER_URL}/health" -o /tmp/health.json
-          grep -q '/push-client.js?v=1' /tmp/__
-          grep -q 'Current location' /tmp/_location_js
-          grep -q 'pushManager.subscribe' /tmp/_push-client_js
-          ! grep -q 'Notification.requestPermission' /tmp/_push-client_js
-          grep -q 'pwa-v19-web-push-location-fixtures-current-location' /tmp/_sw_js
-          grep -q "addEventListener('push'" /tmp/_sw_js
-          grep -q "addEventListener('notificationclick'" /tmp/_sw_js
+          grep -q '/push-client.js?v=1' /tmp/root.html
+          grep -q 'Current location' /tmp/location.js
+          grep -q 'pushManager.subscribe' /tmp/push-client.js
+          ! grep -q 'Notification.requestPermission' /tmp/push-client.js
+          grep -q 'pwa-v19-web-push-location-fixtures-current-location' /tmp/sw.js
+          grep -q "addEventListener('push'" /tmp/sw.js
+          grep -q "addEventListener('notificationclick'" /tmp/sw.js
           python3 - <<'PY'
           import json
+          pwa=json.load(open('/tmp/manifest.webmanifest'))
+          assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
           health=json.load(open('/tmp/health.json'))
           assert health.get('ok') is True
           assert health.get('service')=='sindhorn-midtown-alerts'
