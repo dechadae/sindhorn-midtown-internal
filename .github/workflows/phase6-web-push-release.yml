@@ -11,6 +11,7 @@ on:
       - "site/push-client.js"
       - "site/index.html"
       - "site/sw.js"
+      - "docs/PHASE6-PRODUCTION-DEPLOY-TRIGGER.txt"
       - ".github/workflows/phase6-web-push-release.yml"
   workflow_dispatch:
 
@@ -116,4 +117,25 @@ jobs:
           grep -q '/push-client.js?v=1' <(curl --fail --silent --show-error "${BASE_URL}/")
           grep -q 'pushManager.subscribe' <(curl --fail --silent --show-error "${BASE_URL}/push-client.js")
           grep -q 'Current location' <(curl --fail --silent --show-error "${BASE_URL}/location.js")
+          grep -q 'pwa-v19-web-push-location-fixtures-current-location' <(curl --fail --silent --show-error "${BASE_URL}/sw.js")
+
+      - name: Promote validated release branch to production Pages
+        if: github.ref_name != 'main' && hashFiles('docs/PHASE6-PRODUCTION-DEPLOY-TRIGGER.txt') != ''
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=main
+
+      - name: Smoke test promoted production Pages
+        if: github.ref_name != 'main' && hashFiles('docs/PHASE6-PRODUCTION-DEPLOY-TRIGGER.txt') != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /guidance /details /location.js /push-config.js /push-client.js /sw.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/prod-smoke
+            test -s /tmp/prod-smoke
+          done
+          grep -q '/push-client.js?v=1' <(curl --fail --silent --show-error "${BASE_URL}/")
+          grep -q 'pushManager.subscribe' <(curl --fail --silent --show-error "${BASE_URL}/push-client.js")
+          grep -q 'Current location' <(curl --fail --silent --show-error "${BASE_URL}/location.js")
+          grep -q 'weatherLocationEn' <(curl --fail --silent --show-error "${BASE_URL}/location.js")
           grep -q 'pwa-v19-web-push-location-fixtures-current-location' <(curl --fail --silent --show-error "${BASE_URL}/sw.js")
