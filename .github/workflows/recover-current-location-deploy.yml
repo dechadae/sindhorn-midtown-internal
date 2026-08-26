@@ -1,9 +1,9 @@
-name: Recover Current Location Deploy
+name: Recover Phase 6 Production Deploy
 
 on:
   workflow_run:
     workflows:
-      - Deploy Sindhorn Midtown Internal
+      - Phase 6 Web Push Release
     types:
       - completed
 
@@ -12,12 +12,12 @@ permissions:
   deployments: write
 
 concurrency:
-  group: recover-current-location-production
+  group: recover-phase6-production
   cancel-in-progress: false
 
 jobs:
   deploy-current-main:
-    if: github.event.workflow_run.id == 32975793543 && github.event.workflow_run.run_attempt > 1
+    if: github.event.workflow_run.id == 32991711896 && github.event.workflow_run.run_attempt > 1
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -29,12 +29,15 @@ jobs:
         with:
           ref: main
 
-      - name: Validate current-location release
+      - name: Validate current Phase 6 release
         shell: bash
         run: |
           set -euo pipefail
           node --check site/location.js
+          node --check site/push-config.js
+          node --check site/push-client.js
           node --check site/sw.js
+          grep -q '/push-client.js?v=1' site/index.html
           grep -q "Current location" site/location.js
           grep -q "Last known location" site/location.js
           grep -q "weatherLocationEn" site/location.js
@@ -42,25 +45,38 @@ jobs:
           grep -q "navigator.geolocation.getCurrentPosition" site/location.js
           grep -q "url.searchParams.set('latitude'" site/location.js
           grep -q "url.searchParams.set('longitude'" site/location.js
-          grep -q "pwa-v18-location-fixtures-current-location" site/sw.js
+          grep -q "pushManager.subscribe" site/push-client.js
+          ! grep -q "Notification.requestPermission" site/push-client.js
+          grep -q "pwa-v19-web-push-location-fixtures-current-location" site/sw.js
+          grep -q "'/push-config.js'" site/sw.js
+          grep -q "'/push-client.js'" site/sw.js
+          grep -q "addEventListener('push'" site/sw.js
+          grep -q "addEventListener('notificationclick'" site/sw.js
 
       - name: Deploy current main to production
         run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=main
 
-      - name: Smoke test production current location
+      - name: Smoke test production Phase 6 shell
         shell: bash
         run: |
           set -euo pipefail
           BASE_URL="https://sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /location.js /sw.js; do
+          for path in / /guidance /details /location.js /push-config.js /push-client.js /sw.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
             test -s /tmp/smoke
           done
+          curl --fail --silent --show-error "${BASE_URL}/" -o /tmp/root
+          grep -q '/push-client.js?v=1' /tmp/root
+          curl --fail --silent --show-error "${BASE_URL}/push-client.js" -o /tmp/push
+          grep -q "pushManager.subscribe" /tmp/push
+          ! grep -q "Notification.requestPermission" /tmp/push
           curl --fail --silent --show-error "${BASE_URL}/location.js" -o /tmp/location
           grep -q "Current location" /tmp/location
           grep -q "Last known location" /tmp/location
           grep -q "weatherLocationEn" /tmp/location
           grep -q "weatherLocationTh" /tmp/location
           curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/sw
-          grep -q "pwa-v18-location-fixtures-current-location" /tmp/sw
+          grep -q "pwa-v19-web-push-location-fixtures-current-location" /tmp/sw
+          grep -q "addEventListener('push'" /tmp/sw
+          grep -q "addEventListener('notificationclick'" /tmp/sw
