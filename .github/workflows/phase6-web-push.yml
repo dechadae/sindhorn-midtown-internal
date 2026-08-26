@@ -42,6 +42,9 @@ jobs:
           node --check site/push-config.js
           node --check site/sw.js
           grep -q '/push-client.js?v=1' site/index.html
+          grep -q "pushManager.subscribe" site/push-client.js
+          grep -q "enableFromGesture" site/push-client.js
+          ! grep -q "Notification.requestPermission" site/push-client.js
           grep -q "push-config.js" site/sw.js
           grep -q "push-client.js" site/sw.js
           grep -q "pwa-v18-web-push" site/sw.js
@@ -157,8 +160,9 @@ jobs:
           curl --fail --silent --show-error "${BASE_URL}/push-config.js" -o /tmp/smoke-push-config
           grep -Fq "${WORKER_URL}" /tmp/smoke-push-config
           curl --fail --silent --show-error "${BASE_URL}/push-client.js" -o /tmp/smoke-push-client
-          grep -q "Notification.requestPermission" /tmp/smoke-push-client
           grep -q "pushManager.subscribe" /tmp/smoke-push-client
+          grep -q "enableFromGesture" /tmp/smoke-push-client
+          ! grep -q "Notification.requestPermission" /tmp/smoke-push-client
           grep -q "'/subscribe'" /tmp/smoke-push-client
           curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/smoke-sw
           grep -q "pwa-v18-web-push" /tmp/smoke-sw
