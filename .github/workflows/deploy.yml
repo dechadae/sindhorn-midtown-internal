@@ -17,6 +17,7 @@ on:
       - fix-blue-cloudy-sky
       - fix-sun-statusbar
       - revert-capture-dim-sun
+      - user-local-location
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -41,6 +42,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          node --check site/location.js
           node --check site/bootstrap.js
           node --check site/live-data.js
           node --check site/environment.js
@@ -66,10 +68,17 @@ jobs:
               data=(fallback/item['path']).read_bytes(); digest=hashlib.sha256(data).hexdigest()
               assert digest==item['sha256'],f"fallback hash mismatch: {item['path']}"
           index=(root/'index.html').read_text()
+          assert '/location.js' in index
           assert '/rain-layer.js?v=4' in index
           assert '/sun-dimmer.js?v=1' in index
           assert '/screen-capture.js?v=2' in index
           assert '/manifest.webmanifest?v=2' in index
+          location=(root/'location.js').read_text()
+          assert 'navigator.geolocation.getCurrentPosition' in location
+          assert "url.hostname==='api.open-meteo.com'" in location
+          assert "url.searchParams.set('latitude'" in location and "url.searchParams.set('longitude'" in location
+          assert "url.searchParams.set('timezone','auto')" in location
+          assert 'sindhorn:location-updated' in location
           pwa=json.loads((root/'manifest.webmanifest').read_text())
           assert pwa.get('display')=='standalone'
           assert 'display_override' not in pwa
@@ -111,7 +120,8 @@ jobs:
           assert 'moonEclipse' in celestial
           assert 'testerWetReflection' in celestial
           sw=(root/'sw.js').read_text()
-          assert 'isAppRoute' in sw and 'atmosphere5-sun1' in sw
+          assert 'isAppRoute' in sw and 'atmosphere5-location1' in sw
+          assert "'/location.js'" in sw
           assert "'/sun-dimmer.js'" in sw and "'/screen-capture.js'" in sw
           PY
 
@@ -132,16 +142,22 @@ jobs:
             BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           fi
           sleep 8
-          for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
+          for path in / /guidance /details /location.js /bootstrap.js /environment.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/" -o /tmp/smoke-root
+          grep -q '/location.js' /tmp/smoke-root
           grep -q '/bootstrap.js' /tmp/smoke-root
           grep -q '/rain-layer.js?v=4' /tmp/smoke-root
           grep -q '/sun-dimmer.js?v=1' /tmp/smoke-root
           grep -q '/screen-capture.js?v=2' /tmp/smoke-root
           grep -q '/manifest.webmanifest?v=2' /tmp/smoke-root
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/location.js" -o /tmp/smoke-location
+          grep -q 'navigator.geolocation.getCurrentPosition' /tmp/smoke-location
+          grep -q "api.open-meteo.com" /tmp/smoke-location
+          grep -q "timezone','auto" /tmp/smoke-location
+          grep -q 'sindhorn:location-updated' /tmp/smoke-location
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/screen-capture.js" -o /tmp/smoke-capture
           grep -q 'document.exitFullscreen' /tmp/smoke-capture
           ! grep -q 'html2canvas' /tmp/smoke-capture
@@ -189,7 +205,8 @@ jobs:
           grep -q 'moonEclipse' /tmp/smoke-celestial
           grep -q 'testerWetReflection' /tmp/smoke-celestial
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/smoke-sw
-          grep -q 'atmosphere5-sun1' /tmp/smoke-sw
+          grep -q 'atmosphere5-location1' /tmp/smoke-sw
+          grep -q "'/location.js'" /tmp/smoke-sw
           grep -q "'/sun-dimmer.js'" /tmp/smoke-sw
           grep -q "'/screen-capture.js'" /tmp/smoke-sw
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
