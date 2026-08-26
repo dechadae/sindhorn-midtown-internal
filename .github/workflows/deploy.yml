@@ -10,6 +10,7 @@ on:
       - hotfix-rain-svg-pane
       - rain-realism-type-consistency
       - wet-glass-shader-v1
+      - wet-glass-shader-v2
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
