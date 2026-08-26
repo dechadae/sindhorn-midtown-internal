@@ -9,6 +9,7 @@ on:
       - "sky-worker/**"
       - "site/sky-calibration.js"
       - "site/index.html"
+      - "site/app.js"
       - "site/sw.js"
       - ".github/workflows/phase8-sky-calibration.yml"
       - "docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md"
@@ -28,11 +29,12 @@ env:
   PREVIEW_WORKER_URL: https://sindhorn-midtown-sky-preview.decha-dae.workers.dev
   PRODUCTION_WORKER_URL: https://sindhorn-midtown-sky.decha-dae.workers.dev
   PREVIEW_ORIGIN: https://phase8-directional-sky-calib.sindhorn-midtown-internal.pages.dev
+  PRODUCTION_ORIGIN: https://sindhorn-midtown-internal.pages.dev
 
 jobs:
   validate-and-release:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -58,6 +60,21 @@ jobs:
           grep -q '"binding": "DB"' sky-worker/wrangler.jsonc
           grep -q '"STATE_PREFIX": "prod"' sky-worker/wrangler.jsonc
           grep -q '"STATE_PREFIX": "preview"' sky-worker/wrangler.preview.jsonc
+
+      - name: Validate PWA calibration client
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/sky-calibration.js
+          node --check site/app.js
+          node --check site/sw.js
+          grep -q '/sky-calibration.js?v=1' site/index.html
+          grep -q "SindhornSkyCalibration" site/sky-calibration.js
+          grep -q "SindhornSkyCalibration?.refresh" site/app.js
+          grep -q "'/sky-calibration.js'" site/sw.js
+          grep -q 'pwa-v20-live-sky-calibration' site/sw.js
+          grep -q "addEventListener('push'" site/sw.js
+          grep -q "addEventListener('notificationclick'" site/sw.js
 
       - name: Validate Worker bundles
         shell: bash
@@ -96,7 +113,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl --fail --silent --show-error --max-time 120 --retry 2 --retry-all-errors --retry-delay 3 \
+          curl --fail --silent --show-error --max-time 150 --retry 2 --retry-all-errors --retry-delay 3 \
             -H "Origin: ${PREVIEW_ORIGIN}" \
             "${PREVIEW_WORKER_URL}/evaluate" -o /tmp/sky-evaluate.json
           python3 - <<'PY'
@@ -135,6 +152,28 @@ jobs:
           assert 'sources' in data and 'mode' in data
           PY
 
+      - name: Deploy Phase 8 Pages preview
+        if: github.ref_name != 'main'
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke test Phase 8 Pages preview
+        if: github.ref_name != 'main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 8
+          for path in / /sky-calibration.js /app.js /sw.js /environment.js /location.js /push-client.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${PREVIEW_ORIGIN}${path}" -o "/tmp/phase8$(echo "$path" | tr '/.' '__')"
+          done
+          grep -q '/sky-calibration.js?v=1' /tmp/phase8_
+          grep -q 'sindhorn-midtown-sky-preview' /tmp/phase8_sky-calibration_js
+          grep -q 'SindhornSkyCalibration' /tmp/phase8_sky-calibration_js
+          grep -q 'SindhornSkyCalibration?.refresh' /tmp/phase8_app_js
+          grep -q 'pwa-v20-live-sky-calibration' /tmp/phase8_sw_js
+          grep -q "'/sky-calibration.js'" /tmp/phase8_sw_js
+          grep -q "addEventListener('push'" /tmp/phase8_sw_js
+          grep -q 'Current location' /tmp/phase8_location_js
+
       - name: Deploy production sky Worker
         if: github.ref_name == 'main'
         run: npx --yes wrangler@4.125.0 deploy --config sky-worker/wrangler.jsonc
@@ -156,3 +195,22 @@ jobs:
           assert health.get('aiConfigured') is True
           assert calibration.get('schema')==1
           PY
+
+      - name: Verify production PWA promotion
+        if: github.ref_name == 'main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent --show-error --location "${PRODUCTION_ORIGIN}/" -o /tmp/prod-root \
+              && curl --fail --silent --show-error --location "${PRODUCTION_ORIGIN}/sky-calibration.js" -o /tmp/prod-sky \
+              && curl --fail --silent --show-error --location "${PRODUCTION_ORIGIN}/sw.js" -o /tmp/prod-sw \
+              && grep -q '/sky-calibration.js?v=1' /tmp/prod-root \
+              && grep -q 'sindhorn-midtown-sky.decha-dae.workers.dev' /tmp/prod-sky \
+              && grep -q 'pwa-v20-live-sky-calibration' /tmp/prod-sw; then
+              exit 0
+            fi
+            sleep 3
+          done
+          echo 'Phase 8 production PWA did not promote within the verification window' >&2
+          exit 1
