@@ -1,4 +1,3 @@
-# Registered on main so this branch can execute its preview gate.
 name: Weather Current Location Preview
 
 on:
