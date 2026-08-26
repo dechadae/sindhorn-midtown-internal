@@ -11,6 +11,7 @@ on:
       - rain-realism-type-consistency
       - promote-atmosphere-tester
       - fix-duplicate-sun-final
+      - fix-celestial-v2-import
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -69,10 +70,12 @@ jobs:
           assert 'rainPaneSvg' in rain
           assert 'rainPaneCanvas' not in rain
           assert 'desynchronized:true' not in rain
-          assert 'tester-celestials.js?v=1' in rain
+          assert 'tester-celestials.js?v=2' in rain
+          assert 'tester-celestials.js?v=1' not in rain
           tester=(root/'atmosphere-tester.html').read_text()
           assert 'ATMOSPHERE TESTER' in tester and '/atmosphere-tester.js' in tester and '/rain-layer.js?v=4' in tester
-          assert '/tester-celestials.js?v=1' in tester
+          assert '/tester-celestials.js?v=2' in tester
+          assert '/tester-celestials.js?v=1' not in tester
           celestial=(root/'tester-celestials.js').read_text()
           assert 'sunEclipse' not in celestial
           assert 'moonEclipse' in celestial
@@ -115,11 +118,13 @@ jobs:
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/rain-layer.js" -o /tmp/smoke-rain
           grep -q 'rainPaneSvg' /tmp/smoke-rain
           ! grep -q 'rainPaneCanvas' /tmp/smoke-rain
-          grep -q 'tester-celestials.js?v=1' /tmp/smoke-rain
+          grep -q 'tester-celestials.js?v=2' /tmp/smoke-rain
+          ! grep -q 'tester-celestials.js?v=1' /tmp/smoke-rain
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/atmosphere-tester.html" -o /tmp/smoke-tester
           grep -q 'ATMOSPHERE TESTER' /tmp/smoke-tester
           grep -q '/rain-layer.js?v=4' /tmp/smoke-tester
-          grep -q '/tester-celestials.js?v=1' /tmp/smoke-tester
+          grep -q '/tester-celestials.js?v=2' /tmp/smoke-tester
+          ! grep -q '/tester-celestials.js?v=1' /tmp/smoke-tester
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/tester-celestials.js" -o /tmp/smoke-celestial
           ! grep -q 'sunEclipse' /tmp/smoke-celestial
           grep -q 'moonEclipse' /tmp/smoke-celestial
