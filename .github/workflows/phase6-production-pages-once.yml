@@ -1,0 +1,67 @@
+name: Phase 6 Production Pages Once
+
+on:
+  push:
+    branches:
+      - phase6-web-push-release
+    paths:
+      - ".github/workflows/phase6-production-pages-once.yml"
+      - "docs/PHASE6-PRODUCTION-DEPLOY-TRIGGER.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: phase6-production-pages-once
+  cancel-in-progress: false
+
+jobs:
+  deploy-production-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check out release branch
+        uses: actions/checkout@v6
+
+      - name: Validate exact production candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/location.js
+          node --check site/push-config.js
+          node --check site/push-client.js
+          node --check site/sw.js
+          grep -q '/push-client.js?v=1' site/index.html
+          grep -q 'Current location' site/location.js
+          grep -q 'weatherLocationEn' site/location.js
+          grep -q 'pushManager.subscribe' site/push-client.js
+          ! grep -q 'Notification.requestPermission' site/push-client.js
+          grep -q 'pwa-v19-web-push-location-fixtures-current-location' site/sw.js
+          grep -q "'/push-config.js'" site/sw.js
+          grep -q "'/push-client.js'" site/sw.js
+          grep -q "addEventListener('push'" site/sw.js
+          grep -q "addEventListener('notificationclick'" site/sw.js
+
+      - name: Deploy exact candidate to production Pages
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=main
+
+      - name: Smoke test production
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /guidance /details /location.js /push-config.js /push-client.js /sw.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
+            test -s /tmp/smoke
+          done
+          grep -q '/push-client.js?v=1' <(curl --fail --silent --show-error "${BASE_URL}/")
+          grep -q 'pushManager.subscribe' <(curl --fail --silent --show-error "${BASE_URL}/push-client.js")
+          grep -q 'Current location' <(curl --fail --silent --show-error "${BASE_URL}/location.js")
+          grep -q 'weatherLocationEn' <(curl --fail --silent --show-error "${BASE_URL}/location.js")
+          grep -q 'pwa-v19-web-push-location-fixtures-current-location' <(curl --fail --silent --show-error "${BASE_URL}/sw.js")
