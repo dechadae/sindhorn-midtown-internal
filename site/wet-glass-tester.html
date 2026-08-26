@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#202734">
+<title>Wet Glass Shader Lab · Sindhorn Midtown</title>
+<style>
+:root{--paper:#faf7f5;--sorbet:#e5ecbe;--ink:#151a23;--glass:rgba(31,38,50,.78);--line:rgba(250,247,245,.18);--muted:rgba(250,247,245,.64)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#202734;color:var(--paper);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-weight:300}button,input{font:inherit}
+#wetGlassCanvas{position:fixed;inset:0;width:100%;height:100%;display:block;background:#202734}
+.lab-title{position:fixed;left:max(18px,env(safe-area-inset-left));top:max(18px,env(safe-area-inset-top));z-index:20;pointer-events:none;text-shadow:0 1px 20px rgba(0,0,0,.28)}
+.eyebrow{font-size:10px;line-height:1.2;letter-spacing:.1em;color:var(--sorbet);font-weight:400}.lab-title h1{margin:7px 0 0;font-size:clamp(30px,5vw,58px);line-height:.94;letter-spacing:-.03em;font-weight:300}.lab-title p{max-width:620px;margin:11px 0 0;font-size:12px;line-height:1.5;color:var(--muted)}
+.badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.badge{display:inline-flex;min-height:28px;align-items:center;padding:0 10px;border:1px solid rgba(229,236,190,.42);border-radius:999px;background:rgba(29,34,44,.34);color:var(--sorbet);font-size:9px;letter-spacing:.1em;font-weight:400}
+.panel{position:fixed;z-index:30;right:max(14px,env(safe-area-inset-right));top:max(14px,env(safe-area-inset-top));bottom:max(14px,env(safe-area-inset-bottom));width:min(390px,calc(100vw - 28px));padding:17px;overflow:auto;border:1px solid rgba(250,247,245,.18);border-radius:22px;background:var(--glass);backdrop-filter:blur(22px) saturate(110%);-webkit-backdrop-filter:blur(22px) saturate(110%);box-shadow:0 22px 68px rgba(0,0,0,.24);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s cubic-bezier(.4,0,.2,1)}
+.panel.hidden{transform:translateX(calc(100% + 32px));opacity:0;pointer-events:none}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--line)}.panel h2{margin:0;font-size:18px;line-height:1.1;letter-spacing:-.03em;font-weight:300}.panel-head p{margin:6px 0 0;color:var(--muted);font-size:10px;line-height:1.5}
+.icon,.action,.show{border:1px solid rgba(229,236,190,.42);background:rgba(250,247,245,.04);color:var(--paper);border-radius:999px;cursor:pointer}.icon{width:36px;height:36px;font-size:17px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.action{height:38px;font-size:9px;letter-spacing:.1em;font-weight:400}.group{padding:16px 0;border-bottom:1px solid var(--line)}.group:last-child{border-bottom:0}.group h3{margin:0 0 12px;font-size:9px;letter-spacing:.1em;font-weight:400;color:var(--sorbet)}
+.control{display:grid;grid-template-columns:114px minmax(110px,1fr) 62px;gap:8px;align-items:center;min-height:34px}.control+.control{margin-top:7px}.control label{font-size:10px;color:rgba(250,247,245,.84)}.control output{font-size:9px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}.control input[type=range]{width:100%;accent-color:#e5ecbe}.control input[type=color]{width:100%;height:28px;padding:0;border:1px solid var(--line);border-radius:8px;background:transparent}.readout{margin-top:11px;padding:10px 11px;border-radius:12px;background:rgba(8,11,16,.22);font:300 9px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:rgba(250,247,245,.66);white-space:pre-wrap}
+.show{position:fixed;z-index:31;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));height:40px;padding:0 17px;font-size:9px;letter-spacing:.1em;font-weight:400;display:none}.show.visible{display:block}.back{display:inline-block;margin-top:12px;color:var(--sorbet);font-size:9px;letter-spacing:.1em;text-decoration:none;pointer-events:auto}.back:hover{text-decoration:none}
+@media(max-width:760px){.lab-title{top:max(14px,env(safe-area-inset-top));left:18px;max-width:calc(100vw - 92px)}.lab-title h1{font-size:33px}.lab-title p{display:none}.panel{left:10px;right:10px;top:auto;bottom:calc(10px + env(safe-area-inset-bottom));width:auto;max-height:61dvh;border-radius:21px;padding:15px}.panel.hidden{transform:translateY(calc(100% + 24px))}.show{right:14px;bottom:calc(14px + env(safe-area-inset-bottom))}.control{grid-template-columns:102px minmax(105px,1fr) 54px}.badges{max-width:260px}}
+</style>
+</head>
+<body>
+<canvas id="wetGlassCanvas" aria-label="Realtime refractive wet-glass shader test"></canvas>
+<div class="lab-title">
+  <div class="eyebrow">SINDHORN MIDTOWN · WEBGL MATERIAL LAB</div>
+  <h1>WET GLASS<br>SHADER</h1>
+  <p>True ping-pong droplet heightmap → finite-difference normals → realtime refraction of the rendered scene. No SVG or sprite droplets.</p>
+  <div class="badges"><span class="badge">512² SIM</span><span class="badge">PING-PONG</span><span class="badge">REAL REFRACTION</span><span class="badge" id="fpsBadge">— FPS</span></div>
+  <a class="back" href="/atmosphere-tester.html">ATMOSPHERE TESTER ↗</a>
+</div>
+<button class="show" id="showControls" type="button">CONTROLS</button>
+<aside class="panel" id="controlsPanel">
+  <div class="panel-head"><div><h2>Wet-glass controls</h2><p>The simulation is fixed at 512×512 on phone and desktop. All controls update shader uniforms live.</p></div><button class="icon" id="hideControls" type="button" aria-label="Hide controls">×</button></div>
+  <div class="actions"><button class="action" id="resetSim" type="button">RESET WATER</button><button class="action" id="pauseToggle" type="button">PAUSE</button></div>
+  <div class="group"><h3>DROPLET SIMULATION</h3>
+    <div class="control"><label for="rainIntensity">Rain intensity</label><input id="rainIntensity" type="range" min="0" max="1" value="0.72" step="0.01"><output></output></div>
+    <div class="control"><label for="dropMin">Drop min</label><input id="dropMin" type="range" min="1.5" max="8" value="3" step="0.1"><output></output></div>
+    <div class="control"><label for="dropMax">Drop max</label><input id="dropMax" type="range" min="5" max="18" value="11" step="0.1"><output></output></div>
+    <div class="control"><label for="fallSpeed">Fall speed</label><input id="fallSpeed" type="range" min="0.2" max="2.5" value="1" step="0.01"><output></output></div>
+    <div class="control"><label for="windDirection">Wind direction</label><input id="windDirection" type="range" min="0" max="359" value="210" step="1"><output></output></div>
+    <div class="control"><label for="windStrength">Wind strength</label><input id="windStrength" type="range" min="0" max="1.5" value="0.28" step="0.01"><output></output></div>
+  </div>
+  <div class="group"><h3>OPTICS</h3>
+    <div class="control"><label for="refraction">Refraction</label><input id="refraction" type="range" min="0" max="2" value="1" step="0.01"><output></output></div>
+    <div class="control"><label for="specular">Specular</label><input id="specular" type="range" min="0" max="2" value="1.15" step="0.01"><output></output></div>
+    <div class="control"><label for="bokeh">Bokeh</label><input id="bokeh" type="range" min="0" max="2" value="0.82" step="0.01"><output></output></div>
+    <div class="control"><label for="streaks">Distant streaks</label><input id="streaks" type="range" min="0" max="1" value="0.42" step="0.01"><output></output></div>
+    <div class="control"><label for="tint">Cool tint</label><input id="tint" type="color" value="#c8d9e7"><output></output></div>
+  </div>
+  <div class="group"><h3>PIPELINE STATE</h3><div class="readout" id="readout">initializing…</div></div>
+</aside>
+
+<script type="module">
+import * as THREE from './vendor/three.module.js';
+
+/*
+  REAL WET-GLASS PIPELINE
+  -----------------------
+  Pass 1: Render a scene into sceneTarget.
+  Pass 2: Update a 512×512 double-buffered droplet heightmap.
+          R = droplet height, G = water persistence/mass,
+          B = slide activity, A = wet trail.
+  Pass 3: Derive finite-difference normals from the heightmap and use those
+          normals to refract sceneTarget. Bright wet regions receive a cheap
+          multi-tap bokeh blur plus a fixed-light specular highlight.
+
+  Integration contract for an existing Three.js scene:
+    - render your real scene into sceneTarget before updateWetGlass()
+    - call updateWetGlass(deltaSeconds, elapsedSeconds) once per frame
+    - call compositeWetGlass() after the scene render
+    - call resize() from your normal resize handler
+  The standalone test below already performs those calls in that order.
+*/
+
+const SIM_SIZE=512;
+const canvas=document.getElementById('wetGlassCanvas');
+const panel=document.getElementById('controlsPanel');
+const showControls=document.getElementById('showControls');
+const fpsBadge=document.getElementById('fpsBadge');
+const readout=document.getElementById('readout');
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+
+const renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:false,powerPreference:'high-performance',precision:'highp'});
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+const DPR=Math.min(2,Math.max(1,window.devicePixelRatio||1));
+renderer.setPixelRatio(DPR);
+
+const camera=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+const quadGeometry=new THREE.PlaneGeometry(2,2);
+const vertexShader=`
+varying vec2 vUv;
+void main(){
+  vUv=uv;
+  gl_Position=vec4(position.xy,0.0,1.0);
+}`;
+
+/* Background scene. This is deliberately a rendered scene texture rather than
+   a CSS background, so the wet-glass composite is genuinely refracting pixels. */
+const backgroundMaterial=new THREE.ShaderMaterial({
+  uniforms:{uTime:{value:0},uResolution:{value:new THREE.Vector2(1,1)},uRain:{value:.72},uStreakVisibility:{value:.42}},
+  vertexShader,
+  fragmentShader:`
+precision highp float;
+varying vec2 vUv;
+uniform float uTime,uRain,uStreakVisibility;
+uniform vec2 uResolution;
+
+float hash21(vec2 p){
+  p=fract(p*vec2(123.34,456.21));
+  p+=dot(p,p+45.32);
+  return fract(p.x*p.y);
+}
+float noise(vec2 p){
+  vec2 i=floor(p),f=fract(p);
+  f=f*f*(3.0-2.0*f);
+  return mix(mix(hash21(i),hash21(i+vec2(1.,0.)),f.x),mix(hash21(i+vec2(0.,1.)),hash21(i+vec2(1.,1.)),f.x),f.y);
+}
+float fbm(vec2 p){
+  float s=0.0,a=.52;
+  for(int i=0;i<4;i++){s+=noise(p)*a;p=p*2.03+vec2(7.2,11.8);a*=.5;}
+  return s;
+}
+float sdCircle(vec2 p,float r){return length(p)-r;}
+
+void main(){
+  vec2 uv=vUv;
+  float aspect=uResolution.x/max(1.0,uResolution.y);
+  vec3 low=vec3(.43,.50,.57),high=vec3(.17,.25,.34);
+  vec3 col=mix(low,high,smoothstep(.02,1.0,uv.y));
+
+  // Broad moving storm texture gives the refractive surface real structure.
+  vec2 cp=vec2(uv.x*aspect,uv.y)*vec2(2.1,1.4)+vec2(uTime*.010,-uTime*.004);
+  float cloud=fbm(cp)+fbm(cp*2.2+9.3)*.22;
+  float cloudMask=smoothstep(.42,.78,cloud);
+  col=mix(col,vec3(.48,.53,.57),cloudMask*.40);
+
+  // A bright diffused source makes refraction/specular/bokeh easy to judge.
+  vec2 sunUv=vec2(.73,.70);
+  vec2 sp=vec2((uv.x-sunUv.x)*aspect,uv.y-sunUv.y);
+  float halo=exp(-length(sp)*8.0);
+  float core=smoothstep(.042,.015,length(sp));
+  col+=vec3(1.0,.88,.68)*(halo*.34+core*.72);
+
+  // Dark skyline plus small luminous windows at the horizon.
+  float skyline=.19+.035*sin(uv.x*49.0)+.025*sin(uv.x*91.0+1.7);
+  float building=1.0-smoothstep(skyline-.004,skyline+.004,uv.y);
+  col=mix(col,vec3(.055,.068,.082),building*.88);
+  vec2 wg=uv*vec2(68.0,44.0);
+  vec2 wi=floor(wg),wf=fract(wg);
+  float windowBand=step(uv.y,.20)*step(.08,wf.x)*step(wf.x,.34)*step(.16,wf.y)*step(wf.y,.42);
+  float windows=windowBand*step(.73,hash21(wi));
+  col+=windows*vec3(.95,.72,.40)*.95;
+
+  // Optional distant falling rain: cheap procedural streaks behind the glass.
+  vec2 rp=uv*vec2(92.0,42.0);
+  rp.x+=uv.y*13.0;
+  vec2 rid=floor(rp),rf=fract(rp);
+  float rnd=hash21(rid);
+  float y=fract(rf.y+uTime*(.72+rnd*.55)+rnd);
+  float xDist=abs(rf.x-(.18+rnd*.64));
+  float streak=smoothstep(.035,.006,xDist)*smoothstep(.96,.36,y)*smoothstep(.02,.20,y);
+  col+=vec3(.72,.82,.90)*streak*uRain*uStreakVisibility*.20;
+
+  // Soft atmospheric vignette before the wet-glass pass.
+  float v=uv.x*(1.0-uv.x)*uv.y*(1.0-uv.y);
+  col*=mix(.80,1.0,smoothstep(.0,.055,v));
+  gl_FragColor=vec4(col,1.0);
+}`
+});
+const backgroundScene=new THREE.Scene();
+backgroundScene.add(new THREE.Mesh(quadGeometry,backgroundMaterial));
+
+/* Ping-pong droplet simulation. The spawn lattice keeps births spatially
+   separated; occupancy sampling suppresses births on already-wet cells.
+   Small drops remain pinned and slowly grow. Once local mass crosses the slide
+   threshold, the field advects downward under gravity and leaves a fading trail.
+   Since the state is a continuous water field, a large sliding drop naturally
+   merges with smaller droplets it crosses instead of requiring sprite collision. */
+const simMaterial=new THREE.ShaderMaterial({
+  uniforms:{
+    uPrev:{value:null},uTexel:{value:new THREE.Vector2(1/SIM_SIZE,1/SIM_SIZE)},uTime:{value:0},uDelta:{value:1/60},
+    uIntensity:{value:.72},uDropMin:{value:3},uDropMax:{value:11},uFallSpeed:{value:1},uWind:{value:new THREE.Vector2(0,0)}
+  },
+  vertexShader,
+  fragmentShader:`
+precision highp float;
+varying vec2 vUv;
+uniform sampler2D uPrev;
+uniform vec2 uTexel,uWind;
+uniform float uTime,uDelta,uIntensity,uDropMin,uDropMax,uFallSpeed;
+
+float hash21(vec2 p){
+  p=fract(p*vec2(123.34,456.21));
+  p+=dot(p,p+45.32);
+  return fract(p.x*p.y);
+}
+
+void main(){
+  vec2 uv=vUv;
+  vec4 p=texture2D(uPrev,uv);
+  vec4 l=texture2D(uPrev,uv-vec2(uTexel.x,0.0));
+  vec4 r=texture2D(uPrev,uv+vec2(uTexel.x,0.0));
+  vec4 d=texture2D(uPrev,uv-vec2(0.0,uTexel.y));
+  vec4 u=texture2D(uPrev,uv+vec2(0.0,uTexel.y));
+
+  float h=p.r;
+  float water=p.g;
+  float velocity=p.b;
+  float trail=p.a;
+
+  // Slow evaporation. Trails disappear faster than attached droplets.
+  h*=exp(-uDelta*.18);
+  water*=exp(-uDelta*.055);
+  velocity*=exp(-uDelta*.75);
+  trail*=exp(-uDelta*1.18);
+
+  // Grow attached droplets by a controlled one-pixel neighborhood dilation.
+  float neighborHeight=max(max(l.r,r.r),max(d.r,u.r));
+  float neighborWater=max(max(l.g,r.g),max(d.g,u.g));
+  float localMass=(p.r+l.r+r.r+d.r+u.r)*.20;
+  float slideGate=smoothstep(.50,.76,localMass+water*.22);
+  float grown=max(h,neighborHeight-uDelta*1.65);
+  h=mix(grown,h,slideGate);
+  water=max(water,neighborWater-uDelta*.24);
+
+  // Gravity advection. Output pixel samples its previous-frame upstream source.
+  vec2 gravityWind=vec2(uWind.x*.48,-1.0+uWind.y*.10);
+  gravityWind=normalize(gravityWind);
+  float speed=(.018+.058*slideGate)*uFallSpeed;
+  vec2 flow=gravityWind*speed*uDelta;
+  vec2 sourceUv=clamp(uv-flow,vec2(0.0),vec2(1.0));
+  vec4 source=texture2D(uPrev,sourceUv);
+  float sourceMass=source.r+source.g*.18;
+  float sourceSlide=smoothstep(.49,.73,sourceMass);
+  if(sourceSlide>.001){
+    // Advected water replaces part of the old center and merges by max().
+    h=max(h*(1.0-slideGate*uDelta*2.2),source.r*.998);
+    water=max(water,source.g*.998);
+    velocity=max(velocity,sourceSlide);
+    trail=max(trail,source.r*sourceSlide*.30);
+  }
+
+  // Smear a narrow wet trail behind moving drops.
+  vec2 behindUv=clamp(uv-flow*2.2,vec2(0.0),vec2(1.0));
+  vec4 behind=texture2D(uPrev,behindUv);
+  trail=max(trail,behind.r*behind.b*.18);
+  h=max(h,trail*.16);
+  water=max(water,trail*.24);
+
+  // Noise-driven drop births on a fixed lattice. The short phase pulse means a
+  // candidate is injected only for a few frames, rather than painted constantly.
+  const float GRID=24.0;
+  vec2 cell=floor(uv*GRID);
+  float epoch=floor(uTime*4.0);
+  float phase=fract(uTime*4.0);
+  vec2 center=.17+.66*vec2(hash21(cell+vec2(epoch*1.31,17.2)),hash21(cell+vec2(53.7,epoch*1.91)));
+  vec2 centerUv=(cell+center)/GRID;
+  float occupied=texture2D(uPrev,centerUv).g;
+  float randomBirth=hash21(cell+vec2(epoch*7.13,epoch*2.17));
+  float probability=.006+.026*uIntensity;
+  float birth=step(1.0-probability,randomBirth)*step(phase,.075)*(1.0-smoothstep(.035,.16,occupied));
+  float sizeRnd=hash21(cell+vec2(epoch*3.7,91.4));
+  float radiusPx=mix(uDropMin,uDropMax,sizeRnd);
+  float radius=radiusPx*uTexel.x;
+  float dist=distance(uv,centerUv);
+  float dropShape=smoothstep(radius,radius*.16,dist)*birth;
+  float seedHeight=dropShape*(.54+.42*sizeRnd);
+  h=max(h,seedHeight);
+  water=max(water,dropShape*(.66+.30*sizeRnd));
+
+  // Keep values normalized so RGBA8 remains stable on broad mobile GPU support.
+  gl_FragColor=clamp(vec4(h,water,velocity,trail),0.0,1.0);
+}`
+});
+const simScene=new THREE.Scene();
+simScene.add(new THREE.Mesh(quadGeometry,simMaterial));
+
+/* Composite pass: finite-difference gradient -> surface normal -> refracted UV.
+   The scene is sampled at the bent UV, then bright/wet areas receive an extra
+   multi-tap blur to mimic soft bokeh through water. A fixed light creates a
+   true normal-dependent specular highlight rather than an overlaid white ring. */
+const compositeMaterial=new THREE.ShaderMaterial({
+  uniforms:{
+    uSceneTex:{value:null},uHeightTex:{value:null},uHeightTexel:{value:new THREE.Vector2(1/SIM_SIZE,1/SIM_SIZE)},uResolution:{value:new THREE.Vector2(1,1)},
+    uRefraction:{value:1},uSpecular:{value:1.15},uBokeh:{value:.82},uTint:{value:new THREE.Color('#c8d9e7')}
+  },
+  vertexShader,
+  fragmentShader:`
+precision highp float;
+varying vec2 vUv;
+uniform sampler2D uSceneTex,uHeightTex;
+uniform vec2 uHeightTexel,uResolution;
+uniform float uRefraction,uSpecular,uBokeh;
+uniform vec3 uTint;
+
+float luma(vec3 c){return dot(c,vec3(.2126,.7152,.0722));}
+vec3 sceneAt(vec2 uv){return texture2D(uSceneTex,clamp(uv,vec2(.001),vec2(.999))).rgb;}
+
+void main(){
+  vec2 uv=vUv;
+  vec4 state=texture2D(uHeightTex,uv);
+  float hL=texture2D(uHeightTex,uv-vec2(uHeightTexel.x,0.0)).r;
+  float hR=texture2D(uHeightTex,uv+vec2(uHeightTexel.x,0.0)).r;
+  float hD=texture2D(uHeightTex,uv-vec2(0.0,uHeightTexel.y)).r;
+  float hU=texture2D(uHeightTex,uv+vec2(0.0,uHeightTexel.y)).r;
+  vec2 grad=vec2(hR-hL,hU-hD);
+  float wet=clamp(state.r+state.g*.28+state.a*.38,0.0,1.0);
+  vec3 normal=normalize(vec3(-grad*11.0,1.0));
+
+  // Refract only where the height field has water; dry glass remains untouched.
+  vec2 refrUv=uv+normal.xy*(.0105*uRefraction)*smoothstep(.035,.70,wet);
+  vec3 sharp=sceneAt(refrUv);
+
+  // Density-dependent blur. Nine taps are deliberately used instead of a full
+  // Gaussian pass: enough for wet bokeh while remaining cheap on Android.
+  float px=(1.0+wet*7.0*uBokeh)/max(1.0,uResolution.y);
+  vec2 bx=vec2(px,0.0),by=vec2(0.0,px);
+  vec3 blur=sharp*.24;
+  blur+=sceneAt(refrUv+bx)*.11+sceneAt(refrUv-bx)*.11;
+  blur+=sceneAt(refrUv+by)*.11+sceneAt(refrUv-by)*.11;
+  blur+=sceneAt(refrUv+bx+by)*.08+sceneAt(refrUv-bx+by)*.08;
+  blur+=sceneAt(refrUv+bx-by)*.08+sceneAt(refrUv-bx-by)*.08;
+  float bright=max(luma(sharp),luma(blur));
+  float bokehMask=smoothstep(.10,.92,wet)*uBokeh*(.28+smoothstep(.48,.92,bright)*.72);
+  vec3 col=mix(sharp,blur,clamp(bokehMask*.64,0.0,.86));
+
+  // Fixed-light specular reflection generated from the simulated water normal.
+  vec3 lightDir=normalize(vec3(-.38,.58,.72));
+  float ndl=max(dot(normal,lightDir),0.0);
+  float spec=pow(ndl,42.0)*smoothstep(.07,.62,wet)*uSpecular;
+  col+=vec3(1.0,.985,.95)*spec*.72;
+
+  // Cool desaturated photographic grade plus restrained vignette.
+  float grey=luma(col);
+  col=mix(col,vec3(grey),.10);
+  col=mix(col,col*uTint,.075);
+  float vignette=uv.x*(1.0-uv.x)*uv.y*(1.0-uv.y);
+  col*=mix(.79,1.0,smoothstep(.015,.060,vignette));
+
+  gl_FragColor=vec4(col,1.0);
+}`
+});
+const compositeScene=new THREE.Scene();
+compositeScene.add(new THREE.Mesh(quadGeometry,compositeMaterial));
+
+function makeTarget(w,h){
+  const rt=new THREE.WebGLRenderTarget(w,h,{
+    format:THREE.RGBAFormat,type:THREE.UnsignedByteType,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,
+    wrapS:THREE.ClampToEdgeWrapping,wrapT:THREE.ClampToEdgeWrapping,depthBuffer:false,stencilBuffer:false
+  });
+  rt.texture.generateMipmaps=false;
+  return rt;
+}
+let simRead=makeTarget(SIM_SIZE,SIM_SIZE),simWrite=makeTarget(SIM_SIZE,SIM_SIZE);
+let sceneTarget=makeTarget(1,1);
+
+function clearTarget(target){
+  const old=renderer.getRenderTarget();
+  renderer.setRenderTarget(target);
+  renderer.setClearColor(0x000000,0);
+  renderer.clear(true,false,false);
+  renderer.setRenderTarget(old);
+}
+function resetSimulation(){clearTarget(simRead);clearTarget(simWrite);}
+
+const controls={
+  rainIntensity:document.getElementById('rainIntensity'),dropMin:document.getElementById('dropMin'),dropMax:document.getElementById('dropMax'),
+  fallSpeed:document.getElementById('fallSpeed'),windDirection:document.getElementById('windDirection'),windStrength:document.getElementById('windStrength'),
+  refraction:document.getElementById('refraction'),specular:document.getElementById('specular'),bokeh:document.getElementById('bokeh'),streaks:document.getElementById('streaks'),tint:document.getElementById('tint')
+};
+const units={rainIntensity:'',dropMin:' px',dropMax:' px',fallSpeed:'×',windDirection:'°',windStrength:'',refraction:'×',specular:'×',bokeh:'×',streaks:'',tint:''};
+function updateOutputs(){
+  for(const [key,input] of Object.entries(controls)){
+    const out=input.closest('.control')?.querySelector('output');if(!out)continue;
+    out.textContent=input.type==='color'?input.value:String(input.value)+units[key];
+  }
+}
+function updateUniforms(){
+  const intensity=Number(controls.rainIntensity.value);
+  const angle=Number(controls.windDirection.value)*Math.PI/180;
+  const strength=Number(controls.windStrength.value);
+  simMaterial.uniforms.uIntensity.value=intensity;
+  simMaterial.uniforms.uDropMin.value=Math.min(Number(controls.dropMin.value),Number(controls.dropMax.value));
+  simMaterial.uniforms.uDropMax.value=Math.max(Number(controls.dropMin.value),Number(controls.dropMax.value));
+  simMaterial.uniforms.uFallSpeed.value=Number(controls.fallSpeed.value);
+  simMaterial.uniforms.uWind.value.set(Math.sin(angle)*strength,Math.cos(angle)*strength);
+  compositeMaterial.uniforms.uRefraction.value=Number(controls.refraction.value);
+  compositeMaterial.uniforms.uSpecular.value=Number(controls.specular.value);
+  compositeMaterial.uniforms.uBokeh.value=Number(controls.bokeh.value);
+  compositeMaterial.uniforms.uTint.value.set(controls.tint.value);
+  backgroundMaterial.uniforms.uRain.value=intensity;
+  backgroundMaterial.uniforms.uStreakVisibility.value=Number(controls.streaks.value);
+}
+for(const input of Object.values(controls))input.addEventListener('input',()=>{updateOutputs();updateUniforms()});
+updateOutputs();updateUniforms();
+
+/* EXACT RESIZE HOOK: call this from the host app's normal resize handler. */
+function resize(){
+  const w=Math.max(1,window.innerWidth),h=Math.max(1,window.innerHeight);
+  renderer.setSize(w,h,false);
+  const pw=Math.max(1,Math.round(w*DPR)),ph=Math.max(1,Math.round(h*DPR));
+  sceneTarget.setSize(pw,ph);
+  backgroundMaterial.uniforms.uResolution.value.set(pw,ph);
+  compositeMaterial.uniforms.uResolution.value.set(pw,ph);
+}
+
+function renderBackground(elapsed){
+  backgroundMaterial.uniforms.uTime.value=elapsed;
+  renderer.setRenderTarget(sceneTarget);
+  renderer.render(backgroundScene,camera);
+}
+
+/* EXACT SIMULATION HOOK: one invocation per animation frame after the real
+   scene texture exists. Swap read/write targets after rendering. */
+function updateWetGlass(delta,elapsed){
+  simMaterial.uniforms.uPrev.value=simRead.texture;
+  simMaterial.uniforms.uTime.value=elapsed;
+  simMaterial.uniforms.uDelta.value=delta;
+  renderer.setRenderTarget(simWrite);
+  renderer.render(simScene,camera);
+  const temp=simRead;simRead=simWrite;simWrite=temp;
+}
+
+/* EXACT COMPOSITE HOOK: call after updateWetGlass(). uSceneTex can be replaced
+   with any WebGLRenderTarget texture from the existing production renderer. */
+function compositeWetGlass(){
+  compositeMaterial.uniforms.uSceneTex.value=sceneTarget.texture;
+  compositeMaterial.uniforms.uHeightTex.value=simRead.texture;
+  renderer.setRenderTarget(null);
+  renderer.render(compositeScene,camera);
+}
+
+let running=true,raf=0,lastTime=performance.now(),elapsed=0,frames=0,fpsStart=performance.now();
+function renderFrame(now){
+  if(!running){raf=requestAnimationFrame(renderFrame);lastTime=now;return;}
+  const delta=Math.min(.033,Math.max(.001,(now-lastTime)/1000));lastTime=now;elapsed+=delta;
+  updateUniforms();
+  renderBackground(elapsed);        // replace with renderer.render(realScene, realCamera) -> sceneTarget
+  updateWetGlass(delta,elapsed);    // ping-pong water simulation
+  compositeWetGlass();              // refract the scene with the simulated height field
+
+  frames++;
+  if(now-fpsStart>700){const fps=Math.round(frames*1000/(now-fpsStart));fpsBadge.textContent=fps+' FPS';frames=0;fpsStart=now;}
+  readout.textContent=`simulation   ${SIM_SIZE} × ${SIM_SIZE}\nrender       ${Math.round(innerWidth*DPR)} × ${Math.round(innerHeight*DPR)} @ ${DPR.toFixed(2)} DPR\nheightmap    RGBA8 ping-pong\nrefraction   finite-difference normal\nmobile mode  same 512² simulation`;
+  raf=requestAnimationFrame(renderFrame);
+}
+
+window.WetGlassLab={renderer,sceneTarget,get heightTexture(){return simRead.texture},updateWetGlass,compositeWetGlass,resize,resetSimulation,uniforms:{simulation:simMaterial.uniforms,composite:compositeMaterial.uniforms}};
+
+window.addEventListener('resize',resize,{passive:true});
+document.addEventListener('visibilitychange',()=>{lastTime=performance.now()});
+document.getElementById('resetSim').addEventListener('click',resetSimulation);
+document.getElementById('pauseToggle').addEventListener('click',event=>{running=!running;event.currentTarget.textContent=running?'PAUSE':'RESUME';lastTime=performance.now()});
+document.getElementById('hideControls').addEventListener('click',()=>{panel.classList.add('hidden');showControls.classList.add('visible')});
+showControls.addEventListener('click',()=>{panel.classList.remove('hidden');showControls.classList.remove('visible')});
+
+resize();resetSimulation();raf=requestAnimationFrame(renderFrame);
+</script>
+</body>
+</html>
