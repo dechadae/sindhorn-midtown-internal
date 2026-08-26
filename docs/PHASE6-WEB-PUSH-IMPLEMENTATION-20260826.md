@@ -4,21 +4,23 @@ This document records the current Phase 6 release state. It is subordinate to `d
 
 ## Current verified state
 
-- Production Pages already contains the current-location weather shell and service-worker update.
+- The clean Web Push release is merged to `main` and deployed to production.
+- Production Pages contains the current-location weather shell, `/push-client.js`, and service-worker v19 with `push` and `notificationclick` handlers.
 - The Cloudflare Worker `sindhorn-midtown-alerts` is live at `https://sindhorn-midtown-alerts.decha-dae.workers.dev`.
-- `/health` returns healthy AirBKK and Open-Meteo evaluation state and confirms VAPID is configured.
-- Production-origin CORS for `/vapid-public-key` is valid; an unapproved origin is rejected by `/subscribe` with HTTP 403.
-- The existing service worker already contains `push` and `notificationclick` handlers.
-- Supabase UI Pack 36 is the current production presentation pack.
-- Supabase UI Pack 37 is staged disabled. It is derived from Pack 36, preserves the current-location weather line, and adds the explicit Environmental Alerts control to Details. Its manifest has 7/7 matching resource hashes.
+- `/health` confirms VAPID is configured and scheduled AirBKK + Open-Meteo evaluation is healthy.
+- Production-origin CORS for `/vapid-public-key` is valid; unapproved subscription origins are rejected.
+- The push client does not call `Notification.requestPermission()` on launch. Browser subscription is entered only from the explicit Environmental Alerts action.
+- Supabase UI Pack 37 is now the production presentation pack. Pack 36 is disabled.
+- Pack 37 preserves the Today current-location weather line and adds the Environmental Alerts control to Details.
+- Pack 37 declares seven presentation resources and all seven resource metadata hashes match the active rows.
 
 ## Superseded branch
 
-The historical `phase6-web-push` branch diverged from current `main` after the location work. Do not merge that branch directly.
+The historical `phase6-web-push` branch diverged from current `main` after the location work and must not be used as a release source.
 
-`phase6-web-push-release` is the clean release branch based on current `main`. It ports only the Web Push client/backend source required for Phase 6 and therefore preserves the current-location implementation.
+The clean release path was `phase6-web-push-release`, based on the then-current production main line. PR #35 merged that release into `main`.
 
-## Release candidate contents
+## Production release contents
 
 - `site/push-config.js`
 - `site/push-client.js`
@@ -30,16 +32,23 @@ The historical `phase6-web-push` branch diverged from current `main` after the l
 - release validation workflow
 - notification architecture documentation
 
-The client never prompts for notifications on launch. Subscription is possible only through the explicit Details-route button.
+## Completed automated gates
 
-## Release gate
+1. JavaScript and Worker source validation.
+2. Worker bundle dry-run.
+3. Live Worker health, VAPID and CORS verification.
+4. Cloudflare Pages branch preview deployment and smoke test.
+5. Merge of the clean release into `main`.
+6. Production Pages deployment and production smoke verification.
+7. Independent production HTTP verification that current-location rendering and Web Push coexist.
+8. Activation of Supabase Pack 37 after the production shell was proven capable of loading the push client.
 
-1. Validate JS syntax and Worker bundle.
-2. Verify live Worker health, VAPID public key and CORS.
-3. Deploy and smoke-test the `phase6-web-push-release` Pages preview.
-4. Merge the clean release branch into `main` only after the preview gate passes.
-5. Verify production Pages and production Worker after merge.
-6. Enable Supabase Pack 37 only after the production shell can load `push-client.js` and communicate with the Worker.
-7. Perform native-device acceptance on installed Android and iOS/iPadOS PWAs. This is the first point that genuinely requires human device interaction.
+## Remaining Phase 6 acceptance
 
-Do not enable Pack 35. Pack 36 is already production-active and the bootstrap rejects pack downgrades; Pack 37 is the correct Phase 6 presentation release.
+Only native-device Web Push acceptance remains:
+
+- Android installed PWA permission/subscription/delivery/deep-link test;
+- iOS/iPadOS 16.4+ Home Screen PWA permission/subscription/delivery/deep-link test;
+- confirmation that a normal shell upgrade does not require reinstalling the PWA or re-enabling notifications.
+
+Those checks require real operating-system notification behavior and are tracked in `docs/PHASE7-LAUNCH-HARDENING-20260827.md`.
