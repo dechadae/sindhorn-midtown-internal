@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   deploy-current-main:
-    if: github.event.workflow_run.id == 32991711896 && github.event.workflow_run.run_attempt > 1
+    if: github.event.workflow_run.id == 32991711896
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
