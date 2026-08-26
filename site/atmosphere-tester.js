@@ -213,6 +213,7 @@ try{initRenderer();rendererReady=true}catch(error){canvas.hidden=true;document.b
 initPrecipOverlays();
 initControls();
 syncControls();
+setTimeout(()=>document.dispatchEvent(new CustomEvent('sindhorn:location-updated',{detail:fixtureContext?.location||window.SindhornLocation?.getState?.()})),0);
 window.addEventListener('resize',resize,{passive:true});
 new ResizeObserver(resize).observe(stage);
 if(rendererReady)raf=requestAnimationFrame(frame);
