@@ -1,5 +1,5 @@
 const SVG_NS='http://www.w3.org/2000/svg';
-const CELESTIAL_IDS=['sunEclipse','moonEclipse'];
+const CELESTIAL_IDS=['moonEclipse'];
 const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
 const num=(id,fallback=0)=>{const el=document.getElementById(id);const n=Number(el?.value);return Number.isFinite(n)?n:fallback};
 
@@ -13,24 +13,12 @@ if(stage){
 
   const defs=document.createElementNS(SVG_NS,'defs');
   defs.innerHTML=`
-    <filter id="sunCorona" x="-300%" y="-300%" width="700%" height="700%">
-      <feGaussianBlur stdDeviation="8"/>
-    </filter>
-    <filter id="sunHalo" x="-300%" y="-300%" width="700%" height="700%">
-      <feGaussianBlur stdDeviation="24"/>
-    </filter>
     <filter id="moonCorona" x="-300%" y="-300%" width="700%" height="700%">
       <feGaussianBlur stdDeviation="7"/>
     </filter>
     <filter id="moonHalo" x="-300%" y="-300%" width="700%" height="700%">
       <feGaussianBlur stdDeviation="21"/>
     </filter>
-    <radialGradient id="sunHaloGradient">
-      <stop offset="0%" stop-color="#fffbe8" stop-opacity=".62"/>
-      <stop offset="24%" stop-color="#fff3bf" stop-opacity=".30"/>
-      <stop offset="58%" stop-color="#ffd98f" stop-opacity=".12"/>
-      <stop offset="100%" stop-color="#ffd98f" stop-opacity="0"/>
-    </radialGradient>
     <radialGradient id="moonHaloGradient">
       <stop offset="0%" stop-color="#f7fbff" stop-opacity=".55"/>
       <stop offset="24%" stop-color="#dfeaff" stop-opacity=".27"/>
@@ -39,43 +27,41 @@ if(stage){
     </radialGradient>`;
   svg.appendChild(defs);
 
-  const makeGroup=(kind)=>{
+  const makeMoon=()=>{
     const g=document.createElementNS(SVG_NS,'g');
-    g.id=`${kind}Eclipse`;
-    const warm=kind==='sun';
+    g.id='moonEclipse';
     const halo=document.createElementNS(SVG_NS,'circle');
     halo.setAttribute('r','64');
-    halo.setAttribute('fill',`url(#${kind}HaloGradient)`);
-    halo.setAttribute('filter',`url(#${kind}Halo)`);
+    halo.setAttribute('fill','url(#moonHaloGradient)');
+    halo.setAttribute('filter','url(#moonHalo)');
     const corona=document.createElementNS(SVG_NS,'circle');
     corona.setAttribute('r','28');
     corona.setAttribute('fill','none');
-    corona.setAttribute('stroke',warm?'rgba(255,247,205,.84)':'rgba(226,238,255,.82)');
+    corona.setAttribute('stroke','rgba(226,238,255,.82)');
     corona.setAttribute('stroke-width','9');
-    corona.setAttribute('filter',`url(#${kind}Corona)`);
+    corona.setAttribute('filter','url(#moonCorona)');
     const rim=document.createElementNS(SVG_NS,'circle');
     rim.setAttribute('r','15');
     rim.setAttribute('fill','none');
-    rim.setAttribute('stroke',warm?'rgba(255,252,228,.97)':'rgba(239,246,255,.96)');
+    rim.setAttribute('stroke','rgba(239,246,255,.96)');
     rim.setAttribute('stroke-width','2.2');
     const innerRim=document.createElementNS(SVG_NS,'circle');
     innerRim.setAttribute('r','13.7');
     innerRim.setAttribute('fill','none');
-    innerRim.setAttribute('stroke',warm?'rgba(255,211,126,.52)':'rgba(157,195,255,.46)');
+    innerRim.setAttribute('stroke','rgba(157,195,255,.46)');
     innerRim.setAttribute('stroke-width','1');
     const core=document.createElementNS(SVG_NS,'circle');
     core.setAttribute('r','13.2');
-    core.setAttribute('fill',warm?'rgba(12,14,15,.96)':'rgba(7,11,18,.96)');
+    core.setAttribute('fill','rgba(7,11,18,.96)');
     const earthshine=document.createElementNS(SVG_NS,'circle');
     earthshine.setAttribute('r','11.6');
-    earthshine.setAttribute('fill',warm?'rgba(31,27,21,.14)':'rgba(68,90,126,.12)');
+    earthshine.setAttribute('fill','rgba(68,90,126,.12)');
     g.append(halo,corona,rim,innerRim,core,earthshine);
     svg.appendChild(g);
     return {g,halo,corona,rim,innerRim,core,earthshine};
   };
 
-  const sun=makeGroup('sun');
-  const moon=makeGroup('moon');
+  const moon=makeMoon();
   stage.appendChild(svg);
 
   let width=1,height=1,raf=0;
@@ -100,15 +86,15 @@ if(stage){
     return {clear:clamp(optical),diffuse:clamp(diffuse),cloud};
   };
 
-  const place=(obj,x,y,scale,sharp,diffuse,time,warm)=>{
+  const place=(obj,x,y,scale,sharp,diffuse,time)=>{
     obj.g.setAttribute('transform',`translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${scale.toFixed(3)})`);
-    const breathe=1+Math.sin(time*(warm?.34:.27))*0.018;
+    const breathe=1+Math.sin(time*.27)*0.018;
     obj.halo.setAttribute('r',String(64*breathe));
     obj.g.style.opacity=String(clamp(.04+diffuse*.44+sharp*.70));
     obj.rim.style.opacity=String(clamp(sharp*1.08));
     obj.innerRim.style.opacity=String(clamp(sharp*.82));
     obj.core.style.opacity=String(clamp(sharp*.96));
-    obj.earthshine.style.opacity=String(clamp(sharp*(warm?.20:.42)));
+    obj.earthshine.style.opacity=String(clamp(sharp*.42));
     obj.corona.style.opacity=String(clamp(.10+diffuse*.30+sharp*.62));
     obj.halo.style.opacity=String(clamp(.08+diffuse*.40+sharp*.34));
   };
@@ -118,17 +104,7 @@ if(stage){
     const solar=num('solarAltitude',38);
     const {clear,diffuse,cloud}=visibilityFactors();
     const baseScale=clamp((Math.min(width,height)/690),.72,1.28);
-    const sunVisible=clamp((solar+3)/7);
     const moonVisible=clamp((-solar-1)/8);
-
-    if(sunVisible>.01){
-      const sunY=clamp(.13+clamp((solar+2)/82)*.72,.08,.88)*height;
-      const sunX=.72*width;
-      const sharp=sunVisible*clear*clamp((35-cloud*100)/35);
-      const diff=sunVisible*diffuse;
-      place(sun,sunX,sunY,baseScale,sharp,diff,now/1000,true);
-      sun.g.style.display='block';
-    }else sun.g.style.display='none';
 
     if(moonVisible>.01){
       const moonAltitude=clamp((-solar-2)/22);
@@ -136,7 +112,7 @@ if(stage){
       const moonX=.28*width;
       const sharp=moonVisible*clear*clamp((38-cloud*100)/38);
       const diff=moonVisible*diffuse;
-      place(moon,moonX,moonY,baseScale*.92,sharp,diff,now/1000,false);
+      place(moon,moonX,moonY,baseScale*.92,sharp,diff,now/1000);
       moon.g.style.display='block';
     }else moon.g.style.display='none';
   };
