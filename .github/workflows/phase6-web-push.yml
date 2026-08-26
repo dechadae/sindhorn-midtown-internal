@@ -1,0 +1,166 @@
+name: Phase 6 Web Push
+
+on:
+  push:
+    branches:
+      - phase6-web-push
+      - main
+    paths:
+      - "worker/**"
+      - "site/push-config.js"
+      - "site/push-client.js"
+      - "site/index.html"
+      - "site/sw.js"
+      - ".github/workflows/phase6-web-push.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  deployments: write
+
+concurrency:
+  group: sindhorn-midtown-phase6-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  web-push:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate push candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check worker/src/index.js
+          node --check site/push-client.js
+          node --check site/push-config.js
+          node --check site/sw.js
+          grep -q '/push-client.js?v=1' site/index.html
+          grep -q "push-config.js" site/sw.js
+          grep -q "push-client.js" site/sw.js
+          grep -q "pwa-v18-web-push" site/sw.js
+          grep -q "buildPushPayload" worker/src/index.js
+          grep -q "scheduled" worker/src/index.js
+          grep -q "push_subscriptions" worker/src/index.js
+          grep -q "monitor_state" worker/src/index.js
+          grep -q "'/vapid-public-key'" worker/src/index.js
+          grep -q "'/subscribe'" worker/src/index.js
+
+      - name: Install Worker dependency
+        run: npm install --prefix worker --no-audit --no-fund
+
+      - name: Create Worker and D1 binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4.125.0 deploy --config worker/wrangler.jsonc
+
+      - name: Provision stable VAPID secrets once
+        shell: bash
+        run: |
+          set -euo pipefail
+          SECRETS="$(npx --yes wrangler@4.125.0 secret list --config worker/wrangler.jsonc --format json 2>/dev/null || printf '[]')"
+          HAS_PUBLIC="$(printf '%s' "$SECRETS" | jq -r 'map(.name) | index("VAPID_SERVER_PUBLIC_KEY") != null')"
+          HAS_PRIVATE="$(printf '%s' "$SECRETS" | jq -r 'map(.name) | index("VAPID_SERVER_PRIVATE_KEY") != null')"
+          if [ "$HAS_PUBLIC" != "true" ] || [ "$HAS_PRIVATE" != "true" ]; then
+            mkdir -p /tmp/vapidgen
+            cd /tmp/vapidgen
+            npm init -y >/dev/null 2>&1
+            npm install web-push@3.6.7 --no-audit --no-fund >/dev/null 2>&1
+            node - <<'NODE' >/tmp/vapid.json
+          const webpush=require('/tmp/vapidgen/node_modules/web-push');
+          process.stdout.write(JSON.stringify(webpush.generateVAPIDKeys()));
+          NODE
+            cd "$GITHUB_WORKSPACE"
+            jq -r '.publicKey' /tmp/vapid.json | npx --yes wrangler@4.125.0 secret put VAPID_SERVER_PUBLIC_KEY --config worker/wrangler.jsonc
+            jq -r '.privateKey' /tmp/vapid.json | npx --yes wrangler@4.125.0 secret put VAPID_SERVER_PRIVATE_KEY --config worker/wrangler.jsonc
+            rm -f /tmp/vapid.json
+          fi
+
+      - name: Deploy configured alert Worker
+        run: npx --yes wrangler@4.125.0 deploy --config worker/wrangler.jsonc
+
+      - name: Resolve Worker URL and bind client
+        id: worker-url
+        shell: bash
+        run: |
+          set -euo pipefail
+          SUBDOMAIN="$(curl --fail --silent --show-error -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/subdomain" | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("success") and d.get("result",{}).get("subdomain"); print(d["result"]["subdomain"])')"
+          WORKER_URL="https://sindhorn-midtown-alerts.${SUBDOMAIN}.workers.dev"
+          printf "export const PUSH_API_BASE='%s';\n" "$WORKER_URL" > site/push-config.js
+          echo "worker_url=${WORKER_URL}" >> "$GITHUB_OUTPUT"
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            if ! git diff --quiet -- site/push-config.js; then
+              echo "Production push-config.js does not match the deployed Worker URL. Merge the generated branch binding first."
+              exit 1
+            fi
+          elif ! git diff --quiet -- site/push-config.js; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add site/push-config.js
+            git commit -m "Bind Web Push client to Cloudflare Worker"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
+      - name: Verify Worker health and VAPID public key
+        shell: bash
+        env:
+          WORKER_URL: ${{ steps.worker-url.outputs.worker_url }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${WORKER_URL}/health" -o /tmp/push-health.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/push-health.json'))
+          assert d.get('ok') is True
+          assert d.get('service')=='sindhorn-midtown-alerts'
+          assert d.get('vapidConfigured') is True
+          assert isinstance(d.get('subscriptions'),int)
+          PY
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            ORIGIN="https://sindhorn-midtown-internal.pages.dev"
+          else
+            BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
+            ORIGIN="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
+          fi
+          curl --fail --silent --show-error -H "Origin: ${ORIGIN}" "${WORKER_URL}/vapid-public-key" -o /tmp/vapid-public.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/vapid-public.json'))
+          assert isinstance(d.get('publicKey'),str) and len(d['publicKey'])>50
+          PY
+
+      - name: Deploy branch Pages preview
+        if: github.ref_name != 'main'
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke test branch push client
+        if: github.ref_name != 'main'
+        shell: bash
+        env:
+          WORKER_URL: ${{ steps.worker-url.outputs.worker_url }}
+        run: |
+          set -euo pipefail
+          BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
+          BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /push-config.js /push-client.js /sw.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
+            test -s /tmp/smoke-response
+          done
+          curl --fail --silent --show-error "${BASE_URL}/push-config.js" -o /tmp/smoke-push-config
+          grep -Fq "${WORKER_URL}" /tmp/smoke-push-config
+          curl --fail --silent --show-error "${BASE_URL}/push-client.js" -o /tmp/smoke-push-client
+          grep -q "Notification.requestPermission" /tmp/smoke-push-client
+          grep -q "pushManager.subscribe" /tmp/smoke-push-client
+          grep -q "'/subscribe'" /tmp/smoke-push-client
+          curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/smoke-sw
+          grep -q "pwa-v18-web-push" /tmp/smoke-sw
+          grep -q "push-config.js" /tmp/smoke-sw
+          grep -q "push-client.js" /tmp/smoke-sw
