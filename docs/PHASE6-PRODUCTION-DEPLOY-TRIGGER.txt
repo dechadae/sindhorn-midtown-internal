@@ -1,0 +1,2 @@
+Phase 6 production Pages deployment trigger — 2026-08-26.
+Candidate was preview-validated before this one-shot production promotion.
