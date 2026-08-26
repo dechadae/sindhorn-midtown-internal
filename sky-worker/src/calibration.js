@@ -49,15 +49,15 @@ export function calibrationMode(solar){
 
 export function directionalBase(facing,mode){
   const side=String(facing||'central');
-  if(mode==='sunrise-east')return side==='east'?1:(side==='west'?.18:.42);
-  if(mode==='sunset-west')return side==='west'?1:(side==='east'?.18:.42);
-  if(mode==='twilight')return side==='central'?.72:.62;
-  if(mode==='night')return side==='central'?.68:.56;
-  return side==='central'?.82:.68;
+  if(mode==='sunrise-east')return side==='east' ? 1 : (side==='west' ? 0.18 : 0.42);
+  if(mode==='sunset-west')return side==='west' ? 1 : (side==='east' ? 0.18 : 0.42);
+  if(mode==='twilight')return side==='central' ? 0.72 : 0.62;
+  if(mode==='night')return side==='central' ? 0.68 : 0.56;
+  return side==='central' ? 0.82 : 0.68;
 }
 
 export function chooseCameras(cameras,solar,max=3){
-  const mode=calibrationMode(solar),ranked=cameras.map(camera=>({camera,score:directionalBase(camera.facing,mode)*clamp(camera.reliability??.75,.2,1)})).sort((a,b)=>b.score-a.score);
+  const mode=calibrationMode(solar),ranked=cameras.map(camera=>({camera,score:directionalBase(camera.facing,mode)*clamp(camera.reliability??0.75,0.2,1)})).sort((a,b)=>b.score-a.score);
   const chosen=ranked.slice(0,Math.max(1,max)).map(item=>item.camera);
   if(mode==='day-consensus'){
     const hasEast=chosen.some(camera=>camera.facing==='east'),hasWest=chosen.some(camera=>camera.facing==='west');
@@ -72,15 +72,15 @@ export function validateObservation(raw,camera,now=Date.now()){
   const zenithRgb=normalizeRgb(raw.zenithRgb),horizonRgb=normalizeRgb(raw.horizonRgb);if(!zenithRgb||!horizonRgb)return null;
   const fetchedAt=Date.parse(raw.frameFetchedAt||raw.observedAt||'');if(!Number.isFinite(fetchedAt)||now-fetchedAt>OBSERVATION_TTL_MS||fetchedAt-now>2*60*1000)return null;
   const numeric={quality:clamp(raw.quality),confidence:clamp(raw.confidence),luminance:clamp(raw.luminance),saturation:clamp(raw.saturation),warmth:clamp(raw.warmth),cloudOpacity:clamp(raw.cloudOpacity),cloudDarkness:clamp(raw.cloudDarkness),haze:clamp(raw.haze),horizonContrast:clamp(raw.horizonContrast),sunGlow:clamp(raw.sunGlow),stormConfidence:clamp(raw.stormConfidence)};
-  if(numeric.quality<.2||numeric.confidence<.2)return null;
-  return{id:camera.id,name:camera.name,facing:camera.facing,reliability:clamp(camera.reliability??.75,.2,1),frameFetchedAt:new Date(fetchedAt).toISOString(),frameHash:String(raw.frameHash||''),zenithRgb,horizonRgb,...numeric};
+  if(numeric.quality<0.2||numeric.confidence<0.2)return null;
+  return{id:camera.id,name:camera.name,facing:camera.facing,reliability:clamp(camera.reliability??0.75,0.2,1),frameFetchedAt:new Date(fetchedAt).toISOString(),frameHash:String(raw.frameHash||''),zenithRgb,horizonRgb,...numeric};
 }
 
 function observationWeight(observation,mode,now,medians){
-  const age=Math.max(0,now-Date.parse(observation.frameFetchedAt)),freshness=clamp(1-age/OBSERVATION_TTL_MS),base=directionalBase(observation.facing,mode)*observation.reliability*observation.quality*observation.confidence*mean(.35,1,freshness);
+  const age=Math.max(0,now-Date.parse(observation.frameFetchedAt)),freshness=clamp(1-age/OBSERVATION_TTL_MS),base=directionalBase(observation.facing,mode)*observation.reliability*observation.quality*observation.confidence*mean(0.35,1,freshness);
   const delta=Math.abs(observation.luminance-medians.luminance)+Math.abs(observation.warmth-medians.warmth)+Math.abs(observation.cloudOpacity-medians.cloudOpacity)+Math.abs(observation.haze-medians.haze);
-  const outlierPenalty=delta>1.6?.2:(delta>1.15?.45:(delta>.85?.72:1));
-  return Math.max(.001,base*outlierPenalty);
+  const outlierPenalty=delta>1.6 ? 0.2 : (delta>1.15 ? 0.45 : (delta>0.85 ? 0.72 : 1));
+  return Math.max(0.001,base*outlierPenalty);
 }
 
 const weightedScalar=(pairs,key,total)=>pairs.reduce((sum,item)=>sum+item.observation[key]*item.weight,0)/total;
@@ -91,7 +91,7 @@ export function fuseObservations(input,{now=Date.now(),solar=solarPosition(new D
   const medians={luminance:median(observations.map(item=>item.luminance)),warmth:median(observations.map(item=>item.warmth)),cloudOpacity:median(observations.map(item=>item.cloudOpacity)),haze:median(observations.map(item=>item.haze))};
   const pairs=observations.map(observation=>({observation,weight:observationWeight(observation,mode,now,medians)})),total=pairs.reduce((sum,item)=>sum+item.weight,0);
   if(total<=0)return{schema:1,observedAt:new Date(now).toISOString(),expiresAt:new Date(now+5*60*1000).toISOString(),confidence:0,mode,sources:[],visual:null,weather:weather||null};
-  const confidence=clamp(total/(Math.max(1,observations.length)*.65));
+  const confidence=clamp(total/(Math.max(1,observations.length)*0.65));
   const visual={
     zenithRgb:weightedRgb(pairs,'zenithRgb',total),
     horizonRgb:weightedRgb(pairs,'horizonRgb',total),
