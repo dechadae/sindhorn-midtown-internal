@@ -1,0 +1,64 @@
+name: Weather Current Location Preview
+
+on:
+  push:
+    branches:
+      - weather-current-location
+    paths:
+      - "site/location.js"
+      - "site/sw.js"
+      - ".github/workflows/weather-current-location-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: weather-current-location-preview
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate location shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/location.js
+          node --check site/sw.js
+          grep -q "Current location" site/location.js
+          grep -q "weatherLocationEn" site/location.js
+          grep -q "weatherLocationTh" site/location.js
+          grep -q "sindhorn:location-updated" site/location.js
+          grep -q "navigator.geolocation.getCurrentPosition" site/location.js
+          grep -q "location-fixtures-current-location" site/sw.js
+
+      - name: Deploy branch Pages preview
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=weather-current-location
+
+      - name: Smoke test deployed preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://weather-current-location.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /location.js /sw.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
+            test -s /tmp/smoke
+          done
+          curl --fail --silent --show-error "${BASE_URL}/location.js" -o /tmp/location
+          grep -q "Current location" /tmp/location
+          grep -q "weatherLocationEn" /tmp/location
+          grep -q "weatherLocationTh" /tmp/location
+          grep -q "navigator.geolocation.getCurrentPosition" /tmp/location
+          curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/sw
+          grep -q "location-fixtures-current-location" /tmp/sw
