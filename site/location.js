@@ -1,5 +1,6 @@
 (()=>{
 'use strict';
+// Current weather location is rendered from the same geolocation state used by Open-Meteo.
 
 const FALLBACK={latitude:13.74135,longitude:100.54274,timezone:'Asia/Bangkok',source:'hotel',permission:'fallback',updatedAt:null};
 const STORAGE_KEY='sindhorn-midtown:user-location:v1';
