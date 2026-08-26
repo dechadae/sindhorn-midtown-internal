@@ -1,0 +1,10 @@
+{
+  "name": "sindhorn-midtown-sky-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node test.mjs",
+    "check": "node --check src/index.js && node --check src/calibration.js && node --check src/cameras.js"
+  }
+}
