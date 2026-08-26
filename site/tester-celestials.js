@@ -163,15 +163,16 @@ if(location.pathname.includes('atmosphere-tester')){
       return;
     }
 
-    pane.style.setProperty('opacity',String(.78+rain*.17),'important');
-    pane.style.filter='contrast(1.16) saturate(.86) drop-shadow(0 1px 1px rgba(255,255,255,.08))';
+    pane.style.setProperty('opacity',String(.90+rain*.09),'important');
+    pane.style.filter='brightness(1.38) contrast(1.08) saturate(.30) drop-shadow(0 0 1.2px rgba(255,255,255,.20))';
 
     const beads=[...pane.querySelectorAll('#rainPaneBeads path')];
     const beadCount=Math.min(beads.length,Math.round(22+rain*26));
     beads.forEach((bead,i)=>{
       if(i<beadCount){
         const variation=.82+((i*37)%17)/50;
-        bead.style.setProperty('opacity',String((.18+rain*.15)*variation),'important');
+        bead.style.setProperty('opacity',String((.30+rain*.24)*variation),'important');
+        bead.style.filter='brightness(1.90) saturate(.18) drop-shadow(0 0 .9px rgba(255,255,255,.55))';
       }else bead.style.setProperty('opacity','0','important');
     });
 
@@ -180,11 +181,13 @@ if(location.pathname.includes('atmosphere-tester')){
       const positioned=drop.hasAttribute('transform');
       if(!positioned)return;
       const variation=.88+((i*29)%13)/60;
-      drop.style.setProperty('opacity',String((.42+rain*.24)*variation),'important');
-      drop.style.filter='drop-shadow(0 1px 1px rgba(255,255,255,.16)) drop-shadow(0 2px 2px rgba(20,30,38,.12))';
+      drop.style.setProperty('opacity',String((.58+rain*.30)*variation),'important');
+      drop.style.filter='brightness(1.62) saturate(.22) drop-shadow(0 0 1px rgba(255,255,255,.48)) drop-shadow(0 2px 2px rgba(20,30,38,.08))';
       const children=drop.children;
-      if(children[3])children[3].setAttribute('stroke','rgba(255,255,255,.58)');
-      if(children[1])children[1].setAttribute('stroke','rgba(18,28,36,.20)');
+      if(children[0])children[0].style.filter='brightness(1.75) saturate(.10)';
+      if(children[2])children[2].style.filter='brightness(1.95) saturate(.12)';
+      if(children[3])children[3].setAttribute('stroke','rgba(255,255,255,.88)');
+      if(children[1])children[1].setAttribute('stroke','rgba(30,40,48,.10)');
     });
   };
   rainPaneRaf=requestAnimationFrame(wetGlassFrame);
