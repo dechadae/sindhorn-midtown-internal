@@ -24,6 +24,7 @@ on:
       - fix-lunar-phase-v2
       - fix-lunar-phase-shader
       - live-location-fixtures
+      - sync-pack-33-station-label
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -158,9 +159,14 @@ jobs:
           assert 'moonEclipse' in celestial
           assert 'testerWetReflection' in celestial
           sw=(root/'sw.js').read_text()
-          assert 'isAppRoute' in sw and 'location-fixtures' in sw
+          assert 'isAppRoute' in sw and 'airbkk-station-label' in sw
           assert "'/location.js'" in sw and "'/storm-effects.js'" in sw and "'/seasonal-sky.js'" in sw
           assert "'/sun-dimmer.js'" in sw and "'/screen-capture.js'" in sw
+          fallback_today=(fallback/'today.html').read_text()
+          fallback_css=(fallback/'ui.css').read_text()
+          assert fallback_today.count('class="station-source"')==1
+          assert 'AIRBKK STATION' in fallback_today and 'สถานี AIRBKK' in fallback_today
+          assert '.station-source{' in fallback_css and '.station-source span{' in fallback_css
           PY
 
       - name: Deploy to Cloudflare Pages
@@ -282,7 +288,7 @@ jobs:
           grep -q 'moonEclipse' /tmp/smoke-celestial
           grep -q 'testerWetReflection' /tmp/smoke-celestial
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/smoke-sw
-          grep -q 'location-fixtures' /tmp/smoke-sw
+          grep -q 'airbkk-station-label' /tmp/smoke-sw
           grep -q "'/location.js'" /tmp/smoke-sw
           grep -q "'/storm-effects.js'" /tmp/smoke-sw
           grep -q "'/seasonal-sky.js'" /tmp/smoke-sw
@@ -291,3 +297,9 @@ jobs:
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" -o /tmp/smoke-manifest
           grep -q "\"minimumShell\": ${SHELL_VERSION}" /tmp/smoke-manifest
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/today.html" -o /tmp/smoke-fallback-today
+          grep -q 'class="station-source"' /tmp/smoke-fallback-today
+          grep -q 'AIRBKK STATION' /tmp/smoke-fallback-today
+          grep -q 'สถานี AIRBKK' /tmp/smoke-fallback-today
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/ui.css" -o /tmp/smoke-fallback-css
+          grep -q '.station-source{' /tmp/smoke-fallback-css
