@@ -10,6 +10,7 @@ on:
       - hotfix-rain-svg-pane
       - rain-realism-type-consistency
       - promote-atmosphere-tester
+      - fix-duplicate-sun-final
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -62,6 +63,8 @@ jobs:
           assert 'ATMOSPHERE TESTER CORE · LIVE' in environment
           assert 'snowfall' in environment and 'environmentSnowCanvas' in environment and 'environmentHailCanvas' in environment
           assert "renderer:'atmosphere-tester-core'" in environment
+          assert 'sunCore' not in environment
+          assert 'moonCore' in environment
           rain=(root/'rain-layer.js').read_text()
           assert 'rainPaneSvg' in rain
           assert 'rainPaneCanvas' not in rain
@@ -71,9 +74,11 @@ jobs:
           assert 'ATMOSPHERE TESTER' in tester and '/atmosphere-tester.js' in tester and '/rain-layer.js?v=4' in tester
           assert '/tester-celestials.js?v=1' in tester
           celestial=(root/'tester-celestials.js').read_text()
-          assert 'sunEclipse' in celestial and 'moonEclipse' in celestial
+          assert 'sunEclipse' not in celestial
+          assert 'moonEclipse' in celestial
+          assert 'testerWetReflection' in celestial
           sw=(root/'sw.js').read_text()
-          assert 'isAppRoute' in sw and 'atmosphere1' in sw
+          assert 'isAppRoute' in sw and 'atmosphere2' in sw
           PY
 
       - name: Deploy to Cloudflare Pages
@@ -105,6 +110,8 @@ jobs:
           grep -q 'environmentSnowCanvas' /tmp/smoke-environment
           grep -q 'environmentHailCanvas' /tmp/smoke-environment
           grep -q 'atmosphere-tester-core' /tmp/smoke-environment
+          ! grep -q 'sunCore' /tmp/smoke-environment
+          grep -q 'moonCore' /tmp/smoke-environment
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/rain-layer.js" -o /tmp/smoke-rain
           grep -q 'rainPaneSvg' /tmp/smoke-rain
           ! grep -q 'rainPaneCanvas' /tmp/smoke-rain
@@ -114,10 +121,11 @@ jobs:
           grep -q '/rain-layer.js?v=4' /tmp/smoke-tester
           grep -q '/tester-celestials.js?v=1' /tmp/smoke-tester
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/tester-celestials.js" -o /tmp/smoke-celestial
-          grep -q 'sunEclipse' /tmp/smoke-celestial
+          ! grep -q 'sunEclipse' /tmp/smoke-celestial
           grep -q 'moonEclipse' /tmp/smoke-celestial
+          grep -q 'testerWetReflection' /tmp/smoke-celestial
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/smoke-sw
-          grep -q 'atmosphere1' /tmp/smoke-sw
+          grep -q 'atmosphere2' /tmp/smoke-sw
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" -o /tmp/smoke-manifest
           grep -q "\"minimumShell\": ${SHELL_VERSION}" /tmp/smoke-manifest
