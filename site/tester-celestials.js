@@ -163,31 +163,43 @@ if(location.pathname.includes('atmosphere-tester')){
       return;
     }
 
-    pane.style.setProperty('opacity',String(.90+rain*.09),'important');
-    pane.style.filter='brightness(1.38) contrast(1.08) saturate(.30) drop-shadow(0 0 1.2px rgba(255,255,255,.20))';
+    pane.style.setProperty('opacity','1','important');
+    pane.style.filter='brightness(1.58) contrast(1.10) saturate(.04) drop-shadow(0 0 1.6px rgba(255,255,255,.42))';
 
     const beads=[...pane.querySelectorAll('#rainPaneBeads path')];
-    const beadCount=Math.min(beads.length,Math.round(22+rain*26));
+    const beadCount=Math.min(beads.length,Math.round(28+rain*24));
     beads.forEach((bead,i)=>{
       if(i<beadCount){
-        const variation=.82+((i*37)%17)/50;
-        bead.style.setProperty('opacity',String((.30+rain*.24)*variation),'important');
-        bead.style.filter='brightness(1.90) saturate(.18) drop-shadow(0 0 .9px rgba(255,255,255,.55))';
+        const variation=.90+((i*37)%17)/80;
+        bead.style.setProperty('opacity',String(Math.min(.98,(.56+rain*.30)*variation)),'important');
+        bead.setAttribute('fill','rgba(255,255,255,.24)');
+        bead.setAttribute('stroke','rgba(255,255,255,.72)');
+        bead.setAttribute('stroke-width','.52');
+        bead.style.filter='drop-shadow(0 0 1.2px rgba(255,255,255,.62))';
       }else bead.style.setProperty('opacity','0','important');
     });
 
     const drops=[...pane.querySelectorAll('[data-rain-drop]')];
     drops.forEach((drop,i)=>{
-      const positioned=drop.hasAttribute('transform');
-      if(!positioned)return;
-      const variation=.88+((i*29)%13)/60;
-      drop.style.setProperty('opacity',String((.58+rain*.30)*variation),'important');
-      drop.style.filter='brightness(1.62) saturate(.22) drop-shadow(0 0 1px rgba(255,255,255,.48)) drop-shadow(0 2px 2px rgba(20,30,38,.08))';
+      if(!drop.hasAttribute('transform'))return;
+      const variation=.92+((i*29)%13)/90;
+      drop.style.setProperty('opacity',String(Math.min(1,(.78+rain*.20)*variation)),'important');
+      drop.style.filter='drop-shadow(0 0 1.8px rgba(255,255,255,.66)) drop-shadow(0 2px 2px rgba(20,30,38,.06))';
       const children=drop.children;
-      if(children[0])children[0].style.filter='brightness(1.75) saturate(.10)';
-      if(children[2])children[2].style.filter='brightness(1.95) saturate(.12)';
-      if(children[3])children[3].setAttribute('stroke','rgba(255,255,255,.88)');
-      if(children[1])children[1].setAttribute('stroke','rgba(30,40,48,.10)');
+      if(children[0]){
+        children[0].setAttribute('stroke','rgba(255,255,255,.62)');
+        children[0].style.setProperty('opacity',String(.42+rain*.30),'important');
+      }
+      if(children[1])children[1].setAttribute('stroke','rgba(28,38,46,.08)');
+      if(children[2]){
+        children[2].setAttribute('fill','rgba(255,255,255,.22)');
+        children[2].setAttribute('stroke','rgba(255,255,255,.78)');
+        children[2].setAttribute('stroke-width','.72');
+      }
+      if(children[3]){
+        children[3].setAttribute('stroke','rgba(255,255,255,.98)');
+        children[3].setAttribute('stroke-width','1.05');
+      }
     });
   };
   rainPaneRaf=requestAnimationFrame(wetGlassFrame);
