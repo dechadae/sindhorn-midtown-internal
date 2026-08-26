@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - weather-current-location
+      - weather-current-location-release
     paths:
       - "site/location.js"
       - "site/sw.js"
@@ -15,7 +16,7 @@ permissions:
   deployments: write
 
 concurrency:
-  group: weather-current-location-preview
+  group: weather-current-location-preview-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -43,13 +44,14 @@ jobs:
           grep -q "location-fixtures-current-location" site/sw.js
 
       - name: Deploy branch Pages preview
-        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=weather-current-location
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
 
       - name: Smoke test deployed preview
         shell: bash
         run: |
           set -euo pipefail
-          BASE_URL="https://weather-current-location.sindhorn-midtown-internal.pages.dev"
+          BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
+          BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           sleep 8
           for path in / /location.js /sw.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
