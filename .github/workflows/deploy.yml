@@ -9,7 +9,6 @@ on:
       - atmosphere-tester-v1
       - hotfix-rain-svg-pane
       - rain-realism-type-consistency
-      - wet-glass-shader-v1
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -68,15 +67,9 @@ jobs:
           assert '/tester-celestials.js?v=1' in tester
           celestial=(root/'tester-celestials.js').read_text()
           assert 'sunEclipse' in celestial and 'moonEclipse' in celestial
-          wet=(root/'wet-glass-tester.html').read_text()
-          assert 'WET GLASS' in wet and 'SIM_SIZE=512' in wet and 'uSceneTex' in wet and 'window.WetGlassLab' in wet
-          module=re.search(r'<script type="module">(.*?)</script>',wet,re.S)
-          assert module,'wet-glass inline module missing'
-          Path('/tmp/wet-glass-tester.mjs').write_text(module.group(1))
           sw=(root/'sw.js').read_text()
           assert 'isAppRoute' in sw and 'rain4' in sw
           PY
-          node --check /tmp/wet-glass-tester.mjs
 
       - name: Deploy to Cloudflare Pages
         env:
@@ -95,7 +88,7 @@ jobs:
             BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           fi
           sleep 8
-          for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /wet-glass-tester.html /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
+          for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
@@ -113,10 +106,6 @@ jobs:
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/tester-celestials.js" -o /tmp/smoke-celestial
           grep -q 'sunEclipse' /tmp/smoke-celestial
           grep -q 'moonEclipse' /tmp/smoke-celestial
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/wet-glass-tester.html" -o /tmp/smoke-wet
-          grep -q 'SIM_SIZE=512' /tmp/smoke-wet
-          grep -q 'uSceneTex' /tmp/smoke-wet
-          grep -q 'window.WetGlassLab' /tmp/smoke-wet
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" -o /tmp/smoke-manifest
           grep -q "\"minimumShell\": ${SHELL_VERSION}" /tmp/smoke-manifest
