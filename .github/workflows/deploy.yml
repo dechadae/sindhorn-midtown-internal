@@ -19,6 +19,7 @@ on:
       - revert-capture-dim-sun
       - user-local-location
       - storm-rain-realism
+      - capture-normal-layout
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -72,9 +73,9 @@ jobs:
           index=(root/'index.html').read_text()
           assert '/location.js' in index
           assert '/rain-layer.js?v=4' in index
-          assert '/storm-effects.js?v=1' in index
+          assert '/storm-effects.js?v=2' in index
           assert '/sun-dimmer.js?v=1' in index
-          assert '/screen-capture.js?v=2' in index
+          assert '/screen-capture.js?v=3' in index
           assert '/manifest.webmanifest?v=2' in index
           location=(root/'location.js').read_text()
           assert 'navigator.geolocation.getCurrentPosition' in location
@@ -87,9 +88,11 @@ jobs:
           assert 'display_override' not in pwa
           capture=(root/'screen-capture.js').read_text()
           assert 'document.exitFullscreen' in capture
-          assert 'html2canvas' not in capture
-          assert 'saveImageBtn' not in capture
-          assert 'captureVisibleApp' not in capture
+          assert 'saveImageBtn' in capture and 'saveNormalFullPage' in capture
+          assert 'foreignObjectRendering' in capture and 'prepareClone' in capture
+          assert "body.classList.remove('capture-home')" in capture
+          assert "document.body.classList.add('capture-home')" not in capture
+          assert 'event.stopImmediatePropagation()' in capture
           dimmer=(root/'sun-dimmer.js').read_text()
           assert 'sunAttenuator' in dimmer
           assert "brightness(.58)" in dimmer
@@ -108,12 +111,13 @@ jobs:
           assert 'MIN_STRIKE_MS=12000' in storm and 'MAX_STRIKE_MS=30000' in storm
           assert 'function drawStrike' in storm and 'function wrapExport' in storm
           assert 'flashShield' in storm and 'drawWetAtmosphere' in storm
+          assert 'daytimeMoonPoint' in storm and 'drawDayMoonRepair' in storm
+          assert 'extendViewportAtmosphere' in storm and 'original(w,liveH)' in storm
           envcss=(root/'environment.css').read_text()
           assert 'body.capture-home .environment-stage' in envcss and 'body.capture-home #rainPaneSvg' in envcss
           app=(root/'app.js').read_text()
           assert 'async function saveFullPage()' in app
           assert 'renderExport' in app
-          assert "document.body.classList.add('capture-home')" in app
           rain=(root/'rain-layer.js').read_text()
           assert 'rainPaneSvg' in rain
           assert 'rainPaneCanvas' not in rain
@@ -129,7 +133,7 @@ jobs:
           assert 'moonEclipse' in celestial
           assert 'testerWetReflection' in celestial
           sw=(root/'sw.js').read_text()
-          assert 'isAppRoute' in sw and 'atmosphere6-storm1' in sw
+          assert 'isAppRoute' in sw and 'atmosphere6-capture2' in sw
           assert "'/location.js'" in sw and "'/storm-effects.js'" in sw
           assert "'/sun-dimmer.js'" in sw and "'/screen-capture.js'" in sw
           PY
@@ -159,9 +163,9 @@ jobs:
           grep -q '/location.js' /tmp/smoke-root
           grep -q '/bootstrap.js' /tmp/smoke-root
           grep -q '/rain-layer.js?v=4' /tmp/smoke-root
-          grep -q '/storm-effects.js?v=1' /tmp/smoke-root
+          grep -q '/storm-effects.js?v=2' /tmp/smoke-root
           grep -q '/sun-dimmer.js?v=1' /tmp/smoke-root
-          grep -q '/screen-capture.js?v=2' /tmp/smoke-root
+          grep -q '/screen-capture.js?v=3' /tmp/smoke-root
           grep -q '/manifest.webmanifest?v=2' /tmp/smoke-root
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/location.js" -o /tmp/smoke-location
           grep -q 'navigator.geolocation.getCurrentPosition' /tmp/smoke-location
@@ -170,24 +174,24 @@ jobs:
           grep -q 'sindhorn:location-updated' /tmp/smoke-location
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/screen-capture.js" -o /tmp/smoke-capture
           grep -q 'document.exitFullscreen' /tmp/smoke-capture
-          ! grep -q 'html2canvas' /tmp/smoke-capture
-          ! grep -q 'saveImageBtn' /tmp/smoke-capture
+          grep -q 'saveNormalFullPage' /tmp/smoke-capture
+          grep -q 'foreignObjectRendering' /tmp/smoke-capture
+          grep -q "classList.remove('capture-home')" /tmp/smoke-capture
+          ! grep -q "document.body.classList.add('capture-home')" /tmp/smoke-capture
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/storm-effects.js" -o /tmp/smoke-storm
           grep -q 'MIN_STRIKE_MS=12000' /tmp/smoke-storm
           grep -q 'MAX_STRIKE_MS=30000' /tmp/smoke-storm
           grep -q 'drawWetAtmosphere' /tmp/smoke-storm
-          grep -q 'function drawStrike' /tmp/smoke-storm
-          grep -q 'function wrapExport' /tmp/smoke-storm
+          grep -q 'daytimeMoonPoint' /tmp/smoke-storm
+          grep -q 'drawDayMoonRepair' /tmp/smoke-storm
+          grep -q 'extendViewportAtmosphere' /tmp/smoke-storm
+          grep -q 'original(w,liveH)' /tmp/smoke-storm
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/environment.css" -o /tmp/smoke-envcss
           grep -q 'body.capture-home .environment-stage' /tmp/smoke-envcss
           grep -q 'body.capture-home #rainPaneSvg' /tmp/smoke-envcss
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sun-dimmer.js" -o /tmp/smoke-dimmer
           grep -q 'sunAttenuator' /tmp/smoke-dimmer
           grep -q 'brightness(.58)' /tmp/smoke-dimmer
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/app.js" -o /tmp/smoke-app
-          grep -q 'async function saveFullPage()' /tmp/smoke-app
-          grep -q 'renderExport' /tmp/smoke-app
-          grep -q "classList.add('capture-home')" /tmp/smoke-app
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/manifest.webmanifest" -o /tmp/smoke-pwa
           grep -q '"display":"standalone"' /tmp/smoke-pwa
           ! grep -q 'display_override' /tmp/smoke-pwa
@@ -224,7 +228,7 @@ jobs:
           grep -q 'moonEclipse' /tmp/smoke-celestial
           grep -q 'testerWetReflection' /tmp/smoke-celestial
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/smoke-sw
-          grep -q 'atmosphere6-storm1' /tmp/smoke-sw
+          grep -q 'atmosphere6-capture2' /tmp/smoke-sw
           grep -q "'/location.js'" /tmp/smoke-sw
           grep -q "'/storm-effects.js'" /tmp/smoke-sw
           grep -q "'/sun-dimmer.js'" /tmp/smoke-sw
