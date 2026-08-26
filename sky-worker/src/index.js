@@ -17,6 +17,9 @@ function parseJson(value){if(value&&typeof value==='object')return value;if(type
 function normalizeAiResponse(value){if(!value)return null;if(value.skyVisible!==undefined)return value;if(value.response!==undefined)return parseJson(value.response);if(value.result!==undefined)return parseJson(value.result);const content=value?.choices?.[0]?.message?.content;if(content!==undefined)return parseJson(content);return parseJson(value)}
 function bytesToBase64(bytes){let binary='';const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode(...bytes.subarray(i,Math.min(bytes.length,i+chunk)));return btoa(binary)}
 async function sha256(buffer){const digest=await crypto.subtle.digest('SHA-256',buffer);return[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,'0')).join('')}
+function prefix(env){return String(env.STATE_PREFIX||'prod').replace(/[^a-z0-9_-]/gi,'_')}
+function stateKey(env,key){return `${prefix(env)}:${key}`}
+function cameraKey(env,cameraId){return `${prefix(env)}:${cameraId}`}
 
 async function ensureSchema(env){
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS sky_camera_observations (
@@ -32,10 +35,10 @@ async function ensureSchema(env){
     updated_at TEXT NOT NULL
   )`).run();
 }
-async function stateGet(env,key){const row=await env.DB.prepare('SELECT value FROM sky_state WHERE key=?').bind(key).first();if(!row?.value)return null;return parseJson(row.value)}
-async function stateSet(env,key,value){const now=new Date().toISOString();await env.DB.prepare('INSERT INTO sky_state(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at').bind(key,JSON.stringify(value),now).run()}
-async function observationRow(env,cameraId){return env.DB.prepare('SELECT frame_hash,observed_at,analysis_json,updated_at FROM sky_camera_observations WHERE camera_id=?').bind(cameraId).first()}
-async function saveObservation(env,observation){const now=new Date().toISOString();await env.DB.prepare('INSERT INTO sky_camera_observations(camera_id,frame_hash,observed_at,analysis_json,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(camera_id) DO UPDATE SET frame_hash=excluded.frame_hash,observed_at=excluded.observed_at,analysis_json=excluded.analysis_json,updated_at=excluded.updated_at').bind(observation.id,observation.frameHash,observation.frameFetchedAt,JSON.stringify(observation),now).run()}
+async function stateGet(env,key){const row=await env.DB.prepare('SELECT value FROM sky_state WHERE key=?').bind(stateKey(env,key)).first();if(!row?.value)return null;return parseJson(row.value)}
+async function stateSet(env,key,value){const now=new Date().toISOString();await env.DB.prepare('INSERT INTO sky_state(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at').bind(stateKey(env,key),JSON.stringify(value),now).run()}
+async function observationRow(env,cameraId){return env.DB.prepare('SELECT frame_hash,observed_at,analysis_json,updated_at FROM sky_camera_observations WHERE camera_id=?').bind(cameraKey(env,cameraId)).first()}
+async function saveObservation(env,observation){const now=new Date().toISOString();await env.DB.prepare('INSERT INTO sky_camera_observations(camera_id,frame_hash,observed_at,analysis_json,updated_at) VALUES(?,?,?,?,?) ON CONFLICT(camera_id) DO UPDATE SET frame_hash=excluded.frame_hash,observed_at=excluded.observed_at,analysis_json=excluded.analysis_json,updated_at=excluded.updated_at').bind(cameraKey(env,observation.id),observation.frameHash,observation.frameFetchedAt,JSON.stringify(observation),now).run()}
 
 function decodeHtmlUrl(value){return String(value||'').replaceAll('\\/','/').replaceAll('&amp;','&')}
 function resolveImageUrl(html){
@@ -100,9 +103,9 @@ function blendRgb(a,b,alpha){if(!Array.isArray(a)||a.length!==3)return b;if(!Arr
 function smooth(previous,next,weather){
   if(!previous?.visual||!next?.visual||Number(previous.confidence)<=0)return next;
   const fast=[95,96,99,65,67,82].includes(Number(weather?.code))||Number(weather?.precipitation)>1;
-  const solarFast=next.mode==='sunrise-east'||next.mode==='sunset-west';const alpha=fast?.68:(solarFast?.46:.30);
+  const solarFast=next.mode==='sunrise-east'||next.mode==='sunset-west';const alpha=fast ? 0.68 : (solarFast ? 0.46 : 0.30);
   const visual={};for(const [key,value] of Object.entries(next.visual))visual[key]=Array.isArray(value)?blendRgb(previous.visual[key],value,alpha):blendNumber(previous.visual[key],value,alpha);
-  return{...next,confidence:blendNumber(previous.confidence,next.confidence,Math.max(alpha,.42)),visual,smoothing:{alpha,fastWeather:fast,solarTransition:solarFast}};
+  return{...next,confidence:blendNumber(previous.confidence,next.confidence,Math.max(alpha,0.42)),visual,smoothing:{alpha,fastWeather:fast,solarTransition:solarFast}};
 }
 
 async function collectStoredObservations(env,cameras,now){
@@ -116,7 +119,12 @@ async function evaluate(env,{force=false}={}){
   await stateSet(env,'latest_calibration',calibration);const status={checkedAt:new Date(now).toISOString(),mode:selection.mode,selected:selection.cameras.map(camera=>camera.id),analyzed:results.map(result=>({cameraId:result.cameraId,reused:Boolean(result.reused),ok:Boolean(result.observation),error:result.error||null})),validObservations:stored.length,confidence:calibration.confidence};await stateSet(env,'last_evaluation',status);return{calibration,status,force};
 }
 
-async function sourceProbe(camera){try{const imageUrl=await resolveCameraImage(camera),response=await fetch(imageUrl,{method:'HEAD',redirect:'follow',cache:'no-store'});return{id:camera.id,ok:response.ok,status:response.status,facing:camera.facing}}catch(error){return{id:camera.id,ok:false,status:0,facing:camera.facing,error:String(error?.message||error)}}}
+async function sourceProbe(camera){
+  try{
+    const imageUrl=await resolveCameraImage(camera),response=await fetch(imageUrl,{headers:{accept:'image/*'},redirect:'follow',cache:'no-store'}),type=(response.headers.get('content-type')||'').toLowerCase();
+    return{id:camera.id,ok:response.ok&&type.startsWith('image/'),status:response.status,facing:camera.facing};
+  }catch(error){return{id:camera.id,ok:false,status:0,facing:camera.facing,error:String(error?.message||error)}}
+}
 
 async function handle(request,env){
   await ensureSchema(env);const url=new URL(request.url),origin=request.headers.get('origin')||'',allowed=allowedOrigin(origin,env)?origin:'';
@@ -128,7 +136,7 @@ async function handle(request,env){
     return json(current,200,allowed);
   }
   if(url.pathname==='/health'){
-    const last=await stateGet(env,'last_evaluation'),current=await stateGet(env,'latest_calibration'),rows=await env.DB.prepare('SELECT COUNT(*) AS count FROM sky_camera_observations').first();
+    const last=await stateGet(env,'last_evaluation'),current=await stateGet(env,'latest_calibration'),like=`${prefix(env)}:%`,rows=await env.DB.prepare('SELECT COUNT(*) AS count FROM sky_camera_observations WHERE camera_id LIKE ?').bind(like).first();
     return json({ok:true,service:'sindhorn-midtown-sky',model:MODEL,aiConfigured:Boolean(env.AI),cameraCount:automatedCameras().length,observationCount:Number(rows?.count)||0,calibrationConfidence:Number(current?.confidence)||0,lastEvaluation:last},200,allowed);
   }
   if(url.pathname==='/sources')return json({sources:publicCameraMetadata()},200,allowed);
@@ -137,7 +145,7 @@ async function handle(request,env){
     const solar=solarPosition(),selection=chooseCameras(automatedCameras(),solar,2),probes=await Promise.all(selection.cameras.map(sourceProbe));return json({mode:selection.mode,probes},200,allowed);
   }
   if(url.pathname==='/evaluate'){
-    if(env.PREVIEW_MODE!=='true'||url.searchParams.get('token')!==env.PREVIEW_TOKEN)return json({error:'not_available'},404,allowed);
+    if(env.PREVIEW_MODE!=='true'||!PREVIEW_ORIGIN.test(origin))return json({error:'not_available'},404,allowed);
     try{const result=await evaluate(env,{force:true});return json(result,200,allowed)}catch(error){return json({error:String(error?.message||error)},500,allowed)}
   }
   return json({error:'not_found'},404,allowed);
