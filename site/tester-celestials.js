@@ -148,10 +148,37 @@ if(stage){
 }
 
 /* Tester wet-glass visibility calibration.
-   The production rain engine owns geometry and motion; this only raises optical
-   contrast in the lab so translucent pane drops remain judgeable on pale skies. */
+   Geometry, brightness and opacity remain unchanged here; this adds directional
+   specular reflection so pane droplets read as water catching light. */
 if(location.pathname.includes('atmosphere-tester')){
   let rainPaneRaf=0;
+  let reflectionReady=false;
+
+  const ensureReflectionFilter=(pane)=>{
+    if(reflectionReady||pane.querySelector('#testerWetReflection'))return;
+    const defs=pane.querySelector('defs');
+    if(!defs)return;
+    const filter=document.createElementNS(SVG_NS,'filter');
+    filter.id='testerWetReflection';
+    filter.setAttribute('x','-70%');
+    filter.setAttribute('y','-70%');
+    filter.setAttribute('width','240%');
+    filter.setAttribute('height','240%');
+    filter.innerHTML=`
+      <feGaussianBlur in="SourceAlpha" stdDeviation="0.75" result="softAlpha"/>
+      <feSpecularLighting in="softAlpha" surfaceScale="5.2" specularConstant="1.15" specularExponent="28" lighting-color="#ffffff" result="specular">
+        <feDistantLight azimuth="315" elevation="58"/>
+      </feSpecularLighting>
+      <feComposite in="specular" in2="SourceAlpha" operator="in" result="clippedSpecular"/>
+      <feGaussianBlur in="clippedSpecular" stdDeviation="0.22" result="softSpecular"/>
+      <feMerge>
+        <feMergeNode in="SourceGraphic"/>
+        <feMergeNode in="softSpecular"/>
+      </feMerge>`;
+    defs.appendChild(filter);
+    reflectionReady=true;
+  };
+
   const wetGlassFrame=()=>{
     rainPaneRaf=requestAnimationFrame(wetGlassFrame);
     const pane=document.getElementById('rainPaneSvg');
@@ -163,6 +190,7 @@ if(location.pathname.includes('atmosphere-tester')){
       return;
     }
 
+    ensureReflectionFilter(pane);
     pane.style.setProperty('opacity','1','important');
     pane.style.filter='brightness(1.58) contrast(1.10) saturate(.04) drop-shadow(0 0 1.6px rgba(255,255,255,.42))';
 
@@ -175,7 +203,7 @@ if(location.pathname.includes('atmosphere-tester')){
         bead.setAttribute('fill','rgba(255,255,255,.24)');
         bead.setAttribute('stroke','rgba(255,255,255,.72)');
         bead.setAttribute('stroke-width','.52');
-        bead.style.filter='drop-shadow(0 0 1.2px rgba(255,255,255,.62))';
+        bead.setAttribute('filter','url(#testerWetReflection)');
       }else bead.style.setProperty('opacity','0','important');
     });
 
@@ -195,6 +223,7 @@ if(location.pathname.includes('atmosphere-tester')){
         children[2].setAttribute('fill','rgba(255,255,255,.22)');
         children[2].setAttribute('stroke','rgba(255,255,255,.78)');
         children[2].setAttribute('stroke-width','.72');
+        children[2].setAttribute('filter','url(#testerWetReflection)');
       }
       if(children[3]){
         children[3].setAttribute('stroke','rgba(255,255,255,.98)');
