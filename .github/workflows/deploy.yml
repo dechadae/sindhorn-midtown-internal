@@ -16,6 +16,7 @@ on:
       - sun-post-cloud-composite
       - fix-blue-cloudy-sky
       - fix-sun-statusbar
+      - revert-capture-dim-sun
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -44,6 +45,7 @@ jobs:
           node --check site/live-data.js
           node --check site/environment.js
           node --check site/rain-layer.js
+          node --check site/sun-dimmer.js
           node --check site/screen-capture.js
           node --check site/atmosphere-tester.js
           node --check site/tester-celestials.js
@@ -65,17 +67,20 @@ jobs:
               assert digest==item['sha256'],f"fallback hash mismatch: {item['path']}"
           index=(root/'index.html').read_text()
           assert '/rain-layer.js?v=4' in index
-          assert '/screen-capture.js?v=1' in index
+          assert '/sun-dimmer.js?v=1' in index
+          assert '/screen-capture.js?v=2' in index
           assert '/manifest.webmanifest?v=2' in index
           pwa=json.loads((root/'manifest.webmanifest').read_text())
           assert pwa.get('display')=='standalone'
           assert 'display_override' not in pwa
           capture=(root/'screen-capture.js').read_text()
-          assert 'html2canvas(document.documentElement' in capture
-          assert "window.scrollTo({top:0,left:0,behavior:'auto'})" in capture
-          assert 'stopImmediatePropagation' in capture
           assert 'document.exitFullscreen' in capture
-          assert 'renderExport' not in capture
+          assert 'html2canvas' not in capture
+          assert 'saveImageBtn' not in capture
+          assert 'captureVisibleApp' not in capture
+          dimmer=(root/'sun-dimmer.js').read_text()
+          assert 'sunAttenuator' in dimmer
+          assert "brightness(.58)" in dimmer
           environment=(root/'environment.js').read_text()
           assert 'ATMOSPHERE TESTER CORE · LIVE' in environment
           assert 'snowfall' in environment and 'environmentSnowCanvas' in environment and 'environmentHailCanvas' in environment
@@ -87,6 +92,10 @@ jobs:
           assert 'float lobe=fbm' in environment and 'float crown=smoothstep' in environment
           assert 'sunRim' not in environment and 'sunCorona' not in environment
           assert 'moonCore' in environment
+          app=(root/'app.js').read_text()
+          assert 'async function saveFullPage()' in app
+          assert 'renderExport' in app
+          assert "document.body.classList.add('capture-home')" in app
           rain=(root/'rain-layer.js').read_text()
           assert 'rainPaneSvg' in rain
           assert 'rainPaneCanvas' not in rain
@@ -102,8 +111,8 @@ jobs:
           assert 'moonEclipse' in celestial
           assert 'testerWetReflection' in celestial
           sw=(root/'sw.js').read_text()
-          assert 'isAppRoute' in sw and 'atmosphere5-screen1' in sw
-          assert "'/screen-capture.js'" in sw
+          assert 'isAppRoute' in sw and 'atmosphere5-sun1' in sw
+          assert "'/sun-dimmer.js'" in sw and "'/screen-capture.js'" in sw
           PY
 
       - name: Deploy to Cloudflare Pages
@@ -123,19 +132,27 @@ jobs:
             BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           fi
           sleep 8
-          for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
+          for path in / /guidance /details /bootstrap.js /environment.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/" -o /tmp/smoke-root
           grep -q '/bootstrap.js' /tmp/smoke-root
           grep -q '/rain-layer.js?v=4' /tmp/smoke-root
-          grep -q '/screen-capture.js?v=1' /tmp/smoke-root
+          grep -q '/sun-dimmer.js?v=1' /tmp/smoke-root
+          grep -q '/screen-capture.js?v=2' /tmp/smoke-root
           grep -q '/manifest.webmanifest?v=2' /tmp/smoke-root
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/screen-capture.js" -o /tmp/smoke-capture
-          grep -q 'html2canvas(document.documentElement' /tmp/smoke-capture
-          grep -q 'stopImmediatePropagation' /tmp/smoke-capture
-          ! grep -q 'renderExport' /tmp/smoke-capture
+          grep -q 'document.exitFullscreen' /tmp/smoke-capture
+          ! grep -q 'html2canvas' /tmp/smoke-capture
+          ! grep -q 'saveImageBtn' /tmp/smoke-capture
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sun-dimmer.js" -o /tmp/smoke-dimmer
+          grep -q 'sunAttenuator' /tmp/smoke-dimmer
+          grep -q 'brightness(.58)' /tmp/smoke-dimmer
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/app.js" -o /tmp/smoke-app
+          grep -q 'async function saveFullPage()' /tmp/smoke-app
+          grep -q 'renderExport' /tmp/smoke-app
+          grep -q "classList.add('capture-home')" /tmp/smoke-app
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/manifest.webmanifest" -o /tmp/smoke-pwa
           grep -q '"display":"standalone"' /tmp/smoke-pwa
           ! grep -q 'display_override' /tmp/smoke-pwa
@@ -172,7 +189,8 @@ jobs:
           grep -q 'moonEclipse' /tmp/smoke-celestial
           grep -q 'testerWetReflection' /tmp/smoke-celestial
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/smoke-sw
-          grep -q 'atmosphere5-screen1' /tmp/smoke-sw
+          grep -q 'atmosphere5-sun1' /tmp/smoke-sw
+          grep -q "'/sun-dimmer.js'" /tmp/smoke-sw
           grep -q "'/screen-capture.js'" /tmp/smoke-sw
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" -o /tmp/smoke-manifest
