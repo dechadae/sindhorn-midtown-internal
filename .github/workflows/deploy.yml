@@ -22,6 +22,7 @@ on:
       - capture-normal-layout
       - fix-skip-link-flash
       - fix-lunar-phase-v2
+      - fix-lunar-phase-shader
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -77,7 +78,7 @@ jobs:
           assert '/location.js' in index
           assert '/shell.css?v=2' in index
           assert '/rain-layer.js?v=4' in index
-          assert '/storm-effects.js?v=3' in index
+          assert '/storm-effects.js?v=4' in index
           assert '/seasonal-sky.js?v=1' in index
           assert '/sun-dimmer.js?v=1' in index
           assert '/screen-capture.js?v=3' in index
@@ -115,16 +116,19 @@ jobs:
           assert 'uCloudOvercastFloor' in environment and 'uCloudEdgeLight' in environment
           assert 'float lobe=fbm' in environment and 'float crown=smoothstep' in environment
           assert 'sunRim' not in environment and 'sunCorona' not in environment
-          assert 'moonCore' in environment
+          assert 'moonSurfaceZ' in environment and 'moonLimb' in environment
+          assert 'moonPhaseAngle' in environment and 'moonLightDirection' in environment
+          assert 'moonTerminator' in environment and 'moonEarthshine' in environment
+          assert 'moonCloudTransmission' in environment and 'moonPhaseBrightness' in environment
+          assert 'moonCore' not in environment
+          assert "c=mix(c,vec3(.018,.024,.035)" not in environment
           storm=(root/'storm-effects.js').read_text()
           assert 'MIN_STRIKE_MS=12000' in storm and 'MAX_STRIKE_MS=30000' in storm
           assert 'function drawStrike' in storm and 'function wrapExport' in storm
           assert 'flashShield' in storm and 'drawWetAtmosphere' in storm
-          assert 'daytimeMoonPoint' in storm and 'drawDayMoonRepair' in storm
           assert 'extendViewportAtmosphere' in storm and 'original(w,liveH)' in storm
-          assert 'function makeMoonSprite' in storm and 'function buildMoonBackgroundPatch' in storm
-          assert 'moon.phase' in storm and 'moon.illumination' in storm
-          assert 'theta=phase*Math.PI*2' in storm and 'dot=nx*lx+z*lz' in storm
+          assert 'daytimeMoonPoint' not in storm and 'drawDayMoonRepair' not in storm
+          assert 'makeMoonSprite' not in storm and 'buildMoonBackgroundPatch' not in storm
           seasonal=(root/'seasonal-sky.js').read_text()
           assert 'seasonFor' in seasonal and 'twilightStrength' in seasonal and 'rainy' in seasonal
           envcss=(root/'environment.css').read_text()
@@ -147,7 +151,7 @@ jobs:
           assert 'moonEclipse' in celestial
           assert 'testerWetReflection' in celestial
           sw=(root/'sw.js').read_text()
-          assert 'isAppRoute' in sw and 'atmosphere6-capture2' in sw
+          assert 'isAppRoute' in sw and 'atmosphere7-lunar-phase' in sw
           assert "'/location.js'" in sw and "'/storm-effects.js'" in sw and "'/seasonal-sky.js'" in sw
           assert "'/sun-dimmer.js'" in sw and "'/screen-capture.js'" in sw
           PY
@@ -178,7 +182,7 @@ jobs:
           grep -q '/bootstrap.js' /tmp/smoke-root
           grep -q '/shell.css?v=2' /tmp/smoke-root
           grep -q '/rain-layer.js?v=4' /tmp/smoke-root
-          grep -q '/storm-effects.js?v=3' /tmp/smoke-root
+          grep -q '/storm-effects.js?v=4' /tmp/smoke-root
           grep -q '/seasonal-sky.js?v=1' /tmp/smoke-root
           grep -q '/sun-dimmer.js?v=1' /tmp/smoke-root
           grep -q '/screen-capture.js?v=3' /tmp/smoke-root
@@ -197,17 +201,16 @@ jobs:
           grep -q 'foreignObjectRendering' /tmp/smoke-capture
           grep -q "classList.remove('capture-home')" /tmp/smoke-capture
           ! grep -q "document.body.classList.add('capture-home')" /tmp/smoke-capture
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/storm-effects.js?v=3" -o /tmp/smoke-storm
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/storm-effects.js?v=4" -o /tmp/smoke-storm
           grep -q 'MIN_STRIKE_MS=12000' /tmp/smoke-storm
           grep -q 'MAX_STRIKE_MS=30000' /tmp/smoke-storm
           grep -q 'drawWetAtmosphere' /tmp/smoke-storm
-          grep -q 'daytimeMoonPoint' /tmp/smoke-storm
-          grep -q 'drawDayMoonRepair' /tmp/smoke-storm
           grep -q 'extendViewportAtmosphere' /tmp/smoke-storm
           grep -q 'original(w,liveH)' /tmp/smoke-storm
-          grep -q 'makeMoonSprite' /tmp/smoke-storm
-          grep -q 'buildMoonBackgroundPatch' /tmp/smoke-storm
-          grep -Fq 'theta=phase*Math.PI*2' /tmp/smoke-storm
+          ! grep -q 'daytimeMoonPoint' /tmp/smoke-storm
+          ! grep -q 'drawDayMoonRepair' /tmp/smoke-storm
+          ! grep -q 'makeMoonSprite' /tmp/smoke-storm
+          ! grep -q 'buildMoonBackgroundPatch' /tmp/smoke-storm
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/seasonal-sky.js" -o /tmp/smoke-seasonal
           grep -q 'seasonFor' /tmp/smoke-seasonal
           grep -q 'twilightStrength' /tmp/smoke-seasonal
@@ -237,7 +240,16 @@ jobs:
           grep -q 'float crown=smoothstep' /tmp/smoke-environment
           ! grep -q 'sunRim' /tmp/smoke-environment
           ! grep -q 'sunCorona' /tmp/smoke-environment
-          grep -q 'moonCore' /tmp/smoke-environment
+          grep -q 'moonSurfaceZ' /tmp/smoke-environment
+          grep -q 'moonLimb' /tmp/smoke-environment
+          grep -q 'moonPhaseAngle' /tmp/smoke-environment
+          grep -q 'moonLightDirection' /tmp/smoke-environment
+          grep -q 'moonTerminator' /tmp/smoke-environment
+          grep -q 'moonEarthshine' /tmp/smoke-environment
+          grep -q 'moonCloudTransmission' /tmp/smoke-environment
+          grep -q 'moonPhaseBrightness' /tmp/smoke-environment
+          ! grep -q 'moonCore' /tmp/smoke-environment
+          ! grep -Fq 'c=mix(c,vec3(.018,.024,.035)' /tmp/smoke-environment
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/rain-layer.js" -o /tmp/smoke-rain
           grep -q 'rainPaneSvg' /tmp/smoke-rain
           ! grep -q 'rainPaneCanvas' /tmp/smoke-rain
@@ -253,7 +265,7 @@ jobs:
           grep -q 'moonEclipse' /tmp/smoke-celestial
           grep -q 'testerWetReflection' /tmp/smoke-celestial
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/smoke-sw
-          grep -q 'atmosphere6-capture2' /tmp/smoke-sw
+          grep -q 'atmosphere7-lunar-phase' /tmp/smoke-sw
           grep -q "'/location.js'" /tmp/smoke-sw
           grep -q "'/storm-effects.js'" /tmp/smoke-sw
           grep -q "'/seasonal-sky.js'" /tmp/smoke-sw
