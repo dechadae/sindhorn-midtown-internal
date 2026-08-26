@@ -146,3 +146,46 @@ if(stage){
   addEventListener('resize',resize,{passive:true});
   raf=requestAnimationFrame(frame);
 }
+
+/* Tester wet-glass visibility calibration.
+   The production rain engine owns geometry and motion; this only raises optical
+   contrast in the lab so translucent pane drops remain judgeable on pale skies. */
+if(location.pathname.includes('atmosphere-tester')){
+  let rainPaneRaf=0;
+  const wetGlassFrame=()=>{
+    rainPaneRaf=requestAnimationFrame(wetGlassFrame);
+    const pane=document.getElementById('rainPaneSvg');
+    if(!pane)return;
+    const rain=clamp(num('rain',0)/100);
+    const enabled=document.getElementById('paneDrops')?.checked!==false;
+    if(!enabled||rain<.005){
+      pane.style.setProperty('opacity','0','important');
+      return;
+    }
+
+    pane.style.setProperty('opacity',String(.78+rain*.17),'important');
+    pane.style.filter='contrast(1.16) saturate(.86) drop-shadow(0 1px 1px rgba(255,255,255,.08))';
+
+    const beads=[...pane.querySelectorAll('#rainPaneBeads path')];
+    const beadCount=Math.min(beads.length,Math.round(22+rain*26));
+    beads.forEach((bead,i)=>{
+      if(i<beadCount){
+        const variation=.82+((i*37)%17)/50;
+        bead.style.setProperty('opacity',String((.18+rain*.15)*variation),'important');
+      }else bead.style.setProperty('opacity','0','important');
+    });
+
+    const drops=[...pane.querySelectorAll('[data-rain-drop]')];
+    drops.forEach((drop,i)=>{
+      const positioned=drop.hasAttribute('transform');
+      if(!positioned)return;
+      const variation=.88+((i*29)%13)/60;
+      drop.style.setProperty('opacity',String((.42+rain*.24)*variation),'important');
+      drop.style.filter='drop-shadow(0 1px 1px rgba(255,255,255,.16)) drop-shadow(0 2px 2px rgba(20,30,38,.12))';
+      const children=drop.children;
+      if(children[3])children[3].setAttribute('stroke','rgba(255,255,255,.58)');
+      if(children[1])children[1].setAttribute('stroke','rgba(18,28,36,.20)');
+    });
+  };
+  rainPaneRaf=requestAnimationFrame(wetGlassFrame);
+}
