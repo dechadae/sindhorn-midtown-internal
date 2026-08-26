@@ -1,3 +1,4 @@
+# Retriggered after Cloudflare Worker/D1 token permission update on 2026-08-26.
 name: Phase 6 Web Push
 
 on:
