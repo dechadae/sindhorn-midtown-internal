@@ -1,155 +1,18 @@
 const SVG_NS='http://www.w3.org/2000/svg';
-const CELESTIAL_IDS=['sunEclipse','moonEclipse'];
 const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
 const num=(id,fallback=0)=>{const el=document.getElementById(id);const n=Number(el?.value);return Number.isFinite(n)?n:fallback};
 
-const stage=document.getElementById('environmentStage');
-if(stage){
-  const svg=document.createElementNS(SVG_NS,'svg');
-  svg.id='testerCelestials';
-  svg.setAttribute('aria-hidden','true');
-  svg.setAttribute('preserveAspectRatio','none');
-  Object.assign(svg.style,{position:'absolute',inset:'0',width:'100%',height:'100%',zIndex:'2',pointerEvents:'none',overflow:'hidden'});
+/*
+  Atmosphere Tester celestial cleanup.
 
-  const defs=document.createElementNS(SVG_NS,'defs');
-  defs.innerHTML=`
-    <filter id="sunCorona" x="-300%" y="-300%" width="700%" height="700%">
-      <feGaussianBlur stdDeviation="8"/>
-    </filter>
-    <filter id="sunHalo" x="-300%" y="-300%" width="700%" height="700%">
-      <feGaussianBlur stdDeviation="24"/>
-    </filter>
-    <filter id="moonCorona" x="-300%" y="-300%" width="700%" height="700%">
-      <feGaussianBlur stdDeviation="7"/>
-    </filter>
-    <filter id="moonHalo" x="-300%" y="-300%" width="700%" height="700%">
-      <feGaussianBlur stdDeviation="21"/>
-    </filter>
-    <radialGradient id="sunHaloGradient">
-      <stop offset="0%" stop-color="#fffbe8" stop-opacity=".62"/>
-      <stop offset="24%" stop-color="#fff3bf" stop-opacity=".30"/>
-      <stop offset="58%" stop-color="#ffd98f" stop-opacity=".12"/>
-      <stop offset="100%" stop-color="#ffd98f" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="moonHaloGradient">
-      <stop offset="0%" stop-color="#f7fbff" stop-opacity=".55"/>
-      <stop offset="24%" stop-color="#dfeaff" stop-opacity=".27"/>
-      <stop offset="58%" stop-color="#a9c7ff" stop-opacity=".10"/>
-      <stop offset="100%" stop-color="#a9c7ff" stop-opacity="0"/>
-    </radialGradient>`;
-  svg.appendChild(defs);
+  The tester shader already renders the correct sun/moon atmospheric glow.
+  A separate SVG eclipse layer previously rendered a second, vertically mirrored
+  dark disc. That duplicate celestial layer is intentionally removed.
 
-  const makeGroup=(kind)=>{
-    const g=document.createElementNS(SVG_NS,'g');
-    g.id=`${kind}Eclipse`;
-    const warm=kind==='sun';
-    const halo=document.createElementNS(SVG_NS,'circle');
-    halo.setAttribute('r','64');
-    halo.setAttribute('fill',`url(#${kind}HaloGradient)`);
-    halo.setAttribute('filter',`url(#${kind}Halo)`);
-    const corona=document.createElementNS(SVG_NS,'circle');
-    corona.setAttribute('r','28');
-    corona.setAttribute('fill','none');
-    corona.setAttribute('stroke',warm?'rgba(255,247,205,.84)':'rgba(226,238,255,.82)');
-    corona.setAttribute('stroke-width','9');
-    corona.setAttribute('filter',`url(#${kind}Corona)`);
-    const rim=document.createElementNS(SVG_NS,'circle');
-    rim.setAttribute('r','15');
-    rim.setAttribute('fill','none');
-    rim.setAttribute('stroke',warm?'rgba(255,252,228,.97)':'rgba(239,246,255,.96)');
-    rim.setAttribute('stroke-width','2.2');
-    const innerRim=document.createElementNS(SVG_NS,'circle');
-    innerRim.setAttribute('r','13.7');
-    innerRim.setAttribute('fill','none');
-    innerRim.setAttribute('stroke',warm?'rgba(255,211,126,.52)':'rgba(157,195,255,.46)');
-    innerRim.setAttribute('stroke-width','1');
-    const core=document.createElementNS(SVG_NS,'circle');
-    core.setAttribute('r','13.2');
-    core.setAttribute('fill',warm?'rgba(12,14,15,.96)':'rgba(7,11,18,.96)');
-    const earthshine=document.createElementNS(SVG_NS,'circle');
-    earthshine.setAttribute('r','11.6');
-    earthshine.setAttribute('fill',warm?'rgba(31,27,21,.14)':'rgba(68,90,126,.12)');
-    g.append(halo,corona,rim,innerRim,core,earthshine);
-    svg.appendChild(g);
-    return {g,halo,corona,rim,innerRim,core,earthshine};
-  };
+  Keep this module only for the approved wet-glass reflection calibration below.
+*/
+const CELESTIAL_OVERLAY_REMOVED=true;
 
-  const sun=makeGroup('sun');
-  const moon=makeGroup('moon');
-  stage.appendChild(svg);
-
-  let width=1,height=1,raf=0;
-  const resize=()=>{
-    const rect=stage.getBoundingClientRect();
-    width=Math.max(1,rect.width||innerWidth||1);
-    height=Math.max(1,rect.height||innerHeight||1);
-    svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
-  };
-
-  const visibilityFactors=()=>{
-    const cloud=num('cloudCover',0)/100;
-    const fog=num('fog',0)/100;
-    const storm=num('stormDarkness',0)/100;
-    const visibility=num('visibility',30);
-    const pm=clamp(num('pm25',0)/220);
-    const dust=num('dust',0)/100;
-    const smoke=num('smoke',0)/100;
-    const clearSky=clamp((42-cloud*100)/42);
-    const optical=clearSky*(1-fog*.88)*(1-storm*.82)*clamp((visibility-.4)/12)*(1-pm*.62-dust*.34-smoke*.52);
-    const diffuse=clamp((1-storm*.72)*(1-fog*.70)*clamp((visibility-.2)/8)*(1-pm*.42-dust*.24-smoke*.36));
-    return {clear:clamp(optical),diffuse:clamp(diffuse),cloud};
-  };
-
-  const place=(obj,x,y,scale,sharp,diffuse,time,warm)=>{
-    obj.g.setAttribute('transform',`translate(${x.toFixed(2)} ${y.toFixed(2)}) scale(${scale.toFixed(3)})`);
-    const breathe=1+Math.sin(time*(warm?.34:.27))*0.018;
-    obj.halo.setAttribute('r',String(64*breathe));
-    obj.g.style.opacity=String(clamp(.04+diffuse*.44+sharp*.70));
-    obj.rim.style.opacity=String(clamp(sharp*1.08));
-    obj.innerRim.style.opacity=String(clamp(sharp*.82));
-    obj.core.style.opacity=String(clamp(sharp*.96));
-    obj.earthshine.style.opacity=String(clamp(sharp*(warm?.20:.42)));
-    obj.corona.style.opacity=String(clamp(.10+diffuse*.30+sharp*.62));
-    obj.halo.style.opacity=String(clamp(.08+diffuse*.40+sharp*.34));
-  };
-
-  const frame=(now)=>{
-    raf=requestAnimationFrame(frame);
-    const solar=num('solarAltitude',38);
-    const {clear,diffuse,cloud}=visibilityFactors();
-    const baseScale=clamp((Math.min(width,height)/690),.72,1.28);
-    const sunVisible=clamp((solar+3)/7);
-    const moonVisible=clamp((-solar-1)/8);
-
-    if(sunVisible>.01){
-      const sunY=clamp(.13+clamp((solar+2)/82)*.72,.08,.88)*height;
-      const sunX=.72*width;
-      const sharp=sunVisible*clear*clamp((35-cloud*100)/35);
-      const diff=sunVisible*diffuse;
-      place(sun,sunX,sunY,baseScale,sharp,diff,now/1000,true);
-      sun.g.style.display='block';
-    }else sun.g.style.display='none';
-
-    if(moonVisible>.01){
-      const moonAltitude=clamp((-solar-2)/22);
-      const moonY=(.18+moonAltitude*.52)*height;
-      const moonX=.28*width;
-      const sharp=moonVisible*clear*clamp((38-cloud*100)/38);
-      const diff=moonVisible*diffuse;
-      place(moon,moonX,moonY,baseScale*.92,sharp,diff,now/1000,false);
-      moon.g.style.display='block';
-    }else moon.g.style.display='none';
-  };
-
-  resize();
-  if('ResizeObserver'in window)new ResizeObserver(resize).observe(stage);
-  addEventListener('resize',resize,{passive:true});
-  raf=requestAnimationFrame(frame);
-}
-
-/* Tester wet-glass visibility calibration.
-   Geometry, brightness and opacity remain unchanged here; this adds directional
-   specular reflection so pane droplets read as water catching light. */
 if(location.pathname.includes('atmosphere-tester')){
   let rainPaneRaf=0;
   let reflectionReady=false;
@@ -231,5 +94,6 @@ if(location.pathname.includes('atmosphere-tester')){
       }
     });
   };
+
   rainPaneRaf=requestAnimationFrame(wetGlassFrame);
 }
