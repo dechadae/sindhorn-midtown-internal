@@ -1,0 +1,119 @@
+name: Phase 6 Web Push Release
+
+on:
+  push:
+    branches:
+      - phase6-web-push-release
+      - main
+    paths:
+      - "worker/**"
+      - "site/push-config.js"
+      - "site/push-client.js"
+      - "site/index.html"
+      - "site/sw.js"
+      - ".github/workflows/phase6-web-push-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: sindhorn-midtown-phase6-release-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      WORKER_URL: https://sindhorn-midtown-alerts.decha-dae.workers.dev
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate shell and Worker source
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check worker/src/index.js
+          node --check site/push-client.js
+          node --check site/push-config.js
+          node --check site/sw.js
+          node --check site/location.js
+          grep -q '/push-client.js?v=1' site/index.html
+          grep -q "pushManager.subscribe" site/push-client.js
+          grep -q "enableFromGesture" site/push-client.js
+          ! grep -q "Notification.requestPermission" site/push-client.js
+          grep -q "pwa-v19-web-push-location-fixtures-current-location" site/sw.js
+          grep -q "'/push-config.js'" site/sw.js
+          grep -q "'/push-client.js'" site/sw.js
+          grep -q "addEventListener('push'" site/sw.js
+          grep -q "addEventListener('notificationclick'" site/sw.js
+          grep -q "Current location" site/location.js
+          grep -q "weatherLocationEn" site/location.js
+          grep -q "buildPushPayload" worker/src/index.js
+          grep -q "scheduled" worker/src/index.js
+          grep -q "push_subscriptions" worker/src/index.js
+          grep -q "monitor_state" worker/src/index.js
+          grep -q 'database_name' worker/wrangler.jsonc
+          grep -q 'database_id' worker/wrangler.jsonc
+          grep -Fq "${WORKER_URL}" site/push-config.js
+
+      - name: Install Worker dependency
+        run: npm install --prefix worker --no-audit --no-fund
+
+      - name: Validate Worker bundle
+        run: npx --yes wrangler@4.125.0 deploy --dry-run --config worker/wrangler.jsonc --outdir /tmp/phase6-worker
+
+      - name: Verify live Worker health and CORS
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${WORKER_URL}/health" -o /tmp/health.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/health.json'))
+          assert d.get('ok') is True
+          assert d.get('service')=='sindhorn-midtown-alerts'
+          assert d.get('vapidConfigured') is True
+          assert isinstance(d.get('subscriptions'),int)
+          PY
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            ORIGIN="https://sindhorn-midtown-internal.pages.dev"
+          else
+            ORIGIN="https://phase6-web-push-release.sindhorn-midtown-internal.pages.dev"
+          fi
+          curl --fail --silent --show-error -H "Origin: ${ORIGIN}" "${WORKER_URL}/vapid-public-key" -D /tmp/key-headers -o /tmp/key.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/key.json'))
+          assert isinstance(d.get('publicKey'),str) and len(d['publicKey'])>50
+          PY
+          grep -qi "access-control-allow-origin: ${ORIGIN}" /tmp/key-headers
+
+      - name: Deploy alert Worker on production merge
+        if: github.ref_name == 'main'
+        run: npx --yes wrangler@4.125.0 deploy --config worker/wrangler.jsonc
+
+      - name: Deploy branch Pages preview
+        if: github.ref_name != 'main'
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke test branch preview
+        if: github.ref_name != 'main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://phase6-web-push-release.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /guidance /details /location.js /push-config.js /push-client.js /sw.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
+            test -s /tmp/smoke
+          done
+          grep -q '/push-client.js?v=1' <(curl --fail --silent --show-error "${BASE_URL}/")
+          grep -q 'pushManager.subscribe' <(curl --fail --silent --show-error "${BASE_URL}/push-client.js")
+          grep -q 'Current location' <(curl --fail --silent --show-error "${BASE_URL}/location.js")
+          grep -q 'pwa-v19-web-push-location-fixtures-current-location' <(curl --fail --silent --show-error "${BASE_URL}/sw.js")
