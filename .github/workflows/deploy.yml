@@ -23,6 +23,7 @@ on:
       - fix-skip-link-flash
       - fix-lunar-phase-v2
       - fix-lunar-phase-shader
+      - live-location-fixtures
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -144,14 +145,20 @@ jobs:
           assert 'tester-celestials.js?v=1' not in rain
           tester=(root/'atmosphere-tester.html').read_text()
           assert 'ATMOSPHERE TESTER' in tester and '/atmosphere-tester.js' in tester and '/rain-layer.js?v=4' in tester
+          assert '/location.js' in tester and '/seasonal-sky.js?v=1' in tester
           assert '/tester-celestials.js?v=2' in tester
           assert '/tester-celestials.js?v=1' not in tester
+          tester_js=(root/'atmosphere-tester.js').read_text()
+          assert "'clear-1700'" in tester_js and "'clear-1800'" in tester_js and "'rain-1700'" in tester_js
+          assert 'resolveFixtureLocation' in tester_js and 'solarPosition' in tester_js and 'localFixtureDate' in tester_js
+          assert "new CustomEvent('sindhorn:location-updated'" in tester_js
+          assert "environmentRenderer='unavailable'" in tester_js
           celestial=(root/'tester-celestials.js').read_text()
           assert 'sunEclipse' not in celestial
           assert 'moonEclipse' in celestial
           assert 'testerWetReflection' in celestial
           sw=(root/'sw.js').read_text()
-          assert 'isAppRoute' in sw and 'atmosphere7-lunar-phase' in sw
+          assert 'isAppRoute' in sw and 'location-fixtures' in sw
           assert "'/location.js'" in sw and "'/storm-effects.js'" in sw and "'/seasonal-sky.js'" in sw
           assert "'/sun-dimmer.js'" in sw and "'/screen-capture.js'" in sw
           PY
@@ -258,14 +265,24 @@ jobs:
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/atmosphere-tester.html" -o /tmp/smoke-tester
           grep -q 'ATMOSPHERE TESTER' /tmp/smoke-tester
           grep -q '/rain-layer.js?v=4' /tmp/smoke-tester
+          grep -q '/location.js' /tmp/smoke-tester
+          grep -q '/seasonal-sky.js?v=1' /tmp/smoke-tester
           grep -q '/tester-celestials.js?v=2' /tmp/smoke-tester
           ! grep -q '/tester-celestials.js?v=1' /tmp/smoke-tester
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/atmosphere-tester.js" -o /tmp/smoke-tester-js
+          grep -q "'clear-1700'" /tmp/smoke-tester-js
+          grep -q "'clear-1800'" /tmp/smoke-tester-js
+          grep -q "'rain-1700'" /tmp/smoke-tester-js
+          grep -q 'resolveFixtureLocation' /tmp/smoke-tester-js
+          grep -q 'localFixtureDate' /tmp/smoke-tester-js
+          grep -q "new CustomEvent('sindhorn:location-updated'" /tmp/smoke-tester-js
+          grep -q "environmentRenderer='unavailable'" /tmp/smoke-tester-js
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/tester-celestials.js" -o /tmp/smoke-celestial
           ! grep -q 'sunEclipse' /tmp/smoke-celestial
           grep -q 'moonEclipse' /tmp/smoke-celestial
           grep -q 'testerWetReflection' /tmp/smoke-celestial
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/smoke-sw
-          grep -q 'atmosphere7-lunar-phase' /tmp/smoke-sw
+          grep -q 'location-fixtures' /tmp/smoke-sw
           grep -q "'/location.js'" /tmp/smoke-sw
           grep -q "'/storm-effects.js'" /tmp/smoke-sw
           grep -q "'/seasonal-sky.js'" /tmp/smoke-sw

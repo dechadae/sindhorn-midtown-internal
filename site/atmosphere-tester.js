@@ -7,6 +7,12 @@ const defaults={
   rain:0,snow:0,hail:0,lightning:0,windSpeed:8,windDirection:225,pm25:12,dust:0,smoke:0
 };
 
+const fixturePresets={
+  'clear-1700':{labelEn:'CLEAR SKY · 5:00 PM',labelTh:'ท้องฟ้าแจ่มใส · 17:00 น.',hour:17,minute:0,state:{temperature:31,humidity:66,visibility:35,cloudCover:5,stormDarkness:0,fog:0,heatHaze:5,rain:0,snow:0,hail:0,lightning:0,windSpeed:8,windDirection:220,pm25:8,dust:0,smoke:0}},
+  'clear-1800':{labelEn:'CLEAR SKY · 6:00 PM',labelTh:'ท้องฟ้าแจ่มใส · 18:00 น.',hour:18,minute:0,state:{temperature:30,humidity:69,visibility:35,cloudCover:5,stormDarkness:0,fog:0,heatHaze:2,rain:0,snow:0,hail:0,lightning:0,windSpeed:8,windDirection:220,pm25:8,dust:0,smoke:0}},
+  'rain-1700':{labelEn:'RAIN · 5:00 PM',labelTh:'ฝนตก · 17:00 น.',hour:17,minute:0,state:{temperature:28,humidity:96,visibility:8,cloudCover:100,stormDarkness:38,fog:10,heatHaze:0,rain:55,snow:0,hail:0,lightning:0,windSpeed:24,windDirection:220,pm25:8,dust:0,smoke:0}}
+};
+
 const presets={
   'Clear tropical day':{solarAltitude:58,temperature:33,humidity:62,visibility:35,cloudCover:5,stormDarkness:0,fog:0,heatHaze:15,rain:0,snow:0,hail:0,lightning:0,windSpeed:7,windDirection:210,pm25:10,dust:0,smoke:0},
   'Partly cloudy':{solarAltitude:42,temperature:31,humidity:72,visibility:28,cloudCover:48,stormDarkness:0,fog:0,heatHaze:5,rain:0,snow:0,hail:0,lightning:0,windSpeed:12,windDirection:220,pm25:15,dust:0,smoke:0},
@@ -46,11 +52,53 @@ const badge=document.getElementById('conditionBadge');
 const readout=document.getElementById('stateReadout');
 const presetSelect=document.getElementById('presetSelect');
 const paneToggle=document.getElementById('paneDrops');
+const fixtureContextNode=document.getElementById('fixtureContext');
 const DPR=Math.min(2,Math.max(1,window.devicePixelRatio||1));
 
 let renderer,scene,camera,geometry,material,uniforms,startTime=performance.now(),raf=0,lastFrame=performance.now();
 let width=1,height=1,flash=0,nextFlashAt=0;
 let snowCanvas,snowCtx,hailCanvas,hailCtx;
+let fixtureContext=null;
+
+function julianDay(date){return date.getTime()/86400000+2440587.5}
+function solarPosition(date,locationState){
+  const jd=julianDay(date),n=jd-2451545,L=(280.46+.9856474*n)%360,g=((357.528+.9856003*n)%360)*Math.PI/180,lambda=(L+1.915*Math.sin(g)+.02*Math.sin(2*g))*Math.PI/180,epsilon=(23.439-.0000004*n)*Math.PI/180,alpha=Math.atan2(Math.cos(epsilon)*Math.sin(lambda),Math.cos(lambda)),delta=Math.asin(Math.sin(epsilon)*Math.sin(lambda)),ut=date.getUTCHours()+date.getUTCMinutes()/60+date.getUTCSeconds()/3600,gst=((6.697375+.0657098242*n+ut)%24+24)%24,lst=((gst+locationState.longitude/15)%24+24)%24;
+  let hourAngle=lst*15*Math.PI/180-alpha;while(hourAngle< -Math.PI)hourAngle+=Math.PI*2;while(hourAngle>Math.PI)hourAngle-=Math.PI*2;
+  const lat=locationState.latitude*Math.PI/180,altitude=Math.asin(Math.sin(lat)*Math.sin(delta)+Math.cos(lat)*Math.cos(delta)*Math.cos(hourAngle)),azimuth=Math.atan2(-Math.sin(hourAngle),Math.tan(delta)*Math.cos(lat)-Math.sin(lat)*Math.cos(hourAngle));
+  return{altitude:altitude*180/Math.PI,azimuth:(azimuth*180/Math.PI+360)%360};
+}
+function zonedParts(date,timezone){
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(date),value={};
+  parts.forEach(part=>{if(part.type!=='literal')value[part.type]=Number(part.value)});return value;
+}
+function localFixtureDate(now,timezone,hour,minute){
+  const today=zonedParts(now,timezone),target=Date.UTC(today.year,today.month-1,today.day,hour,minute,0);let instant=target;
+  for(let i=0;i<3;i++){const seen=zonedParts(new Date(instant),timezone),seenUtc=Date.UTC(seen.year,seen.month-1,seen.day,seen.hour,seen.minute,seen.second);instant+=target-seenUtc}
+  return new Date(instant);
+}
+function fixtureDateLabel(date,timezone){
+  return new Intl.DateTimeFormat('en-GB',{timeZone:timezone,day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).format(date).replace(/AM|PM/g,value=>value.toLowerCase());
+}
+async function resolveFixtureLocation(){
+  const fallback={latitude:13.74135,longitude:100.54274,timezone:'Asia/Bangkok',source:'hotel',permission:'fallback'};
+  try{await window.SindhornLocation?.ready}catch(_){ }
+  let locationState=window.SindhornLocation?.getState?.()||fallback;
+  try{
+    const response=await fetch('https://api.open-meteo.com/v1/forecast?latitude=13.74135&longitude=100.54274&current=temperature_2m&timezone=auto',{cache:'no-store',credentials:'omit'}),value=response.ok?await response.json():null;
+    if(value?.timezone)window.SindhornLocation?.setTimezone?.(value.timezone);
+    locationState=window.SindhornLocation?.getState?.()||locationState;
+  }catch(_){ }
+  const latitude=Number(locationState.latitude),longitude=Number(locationState.longitude);
+  return Number.isFinite(latitude)&&Number.isFinite(longitude)?{...locationState,latitude,longitude,timezone:locationState.timezone||'Asia/Bangkok'}:fallback;
+}
+async function applyFixtureFromQuery(){
+  const params=new URLSearchParams(location.search),fixture=fixturePresets[params.get('fixture')];if(!fixture)return;
+  const locationState=await resolveFixtureLocation(),date=localFixtureDate(new Date(),locationState.timezone,fixture.hour,fixture.minute),solar=solarPosition(date,locationState);
+  Object.assign(state,fixture.state,{solarAltitude:Number(solar.altitude.toFixed(1))});fixtureContext={fixture,location:locationState,date,solar};
+  const source=locationState.source==='device'?'DEVICE LOCATION':locationState.source==='cached'?'CACHED DEVICE LOCATION':'SINDHORN FALLBACK';
+  fixtureContextNode.textContent=`${fixture.labelEn}\n${fixture.labelTh}\n${source} · ${locationState.latitude.toFixed(3)}, ${locationState.longitude.toFixed(3)} · ${locationState.timezone}`;
+  if(params.get('controls')==='0'){panel.classList.add('hidden');document.getElementById('showControls').classList.add('visible')}
+}
 
 function initRenderer(){
   renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance',precision:'highp'});
@@ -97,7 +145,8 @@ function syncUniforms(){
 
 function syncProductionRain(){
   const r=state.rain/100;let code=0;if(r>.02){if(state.lightning>25)code=95;else if(r>.78)code=65;else if(r>.52)code=63;else if(r>.24)code=61;else code=51;}
-  window.__atmosphereTesterState.weather={known:true,weatherCode:code,precipitationMm:r*12,cloudCover:state.cloudCover/100,windSpeedKmh:state.windSpeed,windDirectionDeg:state.windDirection,humidity:state.humidity/100,visibilityKm:state.visibility,temperatureC:state.temperature};
+  const cloud=state.cloudCover/100,storm=state.stormDarkness/100;
+  window.__atmosphereTesterState={...window.__atmosphereTesterState,fixture:fixtureContext?{key:new URLSearchParams(location.search).get('fixture'),date:fixtureContext.date.toISOString()}:null,location:fixtureContext?.location||window.SindhornLocation?.getState?.(),solar:{altitude:state.solarAltitude,azimuth:fixtureContext?.solar?.azimuth??null},weather:{known:true,weatherCode:code,precipitationMm:r*12,cloudCover:cloud,windSpeedKmh:state.windSpeed,windDirectionDeg:state.windDirection,humidity:state.humidity/100,visibilityKm:state.visibility,temperatureC:state.temperature,visual:{cloud,rain:r,storm,fog:state.fog/100}}};
   window.__sindhornRainPaneEnabled=paneToggle?.checked!==false;
 }
 
@@ -124,8 +173,9 @@ function conditionName(){
 }
 
 function updateReadout(){
-  badge.textContent=conditionName();
-  readout.textContent=[
+  badge.textContent=fixtureContext?fixtureContext.fixture.labelEn:conditionName();
+  const fixtureLines=fixtureContext?[`fixture    ${fixtureContext.fixture.labelEn}`,`location   ${fixtureContext.location.source} · ${fixtureContext.location.latitude.toFixed(3)}, ${fixtureContext.location.longitude.toFixed(3)}`,`local time ${fixtureDateLabel(fixtureContext.date,fixtureContext.location.timezone)} · ${fixtureContext.location.timezone}`,`sun        ${fixtureContext.solar.altitude.toFixed(1)}° altitude`]:[];
+  readout.textContent=[...fixtureLines,
     `condition  ${conditionName()}`,
     `temp       ${state.temperature}°C · RH ${state.humidity}%`,
     `wind       ${state.windSpeed} km/h ${compass(state.windDirection)}`,
@@ -157,10 +207,13 @@ function initControls(){
 }
 
 loadHash();
-initRenderer();
+await applyFixtureFromQuery();
+let rendererReady=false;
+try{initRenderer();rendererReady=true}catch(error){canvas.hidden=true;document.body.dataset.environmentRenderer='unavailable';console.warn('Atmosphere WebGL unavailable',error)}
 initPrecipOverlays();
 initControls();
 syncControls();
+setTimeout(()=>document.dispatchEvent(new CustomEvent('sindhorn:location-updated',{detail:fixtureContext?.location||window.SindhornLocation?.getState?.()})),0);
 window.addEventListener('resize',resize,{passive:true});
 new ResizeObserver(resize).observe(stage);
-raf=requestAnimationFrame(frame);
+if(rendererReady)raf=requestAnimationFrame(frame);
