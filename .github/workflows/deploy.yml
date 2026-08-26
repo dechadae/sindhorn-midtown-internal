@@ -18,6 +18,7 @@ on:
       - fix-sun-statusbar
       - revert-capture-dim-sun
       - user-local-location
+      - storm-rain-realism
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -47,6 +48,7 @@ jobs:
           node --check site/live-data.js
           node --check site/environment.js
           node --check site/rain-layer.js
+          node --check site/storm-effects.js
           node --check site/sun-dimmer.js
           node --check site/screen-capture.js
           node --check site/atmosphere-tester.js
@@ -70,6 +72,7 @@ jobs:
           index=(root/'index.html').read_text()
           assert '/location.js' in index
           assert '/rain-layer.js?v=4' in index
+          assert '/storm-effects.js?v=1' in index
           assert '/sun-dimmer.js?v=1' in index
           assert '/screen-capture.js?v=2' in index
           assert '/manifest.webmanifest?v=2' in index
@@ -101,6 +104,12 @@ jobs:
           assert 'float lobe=fbm' in environment and 'float crown=smoothstep' in environment
           assert 'sunRim' not in environment and 'sunCorona' not in environment
           assert 'moonCore' in environment
+          storm=(root/'storm-effects.js').read_text()
+          assert 'MIN_STRIKE_MS=12000' in storm and 'MAX_STRIKE_MS=30000' in storm
+          assert 'function drawStrike' in storm and 'function wrapExport' in storm
+          assert 'flashShield' in storm and 'drawWetAtmosphere' in storm
+          envcss=(root/'environment.css').read_text()
+          assert 'body.capture-home .environment-stage' in envcss and 'body.capture-home #rainPaneSvg' in envcss
           app=(root/'app.js').read_text()
           assert 'async function saveFullPage()' in app
           assert 'renderExport' in app
@@ -120,8 +129,8 @@ jobs:
           assert 'moonEclipse' in celestial
           assert 'testerWetReflection' in celestial
           sw=(root/'sw.js').read_text()
-          assert 'isAppRoute' in sw and 'atmosphere5-location1' in sw
-          assert "'/location.js'" in sw
+          assert 'isAppRoute' in sw and 'atmosphere6-storm1' in sw
+          assert "'/location.js'" in sw and "'/storm-effects.js'" in sw
           assert "'/sun-dimmer.js'" in sw and "'/screen-capture.js'" in sw
           PY
 
@@ -142,7 +151,7 @@ jobs:
             BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           fi
           sleep 8
-          for path in / /guidance /details /location.js /bootstrap.js /environment.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /fallback/manifest.json /fallback/ui.css; do
+          for path in / /guidance /details /location.js /bootstrap.js /environment.js /rain-layer.js /storm-effects.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /environment.css /fallback/manifest.json /fallback/ui.css; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
@@ -150,6 +159,7 @@ jobs:
           grep -q '/location.js' /tmp/smoke-root
           grep -q '/bootstrap.js' /tmp/smoke-root
           grep -q '/rain-layer.js?v=4' /tmp/smoke-root
+          grep -q '/storm-effects.js?v=1' /tmp/smoke-root
           grep -q '/sun-dimmer.js?v=1' /tmp/smoke-root
           grep -q '/screen-capture.js?v=2' /tmp/smoke-root
           grep -q '/manifest.webmanifest?v=2' /tmp/smoke-root
@@ -162,6 +172,15 @@ jobs:
           grep -q 'document.exitFullscreen' /tmp/smoke-capture
           ! grep -q 'html2canvas' /tmp/smoke-capture
           ! grep -q 'saveImageBtn' /tmp/smoke-capture
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/storm-effects.js" -o /tmp/smoke-storm
+          grep -q 'MIN_STRIKE_MS=12000' /tmp/smoke-storm
+          grep -q 'MAX_STRIKE_MS=30000' /tmp/smoke-storm
+          grep -q 'drawWetAtmosphere' /tmp/smoke-storm
+          grep -q 'function drawStrike' /tmp/smoke-storm
+          grep -q 'function wrapExport' /tmp/smoke-storm
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/environment.css" -o /tmp/smoke-envcss
+          grep -q 'body.capture-home .environment-stage' /tmp/smoke-envcss
+          grep -q 'body.capture-home #rainPaneSvg' /tmp/smoke-envcss
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sun-dimmer.js" -o /tmp/smoke-dimmer
           grep -q 'sunAttenuator' /tmp/smoke-dimmer
           grep -q 'brightness(.58)' /tmp/smoke-dimmer
@@ -205,8 +224,9 @@ jobs:
           grep -q 'moonEclipse' /tmp/smoke-celestial
           grep -q 'testerWetReflection' /tmp/smoke-celestial
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/smoke-sw
-          grep -q 'atmosphere5-location1' /tmp/smoke-sw
+          grep -q 'atmosphere6-storm1' /tmp/smoke-sw
           grep -q "'/location.js'" /tmp/smoke-sw
+          grep -q "'/storm-effects.js'" /tmp/smoke-sw
           grep -q "'/sun-dimmer.js'" /tmp/smoke-sw
           grep -q "'/screen-capture.js'" /tmp/smoke-sw
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
