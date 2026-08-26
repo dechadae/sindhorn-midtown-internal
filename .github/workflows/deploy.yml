@@ -20,6 +20,7 @@ on:
       - user-local-location
       - storm-rain-realism
       - capture-normal-layout
+      - fix-skip-link-flash
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -50,6 +51,7 @@ jobs:
           node --check site/environment.js
           node --check site/rain-layer.js
           node --check site/storm-effects.js
+          node --check site/seasonal-sky.js
           node --check site/sun-dimmer.js
           node --check site/screen-capture.js
           node --check site/atmosphere-tester.js
@@ -72,11 +74,17 @@ jobs:
               assert digest==item['sha256'],f"fallback hash mismatch: {item['path']}"
           index=(root/'index.html').read_text()
           assert '/location.js' in index
+          assert '/shell.css?v=2' in index
           assert '/rain-layer.js?v=4' in index
           assert '/storm-effects.js?v=2' in index
+          assert '/seasonal-sky.js?v=1' in index
           assert '/sun-dimmer.js?v=1' in index
           assert '/screen-capture.js?v=3' in index
           assert '/manifest.webmanifest?v=2' in index
+          shell=(root/'shell.css').read_text()
+          assert '.skip:not(:focus):not(:focus-visible)' in shell
+          assert 'left:-10000px!important' in shell
+          assert '.skip:focus,.skip:focus-visible' in shell
           location=(root/'location.js').read_text()
           assert 'navigator.geolocation.getCurrentPosition' in location
           assert "url.hostname==='api.open-meteo.com'" in location
@@ -113,6 +121,8 @@ jobs:
           assert 'flashShield' in storm and 'drawWetAtmosphere' in storm
           assert 'daytimeMoonPoint' in storm and 'drawDayMoonRepair' in storm
           assert 'extendViewportAtmosphere' in storm and 'original(w,liveH)' in storm
+          seasonal=(root/'seasonal-sky.js').read_text()
+          assert 'seasonFor' in seasonal and 'twilightStrength' in seasonal and 'rainy' in seasonal
           envcss=(root/'environment.css').read_text()
           assert 'body.capture-home .environment-stage' in envcss and 'body.capture-home #rainPaneSvg' in envcss
           app=(root/'app.js').read_text()
@@ -134,7 +144,7 @@ jobs:
           assert 'testerWetReflection' in celestial
           sw=(root/'sw.js').read_text()
           assert 'isAppRoute' in sw and 'atmosphere6-capture2' in sw
-          assert "'/location.js'" in sw and "'/storm-effects.js'" in sw
+          assert "'/location.js'" in sw and "'/storm-effects.js'" in sw and "'/seasonal-sky.js'" in sw
           assert "'/sun-dimmer.js'" in sw and "'/screen-capture.js'" in sw
           PY
 
@@ -155,18 +165,23 @@ jobs:
             BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           fi
           sleep 8
-          for path in / /guidance /details /location.js /bootstrap.js /environment.js /rain-layer.js /storm-effects.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /environment.css /fallback/manifest.json /fallback/ui.css; do
+          for path in / /guidance /details /location.js /bootstrap.js /environment.js /rain-layer.js /storm-effects.js /seasonal-sky.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /shell.css /environment.css /fallback/manifest.json /fallback/ui.css; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/" -o /tmp/smoke-root
           grep -q '/location.js' /tmp/smoke-root
           grep -q '/bootstrap.js' /tmp/smoke-root
+          grep -q '/shell.css?v=2' /tmp/smoke-root
           grep -q '/rain-layer.js?v=4' /tmp/smoke-root
           grep -q '/storm-effects.js?v=2' /tmp/smoke-root
+          grep -q '/seasonal-sky.js?v=1' /tmp/smoke-root
           grep -q '/sun-dimmer.js?v=1' /tmp/smoke-root
           grep -q '/screen-capture.js?v=3' /tmp/smoke-root
           grep -q '/manifest.webmanifest?v=2' /tmp/smoke-root
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/shell.css?v=2" -o /tmp/smoke-shell
+          grep -q '.skip:not(:focus):not(:focus-visible)' /tmp/smoke-shell
+          grep -q 'left:-10000px!important' /tmp/smoke-shell
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/location.js" -o /tmp/smoke-location
           grep -q 'navigator.geolocation.getCurrentPosition' /tmp/smoke-location
           grep -q "api.open-meteo.com" /tmp/smoke-location
@@ -186,6 +201,9 @@ jobs:
           grep -q 'drawDayMoonRepair' /tmp/smoke-storm
           grep -q 'extendViewportAtmosphere' /tmp/smoke-storm
           grep -q 'original(w,liveH)' /tmp/smoke-storm
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/seasonal-sky.js" -o /tmp/smoke-seasonal
+          grep -q 'seasonFor' /tmp/smoke-seasonal
+          grep -q 'twilightStrength' /tmp/smoke-seasonal
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/environment.css" -o /tmp/smoke-envcss
           grep -q 'body.capture-home .environment-stage' /tmp/smoke-envcss
           grep -q 'body.capture-home #rainPaneSvg' /tmp/smoke-envcss
@@ -231,6 +249,7 @@ jobs:
           grep -q 'atmosphere6-capture2' /tmp/smoke-sw
           grep -q "'/location.js'" /tmp/smoke-sw
           grep -q "'/storm-effects.js'" /tmp/smoke-sw
+          grep -q "'/seasonal-sky.js'" /tmp/smoke-sw
           grep -q "'/sun-dimmer.js'" /tmp/smoke-sw
           grep -q "'/screen-capture.js'" /tmp/smoke-sw
           SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
