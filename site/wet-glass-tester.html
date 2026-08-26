@@ -3,459 +3,77 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#202734">
-<title>Wet Glass Shader Lab · Sindhorn Midtown</title>
+<meta name="theme-color" content="#263544">
+<title>Wet Glass V2 · Sindhorn Midtown</title>
 <style>
-:root{--paper:#faf7f5;--sorbet:#e5ecbe;--ink:#151a23;--glass:rgba(31,38,50,.78);--line:rgba(250,247,245,.18);--muted:rgba(250,247,245,.64)}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#202734;color:var(--paper);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-weight:300}button,input{font:inherit}
-#wetGlassCanvas{position:fixed;inset:0;width:100%;height:100%;display:block;background:#202734}
-.lab-title{position:fixed;left:max(18px,env(safe-area-inset-left));top:max(18px,env(safe-area-inset-top));z-index:20;pointer-events:none;text-shadow:0 1px 20px rgba(0,0,0,.28)}
-.eyebrow{font-size:10px;line-height:1.2;letter-spacing:.1em;color:var(--sorbet);font-weight:400}.lab-title h1{margin:7px 0 0;font-size:clamp(30px,5vw,58px);line-height:.94;letter-spacing:-.03em;font-weight:300}.lab-title p{max-width:620px;margin:11px 0 0;font-size:12px;line-height:1.5;color:var(--muted)}
-.badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.badge{display:inline-flex;min-height:28px;align-items:center;padding:0 10px;border:1px solid rgba(229,236,190,.42);border-radius:999px;background:rgba(29,34,44,.34);color:var(--sorbet);font-size:9px;letter-spacing:.1em;font-weight:400}
-.panel{position:fixed;z-index:30;right:max(14px,env(safe-area-inset-right));top:max(14px,env(safe-area-inset-top));bottom:max(14px,env(safe-area-inset-bottom));width:min(390px,calc(100vw - 28px));padding:17px;overflow:auto;border:1px solid rgba(250,247,245,.18);border-radius:22px;background:var(--glass);backdrop-filter:blur(22px) saturate(110%);-webkit-backdrop-filter:blur(22px) saturate(110%);box-shadow:0 22px 68px rgba(0,0,0,.24);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s cubic-bezier(.4,0,.2,1)}
-.panel.hidden{transform:translateX(calc(100% + 32px));opacity:0;pointer-events:none}.panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--line)}.panel h2{margin:0;font-size:18px;line-height:1.1;letter-spacing:-.03em;font-weight:300}.panel-head p{margin:6px 0 0;color:var(--muted);font-size:10px;line-height:1.5}
-.icon,.action,.show{border:1px solid rgba(229,236,190,.42);background:rgba(250,247,245,.04);color:var(--paper);border-radius:999px;cursor:pointer}.icon{width:36px;height:36px;font-size:17px}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px}.action{height:38px;font-size:9px;letter-spacing:.1em;font-weight:400}.group{padding:16px 0;border-bottom:1px solid var(--line)}.group:last-child{border-bottom:0}.group h3{margin:0 0 12px;font-size:9px;letter-spacing:.1em;font-weight:400;color:var(--sorbet)}
-.control{display:grid;grid-template-columns:114px minmax(110px,1fr) 62px;gap:8px;align-items:center;min-height:34px}.control+.control{margin-top:7px}.control label{font-size:10px;color:rgba(250,247,245,.84)}.control output{font-size:9px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}.control input[type=range]{width:100%;accent-color:#e5ecbe}.control input[type=color]{width:100%;height:28px;padding:0;border:1px solid var(--line);border-radius:8px;background:transparent}.readout{margin-top:11px;padding:10px 11px;border-radius:12px;background:rgba(8,11,16,.22);font:300 9px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:rgba(250,247,245,.66);white-space:pre-wrap}
-.show{position:fixed;z-index:31;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));height:40px;padding:0 17px;font-size:9px;letter-spacing:.1em;font-weight:400;display:none}.show.visible{display:block}.back{display:inline-block;margin-top:12px;color:var(--sorbet);font-size:9px;letter-spacing:.1em;text-decoration:none;pointer-events:auto}.back:hover{text-decoration:none}
-@media(max-width:760px){.lab-title{top:max(14px,env(safe-area-inset-top));left:18px;max-width:calc(100vw - 92px)}.lab-title h1{font-size:33px}.lab-title p{display:none}.panel{left:10px;right:10px;top:auto;bottom:calc(10px + env(safe-area-inset-bottom));width:auto;max-height:61dvh;border-radius:21px;padding:15px}.panel.hidden{transform:translateY(calc(100% + 24px))}.show{right:14px;bottom:calc(14px + env(safe-area-inset-bottom))}.control{grid-template-columns:102px minmax(105px,1fr) 54px}.badges{max-width:260px}}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400&display=swap');
+:root{--paper:#faf7f5;--sorbet:#e5ecbe;--line:rgba(250,247,245,.18);--glass:rgba(20,29,38,.72);--muted:rgba(250,247,245,.64)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#263544;color:var(--paper);font-family:Poppins,system-ui,sans-serif;font-weight:300}
+button,input{font:inherit}#wetGlassCanvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.lab-mark{position:fixed;z-index:20;left:max(16px,env(safe-area-inset-left));top:max(14px,env(safe-area-inset-top));pointer-events:none;text-shadow:0 1px 16px rgba(0,0,0,.25)}
+.lab-mark strong{display:block;font-size:10px;line-height:1.3;letter-spacing:.10em;font-weight:400;color:var(--sorbet)}
+.lab-mark span{display:block;margin-top:5px;font-size:9px;letter-spacing:.10em;color:rgba(250,247,245,.58)}
+.panel{position:fixed;z-index:30;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));bottom:max(12px,env(safe-area-inset-bottom));width:min(360px,calc(100vw - 24px));overflow:auto;padding:16px;border:1px solid var(--line);border-radius:20px;background:var(--glass);backdrop-filter:blur(20px) saturate(108%);-webkit-backdrop-filter:blur(20px) saturate(108%);transition:transform .28s cubic-bezier(.4,0,.2,1),opacity .28s cubic-bezier(.4,0,.2,1)}
+.panel.hidden{transform:translateX(calc(100% + 28px));opacity:0;pointer-events:none}.panel-head{display:flex;justify-content:space-between;gap:12px;padding-bottom:13px;border-bottom:1px solid var(--line)}
+.panel h1{margin:0;font-size:17px;line-height:1.2;font-weight:300;letter-spacing:-.03em}.panel p{margin:5px 0 0;font-size:9px;line-height:1.5;color:var(--muted)}
+.icon,.show,.action{border:1px solid rgba(229,236,190,.4);background:rgba(250,247,245,.035);color:var(--paper);border-radius:999px;cursor:pointer}
+.icon{width:34px;height:34px;font-size:16px}.show{position:fixed;z-index:31;right:max(14px,env(safe-area-inset-right));bottom:max(14px,env(safe-area-inset-bottom));height:38px;padding:0 15px;font-size:9px;letter-spacing:.10em;display:none}.show.visible{display:block}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.action{height:36px;font-size:9px;letter-spacing:.10em}
+.group{padding:14px 0;border-bottom:1px solid var(--line)}.group:last-child{border-bottom:0}.group h2{margin:0 0 10px;font-size:9px;letter-spacing:.10em;font-weight:400;color:var(--sorbet)}
+.control{display:grid;grid-template-columns:105px minmax(105px,1fr) 50px;gap:8px;align-items:center;min-height:32px}.control+.control{margin-top:6px}.control label{font-size:9px}.control output{font-size:8px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}.control input{width:100%;accent-color:#e5ecbe}
+.readout{font:300 8px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);white-space:pre-wrap}
+@media(max-width:760px){.panel{left:10px;right:10px;top:auto;bottom:calc(10px + env(safe-area-inset-bottom));width:auto;max-height:58dvh}.panel.hidden{transform:translateY(calc(100% + 24px))}.show{bottom:calc(14px + env(safe-area-inset-bottom))}}
 </style>
 </head>
 <body>
-<canvas id="wetGlassCanvas" aria-label="Realtime refractive wet-glass shader test"></canvas>
-<div class="lab-title">
-  <div class="eyebrow">SINDHORN MIDTOWN · WEBGL MATERIAL LAB</div>
-  <h1>WET GLASS<br>SHADER</h1>
-  <p>True ping-pong droplet heightmap → finite-difference normals → realtime refraction of the rendered scene. No SVG or sprite droplets.</p>
-  <div class="badges"><span class="badge">512² SIM</span><span class="badge">PING-PONG</span><span class="badge">REAL REFRACTION</span><span class="badge" id="fpsBadge">— FPS</span></div>
-  <a class="back" href="/atmosphere-tester.html">ATMOSPHERE TESTER ↗</a>
-</div>
+<canvas id="wetGlassCanvas" aria-label="Wet glass shader test"></canvas>
+<div class="lab-mark"><strong>WET GLASS V2 · REAL BEAD BODIES</strong><span id="fpsLabel">512² heightmap · — fps</span></div>
 <button class="show" id="showControls" type="button">CONTROLS</button>
 <aside class="panel" id="controlsPanel">
-  <div class="panel-head"><div><h2>Wet-glass controls</h2><p>The simulation is fixed at 512×512 on phone and desktop. All controls update shader uniforms live.</p></div><button class="icon" id="hideControls" type="button" aria-label="Hide controls">×</button></div>
+  <div class="panel-head"><div><h1>Wet glass</h1><p>Round bead heads move independently. The ping-pong target stores optical height and fading wet trails only.</p></div><button class="icon" id="hideControls" type="button" aria-label="Hide controls">×</button></div>
   <div class="actions"><button class="action" id="resetSim" type="button">RESET WATER</button><button class="action" id="pauseToggle" type="button">PAUSE</button></div>
-  <div class="group"><h3>DROPLET SIMULATION</h3>
-    <div class="control"><label for="rainIntensity">Rain intensity</label><input id="rainIntensity" type="range" min="0" max="1" value="0.72" step="0.01"><output></output></div>
-    <div class="control"><label for="dropMin">Drop min</label><input id="dropMin" type="range" min="1.5" max="8" value="3" step="0.1"><output></output></div>
-    <div class="control"><label for="dropMax">Drop max</label><input id="dropMax" type="range" min="5" max="18" value="11" step="0.1"><output></output></div>
-    <div class="control"><label for="fallSpeed">Fall speed</label><input id="fallSpeed" type="range" min="0.2" max="2.5" value="1" step="0.01"><output></output></div>
-    <div class="control"><label for="windDirection">Wind direction</label><input id="windDirection" type="range" min="0" max="359" value="210" step="1"><output></output></div>
-    <div class="control"><label for="windStrength">Wind strength</label><input id="windStrength" type="range" min="0" max="1.5" value="0.28" step="0.01"><output></output></div>
+  <div class="group"><h2>WATER</h2>
+    <div class="control"><label for="rainIntensity">Rain intensity</label><input id="rainIntensity" type="range" min="0" max="1" step="0.01" value="0.60"><output></output></div>
+    <div class="control"><label for="dropMin">Bead min</label><input id="dropMin" type="range" min="1.5" max="5" step="0.1" value="2.0"><output></output></div>
+    <div class="control"><label for="dropMax">Bead max</label><input id="dropMax" type="range" min="5" max="11" step="0.1" value="8.2"><output></output></div>
+    <div class="control"><label for="fallSpeed">Fall speed</label><input id="fallSpeed" type="range" min="0.2" max="2.2" step="0.01" value="0.80"><output></output></div>
+    <div class="control"><label for="windStrength">Wind</label><input id="windStrength" type="range" min="-1" max="1" step="0.01" value="0.08"><output></output></div>
   </div>
-  <div class="group"><h3>OPTICS</h3>
-    <div class="control"><label for="refraction">Refraction</label><input id="refraction" type="range" min="0" max="2" value="1" step="0.01"><output></output></div>
-    <div class="control"><label for="specular">Specular</label><input id="specular" type="range" min="0" max="2" value="1.15" step="0.01"><output></output></div>
-    <div class="control"><label for="bokeh">Bokeh</label><input id="bokeh" type="range" min="0" max="2" value="0.82" step="0.01"><output></output></div>
-    <div class="control"><label for="streaks">Distant streaks</label><input id="streaks" type="range" min="0" max="1" value="0.42" step="0.01"><output></output></div>
-    <div class="control"><label for="tint">Cool tint</label><input id="tint" type="color" value="#c8d9e7"><output></output></div>
+  <div class="group"><h2>OPTICS</h2>
+    <div class="control"><label for="refraction">Refraction</label><input id="refraction" type="range" min="0" max="2" step="0.01" value="0.72"><output></output></div>
+    <div class="control"><label for="specular">Highlight</label><input id="specular" type="range" min="0" max="2" step="0.01" value="0.55"><output></output></div>
+    <div class="control"><label for="bokeh">Wet bokeh</label><input id="bokeh" type="range" min="0" max="2" step="0.01" value="0.36"><output></output></div>
+    <div class="control"><label for="streaks">Distant rain</label><input id="streaks" type="range" min="0" max="1" step="0.01" value="0.10"><output></output></div>
   </div>
-  <div class="group"><h3>PIPELINE STATE</h3><div class="readout" id="readout">initializing…</div></div>
+  <div class="group"><h2>STATE</h2><div class="readout" id="readout">initializing…</div></div>
 </aside>
 
 <script type="module">
 import * as THREE from './vendor/three.module.js';
-
-/*
-  REAL WET-GLASS PIPELINE
-  -----------------------
-  Pass 1: Render a scene into sceneTarget.
-  Pass 2: Update a 512×512 double-buffered droplet heightmap.
-          R = droplet height, G = water persistence/mass,
-          B = slide activity, A = wet trail.
-  Pass 3: Derive finite-difference normals from the heightmap and use those
-          normals to refract sceneTarget. Bright wet regions receive a cheap
-          multi-tap bokeh blur plus a fixed-light specular highlight.
-
-  Integration contract for an existing Three.js scene:
-    - render your real scene into sceneTarget before updateWetGlass()
-    - call updateWetGlass(deltaSeconds, elapsedSeconds) once per frame
-    - call compositeWetGlass() after the scene render
-    - call resize() from your normal resize handler
-  The standalone test below already performs those calls in that order.
-*/
-
-const SIM_SIZE=512;
-const canvas=document.getElementById('wetGlassCanvas');
-const panel=document.getElementById('controlsPanel');
-const showControls=document.getElementById('showControls');
-const fpsBadge=document.getElementById('fpsBadge');
-const readout=document.getElementById('readout');
-const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
-
-const renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:false,powerPreference:'high-performance',precision:'highp'});
-renderer.outputColorSpace=THREE.SRGBColorSpace;
+const SIM_SIZE=512,MAX_DROPS=110,MAX_TRAILS=260,MAX_INSTANCES=MAX_DROPS+MAX_TRAILS;
+const canvas=document.getElementById('wetGlassCanvas'),panel=document.getElementById('controlsPanel'),showControls=document.getElementById('showControls'),fpsLabel=document.getElementById('fpsLabel'),readout=document.getElementById('readout');
 const DPR=Math.min(2,Math.max(1,window.devicePixelRatio||1));
-renderer.setPixelRatio(DPR);
-
-const camera=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
-const quadGeometry=new THREE.PlaneGeometry(2,2);
-const vertexShader=`
-varying vec2 vUv;
-void main(){
-  vUv=uv;
-  gl_Position=vec4(position.xy,0.0,1.0);
-}`;
-
-/* Background scene. This is deliberately a rendered scene texture rather than
-   a CSS background, so the wet-glass composite is genuinely refracting pixels. */
-const backgroundMaterial=new THREE.ShaderMaterial({
-  uniforms:{uTime:{value:0},uResolution:{value:new THREE.Vector2(1,1)},uRain:{value:.72},uStreakVisibility:{value:.42}},
-  vertexShader,
-  fragmentShader:`
-precision highp float;
-varying vec2 vUv;
-uniform float uTime,uRain,uStreakVisibility;
-uniform vec2 uResolution;
-
-float hash21(vec2 p){
-  p=fract(p*vec2(123.34,456.21));
-  p+=dot(p,p+45.32);
-  return fract(p.x*p.y);
-}
-float noise(vec2 p){
-  vec2 i=floor(p),f=fract(p);
-  f=f*f*(3.0-2.0*f);
-  return mix(mix(hash21(i),hash21(i+vec2(1.,0.)),f.x),mix(hash21(i+vec2(0.,1.)),hash21(i+vec2(1.,1.)),f.x),f.y);
-}
-float fbm(vec2 p){
-  float s=0.0,a=.52;
-  for(int i=0;i<4;i++){s+=noise(p)*a;p=p*2.03+vec2(7.2,11.8);a*=.5;}
-  return s;
-}
-float sdCircle(vec2 p,float r){return length(p)-r;}
-
-void main(){
-  vec2 uv=vUv;
-  float aspect=uResolution.x/max(1.0,uResolution.y);
-  vec3 low=vec3(.43,.50,.57),high=vec3(.17,.25,.34);
-  vec3 col=mix(low,high,smoothstep(.02,1.0,uv.y));
-
-  // Broad moving storm texture gives the refractive surface real structure.
-  vec2 cp=vec2(uv.x*aspect,uv.y)*vec2(2.1,1.4)+vec2(uTime*.010,-uTime*.004);
-  float cloud=fbm(cp)+fbm(cp*2.2+9.3)*.22;
-  float cloudMask=smoothstep(.42,.78,cloud);
-  col=mix(col,vec3(.48,.53,.57),cloudMask*.40);
-
-  // A bright diffused source makes refraction/specular/bokeh easy to judge.
-  vec2 sunUv=vec2(.73,.70);
-  vec2 sp=vec2((uv.x-sunUv.x)*aspect,uv.y-sunUv.y);
-  float halo=exp(-length(sp)*8.0);
-  float core=smoothstep(.042,.015,length(sp));
-  col+=vec3(1.0,.88,.68)*(halo*.34+core*.72);
-
-  // Dark skyline plus small luminous windows at the horizon.
-  float skyline=.19+.035*sin(uv.x*49.0)+.025*sin(uv.x*91.0+1.7);
-  float building=1.0-smoothstep(skyline-.004,skyline+.004,uv.y);
-  col=mix(col,vec3(.055,.068,.082),building*.88);
-  vec2 wg=uv*vec2(68.0,44.0);
-  vec2 wi=floor(wg),wf=fract(wg);
-  float windowBand=step(uv.y,.20)*step(.08,wf.x)*step(wf.x,.34)*step(.16,wf.y)*step(wf.y,.42);
-  float windows=windowBand*step(.73,hash21(wi));
-  col+=windows*vec3(.95,.72,.40)*.95;
-
-  // Optional distant falling rain: cheap procedural streaks behind the glass.
-  vec2 rp=uv*vec2(92.0,42.0);
-  rp.x+=uv.y*13.0;
-  vec2 rid=floor(rp),rf=fract(rp);
-  float rnd=hash21(rid);
-  float y=fract(rf.y+uTime*(.72+rnd*.55)+rnd);
-  float xDist=abs(rf.x-(.18+rnd*.64));
-  float streak=smoothstep(.035,.006,xDist)*smoothstep(.96,.36,y)*smoothstep(.02,.20,y);
-  col+=vec3(.72,.82,.90)*streak*uRain*uStreakVisibility*.20;
-
-  // Soft atmospheric vignette before the wet-glass pass.
-  float v=uv.x*(1.0-uv.x)*uv.y*(1.0-uv.y);
-  col*=mix(.80,1.0,smoothstep(.0,.055,v));
-  gl_FragColor=vec4(col,1.0);
-}`
-});
-const backgroundScene=new THREE.Scene();
-backgroundScene.add(new THREE.Mesh(quadGeometry,backgroundMaterial));
-
-/* Ping-pong droplet simulation. The spawn lattice keeps births spatially
-   separated; occupancy sampling suppresses births on already-wet cells.
-   Small drops remain pinned and slowly grow. Once local mass crosses the slide
-   threshold, the field advects downward under gravity and leaves a fading trail.
-   Since the state is a continuous water field, a large sliding drop naturally
-   merges with smaller droplets it crosses instead of requiring sprite collision. */
-const simMaterial=new THREE.ShaderMaterial({
-  uniforms:{
-    uPrev:{value:null},uTexel:{value:new THREE.Vector2(1/SIM_SIZE,1/SIM_SIZE)},uTime:{value:0},uDelta:{value:1/60},
-    uIntensity:{value:.72},uDropMin:{value:3},uDropMax:{value:11},uFallSpeed:{value:1},uWind:{value:new THREE.Vector2(0,0)}
-  },
-  vertexShader,
-  fragmentShader:`
-precision highp float;
-varying vec2 vUv;
-uniform sampler2D uPrev;
-uniform vec2 uTexel,uWind;
-uniform float uTime,uDelta,uIntensity,uDropMin,uDropMax,uFallSpeed;
-
-float hash21(vec2 p){
-  p=fract(p*vec2(123.34,456.21));
-  p+=dot(p,p+45.32);
-  return fract(p.x*p.y);
-}
-
-void main(){
-  vec2 uv=vUv;
-  vec4 p=texture2D(uPrev,uv);
-  vec4 l=texture2D(uPrev,uv-vec2(uTexel.x,0.0));
-  vec4 r=texture2D(uPrev,uv+vec2(uTexel.x,0.0));
-  vec4 d=texture2D(uPrev,uv-vec2(0.0,uTexel.y));
-  vec4 u=texture2D(uPrev,uv+vec2(0.0,uTexel.y));
-
-  float h=p.r;
-  float water=p.g;
-  float velocity=p.b;
-  float trail=p.a;
-
-  // Slow evaporation. Trails disappear faster than attached droplets.
-  h*=exp(-uDelta*.18);
-  water*=exp(-uDelta*.055);
-  velocity*=exp(-uDelta*.75);
-  trail*=exp(-uDelta*1.18);
-
-  // Grow attached droplets by a controlled one-pixel neighborhood dilation.
-  float neighborHeight=max(max(l.r,r.r),max(d.r,u.r));
-  float neighborWater=max(max(l.g,r.g),max(d.g,u.g));
-  float localMass=(p.r+l.r+r.r+d.r+u.r)*.20;
-  float slideGate=smoothstep(.50,.76,localMass+water*.22);
-  float grown=max(h,neighborHeight-uDelta*1.65);
-  h=mix(grown,h,slideGate);
-  water=max(water,neighborWater-uDelta*.24);
-
-  // Gravity advection. Output pixel samples its previous-frame upstream source.
-  vec2 gravityWind=vec2(uWind.x*.48,-1.0+uWind.y*.10);
-  gravityWind=normalize(gravityWind);
-  float speed=(.018+.058*slideGate)*uFallSpeed;
-  vec2 flow=gravityWind*speed*uDelta;
-  vec2 sourceUv=clamp(uv-flow,vec2(0.0),vec2(1.0));
-  vec4 source=texture2D(uPrev,sourceUv);
-  float sourceMass=source.r+source.g*.18;
-  float sourceSlide=smoothstep(.49,.73,sourceMass);
-  if(sourceSlide>.001){
-    // Advected water replaces part of the old center and merges by max().
-    h=max(h*(1.0-slideGate*uDelta*2.2),source.r*.998);
-    water=max(water,source.g*.998);
-    velocity=max(velocity,sourceSlide);
-    trail=max(trail,source.r*sourceSlide*.30);
-  }
-
-  // Smear a narrow wet trail behind moving drops.
-  vec2 behindUv=clamp(uv-flow*2.2,vec2(0.0),vec2(1.0));
-  vec4 behind=texture2D(uPrev,behindUv);
-  trail=max(trail,behind.r*behind.b*.18);
-  h=max(h,trail*.16);
-  water=max(water,trail*.24);
-
-  // Noise-driven drop births on a fixed lattice. The short phase pulse means a
-  // candidate is injected only for a few frames, rather than painted constantly.
-  const float GRID=24.0;
-  vec2 cell=floor(uv*GRID);
-  float epoch=floor(uTime*4.0);
-  float phase=fract(uTime*4.0);
-  vec2 center=.17+.66*vec2(hash21(cell+vec2(epoch*1.31,17.2)),hash21(cell+vec2(53.7,epoch*1.91)));
-  vec2 centerUv=(cell+center)/GRID;
-  float occupied=texture2D(uPrev,centerUv).g;
-  float randomBirth=hash21(cell+vec2(epoch*7.13,epoch*2.17));
-  float probability=.006+.026*uIntensity;
-  float birth=step(1.0-probability,randomBirth)*step(phase,.075)*(1.0-smoothstep(.035,.16,occupied));
-  float sizeRnd=hash21(cell+vec2(epoch*3.7,91.4));
-  float radiusPx=mix(uDropMin,uDropMax,sizeRnd);
-  float radius=radiusPx*uTexel.x;
-  float dist=distance(uv,centerUv);
-  float dropShape=smoothstep(radius,radius*.16,dist)*birth;
-  float seedHeight=dropShape*(.54+.42*sizeRnd);
-  h=max(h,seedHeight);
-  water=max(water,dropShape*(.66+.30*sizeRnd));
-
-  // Keep values normalized so RGBA8 remains stable on broad mobile GPU support.
-  gl_FragColor=clamp(vec4(h,water,velocity,trail),0.0,1.0);
-}`
-});
-const simScene=new THREE.Scene();
-simScene.add(new THREE.Mesh(quadGeometry,simMaterial));
-
-/* Composite pass: finite-difference gradient -> surface normal -> refracted UV.
-   The scene is sampled at the bent UV, then bright/wet areas receive an extra
-   multi-tap blur to mimic soft bokeh through water. A fixed light creates a
-   true normal-dependent specular highlight rather than an overlaid white ring. */
-const compositeMaterial=new THREE.ShaderMaterial({
-  uniforms:{
-    uSceneTex:{value:null},uHeightTex:{value:null},uHeightTexel:{value:new THREE.Vector2(1/SIM_SIZE,1/SIM_SIZE)},uResolution:{value:new THREE.Vector2(1,1)},
-    uRefraction:{value:1},uSpecular:{value:1.15},uBokeh:{value:.82},uTint:{value:new THREE.Color('#c8d9e7')}
-  },
-  vertexShader,
-  fragmentShader:`
-precision highp float;
-varying vec2 vUv;
-uniform sampler2D uSceneTex,uHeightTex;
-uniform vec2 uHeightTexel,uResolution;
-uniform float uRefraction,uSpecular,uBokeh;
-uniform vec3 uTint;
-
-float luma(vec3 c){return dot(c,vec3(.2126,.7152,.0722));}
-vec3 sceneAt(vec2 uv){return texture2D(uSceneTex,clamp(uv,vec2(.001),vec2(.999))).rgb;}
-
-void main(){
-  vec2 uv=vUv;
-  vec4 state=texture2D(uHeightTex,uv);
-  float hL=texture2D(uHeightTex,uv-vec2(uHeightTexel.x,0.0)).r;
-  float hR=texture2D(uHeightTex,uv+vec2(uHeightTexel.x,0.0)).r;
-  float hD=texture2D(uHeightTex,uv-vec2(0.0,uHeightTexel.y)).r;
-  float hU=texture2D(uHeightTex,uv+vec2(0.0,uHeightTexel.y)).r;
-  vec2 grad=vec2(hR-hL,hU-hD);
-  float wet=clamp(state.r+state.g*.28+state.a*.38,0.0,1.0);
-  vec3 normal=normalize(vec3(-grad*11.0,1.0));
-
-  // Refract only where the height field has water; dry glass remains untouched.
-  vec2 refrUv=uv+normal.xy*(.0105*uRefraction)*smoothstep(.035,.70,wet);
-  vec3 sharp=sceneAt(refrUv);
-
-  // Density-dependent blur. Nine taps are deliberately used instead of a full
-  // Gaussian pass: enough for wet bokeh while remaining cheap on Android.
-  float px=(1.0+wet*7.0*uBokeh)/max(1.0,uResolution.y);
-  vec2 bx=vec2(px,0.0),by=vec2(0.0,px);
-  vec3 blur=sharp*.24;
-  blur+=sceneAt(refrUv+bx)*.11+sceneAt(refrUv-bx)*.11;
-  blur+=sceneAt(refrUv+by)*.11+sceneAt(refrUv-by)*.11;
-  blur+=sceneAt(refrUv+bx+by)*.08+sceneAt(refrUv-bx+by)*.08;
-  blur+=sceneAt(refrUv+bx-by)*.08+sceneAt(refrUv-bx-by)*.08;
-  float bright=max(luma(sharp),luma(blur));
-  float bokehMask=smoothstep(.10,.92,wet)*uBokeh*(.28+smoothstep(.48,.92,bright)*.72);
-  vec3 col=mix(sharp,blur,clamp(bokehMask*.64,0.0,.86));
-
-  // Fixed-light specular reflection generated from the simulated water normal.
-  vec3 lightDir=normalize(vec3(-.38,.58,.72));
-  float ndl=max(dot(normal,lightDir),0.0);
-  float spec=pow(ndl,42.0)*smoothstep(.07,.62,wet)*uSpecular;
-  col+=vec3(1.0,.985,.95)*spec*.72;
-
-  // Cool desaturated photographic grade plus restrained vignette.
-  float grey=luma(col);
-  col=mix(col,vec3(grey),.10);
-  col=mix(col,col*uTint,.075);
-  float vignette=uv.x*(1.0-uv.x)*uv.y*(1.0-uv.y);
-  col*=mix(.79,1.0,smoothstep(.015,.060,vignette));
-
-  gl_FragColor=vec4(col,1.0);
-}`
-});
-const compositeScene=new THREE.Scene();
-compositeScene.add(new THREE.Mesh(quadGeometry,compositeMaterial));
-
-function makeTarget(w,h){
-  const rt=new THREE.WebGLRenderTarget(w,h,{
-    format:THREE.RGBAFormat,type:THREE.UnsignedByteType,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,
-    wrapS:THREE.ClampToEdgeWrapping,wrapT:THREE.ClampToEdgeWrapping,depthBuffer:false,stencilBuffer:false
-  });
-  rt.texture.generateMipmaps=false;
-  return rt;
-}
-let simRead=makeTarget(SIM_SIZE,SIM_SIZE),simWrite=makeTarget(SIM_SIZE,SIM_SIZE);
-let sceneTarget=makeTarget(1,1);
-
-function clearTarget(target){
-  const old=renderer.getRenderTarget();
-  renderer.setRenderTarget(target);
-  renderer.setClearColor(0x000000,0);
-  renderer.clear(true,false,false);
-  renderer.setRenderTarget(old);
-}
-function resetSimulation(){clearTarget(simRead);clearTarget(simWrite);}
-
-const controls={
-  rainIntensity:document.getElementById('rainIntensity'),dropMin:document.getElementById('dropMin'),dropMax:document.getElementById('dropMax'),
-  fallSpeed:document.getElementById('fallSpeed'),windDirection:document.getElementById('windDirection'),windStrength:document.getElementById('windStrength'),
-  refraction:document.getElementById('refraction'),specular:document.getElementById('specular'),bokeh:document.getElementById('bokeh'),streaks:document.getElementById('streaks'),tint:document.getElementById('tint')
-};
-const units={rainIntensity:'',dropMin:' px',dropMax:' px',fallSpeed:'×',windDirection:'°',windStrength:'',refraction:'×',specular:'×',bokeh:'×',streaks:'',tint:''};
-function updateOutputs(){
-  for(const [key,input] of Object.entries(controls)){
-    const out=input.closest('.control')?.querySelector('output');if(!out)continue;
-    out.textContent=input.type==='color'?input.value:String(input.value)+units[key];
-  }
-}
-function updateUniforms(){
-  const intensity=Number(controls.rainIntensity.value);
-  const angle=Number(controls.windDirection.value)*Math.PI/180;
-  const strength=Number(controls.windStrength.value);
-  simMaterial.uniforms.uIntensity.value=intensity;
-  simMaterial.uniforms.uDropMin.value=Math.min(Number(controls.dropMin.value),Number(controls.dropMax.value));
-  simMaterial.uniforms.uDropMax.value=Math.max(Number(controls.dropMin.value),Number(controls.dropMax.value));
-  simMaterial.uniforms.uFallSpeed.value=Number(controls.fallSpeed.value);
-  simMaterial.uniforms.uWind.value.set(Math.sin(angle)*strength,Math.cos(angle)*strength);
-  compositeMaterial.uniforms.uRefraction.value=Number(controls.refraction.value);
-  compositeMaterial.uniforms.uSpecular.value=Number(controls.specular.value);
-  compositeMaterial.uniforms.uBokeh.value=Number(controls.bokeh.value);
-  compositeMaterial.uniforms.uTint.value.set(controls.tint.value);
-  backgroundMaterial.uniforms.uRain.value=intensity;
-  backgroundMaterial.uniforms.uStreakVisibility.value=Number(controls.streaks.value);
-}
-for(const input of Object.values(controls))input.addEventListener('input',()=>{updateOutputs();updateUniforms()});
-updateOutputs();updateUniforms();
-
-/* EXACT RESIZE HOOK: call this from the host app's normal resize handler. */
-function resize(){
-  const w=Math.max(1,window.innerWidth),h=Math.max(1,window.innerHeight);
-  renderer.setSize(w,h,false);
-  const pw=Math.max(1,Math.round(w*DPR)),ph=Math.max(1,Math.round(h*DPR));
-  sceneTarget.setSize(pw,ph);
-  backgroundMaterial.uniforms.uResolution.value.set(pw,ph);
-  compositeMaterial.uniforms.uResolution.value.set(pw,ph);
-}
-
-function renderBackground(elapsed){
-  backgroundMaterial.uniforms.uTime.value=elapsed;
-  renderer.setRenderTarget(sceneTarget);
-  renderer.render(backgroundScene,camera);
-}
-
-/* EXACT SIMULATION HOOK: one invocation per animation frame after the real
-   scene texture exists. Swap read/write targets after rendering. */
-function updateWetGlass(delta,elapsed){
-  simMaterial.uniforms.uPrev.value=simRead.texture;
-  simMaterial.uniforms.uTime.value=elapsed;
-  simMaterial.uniforms.uDelta.value=delta;
-  renderer.setRenderTarget(simWrite);
-  renderer.render(simScene,camera);
-  const temp=simRead;simRead=simWrite;simWrite=temp;
-}
-
-/* EXACT COMPOSITE HOOK: call after updateWetGlass(). uSceneTex can be replaced
-   with any WebGLRenderTarget texture from the existing production renderer. */
-function compositeWetGlass(){
-  compositeMaterial.uniforms.uSceneTex.value=sceneTarget.texture;
-  compositeMaterial.uniforms.uHeightTex.value=simRead.texture;
-  renderer.setRenderTarget(null);
-  renderer.render(compositeScene,camera);
-}
-
-let running=true,raf=0,lastTime=performance.now(),elapsed=0,frames=0,fpsStart=performance.now();
-function renderFrame(now){
-  if(!running){raf=requestAnimationFrame(renderFrame);lastTime=now;return;}
-  const delta=Math.min(.033,Math.max(.001,(now-lastTime)/1000));lastTime=now;elapsed+=delta;
-  updateUniforms();
-  renderBackground(elapsed);        // replace with renderer.render(realScene, realCamera) -> sceneTarget
-  updateWetGlass(delta,elapsed);    // ping-pong water simulation
-  compositeWetGlass();              // refract the scene with the simulated height field
-
-  frames++;
-  if(now-fpsStart>700){const fps=Math.round(frames*1000/(now-fpsStart));fpsBadge.textContent=fps+' FPS';frames=0;fpsStart=now;}
-  readout.textContent=`simulation   ${SIM_SIZE} × ${SIM_SIZE}\nrender       ${Math.round(innerWidth*DPR)} × ${Math.round(innerHeight*DPR)} @ ${DPR.toFixed(2)} DPR\nheightmap    RGBA8 ping-pong\nrefraction   finite-difference normal\nmobile mode  same 512² simulation`;
-  raf=requestAnimationFrame(renderFrame);
-}
-
-window.WetGlassLab={renderer,sceneTarget,get heightTexture(){return simRead.texture},updateWetGlass,compositeWetGlass,resize,resetSimulation,uniforms:{simulation:simMaterial.uniforms,composite:compositeMaterial.uniforms}};
-
-window.addEventListener('resize',resize,{passive:true});
-document.addEventListener('visibilitychange',()=>{lastTime=performance.now()});
-document.getElementById('resetSim').addEventListener('click',resetSimulation);
-document.getElementById('pauseToggle').addEventListener('click',event=>{running=!running;event.currentTarget.textContent=running?'PAUSE':'RESUME';lastTime=performance.now()});
-document.getElementById('hideControls').addEventListener('click',()=>{panel.classList.add('hidden');showControls.classList.add('visible')});
-showControls.addEventListener('click',()=>{panel.classList.remove('hidden');showControls.classList.remove('visible')});
-
-resize();resetSimulation();raf=requestAnimationFrame(renderFrame);
+const rand=(a=0,b=1)=>a+Math.random()*(b-a),clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:false,powerPreference:'high-performance',precision:'highp'});renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setPixelRatio(DPR);renderer.autoClear=true;
+const camera=new THREE.OrthographicCamera(-1,1,1,-1,0,1),quad=new THREE.PlaneGeometry(2,2),vertex=`varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.0,1.0);}`;
+const backgroundMaterial=new THREE.ShaderMaterial({uniforms:{uTime:{value:0},uResolution:{value:new THREE.Vector2(1,1)},uRain:{value:.6},uStreaks:{value:.1}},vertexShader:vertex,fragmentShader:`precision highp float;varying vec2 vUv;uniform float uTime,uRain,uStreaks;uniform vec2 uResolution;float hash(vec2 p){vec3 p3=fract(vec3(p.xyx)*vec3(.1031,.1030,.0973));p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}float noise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}float fbm(vec2 p){float v=0.0,a=.52;for(int i=0;i<5;i++){v+=a*noise(p);p=p*2.04+vec2(8.3,13.7);a*=.5;}return v;}void main(){vec2 uv=vUv;float aspect=uResolution.x/max(uResolution.y,1.0);vec3 horizon=vec3(.48,.57,.63),zenith=vec3(.16,.24,.33);vec3 col=mix(horizon,zenith,smoothstep(.0,1.0,uv.y));vec2 p=vec2(uv.x*aspect,uv.y),drift=vec2(-uTime*.010,uTime*.0015);float broad=fbm((p+drift)*vec2(1.10,.72));float mid=fbm((p+drift*1.7)*vec2(2.25,1.28)+vec2(broad*.5,8.4));float cloud=smoothstep(.43,.73,broad*.62+mid*.38);float relief=smoothstep(.25,.82,mid);col=mix(col,vec3(.40,.46,.50),cloud*.55);col+=vec3(.10,.12,.13)*relief*cloud*.18;vec2 sun=vec2(.72,.68);vec2 sp=vec2((uv.x-sun.x)*aspect,uv.y-sun.y);float halo=exp(-length(sp)*9.0),core=smoothstep(.030,.012,length(sp));col+=vec3(.94,.90,.78)*(halo*.16+core*.38)*(1.0-cloud*.45);vec2 rp=uv*vec2(155.0,86.0);rp.x+=uv.y*18.0;vec2 id=floor(rp),f=fract(rp);float r=hash(id),yy=fract(f.y+uTime*(.70+r*.55)+r),xx=abs(f.x-(.22+r*.56));float streak=smoothstep(.016,.003,xx)*smoothstep(.88,.50,yy)*smoothstep(.08,.22,yy);col+=vec3(.72,.79,.83)*streak*uRain*uStreaks*.09;float v=uv.x*(1.0-uv.x)*uv.y*(1.0-uv.y);col*=mix(.86,1.0,smoothstep(.012,.060,v));gl_FragColor=vec4(col,1.0);}`});
+const backgroundScene=new THREE.Scene();backgroundScene.add(new THREE.Mesh(quad,backgroundMaterial));
+function makeTarget(w,h){const t=new THREE.WebGLRenderTarget(w,h,{format:THREE.RGBAFormat,type:THREE.UnsignedByteType,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:false,stencilBuffer:false});t.texture.generateMipmaps=false;return t}
+let simRead=makeTarget(SIM_SIZE,SIM_SIZE),simWrite=makeTarget(SIM_SIZE,SIM_SIZE),sceneTarget=makeTarget(1,1);
+const feedbackMaterial=new THREE.ShaderMaterial({uniforms:{uPrev:{value:null},uTexel:{value:new THREE.Vector2(1/SIM_SIZE,1/SIM_SIZE)},uDelta:{value:1/60}},vertexShader:vertex,fragmentShader:`precision highp float;varying vec2 vUv;uniform sampler2D uPrev;uniform vec2 uTexel;uniform float uDelta;void main(){vec4 c=texture2D(uPrev,vUv);float h=c.r*exp(-uDelta*8.0);float wet=c.g*exp(-uDelta*1.15);float n=(texture2D(uPrev,vUv+vec2(uTexel.x,0.0)).g+texture2D(uPrev,vUv-vec2(uTexel.x,0.0)).g+texture2D(uPrev,vUv+vec2(0.0,uTexel.y)).g+texture2D(uPrev,vUv-vec2(0.0,uTexel.y)).g)*.25;wet=max(wet,n*exp(-uDelta*2.2));gl_FragColor=vec4(h,wet,0.0,1.0);}`});
+const feedbackScene=new THREE.Scene();feedbackScene.add(new THREE.Mesh(quad,feedbackMaterial));
+const base=new THREE.PlaneGeometry(1,1),dropGeometry=new THREE.InstancedBufferGeometry();dropGeometry.index=base.index;dropGeometry.setAttribute('position',base.getAttribute('position'));dropGeometry.setAttribute('uv',base.getAttribute('uv'));const aCenter=new Float32Array(MAX_INSTANCES*2),aRadius=new Float32Array(MAX_INSTANCES),aStretch=new Float32Array(MAX_INSTANCES),aOpacity=new Float32Array(MAX_INSTANCES);dropGeometry.setAttribute('iCenter',new THREE.InstancedBufferAttribute(aCenter,2));dropGeometry.setAttribute('iRadius',new THREE.InstancedBufferAttribute(aRadius,1));dropGeometry.setAttribute('iStretch',new THREE.InstancedBufferAttribute(aStretch,1));dropGeometry.setAttribute('iOpacity',new THREE.InstancedBufferAttribute(aOpacity,1));dropGeometry.instanceCount=0;
+const dropMaterial=new THREE.ShaderMaterial({uniforms:{uSimSize:{value:SIM_SIZE}},vertexShader:`attribute vec2 iCenter;attribute float iRadius,iStretch,iOpacity;varying vec2 vLocal;varying float vOpacity;uniform float uSimSize;void main(){vLocal=position.xy*2.0;vOpacity=iOpacity;vec2 center=iCenter*2.0-1.0;vec2 span=vec2(iRadius,iRadius*iStretch)*(4.0/uSimSize);vec2 clip=center+position.xy*span;gl_Position=vec4(clip,0.0,1.0);}`,fragmentShader:`precision highp float;varying vec2 vLocal;varying float vOpacity;void main(){vec2 p=vLocal;float taper=1.0-.12*max(p.y,0.0);p.x/=max(.82,taper);float d=length(p);if(d>1.0)discard;float dome=sqrt(max(0.0,1.0-d*d));float edge=smoothstep(1.0,.84,d);float h=dome*edge*vOpacity;float wet=smoothstep(1.0,.55,d)*vOpacity*.46;gl_FragColor=vec4(h,wet,0.0,1.0);}`,transparent:true,depthTest:false,depthWrite:false,blending:THREE.AdditiveBlending});
+const dropScene=new THREE.Scene();dropScene.add(new THREE.Mesh(dropGeometry,dropMaterial));
+const compositeMaterial=new THREE.ShaderMaterial({uniforms:{uSceneTex:{value:null},uHeightTex:{value:null},uTexel:{value:new THREE.Vector2(1/SIM_SIZE,1/SIM_SIZE)},uResolution:{value:new THREE.Vector2(1,1)},uRefraction:{value:.72},uSpecular:{value:.55},uBokeh:{value:.36}},vertexShader:vertex,fragmentShader:`precision highp float;varying vec2 vUv;uniform sampler2D uSceneTex,uHeightTex;uniform vec2 uTexel,uResolution;uniform float uRefraction,uSpecular,uBokeh;float luma(vec3 c){return dot(c,vec3(.2126,.7152,.0722));}vec3 sceneAt(vec2 uv){return texture2D(uSceneTex,clamp(uv,vec2(.001),vec2(.999))).rgb;}void main(){vec2 uv=vUv;vec4 s=texture2D(uHeightTex,uv);float hL=texture2D(uHeightTex,uv-vec2(uTexel.x,0.0)).r,hR=texture2D(uHeightTex,uv+vec2(uTexel.x,0.0)).r,hD=texture2D(uHeightTex,uv-vec2(0.0,uTexel.y)).r,hU=texture2D(uHeightTex,uv+vec2(0.0,uTexel.y)).r;vec2 grad=vec2(hR-hL,hU-hD);float edge=clamp(length(grad)*3.0,0.0,1.0),body=smoothstep(.08,.68,s.r),wet=max(body,s.g*.24);vec3 normal=normalize(vec3(-grad*3.0,1.0));float bend=(edge*.82+body*.18)*uRefraction;vec2 refrUv=uv+normal.xy*(.0042*bend);vec3 sharp=sceneAt(refrUv);float px=(1.0+3.0*uBokeh)/max(1.0,uResolution.y);vec2 dx=vec2(px,0.0),dy=vec2(0.0,px);vec3 blur=sharp*.36;blur+=sceneAt(refrUv+dx)*.16+sceneAt(refrUv-dx)*.16;blur+=sceneAt(refrUv+dy)*.16+sceneAt(refrUv-dy)*.16;float bright=smoothstep(.46,.92,luma(blur));float blurMix=body*uBokeh*(.10+bright*.30);vec3 col=mix(sharp,blur,clamp(blurMix,0.0,.34));vec3 lightDir=normalize(vec3(-.42,.56,.72));float spec=pow(max(dot(normal,lightDir),0.0),88.0)*edge*uSpecular;col+=vec3(1.0,.99,.96)*spec*.16;col*=1.0-edge*.055;float grey=luma(col);col=mix(col,vec3(grey),.035);gl_FragColor=vec4(col,1.0);}`});
+const compositeScene=new THREE.Scene();compositeScene.add(new THREE.Mesh(quad,compositeMaterial));
+const controls={rainIntensity:document.getElementById('rainIntensity'),dropMin:document.getElementById('dropMin'),dropMax:document.getElementById('dropMax'),fallSpeed:document.getElementById('fallSpeed'),windStrength:document.getElementById('windStrength'),refraction:document.getElementById('refraction'),specular:document.getElementById('specular'),bokeh:document.getElementById('bokeh'),streaks:document.getElementById('streaks')};
+const units={rainIntensity:'',dropMin:' px',dropMax:' px',fallSpeed:'×',windStrength:'',refraction:'×',specular:'×',bokeh:'×',streaks:''};function controlNumber(k){return Number(controls[k].value)}function syncControls(){for(const[k,input]of Object.entries(controls))input.closest('.control').querySelector('output').textContent=input.value+units[k];backgroundMaterial.uniforms.uRain.value=controlNumber('rainIntensity');backgroundMaterial.uniforms.uStreaks.value=controlNumber('streaks');compositeMaterial.uniforms.uRefraction.value=controlNumber('refraction');compositeMaterial.uniforms.uSpecular.value=controlNumber('specular');compositeMaterial.uniforms.uBokeh.value=controlNumber('bokeh')}for(const input of Object.values(controls))input.addEventListener('input',syncControls);syncControls();
+let drops=[],trails=[],spawnCarry=0;function canPlace(x,y,r){for(const d of drops){const dx=(x-d.x)*SIM_SIZE,dy=(y-d.y)*SIM_SIZE;if(dx*dx+dy*dy<Math.pow((r+d.r)*1.35,2))return false}return true}function spawnDrop(force=false){if(drops.length>=MAX_DROPS)return;const minR=Math.min(controlNumber('dropMin'),controlNumber('dropMax')),maxR=Math.max(controlNumber('dropMin'),controlNumber('dropMax'));for(let attempt=0;attempt<12;attempt++){const r=rand(minR,maxR*.72),x=rand(.02,.98),y=rand(.04,1.02);if(force||canPlace(x,y,r)){drops.push({x,y,r,target:rand(r,Math.max(r,maxR)),age:rand(0,4),phase:rand(0,6.28),moving:false,speed:0});return}}}function seedDrops(){drops=[];trails=[];spawnCarry=0;for(let i=0;i<52;i++)spawnDrop(true);for(const d of drops){d.r*=rand(.55,.95);d.target=Math.max(d.r,d.target)}}function pushTrail(x,y,r,opacity){trails.push({x,y,r,opacity,life:1});if(trails.length>MAX_TRAILS)trails.splice(0,trails.length-MAX_TRAILS)}function mergeDrops(){for(let i=drops.length-1;i>=0;i--){const a=drops[i];for(let j=i-1;j>=0;j--){const b=drops[j],dx=(a.x-b.x)*SIM_SIZE,dy=(a.y-b.y)*SIM_SIZE,threshold=(a.r+b.r)*.58;if(dx*dx+dy*dy>threshold*threshold)continue;const big=a.r>=b.r?a:b,small=big===a?b:a;big.r=Math.min(12,Math.sqrt(big.r*big.r+small.r*small.r*.72));big.target=Math.max(big.target,big.r);big.moving=big.moving||small.moving||big.r>6.4;drops.splice(drops.indexOf(small),1);return}}}function updateWater(dt){const intensity=controlNumber('rainIntensity'),maxR=Math.max(controlNumber('dropMin'),controlNumber('dropMax')),fall=controlNumber('fallSpeed'),wind=controlNumber('windStrength');spawnCarry+=dt*(1.8+intensity*7.2);while(spawnCarry>=1){spawnCarry-=1;spawnDrop(false)}for(let i=drops.length-1;i>=0;i--){const d=drops[i];d.age+=dt;if(!d.moving){d.r=Math.min(d.target,d.r+dt*(.08+intensity*.16));const activation=6.2+d.phase*.12;if(d.r>activation&&Math.random()<dt*(.11+intensity*.28))d.moving=true}if(d.moving){const ox=d.x,oy=d.y;d.speed+=(24+d.r*5.5)*fall*dt;d.speed=Math.min(d.speed,(42+d.r*7)*fall);d.x+=wind*.010*dt+Math.sin(d.age*2.2+d.phase)*.00018;d.y-=d.speed/SIM_SIZE*dt;if(Math.hypot((d.x-ox)*SIM_SIZE,(d.y-oy)*SIM_SIZE)>.18)pushTrail(ox,oy,Math.max(1,d.r*.22),clamp(.10+d.r*.012,.10,.24));if(d.y<-.04||d.x<-.06||d.x>1.06){drops.splice(i,1);continue}d.r=Math.min(maxR*1.18,d.r+dt*intensity*.10)}}for(let i=trails.length-1;i>=0;i--){const t=trails[i];t.life-=dt*(1.25+intensity*.15);t.opacity*=Math.exp(-dt*1.7);if(t.life<=0||t.opacity<.01)trails.splice(i,1)}mergeDrops()}
+function fillInstances(){let count=0;for(const d of drops){if(count>=MAX_INSTANCES)break;aCenter[count*2]=d.x;aCenter[count*2+1]=d.y;aRadius[count]=d.r;aStretch[count]=d.moving?1.08+clamp(d.speed/180,0,.18):1;aOpacity[count]=d.moving?.80:.68;count++}for(const t of trails){if(count>=MAX_INSTANCES)break;aCenter[count*2]=t.x;aCenter[count*2+1]=t.y;aRadius[count]=t.r;aStretch[count]=1.35;aOpacity[count]=t.opacity;count++}dropGeometry.instanceCount=count;dropGeometry.getAttribute('iCenter').needsUpdate=true;dropGeometry.getAttribute('iRadius').needsUpdate=true;dropGeometry.getAttribute('iStretch').needsUpdate=true;dropGeometry.getAttribute('iOpacity').needsUpdate=true}
+function clearTarget(t){const prev=renderer.getRenderTarget();renderer.setRenderTarget(t);renderer.setClearColor(0x000000,0);renderer.clear(true,false,false);renderer.setRenderTarget(prev)}function resetSimulation(){seedDrops();clearTarget(simRead);clearTarget(simWrite)}function resize(){const w=Math.max(1,innerWidth),h=Math.max(1,innerHeight);renderer.setSize(w,h,false);const pw=Math.max(1,Math.round(w*DPR)),ph=Math.max(1,Math.round(h*DPR));sceneTarget.setSize(pw,ph);backgroundMaterial.uniforms.uResolution.value.set(pw,ph);compositeMaterial.uniforms.uResolution.value.set(pw,ph)}function renderBackground(elapsed){backgroundMaterial.uniforms.uTime.value=elapsed;renderer.setRenderTarget(sceneTarget);renderer.render(backgroundScene,camera)}function updateHeightmap(dt){feedbackMaterial.uniforms.uPrev.value=simRead.texture;feedbackMaterial.uniforms.uDelta.value=dt;renderer.setRenderTarget(simWrite);renderer.render(feedbackScene,camera);renderer.autoClear=false;fillInstances();renderer.render(dropScene,camera);renderer.autoClear=true;const temp=simRead;simRead=simWrite;simWrite=temp}function composite(){compositeMaterial.uniforms.uSceneTex.value=sceneTarget.texture;compositeMaterial.uniforms.uHeightTex.value=simRead.texture;renderer.setRenderTarget(null);renderer.render(compositeScene,camera)}
+let running=true,last=performance.now(),elapsed=0,frames=0,fpsStart=performance.now(),raf=0;function frame(now){const dt=Math.min(.033,Math.max(.001,(now-last)/1000));last=now;if(running){elapsed+=dt;updateWater(dt);renderBackground(elapsed);updateHeightmap(dt);composite()}frames++;if(now-fpsStart>750){const fps=Math.round(frames*1000/(now-fpsStart));fpsLabel.textContent=`512² heightmap · ${fps} fps`;frames=0;fpsStart=now}readout.textContent=`beads        ${drops.length}\ntrail nodes  ${trails.length}\nheightmap    512 × 512 RGBA8 ping-pong\nrender       ${Math.round(innerWidth*DPR)} × ${Math.round(innerHeight*DPR)}\nmodel        moving bead bodies + fading wet field`;raf=requestAnimationFrame(frame)}
+window.WetGlassLab={renderer,sceneTarget,resize,resetSimulation,get heightTexture(){return simRead.texture},updateHeightmap,composite};window.addEventListener('resize',resize,{passive:true});document.addEventListener('visibilitychange',()=>{last=performance.now()});document.getElementById('resetSim').addEventListener('click',resetSimulation);document.getElementById('pauseToggle').addEventListener('click',e=>{running=!running;e.currentTarget.textContent=running?'PAUSE':'RESUME';last=performance.now()});document.getElementById('hideControls').addEventListener('click',()=>{panel.classList.add('hidden');showControls.classList.add('visible')});showControls.addEventListener('click',()=>{panel.classList.remove('hidden');showControls.classList.remove('visible')});resize();resetSimulation();if(matchMedia('(max-width:760px)').matches){panel.classList.add('hidden');showControls.classList.add('visible')}raf=requestAnimationFrame(frame);
 </script>
 </body>
 </html>
