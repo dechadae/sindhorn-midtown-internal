@@ -55,41 +55,48 @@ void main(){
   }
 
   // 2) Mid broken cloud = broad bank mask × irregular rounded cells × edge breakup.
-  // One coarse RGBA sample builds the horizontal bank and cheap domain warp; the
-  // rotated second sample exposes unequal overlapping cells without extra lookups.
+  // The bank stays low-frequency. Two warped, overlapping cheap cell lattices use the
+  // already-sampled RGBA noise only to vary lobe offset/radius, so edges read as a
+  // connected tropical bank rather than a Gaussian spot or a row of equal cotton balls.
   if(uMidCoverage>.003&&uMidOpacity>.003){
     vec2 mp=(p+drift*.72)*vec2(.64,1.18)*max(.2,uMidScale);
     vec2 mpr=vec2(mp.x*.94+mp.y*.20,-mp.x*.16+mp.y*.94);
     vec4 m0=noise4(mp*.050+vec2(.173,.071));vec2 mWarp=(m0.ba-.5)*vec2(.24,.10);
-    vec4 m1=noise4((mpr+mWarp)*(.108+.014*uMidDetail)+vec2(.419,.227));
+    vec4 m1=noise4((mpr+mWarp)*(.140+.012*uMidDetail)+vec2(.419,.227));
     float midBankField=m0.r*.52+m0.g*.30+m0.a*.18;float mt=mix(.80,.37,sat(uMidCoverage));float edge=max(.016,uMidSoftness/max(.55,uCloudContrast));
     float midBank=smoothstep(mt-edge*1.35,mt+edge*1.10,midBankField);float midBankCore=smoothstep(mt+.025,mt+.16,midBankField);
-    float midCellField=max(max(m1.r,m1.g*.96),max(m1.b*.90,m0.b*.86));float midCells=smoothstep(.43,.70,midCellField);
-    float midEdgeField=m1.a*.56+m0.b*.44+.12*midCells;float midEdgeBreakup=smoothstep(.31,.68,midEdgeField);float midPerimeter=sat(midBank-midBankCore);
-    float mid=midBankCore+midPerimeter*mix(.28,1.0,midEdgeBreakup);mid*=mix(.70,1.0,midCells);
+    vec2 mCellA=fract(vec2(mp.x*22.0,mp.y*10.8)+(m0.rg-.5)*vec2(1.15,.75)+(m1.rg-.5)*vec2(.35,.30))-.5;mCellA+=(m1.rg-.5)*vec2(.14,.12);
+    vec2 mCellAS=mCellA*vec2(.88,1.05);float mR0=.34+.11*m1.b;float mLobeA=1.0-smoothstep(mR0*mR0*.48,mR0*mR0,dot(mCellAS,mCellAS));
+    vec2 mCellB=fract(vec2(mpr.x*18.0,mpr.y*8.8)+vec2(.37,.61)+(m1.ba-.5)*vec2(.85,.65))-.5;mCellB+=(m1.ba-.5)*vec2(.13,.11);
+    vec2 mCellBS=mCellB*vec2(1.08,.92);float mR1=.30+.13*m0.b;float mLobeB=1.0-smoothstep(mR1*mR1*.45,mR1*mR1,dot(mCellBS,mCellBS));
+    float midCells=smoothstep(.05,.72,max(mLobeA,mLobeB*.88));float midEdgeField=midCells*.72+m1.a*.18+m0.b*.10;float midEdgeBreakup=smoothstep(.25,.70,midEdgeField);float midPerimeter=sat(midBank-midBankCore);
+    float mid=midBankCore*(.90+.10*midCells)+midPerimeter*mix(.16,1.0,midEdgeBreakup);mid=max(mid,midBank*.28*(.70+.30*uMidCoverage));
     float connectedMid=smoothstep(.30,.59,midBankField)*uConnected;mid=max(mid,connectedMid*(.54+.42*uMidCoverage));
-    float midInner=sat(midBankCore*(.58+.42*midCells));float midRim=sat(mid-midInner);float midUnder=sat((1.0-midCells)*.16+horizon*.10);
-    vec3 midCol=mix(uCloudBase,uCloudAmbient,sat(.30+midInner*.60));midCol*=1.0-midUnder*uBaseDarkness*.18;float midWarm=sat(lowSun*(.18+.82*sunWide)*uWarmLight);midCol=mix(midCol,uCloudWarm,sat(midWarm*(.24+.70*directional)));midCol+=uCloudWarm*midRim*uMidEdgeLight*lowSun*.24;midCol=mix(midCol,vec3(.075,.085,.115),night*.70);
+    float midInner=sat(midBankCore*(.52+.48*midCells)+midPerimeter*midCells*.35);float midRim=sat(mid-midBankCore*.82);float midUnder=sat((1.0-midCells)*.12+horizon*.10);
+    vec3 midCol=mix(uCloudBase,uCloudAmbient,sat(.24+midInner*.62));midCol*=1.0-midUnder*uBaseDarkness*.20;float midWarm=sat(lowSun*(.18+.82*sunWide)*uWarmLight);midCol=mix(midCol,uCloudWarm,sat(midWarm*(.10+.24*directional)));midCol+=uCloudWarm*midRim*uMidEdgeLight*lowSun*.28;midCol=mix(midCol,vec3(.075,.085,.115),night*.70);
     midA=sat(mid*uMidOpacity);c=mix(c,midCol,midA);
   }
 
   // 3) Low convective / monsoon = broad asymmetric bank × cauliflower crown cells
-  // × controlled perimeter breakup. Connected weather fills the bank interior;
-  // partly cloudy weather leaves the lobe field and natural gaps legible.
+  // × controlled perimeter breakup. Larger unequal overlapping lobes sculpt the crown;
+  // connected weather fills the bank interior so storms remain one heavy tropical deck.
   if(uLowCoverage>.003&&uLowOpacity>.003){
     float lowBuildRound=sat((uLowBuild-1.0)/.8);
     vec2 lp=(p+drift*.44)*vec2(.55,1.12+.10*lowBuildRound)*max(.2,uLowScale);
     vec2 lpr=vec2(lp.x*.93-lp.y*.22,lp.x*.17+lp.y*.93);
     vec4 l0=noise4(lp*.046+vec2(.337,.149));vec2 lWarp=(l0.ar-.5)*vec2(.28,.11);
-    vec4 l1=noise4((lpr+lWarp)*(.100+.010*lowBuildRound)+vec2(.097,.463));
+    vec4 l1=noise4((lpr+lWarp)*(.135+.018*lowBuildRound)+vec2(.097,.463));
     float lowBankField=l0.b*.48+l0.r*.30+l0.g*.22+horizon*.045*lowBuildRound;float lt=mix(.82,.33,sat(uLowCoverage))-uConnected*.12;float lowEdge=.095/max(.7,uCloudContrast);
     float lowBank=smoothstep(lt-lowEdge*1.35,lt+lowEdge,lowBankField);float lowBankCore=smoothstep(lt+.02,lt+.17,lowBankField);
-    float lowCellField=max(max(l1.r,l1.g*.95),max(l1.b*.90,l0.a*.88));float lowCells=smoothstep(mix(.53,.43,lowBuildRound),.73,lowCellField);
-    float lowEdgeField=l1.a*.54+l0.g*.30+l0.a*.16+.10*lowCells;float lowEdgeBreakup=smoothstep(.30,.67,lowEdgeField);float lowPerimeter=sat(lowBank-lowBankCore);
-    float low=lowBankCore+lowPerimeter*mix(.24,1.0,lowEdgeBreakup);low*=mix(.68,1.0,lowCells);
+    vec2 lCellA=fract(vec2(lp.x*22.0,lp.y*10.3)+(l0.rg-.5)*vec2(1.20,.72)+(l1.rg-.5)*vec2(.40,.30))-.5;lCellA+=(l1.rg-.5)*vec2(.15,.12);
+    vec2 lCellAS=lCellA*vec2(.84,1.08);float lR0=.37+.12*l1.b;float lLobeA=1.0-smoothstep(lR0*lR0*.46,lR0*lR0,dot(lCellAS,lCellAS));
+    vec2 lCellB=fract(vec2(lpr.x*17.0,lpr.y*8.2)+vec2(.43,.57)+(l1.ba-.5)*vec2(.92,.68))-.5;lCellB+=(l1.ba-.5)*vec2(.14,.11);
+    vec2 lCellBS=lCellB*vec2(1.04,.90);float lR1=.34+.14*l0.a;float lLobeB=1.0-smoothstep(lR1*lR1*.44,lR1*lR1,dot(lCellBS,lCellBS));
+    float lowCells=smoothstep(.04,.68,max(lLobeA,lLobeB*.90));float lowEdgeField=lowCells*.74+l1.a*.16+l0.g*.10;float lowEdgeBreakup=smoothstep(.23,.68,lowEdgeField);float lowPerimeter=sat(lowBank-lowBankCore);
+    float low=lowBankCore*(.88+.12*lowCells)+lowPerimeter*mix(.14,1.0,lowEdgeBreakup);low=max(low,lowBank*.30*(.65+.35*lowBuildRound));
     float connectedDeck=smoothstep(.28,.57,lowBankField)*uConnected*smoothstep(.18,.72,uLowCoverage);low=max(low,connectedDeck);
-    float crown=sat(lowCells*(.68+.32*lowBuildRound));float lowRim=sat(low-lowBankCore*(.70+.30*lowCells));float lowBottom=sat((1.0-uv.y)*.68+.22*(1.0-crown));
-    vec3 lowCol=mix(uCloudBase*mix(1.0,.46,uBaseDarkness),uCloudAmbient,sat(.18+crown*.72));lowCol*=1.0-lowBottom*uBaseDarkness*.36;float leak=sunNear*lowSun*uLightLeaks*(1.0-uConnected*.58);lowCol=mix(lowCol,uCloudWarm,sat(leak*.68));lowCol+=uCloudWarm*lowRim*lowSun*uLightLeaks*.14;lowCol=mix(lowCol,vec3(.10,.11,.15),sat(uStorm*.82+night*.66));
+    float crown=sat(lowCells*(.62+.38*lowBuildRound));float lowRim=sat(low-lowBankCore*.80);float lowBottom=sat((1.0-uv.y)*.68+.22*(1.0-crown));
+    vec3 lowCol=mix(uCloudBase*mix(1.0,.46,uBaseDarkness),uCloudAmbient,sat(.16+crown*.72));lowCol*=1.0-lowBottom*uBaseDarkness*.38;float leak=sunNear*lowSun*uLightLeaks*(1.0-uConnected*.58);lowCol=mix(lowCol,uCloudWarm,sat(leak*.68));lowCol+=uCloudWarm*lowRim*lowSun*uLightLeaks*.15;lowCol=mix(lowCol,vec3(.10,.11,.15),sat(uStorm*.82+night*.66));
     lowA=sat(low*uLowOpacity);c=mix(c,lowCol,lowA);
   }
 
