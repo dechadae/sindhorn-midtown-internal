@@ -12,28 +12,32 @@ This repository is the canonical core-shell / engine source for the Sindhorn Mid
 - Canonical architecture: `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
 - Latest language-order override: `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md`
 - Live-sky architecture override: `docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md`
+- Notification inbox architecture override: `docs/NOTIFICATION-MESSAGES-INBOX-ARCHITECTURE-OVERRIDE-20260827.md`
 - Phase 8 production/acceptance record: `docs/PHASE8-DIRECTIONAL-LIVE-BANGKOK-SKY-CALIBRATION-20260827.md`
 - Phase 8 renderer implementation record: `docs/PHASE8-SKY-COLOR-RENDERER-IMPLEMENTATION-20260827.md`
 
-Before consequential work, read this file and the final architecture plan. The language-order override is a later approved product decision and supersedes any older Thai-first clauses in the final plan or specialist documents. The live-sky architecture override is a later approved decision for the realtime atmosphere-input pipeline and supersedes the final plan only where camera-derived sky calibration is concerned.
+Before consequential work, read this file and the final architecture plan. The language-order override is a later approved product decision and supersedes any older Thai-first clauses in the final plan or specialist documents. The live-sky architecture override is a later approved decision for the realtime atmosphere-input pipeline. The notification inbox override is a later approved decision that supersedes the older three-route-only architecture where footer navigation and notification history are concerned.
 
 ## Current release state
 
-Production is the v16 hybrid PWA with later Web Push, launch-hardening and Phase 8 live-sky additions:
+Production is the v16 hybrid PWA with later Web Push, launch-hardening, Phase 8 live-sky and Messages-inbox additions:
 
 - Cloudflare/GitHub = stable installed shell and executable engines.
 - Supabase `public.sindhorn_app_files` = versioned presentation/configuration pack.
-- Supabase Pack 37 = production presentation pack.
+- Supabase Pack 38 = production presentation pack.
 - AirBKK = authoritative PM2.5 / Thai AQI.
 - Open-Meteo = realtime weather at the resolved user location, with Sindhorn Midtown Bangkok fallback.
 - Local astronomy = realtime sun/moon geometry.
 - Cloudflare Worker + D1 = live Web Push backend.
 - Phase 7 launch-hardening regression gate = production protection for PWA identity, offline/fallback behavior, push shell, current-location UI and active pack integrity.
 - Phase 8 directional Bangkok sky calibration = **production live** through `sindhorn-midtown-sky`, `site/sky-calibration.js` and `site/sky-color-renderer.js`.
-- Service-worker shell = v21 live-sky calibration family.
+- Service-worker shell = v22 notification-messages / live-sky calibration family.
+- Shell router version = 17 with `/`, `/guidance`, `/details` and `/messages`.
 - Environmental Alerts client = cache-busted `push-client.js?v=2` with explicit service-worker preparation, bounded timeout and Retry recovery.
+- Android Web Push delivery has passed physical-device acceptance; iOS/iPadOS physical acceptance remains.
+- Messages notification history is device-local IndexedDB storage for future pushes received by that browser profile.
 
-The Atmosphere Tester rendering model was promoted to the live environment engine on 26 August 2026. Production `site/environment.js` uses the tester's sky/cloud/fog/heat/PM2.5 visual model, real local solar/lunar position, real WMO/Open-Meteo weather mapping, snow/hail/lightning overlays where physically applicable, and the existing persistent rain-on-glass system. Phase 8 now adds bounded observed Bangkok zenith/horizon color calibration over that physical renderer. The standalone `/atmosphere-tester.html` remains the manual weather-combination lab.
+The Atmosphere Tester rendering model was promoted to the live environment engine on 26 August 2026. Production `site/environment.js` uses the tester's sky/cloud/fog/heat/PM2.5 visual model, real local solar/lunar position, real WMO/Open-Meteo weather mapping, snow/hail/lightning overlays where physically applicable, and the existing persistent rain-on-glass system. Phase 8 adds bounded observed Bangkok zenith/horizon color calibration over that physical renderer. The standalone `/atmosphere-tester.html` remains the manual weather-combination lab.
 
 Phase 8 technical deployment is complete. Physical installed-device visual acceptance around sunrise/east weighting and sunset/west weighting remains a human QA gate.
 
@@ -57,7 +61,8 @@ This applies to every visible or announced app surface, including:
 - safety/medical disclaimers;
 - pull-to-refresh;
 - Save/Share feedback;
-- Web Push notification titles and bodies.
+- Web Push notification titles and bodies;
+- Messages notification-history presentation.
 
 English must precede Thai in DOM/read order where both are presented. Thai remains clearly readable and must not be reduced to tiny decorative caption text. No language selector is required for critical comprehension.
 
@@ -80,13 +85,14 @@ GitHub / Cloudflare owns relatively stable executable infrastructure:
 - offline/recovery shell;
 - Web Push receiver;
 - Cloudflare push backend;
+- device-local notification-history storage and inbox client;
 - live-sky camera acquisition / analysis / fusion backend;
 - bounded client calibration plumbing;
 - full-environment live-sky color compositor.
 
 Supabase owns frequently edited presentation/configuration:
 
-- Today / Guidance / Details markup;
+- Today / Guidance / Details / Messages markup;
 - header/footer presentation;
 - UI CSS;
 - typography/layout/copy;
@@ -239,7 +245,7 @@ Installed iOS and Android PWAs must support pull-to-refresh at scroll top.
 
 - Same glass material family as header/footer.
 - Pull → Release → Refreshing.
-- Refresh AirBKK, Open-Meteo, UI pack and live-sky calibration in place.
+- Refresh AirBKK, Open-Meteo, UI pack, live-sky calibration and Messages unread/history state in place.
 - Never reload/destroy the persistent shell for normal refresh.
 
 ## Save full page
@@ -261,7 +267,7 @@ Freeze production origin, manifest id/scope/start_url, service-worker scope and 
 
 Phase 8 and later shell changes must follow the same zero-reinstall rule. Use explicit module cache-busting when a service-worker-cached client must be guaranteed on the next normal reopen.
 
-## Notifications
+## Notifications and Messages
 
 The Web Push backend is live:
 
@@ -271,7 +277,9 @@ Subscriptions are stored in Cloudflare D1. VAPID is configured. Notification tit
 
 The installed client must never remain indefinitely in a disabled “Preparing alerts” state. `push-client.js?v=2` explicitly registers the root service worker, uses bounded preparation/API timeouts, and exposes a Retry recovery state. The actual `PushManager.subscribe()` call remains directly attached to the employee’s explicit Turn alerts on gesture.
 
-Physical native-device acceptance remains required for final Android/iOS subscription/delivery confirmation.
+Received notifications after service-worker v22 are retained locally in the browser profile through IndexedDB and surfaced at `/messages`. Maximum local history is 50. Opening Messages marks retained items read; Clear all deletes local history only. Do not upload notification history to Supabase or treat the inbox as cross-device account state.
+
+Physical Android Web Push delivery has passed. Notification tap/deep-link confirmation, first post-v22 inbox-persistence confirmation and iOS/iPadOS physical acceptance remain human/device QA items.
 
 ## Deployment discipline
 
@@ -288,7 +296,7 @@ For consequential shell/renderer/backend changes:
 
 Routine visual/content/art-direction edits should remain Supabase-only when executable changes are not required.
 
-Live-sky camera acquisition, Workers AI analysis, fusion and runtime renderer calibration are consequential executable/backend changes and therefore use the full branch/validation/PR discipline.
+Live-sky camera acquisition, Workers AI analysis, fusion, runtime renderer calibration and notification-inbox executable changes are consequential and therefore use the full branch/validation/PR discipline.
 
 ## Documentation authority
 
@@ -297,7 +305,8 @@ Use this order:
 1. `AGENTS.md`
 2. `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md` for language-order conflicts
 3. `docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md` for realtime camera/sky-calibration conflicts
-4. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
-5. phase/specialist docs where they do not conflict, including `docs/PHASE8-DIRECTIONAL-LIVE-BANGKOK-SKY-CALIBRATION-20260827.md` and `docs/PHASE8-SKY-COLOR-RENDERER-IMPLEMENTATION-20260827.md`
+4. `docs/NOTIFICATION-MESSAGES-INBOX-ARCHITECTURE-OVERRIDE-20260827.md` for four-route footer/navigation and notification-history conflicts
+5. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
+6. phase/specialist docs where they do not conflict, including `docs/PHASE8-DIRECTIONAL-LIVE-BANGKOK-SKY-CALIBRATION-20260827.md`, `docs/PHASE8-SKY-COLOR-RENDERER-IMPLEMENTATION-20260827.md` and `docs/ANDROID-WEB-PUSH-ACCEPTANCE-20260827.md`
 
 Update canonical documentation when the live architecture materially changes.
