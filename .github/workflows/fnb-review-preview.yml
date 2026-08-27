@@ -30,8 +30,10 @@ jobs:
           set -euo pipefail
           test -s site/fnb-promotions-review.html
           grep -q 'F&B Promotions' site/fnb-promotions-review.html
-          grep -q 'Artwork queue' site/fnb-promotions-review.html
+          grep -q 'Production queue' site/fnb-promotions-review.html
           grep -q 'Editor · 10639' site/fnb-promotions-review.html
+          grep -q 'Noto Sans Thai' site/fnb-promotions-review.html
+          grep -q -- '--chip-h:42px' site/fnb-promotions-review.html
           ! grep -qi 'flipgazine' site/fnb-promotions-review.html
 
       - name: Deploy isolated branch preview
@@ -48,4 +50,6 @@ jobs:
           sleep 8
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb-promotions-review.html" -o /tmp/fnb-review.html
           grep -q 'F&B Promotions' /tmp/fnb-review.html
-          grep -q 'Artwork queue' /tmp/fnb-review.html
+          grep -q 'Production queue' /tmp/fnb-review.html
+          grep -q 'Noto Sans Thai' /tmp/fnb-review.html
+          grep -q -- '--chip-h:42px' /tmp/fnb-review.html
