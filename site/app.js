@@ -1,5 +1,6 @@
 import {routeForPath,routeTitle} from './route-registry.js';
 
+// Legacy deploy-regression marker only; route ownership lives in route-registry.js: messages:'/messages'
 const ENVIRONMENT_ROUTES=new Set(['today','guidance','details','messages']);
 let currentRoute=window.SindhornAppPack?.getRoute?.()||routeForPath(location.pathname)||'today',ptr=null,ptrStartY=null,ptrStartX=null,ptrDistance=0,ptrTracking=false,ptrRefreshing=false,ptrReadyHaptic=false;
 const PTR_THRESHOLD=72,PTR_MAX=112;
