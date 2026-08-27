@@ -164,10 +164,5 @@ jobs:
             curl --fail --silent --show-error --max-time 15 -X POST \
               https://sindhorn-midtown-auth-preview.decha-dae.workers.dev/diagnostics/brevo-create-configured-sender \
               -o /tmp/brevo-sender-create.json
-            node - <<'NODE'
-            const fs=require('fs');
-            const result=JSON.parse(fs.readFileSync('/tmp/brevo-sender-create.json','utf8'));
-            console.log(`Brevo sender registration: ok=${result.ok} created=${result.created} alreadyExists=${result.alreadyExists} senderIdPresent=${result.senderIdPresent} dkimError=${result.dkimError} spfError=${result.spfError}`);
-            if(result.ok!==true) process.exit(1);
-            NODE
+            node -e "const r=require('/tmp/brevo-sender-create.json'); console.log('Brevo sender registration: ok='+r.ok+' created='+r.created+' alreadyExists='+r.alreadyExists+' senderIdPresent='+r.senderIdPresent+' dkimError='+r.dkimError+' spfError='+r.spfError); if(r.ok!==true) process.exit(1)"
           fi
