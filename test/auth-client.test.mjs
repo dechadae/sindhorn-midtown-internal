@@ -8,14 +8,14 @@ const profile={id:'employee-1',employee_number:'SM001',display_name:'Test Employ
 
 globalThis.fetch=async(url,options={})=>{
   requests.push({url:String(url),options});
-  if(String(url).endsWith('/activate'))return new Response(JSON.stringify({ok:true,bootstrap:{tokenHash:'bootstrap-hash',type:'email'},preferredLanguage:'th',purpose:'activate'}),{status:200,headers:{'content-type':'application/json'}});
+  if(String(url).endsWith('/rest/v1/rpc/sindhorn_manual_activate'))return new Response(JSON.stringify([{token_hash:'token-hash',preferred_language:'th',purpose:'activate'}]),{status:200,headers:{'content-type':'application/json'}});
   if(String(url).endsWith('/auth/v1/verify'))return new Response(JSON.stringify({access_token:accessToken,refresh_token:'refresh-1',expires_at:future,token_type:'bearer',user:{id:'user-1'}}),{status:200,headers:{'content-type':'application/json'}});
   if(String(url).includes('/rest/v1/sindhorn_employees'))return new Response(JSON.stringify([profile]),{status:200,headers:{'content-type':'application/json'}});
   if(String(url).endsWith('/auth/v1/logout'))return new Response('',{status:204});
   throw new Error(`Unexpected request: ${url}`);
 };
 
-const auth=await import('../site/auth-client.js?test=1');
+const auth=await import('../site/auth-client.js?test=phase9-supabase-only');
 assert.equal(auth.getState().authenticated,false);
 const result=await auth.activate('SM001','123456');
 assert.equal(result.profile.employee_number,'SM001');
@@ -23,12 +23,15 @@ assert.equal(result.profile.role,'employee');
 assert.equal(result.preferredLanguage,'th');
 assert.equal(auth.getState().authenticated,true);
 assert.equal(auth.getAccessToken(),accessToken);
+assert.equal(auth.getState().authBackend,'supabase');
 assert.equal(requests.length,3);
-assert.match(requests[0].url,/sindhorn-midtown-auth(?:-preview)?\.decha-dae\.workers\.dev\/activate$/);
-assert.deepEqual(JSON.parse(requests[0].options.body),{employeeNumber:'SM001',code:'123456'});
-assert.deepEqual(JSON.parse(requests[1].options.body),{token_hash:'bootstrap-hash',type:'email'});
+assert.match(requests[0].url,/\/rest\/v1\/rpc\/sindhorn_manual_activate$/);
+assert.deepEqual(JSON.parse(requests[0].options.body),{p_employee_number:'SM001',p_plain_code:'123456'});
+assert.equal(requests[0].options.headers.authorization,undefined);
+assert.deepEqual(JSON.parse(requests[1].options.body),{token_hash:'token-hash',type:'email'});
 assert.match(String(requests[2].options.headers.authorization),/^Bearer /);
+assert.ok(requests.every(request=>!request.url.includes('workers.dev')));
 await auth.signOut();
 assert.equal(auth.getState().authenticated,false);
 assert.equal(requests.length,4);
-console.log('auth-client tests passed');
+console.log('Supabase-only auth-client tests passed');

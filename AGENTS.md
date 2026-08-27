@@ -28,6 +28,7 @@ The two Phase 8.2 atmosphere documents supersede older live-camera production ar
 ## Product state that must be preserved
 
 - English first; Thai immediately supports it.
+- **Typography invariant: every font and text treatment in Sindhorn Midtown Internal uses zero character tracking (`letter-spacing: 0`). Do not introduce positive or negative tracking anywhere in the PWA, auth, admin, messages, or future modules.**
 - Messages is a fourth footer destination and its device-local inbox works offline.
 - Environmental Alerts / Web Push is user-gesture initiated only; never auto-prompt notification permission.
 - Current device location drives Open-Meteo weather and sun/moon astronomy after permission; fallback is Sindhorn Midtown Bangkok.
