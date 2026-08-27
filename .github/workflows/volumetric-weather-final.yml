@@ -1,0 +1,74 @@
+name: UE Volumetric Weather Final Lab
+on:
+  push:
+    branches: [lab-volumetric-clouds]
+    paths:
+      - "site/volumetric-weather-final*"
+      - ".github/workflows/volumetric-weather-final.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+  deployments: write
+concurrency:
+  group: volumetric-weather-final-${{ github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate final isolated renderer
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/volumetric-weather-final.js
+          node --check site/volumetric-weather-final-smoke.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          h=Path('site/volumetric-weather-final.html').read_text(); j=Path('site/volumetric-weather-final.js').read_text()
+          assert '12-MONTH PALETTE' in h and all(m in h for m in ['January','February','March','April','May','June','July','August','September','October','November','December'])
+          for t in ["from './seasonal-sky.js'",'const DPR=2','sampler3D uBaseNoise','sampler3D uErosionNoise','densityAt(vec3 p,float skyY)','phaseHG','exp(-sigma*dt','wetCanvas','refractOffset','rainLayer','snowLayer','heatOffset','currentBolt','triggerLightning']:
+              assert t in j,t
+          assert 'edge=1.-smoothstep' in j and 'field-=er*uErosion*.23*edge' in j
+          assert "economy:{steps:8" in j and "balanced:{steps:10" in j and "high:{steps:12" in j
+          assert 'preserveDrawingBuffer:false' in j and 'antialias:false' in j
+          PY
+  preview:
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - name: Deploy final isolated Cloudflare preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+      - name: Smoke deployed final assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in /volumetric-weather-final.html /volumetric-weather-final.js /seasonal-sky.js; do curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/final-response; test -s /tmp/final-response; done
+          curl --fail --silent --show-error --location "${BASE_URL}/volumetric-weather-final.js" -o /tmp/final.js
+          grep -q 'ue-inspired-webgl2-volumetric-weather-final-v2' /tmp/final.js
+          grep -q 'sampler3D uBaseNoise' /tmp/final.js
+          grep -q 'currentBolt' /tmp/final.js
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Render final evidence
+        env:
+          VOLUMETRIC_FINAL_BASE_URL: https://lab-volumetric-clouds.sindhorn-midtown-internal.pages.dev
+        run: node site/volumetric-weather-final-smoke.mjs
+      - name: Upload final evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: volumetric-weather-final-evidence
+          path: volumetric-weather-final-artifacts
+          if-no-files-found: error
+          retention-days: 14
