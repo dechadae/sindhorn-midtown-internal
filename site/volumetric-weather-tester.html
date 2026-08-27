@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#242638">
+<title>UE Weather Lab · Sindhorn Midtown</title>
+<style>
+@font-face{font-family:Vignette;src:url('/assets/fonts/vignette-sans-light.woff')}@font-face{font-family:NotoThai;src:url('/assets/fonts/noto-sans-thai-300.woff2')}
+:root{--paper:#faf7f5;--accent:#e5ecbe;--muted:rgba(250,247,245,.66);--line:rgba(250,247,245,.16);--glass:rgba(26,27,39,.76)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#161824;color:var(--paper);font-family:Vignette,NotoThai,system-ui,sans-serif;font-weight:300}button,input,select{font:inherit}#sky{position:fixed;inset:0;width:100%;height:100%;display:block}
+.title{position:fixed;z-index:4;left:max(18px,env(safe-area-inset-left));top:max(18px,env(safe-area-inset-top));max-width:min(590px,calc(100vw - 500px));pointer-events:none;text-shadow:0 2px 24px rgba(0,0,0,.28)}.eyebrow{font-size:10px;letter-spacing:.15em;color:var(--accent)}h1{margin:8px 0 0;font-size:clamp(34px,5vw,70px);line-height:.92;letter-spacing:-.045em;font-weight:300}.title p{margin:12px 0 0;max-width:500px;font-size:12px;line-height:1.48;color:var(--muted)}.statline{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}.chip{padding:7px 10px;border:1px solid rgba(229,236,190,.34);border-radius:999px;background:rgba(20,22,32,.32);font-size:9px;letter-spacing:.08em;color:var(--accent)}
+.panel{position:fixed;z-index:10;top:max(10px,env(safe-area-inset-top));right:max(10px,env(safe-area-inset-right));bottom:max(10px,env(safe-area-inset-bottom));width:min(455px,calc(100vw - 20px));overflow:auto;padding:17px;border:1px solid rgba(250,247,245,.16);border-radius:24px;background:var(--glass);backdrop-filter:blur(24px) saturate(120%);-webkit-backdrop-filter:blur(24px) saturate(120%);box-shadow:0 22px 74px rgba(0,0,0,.28);transition:.25s}.panel.hidden{transform:translateX(calc(100% + 22px));opacity:0;pointer-events:none}.head{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px}.head h2{margin:0;font-size:19px;font-weight:300}.head p{margin:5px 0 0;font-size:10px;line-height:1.45;color:var(--muted)}button{border:1px solid rgba(229,236,190,.34);background:rgba(250,247,245,.04);color:var(--paper);border-radius:999px;min-height:36px;padding:0 12px;cursor:pointer;font-size:9.5px;letter-spacing:.08em}.x{width:36px;padding:0;font-size:16px}.show{display:none;position:fixed;z-index:11;right:14px;bottom:14px}.show.visible{display:block}
+.group{padding:15px 0;border-bottom:1px solid var(--line)}.group:last-child{border-bottom:0}.group-title{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}.group-title h3{margin:0;color:var(--accent);font-size:10px;letter-spacing:.13em;font-weight:400}.group-title span{font-size:9px;color:var(--muted)}.row{display:grid;grid-template-columns:122px minmax(120px,1fr) 62px;gap:9px;align-items:center;min-height:33px}.row+.row{margin-top:7px}.row label,.field label{font-size:10.5px}.row output{font-size:9px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}.row input[type=range]{width:100%;accent-color:var(--accent)}.field{display:grid;grid-template-columns:122px 1fr;gap:9px;align-items:center;margin-top:8px}.field select,.field input{height:36px;width:100%;border:1px solid rgba(229,236,190,.26);border-radius:12px;background:rgba(9,11,18,.33);color:var(--paper);padding:0 10px}.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.toolbar .wide{grid-column:1/-1}.readout{margin-top:10px;padding:10px 11px;border-radius:12px;background:rgba(6,8,13,.27);font:300 9px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:rgba(250,247,245,.72);white-space:pre-wrap}
+@media(max-width:800px){.title{left:16px;top:14px;max-width:calc(100vw - 86px)}h1{font-size:34px}.title p{display:none}.panel{top:auto;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));width:auto;max-height:69dvh;border-radius:22px}.panel.hidden{transform:translateY(calc(100% + 22px))}.row{grid-template-columns:112px minmax(100px,1fr) 56px}.show{bottom:calc(12px + env(safe-area-inset-bottom))}}
+</style>
+</head>
+<body>
+<canvas id="sky" aria-label="UE-inspired volumetric weather tester"></canvas><canvas id="bolt" aria-hidden="true" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:3"></canvas>
+<section class="title">
+  <div class="eyebrow">SINDHORN MIDTOWN · UE-INSPIRED WEATHER LAB</div>
+  <h1 id="monthName">AUGUST</h1>
+  <p>UE-inspired shallow volumetric clouds, Niagara-style precipitation, wet-glass refraction, heat haze and storm lightning using the exact continuous 12-month Bangkok seasonal palette. Experimental branch only.</p>
+  <div class="statline"><span class="chip" id="profileName">seasonal profile</span><span class="chip" id="renderSize">render size</span><span class="chip" id="stepsReadout">ray steps</span><span class="chip" id="fps">frame time</span></div>
+</section>
+<button id="showPanel" class="show">CONTROLS</button>
+<aside id="panel" class="panel">
+  <div class="head"><div><h2>UE-inspired weather controls</h2><p>12-month Bangkok palette · shallow 3D cloud density · Beer-Lambert light · precipitation · wet glass · heat · lightning.</p></div><button class="x" id="hidePanel">×</button></div>
+
+  <div class="group"><div class="group-title"><h3>START</h3><span>visual fixtures</span></div>
+    <div class="field"><label>Preset</label><select id="preset"><option value="augPartly">August partly cloudy</option><option value="augStorm">August monsoon storm</option><option value="janBroken">January broken sunset</option><option value="aprHaze">April hot haze</option><option value="octClearing">October clearing</option><option value="snowDemo">Snow FX demo · non-Bangkok</option></select></div>
+    <div class="field"><label>Quality</label><select id="quality"><option value="economy">Economy · 8 steps</option><option value="balanced" selected>Balanced · 10 steps</option><option value="high">High · 12 steps</option></select></div>
+    <div class="toolbar"><button id="auto">AUTO FROM WEATHER</button><button id="newSeed">NEW CLOUD FIELD</button><button class="wide" id="fullscreen">FULLSCREEN</button></div>
+  </div>
+
+  <div class="group"><div class="group-title"><h3>12-MONTH BANGKOK PALETTE</h3><span>exact seasonal-sky.js</span></div>
+    <div class="field"><label>Month</label><select id="month">
+      <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8" selected>August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
+    </select></div>
+    <div class="field"><label>Day</label><input id="day" type="number" min="1" max="28" value="27"></div>
+    <div class="row"><label>Sun altitude</label><input data-k="solarAltitude" type="range" min="-18" max="70" step=".1"><output></output></div>
+    <div class="row"><label>Sun azimuth</label><input data-k="solarAzimuth" type="range" min="0" max="359" step="1"><output></output></div>
+    <div class="row"><label>Palette haze</label><input data-k="haze" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label>Warm light</label><input data-k="warmLight" type="range" min="0" max="1.5" step=".01"><output></output></div>
+    <div class="readout" id="paletteReadout"></div>
+  </div>
+
+  <div class="group"><div class="group-title"><h3>WEATHER FIELD</h3><span>weather always wins</span></div>
+    <div class="field"><label>Weather</label><select id="weatherFamily"><option value="clear">Clear</option><option value="mainly-clear">Mainly clear</option><option value="partly-cloudy">Partly cloudy</option><option value="overcast">Overcast</option><option value="showers">Showers</option><option value="rain">Rain</option><option value="thunderstorm">Thunderstorm</option><option value="snow">Snow FX demo</option></select></div>
+    <div class="row"><label>Cloud cover</label><input data-k="cloudCover" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label>Humidity</label><input data-k="humidity" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label>PM2.5</label><input data-k="pm25" type="range" min="0" max="180" step="1"><output></output></div>
+    <div class="row"><label>Storm</label><input data-k="storm" type="range" min="0" max="1" step=".01"><output></output></div>
+  </div>
+
+  <div class="group"><div class="group-title"><h3>VOLUME SHAPE</h3><span>no circle/lobe lattice</span></div>
+    <div class="row"><label>Volume coverage</label><input data-k="coverage" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label>Density</label><input data-k="density" type="range" min=".35" max="1.6" step=".01"><output></output></div>
+    <div class="row"><label>Erosion</label><input data-k="erosion" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label>Vertical build</label><input data-k="verticalBuild" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label>Connected deck</label><input data-k="connected" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label>Base darkness</label><input data-k="baseDarkness" type="range" min="0" max="1" step=".01"><output></output></div>
+  </div>
+
+  <div class="group"><div class="group-title"><h3>PRECIPITATION · NIAGARA-STYLE</h3><span>GPU screen particles</span></div>
+    <div class="row"><label>Rain intensity</label><input data-k="rain" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label>Rain streak length</label><input data-k="rainLength" type="range" min=".2" max="1.8" step=".01"><output></output></div>
+    <div class="row"><label>Snow intensity</label><input data-k="snow" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label>Snow turbulence</label><input data-k="snowTurbulence" type="range" min="0" max="1.5" step=".01"><output></output></div>
+  </div>
+
+  <div class="group"><div class="group-title"><h3>WINDOW RAIN · RENDER TARGET</h3><span>droplets · trickles · refraction</span></div>
+    <div class="row"><label>Glass wetness</label><input data-k="windowRain" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label>Trickle rate</label><input data-k="trickleRate" type="range" min="0" max="1.5" step=".01"><output></output></div>
+    <div class="row"><label>Refraction</label><input data-k="windowRefraction" type="range" min="0" max="1.6" step=".01"><output></output></div>
+  </div>
+
+  <div class="group"><div class="group-title"><h3>HEAT HAZE · POST PROCESS</h3><span>horizon refraction</span></div>
+    <div class="row"><label>Heat shimmer</label><input data-k="heat" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label>Heat scale</label><input data-k="heatScale" type="range" min=".3" max="2" step=".01"><output></output></div>
+  </div>
+
+  <div class="group"><div class="group-title"><h3>LIGHTNING · CLOUD + BEAM</h3><span>internal scatter · visible bolt</span></div>
+    <div class="row"><label>Flash frequency</label><input data-k="lightningFrequency" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label>Internal flash</label><input data-k="internalLightning" type="range" min="0" max="1.6" step=".01"><output></output></div>
+    <div class="row"><label>Visible bolt chance</label><input data-k="boltChance" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="toolbar"><button class="wide" id="triggerLightning">TRIGGER LIGHTNING</button></div>
+  </div>
+
+  <div class="group"><div class="group-title"><h3>LIGHT + MOTION</h3><span>UE-inspired approximation</span></div>
+    <div class="row"><label>Forward scatter</label><input data-k="phaseG" type="range" min="0" max=".85" step=".01"><output></output></div>
+    <div class="row"><label>Ray jitter</label><input data-k="jitter" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label>Wind speed</label><input data-k="windSpeed" type="range" min="0" max="60" step=".5"><output></output></div>
+    <div class="row"><label>Wind direction</label><input data-k="windDirection" type="range" min="0" max="359" step="1"><output></output></div>
+    <div class="field"><label>Animate</label><input id="animate" type="checkbox" checked></div>
+  </div>
+</aside>
+<script type="module" src="/volumetric-weather-tester.js"></script>
+</body>
+</html>
