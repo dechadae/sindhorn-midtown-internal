@@ -4,7 +4,9 @@ Date: 2026-08-27
 
 ## Scope
 
-This implementation executes Step 2/3 of the approved Bangkok seasonal atmosphere architecture without changing the product UI/layout.
+This implementation executes Step 2/3 of the approved Bangkok seasonal atmosphere architecture without otherwise changing the product UI/layout.
+
+A later product decision on 2026-08-27 removes the visible **Save full page** action from active Supabase Pack 38 and from `site/fallback/today.html`. Internal capture/export code remains available as non-visible infrastructure, but the user-facing button/action bar must not be restored without a new explicit decision.
 
 The production dependency chain becomes:
 
@@ -13,7 +15,7 @@ The production dependency chain becomes:
 - a continuous Bangkok annual visual prior;
 - three weather-driven procedural cloud depth families;
 - AirBKK PM2.5 optical extinction/desaturation;
-- existing rain, storm, capture, navigation, Messages, offline and Web Push systems.
+- existing rain, storm, capture infrastructure, navigation, Messages, offline and Web Push systems.
 
 ## A. Camera / Workers AI isolation
 
@@ -21,7 +23,7 @@ Production no longer loads `site/sky-calibration.js` or `site/sky-color-renderer
 
 The camera/AI source is deliberately retained for future rooftop/360-camera adaptation.
 
-The production sky Worker cron is removed from `sky-worker/wrangler.jsonc`. Its HTTP/research source remains deployable, but there is no scheduled five-minute AI evaluation and therefore no normal daily Workers AI consumption.
+The production sky Worker cron is explicitly set to an empty list in `sky-worker/wrangler.jsonc`. Its HTTP/research source remains deployable, but there is no scheduled five-minute AI evaluation after the main configuration deployment and therefore no normal daily Workers AI consumption.
 
 The previous Phase 8 camera workflows become manual-only research archive checks. They no longer deploy/evaluate camera AI on normal `main` or site changes.
 
@@ -88,15 +90,17 @@ The Phase 8.2 performance pass reduces redundant GPU/CPU work without reducing v
 
 - production DPR remains fixed at **2** on desktop and mobile;
 - the full-screen live WebGL context disables unnecessary multisample antialiasing;
-- the live renderer does not use `preserveDrawingBuffer`; only the one-shot export renderer preserves its buffer for PNG capture;
-- expensive per-fragment multi-octave hash FBM is replaced with a small deterministic repeatable RGBA noise texture sampled in the shared shader; the three cloud depth families remain present;
+- the live renderer does not use `preserveDrawingBuffer`; only the non-visible one-shot export renderer preserves its buffer for PNG capture infrastructure;
+- expensive per-fragment multi-octave hash FBM is replaced with a small deterministic repeatable RGBA noise texture sampled in the shared shader;
+- the fragment shader uses bounded noise-call sites, avoids exponential lighting hotspots, and skips cloud-family work when a layer is absent;
 - snow and hail DPR-2 overlay canvases are allocated lazily only when those weather states actually occur;
 - the legacy `storm-effects.js` full-screen compositor is no longer loaded in production, eliminating its second animation/compositing loop and pixel readback while storm darkening and lightning remain in the shared renderer;
+- the rain renderer sleeps completely in dry production weather and wakes on weather/location changes, while the manual atmosphere tester remains continuously controllable;
 - the renderer still runs at normal requestAnimationFrame cadence while visible and pauses only when the document is hidden.
 
-`site/phase8-2-browser-smoke.mjs` renders the deployed candidate in Chromium at desktop and mobile sizes, moves the sun above the horizon, checks DPR/context attributes and shared-renderer identity, captures screenshots, and records frame pacing. Headless SwiftShader metrics are treated as a regression smoke rather than a physical-device benchmark.
+`site/phase8-2-browser-smoke.mjs` renders the deployed candidate in Chromium at 1440×1000 desktop and 390×844 mobile sizes, moves the sun above the horizon, checks DPR/context attributes and shared-renderer identity, captures screenshots, and records frame pacing. CPU-only SwANGLE timing is diagnostic evidence only and is not treated as a physical-device GPU FPS benchmark. Browser correctness still requires successful WebGL rendering, the exact requested viewports, fixed DPR 2, sun-disc visibility, no page/WebGL errors, screenshots, and at least one animation-frame sample in each viewport.
 
-Export uses the same shader/uniform state at requested capture resolution.
+The hard implementation-cost regression guard separately limits shader sampling/lighting complexity so the diagnostic benchmark cannot be made green simply by ignoring renderer cost.
 
 ## E. Deterministic acceptance fixtures
 
@@ -126,15 +130,15 @@ Phase 8.2 release workflow:
 
 1. Node syntax validation.
 2. Deterministic fixture/model test.
-3. Static contract checks for three cloud families and no production camera modules.
-4. Dry-run of the preserved sky Worker with cron absent.
+3. Static contract checks for three cloud families, bounded shader cost and no production camera modules.
+4. Dry-run of the preserved sky Worker with an explicit empty cron list.
 5. Cloudflare Pages branch preview.
 6. Preview smoke checks.
-7. Browser-rendered desktop/mobile screenshots plus frame-pacing/context evidence.
+7. Browser-rendered desktop/mobile screenshots plus context and diagnostic frame-pacing evidence.
 8. Human visual review when realism/art direction requires judgment.
 9. PR and merge only after the visual gate.
 10. Main deployment and production smoke verification.
-11. One-time deployment of the sky Worker configuration without a cron trigger.
-12. Launch-hardening verifies PWA identity, Messages, Web Push, Alerts Worker and live Supabase Pack 38 integrity.
+11. One-time deployment of the sky Worker configuration with the empty cron list.
+12. Launch-hardening verifies PWA identity, Messages, Web Push, Alerts Worker, absence of the Save Full Page control and live Supabase Pack 38 integrity.
 
 No production claim is valid until the `main` workflows and production endpoint checks pass.
