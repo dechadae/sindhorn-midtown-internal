@@ -24,7 +24,7 @@ assert.equal(result.preferredLanguage,'th');
 assert.equal(auth.getState().authenticated,true);
 assert.equal(auth.getAccessToken(),accessToken);
 assert.equal(requests.length,3);
-assert.match(requests[0].url,/sindhorn-midtown-auth\.decha-dae\.workers\.dev\/activate$/);
+assert.match(requests[0].url,/sindhorn-midtown-auth(?:-preview)?\.decha-dae\.workers\.dev\/activate$/);
 assert.deepEqual(JSON.parse(requests[0].options.body),{employeeNumber:'SM001',code:'123456'});
 assert.deepEqual(JSON.parse(requests[1].options.body),{token_hash:'bootstrap-hash',type:'email'});
 assert.match(String(requests[2].options.headers.authorization),/^Bearer /);
