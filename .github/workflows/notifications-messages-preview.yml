@@ -71,7 +71,7 @@ jobs:
           assert 'id="messageList"' in messages
           PY
 
-      - name: Validate staged Supabase Pack 38
+      - name: Verify rollout keeps production Pack 37 active
         shell: bash
         run: |
           set -euo pipefail
@@ -82,27 +82,24 @@ jobs:
           base=re.search(r"const SUPABASE_URL='([^']+)'",bootstrap).group(1)
           key=re.search(r"const SUPABASE_KEY='([^']+)'",bootstrap).group(1)
           table=re.search(r"const TABLE='([^']+)'",bootstrap).group(1)
-          query=urllib.parse.urlencode({'select':'pack_id,path,content,content_type,content_sha256,enabled','pack_id':'eq.38','order':'path.asc'})
+          query=urllib.parse.urlencode({'select':'pack_id,path,content,content_type,content_sha256,enabled','enabled':'eq.true','order':'pack_id.desc,path.asc'})
           req=urllib.request.Request(f'{base}/rest/v1/{table}?{query}',headers={'apikey':key,'Accept':'application/json'})
           with urllib.request.urlopen(req,timeout=20) as response:
               rows=json.load(response)
-          assert len(rows)==9
-          assert all(row['enabled'] is False for row in rows)
+          assert rows
+          packs={int(row['pack_id']) for row in rows}
+          assert packs=={37},packs
           rowmap={row['path']:row for row in rows}
           manifest_row=rowmap['manifest.json']
           assert hashlib.sha256(manifest_row['content'].encode()).hexdigest()==manifest_row['content_sha256']
           manifest=json.loads(manifest_row['content'])
-          assert manifest['appPack']==38 and manifest['minimumShell']==17
-          assert len(manifest['resources'])==8
+          assert manifest['appPack']==37 and manifest['minimumShell']==16
+          assert len(rows)==8 and len(manifest['resources'])==7
           for item in manifest['resources']:
               row=rowmap[item['path']]
               assert row['content_type']==item['contentType']
               assert row['content_sha256']==item['sha256']
               assert hashlib.sha256(row['content'].encode()).hexdigest()==item['sha256']
-          assert 'data-app-route="messages"' in rowmap['footer.html']['content']
-          assert 'data-message-badge' in rowmap['footer.html']['content']
-          assert 'id="messageList"' in rowmap['messages.html']['content']
-          assert '.message-badge' in rowmap['ui.css']['content']
           PY
 
       - name: Deploy branch Pages preview
