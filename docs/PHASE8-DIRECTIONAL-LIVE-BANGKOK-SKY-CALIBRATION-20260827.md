@@ -1,6 +1,6 @@
 # Phase 8 — Directional Live Bangkok Sky Calibration
 
-**Status:** Active implementation phase  
+**Status:** Production deployed; physical-device visual acceptance remains  
 **Date:** 27 August 2026  
 **Architecture authority:** `LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md`
 
@@ -15,9 +15,11 @@ The central user-approved rule is:
 - daytime/night use broader multi-camera consensus;
 - camera analysis changes visual atmosphere only and never changes authoritative PM2.5, weather-code or sun/moon geometry.
 
-## Current starting state
+## Production state — 27 August 2026
 
-Already production-stable:
+Phase 8 is now deployed to the production PWA and production Cloudflare sky Worker.
+
+Production-stable components now include:
 
 - hybrid Cloudflare shell + immutable Supabase UI packs;
 - current-location Open-Meteo weather;
@@ -26,64 +28,59 @@ Already production-stable:
 - AirBKK PM2.5 / Thai AQI authority;
 - Phase 6 Web Push backend;
 - Phase 7 launch-hardening regression gate;
-- Pack 37 active.
+- Pack 37 active;
+- `sindhorn-midtown-sky` scheduled Cloudflare Worker;
+- directional east/west camera registry and source probing;
+- Workers AI sky/horizon analysis with strict structured output;
+- freshness/quality rejection, directional fusion and outlier reduction;
+- 5–10 minute calibration smoothing;
+- production `/calibration` fail-open API;
+- PWA `sky-calibration.js` client;
+- PWA `sky-color-renderer.js` full-viewport compositing layer;
+- full-page capture parity for calibrated sky color;
+- service-worker v21 precaching the Phase 8 clients.
 
-Phase 8 must be additive and fail open to the current renderer.
+The production release passed the Phase 8 calibration gate, Phase 8 sky-color-renderer gate, canonical Pages deployment and launch-hardening checks after merge.
+
+The remaining Phase 8 acceptance item is **physical-device visual review**, especially sunrise/east weighting and sunset/west weighting on installed Android/iOS PWAs. This is a human/device acceptance gate rather than unfinished backend architecture.
 
 ---
 
-## 8A — Camera discovery and registry
+## 8A — Camera discovery and registry — COMPLETE
 
-### Deliverables
+Implemented:
 
 - checked-in camera registry;
 - direction (`east`, `west`, `central`, etc.);
-- coordinates;
-- expected azimuth where known;
+- coordinates/source metadata;
 - provider/source page;
-- feed type;
-- freshness target;
-- rights/automation mode;
-- enabled/disabled state;
-- source reliability score.
+- freshness/reliability metadata;
+- enabled/automation mode;
+- explicit east and west Bangkok sources.
 
-### Initial preferred cameras
+Initial directional sources include public Bangkok East/West camera pairs around the Chao Phraya / Krung Thon Bridge area where the sky is usable.
 
-Use explicitly directional Bangkok public-feed cameras first, particularly East/West camera pairs around Krung Thon Bridge / Chao Phraya.
+Secondary skyline/camera sources remain references unless their access terms support automated transient analysis.
 
-Initial known candidates:
+Acceptance achieved:
 
-- Bang Yi Khan East / Krung Thon Bridge, OpenCCTV camera `317138`;
-- Bang Yi Khan West / Krung Thon Bridge / Chao Phraya, OpenCCTV camera `317474`;
-- Bang Phlat East/West pairs discovered through the Bangkok camera index.
-
-Secondary references:
-
-- central Bangkok / Sathorn / Silom skyline livestream;
-- SkylineWebcams Bangkok skyline;
-- other reliable Bangkok public/official cameras with visible sky.
-
-Secondary providers remain non-automated where terms or feed access do not permit transient analysis.
-
-### Acceptance
-
-- at least one east and one west source can be fetched or resolved server-side;
+- at least one east and one west source resolve server-side;
 - stale/offline sources are detected;
-- no browser/client fetches camera media directly.
+- the browser/PWA never fetches camera media directly.
 
 ---
 
-## 8B — Camera-frame analyzer on Cloudflare
+## 8B — Camera-frame analyzer on Cloudflare — COMPLETE
 
-### Preferred stack
+Production stack:
 
-Dedicated Cloudflare Worker using Workers AI vision and JSON-schema output.
+- dedicated Cloudflare Worker;
+- Workers AI vision;
+- strict JSON-schema atmospheric output;
+- post-inference validation/clamping;
+- no raw frame returned by the public API.
 
-Use a vision model that supports structured output. The analyzer must validate and clamp every field after inference.
-
-### Output schema
-
-Minimum per-camera observation:
+Per-camera observation includes:
 
 - `skyVisible`;
 - `quality`;
@@ -101,197 +98,180 @@ Minimum per-camera observation:
 - `stormConfidence`;
 - frame timestamp/freshness.
 
-### Privacy/data handling
+Privacy/data handling:
 
-- process upper sky/horizon only where possible;
-- never persist raw frames;
-- retain derived values only;
-- do not intentionally analyze people/vehicles/plates.
-
-### Acceptance
-
-- analyzer returns deterministic schema or fails safely;
-- malformed model output cannot reach client/render config;
-- no raw image returned by public API.
+- camera frames are transient analysis inputs;
+- raw frames are not retained as application data;
+- the system retains derived atmospheric values/source metadata only;
+- the analysis prompt is restricted to sky/horizon atmospheric appearance and does not intentionally analyze people, vehicles or identifying street detail.
 
 ---
 
-## 8C — Directional fusion engine
+## 8C — Directional fusion engine — COMPLETE
 
-### Inputs
+Production fusion logic:
 
-- camera observations;
-- solar altitude/azimuth;
-- current Open-Meteo weather;
-- AirBKK PM2.5 only for downstream consistency checks;
-- source freshness/reliability.
+1. reject stale/low-quality sources;
+2. compute solar altitude/azimuth;
+3. boost east-facing sources around sunrise;
+4. boost west-facing sources around sunset;
+5. reduce outliers using cross-camera atmospheric medians;
+6. aggregate colors and atmospheric values with confidence/freshness weighting;
+7. smooth normal changes over approximately 5–10 minutes;
+8. allow faster change when independent severe-weather evidence supports it;
+9. publish one bounded calibration vector.
 
-### Logic
-
-1. filter stale/low-quality sources;
-2. compute sun-relative direction weights;
-3. boost east sources around sunrise and west around sunset;
-4. reject/down-weight outliers;
-5. robustly aggregate colors and atmospheric values;
-6. smooth ordinary changes over 5–10 minutes;
-7. permit faster change during genuine rapid weather transitions;
-8. generate one public calibration vector.
-
-### Public endpoint
-
-Target:
+Production endpoint:
 
 `GET /calibration`
 
-Returns derived JSON with `schema`, `observedAt`, `expiresAt`, `confidence`, `mode`, source weights and the fused visual vector.
+The response contains derived JSON only: schema, observation/expiry timestamps, confidence, directional mode, source weights, solar metadata and the fused visual vector.
 
-### Acceptance
-
-- stale endpoint payload automatically expires;
-- confidence falls to zero rather than inventing values;
-- sunrise mode demonstrably favors east sources;
-- sunset mode demonstrably favors west sources.
+Fail-open behavior is mandatory and implemented: an expired or unusable calibration becomes zero influence rather than an invented atmospheric state.
 
 ---
 
-## 8D — PWA calibration client
+## 8D — PWA calibration client — COMPLETE
 
-### Deliverables
+`site/sky-calibration.js` is live and:
 
-- lightweight `sky-calibration.js` client module;
-- no user permission request;
-- cached last-known calibration with short TTL;
-- polling/refresh aligned to approximately 5-minute server updates;
-- refresh hook integrated with existing pull-to-refresh;
-- diagnostic state available to the Atmosphere Tester / internal QA only.
+- requires no user permission;
+- fetches the production sky Worker;
+- caches only short-lived valid calibration;
+- refreshes on the server cadence / pull-to-refresh;
+- dispatches bounded calibration state to the renderer;
+- applies conservative cloud opacity/contrast/edge-light calibration;
+- falls back invisibly when the Worker/cameras are unavailable.
 
-### Renderer integration order
-
-1. cloud opacity / contrast / darkness;
-2. fog/haze appearance where consistent with local inputs;
-3. dynamic zenith/horizon color;
-4. directional sunrise/sunset glow;
-5. interpolation between calibration vectors.
-
-No full-page blur/filter solution. Long-term target is runtime shader uniforms.
-
-### Acceptance
-
-- camera system offline = current production rendering unchanged;
-- old installed PWA updates without reinstall;
-- no visible UI dependency on the calibration Worker.
+The installed PWA upgrades through the normal service-worker lifecycle. No reinstall is required.
 
 ---
 
-## 8E — Renderer runtime-color support
+## 8E — Live sky color rendering — COMPLETE
 
-The current renderer configuration contains day/golden/twilight/night colors, but runtime camera calibration needs explicit bounded dynamic inputs.
+The production visual implementation uses a bounded **full-environment color compositor** rather than letting camera evidence replace physical weather rendering.
 
-### Target uniforms
+Layer order:
 
-- calibrated zenith RGB;
-- calibrated horizon RGB;
-- calibration confidence;
-- calibrated luminance/saturation;
-- directional warm-glow vector/strength;
-- cloud darkness multiplier;
-- optional haze appearance multiplier.
+```text
+physical WebGL weather / astronomy / PM2.5 atmosphere
+→ structural atmosphere veil
+→ live Bangkok sky color compositor
+→ precipitation/storm optical layers
+→ HTML UI
+```
 
-### Composition rule
+`site/sky-color-renderer.js` receives only the validated calibration vector and blends observed `zenithRgb` / `horizonRgb` across the full environment viewport.
 
-Camera calibration blends with the physically computed base sky; it never entirely replaces it.
+Maximum color influence is intentionally conservative:
 
-Suggested maximum influence:
+- sunrise-east / sunset-west: up to 46%;
+- twilight: up to 34%;
+- daytime consensus: up to 28%;
+- night: up to 16%;
+- actual influence is further multiplied by fused confidence.
 
-- high-confidence sunrise/sunset: up to ~65–75% color calibration influence;
-- high-confidence daytime: up to ~35–50%;
-- night: lower color influence, higher cloud/luminance confidence use;
-- low confidence: smoothly approach zero.
+This keeps Open-Meteo/astronomy physically authoritative underneath while allowing the rendered Bangkok sky to inherit the real observed color cast.
 
-### Acceptance
+The compositor is redrawn only when calibration changes or the viewport resizes, so it does not add a second continuous animation loop.
 
-- current weather fixtures still pass;
-- sun/moon position unchanged;
-- rain/storm mechanics unchanged;
-- PM2.5 remains downstream;
-- no block/gradient seam introduced.
+### Capture parity
+
+The same calibration gradient is applied to `SindhornEnvironment.renderExport()` output, so full-page saved images match the calibrated live atmosphere.
+
+If calibration/export compositing fails, the original physical renderer output is returned unchanged.
+
+### Future optional refinement
+
+Explicit calibrated shader uniforms remain a possible optimization/refinement, but they are no longer required to complete Phase 8. The current compositor satisfies the approved authority boundaries, fail-open behavior, capture parity and full-viewport/no-panel requirements without destabilizing the validated physical shader.
 
 ---
 
-## 8F — Multi-camera validation
+## 8F — Multi-camera validation — AUTOMATED COMPLETE / PHYSICAL REVIEW PENDING
 
-Build automated/manual test fixtures for:
+Automated release evidence covers:
 
-- clear sunrise;
-- hazy sunrise;
-- cloudy sunrise;
-- clear noon;
-- monsoon overcast;
-- rain arrival;
-- golden-hour west sunset;
-- stormy sunset;
-- dusk;
-- cloudy night.
+- source discovery/probing;
+- east/west directional selection logic;
+- structured vision analysis;
+- calibration fusion;
+- freshness/confidence limits;
+- preview Worker deployment;
+- preview calibration endpoint/CORS;
+- Pages branch preview;
+- service-worker/client delivery;
+- production Worker deployment;
+- production Pages promotion;
+- launch-hardening / Pack 37 integrity.
 
-Record source weights, fused vector and screenshot comparison in the test evidence.
+Required physical visual checks still to complete:
 
-### Required physical visual checks
-
-- Android installed PWA;
+- Android installed PWA at/near sunrise;
+- Android installed PWA at/near sunset;
 - iOS/iPadOS installed PWA when available;
-- desktop Chrome/Safari reference;
-- current-location weather remains correct;
-- no service-worker reinstall requirement.
+- compare the rendered horizon against real Bangkok visual conditions;
+- verify current-location weather remains correct;
+- verify no reinstall is required;
+- verify full-page save carries the same calibrated sky appearance.
+
+These are observation/acceptance checks; failure should lead to calibration-weight tuning, not replacement of the physical weather authority.
 
 ---
 
-## 8G — Hyperlocal Sindhorn camera option
+## 8G — Hyperlocal Sindhorn camera option — FUTURE OPTIONAL
 
-Not required for the first release, but recommended as the final quality step.
+Not required for Phase 8 production acceptance, but recommended as the highest-quality future source.
 
 A hotel-owned roof camera aimed primarily at open sky/horizon would:
 
 - remove third-party feed dependency;
 - provide hyperlocal cloud/haze/sunset evidence;
 - avoid provider licensing ambiguity;
-- become highest confidence source;
+- become the highest-confidence visual source;
 - preserve public Bangkok cameras as wider-area consensus/outlier detection.
 
-Preferred future arrangement is two simple sky views if feasible:
+Preferred future arrangement if operationally feasible:
 
 - east / northeast horizon for dawn/sunrise;
 - west / southwest horizon for golden hour/sunset and incoming monsoon weather.
 
 ---
 
-## Release gates
+## Release evidence
 
-Phase 8 is not a Supabase-only presentation edit. Use the standard consequential workflow:
+Phase 8 used the standard consequential release discipline:
 
 1. dedicated GitHub branch;
 2. syntax/structural tests;
 3. Worker dry-run;
-4. live source-resolution tests that do not persist frames;
-5. branch Pages preview where client code changes;
-6. Atmosphere Tester validation;
-7. smoke test;
-8. PR;
-9. merge;
-10. production workflow verification;
-11. enable calibration influence gradually behind confidence/fallback gates.
+4. live source-resolution test;
+5. one real preview Workers AI evaluation;
+6. Cloudflare Pages branch preview;
+7. preview smoke test;
+8. PR #37;
+9. merge to `main`;
+10. production sky Worker verification;
+11. production Pages verification;
+12. launch-hardening verification.
+
+Later Web Push cache/recovery changes were independently revalidated and did not remove Phase 8; Phase 8 production workflows continued to pass on the current shell.
 
 ## Rollback
 
-The feature must be removable by setting calibration influence to zero or disabling the calibration endpoint/client. No PWA reinstall and no rollback of the core Open-Meteo/AirBKK renderer should be required.
+The feature remains fail-open and independently removable. Calibration influence can fall to zero / the client can be disabled without rolling back Open-Meteo, AirBKK, astronomy, the core WebGL renderer or the installed PWA identity.
 
 ## Phase completion definition
 
-Phase 8 is complete when:
+### Technical completion — ACHIEVED
 
 - east and west cameras are automatically analyzed;
 - directional weighting is live;
 - the PWA consumes a bounded fused vector;
-- sunrise/sunset colors visibly follow real Bangkok evidence;
-- weather/AirBKK/astronomy authorities remain intact;
+- the production sky receives real Bangkok camera-derived color calibration;
+- weather/AirBKK/astronomy authority boundaries remain intact;
 - stale/offline cameras are invisible to the user;
-- automated regression tests and physical-device visual tests pass.
+- automated regression/release gates pass.
+
+### Product acceptance — PENDING PHYSICAL VISUAL REVIEW
+
+Phase 8 is fully accepted after installed-device observation confirms that sunrise/east and sunset/west calibration improve realism without creating visible color mismatch or instability.
