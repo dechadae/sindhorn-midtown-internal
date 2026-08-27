@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - phase8-2-bangkok-seasonal-clouds
+      - fix-airbkk-client-proxy
       - main
     paths:
       - "site/**"
@@ -35,7 +36,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/cloud-tester-shared.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/sw.js; do
+          for file in site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/cloud-tester-shared.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/sw.js; do
             node --check "$file"
           done
           node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
@@ -48,9 +49,15 @@ jobs:
           env=(root/'environment.js').read_text()
           shader=(root/'atmosphere-shader.js').read_text()
           tester=(root/'cloud-tester-shared.js').read_text()
+          air=(root/'live-data.js').read_text()
           assert '/sky-calibration.js' not in index
           assert '/sky-color-renderer.js' not in index
           assert '/storm-effects.js' not in index
+          assert 'sindhorn-midtown-alerts.decha-dae.workers.dev' in index
+          assert 'stations.airbkk.com' not in index
+          assert "import {PUSH_API_BASE} from './push-config.js'" in air
+          assert "PUSH_API_BASE+'/air-current'" in air
+          assert 'stations.airbkk.com/api/web/data' not in air
           assert "'/sky-calibration.js'" not in sw
           assert "'/sky-color-renderer.js'" not in sw
           assert "'/storm-effects.js'" not in sw
@@ -98,15 +105,20 @@ jobs:
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /environment.js /atmosphere-shader.js /seasonal-sky.js /cloud-tester.html /cloud-tester-shared.js /phase8-2-fixtures.js /sw.js /messages; do
+          for path in / /live-data.js /environment.js /atmosphere-shader.js /seasonal-sky.js /cloud-tester.html /cloud-tester-shared.js /phase8-2-fixtures.js /sw.js /messages; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
           curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html
+          curl --fail --silent --show-error --location "${BASE_URL}/live-data.js" -o /tmp/live-data.js
           curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js
           ! grep -q '/sky-calibration.js' /tmp/root.html
           ! grep -q '/sky-color-renderer.js' /tmp/root.html
           ! grep -q '/storm-effects.js' /tmp/root.html
+          grep -q 'sindhorn-midtown-alerts.decha-dae.workers.dev' /tmp/root.html
+          ! grep -q 'stations.airbkk.com' /tmp/root.html
+          grep -q "PUSH_API_BASE+'/air-current'" /tmp/live-data.js
+          ! grep -q 'stations.airbkk.com/api/web/data' /tmp/live-data.js
           grep -q 'Visible sun disc' /tmp/shader.js
           grep -q 'texture2D(uNoise' /tmp/shader.js
 
@@ -158,12 +170,17 @@ jobs:
           promoted=false
           for attempt in $(seq 1 50); do
             if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
+              && curl --fail --silent --show-error --location "${BASE_URL}/live-data.js" -o /tmp/live-data.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/environment.js" -o /tmp/environment.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
               && ! grep -q '/sky-calibration.js' /tmp/root.html \
               && ! grep -q '/sky-color-renderer.js' /tmp/root.html \
               && ! grep -q '/storm-effects.js' /tmp/root.html \
+              && grep -q 'sindhorn-midtown-alerts.decha-dae.workers.dev' /tmp/root.html \
+              && ! grep -q 'stations.airbkk.com' /tmp/root.html \
+              && grep -q "PUSH_API_BASE+'/air-current'" /tmp/live-data.js \
+              && ! grep -q 'stations.airbkk.com/api/web/data' /tmp/live-data.js \
               && grep -q 'bangkok-seasonal-clouds-v2' /tmp/environment.js \
               && grep -q 'Visible sun disc' /tmp/shader.js \
               && grep -q 'pwa-v23-bangkok-seasonal-clouds' /tmp/sw.js; then
