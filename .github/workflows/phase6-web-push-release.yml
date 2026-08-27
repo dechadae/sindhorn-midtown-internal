@@ -7,6 +7,7 @@ on:
       - fix-phase6-v21-gate
       - fix-alerts-preparing-v21
       - bust-push-client-v2
+      - send-sample-alert-20260827
       - main
     paths:
       - "worker/**"
@@ -66,6 +67,8 @@ jobs:
           grep -q "scheduled" worker/src/index.js
           grep -q "push_subscriptions" worker/src/index.js
           grep -q "monitor_state" worker/src/index.js
+          grep -q "sampleAlertPayload" worker/src/index.js
+          grep -q "sample-20260827-0843-f7a1c9d4" worker/src/index.js
           grep -q 'database_name' worker/wrangler.jsonc
           grep -q 'database_id' worker/wrangler.jsonc
           grep -Fq "${WORKER_URL}" site/push-config.js
@@ -105,7 +108,18 @@ jobs:
 
       - name: Deploy alert Worker on production merge
         if: github.ref_name == 'main'
-        run: npx --yes wrangler@4.125.0 deploy --config worker/wrangler.jsonc
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes wrangler@4.125.0 deploy --config worker/wrangler.jsonc
+          curl --fail --silent --show-error --request POST --retry 8 --retry-all-errors --retry-delay 2 \
+            "${WORKER_URL}/test-alert/sample-20260827-0843-f7a1c9d4" -o /tmp/sample-alert.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/sample-alert.json'))
+          assert d.get('ok') is True, d
+          assert isinstance(d.get('status'),int), d
+          PY
 
       - name: Deploy branch Pages preview
         if: github.ref_name != 'main'
