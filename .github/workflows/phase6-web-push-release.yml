@@ -5,6 +5,7 @@ on:
     branches:
       - phase6-web-push-release
       - fix-phase6-v21-gate
+      - fix-alerts-preparing-v21
       - main
     paths:
       - "worker/**"
@@ -48,6 +49,9 @@ jobs:
           grep -q "pushManager.subscribe" site/push-client.js
           grep -q "enableFromGesture" site/push-client.js
           ! grep -q "Notification.requestPermission" site/push-client.js
+          grep -q "navigator.serviceWorker.register('/sw.js',{scope:'/'})" site/push-client.js
+          grep -q "PREPARE_TIMEOUT_MS" site/push-client.js
+          grep -q "Retry alerts" site/push-client.js
           grep -q "const VERSION='sindhorn-midtown-internal-pwa-v" site/sw.js
           grep -q "web-push" site/sw.js
           grep -q "current-location" site/sw.js
@@ -118,8 +122,12 @@ jobs:
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
             test -s /tmp/smoke
           done
+          CLIENT="$(curl --fail --silent --show-error "${BASE_URL}/push-client.js")"
           grep -q '/push-client.js?v=1' <(curl --fail --silent --show-error "${BASE_URL}/")
-          grep -q 'pushManager.subscribe' <(curl --fail --silent --show-error "${BASE_URL}/push-client.js")
+          grep -q 'pushManager.subscribe' <<<"${CLIENT}"
+          grep -q "navigator.serviceWorker.register('/sw.js',{scope:'/'})" <<<"${CLIENT}"
+          grep -q 'PREPARE_TIMEOUT_MS' <<<"${CLIENT}"
+          grep -q 'Retry alerts' <<<"${CLIENT}"
           grep -q 'Current location' <(curl --fail --silent --show-error "${BASE_URL}/location.js")
           SW="$(curl --fail --silent --show-error "${BASE_URL}/sw.js")"
           grep -q "web-push" <<<"${SW}"
