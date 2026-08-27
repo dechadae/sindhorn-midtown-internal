@@ -80,14 +80,21 @@ export async function fetchProfile({retry401=true}={}){
   profile=next;dispatch('sindhorn:auth-changed',{authenticated:true,profile:structuredClone(profile),reason:'profile'});return structuredClone(profile);
 }
 
+export async function establishSessionFromBootstrap(tokenHash,{reason='bootstrap',preferredLanguage=null}={}){
+  if(!tokenHash)throw new Error('Bootstrap token is unavailable');
+  const verify=await fetch(`${SUPABASE_URL}/auth/v1/verify`,{method:'POST',cache:'no-store',headers:authHeaders(null),body:JSON.stringify({token_hash:tokenHash,type:'email'})});
+  const verified=await responseJson(verify),next=normalizedSession(verified);if(!next)throw new Error('Authenticated session could not be established');persist(next);
+  const employee=await fetchProfile();if(!employee)throw new Error('Authenticated account is not linked to an active employee');
+  dispatch('sindhorn:bootstrap-complete',{profile:structuredClone(employee),reason,preferredLanguage:preferredLanguage||employee.preferred_language||'th'});
+  return{profile:employee,preferredLanguage:preferredLanguage||employee.preferred_language||'th'};
+}
+
 export async function activate(employeeNumber,code){
   const response=await fetch(`${authWorker()}/activate`,{method:'POST',cache:'no-store',headers:{'content-type':'application/json'},body:JSON.stringify({employeeNumber,code})});
   const result=await responseJson(response),tokenHash=result?.bootstrap?.tokenHash;if(!result?.ok||!tokenHash)throw new Error('Activation did not return a bootstrap token');
-  const verify=await fetch(`${SUPABASE_URL}/auth/v1/verify`,{method:'POST',cache:'no-store',headers:authHeaders(null),body:JSON.stringify({token_hash:tokenHash,type:'email'})});
-  const verified=await responseJson(verify),next=normalizedSession(verified);if(!next)throw new Error('Activation session could not be established');persist(next);
-  const employee=await fetchProfile();if(!employee)throw new Error('Activated account is not linked to an active employee');
-  dispatch('sindhorn:activation-complete',{profile:structuredClone(employee),purpose:result.purpose||'activate',preferredLanguage:result.preferredLanguage||employee.preferred_language||'th'});
-  return{profile:employee,purpose:result.purpose||'activate',preferredLanguage:result.preferredLanguage||employee.preferred_language||'th'};
+  const established=await establishSessionFromBootstrap(tokenHash,{reason:result.purpose||'activate',preferredLanguage:result.preferredLanguage});
+  dispatch('sindhorn:activation-complete',{profile:structuredClone(established.profile),purpose:result.purpose||'activate',preferredLanguage:established.preferredLanguage});
+  return{profile:established.profile,purpose:result.purpose||'activate',preferredLanguage:established.preferredLanguage};
 }
 
 export function signInWithMicrosoft({redirectTo}={}){
@@ -145,5 +152,5 @@ export async function initAuth(){
 
 if(hasWindow){
   addEventListener('storage',event=>{if(event.key!==STORAGE_KEY)return;session=normalizedSession(safeParse(event.newValue||''));profile=null;if(session)fetchProfile().catch(()=>clearLocal('session_invalid'));else dispatch('sindhorn:auth-changed',{authenticated:false,profile:null,reason:'cross_tab_signout'})});
-  window.SindhornEmployeeAuth={init:initAuth,activate,signInWithMicrosoft,completeMicrosoftOAuth,linkMicrosoftIdentity,signOut,refresh:refreshSession,fetchProfile,getState,getProfile,getAccessToken};
+  window.SindhornEmployeeAuth={init:initAuth,activate,establishSessionFromBootstrap,signInWithMicrosoft,completeMicrosoftOAuth,linkMicrosoftIdentity,signOut,refresh:refreshSession,fetchProfile,getState,getProfile,getAccessToken};
 }
