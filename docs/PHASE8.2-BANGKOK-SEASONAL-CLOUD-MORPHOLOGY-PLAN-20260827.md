@@ -11,15 +11,16 @@ Replace live-camera/Workers-AI sky calibration as a production dependency with a
 
 This phase must preserve:
 
-- current UI/layout;
+- current UI/layout except for separately approved product changes;
 - Pack 38 / Messages presentation state unless a separate Supabase change is required;
 - current-location weather behavior;
 - AirBKK PM2.5 / Thai AQI authority;
 - Open-Meteo physical weather authority;
 - local astronomy geometry;
 - Web Push + Messages;
-- zero-reinstall PWA identity;
-- full-page capture parity.
+- zero-reinstall PWA identity.
+
+**Product override — 27 August 2026:** the visible **Save Full Page** action is removed from active Pack 38 and the offline fallback. It is no longer an acceptance requirement and must not be restored without a new explicit decision. Internal capture/export code may remain as non-visible infrastructure.
 
 ## 2. Production transition strategy
 
@@ -255,7 +256,7 @@ Phase 8.2 is accepted when:
 8. current rain/storm/fog state still visibly agrees with Open-Meteo;
 9. AirBKK haze remains downstream and numerically authoritative;
 10. mobile visual quality matches desktop;
-11. `SAVE FULL PAGE` matches the live atmosphere;
+11. the visible Save Full Page button/action bar remains absent online and in the offline fallback;
 12. existing navigation, Messages, alerts, location and PWA identity are regression-clean.
 
 ## 11. Implementation sequence
@@ -299,7 +300,7 @@ Phase 8.2 is accepted when:
 - Cloudflare branch preview;
 - compare required seasonal fixtures;
 - mobile + desktop smoke;
-- full-page export smoke.
+- verify the Save Full Page control is absent in live and offline presentation.
 
 ### Step 7 — release
 
@@ -318,7 +319,8 @@ Phase 8.2 is accepted when:
 - do not make every winter sunset purple;
 - do not make monsoon sky a flat gray overlay;
 - do not degrade mobile rendering quality;
-- do not change UI/layout while doing the atmosphere phase unless required for a genuine bug;
+- do not change UI/layout while doing the atmosphere phase unless required for a genuine bug or separately approved product decision;
+- do not restore the Save Full Page action without a new explicit decision;
 - do not enable/disable Supabase packs for a renderer-only change unless presentation resources truly changed.
 
 ## 13. Future adaptation

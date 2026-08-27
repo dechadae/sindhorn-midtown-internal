@@ -7,7 +7,9 @@ const MAX_PANE_DROPS=22;
 const MAX_PANE_BEADS=54;
 const DPR=Math.min(2,Math.max(1,window.devicePixelRatio||1));
 const SVG_NS='http://www.w3.org/2000/svg';
+const IS_ATMOSPHERE_TESTER=location.pathname.includes('atmosphere-tester');
 let stage=null,canvas=null,ctx=null,paneSvg=null,width=1,height=1,raf=0,last=performance.now(),targetIntensity=0,currentIntensity=0,pageVisible=!document.hidden;
+let idleProbe=0;
 
 function seeded(index){const x=Math.sin((index+1)*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function clamp(v,a=0,b=1){return Math.min(b,Math.max(a,v))}
@@ -173,6 +175,15 @@ function updatePaneDrop(drop,index,dt,intensity,time){
   drop.shadeNode.setAttribute('stroke-width',String(Math.max(.32,r*.05)));
 }
 
+function clearDryFrame(){
+  ctx?.clearRect(0,0,width,height);if(paneSvg)paneSvg.style.opacity='0';
+  for(const bead of paneBeads)if(bead.node)bead.node.style.opacity='0';
+  for(const drop of paneDrops)if(drop.node)drop.node.style.opacity='0';
+}
+function scheduleUnknownWeatherProbe(){
+  if(IS_ATMOSPHERE_TESTER||idleProbe||!pageVisible)return;
+  idleProbe=window.setTimeout(()=>{idleProbe=0;start()},750);
+}
 function frame(now){
   raf=0;if(!pageVisible||!ctx)return;const dt=Math.min(.04,Math.max(0,(now-last)/1000));last=now;targetIntensity=rainIntensity();
   const response=targetIntensity>currentIntensity?Math.min(1,dt*2.1):Math.min(1,dt*.72);currentIntensity+=(targetIntensity-currentIntensity)*response;
@@ -187,18 +198,25 @@ function frame(now){
     const paneActive=Math.round(3+currentIntensity*8);
     for(let i=0;i<paneDrops.length;i++){if(i<paneActive)updatePaneDrop(paneDrops[i],i,dt,currentIntensity,now/1000);else if(paneDrops[i].node)paneDrops[i].node.style.opacity='0'}
   }
+  if(!IS_ATMOSPHERE_TESTER&&targetIntensity===0&&currentIntensity<.001){
+    currentIntensity=0;clearDryFrame();
+    if(!weatherState()?.known)scheduleUnknownWeatherProbe();
+    return;
+  }
   raf=requestAnimationFrame(frame);
 }
 
-function start(){if(!ctx||raf||!pageVisible)return;last=performance.now();raf=requestAnimationFrame(frame)}
+function start(){if(!ctx||raf||!pageVisible)return;if(idleProbe){clearTimeout(idleProbe);idleProbe=0}last=performance.now();raf=requestAnimationFrame(frame)}
 function init(){
   stage=document.getElementById('environmentStage');if(!stage||document.getElementById('rainCanvas'))return;
   canvas=document.createElement('canvas');canvas.id='rainCanvas';canvas.setAttribute('aria-hidden','true');Object.assign(canvas.style,{position:'absolute',inset:'0',zIndex:'3',pointerEvents:'none',display:'block',transform:'translateZ(0)'});stage.appendChild(canvas);
   ctx=canvas.getContext('2d',{alpha:true});if(!ctx){canvas.remove();return}buildPaneSvg();resize();
   if('ResizeObserver'in window)new ResizeObserver(resize).observe(stage);window.addEventListener('resize',resize,{passive:true});
-  document.addEventListener('visibilitychange',()=>{pageVisible=!document.hidden;if(pageVisible)start();else if(raf){cancelAnimationFrame(raf);raf=0}});
+  document.addEventListener('sindhorn:weather-updated',start);
+  document.addEventListener('sindhorn:location-updated',start);
+  document.addEventListener('visibilitychange',()=>{pageVisible=!document.hidden;if(pageVisible)start();else{if(raf){cancelAnimationFrame(raf);raf=0}if(idleProbe){clearTimeout(idleProbe);idleProbe=0}}});
   start();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 
-if(location.pathname.includes('atmosphere-tester'))import('./tester-celestials.js?v=2').catch(()=>{});
+if(IS_ATMOSPHERE_TESTER)import('./tester-celestials.js?v=2').catch(()=>{});

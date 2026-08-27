@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2E273B">
+<title>Cloud Morphology Tester · Sindhorn Midtown</title>
+<style>
+@font-face{font-family:Vignette;src:url('/assets/fonts/vignette-sans-light.woff')}@font-face{font-family:NotoThai;src:url('/assets/fonts/noto-sans-thai-300.woff2')}
+:root{--paper:#FAF7F5;--sorbet:#E5ECBE;--muted:rgba(250,247,245,.66);--line:rgba(250,247,245,.16);--glass:rgba(34,30,45,.72)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#121722;color:var(--paper);font-family:Vignette,NotoThai,system-ui,sans-serif;font-weight:300}button,input,select{font:inherit}#sky{position:fixed;inset:0;width:100%;height:100%;display:block}.shade{position:fixed;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(10,10,16,.03),transparent 45%,rgba(10,10,16,.17));z-index:2}
+.title{position:fixed;z-index:5;left:max(18px,env(safe-area-inset-left));top:max(16px,env(safe-area-inset-top));max-width:min(520px,calc(100vw - 500px));text-shadow:0 2px 22px rgba(0,0,0,.25);pointer-events:none}.eyebrow{font-size:10px;letter-spacing:.14em;color:var(--sorbet)}h1{margin:7px 0 0;font-size:clamp(32px,5vw,66px);line-height:.94;letter-spacing:-.04em;font-weight:300}.title p{margin:10px 0 0;max-width:460px;font-size:12px;line-height:1.45;color:var(--muted)}.badge{display:inline-flex;margin-top:13px;padding:8px 11px;border:1px solid rgba(229,236,190,.42);border-radius:999px;background:rgba(46,39,59,.34);font-size:10px;letter-spacing:.09em;color:var(--sorbet)}
+.panel{position:fixed;z-index:10;top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));width:min(450px,calc(100vw - 24px));overflow:auto;padding:17px;border:1px solid rgba(250,247,245,.18);border-radius:24px;background:var(--glass);backdrop-filter:blur(24px) saturate(118%);-webkit-backdrop-filter:blur(24px) saturate(118%);box-shadow:0 20px 70px rgba(0,0,0,.25);transition:transform .25s ease,opacity .25s ease}.panel.hidden{transform:translateX(calc(100% + 24px));opacity:0;pointer-events:none}.head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;padding-bottom:14px;border-bottom:1px solid var(--line)}.head h2{margin:0;font-size:19px;font-weight:300}.head p{margin:5px 0 0;font-size:10.5px;line-height:1.45;color:var(--muted)}.x,.pill{border:1px solid rgba(229,236,190,.38);background:rgba(250,247,245,.04);color:var(--paper);border-radius:999px;cursor:pointer;min-height:36px}.x{width:36px;padding:0;font-size:16px}.pill{padding:0 12px;font-size:9.5px;letter-spacing:.08em}.show{position:fixed;z-index:11;right:16px;bottom:16px;display:none}.show.visible{display:block}.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}.toolbar .wide{grid-column:1/-1}.group{padding:16px 0;border-bottom:1px solid var(--line)}.group:last-child{border-bottom:0}.group-title{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:10px}.group-title h3{margin:0;font-size:10px;letter-spacing:.13em;color:var(--sorbet);font-weight:400}.group-title span{font-size:9px;color:var(--muted)}.row{display:grid;grid-template-columns:116px minmax(130px,1fr) 56px;gap:9px;align-items:center;min-height:34px}.row+.row{margin-top:7px}.row label{font-size:10.5px;color:rgba(250,247,245,.88)}.row output{font-size:9.5px;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}.row input[type=range]{width:100%;accent-color:#E5ECBE}.field{display:grid;grid-template-columns:116px 1fr;gap:9px;align-items:center;margin-top:8px}.field label{font-size:10.5px}.field select,.field input[type=date]{width:100%;height:36px;padding:0 10px;border:1px solid rgba(229,236,190,.28);border-radius:12px;background:rgba(12,14,20,.34);color:var(--paper);outline:none}.readout{margin-top:11px;padding:11px 12px;border-radius:13px;background:rgba(8,9,14,.25);white-space:pre-wrap;font:300 9.5px/1.48 ui-monospace,SFMono-Regular,Menlo,monospace;color:rgba(250,247,245,.72)}.hint{margin:10px 0 0;font-size:9.5px;line-height:1.45;color:var(--muted)}
+@media(max-width:800px){.title{left:16px;top:14px;max-width:calc(100vw - 92px)}h1{font-size:35px}.title p{display:none}.panel{top:auto;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));width:auto;max-height:68dvh;border-radius:22px}.panel.hidden{transform:translateY(calc(100% + 22px))}.row{grid-template-columns:110px minmax(110px,1fr) 52px}.show{bottom:calc(12px + env(safe-area-inset-bottom));right:12px}}
+</style>
+</head>
+<body>
+<canvas id="sky" aria-label="Interactive Bangkok cloud morphology tester"></canvas><div class="shade"></div>
+<div class="title"><div class="eyebrow">SINDHORN MIDTOWN · PHASE 8.2 LAB</div><h1>CLOUD MORPHOLOGY</h1><p>Bangkok seasonal sky + manual cloud-family controls. Start from a weather preset, then override every cloud depth layer.</p><div class="badge" id="badge">JANUARY · CLEAR SUNSET</div></div>
+<button class="pill show" id="showPanel" type="button">CONTROLS</button>
+<aside class="panel" id="panel">
+  <div class="head"><div><h2>Cloud customization</h2><p>High veil · mid broken · low convective. All controls update the GPU renderer live.</p></div><button class="x" id="hidePanel" type="button" aria-label="Hide controls">×</button></div>
+  <div class="group"><div class="group-title"><h3>STARTING STATE</h3><span>Bangkok-aware</span></div>
+    <div class="field"><label for="preset">Preset</label><select id="preset"><option value="janClear">January clear sunset</option><option value="janBroken">January broken-cloud sunset</option><option value="aprHaze">April hot haze</option><option value="augPartly">August partly cloudy</option><option value="augStorm">August monsoon storm</option><option value="octClearing">October clearing sunset</option></select></div>
+    <div class="field"><label for="date">Profile date</label><input id="date" type="date" value="2026-01-15"></div>
+    <div class="toolbar"><button class="pill" id="applyPreset">APPLY PRESET</button><button class="pill" id="applyAuto">AUTO MORPHOLOGY</button><button class="pill" id="reset">RESET</button><button class="pill" id="copy">COPY STATE LINK</button><button class="pill wide" id="fullscreen">FULLSCREEN</button></div>
+  </div>
+  <div class="group"><div class="group-title"><h3>SKY + SUN</h3><span>seasonal lighting</span></div>
+    <div class="row"><label for="solarAltitude">Sun altitude</label><input data-k="solarAltitude" id="solarAltitude" type="range" min="-18" max="85" step=".1"><output></output></div>
+    <div class="row"><label for="solarAzimuth">Sun azimuth</label><input data-k="solarAzimuth" id="solarAzimuth" type="range" min="0" max="359" step="1"><output></output></div>
+    <div class="row"><label for="seasonal">Seasonal color</label><input data-k="seasonal" id="seasonal" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label for="haze">Haze softness</label><input data-k="haze" id="haze" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label for="warmLight">Warm low-sun light</label><input data-k="warmLight" id="warmLight" type="range" min="0" max="1.5" step=".01"><output></output></div>
+  </div>
+  <div class="group"><div class="group-title"><h3>WEATHER BASELINE</h3><span>used by Auto Morphology</span></div>
+    <div class="field"><label for="weatherFamily">Weather</label><select id="weatherFamily"><option value="clear">Clear</option><option value="mainly-clear">Mainly clear</option><option value="partly-cloudy">Partly cloudy</option><option value="overcast">Overcast</option><option value="showers">Showers</option><option value="rain">Rain</option><option value="thunderstorm">Thunderstorm</option></select></div>
+    <div class="row"><label for="cloudCover">Cloud cover</label><input data-k="cloudCover" id="cloudCover" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label for="humidity">Humidity</label><input data-k="humidity" id="humidity" type="range" min="0" max="1" step=".01"><output></output></div>
+  </div>
+  <div class="group"><div class="group-title"><h3>HIGH VEIL / CIRRUS</h3><span>thin · stretched</span></div>
+    <div class="row"><label for="highCoverage">Coverage</label><input data-k="highCoverage" id="highCoverage" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label for="highOpacity">Opacity</label><input data-k="highOpacity" id="highOpacity" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label for="highScale">Scale</label><input data-k="highScale" id="highScale" type="range" min=".35" max="2.5" step=".01"><output></output></div>
+    <div class="row"><label for="highStretch">Stretch</label><input data-k="highStretch" id="highStretch" type="range" min="1" max="8" step=".05"><output></output></div>
+    <div class="row"><label for="highSpeed">Drift</label><input data-k="highSpeed" id="highSpeed" type="range" min="0" max="2" step=".01"><output></output></div>
+  </div>
+  <div class="group"><div class="group-title"><h3>MID BROKEN CLOUD</h3><span>main partly-cloudy bodies</span></div>
+    <div class="row"><label for="midCoverage">Coverage</label><input data-k="midCoverage" id="midCoverage" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label for="midOpacity">Opacity</label><input data-k="midOpacity" id="midOpacity" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label for="midScale">Scale</label><input data-k="midScale" id="midScale" type="range" min=".35" max="2.5" step=".01"><output></output></div>
+    <div class="row"><label for="midDetail">Detail</label><input data-k="midDetail" id="midDetail" type="range" min=".2" max="2.5" step=".01"><output></output></div>
+    <div class="row"><label for="midSoftness">Edge softness</label><input data-k="midSoftness" id="midSoftness" type="range" min=".02" max=".28" step=".005"><output></output></div>
+    <div class="row"><label for="midEdgeLight">Sun edge light</label><input data-k="midEdgeLight" id="midEdgeLight" type="range" min="0" max="1.5" step=".01"><output></output></div>
+  </div>
+  <div class="group"><div class="group-title"><h3>LOW CONVECTIVE / MONSOON</h3><span>mass · dark base · depth</span></div>
+    <div class="row"><label for="lowCoverage">Coverage</label><input data-k="lowCoverage" id="lowCoverage" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label for="lowOpacity">Opacity</label><input data-k="lowOpacity" id="lowOpacity" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label for="lowScale">Scale</label><input data-k="lowScale" id="lowScale" type="range" min=".3" max="2.2" step=".01"><output></output></div>
+    <div class="row"><label for="lowBuild">Vertical build</label><input data-k="lowBuild" id="lowBuild" type="range" min=".3" max="2.2" step=".01"><output></output></div>
+    <div class="row"><label for="connected">Connectedness</label><input data-k="connected" id="connected" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label for="baseDarkness">Base darkness</label><input data-k="baseDarkness" id="baseDarkness" type="range" min="0" max="1" step=".01"><output></output></div>
+    <div class="row"><label for="lightLeaks">Warm light leaks</label><input data-k="lightLeaks" id="lightLeaks" type="range" min="0" max="1.5" step=".01"><output></output></div>
+  </div>
+  <div class="group"><div class="group-title"><h3>GLOBAL CLOUD FIELD</h3><span>all families</span></div>
+    <div class="row"><label for="contrast">Contrast</label><input data-k="contrast" id="contrast" type="range" min=".4" max="2.5" step=".01"><output></output></div>
+    <div class="row"><label for="windSpeed">Wind speed</label><input data-k="windSpeed" id="windSpeed" type="range" min="0" max="60" step=".5"><output></output></div>
+    <div class="row"><label for="windDirection">Wind direction</label><input data-k="windDirection" id="windDirection" type="range" min="0" max="359" step="1"><output></output></div>
+  </div>
+  <div class="group"><div class="group-title"><h3>STATE</h3><span>review / share</span></div><div class="readout" id="readout"></div><p class="hint">Auto Morphology uses the Phase 8.2 seasonal profile + selected weather baseline. Any slider can then override the result without changing production.</p></div>
+</aside>
+<script type="module" src="/cloud-tester-shared.js"></script>
+</body>
+</html>
