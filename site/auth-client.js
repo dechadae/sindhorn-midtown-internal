@@ -72,12 +72,12 @@ export async function fetchProfile({retry401=true}={}){
   profile=next;dispatch('sindhorn:auth-changed',{authenticated:true,profile:structuredClone(profile),reason:'profile'});return structuredClone(profile);
 }
 
-export async function establishSessionFromBootstrap(tokenHash,{reason='activate',preferredLanguage=null}={}){
-  if(!tokenHash)throw new Error('Bootstrap token is unavailable');
+export async function establishSessionFromTokenHash(tokenHash,{reason='activate',preferredLanguage=null}={}){
+  if(!tokenHash)throw new Error('Session token is unavailable');
   const verify=await fetch(`${SUPABASE_URL}/auth/v1/verify`,{method:'POST',cache:'no-store',headers:authHeaders(null),body:JSON.stringify({token_hash:tokenHash,type:'email'})});
   const verified=await responseJson(verify),next=normalizedSession(verified);if(!next)throw new Error('Authenticated session could not be established');persist(next);
   const employee=await fetchProfile();if(!employee)throw new Error('Authenticated account is not linked to an active employee');
-  dispatch('sindhorn:bootstrap-complete',{profile:structuredClone(employee),reason,preferredLanguage:preferredLanguage||employee.preferred_language||'th'});
+  dispatch('sindhorn:session-established',{profile:structuredClone(employee),reason,preferredLanguage:preferredLanguage||employee.preferred_language||'th'});
   return{profile:employee,preferredLanguage:preferredLanguage||employee.preferred_language||'th'};
 }
 
@@ -85,7 +85,7 @@ export async function activate(employeeNumber,code){
   const rows=await supabaseRpc('sindhorn_manual_activate',{p_employee_number:String(employeeNumber||'').trim(),p_plain_code:String(code||'').trim()},{accessToken:null});
   const result=Array.isArray(rows)?rows[0]:null;
   if(!result?.token_hash){const error=new Error('Employee ID or one-time code is invalid, expired, or temporarily locked.');error.code='activation_invalid';throw error}
-  const established=await establishSessionFromBootstrap(result.token_hash,{reason:result.purpose||'activate',preferredLanguage:result.preferred_language});
+  const established=await establishSessionFromTokenHash(result.token_hash,{reason:result.purpose||'activate',preferredLanguage:result.preferred_language});
   dispatch('sindhorn:activation-complete',{profile:structuredClone(established.profile),purpose:result.purpose||'activate',preferredLanguage:established.preferredLanguage});
   return{profile:established.profile,purpose:result.purpose||'activate',preferredLanguage:established.preferredLanguage};
 }
@@ -111,5 +111,5 @@ export async function initAuth(){
 
 if(hasWindow){
   addEventListener('storage',event=>{if(event.key!==STORAGE_KEY)return;session=normalizedSession(safeParse(event.newValue||''));profile=null;if(session)fetchProfile().catch(()=>clearLocal('session_invalid'));else dispatch('sindhorn:auth-changed',{authenticated:false,profile:null,reason:'cross_tab_signout'})});
-  window.SindhornEmployeeAuth={init:initAuth,activate,establishSessionFromBootstrap,signOut,refresh:refreshSession,fetchProfile,getState,getProfile,getAccessToken,supabaseRpc};
+  window.SindhornEmployeeAuth={init:initAuth,activate,establishSessionFromTokenHash,signOut,refresh:refreshSession,fetchProfile,getState,getProfile,getAccessToken,supabaseRpc};
 }
