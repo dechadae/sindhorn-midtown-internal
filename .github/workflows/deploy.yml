@@ -48,119 +48,40 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check site/location.js
-          node --check site/bootstrap.js
-          node --check site/live-data.js
-          node --check site/environment.js
-          node --check site/rain-layer.js
-          node --check site/storm-effects.js
-          node --check site/seasonal-sky.js
-          node --check site/sun-dimmer.js
-          node --check site/screen-capture.js
-          node --check site/atmosphere-tester.js
-          node --check site/tester-celestials.js
-          node --check site/presentation-recovery.js
-          node --check site/app.js
-          node --check site/sw.js
+          for file in site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/atmosphere-tester.js site/cloud-tester-shared.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js; do node --check "$file"; done
+          node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
           python - <<'PY'
           from pathlib import Path
           import hashlib, json, re
           root=Path('site'); fallback=root/'fallback'
           manifest=json.loads((fallback/'manifest.json').read_text())
           bootstrap=(root/'bootstrap.js').read_text()
-          match=re.search(r'const SHELL_VERSION=(\d+);',bootstrap)
-          assert match,'bootstrap shell version missing'
-          shell_version=int(match.group(1))
-          assert manifest['minimumShell']==shell_version,f"fallback minimumShell {manifest['minimumShell']} != shell {shell_version}"
+          shell_version=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
+          assert manifest['minimumShell']==shell_version==17
           for item in manifest['resources']:
-              data=(fallback/item['path']).read_bytes(); digest=hashlib.sha256(data).hexdigest()
-              assert digest==item['sha256'],f"fallback hash mismatch: {item['path']}"
-          index=(root/'index.html').read_text()
-          assert '/location.js' in index
-          assert '/shell.css?v=2' in index
-          assert '/rain-layer.js?v=4' in index
-          assert '/storm-effects.js?v=4' in index
-          assert '/seasonal-sky.js?v=1' in index
-          assert '/sun-dimmer.js?v=1' in index
-          assert '/screen-capture.js?v=3' in index
-          assert '/manifest.webmanifest?v=2' in index
-          shell=(root/'shell.css').read_text()
-          assert '.skip:not(:focus):not(:focus-visible)' in shell
-          assert 'left:-10000px!important' in shell
-          assert '.skip:focus,.skip:focus-visible' in shell
-          location=(root/'location.js').read_text()
-          assert 'navigator.geolocation.getCurrentPosition' in location
-          assert "url.hostname==='api.open-meteo.com'" in location
-          assert "url.searchParams.set('latitude'" in location and "url.searchParams.set('longitude'" in location
-          assert "url.searchParams.set('timezone','auto')" in location
-          assert 'sindhorn:location-updated' in location
+              assert hashlib.sha256((fallback/item['path']).read_bytes()).hexdigest()==item['sha256'],item['path']
+          index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); env=(root/'environment.js').read_text(); shader=(root/'atmosphere-shader.js').read_text(); seasonal=(root/'seasonal-sky.js').read_text(); fixtures=(root/'phase8-2-fixtures.js').read_text()
+          assert '/location.js' in index and '/bootstrap.js' in index
+          assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index
+          assert '/seasonal-sky.js?v=1' not in index
+          assert '/storm-effects.js' not in index
+          assert "'/sky-calibration.js'" not in sw and "'/sky-color-renderer.js'" not in sw and "'/storm-effects.js'" not in sw
+          assert "'/atmosphere-shader.js'" in sw and "'/seasonal-sky.js'" in sw
+          assert 'pwa-v23-bangkok-seasonal-clouds' in sw
+          assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw
+          assert "NOTIFICATION_DB='sindhorn-midtown-notification-inbox'" in sw
+          assert "import {seasonalSkyForState}" in env and "import {ATMOSPHERE_VERTEX_SHADER,ATMOSPHERE_FRAGMENT_SHADER}" in env
+          assert "renderer:'bangkok-seasonal-clouds-v2'" in env and 'const DPR=2' in env
+          assert 'ensureSnowCanvas' in env and 'ensureHailCanvas' in env and 'renderExport' in env and 'antialias:false' in env
+          for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','uHighCoverage','uMidCoverage','uLowCoverage','uSun','uSolarAltitude','sunDisc','Visible sun disc','texture2D(uNoise','AirBKK PM2.5 optics'):
+              assert token in shader,token
+          assert 'MONTHLY=[' in seasonal and 'bangkokSeasonalProfile' in seasonal and 'cloudMorphologyForWeather' in seasonal
+          assert fixtures.count("labelEn:")==11
           pwa=json.loads((root/'manifest.webmanifest').read_text())
-          assert pwa.get('display')=='standalone'
-          assert 'display_override' not in pwa
-          capture=(root/'screen-capture.js').read_text()
-          assert 'document.exitFullscreen' in capture
-          assert 'saveImageBtn' in capture and 'saveNormalFullPage' in capture
-          assert 'foreignObjectRendering' in capture and 'prepareClone' in capture
-          assert "body.classList.remove('capture-home')" in capture
-          assert "document.body.classList.add('capture-home')" not in capture
-          assert 'event.stopImmediatePropagation()' in capture
-          dimmer=(root/'sun-dimmer.js').read_text()
-          assert 'sunAttenuator' in dimmer
-          assert "brightness(.58)" in dimmer
-          environment=(root/'environment.js').read_text()
-          assert 'ATMOSPHERE TESTER CORE · LIVE' in environment
-          assert 'snowfall' in environment and 'environmentSnowCanvas' in environment and 'environmentHailCanvas' in environment
-          assert "renderer:'atmosphere-tester-core'" in environment
-          assert 'sunCoreGlow' in environment
-          assert 'cloudOptical' in environment and 'sunTransmission' in environment and 'sunDiffuse' in environment
-          assert 'uCloudBroadScale' in environment and 'uCloudDetailScale' in environment
-          assert 'uCloudOvercastFloor' in environment and 'uCloudEdgeLight' in environment
-          assert 'float lobe=fbm' in environment and 'float crown=smoothstep' in environment
-          assert 'sunRim' not in environment and 'sunCorona' not in environment
-          assert 'moonSurfaceZ' in environment and 'moonLimb' in environment
-          assert 'moonPhaseAngle' in environment and 'moonLightDirection' in environment
-          assert 'moonTerminator' in environment and 'moonEarthshine' in environment
-          assert 'moonCloudTransmission' in environment and 'moonPhaseBrightness' in environment
-          assert 'moonCore' not in environment
-          assert "c=mix(c,vec3(.018,.024,.035)" not in environment
-          storm=(root/'storm-effects.js').read_text()
-          assert 'MIN_STRIKE_MS=12000' in storm and 'MAX_STRIKE_MS=30000' in storm
-          assert 'function drawStrike' in storm and 'function wrapExport' in storm
-          assert 'flashShield' in storm and 'drawWetAtmosphere' in storm
-          assert 'extendViewportAtmosphere' in storm and 'original(w,liveH)' in storm
-          assert 'daytimeMoonPoint' not in storm and 'drawDayMoonRepair' not in storm
-          assert 'makeMoonSprite' not in storm and 'buildMoonBackgroundPatch' not in storm
-          seasonal=(root/'seasonal-sky.js').read_text()
-          assert 'seasonFor' in seasonal and 'twilightStrength' in seasonal and 'rainy' in seasonal
-          envcss=(root/'environment.css').read_text()
-          assert 'body.capture-home .environment-stage' in envcss and 'body.capture-home #rainPaneSvg' in envcss
-          app=(root/'app.js').read_text()
-          assert 'async function saveFullPage()' in app
-          assert 'renderExport' in app
-          rain=(root/'rain-layer.js').read_text()
-          assert 'rainPaneSvg' in rain
-          assert 'rainPaneCanvas' not in rain
-          assert 'desynchronized:true' not in rain
-          assert 'tester-celestials.js?v=2' in rain
-          assert 'tester-celestials.js?v=1' not in rain
-          tester=(root/'atmosphere-tester.html').read_text()
-          assert 'ATMOSPHERE TESTER' in tester and '/atmosphere-tester.js' in tester and '/rain-layer.js?v=4' in tester
-          assert '/location.js' in tester and '/seasonal-sky.js?v=1' in tester
-          assert '/tester-celestials.js?v=2' in tester
-          assert '/tester-celestials.js?v=1' not in tester
-          tester_js=(root/'atmosphere-tester.js').read_text()
-          assert "'clear-1700'" in tester_js and "'clear-1800'" in tester_js and "'rain-1700'" in tester_js
-          assert 'resolveFixtureLocation' in tester_js and 'solarPosition' in tester_js and 'localFixtureDate' in tester_js
-          assert "new CustomEvent('sindhorn:location-updated'" in tester_js
-          assert "environmentRenderer='unavailable'" in tester_js
-          celestial=(root/'tester-celestials.js').read_text()
-          assert 'sunEclipse' not in celestial
-          assert 'moonEclipse' in celestial
-          assert 'testerWetReflection' in celestial
-          sw=(root/'sw.js').read_text()
-          assert 'isAppRoute' in sw and 'location-fixtures' in sw
-          assert "'/location.js'" in sw and "'/storm-effects.js'" in sw and "'/seasonal-sky.js'" in sw
-          assert "'/sun-dimmer.js'" in sw and "'/screen-capture.js'" in sw
+          assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
+          app=(root/'app.js').read_text(); push=(root/'push-client.js').read_text()
+          assert "messages:'/messages'" in app and "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app
+          assert 'pushManager.subscribe' in push and 'Notification.requestPermission' not in push
           PY
 
       - name: Deploy to Cloudflare Pages
@@ -173,121 +94,26 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${GITHUB_REF_NAME}" = "main" ]; then
-            BASE_URL="https://sindhorn-midtown-internal.pages.dev"
-          else
-            BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
-            BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
-          fi
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then BASE_URL="https://sindhorn-midtown-internal.pages.dev"; else BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"; fi
           sleep 8
-          for path in / /guidance /details /location.js /bootstrap.js /environment.js /rain-layer.js /storm-effects.js /seasonal-sky.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /tester-celestials.js /presentation-recovery.js /app.js /sw.js /shell.css /environment.css /fallback/manifest.json /fallback/ui.css; do
+          for path in / /guidance /details /messages /location.js /bootstrap.js /environment.js /atmosphere-shader.js /seasonal-sky.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /cloud-tester.html /cloud-tester-shared.js /phase8-2-fixtures.js /notification-inbox.js /push-client.js /sw.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/" -o /tmp/smoke-root
-          grep -q '/location.js' /tmp/smoke-root
-          grep -q '/bootstrap.js' /tmp/smoke-root
-          grep -q '/shell.css?v=2' /tmp/smoke-root
-          grep -q '/rain-layer.js?v=4' /tmp/smoke-root
-          grep -q '/storm-effects.js?v=4' /tmp/smoke-root
-          grep -q '/seasonal-sky.js?v=1' /tmp/smoke-root
-          grep -q '/sun-dimmer.js?v=1' /tmp/smoke-root
-          grep -q '/screen-capture.js?v=3' /tmp/smoke-root
-          grep -q '/manifest.webmanifest?v=2' /tmp/smoke-root
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/shell.css?v=2" -o /tmp/smoke-shell
-          grep -q '.skip:not(:focus):not(:focus-visible)' /tmp/smoke-shell
-          grep -q 'left:-10000px!important' /tmp/smoke-shell
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/location.js" -o /tmp/smoke-location
-          grep -q 'navigator.geolocation.getCurrentPosition' /tmp/smoke-location
-          grep -q "api.open-meteo.com" /tmp/smoke-location
-          grep -q "timezone','auto" /tmp/smoke-location
-          grep -q 'sindhorn:location-updated' /tmp/smoke-location
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/screen-capture.js" -o /tmp/smoke-capture
-          grep -q 'document.exitFullscreen' /tmp/smoke-capture
-          grep -q 'saveNormalFullPage' /tmp/smoke-capture
-          grep -q 'foreignObjectRendering' /tmp/smoke-capture
-          grep -q "classList.remove('capture-home')" /tmp/smoke-capture
-          ! grep -q "document.body.classList.add('capture-home')" /tmp/smoke-capture
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/storm-effects.js?v=4" -o /tmp/smoke-storm
-          grep -q 'MIN_STRIKE_MS=12000' /tmp/smoke-storm
-          grep -q 'MAX_STRIKE_MS=30000' /tmp/smoke-storm
-          grep -q 'drawWetAtmosphere' /tmp/smoke-storm
-          grep -q 'extendViewportAtmosphere' /tmp/smoke-storm
-          grep -q 'original(w,liveH)' /tmp/smoke-storm
-          ! grep -q 'daytimeMoonPoint' /tmp/smoke-storm
-          ! grep -q 'drawDayMoonRepair' /tmp/smoke-storm
-          ! grep -q 'makeMoonSprite' /tmp/smoke-storm
-          ! grep -q 'buildMoonBackgroundPatch' /tmp/smoke-storm
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/seasonal-sky.js" -o /tmp/smoke-seasonal
-          grep -q 'seasonFor' /tmp/smoke-seasonal
-          grep -q 'twilightStrength' /tmp/smoke-seasonal
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/environment.css" -o /tmp/smoke-envcss
-          grep -q 'body.capture-home .environment-stage' /tmp/smoke-envcss
-          grep -q 'body.capture-home #rainPaneSvg' /tmp/smoke-envcss
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sun-dimmer.js" -o /tmp/smoke-dimmer
-          grep -q 'sunAttenuator' /tmp/smoke-dimmer
-          grep -q 'brightness(.58)' /tmp/smoke-dimmer
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/manifest.webmanifest" -o /tmp/smoke-pwa
-          grep -q '"display":"standalone"' /tmp/smoke-pwa
-          ! grep -q 'display_override' /tmp/smoke-pwa
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/environment.js" -o /tmp/smoke-environment
-          grep -q 'ATMOSPHERE TESTER CORE' /tmp/smoke-environment
-          grep -q 'environmentSnowCanvas' /tmp/smoke-environment
-          grep -q 'environmentHailCanvas' /tmp/smoke-environment
-          grep -q 'atmosphere-tester-core' /tmp/smoke-environment
-          grep -q 'sunCoreGlow' /tmp/smoke-environment
-          grep -q 'cloudOptical' /tmp/smoke-environment
-          grep -q 'sunTransmission' /tmp/smoke-environment
-          grep -q 'sunDiffuse' /tmp/smoke-environment
-          grep -q 'uCloudBroadScale' /tmp/smoke-environment
-          grep -q 'uCloudDetailScale' /tmp/smoke-environment
-          grep -q 'uCloudOvercastFloor' /tmp/smoke-environment
-          grep -q 'uCloudEdgeLight' /tmp/smoke-environment
-          grep -q 'float lobe=fbm' /tmp/smoke-environment
-          grep -q 'float crown=smoothstep' /tmp/smoke-environment
-          ! grep -q 'sunRim' /tmp/smoke-environment
-          ! grep -q 'sunCorona' /tmp/smoke-environment
-          grep -q 'moonSurfaceZ' /tmp/smoke-environment
-          grep -q 'moonLimb' /tmp/smoke-environment
-          grep -q 'moonPhaseAngle' /tmp/smoke-environment
-          grep -q 'moonLightDirection' /tmp/smoke-environment
-          grep -q 'moonTerminator' /tmp/smoke-environment
-          grep -q 'moonEarthshine' /tmp/smoke-environment
-          grep -q 'moonCloudTransmission' /tmp/smoke-environment
-          grep -q 'moonPhaseBrightness' /tmp/smoke-environment
-          ! grep -q 'moonCore' /tmp/smoke-environment
-          ! grep -Fq 'c=mix(c,vec3(.018,.024,.035)' /tmp/smoke-environment
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/rain-layer.js" -o /tmp/smoke-rain
-          grep -q 'rainPaneSvg' /tmp/smoke-rain
-          ! grep -q 'rainPaneCanvas' /tmp/smoke-rain
-          grep -q 'tester-celestials.js?v=2' /tmp/smoke-rain
-          ! grep -q 'tester-celestials.js?v=1' /tmp/smoke-rain
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/atmosphere-tester.html" -o /tmp/smoke-tester
-          grep -q 'ATMOSPHERE TESTER' /tmp/smoke-tester
-          grep -q '/rain-layer.js?v=4' /tmp/smoke-tester
-          grep -q '/location.js' /tmp/smoke-tester
-          grep -q '/seasonal-sky.js?v=1' /tmp/smoke-tester
-          grep -q '/tester-celestials.js?v=2' /tmp/smoke-tester
-          ! grep -q '/tester-celestials.js?v=1' /tmp/smoke-tester
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/atmosphere-tester.js" -o /tmp/smoke-tester-js
-          grep -q "'clear-1700'" /tmp/smoke-tester-js
-          grep -q "'clear-1800'" /tmp/smoke-tester-js
-          grep -q "'rain-1700'" /tmp/smoke-tester-js
-          grep -q 'resolveFixtureLocation' /tmp/smoke-tester-js
-          grep -q 'localFixtureDate' /tmp/smoke-tester-js
-          grep -q "new CustomEvent('sindhorn:location-updated'" /tmp/smoke-tester-js
-          grep -q "environmentRenderer='unavailable'" /tmp/smoke-tester-js
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/tester-celestials.js" -o /tmp/smoke-celestial
-          ! grep -q 'sunEclipse' /tmp/smoke-celestial
-          grep -q 'moonEclipse' /tmp/smoke-celestial
-          grep -q 'testerWetReflection' /tmp/smoke-celestial
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/smoke-sw
-          grep -q 'location-fixtures' /tmp/smoke-sw
-          grep -q "'/location.js'" /tmp/smoke-sw
-          grep -q "'/storm-effects.js'" /tmp/smoke-sw
-          grep -q "'/seasonal-sky.js'" /tmp/smoke-sw
-          grep -q "'/sun-dimmer.js'" /tmp/smoke-sw
-          grep -q "'/screen-capture.js'" /tmp/smoke-sw
-          SHELL_VERSION="$(node -e "const fs=require('fs');const m=fs.readFileSync('site/bootstrap.js','utf8').match(/const SHELL_VERSION=(\\d+);/);if(!m)process.exit(1);process.stdout.write(m[1])")"
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fallback/manifest.json" -o /tmp/smoke-manifest
-          grep -q "\"minimumShell\": ${SHELL_VERSION}" /tmp/smoke-manifest
+          curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html
+          curl --fail --silent --show-error --location "${BASE_URL}/environment.js" -o /tmp/environment.js
+          curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js
+          curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js
+          ! grep -q '/sky-calibration.js' /tmp/root.html
+          ! grep -q '/sky-color-renderer.js' /tmp/root.html
+          ! grep -q '/storm-effects.js' /tmp/root.html
+          grep -q 'bangkok-seasonal-clouds-v2' /tmp/environment.js
+          grep -q 'Low convective / monsoon' /tmp/shader.js
+          grep -q 'Visible sun disc' /tmp/shader.js
+          grep -q 'texture2D(uNoise' /tmp/shader.js
+          grep -q 'pwa-v23-bangkok-seasonal-clouds' /tmp/sw.js
+          ! grep -q "'/sky-calibration.js'" /tmp/sw.js
+          grep -q "addEventListener('push'" /tmp/sw.js
+          curl --fail --silent --show-error --location "${BASE_URL}/location.js" -o /tmp/location.js
+          grep -q 'navigator.geolocation.getCurrentPosition' /tmp/location.js
+          grep -q 'sindhorn:location-updated' /tmp/location.js
