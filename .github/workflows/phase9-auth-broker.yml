@@ -10,6 +10,7 @@ on:
       - "auth-worker/**"
       - "site/auth-client.js"
       - "site/login-contact-otp.js"
+      - "site/auth-public-config.js"
       - "test/auth-client.test.mjs"
       - "supabase/migrations/*phase9*"
       - "docs/PHASE9-*"
@@ -20,6 +21,7 @@ on:
       - "auth-worker/**"
       - "site/auth-client.js"
       - "site/login-contact-otp.js"
+      - "site/auth-public-config.js"
       - "test/auth-client.test.mjs"
       - "supabase/migrations/*phase9*"
       - "docs/PHASE9-*"
@@ -55,6 +57,7 @@ jobs:
           node --check auth-worker/test.mjs
           node --check site/auth-client.js
           node --check site/login-contact-otp.js
+          node --check site/auth-public-config.js
           node --check test/auth-client.test.mjs
 
       - name: Auth broker tests
@@ -73,8 +76,15 @@ jobs:
           grep -q "ACTIVATION_PEPPER" auth-worker/src/index.js
           grep -q "aal2" auth-worker/src/index.js
           grep -q "@auth.invalid" auth-worker/src/security.js
-          grep -q "normalizeEmail" auth-worker/src/security.js
           grep -q "token_hash:tokenHash,type:'email'" site/auth-client.js
+          grep -q "establishSessionFromBootstrap" site/auth-client.js
+          grep -q "BREVO_SEND_URL" auth-worker/src/contact-otp.js
+          grep -q "BREVO_API_KEY" auth-worker/src/contact-otp.js
+          grep -q "TURNSTILE_VERIFY_URL" auth-worker/src/contact-otp.js
+          grep -q "auth_email_otp_challenges" auth-worker/src/contact-otp.js
+          grep -q "OTP_TTL_SECONDS=5\*60" auth-worker/src/contact-otp.js
+          grep -q "OTP_VERIFY_MAX_ATTEMPTS=5" auth-worker/src/contact-otp.js
+          grep -q "OTP_RESEND_COOLDOWN_SECONDS=60" auth-worker/src/contact-otp.js
           grep -q "'/otp/request'" auth-worker/src/contact-otp.js
           grep -q "'/otp/verify'" auth-worker/src/contact-otp.js
           grep -q "sindhorn_contact_login_lookup" supabase/migrations/*phase9_contact_otp_foundation.sql
@@ -86,6 +96,7 @@ jobs:
           grep -q "sindhorn_admin_create_employee" supabase/migrations/*phase9_admin_user_rpc.sql
           grep -q "sindhorn_record_admin_audit" supabase/migrations/*phase9_admin_audit_rpc.sql
           ! grep -R -E "SUPABASE_(SERVICE_ROLE|SECRET)_KEY['\"]?[[:space:]]*[:=][[:space:]]*['\"][^$]" auth-worker || false
+          ! grep -R -E "xkeysib-[A-Za-z0-9_-]+" auth-worker site || false
 
       - name: Worker production dry-run
         working-directory: auth-worker
@@ -109,7 +120,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4.125.0 deploy --config wrangler.preview.jsonc
 
-      - name: Verify preview runtime secrets
+      - name: Verify preview runtime
         if: github.event_name == 'push' && (github.ref == 'refs/heads/phase9-internal-auth-broadcast' || github.ref == 'refs/heads/phase9-contact-otp')
         shell: bash
         run: |
@@ -131,5 +142,7 @@ jobs:
           if(health.supabaseConfigured!==true) throw new Error('SUPABASE_SECRET_KEY is not configured');
           if(health.pepperConfigured!==true) throw new Error('ACTIVATION_PEPPER is not configured');
           if(health.databaseConfigured!==true) throw new Error('D1 binding is not configured');
-          console.log('preview auth worker runtime configuration verified');
+          if(health.turnstileConfigured!==true) throw new Error('preview Turnstile test validation is not ready');
+          if(typeof health.emailOtpConfigured!=='boolean') throw new Error('email OTP health state missing');
+          console.log(`preview auth worker ready; Brevo configured=${health.emailOtpConfigured}`);
           NODE
