@@ -25,6 +25,7 @@ on:
       - fix-lunar-phase-v2
       - fix-lunar-phase-shader
       - live-location-fixtures
+      - "fix-cloud-*"
     paths:
       - "site/**"
       - ".github/workflows/deploy.yml"
@@ -68,14 +69,14 @@ jobs:
           assert '/storm-effects.js' not in index
           assert "'/sky-calibration.js'" not in sw and "'/sky-color-renderer.js'" not in sw and "'/storm-effects.js'" not in sw
           assert "'/atmosphere-shader.js'" in sw and "'/seasonal-sky.js'" in sw
-          assert 'pwa-v23-bangkok-seasonal-clouds' in sw
+          assert 'pwa-v24-cloud-roundness-randomized-start' in sw
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw
           assert "NOTIFICATION_DB='sindhorn-midtown-notification-inbox'" in sw
           for token in ('seasonalSkyForState','ATMOSPHERE_VERTEX_SHADER','ATMOSPHERE_FRAGMENT_SHADER','createAtmosphereNoiseTexture'):
               assert token in env,token
           assert "renderer:'bangkok-seasonal-clouds-v2'" in env and 'const DPR=2' in env
           assert 'ensureSnowCanvas' in env and 'ensureHailCanvas' in env and 'renderExport' in env and 'antialias:false' in env
-          for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','uHighCoverage','uMidCoverage','uLowCoverage','uSun','uSolarAltitude','sunDisc','Visible sun disc','texture2D(uNoise','AirBKK PM2.5 optics'):
+          for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','uHighCoverage','uMidCoverage','uLowCoverage','uSun','uSolarAltitude','sunDisc','Visible sun disc','texture2D(uNoise','AirBKK PM2.5 optics','randomCloudSeed'):
               assert token in shader,token
           assert 'MONTHLY=[' in seasonal and 'bangkokSeasonalProfile' in seasonal and 'cloudMorphologyForWeather' in seasonal
           assert fixtures.count("labelEn:")==11
@@ -113,7 +114,8 @@ jobs:
           grep -q 'Low convective / monsoon' /tmp/shader.js
           grep -q 'Visible sun disc' /tmp/shader.js
           grep -q 'texture2D(uNoise' /tmp/shader.js
-          grep -q 'pwa-v23-bangkok-seasonal-clouds' /tmp/sw.js
+          grep -q 'randomCloudSeed' /tmp/shader.js
+          grep -q 'pwa-v24-cloud-roundness-randomized-start' /tmp/sw.js
           ! grep -q "'/sky-calibration.js'" /tmp/sw.js
           grep -q "addEventListener('push'" /tmp/sw.js
           curl --fail --silent --show-error --location "${BASE_URL}/location.js" -o /tmp/location.js
