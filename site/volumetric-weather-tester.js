@@ -16,7 +16,7 @@ const state={
   month:8,day:27,solarAltitude:18,solarAzimuth:258,haze:.47,warmLight:.55,
   weatherFamily:'partly-cloudy',cloudCover:.56,humidity:.82,pm25:18,storm:.08,
   coverage:.58,density:.95,erosion:.46,verticalBuild:.66,connected:.16,baseDarkness:.62,
-  phaseG:.55,jitter:.72,windSpeed:14,windDirection:245,
+  phaseG:.55,jitter:.02,windSpeed:14,windDirection:245,
   rain:.0,rainLength:.95,snow:.0,snowTurbulence:.65,
   windowRain:.0,trickleRate:.65,windowRefraction:.9,
   heat:.06,heatScale:1,
@@ -92,23 +92,23 @@ uniform float uTime,uSolarAltitude,uSunGlow,uPm25,uHumidity,uHeat,uHeatScale,uRa
 float sat(float x){return clamp(x,0.0,1.0);}float hash11(float p){p=fract(p*.1031);p*=p+33.33;p*=p+p;return fract(p);}float hash21(vec2 p){vec3 p3=fract(vec3(p.xyx)*vec3(.1031,.1030,.0973));p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 vec3 saturation(vec3 c,float s){float l=dot(c,vec3(.2126,.7152,.0722));return mix(vec3(l),c,s);}
 float rainLayer(vec2 uv,float scale,float speed,float seed){
-  vec2 p=uv*vec2(42.0*scale,12.0*scale);p.x-=uWindScreen.x*uTime*.012*scale;float col=floor(p.x);float rnd=hash11(col+seed);float x=abs(fract(p.x)-.5);float y=fract(p.y+rnd*7.0+uTime*speed*(1.1+rnd*.8));float head=smoothstep(.52,.20,y);float tail=smoothstep(.02,.14,y)*head;float line=smoothstep(.055,.008,x)*tail;return line*(.45+.55*rnd);
+  vec2 p=uv*vec2(42.0*scale,12.0*scale);p.x-=uWindScreen.x*uTime*.012*scale;float col=floor(p.x);float rnd=hash11(col+seed);float x=abs(fract(p.x)-.5);float y=fract(p.y+rnd*7.0+uTime*speed*(1.1+rnd*.8));float head=smoothstep(.52,.20,y);float tail=smoothstep(.02,.14,y)*head;float line=smoothstep(.026,.006,x)*tail;return line*(.45+.55*rnd);
 }
 float snowLayer(vec2 uv,float scale,float speed,float seed){
-  vec2 g=uv*vec2(20.0*scale,14.0*scale);vec2 id=floor(g);float r=hash21(id+seed);vec2 f=fract(g)-.5;f.x+=sin(uTime*.42+r*6.283+id.y)*.18*uSnowTurbulence;f.y=fract(f.y+.5+uTime*speed*(.22+.38*r))-.5;float d=length(f);return smoothstep(.12+.06*r,.025,d)*step(.30,r);
+  vec2 g=uv*vec2(18.0*scale,34.0*scale);vec2 id=floor(g);float r=hash21(id+seed),rx=hash21(id+vec2(seed+17.3,9.1)),ry=hash21(id+vec2(31.7,seed+4.9));vec2 f=fract(g)-vec2(rx,fract(ry-uTime*speed*(.18+.34*r)));if(f.x>.5)f.x-=1.0;if(f.x<-.5)f.x+=1.0;if(f.y>.5)f.y-=1.0;if(f.y<-.5)f.y+=1.0;f.x+=sin(uTime*.46+r*6.283+id.y)*.11*uSnowTurbulence;float d=length(f);return smoothstep(.075+.045*r,.012,d)*step(.34,r);
 }
 void main(){
   float horizon=pow(1.0-vUv.y,1.65);vec2 texel=1.0/uResolution;
   float heatMask=horizon*horizon*uHeat;float hn=sin((vUv.y*uHeatScale*95.0+uTime*2.1)+sin(vUv.x*31.0-uTime*.7))*sin(vUv.x*uHeatScale*57.0+uTime*1.3);vec2 heatOffset=vec2(hn,cos(hn*3.1+uTime))*texel*6.0*heatMask;
   vec2 uv=vUv+heatOffset;float wl=texture(uWetTex,uv-vec2(texel.x*3.0,0)).r,wr=texture(uWetTex,uv+vec2(texel.x*3.0,0)).r,wb=texture(uWetTex,uv-vec2(0,texel.y*3.0)).r,wt=texture(uWetTex,uv+vec2(0,texel.y*3.0)).r;float wet=texture(uWetTex,uv).r;
-  vec2 wetNormal=vec2(wr-wl,wt-wb);vec2 refractOffset=wetNormal*.022*uWindowRain*uWindowRefraction;vec4 cloud=texture(uCloudTex,uv+refractOffset);
+  vec2 wetNormal=vec2(wr-wl,wt-wb);vec2 refractOffset=wetNormal*.0085*uWindowRain*uWindowRefraction;vec4 cloud=texture(uCloudTex,uv+refractOffset);
   vec3 sky=mix(uSkyHorizon,uSkyTop,smoothstep(.01,.98,uv.y));
   float sunVisible=smoothstep(-1.0,-.1,uSolarAltitude);vec2 sd=uv-uSunUv;sd.x*=uResolution.x/max(1.0,uResolution.y);float sunD=length(sd);float disc=1.0-smoothstep(.012,.020,sunD);float halo=1.0-smoothstep(.02,.115,sunD);vec3 sunColor=mix(vec3(1.0,.56,.25),vec3(1.0,.97,.84),smoothstep(4.0,30.0,uSolarAltitude));sky+=sunColor*(disc*.95+halo*.12*uSunGlow)*sunVisible;
   vec3 c=mix(sky,cloud.rgb,cloud.a);c+=vec3(.62,.72,1.0)*uLightningFlash*.08*(.55+.45*cloud.a);
   float pm=sat(uPm25/180.0);c=saturation(c,1.0-pm*.52);c=mix(c,vec3(.62,.58,.54),pm*(.05+.30*horizon));c=mix(c,vec3(.67,.69,.70),uHumidity*.10*horizon*horizon);
-  float rain=(rainLayer(vUv,1.0,1.65,3.0)+rainLayer(vUv+vec2(.17,.03),1.55,2.05,18.0)*.65+rainLayer(vUv+vec2(.41,.19),.72,1.25,41.0)*.45)*uRain;rain*=mix(.72,1.22,uRainLength);c+=vec3(.73,.82,.91)*rain*.34;
+  float rain=(rainLayer(vUv,1.0,1.65,3.0)+rainLayer(vUv+vec2(.17,.03),1.55,2.05,18.0)*.65+rainLayer(vUv+vec2(.41,.19),.72,1.25,41.0)*.45)*uRain;rain*=mix(.72,1.22,uRainLength);c+=vec3(.73,.82,.91)*rain*.15;
   float snow=(snowLayer(vUv,1.0,.55,8.0)+snowLayer(vUv+vec2(.31,.0),1.65,.34,29.0)*.65+snowLayer(vUv+vec2(.11,.17),.70,.78,61.0)*.42)*uSnow;c=mix(c,vec3(.95,.97,1.0),sat(snow*.78));
-  float wetRim=sat(wet*1.4)*uWindowRain;float wetSpec=sat(length(wetNormal)*8.0)*uWindowRain;c+=vec3(.84,.90,.96)*(wetRim*.028+wetSpec*.11);
+  float wetRim=sat(wet*1.4)*uWindowRain;float wetSpec=sat(length(wetNormal)*8.0)*uWindowRain;c+=vec3(.84,.90,.96)*(wetRim*.018+wetSpec*.052);
   float vign=smoothstep(1.22,.32,length((vUv-.5)*vec2(uResolution.x/uResolution.y,1.0)));c*=mix(.90,1.0,vign);
   outColor=vec4(clamp(c,0.0,1.0),1.0);
 }`;
@@ -118,8 +118,11 @@ const vao=gl.createVertexArray();gl.bindVertexArray(vao);const buf=gl.createBuff
 gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0)
 
 function seededRandom(seed){let s=seed>>>0;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296}}
-function tex3D(size,seed){
-  const rand=seededRandom(seed),data=new Uint8Array(size*size*size*4);for(let i=0;i<data.length;i++)data[i]=(rand()*256)|0;
+function hash3i(x,y,z,seed){let h=(Math.imul(x,374761393)+Math.imul(y,668265263)+Math.imul(z,1442695041)+(seed>>>0))>>>0;h=Math.imul(h^(h>>>13),1274126177)>>>0;return((h^(h>>>16))>>>0)/4294967295}
+function valueNoise3(x,y,z,seed){const ix=Math.floor(x),iy=Math.floor(y),iz=Math.floor(z),fx=x-ix,fy=y-iy,fz=z-iz,s=t=>t*t*(3-2*t),tx=s(fx),ty=s(fy),tz=s(fz),h=(dx,dy,dz)=>hash3i(ix+dx,iy+dy,iz+dz,seed),a=mix(h(0,0,0),h(1,0,0),tx),b=mix(h(0,1,0),h(1,1,0),tx),c=mix(h(0,0,1),h(1,0,1),tx),d=mix(h(0,1,1),h(1,1,1),tx);return mix(mix(a,b,ty),mix(c,d,ty),tz)}
+function tex3D(size,seed,erosion=false){
+  const data=new Uint8Array(size*size*size*4),freqs=erosion?[10,16,23,7]:[3.2,6.5,12.5,4.6];let o=0;
+  for(let z=0;z<size;z++)for(let y=0;y<size;y++)for(let x=0;x<size;x++){const nx=x/size,ny=y/size,nz=z/size;for(let c=0;c<4;c++){const f=freqs[c],warp=.18*Math.sin((nx+nz*1.37+ny*.63)*(c+2)*6.283);const v=valueNoise3(nx*f+warp,ny*f*.72,nz*f+warp*.55,(seed+Math.imul(c+1,0x9e3779b1))>>>0);data[o++]=Math.round(clamp(v)*255)}}
   const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_3D,t);gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_WRAP_S,gl.REPEAT);gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_WRAP_T,gl.REPEAT);gl.texParameteri(gl.TEXTURE_3D,gl.TEXTURE_WRAP_R,gl.REPEAT);gl.texImage3D(gl.TEXTURE_3D,0,gl.RGBA8,size,size,size,0,gl.RGBA,gl.UNSIGNED_BYTE,data);return t;
 }
 function weatherTexture(seed){
@@ -128,17 +131,17 @@ function weatherTexture(seed){
   for(let y=0;y<size;y++)for(let x=0;x<size;x++){const gx=x/size*coarse,gy=y/size*coarse,ix=Math.floor(gx),iy=Math.floor(gy),fx=smooth(gx-ix),fy=smooth(gy-iy);const a=mix(g(ix,iy),g(ix+1,iy),fx),b=mix(g(ix,iy+1),g(ix+1,iy+1),fx);let v=mix(a,b,fy);v=.68*v+.22*Math.sin((x+y*.37)*.073+seed*.000001)+.10*Math.sin((x*.31-y)*.051);data[y*size+x]=clamp(v*.75+.25)*255}
   const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.REPEAT);gl.texImage2D(gl.TEXTURE_2D,0,gl.R8,size,size,0,gl.RED,gl.UNSIGNED_BYTE,data);return t;
 }
-let baseNoise=tex3D(48,state.seed),erosionNoise=tex3D(32,state.seed^0xa5a5a5a5),weatherTex=weatherTexture(state.seed);
-function rebuildNoise(){for(const t of [baseNoise,erosionNoise,weatherTex])gl.deleteTexture(t);baseNoise=tex3D(48,state.seed);erosionNoise=tex3D(32,state.seed^0xa5a5a5a5);weatherTex=weatherTexture(state.seed);resetWetness(true)}
+let baseNoise=tex3D(48,state.seed),erosionNoise=tex3D(32,state.seed^0xa5a5a5a5,true),weatherTex=weatherTexture(state.seed);
+function rebuildNoise(){for(const t of [baseNoise,erosionNoise,weatherTex])gl.deleteTexture(t);baseNoise=tex3D(48,state.seed);erosionNoise=tex3D(32,state.seed^0xa5a5a5a5,true);weatherTex=weatherTexture(state.seed);resetWetness(true)}
 
 const wetCanvas=document.createElement('canvas');wetCanvas.width=256;wetCanvas.height=256;const wetCtx=wetCanvas.getContext('2d',{alpha:false});
 const wetTex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,wetTex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
 let drops=[];function resetWetness(hard=false){if(hard)drops=[];wetCtx.fillStyle='black';wetCtx.fillRect(0,0,256,256)}
 function updateWetness(dt){
   if(state.windowRain<.005){if(drops.length){drops=[];resetWetness()}return}
-  const target=Math.round(18+state.windowRain*115);const rand=seededRandom((state.seed^((performance.now()/170)|0))>>>0);while(drops.length<target)drops.push({x:rand()*256,y:rand()*256,r:1.5+rand()*5.8,vy:.12+rand()*.62,trail:rand()<state.trickleRate*.32,phase:rand()*6.28});if(drops.length>target)drops.splice(target);
-  wetCtx.fillStyle='rgba(0,0,0,.13)';wetCtx.fillRect(0,0,256,256);wetCtx.globalCompositeOperation='lighter';
-  for(const d of drops){d.y+=d.vy*dt*.045*(.4+state.trickleRate);d.x+=Math.sin(d.phase+d.y*.03)*.015*dt;if(d.y>270){d.y=-10;d.x=rand()*256}const g=wetCtx.createRadialGradient(d.x,d.y,0,d.x,d.y,d.r*2.4);g.addColorStop(0,'rgba(255,255,255,.72)');g.addColorStop(.45,'rgba(210,210,210,.38)');g.addColorStop(1,'rgba(0,0,0,0)');wetCtx.fillStyle=g;wetCtx.beginPath();wetCtx.arc(d.x,d.y,d.r*2.4,0,Math.PI*2);wetCtx.fill();if(d.trail){wetCtx.strokeStyle='rgba(190,190,190,.18)';wetCtx.lineWidth=Math.max(1,d.r*.45);wetCtx.beginPath();wetCtx.moveTo(d.x,d.y-d.r*.4);wetCtx.quadraticCurveTo(d.x+Math.sin(d.phase)*4,d.y-d.r*5,d.x+Math.sin(d.phase*1.7)*2,d.y-d.r*(8+state.trickleRate*10));wetCtx.stroke()}}
+  const target=Math.round(10+state.windowRain*72);const rand=seededRandom((state.seed^((performance.now()/170)|0))>>>0);while(drops.length<target)drops.push({x:rand()*256,y:rand()*256,r:1.0+rand()*2.8,vy:.12+rand()*.62,trail:rand()<state.trickleRate*.32,phase:rand()*6.28});if(drops.length>target)drops.splice(target);
+  wetCtx.fillStyle='rgba(0,0,0,.29)';wetCtx.fillRect(0,0,256,256);wetCtx.globalCompositeOperation='lighter';
+  for(const d of drops){d.y+=d.vy*dt*.045*(.4+state.trickleRate);d.x+=Math.sin(d.phase+d.y*.03)*.015*dt;if(d.y>270){d.y=-10;d.x=rand()*256}const g=wetCtx.createRadialGradient(d.x,d.y,0,d.x,d.y,d.r*1.55);g.addColorStop(0,'rgba(255,255,255,.72)');g.addColorStop(.45,'rgba(210,210,210,.38)');g.addColorStop(1,'rgba(0,0,0,0)');wetCtx.fillStyle=g;wetCtx.beginPath();wetCtx.arc(d.x,d.y,d.r*1.55,0,Math.PI*2);wetCtx.fill();if(d.trail){wetCtx.strokeStyle='rgba(190,190,190,.18)';wetCtx.lineWidth=Math.max(1,d.r*.45);wetCtx.beginPath();wetCtx.moveTo(d.x,d.y-d.r*.4);wetCtx.quadraticCurveTo(d.x+Math.sin(d.phase)*4,d.y-d.r*5,d.x+Math.sin(d.phase*1.7)*2,d.y-d.r*(8+state.trickleRate*10));wetCtx.stroke()}}
   wetCtx.globalCompositeOperation='source-over';gl.bindTexture(gl.TEXTURE_2D,wetTex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,gl.RGBA,gl.UNSIGNED_BYTE,wetCanvas);
 }
 resetWetness(true);updateWetness(16);
