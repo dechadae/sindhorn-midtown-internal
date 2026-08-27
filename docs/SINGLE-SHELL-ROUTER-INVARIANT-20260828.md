@@ -11,12 +11,17 @@ The installed PWA document, WebGL atmosphere, authenticated session, header host
 
 This applies to all current authenticated routes:
 
-- `/` — Today
-- `/guidance`
-- `/details`
-- `/messages`
-- `/account`
-- `/admin`
+- `/` — Today. This route composes the existing `today.html`, `guidance.html` and `details.html` presentation fragments into one continuous scrollable page.
+- `/fnb` — F&B. This is intentionally an empty in-shell route reserved for the F&B module.
+- `/messages` — Messages.
+- `/account` — Employee account.
+- `/admin` — Administration.
+
+`/guidance` and `/details` are retired as standalone destinations. Legacy requests resolve back to Today; their content remains present inside the Today route.
+
+The persistent footer navigation is therefore:
+
+`Today / F&B / Messages`
 
 It also applies to every future authenticated page or module. A future feature must be registered in `site/route-registry.js` and mounted through the persistent shell. It must not introduce a new standalone authenticated HTML document.
 
@@ -42,7 +47,7 @@ Authenticated route transitions must:
 
 `site/route-registry.js` is the executable route registry.
 
-Remote presentation routes use validated Supabase pack fragments. Shell-owned application routes such as Account and Admin use local mount modules. Both route types are mounted through `window.SindhornAppPack.mountRoute()` and navigated through the same History API router.
+Remote presentation routes use validated Supabase pack fragments. A route may compose more than one validated pack fragment, as Today now does. Shell-owned application routes such as F&B, Account and Admin use local mount modules. Both route types are mounted through `window.SindhornAppPack.mountRoute()` and navigated through the same History API router.
 
 Legacy `/account.html` and `/admin.html` URLs are compatibility redirects only; they are not application documents.
 
