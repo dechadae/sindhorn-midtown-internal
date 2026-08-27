@@ -73,10 +73,9 @@ jobs:
         run: |
           set -euo pipefail
           cd sky-worker
-          find src test -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
-          if compgen -G "test/*.mjs" >/dev/null; then
-            for test in test/*.mjs; do node "$test"; done
-          fi
+          find src -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+          node --check test.mjs
+          node test.mjs
           npx --yes wrangler@4.125.0 deploy --dry-run
 
   preview:
