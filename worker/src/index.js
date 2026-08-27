@@ -35,11 +35,11 @@ async function ensureSchema(env){
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS monitor_state (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL)').run();
 }
 async function stateGet(env,key){const row=await env.DB.prepare('SELECT value FROM monitor_state WHERE key=?').bind(key).first();if(!row?.value)return null;try{return JSON.parse(row.value)}catch(_){return null}}
-async function stateSet(env,key,value){const now=new Date().toISOString();await env.DB.prepare('INSERT INTO monitor_state(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at').bind(key,JSON.stringify(value),now).run()}
+async function stateSet(env,key,value){const now=new Date().toISOString();await env.DB.prepare('INSERT INTO monitor_state(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at').bind(key,JSON.stringify(value),now,now).run()}
 async function stateDelete(env,key){await env.DB.prepare('DELETE FROM monitor_state WHERE key=?').bind(key).run()}
 
 async function fetchAir(){
-  const response=await fetch(AIR_URL,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({message:'Request data'})});
+  const response=await fetch(AIR_URL,{method:'POST',headers:{'content-type':'application/json','accept':'application/json, text/plain, */*','origin':'https://official.airbkk.com','referer':'https://official.airbkk.com/'},body:JSON.stringify({message:'Request data'})});
   if(!response.ok)throw new Error('AirBKK '+response.status);
   const payload=await response.json();if(payload?.status!=='Success'||!Array.isArray(payload.message))throw new Error('Unexpected AirBKK response');
   let row=null;for(const id of AIR_STATIONS){row=payload.message.find(item=>String(item?.MeasIndex)===id&&validAirRow(item));if(row)break}
