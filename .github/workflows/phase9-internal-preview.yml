@@ -11,6 +11,7 @@ on:
       - "site/login.js"
       - "site/admin.html"
       - "site/admin.js"
+      - "site/qr-v6.js"
       - "site/internal-auth.css"
       - "site/auth-brand.css"
       - ".github/workflows/phase9-internal-preview.yml"
@@ -42,6 +43,7 @@ jobs:
           node --check site/auth-client.js
           node --check site/login.js
           node --check site/admin.js
+          node --check site/qr-v6.js
           grep -q 'Employee ID' site/login.html
           grep -q 'One-time code' site/login.html
           test "$(grep -o 'data-otp-digit=' site/login.html | wc -l)" -eq 6
@@ -58,7 +60,12 @@ jobs:
           grep -q 'sindhorn_manual_activate' site/auth-client.js
           grep -q "authBackend:'supabase'" site/auth-client.js
           grep -q 'sindhorn_admin_issue_activation_code_v2' site/admin.js
-          grep -q 'sindhorn_admin_list_users_v2' site/admin.js
+          grep -q 'sindhorn_admin_list_users_v3' site/admin.js
+          grep -q 'sindhorn_admin_upsert_contact_v2' site/admin.js
+          grep -q 'sindhorn_admin_revoke_access_v2' site/admin.js
+          grep -q 'qrSvg' site/admin.js
+          grep -q '#i=' site/admin.js
+          grep -q 'history.replaceState' site/login.js
           ! grep -R -q 'workers.dev' site/auth-client.js site/login.html site/login.js site/admin.js
           ! grep -R -q -E 'BREVO|TURNSTILE|/otp/request|/otp/verify' site/auth-client.js site/login.html site/login.js site/admin.js
           grep -q 'noto-sans-400.woff2' site/internal-auth.css
@@ -67,6 +74,17 @@ jobs:
           test -f site/assets/fonts/noto-sans-400.woff2
           test -f site/assets/fonts/noto-sans-thai-400.woff2
           ! grep -R -E 'sb_secret_|SUPABASE_SECRET_KEY[[:space:]]*=' site/login.html site/login.js site/admin.html site/admin.js site/auth-client.js site/internal-auth.css site/auth-brand.css
+
+      - name: QR encoder smoke
+        run: |
+          node --input-type=module - <<'NODE'
+          import {qrMatrix,qrSvg} from './site/qr-v6.js';
+          const value='https://phase9-contact-otp.sindhorn-midtown-internal.pages.dev/login.html#i=10639&c=123456';
+          const matrix=qrMatrix(value);
+          if(matrix.length!==41||matrix.some(row=>row.length!==41)) throw new Error('QR matrix shape failed');
+          const svg=qrSvg(value);
+          if(!svg.includes('<svg')||!svg.includes('viewBox="0 0 49 49"')) throw new Error('QR SVG failed');
+          NODE
 
       - name: Deploy Phase 9 branch Pages preview
         run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
@@ -79,7 +97,7 @@ jobs:
           BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           CACHE_BUST="phase9=${GITHUB_SHA}"
           sleep 8
-          for path in /login.html /login.js /admin.html /admin.js /auth-client.js /internal-auth.css /auth-brand.css /assets/brand/sindhorn-midtown-vignette-black.png; do
+          for path in /login.html /login.js /admin.html /admin.js /qr-v6.js /auth-client.js /internal-auth.css /auth-brand.css /assets/brand/sindhorn-midtown-vignette-black.png; do
             echo "smoke ${path}"
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 \
               -H 'Cache-Control: no-cache' "${BASE_URL}${path}?${CACHE_BUST}" -o /tmp/phase9-smoke
@@ -96,6 +114,11 @@ jobs:
             "${BASE_URL}/auth-client.js?${CACHE_BUST}" -o /tmp/phase9-auth-client.js
           grep -q 'sindhorn_manual_activate' /tmp/phase9-auth-client.js
           ! grep -q 'workers.dev' /tmp/phase9-auth-client.js
+          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' \
+            "${BASE_URL}/admin.js?${CACHE_BUST}" -o /tmp/phase9-admin.js
+          grep -q 'sindhorn_admin_list_users_v3' /tmp/phase9-admin.js
+          grep -q 'sindhorn_admin_upsert_contact_v2' /tmp/phase9-admin.js
+          grep -q 'sindhorn_admin_revoke_access_v2' /tmp/phase9-admin.js
           curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' \
             "${BASE_URL}/auth-brand.css?${CACHE_BUST}" -o /tmp/phase9-auth-brand.css
           grep -q 'letter-spacing:0!important' /tmp/phase9-auth-brand.css
