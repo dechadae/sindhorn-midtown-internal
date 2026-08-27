@@ -33,6 +33,11 @@ const janPartly=seasonalSkyForState({date:new Date('2026-01-15T18:01:00+07:00'),
 // Shader contract: the three cloud depth families and actual sun projection are explicit.
 for(const token of ['uHighCoverage','uMidCoverage','uLowCoverage','uConnected','uSun','uSolarAltitude','sunDisc','Visible sun disc','High veil / cirrus','Mid broken cloud','Low convective / monsoon','AirBKK PM2.5 optics','texture2D(uNoise'])assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes(token),token);
 assert.ok(!ATMOSPHERE_FRAGMENT_SHADER.includes('for(int i=0;i<5'),'fragment shader should not rebuild five-octave hash FBM per pixel');
+assert.ok(!ATMOSPHERE_FRAGMENT_SHADER.includes('exp('),'fragment shader lighting should avoid exponential hotspots');
+assert.ok(!ATMOSPHERE_FRAGMENT_SHADER.includes('layeredNoise'),'old multi-sample layered noise helper must stay retired');
+const textureSamples=(ATMOSPHERE_FRAGMENT_SHADER.match(/noise4\(/g)||[]).length;
+assert.ok(textureSamples<=8,`shared shader texture-sample call sites should remain bounded (found ${textureSamples})`);
+for(const branch of ['if(uHighCoverage>.003','if(uMidCoverage>.003','if(uLowCoverage>.003'])assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes(branch),branch);
 
 // Performance contract: keep DPR 2 and visual quality while removing redundant live work.
 const env=fs.readFileSync(new URL('./environment.js',import.meta.url),'utf8');
@@ -44,4 +49,4 @@ const rain=fs.readFileSync(new URL('./rain-layer.js',import.meta.url),'utf8');
 assert.ok(rain.includes("const IS_ATMOSPHERE_TESTER=location.pathname.includes('atmosphere-tester')"),'rain idle optimization must preserve continuous manual tester behavior');
 assert.ok(rain.includes("document.addEventListener('sindhorn:weather-updated',start)"),'rain renderer must wake on live weather updates');
 assert.ok(rain.includes("targetIntensity===0&&currentIntensity<.001"),'dry production rain renderer must be able to sleep');
-console.log(`Phase 8.2 seasonal/cloud fixtures PASS (${PHASE82_FIXTURE_KEYS.length} deterministic cases)`);
+console.log(`Phase 8.2 seasonal/cloud fixtures PASS (${PHASE82_FIXTURE_KEYS.length} deterministic cases; ${textureSamples} bounded noise call sites)`);
