@@ -51,7 +51,8 @@ jobs:
           shell=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1)); assert shell==17 and fallback['minimumShell']==shell
           assert "messages:'messages.html'" in bootstrap and "path.startsWith('/messages')" in bootstrap and "FALLBACK_REQUIRED=[...REQUIRED,'messages.html']" in bootstrap
           for item in fallback['resources']: assert hashlib.sha256((root/'fallback'/item['path']).read_bytes()).hexdigest()==item['sha256'],item['path']
-          app=(root/'app.js').read_text(); assert "messages:'/messages'" in app and "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app and 'performPullRefresh' in app and 'saveFullPage' in app
+          fallback_today=(root/'fallback'/'today.html').read_text(); assert 'saveImageBtn' not in fallback_today and 'report-actionbar' not in fallback_today
+          app=(root/'app.js').read_text(); assert "messages:'/messages'" in app and "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app and 'performPullRefresh' in app
           inbox=(root/'notification-inbox.js').read_text()
           for token in ('sindhorn-midtown-notification-inbox','messageList','messageClearBtn','SINDHORN_NOTIFICATION_STORED','markAllRead'): assert token in inbox
           push=(root/'push-client.js').read_text(); assert 'pushManager.subscribe' in push and 'enableFromGesture' in push and 'Notification.requestPermission' not in push and 'PREPARE_TIMEOUT_MS' in push
@@ -118,6 +119,7 @@ jobs:
           rowmap={row['path']:row for row in rows}; manifest_row=rowmap['manifest.json']; assert hashlib.sha256(manifest_row['content'].encode()).hexdigest()==manifest_row['content_sha256']
           manifest=json.loads(manifest_row['content']); assert manifest['appPack']==38 and manifest['minimumShell']==17 and manifest['environmentConfig']==3
           assert 'messages.html' in rowmap and 'environment-config.json' in rowmap
+          today=rowmap['today.html']['content']; assert 'saveImageBtn' not in today and 'report-actionbar' not in today
           for item in manifest['resources']:
               row=rowmap[item['path']]; assert row['content_sha256']==item['sha256'] and hashlib.sha256(row['content'].encode()).hexdigest()==item['sha256']
           PY
