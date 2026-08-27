@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - hotfix-phase9-deploy-gate
       - hotfix-phase8-2-deploy-validation
       - webgl-environment-v1
       - hybrid-shell-v15
@@ -49,20 +50,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/atmosphere-tester.js site/cloud-tester-shared.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js; do node --check "$file"; done
+          for file in site/auth-shell.js site/auth-client.js site/login.js site/account.js site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/atmosphere-tester.js site/cloud-tester-shared.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js; do node --check "$file"; done
           node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
           python - <<'PY'
           from pathlib import Path
           import hashlib, json, re
           root=Path('site'); fallback=root/'fallback'
           manifest=json.loads((fallback/'manifest.json').read_text())
-          bootstrap=(root/'bootstrap.js').read_text()
+          bootstrap=(root/'bootstrap.js').read_text(); auth_shell=(root/'auth-shell.js').read_text()
           shell_version=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
           assert manifest['minimumShell']==shell_version==17
           for item in manifest['resources']:
               assert hashlib.sha256((fallback/item['path']).read_bytes()).hexdigest()==item['sha256'],item['path']
           index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); env=(root/'environment.js').read_text(); shader=(root/'atmosphere-shader.js').read_text(); seasonal=(root/'seasonal-sky.js').read_text(); fixtures=(root/'phase8-2-fixtures.js').read_text()
-          assert '/location.js' in index and '/bootstrap.js' in index
+          assert '/auth-shell.js' in index and '/auth-shell.css' in index
+          assert 'src="/location.js"' not in index and 'src="/bootstrap.js"' not in index
+          assert "await initAuth" in auth_shell and "location.replace(loginUrl())" in auth_shell
+          assert "loadClassicScript('/location.js')" in auth_shell and "await import('./bootstrap.js')" in auth_shell
           assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index
           assert '/seasonal-sky.js?v=1' not in index
           assert '/storm-effects.js' not in index
@@ -84,6 +88,8 @@ jobs:
           app=(root/'app.js').read_text(); push=(root/'push-client.js').read_text()
           assert "messages:'/messages'" in app and "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app
           assert 'pushManager.subscribe' in push and 'Notification.requestPermission' not in push
+          assert 'letter-spacing:0!important' in (root/'auth-shell.css').read_text()
+          assert 'letter-spacing:0!important' in (root/'account.css').read_text()
           PY
 
       - name: Deploy to Cloudflare Pages
@@ -98,14 +104,22 @@ jobs:
           set -euo pipefail
           if [ "${GITHUB_REF_NAME}" = "main" ]; then BASE_URL="https://sindhorn-midtown-internal.pages.dev"; else BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"; fi
           sleep 8
-          for path in / /guidance /details /messages /location.js /bootstrap.js /environment.js /atmosphere-shader.js /seasonal-sky.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /cloud-tester.html /cloud-tester-shared.js /phase8-2-fixtures.js /notification-inbox.js /push-client.js /sw.js; do
+          for path in / /guidance /details /messages /auth-shell.js /auth-shell.css /auth-client.js /login.html /login.js /account.html /account.js /account.css /location.js /bootstrap.js /environment.js /atmosphere-shader.js /seasonal-sky.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /cloud-tester.html /cloud-tester-shared.js /phase8-2-fixtures.js /notification-inbox.js /push-client.js /sw.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
           curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html
+          curl --fail --silent --show-error --location "${BASE_URL}/auth-shell.js" -o /tmp/auth-shell.js
           curl --fail --silent --show-error --location "${BASE_URL}/environment.js" -o /tmp/environment.js
           curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js
           curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js
+          grep -q '/auth-shell.js' /tmp/root.html
+          ! grep -q 'src="/bootstrap.js"' /tmp/root.html
+          ! grep -q 'src="/location.js"' /tmp/root.html
+          grep -q "await import('./bootstrap.js')" /tmp/auth-shell.js
+          grep -q "loadClassicScript('/location.js')" /tmp/auth-shell.js
+          grep -q 'masthead-user' /tmp/auth-shell.js
+          grep -q '/account.html' /tmp/auth-shell.js
           ! grep -q '/sky-calibration.js' /tmp/root.html
           ! grep -q '/sky-color-renderer.js' /tmp/root.html
           ! grep -q '/storm-effects.js' /tmp/root.html
