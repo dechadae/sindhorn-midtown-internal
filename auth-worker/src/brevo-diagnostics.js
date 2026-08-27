@@ -3,6 +3,7 @@ const BREVO_SENDERS_URL='https://api.brevo.com/v3/senders';
 const BREVO_ACCOUNT_URL='https://api.brevo.com/v3/account';
 const BREVO_DOMAINS_URL='https://api.brevo.com/v3/senders/domains';
 const OTP_TAG='sindhorn-internal-otp';
+const FAILURE_EVENTS=new Set(['error','blocked','hard_bounce','soft_bounce','deferred']);
 
 const preview=env=>env.PREVIEW_MODE==='true';
 const json=(value,status=200)=>new Response(JSON.stringify(value),{status,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}});
@@ -26,6 +27,9 @@ async function getJson(url,env){
   const data=await response.json().catch(()=>({}));
   return{ok:response.ok,status:response.status,data};
 }
+function eventSummary(item){
+  return item?{event:String(item.event||'unknown'),date:item.date||null,reason:safeReason(item.reason)}:null;
+}
 
 export async function handleBrevoDiagnostic(request,env){
   const url=new URL(request.url);
@@ -40,6 +44,7 @@ export async function handleBrevoDiagnostic(request,env){
 
     const events=Array.isArray(eventsResult.data?.events)?eventsResult.data.events.filter(hasOtpTag):[];
     const latest=events[0]||null;
+    const failure=events.find(item=>FAILURE_EVENTS.has(String(item?.event||'').toLowerCase()))||null;
     const eventCounts={};
     for(const item of events){const key=String(item?.event||'unknown');eventCounts[key]=(eventCounts[key]||0)+1}
 
@@ -58,7 +63,8 @@ export async function handleBrevoDiagnostic(request,env){
       found:Boolean(latest),
       eventCount:events.length,
       eventCounts,
-      latest:latest?{event:String(latest.event||'unknown'),date:latest.date||null,reason:safeReason(latest.reason)}:null,
+      latest:eventSummary(latest),
+      failure:eventSummary(failure),
       senderCheck:{apiOk:sendersResult.ok,configuredSenderFound:Boolean(matchingSender),configuredSenderActive:matchingSender?matchingSender.active===true:null},
       domainCheck:{apiOk:domainsResult.ok,configuredDomainListed:Boolean(matchingDomain),verified:matchingDomain?matchingDomain.verified===true:null,authenticated:matchingDomain?matchingDomain.authenticated===true:null},
       relayCheck:{apiOk:accountResult.ok,enabled:typeof relay.enabled==='boolean'?relay.enabled:null,status:String(relayData.status||relay.status||'unknown').slice(0,80),planType:String(relayData.planType||relay.planType||'unknown').slice(0,80)}
