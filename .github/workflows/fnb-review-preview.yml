@@ -7,6 +7,7 @@ on:
     paths:
       - "site/fnb-promotions-review.html"
       - "scripts/fnb-review-v4-patch.py"
+      - "scripts/fnb-review-v5-patch.py"
       - ".github/workflows/fnb-review-preview.yml"
   workflow_dispatch:
 
@@ -25,12 +26,13 @@ jobs:
       - name: Check out review branch
         uses: actions/checkout@v6
 
-      - name: Apply review-only v4 presentation patch
+      - name: Apply review-only presentation patches
         shell: bash
         run: |
           set -euo pipefail
           sed -i 's/let filter="ALL",view="promotions",current=null;/let filter="ALL", view="promotions", current=null;/' site/fnb-promotions-review.html
           python scripts/fnb-review-v4-patch.py
+          python scripts/fnb-review-v5-patch.py
 
       - name: Validate isolated review page
         shell: bash
@@ -38,17 +40,17 @@ jobs:
           set -euo pipefail
           test -s site/fnb-promotions-review.html
           grep -q 'F&B Promotions' site/fnb-promotions-review.html
-          grep -q 'Production queue' site/fnb-promotions-review.html
           grep -q 'Editor · 10639' site/fnb-promotions-review.html
           grep -q 'Noto Sans Thai' site/fnb-promotions-review.html
-          grep -q -- '--chip-h:42px' site/fnb-promotions-review.html
           grep -q 'F&B Review v4' site/fnb-promotions-review.html
+          grep -q 'F&B Review v5' site/fnb-promotions-review.html
           grep -q 'data-month="SEP"' site/fnb-promotions-review.html
           grep -q 'Horizon Pool Bar' site/fnb-promotions-review.html
-          grep -q '1 September – 31 December 2026' site/fnb-promotions-review.html
-          grep -q '7 pm – 11 pm' site/fnb-promotions-review.html
+          grep -q 'The Lobby Lounge' site/fnb-promotions-review.html
+          grep -q 'grid-template-columns:repeat(3,minmax(0,1fr))' site/fnb-promotions-review.html
+          grep -q 'artwork-folder-bottom' site/fnb-promotions-review.html
+          ! grep -q '<div class="view-switch">' site/fnb-promotions-review.html
           ! grep -qi 'flipgazine' site/fnb-promotions-review.html
-          ! grep -q 'โปรโมชั่น</span>' site/fnb-promotions-review.html
 
       - name: Deploy isolated branch preview
         env:
@@ -64,10 +66,9 @@ jobs:
           sleep 8
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb-promotions-review.html" -o /tmp/fnb-review.html
           grep -q 'F&B Promotions' /tmp/fnb-review.html
-          grep -q 'Production queue' /tmp/fnb-review.html
-          grep -q 'Noto Sans Thai' /tmp/fnb-review.html
-          grep -q -- '--chip-h:42px' /tmp/fnb-review.html
-          grep -q 'F&B Review v4' /tmp/fnb-review.html
+          grep -q 'F&B Review v5' /tmp/fnb-review.html
           grep -q 'data-month="DEC"' /tmp/fnb-review.html
           grep -q 'The Lobby Lounge' /tmp/fnb-review.html
-          grep -q 'Throughout October 2026' /tmp/fnb-review.html
+          grep -q 'grid-template-columns:repeat(3,minmax(0,1fr))' /tmp/fnb-review.html
+          grep -q 'artwork-folder-bottom' /tmp/fnb-review.html
+          ! grep -q '<div class="view-switch">' /tmp/fnb-review.html
