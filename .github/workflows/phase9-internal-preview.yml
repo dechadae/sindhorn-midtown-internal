@@ -12,6 +12,7 @@ on:
       - "site/admin.html"
       - "site/admin.js"
       - "site/internal-auth.css"
+      - "site/auth-brand.css"
       - ".github/workflows/phase9-internal-preview.yml"
   workflow_dispatch:
 
@@ -43,6 +44,14 @@ jobs:
           node --check site/admin.js
           grep -q 'Employee ID' site/login.html
           grep -q 'One-time code' site/login.html
+          test "$(grep -o 'data-otp-digit=' site/login.html | wc -l)" -eq 6
+          grep -q 'auth-brand.css' site/login.html
+          grep -q 'auth-brand.css' site/admin.html
+          grep -q '#2E273B' site/auth-brand.css
+          grep -q '#FAF7F5' site/auth-brand.css
+          grep -q '#E5ECBE' site/auth-brand.css
+          grep -q 'letter-spacing:0!important' site/auth-brand.css
+          grep -q -- '-webkit-tap-highlight-color:transparent' site/auth-brand.css
           ! grep -q 'Personal email' site/login.html
           ! grep -qi 'turnstile' site/login.html
           ! grep -q 'login-contact-otp.js' site/login.html
@@ -57,7 +66,7 @@ jobs:
           test -f site/assets/brand/sindhorn-midtown-vignette-black.png
           test -f site/assets/fonts/noto-sans-400.woff2
           test -f site/assets/fonts/noto-sans-thai-400.woff2
-          ! grep -R -E 'sb_secret_|SUPABASE_SECRET_KEY[[:space:]]*=' site/login.html site/login.js site/admin.html site/admin.js site/auth-client.js site/internal-auth.css
+          ! grep -R -E 'sb_secret_|SUPABASE_SECRET_KEY[[:space:]]*=' site/login.html site/login.js site/admin.html site/admin.js site/auth-client.js site/internal-auth.css site/auth-brand.css
 
       - name: Deploy Phase 9 branch Pages preview
         run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
@@ -70,7 +79,7 @@ jobs:
           BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           CACHE_BUST="phase9=${GITHUB_SHA}"
           sleep 8
-          for path in /login.html /login.js /admin.html /admin.js /auth-client.js /internal-auth.css /assets/brand/sindhorn-midtown-vignette-black.png; do
+          for path in /login.html /login.js /admin.html /admin.js /auth-client.js /internal-auth.css /auth-brand.css /assets/brand/sindhorn-midtown-vignette-black.png; do
             echo "smoke ${path}"
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 \
               -H 'Cache-Control: no-cache' "${BASE_URL}${path}?${CACHE_BUST}" -o /tmp/phase9-smoke
@@ -79,10 +88,16 @@ jobs:
           curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' \
             "${BASE_URL}/login.html?${CACHE_BUST}" -o /tmp/phase9-login.html
           grep -q 'One-time code' /tmp/phase9-login.html
+          test "$(grep -o 'data-otp-digit=' /tmp/phase9-login.html | wc -l)" -eq 6
+          grep -q 'auth-brand.css' /tmp/phase9-login.html
           ! grep -q 'Personal email' /tmp/phase9-login.html
           ! grep -qi 'turnstile' /tmp/phase9-login.html
           curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' \
             "${BASE_URL}/auth-client.js?${CACHE_BUST}" -o /tmp/phase9-auth-client.js
           grep -q 'sindhorn_manual_activate' /tmp/phase9-auth-client.js
           ! grep -q 'workers.dev' /tmp/phase9-auth-client.js
+          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' \
+            "${BASE_URL}/auth-brand.css?${CACHE_BUST}" -o /tmp/phase9-auth-brand.css
+          grep -q 'letter-spacing:0!important' /tmp/phase9-auth-brand.css
+          grep -q '#2E273B' /tmp/phase9-auth-brand.css
           echo "Supabase-only Phase 9 Pages preview verified at ${BASE_URL}"
