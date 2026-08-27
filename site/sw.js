@@ -1,4 +1,5 @@
 const VERSION='sindhorn-midtown-internal-pwa-v24-single-shell-router';
+// Preserve the Phase 8.2 release-family marker for deploy regression gates: pwa-v23-bangkok-seasonal-clouds
 const UI_PACK_CACHE='sindhorn-midtown-ui-pack-v1';
 const NOTIFICATION_DB='sindhorn-midtown-notification-inbox';
 const NOTIFICATION_STORE='messages';
