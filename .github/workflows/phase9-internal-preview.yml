@@ -44,7 +44,8 @@ jobs:
           grep -q 'Employee ID' site/login.html
           grep -q '/microsoft/link' auth-worker/src/index.js
           grep -q '/admin/users' auth-worker/src/index.js
-          grep -q 'sindhorn_employee_identities' site/auth-client.js
+          grep -q 'signInWithMicrosoft' site/auth-client.js
+          grep -q '/microsoft/link' site/auth-client.js
           grep -q 'noto-sans-400.woff2' site/internal-auth.css
           grep -q 'noto-sans-thai-400.woff2' site/internal-auth.css
           test -f site/assets/brand/sindhorn-midtown-vignette-black.png
