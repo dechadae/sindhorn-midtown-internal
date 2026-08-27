@@ -35,7 +35,8 @@ The two Phase 8.2 atmosphere documents supersede older live-camera production ar
 - Open-Meteo is authoritative for current local weather.
 - PWA identity stays `id=/`, `start_url=/`, `scope=/`, `display=standalone`.
 - Normal releases require no reinstall and must preserve existing push subscriptions.
-- Save-full-page, tilt, rain/window pane, storm effects, offline shell, navigation and current-location behavior are release invariants.
+- The visible **Save full page** action was explicitly removed on 2026-08-27 from live Pack 38 and the offline fallback. Do not restore that button/action bar without a new explicit product decision. Internal capture/export code may remain as non-visible infrastructure unless separately removed.
+- Tilt, rain/window pane, storm effects, offline shell, navigation and current-location behavior are release invariants.
 - Mobile atmosphere quality must remain desktop-equivalent. Do not lower DPR, cloud depth, or celestial quality as a performance shortcut.
 - No static atmosphere background images.
 
@@ -89,7 +90,7 @@ The former live-camera calibration system is preserved for future rooftop/360-ca
 
 - `site/sky-calibration.js` and `site/sky-color-renderer.js` remain in repository history/source for research but are not loaded by `site/index.html` and are not cached by `site/sw.js`.
 - `sky-worker/src/**` remains research code.
-- Production `sky-worker/wrangler.jsonc` has no cron trigger. Therefore normal operation consumes no scheduled Workers AI allocation.
+- Production `sky-worker/wrangler.jsonc` explicitly has an empty cron list. Therefore normal operation consumes no scheduled Workers AI allocation after that configuration is deployed to main.
 - Historical Phase 8 camera workflows are manual-only research archives.
 - Do not restore public bridge/river cameras as a production dependency without a new approved architecture override.
 
