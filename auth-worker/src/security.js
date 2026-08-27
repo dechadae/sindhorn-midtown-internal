@@ -3,8 +3,10 @@ const encoder=new TextEncoder();
 export const PREVIEW_ORIGIN=/^https:\/\/[a-z0-9-]+\.sindhorn-midtown-internal\.pages\.dev$/i;
 export const normalizeEmployeeNumber=value=>String(value??'').trim().toUpperCase();
 export const normalizeActivationCode=value=>String(value??'').replace(/\D/g,'').slice(0,12);
+export const normalizeEmail=value=>String(value??'').trim().toLowerCase();
 export const validEmployeeNumber=value=>/^[A-Z0-9._-]{1,64}$/.test(normalizeEmployeeNumber(value));
 export const validActivationCode=value=>/^\d{6}$/.test(normalizeActivationCode(value));
+export const validEmail=value=>{const email=normalizeEmail(value);return email.length>=3&&email.length<=320&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)};
 export const syntheticEmail=employeeId=>`smi-${String(employeeId||'').toLowerCase().replace(/[^a-f0-9]/g,'')}@auth.invalid`;
 
 export function base64Url(bytes){return btoa(String.fromCharCode(...bytes)).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'')}
