@@ -8,6 +8,7 @@ const copy={
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
 const controls=$('#loginControls'),status=$('#status'),signedCard=$('#signedCard'),signedName=$('#signedName'),signedMeta=$('#signedMeta'),adminLink=$('#adminLink');
+const otpDigits=$$('[data-otp-digit]'),activationCode=$('#activationCode');
 let language=(localStorage.getItem('sindhorn-login-language')||((navigator.language||'').toLowerCase().startsWith('th')?'th':'en'))==='th'?'th':'en';
 
 function setLanguage(next){
@@ -22,6 +23,37 @@ function errorMessage(error){
   if(code==='activation_invalid'||code==='too_many_attempts')return copy[language].badCode;
   return copy[language].genericError;
 }
+function syncOtp(){activationCode.value=otpDigits.map(input=>input.value).join('')}
+function fillOtp(raw,startIndex=0){
+  const values=String(raw||'').replace(/\D/g,'').slice(0,otpDigits.length-startIndex).split('');
+  if(!values.length)return;
+  values.forEach((value,offset)=>{const input=otpDigits[startIndex+offset];if(input)input.value=value});
+  syncOtp();
+  const next=Math.min(startIndex+values.length,otpDigits.length-1);
+  otpDigits[next]?.focus();
+  if(startIndex+values.length>=otpDigits.length)otpDigits[otpDigits.length-1]?.select();
+}
+function bindOtp(){
+  otpDigits.forEach((input,index)=>{
+    input.addEventListener('input',event=>{
+      const numeric=event.target.value.replace(/\D/g,'');
+      if(numeric.length>1){event.target.value='';fillOtp(numeric,index);return}
+      event.target.value=numeric.slice(-1);syncOtp();
+      if(event.target.value&&index<otpDigits.length-1)otpDigits[index+1].focus();
+    });
+    input.addEventListener('keydown',event=>{
+      if(event.key==='Backspace'&&!input.value&&index>0){event.preventDefault();otpDigits[index-1].value='';syncOtp();otpDigits[index-1].focus();return}
+      if(event.key==='ArrowLeft'&&index>0){event.preventDefault();otpDigits[index-1].focus();return}
+      if(event.key==='ArrowRight'&&index<otpDigits.length-1){event.preventDefault();otpDigits[index+1].focus()}
+    });
+    input.addEventListener('focus',()=>input.select());
+  });
+  $('#otpCodeGroup').addEventListener('paste',event=>{
+    const numeric=event.clipboardData?.getData('text')?.replace(/\D/g,'').slice(0,6)||'';
+    if(!numeric)return;
+    event.preventDefault();otpDigits.forEach(input=>{input.value=''});fillOtp(numeric,0);
+  });
+}
 function renderState(){
   const state=getState(),profile=state.profile;
   if(!state.authenticated||!profile){controls.hidden=false;signedCard.dataset.show='false';return}
@@ -32,11 +64,13 @@ function renderState(){
 }
 
 $$('[data-lang]').forEach(button=>button.addEventListener('click',()=>{setLanguage(button.dataset.lang);renderState()}));
-$('#activationCode').addEventListener('input',event=>{event.target.value=event.target.value.replace(/\D/g,'').slice(0,6)});
+bindOtp();
 $('#employeeForm').addEventListener('submit',async event=>{
-  event.preventDefault();showStatus('');setBusy(true,copy[language].working);
+  event.preventDefault();showStatus('');syncOtp();
+  const employeeNumber=$('#employeeNumber').value.trim(),code=activationCode.value.trim();
+  if(code.length!==6){showStatus(copy[language].badCode,'error');otpDigits.find(input=>!input.value)?.focus();return}
+  setBusy(true,copy[language].working);
   try{
-    const employeeNumber=$('#employeeNumber').value.trim(),code=$('#activationCode').value.trim();
     const result=await activate(employeeNumber,code);if(result?.preferredLanguage)setLanguage(result.preferredLanguage);renderState();
   }catch(error){showStatus(errorMessage(error),'error')}
   finally{setBusy(false)}
