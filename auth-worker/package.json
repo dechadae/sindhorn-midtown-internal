@@ -1,0 +1,11 @@
+{
+  "name": "sindhorn-midtown-auth-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node test.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.105.0"
+  }
+}
