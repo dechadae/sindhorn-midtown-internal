@@ -14,93 +14,73 @@ permissions:
 jobs:
   diagnose:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
-
-      - name: Inspect current public AirBKK web contracts
+      - name: Inspect live AirBKK station selection
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, re, urllib.error, urllib.parse, urllib.request
-
-          UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36'
-
-          def fetch(url, *, data=None, headers=None, timeout=25):
-              h={'User-Agent':UA,'Accept':'*/*'}
-              if headers: h.update(headers)
-              req=urllib.request.Request(url,data=data,headers=h)
-              try:
-                  with urllib.request.urlopen(req,timeout=timeout) as r:
-                      return r.status, dict(r.headers.items()), r.read(), r.geturl()
-              except urllib.error.HTTPError as e:
-                  return e.code, dict(e.headers.items()), e.read(), e.geturl()
-              except Exception as e:
-                  print('FETCH_ERROR',url,repr(e))
-                  return 0,{},b'',url
-
-          pages={}
-          for label,url in {
-              'official':'https://official.airbkk.com/airbkk/',
-              'legacy':'https://airquality.airbkk.com/PublicWebClient/'
-          }.items():
-              status,headers,body,final=fetch(url)
-              pages[label]=(body,final)
-              print(f'===== {label} =====')
-              print('requested',url)
-              print('final',final)
-              print('status',status,'bytes',len(body),'content-type',headers.get('Content-Type'))
-              text=body.decode('utf-8','ignore')
-              refs=[]
-              for m in re.finditer(r'(?:src|href)=["\']([^"\']+)["\']',text,re.I):
-                  ref=m.group(1)
-                  if ref not in refs: refs.append(ref)
-              print('asset_refs')
-              for ref in refs[:100]: print('REF',ref)
-              urls=[]
-              for u in re.findall(r'https?://[^"\' <>]+',text):
-                  if re.search(r'airbkk|api|aqs|station',u,re.I) and u not in urls: urls.append(u)
-              print('endpoint_like_urls')
-              for u in urls[:100]: print('URL',u)
-
-          print('===== stations legacy POST =====')
+          import datetime as dt, json, math, urllib.request
+          URL='https://stations.airbkk.com/api/web/data'
+          HOTEL=(13.74135,100.54274)
+          PINNED={'114','139','65'}
           payload=json.dumps({'message':'Request data'}).encode()
-          status,headers,body,final=fetch(
-              'https://stations.airbkk.com/api/web/data',
-              data=payload,
-              headers={
-                  'Content-Type':'application/json',
-                  'Accept':'application/json, text/plain, */*',
-                  'Origin':'https://official.airbkk.com',
-                  'Referer':'https://official.airbkk.com/'
-              }
-          )
-          print('status',status,'final',final,'bytes',len(body),'content-type',headers.get('Content-Type'))
-          print('allow-origin',headers.get('Access-Control-Allow-Origin'))
-          print('body_prefix',body[:4000].decode('utf-8','replace'))
 
-          print('===== legacy JavaScript scan =====')
-          legacy_body,legacy_final=pages['legacy']
-          legacy_text=legacy_body.decode('utf-8','ignore')
-          refs=[]
-          for m in re.finditer(r'(?:src|href)=["\']([^"\']+)["\']',legacy_text,re.I):
-              ref=m.group(1)
-              if '.js' in ref.lower():
-                  u=urllib.parse.urljoin(legacy_final,ref)
-                  if u not in refs: refs.append(u)
-          print('js_assets',len(refs))
-          for u in refs[:40]:
-              status,headers,body,final=fetch(u)
-              print('ASSET',status,len(body),final)
-              text=body.decode('utf-8','ignore')
-              hits=[]
-              for pat in [
-                  r'https?://[^"\' <>]+',
-                  r'[^"\'\n]{0,180}(?:api|Api|API|Aqs|aqs|PM2\.5|MeasIndex|station)[^"\'\n]{0,240}'
-              ]:
-                  for hit in re.findall(pat,text):
-                      hit=' '.join(hit.split())
-                      if hit and hit not in hits: hits.append(hit)
-              for hit in hits[:100]: print('HIT',hit[:600])
+          def call(headers):
+              req=urllib.request.Request(URL,data=payload,headers=headers)
+              with urllib.request.urlopen(req,timeout=25) as r:
+                  return r.status,dict(r.headers.items()),json.loads(r.read())
+
+          variants={
+              'worker-like':{'Content-Type':'application/json'},
+              'official-browser':{
+                  'User-Agent':'Mozilla/5.0','Content-Type':'application/json',
+                  'Accept':'application/json, text/plain, */*',
+                  'Origin':'https://official.airbkk.com','Referer':'https://official.airbkk.com/'
+              }
+          }
+          payloads={}
+          for label,headers in variants.items():
+              try:
+                  status,response_headers,data=call(headers)
+                  payloads[label]=data
+                  print('CALL',label,'status',status,'allow-origin',response_headers.get('Access-Control-Allow-Origin'),'rows',len(data.get('message',[])),'api-status',data.get('status'))
+              except Exception as e:
+                  print('CALL',label,'ERROR',repr(e))
+
+          data=payloads.get('worker-like') or payloads.get('official-browser') or {}
+          rows=data.get('message',[]) if isinstance(data,dict) else []
+          now=dt.datetime.now(dt.timezone(dt.timedelta(hours=7)))
+
+          def parsed_time(value):
+              try:return dt.datetime.strptime(str(value),'%Y-%m-%d %H:%M:%S').replace(tzinfo=dt.timezone(dt.timedelta(hours=7)))
+              except:return None
+          def valid(row):
+              try:pm=float(row.get('PM2.5'))
+              except:return False
+              when=parsed_time(row.get('DateTime'))
+              return 0<=pm<=500 and when is not None and -900 <= (now-when).total_seconds() <= 12*3600
+          def distance_km(row):
+              try:lat,lon=float(row['Lat']),float(row['Long'])
+              except:return 9999
+              p1,p2=map(math.radians,(HOTEL[0],lat)); dp=math.radians(lat-HOTEL[0]); dl=math.radians(lon-HOTEL[1])
+              a=math.sin(dp/2)**2+math.cos(p1)*math.cos(p2)*math.sin(dl/2)**2
+              return 6371*2*math.atan2(math.sqrt(a),math.sqrt(1-a))
+
+          print('NOW_BANGKOK',now.isoformat())
+          print('PINNED_ROWS')
+          for sid in sorted(PINNED):
+              matches=[r for r in rows if str(r.get('MeasIndex'))==sid]
+              if not matches: print('PINNED',sid,'MISSING'); continue
+              for r in matches:
+                  print('PINNED',sid,'valid',valid(r),'distance_km',round(distance_km(r),2),'district',r.get('District'),'area',r.get('Area'),'time',r.get('DateTime'),'pm25',r.get('PM2.5'),'aqi',r.get('aqi'),'lat',r.get('Lat'),'lon',r.get('Long'))
+
+          candidates=sorted((distance_km(r),r) for r in rows if valid(r))[:15]
+          print('NEAREST_VALID')
+          for distance,r in candidates:
+              print('NEAR',str(r.get('MeasIndex')),'km',round(distance,2),'district',r.get('District'),'area',r.get('Area'),'time',r.get('DateTime'),'pm25',r.get('PM2.5'),'aqi',r.get('aqi'),'lat',r.get('Lat'),'lon',r.get('Long'))
+          assert rows, 'AirBKK returned no rows'
+          assert candidates, 'AirBKK returned no valid current PM2.5 rows'
           PY
