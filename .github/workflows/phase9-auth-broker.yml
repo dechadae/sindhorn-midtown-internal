@@ -48,7 +48,6 @@ jobs:
           node --check auth-worker/src/rate-limit.js
           node --check auth-worker/src/index.js
           node --check auth-worker/test.mjs
-          node --check auth-worker/bootstrap-first-admin.mjs
           node --check site/auth-client.js
           node --check test/auth-client.test.mjs
 
@@ -68,10 +67,17 @@ jobs:
           grep -q "ACTIVATION_PEPPER" auth-worker/src/index.js
           grep -q "aal2" auth-worker/src/index.js
           grep -q "@auth.invalid" auth-worker/src/security.js
-          grep -q "super_admin" auth-worker/bootstrap-first-admin.mjs
-          grep -q "sindhorn_issue_activation_code" auth-worker/bootstrap-first-admin.mjs
+          grep -q "normalizeEmail" auth-worker/src/security.js
           grep -q "token_hash:tokenHash,type:'email'" site/auth-client.js
-          grep -q "sindhorn_employees" site/auth-client.js
+          grep -q "signInWithMicrosoft" site/auth-client.js
+          grep -q "'/microsoft/link'" auth-worker/src/index.js
+          grep -q "'/admin/users'" auth-worker/src/index.js
+          grep -q "sindhorn_employee_identities" supabase/migrations/*phase9c_dual_login_identity_foundation.sql
+          grep -q "current_employee_id" supabase/migrations/*phase9c_identity_authorization.sql
+          grep -q "to service_role" supabase/migrations/*phase9_identity_service_role_grant.sql
+          grep -q "sindhorn_admin_create_employee" supabase/migrations/*phase9_admin_user_rpc.sql
+          grep -q "sindhorn_admin_update_employee" supabase/migrations/*phase9_admin_user_rpc.sql
+          grep -q "sindhorn_record_admin_audit" supabase/migrations/*phase9_admin_audit_rpc.sql
           ! grep -R -E "SUPABASE_(SERVICE_ROLE|SECRET)_KEY['\"]?[[:space:]]*[:=][[:space:]]*['\"][^$]" auth-worker || false
 
       - name: Worker production dry-run
