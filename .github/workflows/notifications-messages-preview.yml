@@ -1,0 +1,130 @@
+name: Notifications Messages Preview
+
+on:
+  push:
+    branches:
+      - notifications-messages-inbox
+    paths:
+      - "site/**"
+      - "docs/**"
+      - ".github/workflows/notifications-messages-preview.yml"
+      - ".github/workflows/launch-hardening.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: sindhorn-midtown-notifications-messages-preview
+  cancel-in-progress: true
+
+jobs:
+  validate-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate Messages shell and offline pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/bootstrap.js
+          node --check site/app.js
+          node --check site/notification-inbox.js
+          node --check site/sw.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,re
+          root=Path('site')
+          bootstrap=(root/'bootstrap.js').read_text()
+          app=(root/'app.js').read_text()
+          inbox=(root/'notification-inbox.js').read_text()
+          sw=(root/'sw.js').read_text()
+          footer=(root/'fallback/footer.html').read_text()
+          messages=(root/'fallback/messages.html').read_text()
+          manifest=json.loads((root/'fallback/manifest.json').read_text())
+          shell=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
+          assert shell==17
+          assert manifest['minimumShell']==17
+          for item in manifest['resources']:
+              digest=hashlib.sha256((root/'fallback'/item['path']).read_bytes()).hexdigest()
+              assert digest==item['sha256'],item['path']
+          assert "messages:'messages.html'" in bootstrap
+          assert "path.startsWith('/messages')" in bootstrap and "path.startsWith('/messages')" in app
+          assert "messages:'/messages'" in app
+          assert 'SindhornNotificationInbox?.refresh' in app
+          assert 'sindhorn-midtown-notification-inbox' in inbox
+          assert 'messageList' in inbox and 'markAllRead' in inbox and 'clearAll' in inbox
+          assert 'SINDHORN_NOTIFICATION_STORED' in inbox
+          assert 'pwa-v22-notification-messages-live-sky-color-calibration' in sw
+          assert "'/notification-inbox.js'" in sw and "'/fallback/messages.html'" in sw
+          assert 'storeNotification' in sw and 'markNotificationRead' in sw
+          assert "url.pathname.startsWith('/messages')" in sw
+          assert 'data-app-route="messages"' in footer
+          assert 'data-message-badge' in footer
+          assert 'id="messageList"' in messages
+          PY
+
+      - name: Validate staged Supabase Pack 38
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json,re,urllib.parse,urllib.request
+          bootstrap=Path('site/bootstrap.js').read_text()
+          base=re.search(r"const SUPABASE_URL='([^']+)'",bootstrap).group(1)
+          key=re.search(r"const SUPABASE_KEY='([^']+)'",bootstrap).group(1)
+          table=re.search(r"const TABLE='([^']+)'",bootstrap).group(1)
+          query=urllib.parse.urlencode({'select':'pack_id,path,content,content_type,content_sha256,enabled','pack_id':'eq.38','order':'path.asc'})
+          req=urllib.request.Request(f'{base}/rest/v1/{table}?{query}',headers={'apikey':key,'Accept':'application/json'})
+          with urllib.request.urlopen(req,timeout=20) as response:
+              rows=json.load(response)
+          assert len(rows)==9
+          assert all(row['enabled'] is False for row in rows)
+          rowmap={row['path']:row for row in rows}
+          manifest_row=rowmap['manifest.json']
+          assert hashlib.sha256(manifest_row['content'].encode()).hexdigest()==manifest_row['content_sha256']
+          manifest=json.loads(manifest_row['content'])
+          assert manifest['appPack']==38 and manifest['minimumShell']==17
+          assert len(manifest['resources'])==8
+          for item in manifest['resources']:
+              row=rowmap[item['path']]
+              assert row['content_type']==item['contentType']
+              assert row['content_sha256']==item['sha256']
+              assert hashlib.sha256(row['content'].encode()).hexdigest()==item['sha256']
+          assert 'data-app-route="messages"' in rowmap['footer.html']['content']
+          assert 'data-message-badge' in rowmap['footer.html']['content']
+          assert 'id="messageList"' in rowmap['messages.html']['content']
+          assert '.message-badge' in rowmap['ui.css']['content']
+          PY
+
+      - name: Deploy branch Pages preview
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke test branch preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
+          BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /guidance /details /messages /bootstrap.js /app.js /notification-inbox.js /sw.js /fallback/manifest.json /fallback/messages.html /fallback/footer.html; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
+            test -s /tmp/smoke
+          done
+          curl --fail --silent --show-error "${BASE_URL}/bootstrap.js" -o /tmp/bootstrap.js
+          curl --fail --silent --show-error "${BASE_URL}/app.js" -o /tmp/app.js
+          curl --fail --silent --show-error "${BASE_URL}/notification-inbox.js" -o /tmp/inbox.js
+          curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/sw.js
+          grep -q "messages:'messages.html'" /tmp/bootstrap.js
+          grep -q "messages:'/messages'" /tmp/app.js
+          grep -q 'SindhornNotificationInbox' /tmp/inbox.js
+          grep -q 'storeNotification' /tmp/sw.js
+          grep -q 'pwa-v22-notification-messages' /tmp/sw.js
