@@ -1,0 +1,128 @@
+name: Phase 9 Auth Broker
+
+on:
+  push:
+    branches:
+      - phase9-internal-auth-broadcast
+      - main
+    paths:
+      - "auth-worker/**"
+      - "site/auth-client.js"
+      - "test/auth-client.test.mjs"
+      - "supabase/migrations/*phase9*"
+      - "docs/PHASE9-*"
+      - ".github/workflows/phase9-auth-broker.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "auth-worker/**"
+      - "site/auth-client.js"
+      - "test/auth-client.test.mjs"
+      - "supabase/migrations/*phase9*"
+      - "docs/PHASE9-*"
+      - ".github/workflows/phase9-auth-broker.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Install auth broker dependencies
+        working-directory: auth-worker
+        run: npm install --no-audit --no-fund
+
+      - name: Syntax checks
+        run: |
+          node --check auth-worker/src/security.js
+          node --check auth-worker/src/rate-limit.js
+          node --check auth-worker/src/index.js
+          node --check auth-worker/test.mjs
+          node --check site/auth-client.js
+          node --check test/auth-client.test.mjs
+
+      - name: Auth broker tests
+        working-directory: auth-worker
+        run: npm test
+
+      - name: Employee auth client tests
+        run: node test/auth-client.test.mjs
+
+      - name: Security structure checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "sindhorn_activation_prepare" supabase/migrations/*phase9b_activation_broker_rpc.sql
+          grep -q "from public,anon,authenticated" supabase/migrations/*phase9b_activation_broker_rpc.sql
+          grep -q "ACTIVATION_PEPPER" auth-worker/src/index.js
+          grep -q "aal2" auth-worker/src/index.js
+          grep -q "@auth.invalid" auth-worker/src/security.js
+          grep -q "normalizeEmail" auth-worker/src/security.js
+          grep -q "token_hash:tokenHash,type:'email'" site/auth-client.js
+          grep -q "signInWithMicrosoft" site/auth-client.js
+          grep -q "'/microsoft/link'" auth-worker/src/index.js
+          grep -q "'/admin/users'" auth-worker/src/index.js
+          grep -q "sindhorn_employee_identities" supabase/migrations/*phase9c_dual_login_identity_foundation.sql
+          grep -q "current_employee_id" supabase/migrations/*phase9c_identity_authorization.sql
+          grep -q "to service_role" supabase/migrations/*phase9_identity_service_role_grant.sql
+          grep -q "sindhorn_admin_create_employee" supabase/migrations/*phase9_admin_user_rpc.sql
+          grep -q "sindhorn_admin_update_employee" supabase/migrations/*phase9_admin_user_rpc.sql
+          grep -q "sindhorn_record_admin_audit" supabase/migrations/*phase9_admin_audit_rpc.sql
+          ! grep -R -E "SUPABASE_(SERVICE_ROLE|SECRET)_KEY['\"]?[[:space:]]*[:=][[:space:]]*['\"][^$]" auth-worker || false
+
+      - name: Worker production dry-run
+        working-directory: auth-worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 deploy --dry-run --config wrangler.jsonc
+
+      - name: Worker preview dry-run
+        working-directory: auth-worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 deploy --dry-run --config wrangler.preview.jsonc
+
+      - name: Deploy preview Auth Worker
+        if: github.event_name == 'push' && github.ref == 'refs/heads/phase9-internal-auth-broadcast'
+        working-directory: auth-worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 deploy --config wrangler.preview.jsonc
+
+      - name: Verify preview runtime secrets
+        if: github.event_name == 'push' && github.ref == 'refs/heads/phase9-internal-auth-broadcast'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --show-error --max-time 15 \
+              https://sindhorn-midtown-auth-preview.decha-dae.workers.dev/health \
+              -o /tmp/phase9-health.json; then
+              break
+            fi
+            if [ "$attempt" -eq 5 ]; then exit 1; fi
+            sleep 3
+          done
+          node - <<'NODE'
+          const fs=require('fs');
+          const health=JSON.parse(fs.readFileSync('/tmp/phase9-health.json','utf8'));
+          if(health.ok!==true) throw new Error('preview health is not ok');
+          if(health.configured!==true) throw new Error('preview auth worker is not fully configured');
+          if(health.supabaseConfigured!==true) throw new Error('SUPABASE_SECRET_KEY is not configured');
+          if(health.pepperConfigured!==true) throw new Error('ACTIVATION_PEPPER is not configured');
+          if(health.databaseConfigured!==true) throw new Error('D1 binding is not configured');
+          console.log('preview auth worker runtime configuration verified');
+          NODE

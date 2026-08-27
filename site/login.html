@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f2ec">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Sign in · Sindhorn Midtown Internal</title>
+  <link rel="stylesheet" href="/internal-auth.css?v=2">
+</head>
+<body>
+  <main class="auth-shell">
+    <section class="auth-card" aria-labelledby="loginTitle">
+      <div class="brand-row">
+        <img class="brand-logo" src="/assets/brand/sindhorn-midtown-vignette-black.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection">
+        <div class="lang-toggle" aria-label="Language">
+          <button type="button" data-lang="en" aria-pressed="true">EN</button>
+          <button type="button" data-lang="th" aria-pressed="false" class="thai">ไทย</button>
+        </div>
+      </div>
+
+      <p class="eyebrow" data-i18n="eyebrow">Internal employee access</p>
+      <h1 id="loginTitle" data-i18n="title">Employee sign in.</h1>
+      <p class="support" data-i18n="support">Enter your Employee ID and the 6-digit one-time code sent with your invitation.</p>
+
+      <div id="loginControls" class="stack">
+        <form id="employeeForm" class="stack" style="margin-top:0">
+          <div class="field">
+            <label for="employeeNumber" data-i18n="employeeId">Employee ID</label>
+            <input id="employeeNumber" name="employeeNumber" inputmode="text" autocomplete="username" maxlength="64" required aria-describedby="employeeHint">
+          </div>
+          <div class="field">
+            <label for="activationCode" data-i18n="activationCode">One-time code</label>
+            <input id="activationCode" class="code-input" name="activationCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+          </div>
+          <button id="employeeButton" class="primary" type="submit" data-i18n="employeeButton">Sign in</button>
+          <p id="employeeHint" class="note" data-i18n="hint">Use the code from your personal email or SMS invitation. It works once. If it has expired, an app administrator can issue a new one.</p>
+        </form>
+      </div>
+
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+
+      <section id="signedCard" class="signed-card" aria-live="polite">
+        <div id="signedName" class="signed-name"></div>
+        <div id="signedMeta" class="signed-meta"></div>
+        <div class="signed-actions">
+          <a href="/" data-i18n="openApp">Open app</a>
+          <a id="adminLink" href="/admin.html" class="hidden" data-i18n="admin">Admin</a>
+          <button id="signOutButton" type="button" data-i18n="signOut">Sign out</button>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="/login.js?v=2"></script>
+</body>
+</html>
