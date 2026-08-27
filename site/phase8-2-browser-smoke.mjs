@@ -81,11 +81,23 @@ try{
   root.on('console',msg=>{if(msg.type()==='error')errors.push(`app console: ${msg.text()}`)});
   await root.goto(`${base}/?debug=1`,{waitUntil:'domcontentloaded',timeout:45000});
   await root.waitForFunction(()=>document.body.classList.contains('environment-ready'),null,{timeout:30000});
-  await root.waitForTimeout(1000);
-  appState=await root.evaluate(()=>({renderer:window.SindhornEnvironment?.getState?.()?.renderer||null,quality:window.SindhornEnvironment?.getState?.()?.quality||null,pack:document.body.dataset.appPack||null,viewport:[innerWidth,innerHeight],canvas:[document.querySelector('#environmentCanvas')?.width||0,document.querySelector('#environmentCanvas')?.height||0]}));
+  await root.waitForFunction(()=>{
+    const state=window.SindhornLiveData?.getState?.();
+    return state?.delivery==='live'&&Number.isFinite(Number(state?.air?.pm))&&Number.isFinite(Number(state?.air?.aqi));
+  },null,{timeout:20000});
+  await root.waitForTimeout(500);
+  appState=await root.evaluate(()=>{
+    const env=window.SindhornEnvironment?.getState?.()||{};
+    const live=window.SindhornLiveData?.getState?.()||{};
+    return{renderer:env.renderer||null,quality:env.quality||null,pack:document.body.dataset.appPack||null,viewport:[innerWidth,innerHeight],canvas:[document.querySelector('#environmentCanvas')?.width||0,document.querySelector('#environmentCanvas')?.height||0],airDelivery:live.delivery||null,airStationId:String(live.air?.stationId||''),pm:Number(live.air?.pm),aqi:Number(live.air?.aqi)};
+  });
   if(appState.renderer!=='bangkok-seasonal-clouds-v2')throw new Error(`app renderer mismatch: ${appState.renderer}`);
   if(appState.quality!==2)throw new Error(`app DPR mismatch: ${appState.quality}`);
   if(appState.viewport[0]!==390||appState.viewport[1]!==844)throw new Error(`app viewport mismatch: ${appState.viewport.join('x')}`);
+  if(appState.airDelivery!=='live')throw new Error(`air delivery is not live: ${appState.airDelivery}`);
+  if(!['114','139','65'].includes(appState.airStationId))throw new Error(`unexpected AirBKK station: ${appState.airStationId}`);
+  if(!Number.isFinite(appState.pm)||appState.pm<0||appState.pm>500)throw new Error(`invalid PM2.5: ${appState.pm}`);
+  if(!Number.isFinite(appState.aqi)||appState.aqi<0||appState.aqi>500)throw new Error(`invalid Thai AQI: ${appState.aqi}`);
   await root.screenshot({path:'phase82-artifacts/app-mobile.png',fullPage:true});
   appState={...appState,...await sampleFrames(root,'app-mobile',24,15000)};
   await root.close();
