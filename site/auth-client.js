@@ -64,7 +64,7 @@ export async function refreshSession({force=false}={}){
 export async function fetchProfile({retry401=true}={}){
   if(!session)return null;
   await refreshSession();
-  const select='id,employee_number,display_name,work_email,account_type,department_id,role,active,preferred_language,activated_at';
+  const select='id,employee_number,display_name,work_email,account_type,department_id,role,active,preferred_language,activated_at,pin_configured_at';
   const response=await fetch(`${SUPABASE_URL}/rest/v1/sindhorn_employees?select=${encodeURIComponent(select)}&limit=1`,{cache:'no-store',headers:{apikey:SUPABASE_KEY,authorization:`Bearer ${session.access_token}`,Accept:'application/json'}});
   if(response.status===401&&retry401){await refreshSession({force:true});return fetchProfile({retry401:false})}
   const rows=await responseJson(response),next=Array.isArray(rows)?rows[0]:null;
@@ -90,6 +90,25 @@ export async function activate(employeeNumber,code){
   return{profile:established.profile,purpose:result.purpose||'activate',preferredLanguage:established.preferredLanguage};
 }
 
+export async function signInWithPin(employeeNumber,pin){
+  const rows=await supabaseRpc('sindhorn_pin_login',{p_employee_number:String(employeeNumber||'').trim(),p_plain_pin:String(pin||'').trim()},{accessToken:null});
+  const result=Array.isArray(rows)?rows[0]:null;
+  if(!result?.token_hash){const error=new Error('Employee ID or permanent code is invalid or temporarily locked.');error.code='pin_invalid';throw error}
+  const established=await establishSessionFromTokenHash(result.token_hash,{reason:'pin',preferredLanguage:result.preferred_language});
+  dispatch('sindhorn:pin-login-complete',{profile:structuredClone(established.profile),preferredLanguage:established.preferredLanguage});
+  return{profile:established.profile,preferredLanguage:established.preferredLanguage};
+}
+
+export async function setPermanentPin(pin){
+  if(!session?.access_token)throw Object.assign(new Error('Authentication required.'),{code:'authentication_required'});
+  const result=await supabaseRpc('sindhorn_set_permanent_pin',{p_plain_pin:String(pin||'').trim()});
+  if(result?.ok!==true)throw new Error('Permanent code could not be saved.');
+  const employee=await fetchProfile();
+  if(!employee?.pin_configured_at)throw new Error('Permanent code setup could not be confirmed.');
+  dispatch('sindhorn:pin-configured',{profile:structuredClone(employee)});
+  return{profile:employee};
+}
+
 export function signInWithMicrosoft(){throw Object.assign(new Error('Microsoft 365 sign-in is not enabled.'),{code:'microsoft_login_disabled'})}
 export async function linkMicrosoftIdentity(){throw Object.assign(new Error('Microsoft 365 sign-in is not enabled.'),{code:'microsoft_login_disabled'})}
 export async function completeMicrosoftOAuth(){return null}
@@ -111,5 +130,5 @@ export async function initAuth(){
 
 if(hasWindow){
   addEventListener('storage',event=>{if(event.key!==STORAGE_KEY)return;session=normalizedSession(safeParse(event.newValue||''));profile=null;if(session)fetchProfile().catch(()=>clearLocal('session_invalid'));else dispatch('sindhorn:auth-changed',{authenticated:false,profile:null,reason:'cross_tab_signout'})});
-  window.SindhornEmployeeAuth={init:initAuth,activate,establishSessionFromTokenHash,signOut,refresh:refreshSession,fetchProfile,getState,getProfile,getAccessToken,supabaseRpc};
+  window.SindhornEmployeeAuth={init:initAuth,activate,signInWithPin,setPermanentPin,establishSessionFromTokenHash,signOut,refresh:refreshSession,fetchProfile,getState,getProfile,getAccessToken,supabaseRpc};
 }

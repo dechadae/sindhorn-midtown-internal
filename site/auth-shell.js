@@ -9,6 +9,7 @@ function safeReturnPath(){
   return value;
 }
 function loginUrl(){return`${LOGIN_PATH}?next=${encodeURIComponent(safeReturnPath())}`}
+function hasCompleteEmployeeAuth(state){return Boolean(state?.authenticated&&state?.profile&&state.profile.pin_configured_at)}
 function initials(name,fallback='SM'){
   const words=String(name||'').trim().split(/\s+/).filter(Boolean);
   if(!words.length)return fallback;
@@ -45,12 +46,13 @@ async function loadClassicScript(src){
 
 let state;
 try{state=await initAuth()}catch(_){state=getState()}
-if(!state?.authenticated||!state?.profile){location.replace(loginUrl())}else{
+if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
   window.__SINDHORN_AUTH_PROFILE__=state.profile;
   document.addEventListener('sindhorn:pack-updated',applyEmployeeHeader);
   document.addEventListener('sindhorn:auth-changed',event=>{
-    if(!event.detail?.authenticated){location.replace(loginUrl());return}
-    window.__SINDHORN_AUTH_PROFILE__=event.detail.profile||getState().profile;applyEmployeeHeader();
+    const nextState=getState();
+    if(!event.detail?.authenticated||!hasCompleteEmployeeAuth(nextState)){location.replace(loginUrl());return}
+    window.__SINDHORN_AUTH_PROFILE__=event.detail.profile||nextState.profile;applyEmployeeHeader();
   });
   await loadClassicScript('/location.js');
   await import('./bootstrap.js');

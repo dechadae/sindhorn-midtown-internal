@@ -29,7 +29,7 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible),input:focus:not(:fo
   -webkit-backdrop-filter:blur(22px);
 }
 .login-page .eyebrow{color:var(--vg-muted)}
-.login-page .auth-card h1{color:var(--vg-plum)}
+.login-page .auth-card h1,.login-page .pin-setup h2{color:var(--vg-plum)}
 .login-page .support,.login-page .note{color:var(--vg-muted)}
 .login-page .lang-toggle{border-color:var(--vg-line);background:rgba(255,255,255,.32)}
 .login-page .lang-toggle button{color:var(--vg-muted)}
@@ -50,12 +50,18 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible),input:focus:not(:fo
   color:var(--vg-ivory);
 }
 .login-page .primary:active{transform:translateY(1px)}
-.login-page .primary:focus-visible,.login-page .lang-toggle button:focus-visible,.login-page .signed-actions a:focus-visible,.login-page .signed-actions button:focus-visible{
+.login-page .primary:focus-visible,.login-page .lang-toggle button:focus-visible,.login-page .signed-actions a:focus-visible,.login-page .signed-actions button:focus-visible,.login-page .mode-switch:focus-visible{
   outline:none;
   box-shadow:0 0 0 3px rgba(var(--vg-accent-rgb),.9);
 }
 .login-page .signed-card{border-color:var(--vg-line);background:rgba(255,255,255,.54)}
 .login-page .signed-actions a,.login-page .signed-actions button{border-color:var(--vg-line);color:var(--vg-plum)}
+
+.auth-step{display:grid;gap:14px}
+.mode-switch{width:100%;padding:5px 3px;border:0;background:transparent;color:var(--vg-plum,#2E273B);font:600 .78rem/1.45 NotoLocal,NotoThaiLocal,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-align:center;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+.pin-setup{margin-top:28px;padding-top:24px;border-top:1px solid var(--vg-line,rgba(20,20,20,.13))}
+.pin-setup h2{margin:4px 0 0;font-size:1.55rem;line-height:1.12;font-weight:700}
+.step-kicker{margin:0;color:var(--vg-muted,#686868);font-size:.75rem;font-weight:700;text-transform:uppercase}
 
 .otp-fieldset{min-width:0;margin:0;padding:0;border:0}
 .otp-fieldset legend{display:block;width:100%;margin:0 0 7px;padding:0;font-size:13px;font-weight:700}
@@ -79,8 +85,10 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible),input:focus:not(:fo
   background:#fff;
   box-shadow:0 0 0 3px rgba(var(--vg-accent-rgb,229,236,190),.72);
 }
+.otp-digit:disabled{opacity:.48}
 
 @media(max-width:420px){
   .otp-code{gap:6px}
   .otp-digit{height:56px;border-radius:12px;font-size:1.4rem}
+  .pin-setup h2{font-size:1.4rem}
 }

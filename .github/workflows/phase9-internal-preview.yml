@@ -6,6 +6,7 @@ on:
       - phase9-internal-auth-broadcast
       - phase9-contact-otp
       - hotfix-phase9-auth-gate
+      - phase9-permanent-pin
     paths:
       - "site/index.html"
       - "site/auth-shell.js"
@@ -21,6 +22,7 @@ on:
       - "site/qr-v6.js"
       - "site/internal-auth.css"
       - "site/auth-brand.css"
+      - "supabase/migrations/*phase9*"
       - ".github/workflows/phase9-internal-preview.yml"
   workflow_dispatch:
 
@@ -54,8 +56,13 @@ jobs:
           node --check site/admin.js
           node --check site/qr-v6.js
           grep -q 'Employee ID' site/login.html
-          grep -q 'One-time code' site/login.html
+          grep -q 'Permanent code' site/login.html
+          grep -q 'Administrator one-time code' site/login.html
+          grep -q 'pinSetupForm' site/login.html
           test "$(grep -o 'data-otp-digit=' site/login.html | wc -l)" -eq 6
+          test "$(grep -o 'data-pin-login-digit=' site/login.html | wc -l)" -eq 6
+          test "$(grep -o 'data-new-pin-digit=' site/login.html | wc -l)" -eq 6
+          test "$(grep -o 'data-confirm-pin-digit=' site/login.html | wc -l)" -eq 6
           grep -q 'auth-brand.css' site/login.html
           grep -q 'auth-brand.css' site/admin.html
           grep -q '#2E273B' site/auth-brand.css
@@ -67,12 +74,16 @@ jobs:
           ! grep -qi 'turnstile' site/login.html
           ! grep -q 'login-contact-otp.js' site/login.html
           grep -q 'sindhorn_manual_activate' site/auth-client.js
+          grep -q 'sindhorn_pin_login' site/auth-client.js
+          grep -q 'sindhorn_set_permanent_pin' site/auth-client.js
+          grep -q 'pin_configured_at' site/auth-client.js
           grep -q "authBackend:'supabase'" site/auth-client.js
           grep -q 'auth-shell.css' site/index.html
           grep -q 'auth-shell.js' site/index.html
           ! grep -q 'src="/bootstrap.js"' site/index.html
           ! grep -q 'src="/location.js"' site/index.html
           grep -q "await initAuth" site/auth-shell.js
+          grep -q 'pin_configured_at' site/auth-shell.js
           grep -q "location.replace(loginUrl())" site/auth-shell.js
           grep -q "loadClassicScript('/location.js')" site/auth-shell.js
           grep -q "await import('./bootstrap.js')" site/auth-shell.js
@@ -80,9 +91,10 @@ jobs:
           grep -q '/account.html' site/auth-shell.js
           grep -q 'letter-spacing:0!important' site/auth-shell.css
           grep -q 'My account' site/account.html
+          grep -q 'Permanent code' site/account.html
           grep -q 'accountSignOut' site/account.html
+          grep -q 'pin_configured_at' site/account.js
           grep -q 'letter-spacing:0!important' site/account.css
-          grep -q 'setTimeout(()=>location.assign(requestedNext())' site/login.js
           grep -q 'sindhorn_admin_issue_activation_code_v2' site/admin.js
           grep -q 'sindhorn_admin_list_users_v3' site/admin.js
           grep -q 'sindhorn_admin_upsert_contact_v2' site/admin.js
@@ -90,6 +102,12 @@ jobs:
           grep -q 'qrSvg' site/admin.js
           grep -q '#i=' site/admin.js
           grep -q 'history.replaceState' site/login.js
+          grep -q 'setPermanentPin' site/login.js
+          grep -q 'signInWithPin' site/login.js
+          grep -q 'phase9_permanent_employee_pin' <(basename supabase/migrations/20260827163101_phase9_permanent_employee_pin.sql)
+          grep -q 'employee_pin_credentials' supabase/migrations/20260827163101_phase9_permanent_employee_pin.sql
+          grep -q 'failed_attempt_count' supabase/migrations/20260827163101_phase9_permanent_employee_pin.sql
+          grep -q "interval '15 minutes'" supabase/migrations/20260827163101_phase9_permanent_employee_pin.sql
           ! grep -R -q 'workers.dev' site/auth-client.js site/login.html site/login.js site/account.js site/admin.js
           ! grep -R -q -E 'BREVO|TURNSTILE|/otp/request|/otp/verify' site/auth-client.js site/login.html site/login.js site/account.js site/admin.js
           grep -q 'noto-sans-400.woff2' site/internal-auth.css
@@ -133,16 +151,23 @@ jobs:
           curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/auth-shell.js?${CACHE_BUST}" -o /tmp/phase9-auth-shell.js
           grep -q 'masthead-user' /tmp/phase9-auth-shell.js
           grep -q '/account.html' /tmp/phase9-auth-shell.js
+          grep -q 'pin_configured_at' /tmp/phase9-auth-shell.js
           grep -q "await import('./bootstrap.js')" /tmp/phase9-auth-shell.js
           curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/login.html?${CACHE_BUST}" -o /tmp/phase9-login.html
-          grep -q 'One-time code' /tmp/phase9-login.html
+          grep -q 'Permanent code' /tmp/phase9-login.html
+          grep -q 'Administrator one-time code' /tmp/phase9-login.html
+          grep -q 'pinSetupForm' /tmp/phase9-login.html
           test "$(grep -o 'data-otp-digit=' /tmp/phase9-login.html | wc -l)" -eq 6
+          test "$(grep -o 'data-pin-login-digit=' /tmp/phase9-login.html | wc -l)" -eq 6
           ! grep -q 'Personal email' /tmp/phase9-login.html
           ! grep -qi 'turnstile' /tmp/phase9-login.html
           curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/account.html?${CACHE_BUST}" -o /tmp/phase9-account.html
           grep -q 'My account' /tmp/phase9-account.html
+          grep -q 'Permanent code' /tmp/phase9-account.html
           curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/auth-client.js?${CACHE_BUST}" -o /tmp/phase9-auth-client.js
           grep -q 'sindhorn_manual_activate' /tmp/phase9-auth-client.js
+          grep -q 'sindhorn_pin_login' /tmp/phase9-auth-client.js
+          grep -q 'sindhorn_set_permanent_pin' /tmp/phase9-auth-client.js
           ! grep -q 'workers.dev' /tmp/phase9-auth-client.js
           curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/admin.js?${CACHE_BUST}" -o /tmp/phase9-admin.js
           grep -q 'sindhorn_admin_list_users_v3' /tmp/phase9-admin.js
@@ -151,4 +176,4 @@ jobs:
           curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/auth-brand.css?${CACHE_BUST}" -o /tmp/phase9-auth-brand.css
           grep -q 'letter-spacing:0!important' /tmp/phase9-auth-brand.css
           grep -q '#2E273B' /tmp/phase9-auth-brand.css
-          echo "Phase 9 auth gate preview verified at ${BASE_URL}"
+          echo "Phase 9 permanent PIN preview verified at ${BASE_URL}"
