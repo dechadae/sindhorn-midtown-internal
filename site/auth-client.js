@@ -8,7 +8,6 @@ const REFRESH_SKEW_MS=90_000;
 let session=null,profile=null,refreshPromise=null,initialized=false;
 const hasWindow=typeof window!=='undefined';
 const authWorker=()=>hasWindow&&/\.sindhorn-midtown-internal\.pages\.dev$/i.test(location.hostname)&&location.hostname!=='sindhorn-midtown-internal.pages.dev'?AUTH_WORKER_PREVIEW:AUTH_WORKER_PROD;
-const nowSeconds=()=>Math.floor(Date.now()/1000);
 const dispatch=(name,detail)=>{if(hasWindow&&typeof document!=='undefined')document.dispatchEvent(new CustomEvent(name,{detail}))};
 
 function safeParse(value){try{return JSON.parse(value)}catch(_){return null}}
@@ -54,12 +53,12 @@ export async function refreshSession({force=false}={}){
   return refreshPromise;
 }
 
-export async function fetchProfile(){
+export async function fetchProfile({retry401=true}={}){
   if(!session)return null;
   await refreshSession();
   const select='id,employee_number,display_name,department_id,role,active,preferred_language,activated_at';
   const response=await fetch(`${SUPABASE_URL}/rest/v1/sindhorn_employees?select=${encodeURIComponent(select)}&limit=1`,{cache:'no-store',headers:{apikey:SUPABASE_KEY,authorization:`Bearer ${session.access_token}`,Accept:'application/json'}});
-  if(response.status===401){await refreshSession({force:true});return fetchProfile()}
+  if(response.status===401&&retry401){await refreshSession({force:true});return fetchProfile({retry401:false})}
   const rows=await responseJson(response),next=Array.isArray(rows)?rows[0]:null;
   if(!next||next.active!==true){clearLocal('employee_inactive');return null}
   profile=next;dispatch('sindhorn:auth-changed',{authenticated:true,profile:structuredClone(profile),reason:'profile'});return structuredClone(profile);
