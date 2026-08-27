@@ -3,7 +3,7 @@ varying vec2 vUv;
 void main(){vUv=uv;gl_Position=vec4(position,1.0);}
 `;
 
-// Phase 8.2 shared cloud/sky renderer. The cloud field uses a small deterministic
+// Phase 8.2 shared cloud/sky renderer. The cloud field uses a small per-launch
 // bilinear noise texture. Each active cloud family uses two shared RGBA samples;
 // inactive families are skipped through uniform branches. This preserves all
 // three morphology families at fixed DPR 2 while bounding fragment cost.
@@ -54,28 +54,32 @@ void main(){
     highA=sat(high*uHighOpacity*.58);c=mix(c,highCol,highA);
   }
 
-  // 2) Mid broken cloud. Wide, vertically compact sampling keeps bodies rounded and fluffy.
+  // 2) Mid broken cloud. Stronger horizontal breadth plus a rotated detail sample
+  // breaks vertical columns into overlapping rounded lobes while retaining gaps.
   if(uMidCoverage>.003&&uMidOpacity>.003){
-    vec2 mp=(p+drift*.72)*vec2(.90,1.08)*max(.2,uMidScale);
-    vec4 m0=noise4(mp*.052+vec2(.173,.071));vec4 m1=noise4(mp*(.112+.014*uMidDetail)+vec2(.419,.227));
-    float mb=m0.r*.66+m0.g*.34;float ml=m0.b*.46+m1.g*.34+m1.a*.20;float mf=mb*.50+ml*.35+m1.r*.15;
+    vec2 mp=(p+drift*.72)*vec2(.72,1.22)*max(.2,uMidScale);
+    vec2 mpr=vec2(mp.x*.94+mp.y*.20,-mp.x*.16+mp.y*.94);
+    vec4 m0=noise4(mp*.052+vec2(.173,.071));vec4 m1=noise4(mpr*(.112+.014*uMidDetail)+vec2(.419,.227));
+    float mb=m0.r*.62+m0.g*.38;float ml=m0.b*.42+m1.g*.34+m1.a*.24;float mf=mb*.46+ml*.36+m1.r*.18;
     float mt=mix(.81,.38,sat(uMidCoverage));float edge=max(.016,uMidSoftness/max(.55,uCloudContrast));float mid=smoothstep(mt-edge,mt+edge,mf);
-    float connectedMid=smoothstep(.34,.66,mb*.68+ml*.32)*uConnected;mid=max(mid,connectedMid*(.50+.44*uMidCoverage));
+    float connectedMid=smoothstep(.34,.66,mb*.64+ml*.36)*uConnected;mid=max(mid,connectedMid*(.50+.44*uMidCoverage));
     float midInner=smoothstep(mt+.025,mt+.22,mf);float midRim=sat(mid-midInner);
     vec3 midCol=mix(uCloudBase,uCloudAmbient,sat(.34+midInner*.58));float midWarm=sat(lowSun*(.18+.82*sunWide)*uWarmLight);midCol=mix(midCol,uCloudWarm,sat(midWarm*(.28+.72*directional)));midCol+=uCloudWarm*midRim*uMidEdgeLight*lowSun*.30;midCol=mix(midCol,vec3(.075,.085,.115),night*.70);
     midA=sat(mid*uMidOpacity);c=mix(c,midCol,midA);
   }
 
-  // 3) Low convective / monsoon. Build adds crown structure without vertically stretching the mass.
+  // 3) Low convective / monsoon. Broad compressed bodies and rotated fine structure
+  // make rounded monsoon crowns instead of vertically smeared pillars.
   if(uLowCoverage>.003&&uLowOpacity>.003){
     float lowBuildRound=sat((uLowBuild-1.0)/.8);
-    vec2 lp=(p+drift*.44)*vec2(.72,.96+.10*lowBuildRound)*max(.2,uLowScale);
-    vec4 l0=noise4(lp*.047+vec2(.337,.149));vec4 l1=noise4(lp*.103+vec2(.097,.463));
-    float lb=l0.b*.68+l0.r*.32;float ll=l0.a*.44+l1.g*.36+l1.b*.20;float lf=lb*.58+ll*.32+l1.r*.10+horizon*.08*sat(uLowBuild-1.0);
+    vec2 lp=(p+drift*.44)*vec2(.62,1.18+.12*lowBuildRound)*max(.2,uLowScale);
+    vec2 lpr=vec2(lp.x*.93-lp.y*.22,lp.x*.17+lp.y*.93);
+    vec4 l0=noise4(lp*.047+vec2(.337,.149));vec4 l1=noise4(lpr*.103+vec2(.097,.463));
+    float lb=l0.b*.64+l0.r*.36;float ll=l0.a*.40+l1.g*.36+l1.b*.24;float lf=lb*.54+ll*.34+l1.r*.12+horizon*.07*lowBuildRound;
     float lt=mix(.83,.34,sat(uLowCoverage))-uConnected*.13;float low=smoothstep(lt-.10/max(.7,uCloudContrast),lt+.10/max(.7,uCloudContrast),lf);
-    float connectedDeck=smoothstep(.36,.72,lb*.68+ll*.32)*uConnected*smoothstep(.18,.72,uLowCoverage);low=max(low,connectedDeck);
-    float crown=smoothstep(.48,.78,lf+.08*l1.r);float lowRim=sat(low-smoothstep(lt+.06,lt+.26,lf));float lowBottom=sat((1.0-uv.y)*.70+.28*(1.0-crown));
-    vec3 lowCol=mix(uCloudBase*mix(1.0,.48,uBaseDarkness),uCloudAmbient,sat(crown*.72));lowCol*=1.0-lowBottom*uBaseDarkness*.34;float leak=sunNear*lowSun*uLightLeaks*(1.0-uConnected*.55);lowCol=mix(lowCol,uCloudWarm,sat(leak*.72));lowCol+=uCloudWarm*lowRim*lowSun*uLightLeaks*.18;lowCol=mix(lowCol,vec3(.10,.11,.15),sat(uStorm*.82+night*.66));
+    float connectedDeck=smoothstep(.36,.72,lb*.64+ll*.36)*uConnected*smoothstep(.18,.72,uLowCoverage);low=max(low,connectedDeck);
+    float crown=smoothstep(.46,.76,lf+.10*l1.r);float lowRim=sat(low-smoothstep(lt+.06,lt+.26,lf));float lowBottom=sat((1.0-uv.y)*.62+.24*(1.0-crown));
+    vec3 lowCol=mix(uCloudBase*mix(1.0,.48,uBaseDarkness),uCloudAmbient,sat(crown*.72));lowCol*=1.0-lowBottom*uBaseDarkness*.32;float leak=sunNear*lowSun*uLightLeaks*(1.0-uConnected*.55);lowCol=mix(lowCol,uCloudWarm,sat(leak*.72));lowCol+=uCloudWarm*lowRim*lowSun*uLightLeaks*.18;lowCol=mix(lowCol,vec3(.10,.11,.15),sat(uStorm*.82+night*.66));
     lowA=sat(low*uLowOpacity);c=mix(c,lowCol,lowA);
   }
 
@@ -103,9 +107,17 @@ void main(){
   gl_FragColor=vec4(clamp(c,0.0,1.0),1.0);
 }`;
 
+function randomCloudSeed(){
+  try{
+    const entropy=new Uint32Array(1);globalThis.crypto?.getRandomValues?.(entropy);
+    if(entropy[0])return entropy[0]>>>0;
+  }catch(_){}
+  return((Date.now()^Math.floor(Math.random()*0xffffffff))>>>0)||0x2f6e2b1d;
+}
+
 export function createAtmosphereNoiseTexture(THREE,size=128){
-  const data=new Uint8Array(size*size*4);let seed=0x2f6e2b1d;
+  const data=new Uint8Array(size*size*4);let seed=randomCloudSeed();
   const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return(seed>>>24)&255};
   for(let i=0;i<data.length;i++)data[i]=rand();
-  const texture=new THREE.DataTexture(data,size,size,THREE.RGBAFormat);texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.minFilter=texture.magFilter=THREE.LinearFilter;texture.generateMipmaps=false;texture.needsUpdate=true;return texture;
+  const texture=new THREE.DataTexture(data,size,size*1,THREE.RGBAFormat);texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.minFilter=texture.magFilter=THREE.LinearFilter;texture.generateMipmaps=false;texture.needsUpdate=true;return texture;
 }
