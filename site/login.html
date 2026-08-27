@@ -7,7 +7,6 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>Sign in · Sindhorn Midtown Internal</title>
   <link rel="stylesheet" href="/internal-auth.css?v=2">
-  <link rel="stylesheet" href="/contact-otp.css?v=2">
 </head>
 <body>
   <main class="auth-shell">
@@ -22,54 +21,21 @@
 
       <p class="eyebrow" data-i18n="eyebrow">Internal employee access</p>
       <h1 id="loginTitle" data-i18n="title">Employee sign in.</h1>
-      <p id="loginSupport" class="support">Enter your Employee ID and personal email to receive a fresh 6-digit sign-in code.</p>
+      <p id="loginSupport" class="support" data-i18n="support">Enter your Employee ID and the one-time code provided by an administrator.</p>
 
       <div id="loginControls" class="stack">
-        <section class="otp-section" aria-labelledby="realtimeOtpTitle">
-          <strong id="realtimeOtpTitle" data-otp-i18n="realtime">Get a sign-in code</strong>
-          <form id="otpRequestForm" class="stack" style="margin-top:0">
-            <div class="field">
-              <label for="otpEmployeeNumber" data-otp-i18n="employee">Employee ID</label>
-              <input id="otpEmployeeNumber" name="employeeNumber" inputmode="text" autocomplete="username" maxlength="64" required>
-            </div>
-            <div class="field">
-              <label for="otpEmail" data-otp-i18n="emailLabel">Personal email</label>
-              <input id="otpEmail" name="email" type="email" inputmode="email" autocomplete="email" maxlength="320" required placeholder="name@example.com">
-            </div>
-            <div id="turnstileWrap" class="turnstile-wrap" hidden>
-              <div id="turnstileWidget"></div>
-            </div>
-            <button id="otpSendButton" class="primary" type="submit" data-otp-i18n="send">Send code</button>
-            <p class="note" data-otp-i18n="privacy">We only send a code when your Employee ID and personal email match the private employee record.</p>
-          </form>
-
-          <form id="otpVerifyForm" class="stack" style="margin-top:0" hidden>
-            <div class="field">
-              <label for="otpCode" data-otp-i18n="code">6-digit code</label>
-              <input id="otpCode" class="code-input" name="otpCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
-            </div>
-            <button id="otpVerifyButton" class="primary" type="submit" data-otp-i18n="verify">Verify &amp; sign in</button>
-            <button id="otpChangeButton" class="secondary-link" type="button" data-otp-i18n="change">Use a different email</button>
-          </form>
-        </section>
-
-        <div class="login-divider" aria-hidden="true">or</div>
-
-        <details class="fallback-details">
-          <summary data-otp-i18n="fallback">Use an invitation code instead</summary>
-          <form id="employeeForm" class="stack" style="margin-top:0">
-            <div class="field">
-              <label for="employeeNumber" data-i18n="employeeId">Employee ID</label>
-              <input id="employeeNumber" name="employeeNumber" inputmode="text" autocomplete="username" maxlength="64" required aria-describedby="employeeHint">
-            </div>
-            <div class="field">
-              <label for="activationCode" data-i18n="activationCode">One-time code</label>
-              <input id="activationCode" class="code-input" name="activationCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
-            </div>
-            <button id="employeeButton" class="primary" type="submit" data-i18n="employeeButton">Sign in</button>
-            <p id="employeeHint" class="note" data-i18n="hint">Use an administrator-issued invitation code. It works once. If it has expired, an app administrator can issue a new one.</p>
-          </form>
-        </details>
+        <form id="employeeForm" class="stack">
+          <div class="field">
+            <label for="employeeNumber" data-i18n="employeeId">Employee ID</label>
+            <input id="employeeNumber" name="employeeNumber" inputmode="text" autocomplete="username" maxlength="64" required aria-describedby="employeeHint">
+          </div>
+          <div class="field">
+            <label for="activationCode" data-i18n="activationCode">One-time code</label>
+            <input id="activationCode" class="code-input" name="activationCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+          </div>
+          <button id="employeeButton" class="primary" type="submit" data-i18n="employeeButton">Sign in</button>
+          <p id="employeeHint" class="note" data-i18n="hint">Your administrator generates this code for your first sign-in or account recovery. Each code works once and expires after 15 minutes.</p>
+        </form>
       </div>
 
       <div id="status" class="status" role="status" aria-live="polite"></div>
@@ -85,7 +51,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="/login.js?v=2"></script>
-  <script type="module" src="/login-contact-otp.js?v=2"></script>
+  <script type="module" src="/login.js?v=3"></script>
 </body>
 </html>
