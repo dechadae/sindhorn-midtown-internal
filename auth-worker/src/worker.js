@@ -1,8 +1,11 @@
 import baseWorker from './index.js';
 import {emailOtpHealth,handleContactOtpRoute} from './contact-otp.js';
+import {handleBrevoDiagnostic} from './brevo-diagnostics.js';
 
 export default{
   async fetch(request,env,ctx){
+    const diagnostic=await handleBrevoDiagnostic(request,env);
+    if(diagnostic)return diagnostic;
     const url=new URL(request.url);
     if(url.pathname.startsWith('/otp/')){
       if(request.method==='OPTIONS')return baseWorker.fetch(request,env,ctx);
