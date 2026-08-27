@@ -1,3 +1,5 @@
+import {ROUTES,canonicalRoute,routeForPath} from './route-registry.js';
+
 const SHELL_VERSION=17;
 const SUPABASE_URL='https://sjpvhgxacsiorrtijqua.supabase.co';
 const SUPABASE_KEY='sb_publishable_NcIExScIXkqsK1ZNNu5a-Q_zZ4afIHz';
@@ -7,13 +9,12 @@ const PACK_REQUEST='/__sindhorn_ui_pack_v1__';
 const FALLBACK_ROOT='/fallback/';
 const REQUIRED=['header.html','today.html','guidance.html','details.html','footer.html','ui.css','environment-config.json'];
 const FALLBACK_REQUIRED=[...REQUIRED,'messages.html'];
-const ROUTE_FILES={today:'today.html',guidance:'guidance.html',details:'details.html',messages:'messages.html'};
-const routeForPath=path=>path.startsWith('/guidance')?'guidance':path.startsWith('/details')?'details':path.startsWith('/messages')?'messages':'today';
 const encoder=new TextEncoder();
 
 let activePack=null;
 let refreshPromise=null;
 let presentationRecovery=null;
+let routeCleanup=null;
 const headerHost=document.getElementById('app-header');
 const routeHost=document.getElementById('route-view');
 const footerHost=document.getElementById('app-footer');
@@ -72,9 +73,7 @@ async function cachePack(pack){
   const cache=await caches.open(PACK_CACHE);
   await cache.put(PACK_REQUEST,new Response(JSON.stringify({...pack,source:'cache'}),{headers:{'Content-Type':'application/json'}}));
 }
-function rest(path){
-  return fetch(SUPABASE_URL+'/rest/v1/'+TABLE+path,{cache:'no-store',headers:{apikey:SUPABASE_KEY,Accept:'application/json'}});
-}
+function rest(path){return fetch(SUPABASE_URL+'/rest/v1/'+TABLE+path,{cache:'no-store',headers:{apikey:SUPABASE_KEY,Accept:'application/json'}})}
 async function remotePack(){
   const latest=await rest('?select=pack_id&enabled=eq.true&order=pack_id.desc&limit=1');
   if(!latest.ok)throw new Error('UI pack manifest lookup failed');
@@ -100,16 +99,30 @@ function applyPersistentPresentation(pack){
   if(!style){style=document.createElement('style');style.id='sindhorn-ui-pack-style';document.head.appendChild(style)}
   style.textContent=pack.resources['ui.css'].content;headerHost.innerHTML=pack.resources['header.html'].content;footerHost.innerHTML=pack.resources['footer.html'].content;
 }
-async function mountRoute(route=routeForPath(location.pathname),{animate=true}={}){
-  if(!activePack)return;if(!ROUTE_FILES[route])route='today';
-  if(!activePack.resources[ROUTE_FILES[route]])route=route==='messages'?'details':'today';
-  routeHost.innerHTML=activePack.resources[ROUTE_FILES[route]].content;
+async function cleanupRoute(){const cleanup=routeCleanup;routeCleanup=null;if(typeof cleanup==='function')try{await cleanup()}catch(_){}}
+async function mountLocalRoute(route,definition){
+  const module=await import(definition.module),mount=module?.[definition.mount];
+  if(typeof mount!=='function')throw new Error(`Local route mount unavailable: ${route}`);
+  routeHost.replaceChildren();
+  const cleanup=await mount(routeHost,{profile:window.__SINDHORN_AUTH_PROFILE__});
+  routeCleanup=typeof cleanup==='function'?cleanup:null;
+}
+async function mountRoute(route=routeForPath(location.pathname)||'today',{animate=true}={}){
+  if(!activePack)return;
+  route=canonicalRoute(route);let definition=ROUTES[route]||ROUTES.today;
+  await cleanupRoute();routeHost.dataset.shellRoute=route;
+  if(definition.kind==='pack'){
+    let resource=activePack.resources[definition.resource];
+    if(!resource&&route==='messages'){route='details';definition=ROUTES.details;resource=activePack.resources[definition.resource]}
+    if(!resource){route='today';definition=ROUTES.today;resource=activePack.resources[definition.resource]}
+    routeHost.innerHTML=resource.content;
+  }else await mountLocalRoute(route,definition);
   routeHost.classList.toggle('route-enter',animate);if(animate)requestAnimationFrame(()=>setTimeout(()=>routeHost.classList.remove('route-enter'),280));
   document.body.dataset.route=route;footerHost.querySelectorAll('[data-app-route]').forEach(link=>link.toggleAttribute('aria-current',link.dataset.appRoute===route));
   document.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route,packId:activePack.manifest.appPack}}));
 }
 async function applyPack(pack,{mount=true}={}){
-  activePack=pack;applyPersistentPresentation(pack);if(mount)await mountRoute(routeForPath(location.pathname),{animate:false});
+  activePack=pack;applyPersistentPresentation(pack);if(mount)await mountRoute(routeForPath(location.pathname)||'today',{animate:false});
   document.documentElement.dataset.shellLoading='false';document.body.dataset.appPack=String(pack.manifest.appPack);document.body.dataset.appPackSource=pack.source||'unknown';
   document.dispatchEvent(new CustomEvent('sindhorn:environment-config',{detail:environmentConfig()}));document.dispatchEvent(new CustomEvent('sindhorn:pack-updated',{detail:{packId:pack.manifest.appPack,source:pack.source}}));
 }
@@ -120,16 +133,13 @@ async function refreshPack(){
     if(activePack&&next.manifest.appPack<activePack.manifest.appPack)return activePack;
     await cachePack(next);
     const versionChanged=!activePack||next.manifest.appPack!==activePack.manifest.appPack;
-    if(versionChanged){
-      await applyPack(next,{mount:true});
-      await presentationRecovery?.recoverPresentationSwap?.();
-    }
+    if(versionChanged){await applyPack(next,{mount:true});await presentationRecovery?.recoverPresentationSwap?.()}
     return next;
   }finally{refreshPromise=null}})();
   return refreshPromise;
 }
 
-window.SindhornAppPack={shellVersion:SHELL_VERSION,mountRoute,refresh:refreshPack,getManifest:()=>activePack?structuredClone(activePack.manifest):null,getEnvironmentConfig:()=>environmentConfig(),getResource:path=>activePack?.resources?.[path]?.content??null,getRoute:()=>routeForPath(location.pathname)};
+window.SindhornAppPack={shellVersion:SHELL_VERSION,mountRoute,refresh:refreshPack,getManifest:()=>activePack?structuredClone(activePack.manifest):null,getEnvironmentConfig:()=>environmentConfig(),getResource:path=>activePack?.resources?.[path]?.content??null,getRoute:()=>routeForPath(location.pathname)||'today'};
 document.documentElement.dataset.shellLoading='true';
 const initial=(await readCachedPack())||(await fallbackPack());await applyPack(initial,{mount:true});
 const live=await import('./live-data.js');await live.initLiveData();
@@ -137,4 +147,5 @@ const environment=await import('./environment.js');await environment.initEnviron
 presentationRecovery=await import('./presentation-recovery.js');
 const inbox=await import('./notification-inbox.js');await inbox.initNotificationInbox();
 const app=await import('./app.js');await app.initApp();
+const activeRoute=routeForPath(location.pathname)||'today';document.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route:activeRoute,packId:activePack.manifest.appPack}}));document.body.dataset.route=activeRoute;document.title=ROUTES[activeRoute]?.title||ROUTES.today.title;
 refreshPack().catch(error=>console.warn('Sindhorn UI pack update unavailable; using known-good pack.',error));

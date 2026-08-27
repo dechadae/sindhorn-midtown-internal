@@ -16,19 +16,22 @@ Do not infer that a commit is live merely because it is on `main`. A production 
 
 1. `AGENTS.md`
 2. `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md`
-3. `docs/BANGKOK-SEASONAL-SKY-AND-CLOUD-ARCHITECTURE-OVERRIDE-20260827.md`
-4. `docs/PHASE8.2-BANGKOK-SEASONAL-CLOUD-MORPHOLOGY-PLAN-20260827.md`
-5. `docs/PHASE8.2-IMPLEMENTATION-20260827.md`
-6. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
-7. `docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md` only as historical/future-camera research
-8. earlier phase implementation notes as needed
+3. `docs/SINGLE-SHELL-ROUTER-INVARIANT-20260828.md`
+4. `docs/BANGKOK-SEASONAL-SKY-AND-CLOUD-ARCHITECTURE-OVERRIDE-20260827.md`
+5. `docs/PHASE8.2-BANGKOK-SEASONAL-CLOUD-MORPHOLOGY-PLAN-20260827.md`
+6. `docs/PHASE8.2-IMPLEMENTATION-20260827.md`
+7. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
+8. `docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md` only as historical/future-camera research
+9. earlier phase implementation notes as needed
 
-The two Phase 8.2 atmosphere documents supersede older live-camera production architecture wherever they conflict.
+The single-shell router invariant is mandatory for all authenticated app features. The two Phase 8.2 atmosphere documents supersede older live-camera production architecture wherever they conflict.
 
 ## Product state that must be preserved
 
 - English first; Thai immediately supports it.
 - **Typography invariant: every font and text treatment in Sindhorn Midtown Internal uses zero character tracking (`letter-spacing: 0`). Do not introduce positive or negative tracking anywhere in the PWA, auth, admin, messages, or future modules.**
+- **Single-shell navigation invariant: every authenticated current or future screen is an SPA route mounted inside the persistent `#route-view`. Header, footer, atmosphere, auth session and app document must never unload between authenticated screens. `/login.html` is the only intentional standalone document boundary. Never add another standalone authenticated HTML page or a full-document navigation to one.**
+- **Transition invariant: authenticated navigation animates only `#route-view` with the shared opacity crossfade. Never animate the document root, header, footer or atmosphere, and never use browser-dependent cross-document View Transitions as the primary app navigation mechanism.**
 - Messages is a fourth footer destination and its device-local inbox works offline.
 - Environmental Alerts / Web Push is user-gesture initiated only; never auto-prompt notification permission.
 - Current device location drives Open-Meteo weather and sun/moon astronomy after permission; fallback is Sindhorn Midtown Bangkok.

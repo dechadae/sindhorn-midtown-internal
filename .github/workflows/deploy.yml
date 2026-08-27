@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - phase9-single-shell-router
       - hotfix-phase9-deploy-gate
       - hotfix-phase8-2-deploy-validation
       - webgl-environment-v1
@@ -50,23 +51,35 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/auth-shell.js site/auth-client.js site/login.js site/account.js site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/atmosphere-tester.js site/cloud-tester-shared.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js; do node --check "$file"; done
+          for file in site/route-registry.js site/app-transitions.js site/auth-shell.js site/auth-client.js site/login.js site/account.js site/admin.js site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/atmosphere-tester.js site/cloud-tester-shared.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js; do node --check "$file"; done
           node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
           python - <<'PY'
           from pathlib import Path
           import hashlib, json, re
           root=Path('site'); fallback=root/'fallback'
           manifest=json.loads((fallback/'manifest.json').read_text())
-          bootstrap=(root/'bootstrap.js').read_text(); auth_shell=(root/'auth-shell.js').read_text()
+          bootstrap=(root/'bootstrap.js').read_text(); auth_shell=(root/'auth-shell.js').read_text(); registry=(root/'route-registry.js').read_text(); transitions=(root/'app-transitions.js').read_text()
           shell_version=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
           assert manifest['minimumShell']==shell_version==17
           for item in manifest['resources']:
               assert hashlib.sha256((fallback/item['path']).read_bytes()).hexdigest()==item['sha256'],item['path']
           index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); env=(root/'environment.js').read_text(); shader=(root/'atmosphere-shader.js').read_text(); seasonal=(root/'seasonal-sky.js').read_text(); fixtures=(root/'phase8-2-fixtures.js').read_text()
           assert '/auth-shell.js' in index and '/auth-shell.css' in index
+          assert '/account.css' in index and '/admin.css' in index
           assert 'src="/location.js"' not in index and 'src="/bootstrap.js"' not in index
           assert "await initAuth" in auth_shell and "location.replace(loginUrl())" in auth_shell
           assert "loadClassicScript('/location.js')" in auth_shell and "await import('./bootstrap.js')" in auth_shell
+          assert "const ACCOUNT_PATH='/account'" in auth_shell and "/account.html" not in auth_shell
+          assert "dataset.appRoute='account'" in auth_shell
+          for token in ("account:Object.freeze({path:'/account'","admin:Object.freeze({path:'/admin'","kind:'local'","mount:'mountAccountRoute'","mount:'mountAdminRoute'"):
+              assert token in registry,token
+          assert "import {ROUTES,canonicalRoute,routeForPath}" in bootstrap
+          assert 'mountLocalRoute' in bootstrap and "routeHost.dataset.shellRoute=route" in bootstrap
+          assert 'routeOnlyFade' in transitions and 'appRouteFromAnchor' in transitions
+          assert 'startViewTransition' not in transitions and 'view-transition' not in transitions.lower()
+          redirects=(root/'_redirects').read_text()
+          for token in ('/account /index.html 200','/admin /index.html 200','/account.html /account 301','/admin.html /admin 301'):
+              assert token in redirects,token
           assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index
           assert '/seasonal-sky.js?v=1' not in index
           assert '/storm-effects.js' not in index
@@ -90,6 +103,7 @@ jobs:
           assert 'pushManager.subscribe' in push and 'Notification.requestPermission' not in push
           assert 'letter-spacing:0!important' in (root/'auth-shell.css').read_text()
           assert 'letter-spacing:0!important' in (root/'account.css').read_text()
+          assert 'letter-spacing:0!important' in (root/'admin.css').read_text()
           PY
 
       - name: Deploy to Cloudflare Pages
@@ -104,12 +118,22 @@ jobs:
           set -euo pipefail
           if [ "${GITHUB_REF_NAME}" = "main" ]; then BASE_URL="https://sindhorn-midtown-internal.pages.dev"; else BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"; fi
           sleep 8
-          for path in / /guidance /details /messages /auth-shell.js /auth-shell.css /auth-client.js /login.html /login.js /account.html /account.js /account.css /location.js /bootstrap.js /environment.js /atmosphere-shader.js /seasonal-sky.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /cloud-tester.html /cloud-tester-shared.js /phase8-2-fixtures.js /notification-inbox.js /push-client.js /sw.js; do
+          for path in / /guidance /details /messages /account /admin /route-registry.js /app-transitions.js /auth-shell.js /auth-shell.css /auth-client.js /login.html /login.js /account.js /account.css /admin.js /admin.css /location.js /bootstrap.js /environment.js /atmosphere-shader.js /seasonal-sky.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /cloud-tester.html /cloud-tester-shared.js /phase8-2-fixtures.js /notification-inbox.js /push-client.js /sw.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
+          for path in / /account /admin; do
+            curl --fail --silent --show-error --location "${BASE_URL}${path}" -o /tmp/app-route.html
+            grep -q '/auth-shell.js' /tmp/app-route.html
+            grep -q 'id="route-view"' /tmp/app-route.html
+          done
+          curl --fail --silent --show-error --location "${BASE_URL}/account.html" -o /tmp/legacy-account.html
+          grep -q '/auth-shell.js' /tmp/legacy-account.html
+          curl --fail --silent --show-error --location "${BASE_URL}/admin.html" -o /tmp/legacy-admin.html
+          grep -q '/auth-shell.js' /tmp/legacy-admin.html
           curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html
           curl --fail --silent --show-error --location "${BASE_URL}/auth-shell.js" -o /tmp/auth-shell.js
+          curl --fail --silent --show-error --location "${BASE_URL}/route-registry.js" -o /tmp/route-registry.js
           curl --fail --silent --show-error --location "${BASE_URL}/environment.js" -o /tmp/environment.js
           curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js
           curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js
@@ -119,7 +143,9 @@ jobs:
           grep -q "await import('./bootstrap.js')" /tmp/auth-shell.js
           grep -q "loadClassicScript('/location.js')" /tmp/auth-shell.js
           grep -q 'masthead-user' /tmp/auth-shell.js
-          grep -q '/account.html' /tmp/auth-shell.js
+          grep -q "ACCOUNT_PATH='/account'" /tmp/auth-shell.js
+          grep -q "path:'/account'" /tmp/route-registry.js
+          grep -q "path:'/admin'" /tmp/route-registry.js
           ! grep -q '/sky-calibration.js' /tmp/root.html
           ! grep -q '/sky-color-renderer.js' /tmp/root.html
           ! grep -q '/storm-effects.js' /tmp/root.html
