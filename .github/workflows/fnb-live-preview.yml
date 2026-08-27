@@ -42,7 +42,7 @@ jobs:
           const outlets=new Set(FNB_PROMOTIONS.flatMap(c=>c.activations.map(a=>a.outlet)));
           if(outlets.size!==5) throw new Error(`expected 5 outlets, got ${outlets.size}`);
           NODE
-          grep -q "--fnb-chip-h:44px" site/fnb.css
+          grep -q -- "--fnb-chip-h:44px" site/fnb.css
           grep -q "grid-template-columns:repeat(3,minmax(0,1fr))" site/fnb.css
           grep -q "background:transparent" site/fnb.css
           grep -q "mountFnbRoute" site/fnb.js
