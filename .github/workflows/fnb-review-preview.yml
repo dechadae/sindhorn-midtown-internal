@@ -6,6 +6,7 @@ on:
       - fnb-promotions-review-v2
     paths:
       - "site/fnb-promotions-review.html"
+      - "scripts/fnb-review-v4-patch.py"
       - ".github/workflows/fnb-review-preview.yml"
   workflow_dispatch:
 
@@ -24,6 +25,9 @@ jobs:
       - name: Check out review branch
         uses: actions/checkout@v6
 
+      - name: Apply review-only v4 presentation patch
+        run: python scripts/fnb-review-v4-patch.py
+
       - name: Validate isolated review page
         shell: bash
         run: |
@@ -34,7 +38,13 @@ jobs:
           grep -q 'Editor · 10639' site/fnb-promotions-review.html
           grep -q 'Noto Sans Thai' site/fnb-promotions-review.html
           grep -q -- '--chip-h:42px' site/fnb-promotions-review.html
+          grep -q 'F&B Review v4' site/fnb-promotions-review.html
+          grep -q 'data-month="SEP"' site/fnb-promotions-review.html
+          grep -q 'Horizon Pool Bar' site/fnb-promotions-review.html
+          grep -q '1 September – 31 December 2026' site/fnb-promotions-review.html
+          grep -q '7 pm – 11 pm' site/fnb-promotions-review.html
           ! grep -qi 'flipgazine' site/fnb-promotions-review.html
+          ! grep -q 'โปรโมชั่น</span>' site/fnb-promotions-review.html
 
       - name: Deploy isolated branch preview
         env:
@@ -53,3 +63,7 @@ jobs:
           grep -q 'Production queue' /tmp/fnb-review.html
           grep -q 'Noto Sans Thai' /tmp/fnb-review.html
           grep -q -- '--chip-h:42px' /tmp/fnb-review.html
+          grep -q 'F&B Review v4' /tmp/fnb-review.html
+          grep -q 'data-month="DEC"' /tmp/fnb-review.html
+          grep -q 'The Lobby Lounge' /tmp/fnb-review.html
+          grep -q 'Throughout October 2026' /tmp/fnb-review.html
