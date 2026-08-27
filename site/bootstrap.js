@@ -1,13 +1,13 @@
-const SHELL_VERSION=16;
+const SHELL_VERSION=17;
 const SUPABASE_URL='https://sjpvhgxacsiorrtijqua.supabase.co';
 const SUPABASE_KEY='sb_publishable_NcIExScIXkqsK1ZNNu5a-Q_zZ4afIHz';
 const TABLE='sindhorn_app_files';
 const PACK_CACHE='sindhorn-midtown-ui-pack-v1';
 const PACK_REQUEST='/__sindhorn_ui_pack_v1__';
 const FALLBACK_ROOT='/fallback/';
-const REQUIRED=['header.html','today.html','guidance.html','details.html','footer.html','ui.css','environment-config.json'];
-const ROUTE_FILES={today:'today.html',guidance:'guidance.html',details:'details.html'};
-const routeForPath=path=>path.startsWith('/guidance')?'guidance':path.startsWith('/details')?'details':'today';
+const REQUIRED=['header.html','today.html','guidance.html','details.html','messages.html','footer.html','ui.css','environment-config.json'];
+const ROUTE_FILES={today:'today.html',guidance:'guidance.html',details:'details.html',messages:'messages.html'};
+const routeForPath=path=>path.startsWith('/guidance')?'guidance':path.startsWith('/details')?'details':path.startsWith('/messages')?'messages':'today';
 const encoder=new TextEncoder();
 
 let activePack=null;
@@ -132,5 +132,6 @@ const initial=(await readCachedPack())||(await fallbackPack());await applyPack(i
 const live=await import('./live-data.js');await live.initLiveData();
 const environment=await import('./environment.js');await environment.initEnvironment();
 presentationRecovery=await import('./presentation-recovery.js');
+const inbox=await import('./notification-inbox.js');await inbox.initNotificationInbox();
 const app=await import('./app.js');await app.initApp();
 refreshPack().catch(error=>console.warn('Sindhorn UI pack update unavailable; using known-good pack.',error));
