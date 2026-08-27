@@ -1,0 +1,87 @@
+name: Diagnose AirBKK Current Public Web
+
+on:
+  push:
+    branches:
+      - diagnose-airbkk-current-web
+    paths:
+      - ".github/workflows/diagnose-airbkk-current.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Inspect current public AirBKK web contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36'
+
+          inspect_page() {
+            local label="$1" url="$2" out="/tmp/${label}.html" headers="/tmp/${label}.headers"
+            echo "===== ${label}: ${url} ====="
+            curl --silent --show-error --location --compressed --user-agent "$UA" -D "$headers" "$url" -o "$out" || true
+            head -n 20 "$headers" || true
+            echo "bytes=$(wc -c < "$out" 2>/dev/null || echo 0)"
+            echo "-- asset refs --"
+            grep -Eo '(src|href)=["'"'][^"'"']+["'"']' "$out" | head -n 80 || true
+            echo "-- endpoint-like strings --"
+            grep -Eo 'https?://[^"'"' <>]+' "$out" | grep -Ei 'airbkk|api|aqs|station' | head -n 80 || true
+          }
+
+          inspect_page official 'https://official.airbkk.com/airbkk/'
+          inspect_page legacy 'https://airquality.airbkk.com/PublicWebClient/'
+
+          echo '===== legacy stations API POST ====='
+          curl --silent --show-error --location --user-agent "$UA" \
+            -X POST 'https://stations.airbkk.com/api/web/data' \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json, text/plain, */*' \
+            -H 'Origin: https://official.airbkk.com' \
+            -H 'Referer: https://official.airbkk.com/' \
+            --data '{"message":"Request data"}' \
+            -D /tmp/stations.headers -o /tmp/stations.body || true
+          head -n 30 /tmp/stations.headers || true
+          echo "body-bytes=$(wc -c < /tmp/stations.body 2>/dev/null || echo 0)"
+          head -c 3000 /tmp/stations.body || true
+          echo
+
+          echo '===== legacy app JavaScript scan ====='
+          python3 - <<'PY'
+          import pathlib, re, urllib.parse, subprocess
+          base='https://airquality.airbkk.com/PublicWebClient/'
+          html=pathlib.Path('/tmp/legacy.html').read_text(errors='ignore')
+          refs=[]
+          for m in re.finditer(r'(?:src|href)=["\']([^"\']+)["\']',html,re.I):
+              ref=m.group(1)
+              if ref.lower().endswith('.js'):
+                  refs.append(urllib.parse.urljoin(base,ref))
+          seen=[]
+          for u in refs:
+              if u not in seen: seen.append(u)
+          print('js-assets',len(seen))
+          for i,u in enumerate(seen[:30]):
+              out=f'/tmp/asset-{i}.js'
+              print('FETCH',u)
+              subprocess.run(['curl','--silent','--show-error','--location','--compressed','-A','Mozilla/5.0',u,'-o',out],check=False)
+              p=pathlib.Path(out)
+              if not p.exists(): continue
+              text=p.read_text(errors='ignore')
+              hits=[]
+              patterns=[
+                  r'https?://[^"\' <>]+',
+                  r'[^"\']*(?:api|Api|API|Aqs|aqs|PM2\.5|MeasIndex|station)[^"\']*'
+              ]
+              for pat in patterns:
+                  for h in re.findall(pat,text):
+                      h=' '.join(str(h).split())
+                      if h and h not in hits: hits.append(h)
+              for h in hits[:60]: print('HIT',h[:500])
+          PY
