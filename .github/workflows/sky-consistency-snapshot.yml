@@ -23,6 +23,9 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
+      - name: Install transient frame sampler
+        run: python3 -m pip install --quiet pillow
+
       - name: Capture live production sky state
         shell: bash
         run: |
@@ -38,8 +41,8 @@ jobs:
             --json > /tmp/d1-observations.json
 
           python3 - <<'PY'
-          import json, datetime, math
-          from pathlib import Path
+          import json, datetime, re, urllib.request, io, hashlib, statistics, colorsys
+          from PIL import Image
 
           now=datetime.datetime.now(datetime.timezone.utc)
           health=json.load(open('/tmp/health.json'))
@@ -89,6 +92,65 @@ jobs:
                   'stormConfidence': obs.get('stormConfidence'),
               })
 
+          cameras=[
+            ('bang-yi-khan-east-317138','east','https://opencctv.org/cameras/thailand/bangkok/bang-yi-khan-subdistrict/bang-yi-khan-subdistrict-east-krung-thon-bridge-sang-hi-saphan-krung-thon-sang-hee-317138'),
+            ('bang-yi-khan-west-317474','west','https://opencctv.org/cameras/thailand/bangkok/bang-yi-khan-subdistrict/bang-yi-khan-subdistrict-west-saphan-krung-thon-sang-hee-dbf-apartments-by-the-river-krung-thon-bridge-sang-hi-chao-phraya-317474'),
+            ('bang-phlat-east-318260','east','https://opencctv.org/cameras/thailand/bangkok/bang-phlat-subdistrict/bang-phlat-subdistrict-east-saphan-krung-thon-sang-hee-krung-thon-bridge-sang-hi-318260'),
+            ('bang-phlat-west-318457','west','https://opencctv.org/cameras/thailand/bangkok/bang-phlat-subdistrict/bang-phlat-subdistrict-west-krung-thon-bridge-sang-hi-saphan-krung-thon-sang-hee-318457'),
+          ]
+
+          def fetch_bytes(url,accept='*/*'):
+              req=urllib.request.Request(url,headers={'User-Agent':'SindhornMidtownSkyCalibration/1.0','Accept':accept})
+              with urllib.request.urlopen(req,timeout=20) as r:
+                  return r.read(),r.headers.get('content-type','')
+
+          def resolve_image(page_url):
+              body,_=fetch_bytes(page_url,'text/html')
+              text=body.decode('utf-8','ignore').replace('\\/','/').replace('&amp;','&')
+              m=re.search(r'https://images-webcams\.windy\.com/[A-Za-z0-9_./?=&%\-]+',text,re.I)
+              if not m:
+                  m=re.search(r'https://[^\"\'<>\s]+\.(?:jpe?g|png|webp)(?:\?[^\"\'<>\s]*)?',text,re.I)
+              return m.group(0) if m else None
+
+          def region_stats(img,box):
+              crop=img.crop(box).convert('RGB')
+              crop.thumbnail((240,160))
+              px=list(crop.getdata())
+              if not px:return None
+              # Suppress near-black structural pixels and very saturated signage/vehicle colors.
+              filtered=[]
+              for r,g,b in px:
+                  mx=max(r,g,b); mn=min(r,g,b)
+                  sat=0 if mx==0 else (mx-mn)/mx
+                  lum=(0.2126*r+0.7152*g+0.0722*b)/255
+                  if lum<0.10 or sat>0.72:
+                      continue
+                  filtered.append((r,g,b))
+              use=filtered if len(filtered)>=max(100,len(px)//5) else px
+              med=[round(statistics.median([p[i] for p in use])) for i in range(3)]
+              mean=[round(sum(p[i] for p in use)/len(use)) for i in range(3)]
+              lums=[(0.2126*r+0.7152*g+0.0722*b)/255 for r,g,b in use]
+              sats=[]
+              for r,g,b in use:
+                  _,s,_=colorsys.rgb_to_hsv(r/255,g/255,b/255);sats.append(s)
+              return {'medianRgb':med,'meanRgb':mean,'luminance':round(sum(lums)/len(lums),4),'saturation':round(sum(sats)/len(sats),4),'samplePixels':len(use)}
+
+          raw_samples=[]
+          for camera_id,facing,page_url in cameras:
+              entry={'cameraId':camera_id,'facing':facing,'sourcePage':page_url,'fetchedAt':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+              try:
+                  image_url=resolve_image(page_url)
+                  if not image_url: raise RuntimeError('image URL not found')
+                  data,ctype=fetch_bytes(image_url,'image/avif,image/webp,image/png,image/jpeg,*/*')
+                  img=Image.open(io.BytesIO(data));img.load();w,h=img.size
+                  entry.update({'ok':True,'imageUrl':image_url,'contentType':ctype.split(';')[0],'width':w,'height':h,'sha256':hashlib.sha256(data).hexdigest()})
+                  entry['upperSkySample']=region_stats(img,(0,0,w,max(1,round(h*.28))))
+                  entry['upperMidSample']=region_stats(img,(0,round(h*.18),w,max(round(h*.18)+1,round(h*.46))))
+                  entry['horizonBandSample']=region_stats(img,(0,round(h*.32),w,max(round(h*.32)+1,round(h*.58))))
+              except Exception as e:
+                  entry.update({'ok':False,'error':str(e)})
+              raw_samples.append(entry)
+
           visual=cal.get('visual') or {}
           mode=str(cal.get('mode') or 'fallback')
           confidence=max(0,min(1,float(cal.get('confidence') or 0)))
@@ -99,9 +161,7 @@ jobs:
           def hexrgb(rgb):
               if not isinstance(rgb,list) or len(rgb)!=3: return None
               return '#'+''.join(f'{max(0,min(255,int(round(float(x))))):02X}' for x in rgb)
-          z=visual.get('zenithRgb')
-          h=visual.get('horizonRgb')
-          mid=None
+          z=visual.get('zenithRgb');h=visual.get('horizonRgb');mid=None
           if isinstance(z,list) and isinstance(h,list) and len(z)==3 and len(h)==3:
               mid=[round(float(z[i])*.42+float(h[i])*.58) for i in range(3)]
 
@@ -110,20 +170,11 @@ jobs:
               'health': health,
               'calibration': cal,
               'cameraObservations': observations,
+              'rawFrameSamples': raw_samples,
               'rendererComparison': {
-                  'mode': mode,
-                  'confidence': confidence,
-                  'cap': cap,
-                  'effectiveOverlayAlpha': round(overlay_alpha,4),
-                  'zenithRgb': z,
-                  'zenithHex': hexrgb(z),
-                  'midRgb': mid,
-                  'midHex': hexrgb(mid),
-                  'horizonRgb': h,
-                  'horizonHex': hexrgb(h),
-                  'topAppliedAlpha': round(overlay_alpha*.88,4),
-                  'midAppliedAlpha': round(overlay_alpha*.72,4),
-                  'horizonAppliedAlpha': round(overlay_alpha,4),
+                  'mode': mode,'confidence': confidence,'cap': cap,'effectiveOverlayAlpha': round(overlay_alpha,4),
+                  'zenithRgb': z,'zenithHex': hexrgb(z),'midRgb': mid,'midHex': hexrgb(mid),'horizonRgb': h,'horizonHex': hexrgb(h),
+                  'topAppliedAlpha': round(overlay_alpha*.88,4),'midAppliedAlpha': round(overlay_alpha*.72,4),'horizonAppliedAlpha': round(overlay_alpha,4)
               }
           }
           print('SKY_SNAPSHOT_JSON_BEGIN')
