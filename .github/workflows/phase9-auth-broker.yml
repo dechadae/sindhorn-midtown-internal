@@ -159,3 +159,15 @@ jobs:
           console.log(`Brevo domain check: apiOk=${result.domainCheck?.apiOk} listed=${result.domainCheck?.configuredDomainListed} verified=${result.domainCheck?.verified} authenticated=${result.domainCheck?.authenticated}`);
           console.log(`Brevo relay check: apiOk=${result.relayCheck?.apiOk} enabled=${result.relayCheck?.enabled} status=${result.relayCheck?.status||'unknown'} planType=${result.relayCheck?.planType||'unknown'}`);
           NODE
+          NEEDS_SENDER=$(node -e "const r=require('/tmp/brevo-otp-diagnostic.json');process.stdout.write(String(r.senderCheck?.configuredSenderFound!==true))")
+          if [ "$NEEDS_SENDER" = "true" ]; then
+            curl --fail --silent --show-error --max-time 15 -X POST \
+              https://sindhorn-midtown-auth-preview.decha-dae.workers.dev/diagnostics/brevo-create-configured-sender \
+              -o /tmp/brevo-sender-create.json
+            node - <<'NODE'
+            const fs=require('fs');
+            const result=JSON.parse(fs.readFileSync('/tmp/brevo-sender-create.json','utf8'));
+            console.log(`Brevo sender registration: ok=${result.ok} created=${result.created} alreadyExists=${result.alreadyExists} senderIdPresent=${result.senderIdPresent} dkimError=${result.dkimError} spfError=${result.spfError}`);
+            if(result.ok!==true) process.exit(1);
+            NODE
+          fi
