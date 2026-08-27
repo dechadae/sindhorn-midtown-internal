@@ -31,7 +31,7 @@ jobs:
           assert all(m in h for m in ['January','February','March','April','May','June','July','August','September','October','November','December'])
           for t in ["from './seasonal-sky.js'",'const DPR=2','wetCanvas','refractOffset','rainLayer','snowLayer','heatOffset','currentBolt','triggerLightning','preserveDrawingBuffer:false','antialias:false']:
               assert t in base,t
-          for t in ['cloudBank','spanEnvelope','farL=cloudBank','mainL=cloudBank','nearL=cloudBank','3 cloud layers','ios-weather-style-bangkok-compositor-v10','UNPACK_FLIP_Y_WEBGL,true','refractOffset=wetNormal*.0090']:
+          for t in ['ellipseSdf','smin','bankSdf','cloudBank','farL=cloudBank','mainL=cloudBank','nearL=cloudBank','ios-weather-style-bangkok-compositor-v11','UNPACK_FLIP_Y_WEBGL,true','refractOffset=wetNormal*.0090']:
               assert t in tuned,t
           assert 'for(int i=0;i<12;i++)' not in tuned
           PY
@@ -54,8 +54,8 @@ jobs:
           sleep 8
           for path in /volumetric-weather-final.html /volumetric-weather-final.js /volumetric-weather-final-tuned.js /seasonal-sky.js; do curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/final-response; test -s /tmp/final-response; done
           curl --fail --silent --show-error --location "${BASE_URL}/volumetric-weather-final-tuned.js" -o /tmp/tuned.js
-          grep -q 'ios-weather-style-bangkok-compositor-v10' /tmp/tuned.js
-          grep -q 'spanEnvelope' /tmp/tuned.js
+          grep -q 'ios-weather-style-bangkok-compositor-v11' /tmp/tuned.js
+          grep -q 'ellipseSdf' /tmp/tuned.js
           grep -q 'UNPACK_FLIP_Y_WEBGL,true' /tmp/tuned.js
       - name: Install Chromium
         run: |
