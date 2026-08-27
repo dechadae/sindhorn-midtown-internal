@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v22-notification-messages-live-sky-color-calibration-web-push-current-location';
+const VERSION='sindhorn-midtown-internal-pwa-v22-notification-messages-live-sky-color-calibration-web-push-location-fixtures-current-location';
 const UI_PACK_CACHE='sindhorn-midtown-ui-pack-v1';
 const NOTIFICATION_DB='sindhorn-midtown-notification-inbox';
 const NOTIFICATION_STORE='messages';
