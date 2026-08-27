@@ -32,7 +32,8 @@ The single-shell router invariant is mandatory for all authenticated app feature
 - **Typography invariant: every font and text treatment in Sindhorn Midtown Internal uses zero character tracking (`letter-spacing: 0`). Do not introduce positive or negative tracking anywhere in the PWA, auth, admin, messages, or future modules.**
 - **Single-shell navigation invariant: every authenticated current or future screen is an SPA route mounted inside the persistent `#route-view`. Header, footer, atmosphere, auth session and app document must never unload between authenticated screens. `/login.html` is the only intentional standalone document boundary. Never add another standalone authenticated HTML page or a full-document navigation to one.**
 - **Transition invariant: authenticated navigation animates only `#route-view` with the shared opacity crossfade. Never animate the document root, header, footer or atmosphere, and never use browser-dependent cross-document View Transitions as the primary app navigation mechanism.**
-- Messages is a fourth footer destination and its device-local inbox works offline.
+- **Footer navigation invariant: the authenticated footer is `Today / F&B / Messages`. Guidance and Details are not standalone footer routes; their existing presentation fragments are composed below Today in the same continuous page. F&B is currently an intentionally empty in-shell route reserved for the F&B module.**
+- Messages remains a footer destination and its device-local inbox works offline.
 - Environmental Alerts / Web Push is user-gesture initiated only; never auto-prompt notification permission.
 - Current device location drives Open-Meteo weather and sun/moon astronomy after permission; fallback is Sindhorn Midtown Bangkok.
 - AirBKK is authoritative for PM2.5 and Thai AQI.
@@ -53,6 +54,8 @@ At the Phase 8.2 implementation start on 2026-08-27, live verification showed:
 - Pack 38 is the only enabled pack.
 - Pack 38 has nine enabled rows: `manifest.json`, `header.html`, `today.html`, `guidance.html`, `details.html`, `messages.html`, `footer.html`, `ui.css`, `environment-config.json`.
 - Manifest: `appPack=38`, `minimumShell=17`, `environmentConfig=3`.
+
+The current shell may compose multiple validated presentation fragments into one SPA route. Today composes `today.html`, `guidance.html` and `details.html`; this does not require mutating Pack 38 or its manifest.
 
 Always re-query live Supabase before relying on those values in a later session.
 
