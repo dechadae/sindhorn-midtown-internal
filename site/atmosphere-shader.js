@@ -54,9 +54,9 @@ void main(){
     highA=sat(high*uHighOpacity*.58);c=mix(c,highCol,highA);
   }
 
-  // 2) Mid broken cloud. Two RGBA samples retain body + edge detail.
+  // 2) Mid broken cloud. Wide, vertically compact sampling keeps bodies rounded and fluffy.
   if(uMidCoverage>.003&&uMidOpacity>.003){
-    vec2 mp=(p+drift*.72)*vec2(1.28,.82)*max(.2,uMidScale);
+    vec2 mp=(p+drift*.72)*vec2(.90,1.08)*max(.2,uMidScale);
     vec4 m0=noise4(mp*.052+vec2(.173,.071));vec4 m1=noise4(mp*(.112+.014*uMidDetail)+vec2(.419,.227));
     float mb=m0.r*.66+m0.g*.34;float ml=m0.b*.46+m1.g*.34+m1.a*.20;float mf=mb*.50+ml*.35+m1.r*.15;
     float mt=mix(.81,.38,sat(uMidCoverage));float edge=max(.016,uMidSoftness/max(.55,uCloudContrast));float mid=smoothstep(mt-edge,mt+edge,mf);
@@ -66,9 +66,10 @@ void main(){
     midA=sat(mid*uMidOpacity);c=mix(c,midCol,midA);
   }
 
-  // 3) Low convective / monsoon. Two samples retain broad mass and vertical detail.
+  // 3) Low convective / monsoon. Build adds crown structure without vertically stretching the mass.
   if(uLowCoverage>.003&&uLowOpacity>.003){
-    vec2 lp=(p+drift*.44)*vec2(.78,1.02/max(.3,uLowBuild))*max(.2,uLowScale);
+    float lowBuildRound=sat((uLowBuild-1.0)/.8);
+    vec2 lp=(p+drift*.44)*vec2(.72,.96+.10*lowBuildRound)*max(.2,uLowScale);
     vec4 l0=noise4(lp*.047+vec2(.337,.149));vec4 l1=noise4(lp*.103+vec2(.097,.463));
     float lb=l0.b*.68+l0.r*.32;float ll=l0.a*.44+l1.g*.36+l1.b*.20;float lf=lb*.58+ll*.32+l1.r*.10+horizon*.08*sat(uLowBuild-1.0);
     float lt=mix(.83,.34,sat(uLowCoverage))-uConnected*.13;float low=smoothstep(lt-.10/max(.7,uCloudContrast),lt+.10/max(.7,uCloudContrast),lf);
