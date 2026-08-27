@@ -71,10 +71,31 @@ async function inspect(viewport,name){
   return {...state,...pacing};
 }
 
-let desktop=null,mobile=null,appState=null,fatal=null;
+async function captureDenseMonsoon(){
+  const viewport={width:390,height:844},name='cloud-tester-mobile-aug-storm';
+  const page=await browser.newPage({viewport,screen:viewport});
+  page.on('pageerror',err=>errors.push(`${name}: ${err.message}`));
+  page.on('console',msg=>{if(msg.type()==='error')errors.push(`${name} console: ${msg.text()}`)});
+  await page.goto(`${base}/cloud-tester.html`,{waitUntil:'domcontentloaded',timeout:45000});
+  await page.waitForFunction(()=>document.querySelector('#readout')?.textContent?.includes('renderer   shared Phase 8.2'),null,{timeout:15000});
+  await page.evaluate(()=>{
+    const preset=document.querySelector('#preset');preset.value='augStorm';
+    document.querySelector('#applyPreset')?.click();
+    document.querySelector('#hidePanel')?.click();
+  });
+  await page.waitForTimeout(700);
+  const readout=await page.locator('#readout').textContent();
+  if(!readout?.includes('weather   thunderstorm')||!readout.includes('low       100%'))throw new Error(`${name}: dense monsoon preset failed: ${readout}`);
+  await page.screenshot({path:`phase82-artifacts/${name}.png`,fullPage:true});
+  await page.close();
+  return{viewport:[390,844],readout};
+}
+
+let desktop=null,mobile=null,denseMonsoon=null,appState=null,fatal=null;
 try{
   desktop=await inspect({width:1440,height:1000},'cloud-tester-desktop-sun');
   mobile=await inspect({width:390,height:844},'cloud-tester-mobile-sun');
+  denseMonsoon=await captureDenseMonsoon();
   const viewport={width:390,height:844};
   const root=await browser.newPage({viewport,screen:viewport});
   root.on('pageerror',err=>errors.push(`app: ${err.message}`));
@@ -103,7 +124,7 @@ try{
   await root.close();
 }catch(error){fatal=error;errors.push(`fatal: ${error.message}`)}finally{
   await browser.close();
-  const metrics={benchmark:'CPU-only SwANGLE diagnostic; physical GPU acceptance remains separate',desktop,mobile,appState,errors};
+  const metrics={benchmark:'CPU-only SwANGLE diagnostic; physical GPU acceptance remains separate',desktop,mobile,denseMonsoon,appState,errors};
   fs.writeFileSync('phase82-artifacts/metrics.json',JSON.stringify(metrics,null,2));console.log(JSON.stringify(metrics,null,2));
 }
 if(fatal)throw fatal;
