@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - phase9-internal-auth-broadcast
+      - phase9-contact-otp
       - main
     paths:
       - "auth-worker/**"
       - "site/auth-client.js"
+      - "site/login-contact-otp.js"
       - "test/auth-client.test.mjs"
       - "supabase/migrations/*phase9*"
       - "docs/PHASE9-*"
@@ -17,6 +19,7 @@ on:
     paths:
       - "auth-worker/**"
       - "site/auth-client.js"
+      - "site/login-contact-otp.js"
       - "test/auth-client.test.mjs"
       - "supabase/migrations/*phase9*"
       - "docs/PHASE9-*"
@@ -47,8 +50,11 @@ jobs:
           node --check auth-worker/src/security.js
           node --check auth-worker/src/rate-limit.js
           node --check auth-worker/src/index.js
+          node --check auth-worker/src/contact-otp.js
+          node --check auth-worker/src/worker.js
           node --check auth-worker/test.mjs
           node --check site/auth-client.js
+          node --check site/login-contact-otp.js
           node --check test/auth-client.test.mjs
 
       - name: Auth broker tests
@@ -69,14 +75,15 @@ jobs:
           grep -q "@auth.invalid" auth-worker/src/security.js
           grep -q "normalizeEmail" auth-worker/src/security.js
           grep -q "token_hash:tokenHash,type:'email'" site/auth-client.js
-          grep -q "signInWithMicrosoft" site/auth-client.js
-          grep -q "'/microsoft/link'" auth-worker/src/index.js
-          grep -q "'/admin/users'" auth-worker/src/index.js
+          grep -q "'/otp/request'" auth-worker/src/contact-otp.js
+          grep -q "'/otp/verify'" auth-worker/src/contact-otp.js
+          grep -q "sindhorn_contact_login_lookup" supabase/migrations/*phase9_contact_otp_foundation.sql
+          grep -q "sindhorn_private.employee_contacts" supabase/migrations/*phase9_contact_otp_foundation.sql
+          grep -q "from public, anon, authenticated" supabase/migrations/*phase9_contact_otp_foundation.sql
+          grep -q "to service_role" supabase/migrations/*phase9_contact_otp_foundation.sql
           grep -q "sindhorn_employee_identities" supabase/migrations/*phase9c_dual_login_identity_foundation.sql
           grep -q "current_employee_id" supabase/migrations/*phase9c_identity_authorization.sql
-          grep -q "to service_role" supabase/migrations/*phase9_identity_service_role_grant.sql
           grep -q "sindhorn_admin_create_employee" supabase/migrations/*phase9_admin_user_rpc.sql
-          grep -q "sindhorn_admin_update_employee" supabase/migrations/*phase9_admin_user_rpc.sql
           grep -q "sindhorn_record_admin_audit" supabase/migrations/*phase9_admin_audit_rpc.sql
           ! grep -R -E "SUPABASE_(SERVICE_ROLE|SECRET)_KEY['\"]?[[:space:]]*[:=][[:space:]]*['\"][^$]" auth-worker || false
 
@@ -95,7 +102,7 @@ jobs:
         run: npx --yes wrangler@4.125.0 deploy --dry-run --config wrangler.preview.jsonc
 
       - name: Deploy preview Auth Worker
-        if: github.event_name == 'push' && github.ref == 'refs/heads/phase9-internal-auth-broadcast'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/phase9-internal-auth-broadcast' || github.ref == 'refs/heads/phase9-contact-otp')
         working-directory: auth-worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -103,7 +110,7 @@ jobs:
         run: npx --yes wrangler@4.125.0 deploy --config wrangler.preview.jsonc
 
       - name: Verify preview runtime secrets
-        if: github.event_name == 'push' && github.ref == 'refs/heads/phase9-internal-auth-broadcast'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/phase9-internal-auth-broadcast' || github.ref == 'refs/heads/phase9-contact-otp')
         shell: bash
         run: |
           set -euo pipefail
