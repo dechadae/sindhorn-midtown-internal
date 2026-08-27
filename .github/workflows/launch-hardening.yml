@@ -72,6 +72,7 @@ jobs:
           index=(root/'index.html').read_text()
           assert '/sky-calibration.js?v=1' in index
           assert '/sky-color-renderer.js?v=1' in index
+          assert '/push-client.js?v=2' in index
 
           sw=(root/'sw.js').read_text()
           assert "UI_PACK_CACHE='sindhorn-midtown-ui-pack-v1'" in sw
@@ -88,6 +89,9 @@ jobs:
           assert 'pushManager.subscribe' in push
           assert 'enableFromGesture' in push
           assert 'Notification.requestPermission' not in push
+          assert "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in push
+          assert 'PREPARE_TIMEOUT_MS' in push
+          assert 'Retry alerts' in push
 
           sky=(root/'sky-calibration.js').read_text()
           assert 'sindhorn-midtown-sky.decha-dae.workers.dev' in sky
@@ -118,6 +122,7 @@ jobs:
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
               && grep -q '/sky-calibration.js?v=1' /tmp/root.html \
               && grep -q '/sky-color-renderer.js?v=1' /tmp/root.html \
+              && grep -q '/push-client.js?v=2' /tmp/root.html \
               && grep -q 'SindhornSkyCalibration' /tmp/sky-calibration.js \
               && grep -q 'SindhornSkyColorRenderer' /tmp/sky-color-renderer.js \
               && grep -q 'pwa-v21-live-sky-color-calibration' /tmp/sw.js; then
@@ -136,9 +141,11 @@ jobs:
           curl --fail --silent --show-error --retry 24 --retry-all-errors --retry-delay 3 "${SKY_WORKER}/health" -o /tmp/sky-health.json
           curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${SKY_WORKER}/calibration" -o /tmp/sky-vector.json
 
-          grep -q '/push-client.js?v=1' /tmp/root.html
+          grep -q '/push-client.js?v=2' /tmp/root.html
           grep -q 'Current location' /tmp/location.js
           grep -q 'pushManager.subscribe' /tmp/push-client.js
+          grep -q 'PREPARE_TIMEOUT_MS' /tmp/push-client.js
+          grep -q 'Retry alerts' /tmp/push-client.js
           ! grep -q 'Notification.requestPermission' /tmp/push-client.js
           grep -q "addEventListener('push'" /tmp/sw.js
           grep -q "addEventListener('notificationclick'" /tmp/sw.js
