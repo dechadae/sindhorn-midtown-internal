@@ -11,9 +11,11 @@ on:
       - hotfix-phase6-location-gate
       - fix-airbkk-proxy-worker
       - fix-airbkk-worker-request
+      - fix-airbkk-client-proxy
       - main
     paths:
       - "worker/**"
+      - "site/live-data.js"
       - "site/push-config.js"
       - "site/push-client.js"
       - "site/index.html"
@@ -46,6 +48,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check worker/src/index.js
+          node --check site/live-data.js
           node --check site/push-client.js
           node --check site/push-config.js
           node --check site/sw.js
@@ -66,6 +69,11 @@ jobs:
           grep -q "addEventListener('notificationclick'" site/sw.js
           grep -q "Current location" site/location.js
           grep -q "weatherLocationEn" site/location.js
+          grep -q "import {PUSH_API_BASE} from './push-config.js'" site/live-data.js
+          grep -q "PUSH_API_BASE+'/air-current'" site/live-data.js
+          ! grep -q "stations.airbkk.com/api/web/data" site/live-data.js
+          grep -Fq "sindhorn-midtown-alerts.decha-dae.workers.dev" site/index.html
+          ! grep -Fq "stations.airbkk.com" site/index.html
           grep -q "buildPushPayload" worker/src/index.js
           grep -q "scheduled" worker/src/index.js
           grep -q "push_subscriptions" worker/src/index.js
@@ -178,16 +186,22 @@ jobs:
           BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
           BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /guidance /details /location.js /push-config.js /push-client.js /sw.js; do
+          for path in / /guidance /details /location.js /live-data.js /push-config.js /push-client.js /sw.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
             test -s /tmp/smoke
           done
           CLIENT="$(curl --fail --silent --show-error "${BASE_URL}/push-client.js")"
-          grep -q '/push-client.js?v=2' <(curl --fail --silent --show-error "${BASE_URL}/")
+          AIR_CLIENT="$(curl --fail --silent --show-error "${BASE_URL}/live-data.js")"
+          ROOT="$(curl --fail --silent --show-error "${BASE_URL}/")"
+          grep -q '/push-client.js?v=2' <<<"${ROOT}"
           grep -q 'pushManager.subscribe' <<<"${CLIENT}"
           grep -q "navigator.serviceWorker.register('/sw.js',{scope:'/'})" <<<"${CLIENT}"
           grep -q 'PREPARE_TIMEOUT_MS' <<<"${CLIENT}"
           grep -q 'Retry alerts' <<<"${CLIENT}"
+          grep -q "PUSH_API_BASE+'/air-current'" <<<"${AIR_CLIENT}"
+          ! grep -q 'stations.airbkk.com/api/web/data' <<<"${AIR_CLIENT}"
+          grep -q 'sindhorn-midtown-alerts.decha-dae.workers.dev' <<<"${ROOT}"
+          ! grep -q 'stations.airbkk.com' <<<"${ROOT}"
           grep -q 'Current location' <(curl --fail --silent --show-error "${BASE_URL}/location.js")
           SW="$(curl --fail --silent --show-error "${BASE_URL}/sw.js")"
           grep -q "web-push-location" <<<"${SW}"
