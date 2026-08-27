@@ -9,6 +9,7 @@ on:
       - bust-push-client-v2
       - cleanup-sample-alert-20260827
       - hotfix-phase6-location-gate
+      - fix-airbkk-proxy-worker
       - main
     paths:
       - "worker/**"
@@ -68,6 +69,8 @@ jobs:
           grep -q "scheduled" worker/src/index.js
           grep -q "push_subscriptions" worker/src/index.js
           grep -q "monitor_state" worker/src/index.js
+          grep -q "url.pathname==='/air-current'" worker/src/index.js
+          grep -q "origin_not_allowed" worker/src/index.js
           ! grep -q "test-alert" worker/src/index.js
           ! grep -q "sampleAlertPayload" worker/src/index.js
           grep -q 'database_name' worker/wrangler.jsonc
@@ -110,6 +113,25 @@ jobs:
       - name: Deploy alert Worker on production merge
         if: github.ref_name == 'main'
         run: npx --yes wrangler@4.125.0 deploy --config worker/wrangler.jsonc
+
+      - name: Verify production AirBKK proxy
+        if: github.ref_name == 'main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ORIGIN="https://sindhorn-midtown-internal.pages.dev"
+          curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 \
+            -H "Origin: ${ORIGIN}" "${WORKER_URL}/air-current" -D /tmp/air-headers -o /tmp/air.json
+          grep -qi "access-control-allow-origin: ${ORIGIN}" /tmp/air-headers
+          python3 - <<'PY'
+          import json
+          from datetime import datetime
+          d=json.load(open('/tmp/air.json'))
+          assert str(d.get('stationId')) in {'114','139','65'}
+          pm=float(d['pm']); aqi=float(d['aqi'])
+          assert 0 <= pm <= 500 and 0 <= aqi <= 500
+          datetime.fromisoformat(str(d['observedAt']).replace('Z','+00:00'))
+          PY
 
       - name: Deploy branch Pages preview
         if: github.ref_name != 'main'
