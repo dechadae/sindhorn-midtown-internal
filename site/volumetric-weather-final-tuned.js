@@ -1,6 +1,43 @@
-const sourceUrl=new URL('./volumetric-weather-final.js',import.meta.url);sourceUrl.searchParams.set('tune','baseline-clouds-wet-glass-v7');const seasonalUrl=new URL('./seasonal-sky.js',import.meta.url).href;let source=await fetch(sourceUrl,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(`base renderer ${r.status}`);return r.text()});source=source.replace("from './seasonal-sky.js'",`from '${seasonalUrl}'`);
-const cloudEdits=[["float densityAt(vec3 p,float skyY){","float densityAt(vec3 p,vec2 screenUv){"],["float h=sat((p.y-.72)/2.05),bottom=smoothstep(.015,.10,h),top=mix(.46,.97,uVerticalBuild),upper=1.-smoothstep(top,min(1.,top+.16),h),vertical=bottom*upper;","float skyY=screenUv.y;float h=sat((p.y-.72)/2.05),bottom=smoothstep(.015,.10,h),top=mix(.46,.97,uVerticalBuild),upper=1.-smoothstep(top,min(1.,top+.16),h),vertical=bottom*upper;"],["vec3 q=vec3(p.x*.020+uWind.x,p.z*.037+uWind.y,h*.52+uTime*.00012);","vec3 q=vec3(p.x*.070+uWind.x,p.z*.065+uWind.y,h*.52+uTime*.00012);"],["float broad=n0*.64+n1*.25+n2*.11,weather=texture(uWeatherTex,p.xz*.018+uWind*.32).r;","float broad=n0*.64+n1*.25+n2*.11,weather=texture(uWeatherTex,vec2(screenUv.x*.62,screenUv.y*.44)+uWind*.32).r;"],["float threshold=mix(.73,.31,uCoverage)-skyY*.065-uConnected*.11;","float threshold=mix(.84,.40,uCoverage)-skyY*.035-uConnected*.08;"],["float field=broad+(weather-.5)*.48+uConnected*.16;","float field=broad+(weather-.5)*.68+uConnected*.10;"],["field-=er*uErosion*.23*edge*(.58+.42*h);","field-=er*uErosion*.18*edge*(.58+.42*h);"],["float d=smoothstep(threshold-.07,threshold+.055,field)*vertical*uDensity;\n d*=mix(.98,1.24,skyY);return d*sat(uCoverage*1.2);","float d=smoothstep(threshold-.07,threshold+.055,field)*vertical*uDensity;\n d*=mix(.72,1.18,broad);d*=mix(.94,1.12,skyY);return d*sat(uCoverage*1.2);"],["float d=densityAt(p,vUv.y);","float d=densityAt(p,vUv);"],["vec3 sq=vec3((p.x+uSunDir.x*.65)*.020+uWind.x,(p.z+uSunDir.z*.65)*.037+uWind.y,h*.52+uSunDir.y*.10);","vec3 sq=vec3((p.x+uSunDir.x*.65)*.070+uWind.x,(p.z+uSunDir.z*.65)*.065+uWind.y,h*.52+uSunDir.y*.10);"],["vec3 light=mix(uCloudBase,uCloudAmbient,sat(.18+baseShade*.76));light*=mix(.36,1.,selfShadow);","vec3 light=mix(uCloudBase,uCloudAmbient,sat(.18+baseShade*.76));light*=mix(.36,1.,selfShadow);light*=mix(.64,1.04,blocker);"]];for(const [a,b] of cloudEdits){if(!source.includes(a))throw new Error(`v7 cloud contract missing: ${a.slice(0,72)}`);source=source.replace(a,b)}
-const wetStart=source.indexOf('function updateWetness(dt){');const wetEnd=source.indexOf('\nupdateWetness(16);',wetStart);if(wetStart<0||wetEnd<0)throw new Error('v7 wet-glass contract missing');const wet=`function updateWetness(dt){
+const sourceUrl=new URL('./volumetric-weather-final.js',import.meta.url);sourceUrl.searchParams.set('tune','ios-weather-compositor-v8');const seasonalUrl=new URL('./seasonal-sky.js',import.meta.url).href;let source=await fetch(sourceUrl,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(`base renderer ${r.status}`);return r.text()});source=source.replace("from './seasonal-sky.js'",`from '${seasonalUrl}'`);
+
+// iOS-Weather-style cloud compositor: real Bangkok palette underneath, art-directed 2.5D animation above.
+const shaderStart=source.indexOf('const VOLUME_FS=`');const shaderEnd=source.indexOf('const COMPOSITE_FS=`',shaderStart);if(shaderStart<0||shaderEnd<0)throw new Error('iOS compositor shader contract missing');
+const iosCloudShader=`const VOLUME_FS=\`#version 300 es
+precision highp float;precision highp sampler3D;in vec2 vUv;out vec4 outColor;
+uniform sampler3D uBaseNoise,uErosionNoise;uniform sampler2D uWeatherTex;uniform vec2 uResolution,uWind;uniform vec3 uSunDir,uCloudAmbient,uCloudWarm,uCloudBase,uLightningPos;uniform float uTime,uCoverage,uDensity,uErosion,uVerticalBuild,uConnected,uBaseDarkness,uPhaseG,uStorm,uLightningFlash;uniform int uSteps;
+float sat(float x){return clamp(x,0.,1.);} 
+float cloudNoise(vec2 uv,float z,float scale){vec2 p=vec2(uv.x*scale,uv.y*scale*2.15);float a=texture(uBaseNoise,vec3(p,z)).r;float b=texture(uBaseNoise,vec3(p*1.92+vec2(.19,.31),z+.23)).g;float c=texture(uBaseNoise,vec3(p*3.55+vec2(.47,.07),z+.51)).b;return a*.58+b*.29+c*.13;}
+float coverNoise(vec2 uv,float z,float speed){vec2 d=uWind*speed;float w=texture(uWeatherTex,vec2(uv.x*.92+d.x,uv.y*.32+d.y+z)).r;float n=texture(uBaseNoise,vec3(uv.x*.86+d.x,uv.y*.26+d.y,z+.17)).a;return w*.60+n*.40;}
+vec4 cloudLayer(vec2 uv,float center,float halfH,float scale,float speed,float opacity,float z,float depth){
+ float storm=uStorm,build=uVerticalBuild;
+ float n=cloudNoise(uv+uWind*speed,z,scale);float nTop=cloudNoise(uv+uWind*speed*.82+vec2(.13,.04),z+.37,scale*.82);float cov=coverNoise(uv,z,speed*.48);
+ float coverThreshold=mix(.78,.34,uCoverage)-uConnected*.22+depth*.035;float gate=smoothstep(coverThreshold-.075,coverThreshold+.075,cov);
+ gate=mix(gate,1.,sat(uConnected*(.72-depth*.12)));
+ float base=center-halfH+(n-.5)*mix(.028,.014,storm);float top=center+halfH+(nTop-.5)*(.16+.24*build)+storm*.055;
+ float lower=smoothstep(base-.030,base+.018,uv.y);float upper=1.-smoothstep(top-.050,top+.075,uv.y);float body=lower*upper;
+ float er=texture(uErosionNoise,vec3(uv.x*scale*3.6+uWind.x*speed,uv.y*scale*5.2+uWind.y*speed,z+.61)).r;
+ float edgeBand=1.-smoothstep(.03,.15,min(abs(uv.y-base),abs(uv.y-top)));body*=mix(1.,smoothstep(.25,.67,er),uErosion*.42*edgeBand);
+ float alpha=body*gate*opacity*sat(uCoverage*1.30)*mix(.82,1.08,uDensity);float rel=sat((uv.y-base)/max(.05,top-base));
+ float baseLight=mix(.28,1.,pow(rel,.72));baseLight*=mix(1.,.50,uBaseDarkness*(1.-rel));baseLight*=mix(1.,.72,storm*(1.-rel*.35));
+ vec3 color=mix(uCloudBase,uCloudAmbient,sat(.18+baseLight*.82));float sunWarm=sat(1.-abs(uSunDir.y));float rim=smoothstep(.66,.98,rel)*sunWarm*(.08+.12*sat(uSunDir.x*.5+.5));color=mix(color,uCloudWarm,rim);
+ float flash=uLightningFlash*exp(-length(vec2(uv.x-.56,uv.y-.52))*5.2);color+=vec3(.58,.70,1.)*flash*(.20+.38*alpha);
+ return vec4(color,sat(alpha));
+}
+void over(inout vec3 rgb,inout float a,vec4 l){float w=l.a*(1.-a);rgb+=l.rgb*w;a+=w;}
+void main(){vec2 uv=vUv;float storm=sat(uStorm),conn=sat(uConnected);
+ vec4 farL=cloudLayer(uv,.76,.10+.045*uVerticalBuild,1.45,.20,.34+.18*conn,.13,.85);
+ vec4 mainL=cloudLayer(uv,.53-.025*storm,.145+.105*uVerticalBuild+.075*storm,1.05,.44,.78+.20*conn,.47,.35);
+ vec4 nearL=cloudLayer(uv,.28-.015*storm,.105+.070*uVerticalBuild+.060*storm,.78,.70,.55+.30*conn,.79,.08);
+ vec3 rgb=vec3(0.);float a=0.;over(rgb,a,farL);over(rgb,a,mainL);over(rgb,a,nearL);
+ if(a>.001)rgb/=a;outColor=vec4(rgb,a);
+}\`;\n`;
+source=source.slice(0,shaderStart)+iosCloudShader+source.slice(shaderEnd);
+
+// Raise the cloud pass resolution now that the expensive ray marcher is gone.
+source=source.replace("const QUALITY={economy:{steps:8,scale:.24},balanced:{steps:10,scale:.30},high:{steps:12,scale:.36}};","const QUALITY={economy:{steps:3,scale:.42},balanced:{steps:3,scale:.50},high:{steps:3,scale:.62}};");
+
+// Keep the approved rain / wet-window refinements, including correct gravity orientation.
+const wetStart=source.indexOf('function updateWetness(dt){');const wetEnd=source.indexOf('\nupdateWetness(16);',wetStart);if(wetStart<0||wetEnd<0)throw new Error('iOS compositor wet-glass contract missing');const wet=`function updateWetness(dt){
  wetCtx.fillStyle='rgba(0,0,0,.20)';wetCtx.fillRect(0,0,256,256);
  if(state.windowRain>.005){
   const target=Math.round(18+state.windowRain*112);
@@ -10,4 +47,8 @@ const wetStart=source.indexOf('function updateWetness(dt){');const wetEnd=source
   wetCtx.globalCompositeOperation='source-over'
  }else drops=[];
  gl.bindTexture(gl.TEXTURE_2D,wetTex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,gl.RGBA,gl.UNSIGNED_BYTE,wetCanvas);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false)
-}`;source=source.slice(0,wetStart)+wet+source.slice(wetEnd);source=source.replace('refractOffset=wetNormal*.0065*uWindowRain*uWindowRefraction','refractOffset=wetNormal*.0090*uWindowRain*uWindowRefraction').replace("float wetRim=sat(wet*1.2)*uWindowRain,wetSpec=sat(length(wetNormal)*7.)*uWindowRain;c+=vec3(.84,.90,.96)*(wetRim*.010+wetSpec*.028);","float wetRim=sat(wet*1.35)*uWindowRain,wetSpec=sat(length(wetNormal)*8.5)*uWindowRain;float glassSheen=uWindowRain*.018;c=mix(c,c*vec3(.985,.992,1.015),glassSheen);c+=vec3(.84,.90,.96)*(wetRim*.016+wetSpec*.040);").replace('windowRain:.46,trickleRate:.82,windowRefraction:.78','windowRain:.62,trickleRate:.82,windowRefraction:.92').replace("renderer:'ue-inspired-webgl2-volumetric-weather-final-v2'","renderer:'ue-inspired-webgl2-volumetric-weather-final-v7'");const blob=new Blob([source],{type:'text/javascript'}),blobUrl=URL.createObjectURL(blob);try{await import(blobUrl)}catch(error){window.__volumetricWeatherFinalError=String(error?.stack||error);console.error('Volumetric final bootstrap failed',error);throw error}finally{setTimeout(()=>URL.revokeObjectURL(blobUrl),10000)}
+}`;source=source.slice(0,wetStart)+wet+source.slice(wetEnd);
+source=source.replace('refractOffset=wetNormal*.0065*uWindowRain*uWindowRefraction','refractOffset=wetNormal*.0090*uWindowRain*uWindowRefraction').replace("float wetRim=sat(wet*1.2)*uWindowRain,wetSpec=sat(length(wetNormal)*7.)*uWindowRain;c+=vec3(.84,.90,.96)*(wetRim*.010+wetSpec*.028);","float wetRim=sat(wet*1.35)*uWindowRain,wetSpec=sat(length(wetNormal)*8.5)*uWindowRain;float glassSheen=uWindowRain*.018;c=mix(c,c*vec3(.985,.992,1.015),glassSheen);c+=vec3(.84,.90,.96)*(wetRim*.016+wetSpec*.040);").replace('windowRain:.46,trickleRate:.82,windowRefraction:.78','windowRain:.62,trickleRate:.82,windowRefraction:.92');
+source=source.replace("document.getElementById('stepsReadout').textContent=`${q.steps} ray steps · ${Math.round(q.scale*100)}%`;","document.getElementById('stepsReadout').textContent=`3 cloud layers · ${Math.round(q.scale*100)}%`;" );
+source=source.replace("renderer:'ue-inspired-webgl2-volumetric-weather-final-v2'","renderer:'ios-weather-style-bangkok-compositor-v8'");
+const blob=new Blob([source],{type:'text/javascript'}),blobUrl=URL.createObjectURL(blob);try{await import(blobUrl)}catch(error){window.__volumetricWeatherFinalError=String(error?.stack||error);console.error('iOS Weather compositor bootstrap failed',error);throw error}finally{setTimeout(()=>URL.revokeObjectURL(blobUrl),10000)}
