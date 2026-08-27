@@ -28,7 +28,8 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      SKY_WORKER_URL: https://sindhorn-midtown-sky.decha-dae.workers.dev
+      PREVIEW_SKY_WORKER_URL: https://sindhorn-midtown-sky-preview.decha-dae.workers.dev
+      PRODUCTION_SKY_WORKER_URL: https://sindhorn-midtown-sky.decha-dae.workers.dev
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -41,7 +42,7 @@ jobs:
           node --check site/sky-calibration.js
           node --check site/sw.js
           grep -q '/sky-color-renderer.js?v=1' site/index.html
-          grep -q "id='skyCalibrationCanvas'\|id=\"skyCalibrationCanvas\"\|canvas.id='skyCalibrationCanvas'" site/sky-color-renderer.js
+          grep -q "canvas.id='skyCalibrationCanvas'" site/sky-color-renderer.js
           grep -q 'sunrise-east' site/sky-color-renderer.js
           grep -q 'sunset-west' site/sky-color-renderer.js
           grep -q 'zenithRgb' site/sky-color-renderer.js
@@ -55,6 +56,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            SKY_WORKER_URL="${PRODUCTION_SKY_WORKER_URL}"
+          else
+            SKY_WORKER_URL="${PREVIEW_SKY_WORKER_URL}"
+          fi
           curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${SKY_WORKER_URL}/health" -o /tmp/sky-health.json
           python3 - <<'PY'
           import json
