@@ -8,6 +8,7 @@ on:
     paths:
       - "sky-worker/**"
       - "site/sky-calibration.js"
+      - "site/sky-color-renderer.js"
       - "site/index.html"
       - "site/app.js"
       - "site/sw.js"
@@ -66,13 +67,20 @@ jobs:
         run: |
           set -euo pipefail
           node --check site/sky-calibration.js
+          node --check site/sky-color-renderer.js
           node --check site/app.js
           node --check site/sw.js
           grep -q '/sky-calibration.js?v=1' site/index.html
+          grep -q '/sky-color-renderer.js?v=1' site/index.html
           grep -q "SindhornSkyCalibration" site/sky-calibration.js
+          grep -q "SindhornSkyColorRenderer" site/sky-color-renderer.js
+          grep -q 'zenithRgb' site/sky-color-renderer.js
+          grep -q 'horizonRgb' site/sky-color-renderer.js
+          grep -q 'compositeExport' site/sky-color-renderer.js
           grep -q "SindhornSkyCalibration?.refresh" site/app.js
           grep -q "'/sky-calibration.js'" site/sw.js
-          grep -q 'pwa-v20-live-sky-calibration' site/sw.js
+          grep -q "'/sky-color-renderer.js'" site/sw.js
+          grep -q 'pwa-v21-live-sky-color-calibration' site/sw.js
           grep -q "addEventListener('push'" site/sw.js
           grep -q "addEventListener('notificationclick'" site/sw.js
 
@@ -162,15 +170,19 @@ jobs:
         run: |
           set -euo pipefail
           sleep 8
-          for path in / /sky-calibration.js /app.js /sw.js /environment.js /location.js /push-client.js; do
+          for path in / /sky-calibration.js /sky-color-renderer.js /app.js /sw.js /environment.js /location.js /push-client.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${PREVIEW_ORIGIN}${path}" -o "/tmp/phase8$(echo "$path" | tr '/.' '__')"
           done
           grep -q '/sky-calibration.js?v=1' /tmp/phase8_
+          grep -q '/sky-color-renderer.js?v=1' /tmp/phase8_
           grep -q 'sindhorn-midtown-sky-preview' /tmp/phase8_sky-calibration_js
           grep -q 'SindhornSkyCalibration' /tmp/phase8_sky-calibration_js
+          grep -q 'SindhornSkyColorRenderer' /tmp/phase8_sky-color-renderer_js
+          grep -q 'compositeExport' /tmp/phase8_sky-color-renderer_js
           grep -q 'SindhornSkyCalibration?.refresh' /tmp/phase8_app_js
-          grep -q 'pwa-v20-live-sky-calibration' /tmp/phase8_sw_js
+          grep -q 'pwa-v21-live-sky-color-calibration' /tmp/phase8_sw_js
           grep -q "'/sky-calibration.js'" /tmp/phase8_sw_js
+          grep -q "'/sky-color-renderer.js'" /tmp/phase8_sw_js
           grep -q "addEventListener('push'" /tmp/phase8_sw_js
           grep -q 'Current location' /tmp/phase8_location_js
 
@@ -201,13 +213,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for attempt in $(seq 1 20); do
+          for attempt in $(seq 1 24); do
             if curl --fail --silent --show-error --location "${PRODUCTION_ORIGIN}/" -o /tmp/prod-root \
               && curl --fail --silent --show-error --location "${PRODUCTION_ORIGIN}/sky-calibration.js" -o /tmp/prod-sky \
+              && curl --fail --silent --show-error --location "${PRODUCTION_ORIGIN}/sky-color-renderer.js" -o /tmp/prod-color \
               && curl --fail --silent --show-error --location "${PRODUCTION_ORIGIN}/sw.js" -o /tmp/prod-sw \
               && grep -q '/sky-calibration.js?v=1' /tmp/prod-root \
+              && grep -q '/sky-color-renderer.js?v=1' /tmp/prod-root \
               && grep -q 'sindhorn-midtown-sky.decha-dae.workers.dev' /tmp/prod-sky \
-              && grep -q 'pwa-v20-live-sky-calibration' /tmp/prod-sw; then
+              && grep -q 'SindhornSkyColorRenderer' /tmp/prod-color \
+              && grep -q 'pwa-v21-live-sky-color-calibration' /tmp/prod-sw; then
               exit 0
             fi
             sleep 3
