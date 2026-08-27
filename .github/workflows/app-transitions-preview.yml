@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - phase9-appwide-transitions
+      - hotfix-app-transitions-v2
     paths:
       - "site/app-transitions.css"
       - "site/app-transitions.js"
@@ -19,7 +20,7 @@ permissions:
   deployments: write
 
 concurrency:
-  group: sindhorn-midtown-app-transitions-preview
+  group: sindhorn-midtown-app-transitions-preview-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -39,14 +40,15 @@ jobs:
           set -euo pipefail
           node --check site/app-transitions.js
           grep -q -- '--app-transition-ms:280ms' site/app-transitions.css
-          grep -q '@view-transition' site/app-transitions.css
-          grep -q 'view-transition-old(root)' site/app-transitions.css
-          grep -q 'view-transition-new(root)' site/app-transitions.css
-          grep -q 'view-transition-old(app-route)' site/app-transitions.css
-          grep -q 'prefers-reduced-motion:reduce' site/app-transitions.css
-          grep -q 'document.startViewTransition' site/app-transitions.js
+          grep -q 'app-document-veil' site/app-transitions.css
+          grep -q 'routeOnlyFade' site/app-transitions.js
+          grep -q 'navigateDocument' site/app-transitions.js
           grep -q 'data-app-route' site/app-transitions.js
           grep -q 'SindhornAppPack' site/app-transitions.js
+          grep -q 'prefers-reduced-motion:reduce' site/app-transitions.css
+          ! grep -q '@view-transition' site/app-transitions.css
+          ! grep -q 'view-transition-old(root)' site/app-transitions.css
+          ! grep -q 'startViewTransition' site/app-transitions.js
           for page in site/index.html site/login.html site/account.html site/admin.html; do
             grep -q '/app-transitions.css' "$page"
             grep -q '/app-transitions.js' "$page"
@@ -70,8 +72,10 @@ jobs:
           done
           curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/app-transitions.css?${CACHE_BUST}" -o /tmp/app-transitions.css
           grep -q -- '--app-transition-ms:280ms' /tmp/app-transitions.css
-          grep -q '@view-transition' /tmp/app-transitions.css
+          grep -q 'app-document-veil' /tmp/app-transitions.css
+          ! grep -q '@view-transition' /tmp/app-transitions.css
           curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/app-transitions.js?${CACHE_BUST}" -o /tmp/app-transitions.js
-          grep -q 'transitionToRoute' /tmp/app-transitions.js
-          grep -q 'startViewTransition' /tmp/app-transitions.js
-          echo "Appwide transition preview verified at ${BASE_URL}"
+          grep -q 'routeOnlyFade' /tmp/app-transitions.js
+          grep -q 'navigateDocument' /tmp/app-transitions.js
+          ! grep -q 'startViewTransition' /tmp/app-transitions.js
+          echo "Appwide transition hotfix preview verified at ${BASE_URL}"
