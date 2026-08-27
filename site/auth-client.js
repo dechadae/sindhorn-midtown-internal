@@ -7,7 +7,11 @@ const REFRESH_SKEW_MS=90_000;
 
 let session=null,profile=null,refreshPromise=null,initialized=false;
 const hasWindow=typeof window!=='undefined';
-const authWorker=()=>hasWindow&&/\.sindhorn-midtown-internal\.pages\.dev$/i.test(location.hostname)&&location.hostname!=='sindhorn-midtown-internal.pages.dev'?AUTH_WORKER_PREVIEW:AUTH_WORKER_PROD;
+// First internal rollout bridge: the preview Worker already has the canonical
+// production Supabase/D1 bindings and production origin allow-list configured.
+// Keep all clients on it until the production Worker receives the same secrets,
+// then switch this selector back to AUTH_WORKER_PROD without changing identity data.
+const authWorker=()=>AUTH_WORKER_PREVIEW;
 const dispatch=(name,detail)=>{if(hasWindow&&typeof document!=='undefined')document.dispatchEvent(new CustomEvent(name,{detail}))};
 
 function safeParse(value){try{return JSON.parse(value)}catch(_){return null}}
