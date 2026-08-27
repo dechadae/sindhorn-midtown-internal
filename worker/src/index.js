@@ -7,7 +7,6 @@ const HOTEL_LON=100.54274;
 const MAX_AIR_AGE_MS=12*60*60*1000;
 const AIR_OUTAGE_ALERT_MS=60*60*1000;
 const PREVIEW_ORIGIN=/^https:\/\/[a-z0-9-]+\.sindhorn-midtown-internal\.pages\.dev$/i;
-const SAMPLE_ALERT_TOKEN='sample-20260827-0843-f7a1c9d4';
 
 const AIR_LEVELS=[
   {en:'Very good',th:'ดีมาก',guidanceEn:'Normal outdoor activities can continue.',guidanceTh:'สามารถทำกิจกรรมกลางแจ้งได้ตามปกติ'},
@@ -86,17 +85,6 @@ function airWorsePayload(air){return{kind:'air-quality-worse',tag:'air-quality-a
 function airBetterPayload(air){return{kind:'air-quality-better',tag:'air-quality-alert',route:'/guidance',titleEn:'AIR QUALITY HAS IMPROVED',titleTh:'คุณภาพอากาศดีขึ้น',bodyEn:`PM2.5 ${air.pm.toFixed(1)} µg/m³ · Thai AQI ${air.aqi}. Outdoor plans can be reassessed.`,bodyTh:`${air.categoryTh} · สามารถประเมินแผนกิจกรรมกลางแจ้งอีกครั้งได้`}}
 function weatherPayload(weather){return{kind:'severe-weather',tag:'weather-alert',route:'/',titleEn:'WEATHER ALERT NEAR SINDHORN MIDTOWN',titleTh:'แจ้งเตือนสภาพอากาศใกล้สินธร มิดทาวน์',bodyEn:`${weather.labelEn}. Wind gusts ${Math.round(weather.windGusts)} km/h · precipitation ${weather.precipitation.toFixed(1)} mm.`,bodyTh:`${weather.labelTh} · ลมกระโชก ${Math.round(weather.windGusts)} กม./ชม.`}}
 function outagePayload(){return{kind:'air-data-delay',tag:'air-data-alert',route:'/details',titleEn:'AIR QUALITY DATA DELAY',titleTh:'ข้อมูลคุณภาพอากาศล่าช้า',bodyEn:'AirBKK data has been unavailable for more than one hour. Check the app before making outdoor plans.',bodyTh:'ไม่สามารถรับข้อมูล AirBKK ได้นานกว่าหนึ่งชั่วโมง โปรดตรวจสอบแอปก่อนวางแผนกิจกรรมกลางแจ้ง'}}
-function sampleAlertPayload(){return{kind:'test-alert',tag:'test-alert',route:'/details',titleEn:'SINDHORN MIDTOWN ALERTS ARE ON',titleTh:'เปิดการแจ้งเตือนสินธร มิดทาวน์แล้ว',bodyEn:'Test alert received. Environmental alerts are working on this device.',bodyTh:'ได้รับการแจ้งเตือนทดสอบแล้ว ระบบแจ้งเตือนสภาพแวดล้อมทำงานบนอุปกรณ์นี้'}}
-
-async function sendLatestSample(env){
-  const stateKey=`manual_sample:${SAMPLE_ALERT_TOKEN}`,previous=await stateGet(env,stateKey);
-  if(previous)return{ok:true,alreadySent:true,...previous};
-  const row=await env.DB.prepare('SELECT endpoint,p256dh,auth,expiration_time,updated_at FROM push_subscriptions ORDER BY updated_at DESC LIMIT 1').first();
-  if(!row)return{ok:false,error:'no_subscription'};
-  const result=await sendOne(env,row,sampleAlertPayload());
-  if(!result?.sent)return{ok:false,error:result?.expired?'subscription_expired':'push_not_sent',status:result?.status??null};
-  const record={sentAt:new Date().toISOString(),status:result.status};await stateSet(env,stateKey,record);return{ok:true,alreadySent:false,...record};
-}
 
 async function evaluateAndNotify(env){
   await ensureSchema(env);const now=Date.now(),notifications=[];const [airResult,weatherResult]=await Promise.allSettled([fetchAir(),fetchWeather()]);
@@ -124,9 +112,6 @@ async function handleFetch(request,env){
   }
   if(request.method==='GET'&&url.pathname==='/vapid-public-key'){
     if(!env.VAPID_SERVER_PUBLIC_KEY)return json({error:'vapid_unavailable'},503,allowedOrigin(origin,env)?origin:'');return json({publicKey:env.VAPID_SERVER_PUBLIC_KEY},200,allowedOrigin(origin,env)?origin:'');
-  }
-  if(request.method==='POST'&&url.pathname===`/test-alert/${SAMPLE_ALERT_TOKEN}`){
-    const result=await sendLatestSample(env);return json(result,result.ok?200:(result.error==='no_subscription'?404:502));
   }
   if((url.pathname==='/subscribe')&&(request.method==='POST'||request.method==='DELETE')){
     if(!allowedOrigin(origin,env))return json({error:'origin_not_allowed'},403);
