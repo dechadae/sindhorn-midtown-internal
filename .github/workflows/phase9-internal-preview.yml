@@ -7,11 +7,8 @@ on:
       - phase9-contact-otp
     paths:
       - "site/auth-client.js"
-      - "site/auth-public-config.js"
       - "site/login.html"
       - "site/login.js"
-      - "site/login-contact-otp.js"
-      - "site/contact-otp.css"
       - "site/admin.html"
       - "site/admin.js"
       - "site/internal-auth.css"
@@ -37,60 +34,55 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Validate standalone auth surfaces
+      - name: Validate Supabase-only auth surfaces
         shell: bash
         run: |
           set -euo pipefail
           node --check site/auth-client.js
-          node --check site/auth-public-config.js
           node --check site/login.js
-          node --check site/login-contact-otp.js
           node --check site/admin.js
           grep -q 'Employee ID' site/login.html
-          grep -q 'Personal email' site/login.html
-          grep -q 'turnstileWidget' site/login.html
-          ! grep -q 'data-otp-channel="sms"' site/login.html
-          grep -q '/otp/request' site/login-contact-otp.js
-          grep -q '/otp/verify' site/login-contact-otp.js
-          grep -q 'establishSessionFromBootstrap' site/login-contact-otp.js
-          grep -q 'TURNSTILE_TEST_SITE_KEY' site/auth-public-config.js
-          ! grep -q 'Continue with Microsoft 365' site/login.html
-          grep -q '/admin/users' auth-worker/src/index.js
+          grep -q 'One-time code' site/login.html
+          ! grep -q 'Personal email' site/login.html
+          ! grep -qi 'turnstile' site/login.html
+          ! grep -q 'login-contact-otp.js' site/login.html
+          grep -q 'sindhorn_manual_activate' site/auth-client.js
+          grep -q "authBackend:'supabase'" site/auth-client.js
+          grep -q 'sindhorn_admin_issue_activation_code_v2' site/admin.js
+          grep -q 'sindhorn_admin_list_users_v2' site/admin.js
+          ! grep -R -q 'workers.dev' site/auth-client.js site/login.html site/login.js site/admin.js
+          ! grep -R -q -E 'BREVO|TURNSTILE|/otp/request|/otp/verify' site/auth-client.js site/login.html site/login.js site/admin.js
           grep -q 'noto-sans-400.woff2' site/internal-auth.css
           grep -q 'noto-sans-thai-400.woff2' site/internal-auth.css
           test -f site/assets/brand/sindhorn-midtown-vignette-black.png
           test -f site/assets/fonts/noto-sans-400.woff2
           test -f site/assets/fonts/noto-sans-thai-400.woff2
-          ! grep -R -E 'sb_secret_|SUPABASE_SECRET_KEY[[:space:]]*=' site/login* site/admin* site/auth-client.js site/auth-public-config.js site/internal-auth.css site/contact-otp.css
+          ! grep -R -E 'sb_secret_|SUPABASE_SECRET_KEY[[:space:]]*=' site/login.html site/login.js site/admin.html site/admin.js site/auth-client.js site/internal-auth.css
 
       - name: Deploy Phase 9 branch Pages preview
         run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
 
-      - name: Smoke test login and admin preview
+      - name: Smoke test Supabase-only login and admin preview
         shell: bash
         run: |
           set -euo pipefail
           BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
           BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
+          CACHE_BUST="phase9=${GITHUB_SHA}"
           sleep 8
-          for path in /login.html /login.js /login-contact-otp.js /auth-public-config.js /contact-otp.css /admin.html /admin.js /auth-client.js /internal-auth.css /assets/brand/sindhorn-midtown-vignette-black.png; do
+          for path in /login.html /login.js /admin.html /admin.js /auth-client.js /internal-auth.css /assets/brand/sindhorn-midtown-vignette-black.png; do
             echo "smoke ${path}"
-            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/phase9-smoke
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 \
+              -H 'Cache-Control: no-cache' "${BASE_URL}${path}?${CACHE_BUST}" -o /tmp/phase9-smoke
             test -s /tmp/phase9-smoke
           done
-          echo "Phase 9 Pages preview assets are reachable at ${BASE_URL}"
-
-      - name: Verify preview Auth Worker
-        shell: bash
-        run: |
-          set -euo pipefail
-          curl --fail --silent --show-error --retry 5 --retry-delay 2 \
-            https://sindhorn-midtown-auth-preview.decha-dae.workers.dev/health -o /tmp/auth-health.json
-          node - <<'NODE'
-          const fs=require('fs');
-          const health=JSON.parse(fs.readFileSync('/tmp/auth-health.json','utf8'));
-          if(health.ok!==true||health.configured!==true) throw new Error('preview auth worker is not ready');
-          if(health.turnstileConfigured!==true) throw new Error('preview Turnstile test path is not ready');
-          if(typeof health.emailOtpConfigured!=='boolean') throw new Error('email OTP configuration state is missing');
-          console.log(`preview auth worker ready; Brevo configured=${health.emailOtpConfigured}`);
-          NODE
+          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' \
+            "${BASE_URL}/login.html?${CACHE_BUST}" -o /tmp/phase9-login.html
+          grep -q 'One-time code' /tmp/phase9-login.html
+          ! grep -q 'Personal email' /tmp/phase9-login.html
+          ! grep -qi 'turnstile' /tmp/phase9-login.html
+          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' \
+            "${BASE_URL}/auth-client.js?${CACHE_BUST}" -o /tmp/phase9-auth-client.js
+          grep -q 'sindhorn_manual_activate' /tmp/phase9-auth-client.js
+          ! grep -q 'workers.dev' /tmp/phase9-auth-client.js
+          echo "Supabase-only Phase 9 Pages preview verified at ${BASE_URL}"
