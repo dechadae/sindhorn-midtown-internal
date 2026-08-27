@@ -110,6 +110,10 @@ async function handleFetch(request,env){
   if(request.method==='GET'&&url.pathname==='/health'){
     const row=await env.DB.prepare('SELECT COUNT(*) AS count FROM push_subscriptions').first(),last=await stateGet(env,'last_evaluation');return json({ok:true,service:'sindhorn-midtown-alerts',subscriptions:Number(row?.count)||0,vapidConfigured:Boolean(env.VAPID_SERVER_PUBLIC_KEY&&env.VAPID_SERVER_PRIVATE_KEY),lastEvaluation:last},200,allowedOrigin(origin,env)?origin:'');
   }
+  if(request.method==='GET'&&url.pathname==='/air-current'){
+    if(!allowedOrigin(origin,env))return json({error:'origin_not_allowed'},403);
+    try{return json(await fetchAir(),200,origin)}catch(error){console.error('air-current failed',error);return json({error:'air_unavailable'},503,origin)}
+  }
   if(request.method==='GET'&&url.pathname==='/vapid-public-key'){
     if(!env.VAPID_SERVER_PUBLIC_KEY)return json({error:'vapid_unavailable'},503,allowedOrigin(origin,env)?origin:'');return json({publicKey:env.VAPID_SERVER_PUBLIC_KEY},200,allowedOrigin(origin,env)?origin:'');
   }
