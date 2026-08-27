@@ -28,7 +28,7 @@ jobs:
           from pathlib import Path
           h=Path('site/volumetric-weather-final.html').read_text(); j=Path('site/volumetric-weather-final.js').read_text()
           assert '12-MONTH PALETTE' in h and all(m in h for m in ['January','February','March','April','May','June','July','August','September','October','November','December'])
-          for t in ["from './seasonal-sky.js'",'const DPR=2','sampler3D uBaseNoise','sampler3D uErosionNoise','densityAt(vec3 p,float skyY)','phaseHG','exp(-sigma*dt','wetCanvas','refractOffset','rainLayer','snowLayer','heatOffset','currentBolt','triggerLightning']:
+          for t in ["from './seasonal-sky.js'",'const DPR=2','sampler3D uBaseNoise,uErosionNoise','densityAt(vec3 p,float skyY)','phaseHG','exp(-sigma*dt','wetCanvas','refractOffset','rainLayer','snowLayer','heatOffset','currentBolt','triggerLightning']:
               assert t in j,t
           assert 'edge=1.-smoothstep' in j and 'field-=er*uErosion*.23*edge' in j
           assert "economy:{steps:8" in j and "balanced:{steps:10" in j and "high:{steps:12" in j
@@ -54,7 +54,7 @@ jobs:
           for path in /volumetric-weather-final.html /volumetric-weather-final.js /seasonal-sky.js; do curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/final-response; test -s /tmp/final-response; done
           curl --fail --silent --show-error --location "${BASE_URL}/volumetric-weather-final.js" -o /tmp/final.js
           grep -q 'ue-inspired-webgl2-volumetric-weather-final-v2' /tmp/final.js
-          grep -q 'sampler3D uBaseNoise' /tmp/final.js
+          grep -q 'sampler3D uBaseNoise,uErosionNoise' /tmp/final.js
           grep -q 'currentBolt' /tmp/final.js
       - name: Install Chromium
         run: |
