@@ -7,6 +7,8 @@ on:
       - main
     paths:
       - "auth-worker/**"
+      - "site/auth-client.js"
+      - "test/auth-client.test.mjs"
       - "supabase/migrations/*phase9*"
       - "docs/PHASE9-*"
       - ".github/workflows/phase9-auth-broker.yml"
@@ -14,6 +16,8 @@ on:
     branches: [main]
     paths:
       - "auth-worker/**"
+      - "site/auth-client.js"
+      - "test/auth-client.test.mjs"
       - "supabase/migrations/*phase9*"
       - "docs/PHASE9-*"
       - ".github/workflows/phase9-auth-broker.yml"
@@ -44,10 +48,15 @@ jobs:
           node --check auth-worker/src/rate-limit.js
           node --check auth-worker/src/index.js
           node --check auth-worker/test.mjs
+          node --check site/auth-client.js
+          node --check test/auth-client.test.mjs
 
       - name: Auth broker tests
         working-directory: auth-worker
         run: npm test
+
+      - name: Employee auth client tests
+        run: node test/auth-client.test.mjs
 
       - name: Security structure checks
         shell: bash
@@ -58,6 +67,8 @@ jobs:
           grep -q "ACTIVATION_PEPPER" auth-worker/src/index.js
           grep -q "aal2" auth-worker/src/index.js
           grep -q "@auth.invalid" auth-worker/src/security.js
+          grep -q "token_hash:tokenHash,type:'email'" site/auth-client.js
+          grep -q "sindhorn_employees" site/auth-client.js
           ! grep -R -E "SUPABASE_(SERVICE_ROLE|SECRET)_KEY['\"]?[[:space:]]*[:=][[:space:]]*['\"][^$]" auth-worker || false
 
       - name: Worker production dry-run
