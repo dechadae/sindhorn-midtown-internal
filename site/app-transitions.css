@@ -4,50 +4,25 @@
   --app-transition-fade:linear;
 }
 
-@view-transition{
-  navigation:auto;
-}
-
-::view-transition-old(root),
-::view-transition-new(root){
-  animation-duration:var(--app-transition-ms);
-  animation-timing-function:var(--app-transition-fade);
-  animation-fill-mode:both;
-  mix-blend-mode:normal;
-}
-
-::view-transition-old(root){animation-name:sindhorn-page-fade-out}
-::view-transition-new(root){animation-name:sindhorn-page-fade-in}
-
-::view-transition-group(app-route){
-  animation-duration:var(--app-transition-ms);
-  animation-timing-function:var(--app-transition-ease);
-}
-
-::view-transition-old(app-route),
-::view-transition-new(app-route){
-  animation-duration:var(--app-transition-ms);
-  animation-timing-function:var(--app-transition-fade);
-  animation-fill-mode:both;
-  mix-blend-mode:normal;
-}
-
-::view-transition-old(app-route){animation-name:sindhorn-page-fade-out}
-::view-transition-new(app-route){animation-name:sindhorn-page-fade-in}
-
-@keyframes sindhorn-page-fade-out{from{opacity:1}to{opacity:0}}
-@keyframes sindhorn-page-fade-in{from{opacity:0}to{opacity:1}}
-
+/* Route motion is deliberately scoped to #route-view in JavaScript.
+   Never animate the document root: the atmosphere, header and footer must remain visually locked. */
 html[data-app-transitioning="true"]{cursor:progress}
 html[data-app-transitioning="true"] body{pointer-events:none}
+
+.app-document-veil{
+  position:fixed;
+  inset:0;
+  z-index:2147483647;
+  background:#2E273B;
+  opacity:0;
+  pointer-events:none;
+  will-change:opacity;
+}
+
+.app-document-veil[data-tone="paper"]{background:#f5f2ec}
 
 a,button,[role="button"]{-webkit-tap-highlight-color:transparent}
 
 @media(prefers-reduced-motion:reduce){
   :root{--app-transition-ms:1ms}
-  ::view-transition-old(root),
-  ::view-transition-new(root),
-  ::view-transition-group(app-route),
-  ::view-transition-old(app-route),
-  ::view-transition-new(app-route){animation-duration:1ms!important}
 }
