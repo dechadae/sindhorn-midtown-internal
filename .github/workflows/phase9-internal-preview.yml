@@ -4,10 +4,13 @@ on:
   push:
     branches:
       - phase9-internal-auth-broadcast
+      - phase9-contact-otp
     paths:
       - "site/auth-client.js"
       - "site/login.html"
       - "site/login.js"
+      - "site/login-contact-otp.js"
+      - "site/contact-otp.css"
       - "site/admin.html"
       - "site/admin.js"
       - "site/internal-auth.css"
@@ -39,20 +42,21 @@ jobs:
           set -euo pipefail
           node --check site/auth-client.js
           node --check site/login.js
+          node --check site/login-contact-otp.js
           node --check site/admin.js
           grep -q 'Employee ID' site/login.html
-          grep -q 'personal email or SMS' site/login.html
+          grep -q 'Personal email' site/login.html
+          grep -q 'data-otp-channel="sms"' site/login.html
+          grep -q '/otp/request' site/login-contact-otp.js
+          grep -q '/otp/verify' site/login-contact-otp.js
           ! grep -q 'Continue with Microsoft 365' site/login.html
-          grep -q '/microsoft/link' auth-worker/src/index.js
           grep -q '/admin/users' auth-worker/src/index.js
-          grep -q 'signInWithMicrosoft' site/auth-client.js
-          grep -q '/microsoft/link' site/auth-client.js
           grep -q 'noto-sans-400.woff2' site/internal-auth.css
           grep -q 'noto-sans-thai-400.woff2' site/internal-auth.css
           test -f site/assets/brand/sindhorn-midtown-vignette-black.png
           test -f site/assets/fonts/noto-sans-400.woff2
           test -f site/assets/fonts/noto-sans-thai-400.woff2
-          ! grep -R -E 'sb_secret_|SUPABASE_SECRET_KEY[[:space:]]*=' site/login* site/admin* site/auth-client.js site/internal-auth.css
+          ! grep -R -E 'sb_secret_|SUPABASE_SECRET_KEY[[:space:]]*=' site/login* site/admin* site/auth-client.js site/internal-auth.css site/contact-otp.css
 
       - name: Deploy Phase 9 branch Pages preview
         run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
@@ -64,7 +68,7 @@ jobs:
           BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
           BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in /login.html /login.js /admin.html /admin.js /auth-client.js /internal-auth.css /assets/brand/sindhorn-midtown-vignette-black.png; do
+          for path in /login.html /login.js /login-contact-otp.js /contact-otp.css /admin.html /admin.js /auth-client.js /internal-auth.css /assets/brand/sindhorn-midtown-vignette-black.png; do
             echo "smoke ${path}"
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/phase9-smoke
             test -s /tmp/phase9-smoke
