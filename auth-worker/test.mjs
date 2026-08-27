@@ -1,16 +1,19 @@
 import assert from 'node:assert/strict';
 import {
-  allowedOrigin,bootstrapTokenHash,hmacHex,normalizeActivationCode,normalizeEmployeeNumber,
-  randomSixDigits,syntheticEmail,validActivationCode,validEmployeeNumber
+  allowedOrigin,bootstrapTokenHash,hmacHex,normalizeActivationCode,normalizeEmail,normalizeEmployeeNumber,
+  randomSixDigits,syntheticEmail,validActivationCode,validEmail,validEmployeeNumber
 } from './src/security.js';
 
 assert.equal(normalizeEmployeeNumber(' sm001 '),'SM001');
 assert.equal(normalizeEmployeeNumber(' sm 001 '),'SM 001');
 assert.equal(normalizeActivationCode('12 34-56'),'123456');
+assert.equal(normalizeEmail(' Decha.Kokaew@IHG.COM '),'decha.kokaew@ihg.com');
 assert.equal(validEmployeeNumber('SM-001'),true);
 assert.equal(validEmployeeNumber('bad employee id'),false);
 assert.equal(validActivationCode('123456'),true);
 assert.equal(validActivationCode('12345'),false);
+assert.equal(validEmail('decha.kokaew@ihg.com'),true);
+assert.equal(validEmail('not-an-email'),false);
 assert.equal(syntheticEmail('123e4567-e89b-12d3-a456-426614174000'),'smi-123e4567e89b12d3a456426614174000@auth.invalid');
 assert.match(randomSixDigits(),/^\d{6}$/);
 const h1=await hmacHex('pepper','activation:SM001:123456');
