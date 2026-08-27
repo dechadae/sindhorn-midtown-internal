@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f5f2ec">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Admin · Sindhorn Midtown Internal</title>
+  <link rel="stylesheet" href="/internal-auth.css?v=1">
+</head>
+<body>
+  <main class="admin-shell">
+    <header class="admin-header">
+      <div class="admin-brand">
+        <img src="/assets/brand/sindhorn-midtown-vignette-black.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection">
+        <div>
+          <div class="admin-title">Internal Admin</div>
+          <div id="adminIdentity" class="admin-sub">Checking access…</div>
+        </div>
+      </div>
+      <div class="admin-actions">
+        <a class="chip-btn" href="/" style="text-decoration:none;color:inherit">App</a>
+        <button id="signOutButton" class="chip-btn" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <nav class="admin-nav" aria-label="Admin sections">
+      <button type="button" data-panel="users" aria-selected="true">Users</button>
+      <button type="button" data-panel="broadcasts" aria-selected="false">Broadcasts</button>
+      <button type="button" data-panel="departments" aria-selected="false">Departments &amp; Groups</button>
+      <button type="button" data-panel="audit" aria-selected="false">Audit Log</button>
+      <button type="button" data-panel="settings" aria-selected="false">Settings</button>
+    </nav>
+
+    <section id="accessPanel" class="admin-panel hidden">
+      <div class="empty">
+        <strong>Administrator access required.</strong><br>
+        <span class="thai">ต้องเข้าสู่ระบบด้วยบัญชีผู้ดูแลระบบ</span><br><br>
+        <a href="/login.html">Go to sign in / เข้าสู่ระบบ</a>
+      </div>
+    </section>
+
+    <section id="usersPanel" class="admin-panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Employees</div>
+          <div class="panel-note thai">พนักงานและสิทธิ์การใช้งาน</div>
+        </div>
+        <div class="toolbar">
+          <input id="userSearch" class="search" type="search" placeholder="Search employee…" aria-label="Search employees">
+          <button id="addUserButton" class="add-btn" type="button">Add employee</button>
+        </div>
+      </div>
+      <div class="security-banner">Viewing users requires an administrator session. Creating employees, changing access, or issuing activation codes additionally requires administrator verification (AAL2/MFA).</div>
+      <div id="userList" class="user-list"><div class="empty">Loading employees…</div></div>
+    </section>
+
+    <section id="placeholderPanel" class="admin-panel hidden">
+      <div class="empty" id="placeholderText"></div>
+    </section>
+  </main>
+
+  <dialog id="userDialog">
+    <form id="userForm" method="dialog" class="dialog-body">
+      <div class="dialog-head">
+        <div id="dialogTitle" class="dialog-title">Add employee</div>
+        <button id="dialogClose" class="close-btn" type="button" aria-label="Close">×</button>
+      </div>
+      <input id="employeeIdHidden" type="hidden">
+      <div class="form-grid">
+        <div class="field">
+          <label for="employeeNumber">Employee ID</label>
+          <input id="employeeNumber" maxlength="64" required>
+        </div>
+        <div class="field">
+          <label for="displayName">Display name</label>
+          <input id="displayName" maxlength="160">
+        </div>
+        <div class="field full">
+          <label for="workEmail">Hotel work email <span style="font-weight:400;color:#777">(optional)</span></label>
+          <input id="workEmail" type="email" maxlength="320" placeholder="name@ihg.com">
+        </div>
+        <div class="field">
+          <label for="role">Role</label>
+          <select id="role">
+            <option value="employee">Employee</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="manager">Manager</option>
+            <option value="admin">Admin</option>
+            <option value="super_admin">Super Admin</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="accountType">Account type</label>
+          <select id="accountType">
+            <option value="employee">Employee</option>
+            <option value="developer">Developer</option>
+            <option value="contractor">Contractor</option>
+            <option value="service">Service</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="preferredLanguage">Preferred language</label>
+          <select id="preferredLanguage">
+            <option value="th">ไทย</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="active">Access</label>
+          <select id="active">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+          </select>
+        </div>
+      </div>
+      <div id="dialogStatus" class="status" role="status" aria-live="polite"></div>
+      <div class="dialog-actions">
+        <button id="activationButton" class="hidden" type="button">Issue activation code</button>
+        <button id="cancelButton" type="button">Cancel</button>
+        <button id="saveButton" class="save" type="submit">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="codeDialog">
+    <div class="dialog-body">
+      <div class="dialog-head"><div class="dialog-title">Activation code</div><button id="codeClose" class="close-btn" type="button">×</button></div>
+      <p class="support">Give this code directly to the employee. It expires after 15 minutes and is not stored as plaintext.</p>
+      <div id="issuedCode" style="font-size:42px;font-weight:800;letter-spacing:.16em;font-variant-numeric:tabular-nums;margin:24px 0"></div>
+      <div id="issuedCodeMeta" class="note"></div>
+      <div class="dialog-actions"><button id="codeDone" class="save" type="button">Done</button></div>
+    </div>
+  </dialog>
+
+  <script type="module" src="/admin.js?v=1"></script>
+</body>
+</html>
