@@ -6,6 +6,7 @@ on:
       - phase6-web-push-release
       - fix-phase6-v21-gate
       - fix-alerts-preparing-v21
+      - bust-push-client-v2
       - main
     paths:
       - "worker/**"
@@ -45,7 +46,7 @@ jobs:
           node --check site/push-config.js
           node --check site/sw.js
           node --check site/location.js
-          grep -q '/push-client.js?v=1' site/index.html
+          grep -q '/push-client.js?v=2' site/index.html
           grep -q "pushManager.subscribe" site/push-client.js
           grep -q "enableFromGesture" site/push-client.js
           ! grep -q "Notification.requestPermission" site/push-client.js
@@ -123,7 +124,7 @@ jobs:
             test -s /tmp/smoke
           done
           CLIENT="$(curl --fail --silent --show-error "${BASE_URL}/push-client.js")"
-          grep -q '/push-client.js?v=1' <(curl --fail --silent --show-error "${BASE_URL}/")
+          grep -q '/push-client.js?v=2' <(curl --fail --silent --show-error "${BASE_URL}/")
           grep -q 'pushManager.subscribe' <<<"${CLIENT}"
           grep -q "navigator.serviceWorker.register('/sw.js',{scope:'/'})" <<<"${CLIENT}"
           grep -q 'PREPARE_TIMEOUT_MS' <<<"${CLIENT}"
