@@ -5,6 +5,7 @@ on:
     branches:
       - phase8-2-bangkok-seasonal-clouds
       - fix-airbkk-client-proxy
+      - fix-cloud-roundness
       - main
     paths:
       - "site/**"
