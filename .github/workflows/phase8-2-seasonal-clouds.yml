@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - phase8-2-bangkok-seasonal-clouds
-      - fix-airbkk-client-proxy
-      - fix-cloud-roundness
+      - "fix-cloud-*"
       - main
     paths:
       - "site/**"
@@ -62,6 +61,7 @@ jobs:
           assert "'/sky-calibration.js'" not in sw
           assert "'/sky-color-renderer.js'" not in sw
           assert "'/storm-effects.js'" not in sw
+          assert 'pwa-v24-cloud-roundness-randomized-start' in sw
           assert 'const DPR=2' in env and 'antialias:false' in env
           live=re.search(r"renderer=new THREE\.WebGLRenderer\((\{[^;]+?\})\)",env,re.S)
           assert live and 'preserveDrawingBuffer:true' not in live.group(1)
@@ -71,6 +71,7 @@ jobs:
           assert 'High veil / cirrus' in shader
           assert 'Mid broken cloud' in shader
           assert 'Low convective / monsoon' in shader
+          assert 'randomCloudSeed' in shader
           assert 'disc visible' in tester
           wrangler=json.loads(Path('sky-worker/wrangler.jsonc').read_text())
           assert wrangler.get('triggers',{}).get('crons')==[]
@@ -113,6 +114,7 @@ jobs:
           curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html
           curl --fail --silent --show-error --location "${BASE_URL}/live-data.js" -o /tmp/live-data.js
           curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js
+          curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js
           ! grep -q '/sky-calibration.js' /tmp/root.html
           ! grep -q '/sky-color-renderer.js' /tmp/root.html
           ! grep -q '/storm-effects.js' /tmp/root.html
@@ -122,6 +124,8 @@ jobs:
           ! grep -q 'stations.airbkk.com/api/web/data' /tmp/live-data.js
           grep -q 'Visible sun disc' /tmp/shader.js
           grep -q 'texture2D(uNoise' /tmp/shader.js
+          grep -q 'randomCloudSeed' /tmp/shader.js
+          grep -q 'pwa-v24-cloud-roundness-randomized-start' /tmp/sw.js
 
       - name: Install Chromium renderer
         shell: bash
@@ -184,7 +188,8 @@ jobs:
               && ! grep -q 'stations.airbkk.com/api/web/data' /tmp/live-data.js \
               && grep -q 'bangkok-seasonal-clouds-v2' /tmp/environment.js \
               && grep -q 'Visible sun disc' /tmp/shader.js \
-              && grep -q 'pwa-v23-bangkok-seasonal-clouds' /tmp/sw.js; then
+              && grep -q 'randomCloudSeed' /tmp/shader.js \
+              && grep -q 'pwa-v24-cloud-roundness-randomized-start' /tmp/sw.js; then
                 promoted=true
                 break
             fi
