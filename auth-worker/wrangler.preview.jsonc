@@ -4,6 +4,14 @@
   "main": "src/worker.js",
   "compatibility_date": "2026-08-26",
   "workers_dev": true,
+  "keep_vars": true,
+  "secrets": {
+    "required": [
+      "SUPABASE_SECRET_KEY",
+      "ACTIVATION_PEPPER",
+      "BREVO_API_KEY"
+    ]
+  },
   "d1_databases": [
     {
       "binding": "DB",
@@ -14,6 +22,8 @@
   "vars": {
     "SUPABASE_URL": "https://sjpvhgxacsiorrtijqua.supabase.co",
     "ALLOWED_ORIGIN": "https://sindhorn-midtown-internal.pages.dev",
-    "PREVIEW_MODE": "true"
+    "PREVIEW_MODE": "true",
+    "BREVO_SENDER_EMAIL": "decha.kokaew@ihg.com",
+    "BREVO_SENDER_NAME": "Sindhorn Midtown Internal"
   }
 }
