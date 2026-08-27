@@ -80,9 +80,27 @@ async function handleActivate(request,env,origin){
     hmacHex(env.ACTIVATION_PEPPER,`activation:${employeeNumber}:${code}`),
     hmacHex(env.ACTIVATION_PEPPER,`claim:${claimToken}`)
   ]);
-  const {data:prepared,error:prepareError}=await client.rpc('sindhorn_activation_prepare',{
-    p_employee_number:employeeNumber,p_code_hash:codeHash,p_claim_hash:claimHash,p_claim_ttl_seconds:CLAIM_TTL_SECONDS
+
+  // Emergency first-admin rows are explicitly bcrypt-prefixed by a privileged
+  // database operator. Try that service-role-only verifier first so normal HMAC
+  // rows do not consume an attempt before the regular verifier runs.
+  let prepared=null,prepareError=null;
+  const bootstrap=await client.rpc('sindhorn_bootstrap_activation_prepare',{
+    p_employee_number:employeeNumber,p_plain_code:code,p_claim_hash:claimHash,p_claim_ttl_seconds:CLAIM_TTL_SECONDS
   });
+  if(bootstrap.error){
+    prepareError=bootstrap.error;
+  }else if(Array.isArray(bootstrap.data)&&bootstrap.data.length===1){
+    prepared=bootstrap.data;
+  }
+
+  if(!prepared){
+    const regular=await client.rpc('sindhorn_activation_prepare',{
+      p_employee_number:employeeNumber,p_code_hash:codeHash,p_claim_hash:claimHash,p_claim_ttl_seconds:CLAIM_TTL_SECONDS
+    });
+    prepareError=regular.error;
+    prepared=regular.data;
+  }
   if(prepareError||!Array.isArray(prepared)||prepared.length!==1)return genericActivationError(origin,env);
 
   const claim=prepared[0];
