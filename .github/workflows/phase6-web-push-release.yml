@@ -10,6 +10,7 @@ on:
       - cleanup-sample-alert-20260827
       - hotfix-phase6-location-gate
       - fix-airbkk-proxy-worker
+      - fix-airbkk-worker-request
       - main
     paths:
       - "worker/**"
@@ -71,11 +72,43 @@ jobs:
           grep -q "monitor_state" worker/src/index.js
           grep -q "url.pathname==='/air-current'" worker/src/index.js
           grep -q "origin_not_allowed" worker/src/index.js
+          grep -Fq "'origin':'https://official.airbkk.com'" worker/src/index.js
+          grep -Fq "'referer':'https://official.airbkk.com/'" worker/src/index.js
           ! grep -q "test-alert" worker/src/index.js
           ! grep -q "sampleAlertPayload" worker/src/index.js
           grep -q 'database_name' worker/wrangler.jsonc
           grep -q 'database_id' worker/wrangler.jsonc
           grep -Fq "${WORKER_URL}" site/push-config.js
+
+      - name: Verify AirBKK upstream public-client contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 4 --retry-all-errors --retry-delay 2 \
+            -X POST 'https://stations.airbkk.com/api/web/data' \
+            -H 'User-Agent: Mozilla/5.0' \
+            -H 'Content-Type: application/json' \
+            -H 'Accept: application/json, text/plain, */*' \
+            -H 'Origin: https://official.airbkk.com' \
+            -H 'Referer: https://official.airbkk.com/' \
+            --data '{"message":"Request data"}' -o /tmp/airbkk-upstream.json
+          python3 - <<'PY'
+          import json
+          from datetime import datetime, timezone, timedelta
+          d=json.load(open('/tmp/airbkk-upstream.json'))
+          assert d.get('status')=='Success' and isinstance(d.get('message'),list)
+          rows=d['message']; now=datetime.now(timezone(timedelta(hours=7)))
+          def valid(row):
+              try:
+                  pm=float(row.get('PM2.5'))
+                  observed=datetime.strptime(str(row.get('DateTime')),'%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone(timedelta(hours=7)))
+              except Exception:return False
+              age=(now-observed).total_seconds()
+              return 0 <= pm <= 500 and -900 <= age <= 43200
+          pinned=[row for station in ('114','139','65') for row in rows if str(row.get('MeasIndex'))==station and valid(row)]
+          assert pinned, 'No current pinned AirBKK station reading'
+          print('AirBKK upstream current:',pinned[0].get('MeasIndex'),pinned[0].get('PM2.5'),pinned[0].get('aqi'),pinned[0].get('DateTime'))
+          PY
 
       - name: Install Worker dependency
         run: npm install --prefix worker --no-audit --no-fund
