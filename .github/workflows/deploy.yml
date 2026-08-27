@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - hotfix-phase8-2-deploy-validation
       - webgl-environment-v1
       - hybrid-shell-v15
       - atmosphere-tester-v1
@@ -70,7 +71,8 @@ jobs:
           assert 'pwa-v23-bangkok-seasonal-clouds' in sw
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw
           assert "NOTIFICATION_DB='sindhorn-midtown-notification-inbox'" in sw
-          assert "import {seasonalSkyForState}" in env and "import {ATMOSPHERE_VERTEX_SHADER,ATMOSPHERE_FRAGMENT_SHADER}" in env
+          for token in ('seasonalSkyForState','ATMOSPHERE_VERTEX_SHADER','ATMOSPHERE_FRAGMENT_SHADER','createAtmosphereNoiseTexture'):
+              assert token in env,token
           assert "renderer:'bangkok-seasonal-clouds-v2'" in env and 'const DPR=2' in env
           assert 'ensureSnowCanvas' in env and 'ensureHailCanvas' in env and 'renderExport' in env and 'antialias:false' in env
           for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','uHighCoverage','uMidCoverage','uLowCoverage','uSun','uSolarAltitude','sunDisc','Visible sun disc','texture2D(uNoise','AirBKK PM2.5 optics'):
