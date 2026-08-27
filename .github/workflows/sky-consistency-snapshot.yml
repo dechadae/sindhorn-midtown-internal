@@ -1,0 +1,132 @@
+name: Sky Consistency Snapshot
+
+on:
+  push:
+    branches:
+      - phase8-directional-sky-calibration
+    paths:
+      - ".github/workflows/sky-consistency-snapshot.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      SKY_WORKER_URL: https://sindhorn-midtown-sky.decha-dae.workers.dev
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Capture live production sky state
+        shell: bash
+        run: |
+          set -euo pipefail
+          date -u +"UTC_NOW=%Y-%m-%dT%H:%M:%SZ"
+          TZ=Asia/Bangkok date +"BANGKOK_NOW=%Y-%m-%dT%H:%M:%S%z"
+          curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 2 "${SKY_WORKER_URL}/health" -o /tmp/health.json
+          curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 2 "${SKY_WORKER_URL}/calibration" -o /tmp/calibration.json
+          curl --fail --silent --show-error --retry 6 --retry-all-errors --retry-delay 2 "${SKY_WORKER_URL}/sources" -o /tmp/sources.json
+
+          npx --yes wrangler@4.125.0 d1 execute DB --remote --config sky-worker/wrangler.jsonc \
+            --command "SELECT camera_id,frame_hash,observed_at,analysis_json,updated_at FROM sky_camera_observations WHERE camera_id LIKE 'prod:%' ORDER BY camera_id" \
+            --json > /tmp/d1-observations.json
+
+          python3 - <<'PY'
+          import json, datetime, math
+          from pathlib import Path
+
+          now=datetime.datetime.now(datetime.timezone.utc)
+          health=json.load(open('/tmp/health.json'))
+          cal=json.load(open('/tmp/calibration.json'))
+          d1=json.load(open('/tmp/d1-observations.json'))
+
+          rows=[]
+          if isinstance(d1,list):
+              for block in d1:
+                  if isinstance(block,dict) and isinstance(block.get('results'),list):
+                      rows.extend(block['results'])
+          elif isinstance(d1,dict) and isinstance(d1.get('results'),list):
+              rows=d1['results']
+
+          observations=[]
+          for row in rows:
+              try:
+                  obs=json.loads(row.get('analysis_json') or '{}')
+              except Exception:
+                  obs={}
+              observed=obs.get('frameFetchedAt') or row.get('observed_at')
+              age_min=None
+              if observed:
+                  try:
+                      dt=datetime.datetime.fromisoformat(observed.replace('Z','+00:00'))
+                      age_min=(now-dt).total_seconds()/60
+                  except Exception:
+                      pass
+              observations.append({
+                  'cameraId': str(row.get('camera_id','')).removeprefix('prod:'),
+                  'frameFetchedAt': observed,
+                  'ageMinutes': None if age_min is None else round(age_min,2),
+                  'frameHash': row.get('frame_hash'),
+                  'facing': obs.get('facing'),
+                  'quality': obs.get('quality'),
+                  'confidence': obs.get('confidence'),
+                  'zenithRgb': obs.get('zenithRgb'),
+                  'horizonRgb': obs.get('horizonRgb'),
+                  'luminance': obs.get('luminance'),
+                  'saturation': obs.get('saturation'),
+                  'warmth': obs.get('warmth'),
+                  'cloudOpacity': obs.get('cloudOpacity'),
+                  'cloudDarkness': obs.get('cloudDarkness'),
+                  'haze': obs.get('haze'),
+                  'horizonContrast': obs.get('horizonContrast'),
+                  'sunGlow': obs.get('sunGlow'),
+                  'stormConfidence': obs.get('stormConfidence'),
+              })
+
+          visual=cal.get('visual') or {}
+          mode=str(cal.get('mode') or 'fallback')
+          confidence=max(0,min(1,float(cal.get('confidence') or 0)))
+          cap=.46 if mode in ('sunrise-east','sunset-west') else .34 if mode=='twilight' else .16 if mode=='night' else .28
+          haze=max(0,min(1,float(visual.get('haze') or 0)))
+          overlay_alpha=max(0,min(cap,confidence*cap*(.90+haze*.10)))
+
+          def hexrgb(rgb):
+              if not isinstance(rgb,list) or len(rgb)!=3: return None
+              return '#'+''.join(f'{max(0,min(255,int(round(float(x))))):02X}' for x in rgb)
+          z=visual.get('zenithRgb')
+          h=visual.get('horizonRgb')
+          mid=None
+          if isinstance(z,list) and isinstance(h,list) and len(z)==3 and len(h)==3:
+              mid=[round(float(z[i])*.42+float(h[i])*.58) for i in range(3)]
+
+          out={
+              'capturedAt': now.isoformat(),
+              'health': health,
+              'calibration': cal,
+              'cameraObservations': observations,
+              'rendererComparison': {
+                  'mode': mode,
+                  'confidence': confidence,
+                  'cap': cap,
+                  'effectiveOverlayAlpha': round(overlay_alpha,4),
+                  'zenithRgb': z,
+                  'zenithHex': hexrgb(z),
+                  'midRgb': mid,
+                  'midHex': hexrgb(mid),
+                  'horizonRgb': h,
+                  'horizonHex': hexrgb(h),
+                  'topAppliedAlpha': round(overlay_alpha*.88,4),
+                  'midAppliedAlpha': round(overlay_alpha*.72,4),
+                  'horizonAppliedAlpha': round(overlay_alpha,4),
+              }
+          }
+          print('SKY_SNAPSHOT_JSON_BEGIN')
+          print(json.dumps(out,ensure_ascii=False,indent=2))
+          print('SKY_SNAPSHOT_JSON_END')
+          PY
