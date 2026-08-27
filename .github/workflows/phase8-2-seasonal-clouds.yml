@@ -1,0 +1,206 @@
+name: Phase 8.2 Bangkok Seasonal Clouds
+
+on:
+  push:
+    branches:
+      - phase8-2-bangkok-seasonal-clouds
+      - main
+    paths:
+      - "site/**"
+      - "sky-worker/**"
+      - ".github/workflows/phase8-2-seasonal-clouds.yml"
+      - ".github/workflows/launch-hardening.yml"
+      - ".github/workflows/deploy.yml"
+      - "docs/BANGKOK-SEASONAL-SKY-AND-CLOUD-ARCHITECTURE-OVERRIDE-20260827.md"
+      - "docs/PHASE8.2-BANGKOK-SEASONAL-CLOUD-MORPHOLOGY-PLAN-20260827.md"
+      - "docs/PHASE8.2-IMPLEMENTATION-20260827.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: phase8-2-seasonal-clouds-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate Phase 8.2 source and fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/cloud-tester-shared.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/sw.js; do
+            node --check "$file"
+          done
+          node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path('site')
+          index=(root/'index.html').read_text()
+          sw=(root/'sw.js').read_text()
+          env=(root/'environment.js').read_text()
+          shader=(root/'atmosphere-shader.js').read_text()
+          tester=(root/'cloud-tester-shared.js').read_text()
+          assert '/sky-calibration.js' not in index
+          assert '/sky-color-renderer.js' not in index
+          assert '/storm-effects.js' not in index
+          assert "'/sky-calibration.js'" not in sw
+          assert "'/sky-color-renderer.js'" not in sw
+          assert "'/storm-effects.js'" not in sw
+          assert 'const DPR=2' in env and 'antialias:false' in env
+          assert 'preserveDrawingBuffer:true' not in env
+          assert 'ensureSnowCanvas' in env and 'ensureHailCanvas' in env
+          assert 'texture2D(uNoise' in shader
+          assert 'Visible sun disc' in shader and 'sunDisc' in shader
+          assert 'High veil / cirrus' in shader
+          assert 'Mid broken cloud' in shader
+          assert 'Low convective / monsoon' in shader
+          assert 'disc visible' in tester
+          wrangler=json.loads(Path('sky-worker/wrangler.jsonc').read_text())
+          assert wrangler.get('triggers',{}).get('crons')==[]
+          PY
+
+      - name: Validate dormant sky Worker package
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd sky-worker
+          find src test -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | xargs -0 -n1 node --check
+          if compgen -G "test/*.mjs" >/dev/null; then
+            for test in test/*.mjs; do node "$test"; done
+          fi
+          npx --yes wrangler@4.125.0 deploy --dry-run
+
+  preview:
+    if: github.ref_name != 'main'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Deploy Cloudflare Pages branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke test deployed Phase 8.2 files
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /environment.js /atmosphere-shader.js /seasonal-sky.js /cloud-tester.html /cloud-tester-shared.js /phase8-2-fixtures.js /sw.js /messages; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
+            test -s /tmp/response
+          done
+          curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html
+          curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js
+          ! grep -q '/sky-calibration.js' /tmp/root.html
+          ! grep -q '/sky-color-renderer.js' /tmp/root.html
+          ! grep -q '/storm-effects.js' /tmp/root.html
+          grep -q 'Visible sun disc' /tmp/shader.js
+          grep -q 'texture2D(uNoise' /tmp/shader.js
+
+      - name: Install Chromium renderer
+        shell: bash
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Browser rendering and frame-pacing review
+        shell: bash
+        run: |
+          SAFE_BRANCH="${GITHUB_REF_NAME:0:28}"
+          export PHASE82_BASE_URL="https://${SAFE_BRANCH}.sindhorn-midtown-internal.pages.dev"
+          node site/phase8-2-browser-smoke.mjs
+
+      - name: Upload Phase 8.2 visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase8-2-render-evidence
+          path: phase82-artifacts
+          if-no-files-found: error
+          retention-days: 14
+
+  production:
+    if: github.ref_name == 'main'
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Remove scheduled sky-AI cron while preserving research Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd sky-worker
+          npx --yes wrangler@4.125.0 deploy
+
+      - name: Wait for Phase 8.2 production shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://sindhorn-midtown-internal.pages.dev"
+          promoted=false
+          for attempt in $(seq 1 50); do
+            if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
+              && curl --fail --silent --show-error --location "${BASE_URL}/environment.js" -o /tmp/environment.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
+              && ! grep -q '/sky-calibration.js' /tmp/root.html \
+              && ! grep -q '/sky-color-renderer.js' /tmp/root.html \
+              && ! grep -q '/storm-effects.js' /tmp/root.html \
+              && grep -q 'bangkok-seasonal-clouds-v2' /tmp/environment.js \
+              && grep -q 'Visible sun disc' /tmp/shader.js \
+              && grep -q 'pwa-v23-bangkok-seasonal-clouds' /tmp/sw.js; then
+                promoted=true
+                break
+            fi
+            sleep 3
+          done
+          test "$promoted" = true
+
+      - name: Verify dormant sky Worker health
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 \
+            "https://sindhorn-midtown-sky.decha-dae.workers.dev/health" -o /tmp/sky-health.json
+          python3 - <<'PY'
+          import json
+          value=json.load(open('/tmp/sky-health.json'))
+          assert value.get('ok') is True
+          PY
+
+      - name: Install Chromium renderer
+        shell: bash
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Production browser rendering and frame-pacing review
+        env:
+          PHASE82_BASE_URL: https://sindhorn-midtown-internal.pages.dev
+        run: node site/phase8-2-browser-smoke.mjs
+
+      - name: Upload production Phase 8.2 visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase8-2-production-render-evidence
+          path: phase82-artifacts
+          if-no-files-found: error
+          retention-days: 14
