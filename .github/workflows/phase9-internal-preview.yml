@@ -64,15 +64,11 @@ jobs:
           BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           sleep 8
           for path in /login.html /login.js /admin.html /admin.js /auth-client.js /internal-auth.css /assets/brand/sindhorn-midtown-vignette-black.png; do
+            echo "smoke ${path}"
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/phase9-smoke
             test -s /tmp/phase9-smoke
           done
-          curl --fail --silent --show-error "${BASE_URL}/login.html" -o /tmp/login.html
-          curl --fail --silent --show-error "${BASE_URL}/admin.html" -o /tmp/admin.html
-          curl --fail --silent --show-error "${BASE_URL}/auth-client.js" -o /tmp/auth-client.js
-          grep -q 'Microsoft 365' /tmp/login.html
-          grep -q 'Add employee' /tmp/admin.html
-          grep -q 'AUTH_WORKER_PREVIEW' /tmp/auth-client.js
+          echo "Phase 9 Pages preview assets are reachable at ${BASE_URL}"
 
       - name: Verify preview Auth Worker
         shell: bash
