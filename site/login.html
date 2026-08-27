@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f5f2ec">
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>Sign in · Sindhorn Midtown Internal</title>
-  <link rel="stylesheet" href="/internal-auth.css?v=1">
+  <link rel="stylesheet" href="/internal-auth.css?v=2">
 </head>
 <body>
   <main class="auth-shell">
@@ -20,27 +20,21 @@
       </div>
 
       <p class="eyebrow" data-i18n="eyebrow">Internal employee access</p>
-      <h1 id="loginTitle" data-i18n="title">Welcome back.</h1>
-      <p class="support" data-i18n="support">Use your hotel Microsoft 365 account, or sign in with your employee ID and one-time code.</p>
+      <h1 id="loginTitle" data-i18n="title">Employee sign in.</h1>
+      <p class="support" data-i18n="support">Enter your Employee ID and the 6-digit one-time code sent with your invitation.</p>
 
       <div id="loginControls" class="stack">
-        <button id="microsoftButton" class="secondary" type="button">
-          <span class="ms-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span data-i18n="microsoft">Continue with Microsoft 365</span>
-        </button>
-
-        <div class="divider"><span data-i18n="or">or</span></div>
-
         <form id="employeeForm" class="stack" style="margin-top:0">
           <div class="field">
             <label for="employeeNumber" data-i18n="employeeId">Employee ID</label>
             <input id="employeeNumber" name="employeeNumber" inputmode="text" autocomplete="username" maxlength="64" required aria-describedby="employeeHint">
           </div>
           <div class="field">
-            <label for="activationCode" data-i18n="activationCode">One-time activation code</label>
+            <label for="activationCode" data-i18n="activationCode">One-time code</label>
             <input id="activationCode" class="code-input" name="activationCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
           </div>
-          <button id="employeeButton" class="primary" type="submit" data-i18n="employeeButton">Sign in with Employee ID</button>
-          <p id="employeeHint" class="note" data-i18n="hint">Your manager or an app administrator can issue a new 6-digit code. Codes expire after 15 minutes.</p>
+          <button id="employeeButton" class="primary" type="submit" data-i18n="employeeButton">Sign in</button>
+          <p id="employeeHint" class="note" data-i18n="hint">Use the code from your personal email or SMS invitation. It works once. If it has expired, an app administrator can issue a new one.</p>
         </form>
       </div>
 
@@ -57,6 +51,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="/login.js?v=1"></script>
+  <script type="module" src="/login.js?v=2"></script>
 </body>
 </html>
