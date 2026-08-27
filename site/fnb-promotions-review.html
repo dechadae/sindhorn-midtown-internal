@@ -4,42 +4,720 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#2E273B">
+<meta name="color-scheme" content="dark">
 <meta name="robots" content="noindex,nofollow">
 <title>F&B Promotions · Sindhorn Midtown</title>
 <style>
-@font-face{font-family:Vignette;src:url('https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/vignette/v1/fonts/vignette-sans-light.woff') format('woff');font-weight:300;font-display:swap}
-@font-face{font-family:Vignette;src:url('https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/vignette/v1/fonts/vignette-sans-regular.woff') format('woff');font-weight:400;font-display:swap}
-@font-face{font-family:PlexThai;src:url('https://sjpvhgxacsiorrtijqua.supabase.co/storage/v1/object/public/media/brand/vignette/v1/fonts/ibm-plex-sans-thai-regular.woff2') format('woff2');font-weight:400;font-display:swap}
-:root{--bg:#2E273B;--deep:#201A2B;--card:rgba(48,40,63,.80);--text:#FAF7F5;--muted:rgba(250,247,245,.66);--accent:#E5ECBE;--line:rgba(250,247,245,.14);--line2:rgba(250,247,245,.22);--g:20px;--max:720px;--rail:64px}
-*{box-sizing:border-box;letter-spacing:0!important;-webkit-tap-highlight-color:transparent}html{scroll-behavior:smooth;background:var(--deep)}body{margin:0;min-height:100vh;color:var(--text);font-family:Vignette,system-ui,sans-serif;font-weight:300;line-height:1.5;background:radial-gradient(110% 58% at 86% -8%,rgba(122,64,81,.56),transparent 58%),radial-gradient(80% 40% at 8% 25%,rgba(229,236,190,.07),transparent 62%),linear-gradient(180deg,#211B2D,#2E273B 48%,#251F31);background-attachment:fixed}button,a,input{font:inherit;color:inherit}button{border:0}a{text-decoration:none}.th{font-family:PlexThai,sans-serif}[hidden]{display:none!important}:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
-.bar{position:sticky;top:0;z-index:50;border-bottom:1px solid var(--line);background:rgba(32,26,43,.80);backdrop-filter:blur(20px)}.barin{width:min(100%,var(--max));min-height:58px;margin:auto;padding:9px var(--g);display:flex;align-items:center;justify-content:space-between;gap:9px}.brand{min-width:0}.brand b{display:block;font-size:13px;font-weight:400}.brand small{display:block;color:var(--muted);font-size:11px}.mode{padding:5px 10px;border:1px solid var(--line2);border-radius:999px;color:var(--muted);font-size:11px;white-space:nowrap}.editor .mode{color:var(--accent);border-color:rgba(229,236,190,.45)}.round{display:grid;place-items:center;width:38px;height:38px;padding:0;border:1px solid var(--line2);border-radius:50%;background:rgba(255,255,255,.03);cursor:pointer}.back{display:none}.detail .back{display:grid}.detail .brandhome{display:none}.branddetail{display:none}.detail .branddetail{display:block}.shell{width:min(100%,var(--max));margin:auto;padding:0 var(--g) 76px}.screen{display:none}.screen.on{display:block}
-.hero{padding:34px 0 25px;border-bottom:1px solid var(--line)}.eyebrow,.u{margin:0;color:var(--accent);font-size:11px;font-weight:400;text-transform:uppercase}.hero h1,.detailhero h1{margin:12px 0 0;font-size:clamp(42px,12vw,58px);font-weight:300;line-height:1}.period{margin-top:19px;font-size:15px}.summary{margin-top:4px;color:var(--muted);font-size:14px}.summary b{color:var(--text);font-weight:400}.controls{padding:18px 0 20px;border-bottom:1px solid var(--line)}.switch{display:grid;grid-template-columns:1fr 1fr;gap:8px}.switch button,.chip,.rail button{min-height:38px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.025);color:var(--muted);cursor:pointer}.switch button{min-height:44px;font-size:12px}.switch .on,.chip.on,.rail .on{border-color:rgba(229,236,190,.65);color:var(--accent);background:rgba(229,236,190,.08)}.filters{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.chip{padding:7px 11px;font-size:11px}.cards{display:grid;gap:12px;padding-top:20px}.card{overflow:hidden;border:1px solid var(--line2);border-radius:17px;background:linear-gradient(160deg,rgba(52,44,67,.88),rgba(42,35,56,.74));box-shadow:0 18px 55px rgba(10,8,16,.15)}.openpromo{width:100%;padding:20px;text-align:left;background:none;cursor:pointer}.status{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.status small{color:var(--muted);font-size:11px}.card h2,.sectiontitle,.qtitle{margin:0;font-size:25px;font-weight:300;line-height:1.08}.outlet{margin:7px 0 0;color:var(--muted);font-size:14px}.date{margin:17px 0 0;font-size:15px}.prog{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}.progmeta{display:flex;justify-content:space-between;color:var(--muted);font-size:11px}.progmeta b{color:var(--text);font-weight:400}.track{height:3px;margin-top:8px;background:rgba(255,255,255,.09);overflow:hidden}.track i{display:block;height:100%;background:var(--accent)}.foot{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:14px;color:var(--muted);font-size:14px}.foot span:last-child{color:var(--text);font-size:21px}
-.queuehead{padding:30px 0 18px;border-bottom:1px solid var(--line)}.queuehead h1{margin:8px 0 0;font-size:44px;font-weight:300}.qsum{margin-top:10px;color:var(--muted);font-size:14px}.qlist{display:grid;gap:10px;padding:18px 0}.qcard{overflow:hidden;border:1px solid var(--line2);border-radius:15px;background:var(--card)}.qbutton{width:100%;min-height:72px;padding:15px 17px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;text-align:left;background:none;cursor:pointer}.qtitle{font-size:20px}.qsub{margin-top:4px;color:var(--muted);font-size:12px}.qtally{color:var(--muted);font-size:12px}.chev{width:9px;height:9px;border-right:1px solid var(--muted);border-bottom:1px solid var(--muted);transform:rotate(45deg)}.qcard.open .chev{transform:rotate(225deg)}.qbody{padding:0 17px 12px}.qout{padding:11px 0 5px;color:var(--accent);font-size:11px;text-transform:uppercase}
-.detailhero{padding:31px 0 8px;scroll-margin-top:70px}.detailhero .eyebrow{margin-bottom:10px}.detaildate{margin:14px 0 0;color:var(--muted);font-size:15px}.facts{display:grid;grid-template-columns:1fr 1fr;margin:24px 0 0;border-top:1px solid var(--line)}.fact{padding:13px 0;border-bottom:1px solid var(--line)}.fact:nth-child(odd){padding-right:15px}.fact:nth-child(even){padding-left:15px;border-left:1px solid var(--line)}.fact dt{color:var(--muted);font-size:11px;text-transform:uppercase}.fact dd{margin:4px 0 0;font-size:15px}.cta,.cta2{width:100%;min-height:52px;margin-top:18px;padding:13px 16px;border-radius:13px;cursor:pointer;font-size:12px;font-weight:400;text-transform:uppercase}.cta{background:var(--accent);color:#282231}.cta2{border:1px solid var(--line2);background:rgba(255,255,255,.03)}.folderempty{margin-top:18px;padding:14px 16px;border:1px solid var(--line);border-radius:13px;display:flex;justify-content:space-between;font-size:14px}.folderempty small{color:var(--muted)}.sec{padding:29px 0 6px;border-top:1px solid var(--line);scroll-margin-top:70px}.sectop{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:15px}.sectiontitle{font-size:25px}.count{color:var(--muted);font-size:12px}.group,.textcard{border:1px solid var(--line2);border-radius:15px;background:var(--card)}.group+.group,.textcard+.textcard{margin-top:10px}.ghead{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}.ghead b{font-size:15px;font-weight:400}.ghead span{display:block;color:var(--muted);font-size:12px}.tasks{padding:0 16px}.task{min-height:50px;display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--line);font-size:15px}.task:last-child{border:0}.tick{width:28px;height:38px;padding:0;background:none;color:var(--muted);font-size:19px}.tick:before{content:'○'}.task.done .tick:before{content:'✓'}.task.done .tick{color:var(--accent)}.editor .tick{cursor:pointer;color:var(--text)}.editor .tick:before{content:'☐'}.editor .task.done .tick:before{content:'☑'}.task.done .name{color:var(--muted)}.textcard{padding:17px}.textlabel{margin:0 0 9px;color:var(--accent);font-size:11px;text-transform:uppercase}.textcopy{white-space:pre-line;color:rgba(250,247,245,.82);font-size:15px;line-height:1.65}.copyout{margin:18px 0 8px;color:var(--muted);font-size:12px}
-.rail{position:fixed;z-index:80;left:0;right:0;bottom:0;display:none;justify-content:center;gap:7px;padding:9px 12px calc(9px + env(safe-area-inset-bottom));border-top:1px solid var(--line2);background:rgba(36,29,48,.86);backdrop-filter:blur(20px)}.detail .rail{display:flex}.rail button{padding:6px 12px;font-size:11px}.sheet{position:fixed;z-index:120;inset:0;display:none;align-items:flex-end;background:rgba(8,6,12,.66)}.sheet.on{display:flex}.sheetbox{width:min(100%,var(--max));margin:auto 0 0;padding:18px var(--g) calc(24px + env(safe-area-inset-bottom));border:1px solid var(--line2);border-bottom:0;border-radius:20px 20px 0 0;background:#30273F}.sheettop{display:flex;align-items:center;justify-content:space-between}.sheettop h2{margin:0;font-size:25px;font-weight:300}.close{width:38px;height:38px;border:1px solid var(--line2);border-radius:50%;background:none;font-size:22px}.sheetopt{width:100%;min-height:50px;padding:10px 0;border-top:1px solid var(--line);display:flex;justify-content:space-between;background:none;text-align:left;cursor:pointer}.sheetopt small{color:var(--muted)}.input{width:100%;min-height:45px;margin-top:8px;padding:10px 12px;border:1px solid var(--line2);border-radius:10px;background:rgba(255,255,255,.04)}.note{margin:34px 0 0;padding:18px 0;border-top:1px solid var(--line);color:var(--muted);font-size:11px}.toast{position:fixed;z-index:160;left:50%;bottom:82px;transform:translateX(-50%);padding:9px 13px;border:1px solid var(--line2);border-radius:999px;background:#211B2D;font-size:12px;white-space:nowrap}@media(min-width:700px){:root{--g:28px}.cards{grid-template-columns:1fr 1fr}.openpromo{min-height:328px;display:flex;flex-direction:column}.prog{margin-top:auto}}@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400&family=Noto+Sans+Thai:wght@300;400&display=swap");
+
+:root{
+  --bg:#2E273B;--bg-deep:#201A2B;--surface:rgba(43,36,56,.78);--surface-strong:rgba(48,40,63,.94);
+  --text:#FAF7F5;--text-rgb:250,247,245;--muted:rgba(250,247,245,.66);
+  --accent:#E5ECBE;--accent-rgb:229,236,190;--burgundy:#7A4051;
+  --line:rgba(250,247,245,.13);--line-strong:rgba(250,247,245,.22);
+  --shadow:0 18px 60px rgba(12,9,18,.18);--max:720px;--gutter:20px;
+  --rail:64px;
+}
+*{box-sizing:border-box;letter-spacing:0!important;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth;background:var(--bg-deep)}
+body{margin:0;min-height:100vh;color:var(--text);font-family:"Vignette Sans",system-ui,sans-serif;font-weight:300;line-height:1.55;
+  background:
+    radial-gradient(110% 58% at 86% -8%,rgba(122,64,81,.58),transparent 58%),
+    radial-gradient(85% 44% at 7% 24%,rgba(229,236,190,.075),transparent 60%),
+    linear-gradient(180deg,#211B2D 0%,#2E273B 48%,#251F31 100%);
+  background-attachment:fixed}
+body.detail-open{padding-bottom:calc(var(--rail) + env(safe-area-inset-bottom,0px))}
+button,a,input{font:inherit;color:inherit}
+button{border:0}
+a{text-decoration:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+[lang="th"],.th{font-family:"IBM Plex Sans Thai","Noto Sans Thai",sans-serif}
+[hidden]{display:none!important}
+
+.appbar{position:sticky;top:0;z-index:70;border-bottom:1px solid var(--line);background:rgba(32,26,43,.78);
+  -webkit-backdrop-filter:blur(22px) saturate(1.25);backdrop-filter:blur(22px) saturate(1.25)}
+.appbar-inner{width:min(100%,var(--max));min-height:58px;margin:auto;padding:9px var(--gutter);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{min-width:0} .brand strong{display:block;font-size:13px;font-weight:600;line-height:1.2} .brand span{display:block;margin-top:2px;color:var(--muted);font-size:11px;line-height:1.25}
+.app-actions{display:flex;align-items:center;gap:8px}
+.mode-badge{display:inline-flex;align-items:center;min-height:30px;padding:5px 10px;border:1px solid var(--line-strong);border-radius:999px;color:var(--muted);font-size:11px;white-space:nowrap}
+body.editor .mode-badge{color:var(--accent);border-color:rgba(var(--accent-rgb),.42);background:rgba(var(--accent-rgb),.07)}
+.icon-btn,.back-btn{display:grid;place-items:center;width:38px;height:38px;padding:0;border:1px solid var(--line-strong);border-radius:50%;background:rgba(250,247,245,.035);cursor:pointer}
+.icon-btn svg,.back-btn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.back-btn{display:none} body.detail-open .back-btn{display:grid} body.detail-open .brand-default{display:none} .detail-brand{display:none} body.detail-open .detail-brand{display:block}
+.editor-reset{display:none;padding:0;background:none;color:var(--muted);font-size:11px;cursor:pointer} body.editor:not(.detail-open) .editor-reset{display:block}
+
+.shell{width:min(100%,var(--max));margin:0 auto;padding:0 var(--gutter) 70px}
+.screen{display:none}.screen.active{display:block}
+
+.hero{padding:34px 0 25px;border-bottom:1px solid var(--line)}
+.eyebrow,.utility{color:var(--accent);font-size:11px;font-weight:400;line-height:1.3;text-transform:uppercase}
+.eyebrow{margin:0 0 12px}
+h1{margin:0;font-size:clamp(42px,12vw,60px);font-weight:300;line-height:.98}
+.hero-meta{display:block;margin-top:20px}
+.period{font-size:15px;line-height:1.35} .summary{margin-top:5px;color:var(--muted);font-size:14px;text-align:left}
+.summary b{color:var(--text);font-weight:400}
+
+.control-block{padding:18px 0 20px;border-bottom:1px solid var(--line)}
+.view-switch{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.switch-btn{min-height:44px;padding:10px 14px;border:1px solid var(--line-strong);border-radius:999px;background:rgba(250,247,245,.035);color:var(--muted);font-size:12px;cursor:pointer}
+.switch-btn.on{border-color:rgba(var(--accent-rgb),.50);background:rgba(var(--accent-rgb),.11);color:var(--accent)}
+.filter-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.filter-chip{min-height:36px;padding:7px 11px;border:1px solid var(--line);border-radius:999px;background:rgba(250,247,245,.025);color:var(--muted);font-size:11px;cursor:pointer;white-space:nowrap}
+.filter-chip.on{border-color:var(--accent);color:var(--accent)}
+
+.card-list{display:grid;gap:12px;padding:20px 0 0}
+.promo-card{overflow:hidden;border:1px solid var(--line-strong);border-radius:17px;background:linear-gradient(160deg,rgba(52,44,67,.86),rgba(42,35,56,.72));
+  box-shadow:var(--shadow);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.promo-open{width:100%;padding:20px;text-align:left;background:transparent;cursor:pointer}
+.card-status{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.card-status .utility{color:var(--accent)} .card-status .status-time{color:var(--muted);font-size:11px}
+.card-title,.section-heading,.queue-title{margin:0;font-size:25px;font-weight:300;line-height:1.08}
+.card-outlets{margin:7px 0 0;color:var(--muted);font-size:14px;line-height:1.4}
+.card-date{margin:17px 0 0;font-size:15px}
+.card-progress{margin-top:18px;padding-top:15px;border-top:1px solid var(--line)}
+.progress-meta{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:11px}
+.progress-meta b{color:var(--text);font-weight:400}
+.progress-track{height:3px;margin-top:8px;border-radius:2px;background:rgba(250,247,245,.09);overflow:hidden}
+.progress-track i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s ease}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:15px;color:var(--muted);font-size:13px}
+.card-foot .chevron{color:var(--text);font-size:21px;line-height:1}
+
+.queue-hero{padding:32px 0 19px;border-bottom:1px solid var(--line)}
+.queue-hero h1{font-size:44px}
+.queue-summary{margin-top:12px;color:var(--muted);font-size:14px}
+.queue-list{display:grid;gap:10px;padding:18px 0}
+.queue-card{overflow:hidden;border:1px solid var(--line-strong);border-radius:15px;background:var(--surface);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.queue-head{width:100%;min-height:74px;padding:16px 17px;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;text-align:left;background:none;cursor:pointer}
+.queue-head-copy{min-width:0} .queue-head .queue-title{font-size:20px} .queue-sub{margin-top:5px;color:var(--muted);font-size:12px}
+.queue-tally{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums} .queue-tally.done{color:var(--accent)}
+.queue-chevron{width:9px;height:9px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg);transition:transform .22s ease}
+.queue-card.open .queue-chevron{transform:rotate(225deg)}
+.queue-body{padding:0 17px 12px} .queue-body[hidden]{display:none!important}
+.queue-outlet{padding:11px 0 5px;color:var(--accent);font-size:11px;text-transform:uppercase}
+.queue-progress{height:2px;margin:0 17px;background:rgba(250,247,245,.08)} .queue-progress i{display:block;height:100%;background:var(--accent)}
+
+.detail-hero{padding:31px 0 8px}
+.detail-hero h1{font-size:clamp(40px,11vw,55px);line-height:1.02}
+.detail-date{margin:14px 0 0;color:var(--muted);font-size:15px}
+.facts{display:grid;grid-template-columns:1fr 1fr;margin:24px 0 0;border-top:1px solid var(--line)}
+.fact{min-width:0;padding:13px 0;border-bottom:1px solid var(--line)} .fact:nth-child(odd){padding-right:16px} .fact:nth-child(even){padding-left:16px;border-left:1px solid var(--line)}
+.fact dt{margin:0 0 4px;color:var(--muted);font-size:11px;text-transform:uppercase} .fact dd{margin:0;font-size:15px;line-height:1.4}
+.primary-cta,.secondary-cta{width:100%;min-height:52px;margin-top:18px;padding:13px 18px;border-radius:13px;display:flex;align-items:center;justify-content:center;gap:9px;cursor:pointer;font-size:12px;font-weight:600;text-transform:uppercase}
+.primary-cta{background:var(--accent);color:#282231} .primary-cta svg,.secondary-cta svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.secondary-cta{border:1px solid var(--line-strong);background:rgba(250,247,245,.035);color:var(--text)}
+.folder-empty{margin-top:18px;padding:14px 16px;border:1px solid var(--line);border-radius:13px;background:rgba(250,247,245,.025);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.folder-empty span{font-size:14px} .folder-empty small{color:var(--muted);font-size:12px}
+
+.detail-section{scroll-margin-top:72px;padding:29px 0 6px;border-top:1px solid var(--line)}
+.section-top{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:16px}
+.section-heading{font-size:25px} .section-count{color:var(--muted);font-size:12px;white-space:nowrap}
+.activation-card,.text-card{border:1px solid var(--line-strong);border-radius:15px;background:var(--surface);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.activation-card+.activation-card,.text-card+.text-card{margin-top:10px}
+.activation-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:15px 16px;border-bottom:1px solid var(--line)}
+.activation-head strong{font-size:15px;font-weight:400} .activation-head span{display:block;margin-top:3px;color:var(--muted);font-size:12px} .activation-head b{color:var(--muted);font-size:12px;font-weight:400}
+.task-list{padding:0 16px}
+.task-row{min-height:50px;display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--line);font-size:15px}
+.task-row:last-child{border-bottom:0}
+.task-toggle{flex:0 0 28px;width:28px;height:38px;padding:0;background:none;color:var(--muted);display:grid;place-items:center;font-size:19px;cursor:default}
+body.editor .task-toggle{cursor:pointer;color:var(--text)} .task-row.done .task-toggle{color:var(--accent)} .task-row.done .task-name{color:var(--muted)}
+.task-toggle:before{content:"○"} .task-row.done .task-toggle:before{content:"✓"}
+body.editor .task-toggle:before{content:"☐"} body.editor .task-row.done .task-toggle:before{content:"☑"}
+.task-name{min-width:0;line-height:1.4}
+
+.text-card{padding:17px 17px 16px}
+.text-label{margin:0 0 10px;color:var(--accent);font-size:11px;text-transform:uppercase}
+.text-copy{position:relative;white-space:pre-line;color:rgba(250,247,245,.82);font-size:15px;line-height:1.67;overflow:hidden}
+.text-copy.collapsed{max-height:180px} .text-copy.collapsed:after{content:"";position:absolute;left:0;right:0;bottom:0;height:62px;background:linear-gradient(transparent,rgba(43,36,56,.98))}
+.expand-btn{margin-top:12px;padding:0;background:none;color:var(--accent);font-size:12px;cursor:pointer}
+.copy-outlet{margin:20px 0 9px;color:var(--muted);font-size:12px} .copy-outlet:first-child{margin-top:0}
+
+.detail-rail{position:fixed;z-index:80;left:0;right:0;bottom:0;min-height:var(--rail);padding:9px 14px calc(9px + env(safe-area-inset-bottom,0px));
+  display:none;align-items:center;justify-content:center;gap:7px;border-top:1px solid var(--line-strong);background:rgba(36,29,48,.82);
+  -webkit-backdrop-filter:blur(22px) saturate(1.28);backdrop-filter:blur(22px) saturate(1.28);overflow-x:auto;scrollbar-width:none}
+body.detail-open .detail-rail{display:flex} .detail-rail::-webkit-scrollbar{display:none}
+.rail-chip{flex:0 0 auto;min-height:34px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:11px;background:rgba(250,247,245,.025);cursor:pointer}
+.rail-chip.on{color:var(--accent);border-color:rgba(var(--accent-rgb),.58);background:rgba(var(--accent-rgb),.08)}
+
+.sheet-layer{position:fixed;inset:0;z-index:120;display:none;align-items:flex-end;justify-content:center;background:rgba(9,7,13,.66)} .sheet-layer.open{display:flex}
+.sheet{width:min(100%,var(--max));max-height:82vh;overflow:auto;border:1px solid var(--line-strong);border-bottom:0;border-radius:20px 20px 0 0;background:#30273F;padding:18px var(--gutter) calc(24px + env(safe-area-inset-bottom,0px));box-shadow:0 -18px 80px rgba(0,0,0,.25)}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.sheet-head h2{margin:0;font-size:25px;font-weight:300} .sheet-close{width:38px;height:38px;border:1px solid var(--line-strong);border-radius:50%;background:transparent;font-size:22px;cursor:pointer}
+.sheet-option{width:100%;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-top:1px solid var(--line);background:none;text-align:left;cursor:pointer;font-size:15px}
+.sheet-option small{color:var(--muted);font-size:12px} .sheet-option.on{color:var(--accent)}
+.link-field{padding:13px 0;border-top:1px solid var(--line)} .link-field label{display:block;margin-bottom:7px;color:var(--muted);font-size:11px;text-transform:uppercase}
+.link-field input{width:100%;min-height:45px;padding:10px 12px;border:1px solid var(--line-strong);border-radius:10px;background:rgba(250,247,245,.035);color:var(--text);font-size:14px;outline:none}
+.sheet-note{margin:10px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
+.sheet-save{width:100%;min-height:48px;margin-top:14px;border-radius:12px;background:var(--accent);color:#282231;font-size:12px;font-weight:600;cursor:pointer;text-transform:uppercase}
+.link-list a{min-height:52px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;border-top:1px solid var(--line);font-size:15px}
+.link-list a span:last-child{color:var(--accent)} .toast{position:fixed;left:50%;bottom:82px;z-index:160;transform:translateX(-50%);padding:9px 13px;border:1px solid var(--line-strong);border-radius:999px;background:#211B2D;color:var(--text);font-size:12px;box-shadow:var(--shadow)}
+
+.footer-note{margin:34px 0 0;padding:18px 0;border-top:1px solid var(--line);color:var(--muted);font-size:11px;line-height:1.55}
+.footer-note strong{color:var(--text);font-weight:400}
+
+@media(min-width:700px){
+  :root{--gutter:28px}
+  .card-list{grid-template-columns:1fr 1fr}
+  .promo-open{min-height:335px;display:flex;flex-direction:column}
+  .card-progress{margin-top:auto}
+  .queue-head{padding:18px 20px} .queue-body{padding:0 20px 14px}
+  .text-card{padding:20px}
+}
+@media(max-width:370px){
+  .mode-badge{display:none} .filter-chip{padding-inline:9px;font-size:10.5px} .fact dd{font-size:14px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+/* F&B Review v3 — aligned to current Sindhorn Midtown Internal Pack 38/39 */
+:root{
+  --bg:#2E273B;--bg-deep:#171B24;--surface:rgba(35,39,51,.66);--surface-strong:rgba(40,43,57,.91);
+  --text:#FAF7F5;--text-rgb:250,247,245;--muted:rgba(250,247,245,.68);
+  --accent:#E5ECBE;--accent-rgb:229,236,190;--line:rgba(250,247,245,.12);--line-strong:rgba(250,247,245,.17);
+  --shadow:0 18px 64px rgba(4,7,13,.22);--max:720px;--gutter:clamp(20px,4vw,48px);
+  --chip-h:42px;--ease:cubic-bezier(.22,1,.36,1);--rail:64px;
+}
+html{background:var(--bg-deep)}
+body,button,input,select,textarea{font-family:"Poppins","Noto Sans Thai",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{font-weight:300;line-height:1.5;background:
+  radial-gradient(105% 58% at 72% 2%,rgba(75,91,116,.22),transparent 64%),
+  radial-gradient(70% 44% at 5% 37%,rgba(229,236,190,.045),transparent 70%),
+  linear-gradient(180deg,#202431 0%,#242733 44%,#1d202a 100%);background-attachment:fixed}
+body:before{content:"";position:fixed;z-index:-1;inset:-10%;pointer-events:none;opacity:.52;
+  background:radial-gradient(42% 30% at 72% 30%,rgba(154,166,185,.11),transparent 70%),radial-gradient(34% 28% at 25% 61%,rgba(121,132,151,.08),transparent 74%);
+  filter:blur(18px);animation:atmosDrift 18s ease-in-out infinite alternate}
+@keyframes atmosDrift{to{transform:translate3d(-1.5%,1%,0) scale(1.025)}}
+[lang="th"],.th{font-family:"Noto Sans Thai",sans-serif!important;font-weight:300}
+*::before,*::after,*{letter-spacing:0!important}
+button,a{position:relative;overflow:hidden}
+button{transition:transform .18s var(--ease),background .24s ease,border-color .24s ease,color .24s ease,box-shadow .24s ease}
+button:active,.tap-active{transform:scale(.975)}
+.tap-ripple{position:absolute!important;z-index:0;border-radius:50%;pointer-events:none;background:rgba(250,247,245,.13);transform:scale(0);animation:ripple .5s ease-out forwards}
+@keyframes ripple{to{transform:scale(1);opacity:0}}
+button>*{position:relative;z-index:1}
+
+.appbar{background:rgba(46,39,59,.94);border-bottom:1px solid rgba(250,247,245,.14);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}
+.appbar-inner{min-height:86px;padding-top:10px;padding-bottom:10px}
+.appbar-left{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-lockup{width:126px;flex:0 0 auto}.brand-lockup img{width:100%;height:auto;display:block}
+.detail-brand{display:none;color:var(--muted);font-size:12px;font-weight:400}
+body.detail-open .detail-brand{display:inline-flex;align-items:center}
+.back-btn,.icon-btn{width:42px;height:42px;flex:0 0 42px;border-color:var(--line-strong);background:rgba(250,247,245,.035)}
+.back-btn{display:none}body.detail-open .back-btn{display:grid}
+.mode-badge{height:var(--chip-h);min-height:var(--chip-h);padding:0 14px;border-color:var(--line-strong);background:rgba(250,247,245,.025);font-size:11px;display:inline-flex;align-items:center}
+body.editor .mode-badge{background:rgba(var(--accent-rgb),.08);border-color:rgba(var(--accent-rgb),.48)}
+.editor-reset{display:none!important}
+
+.screen.active{display:block}
+.screen.enter-forward{animation:screenForward .42s var(--ease) both}
+.screen.enter-back{animation:screenBack .38s var(--ease) both}
+@keyframes screenForward{from{opacity:0;transform:translate3d(14px,0,0) scale(.995)}to{opacity:1;transform:none}}
+@keyframes screenBack{from{opacity:0;transform:translate3d(-10px,0,0) scale(.997)}to{opacity:1;transform:none}}
+.view-enter{animation:viewIn .34s var(--ease) both}@keyframes viewIn{from{opacity:.15;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+.hero{padding:32px 0 24px}
+.eyebrow,.utility{font-size:.68rem;line-height:1.3;color:var(--accent)}
+.eyebrow [lang="th"]{color:var(--text);font-size:1.06em;text-transform:none}
+h1{font-size:clamp(3rem,12vw,5.2rem);line-height:.96;text-transform:uppercase}
+h1>span[lang="th"]{display:block;margin-top:9px;color:var(--muted);font-size:.42em;line-height:1.22;text-transform:none;font-weight:300}
+.period{font-size:.88rem}.summary{font-size:.80rem}
+
+.control-block{padding:18px 0 20px}
+.view-switch{gap:8px}
+.switch-btn,.filter-chip,.rail-chip{height:var(--chip-h)!important;min-height:var(--chip-h)!important;border-radius:999px;padding:0 14px;display:flex;align-items:center;justify-content:center;font-size:.68rem;line-height:1;white-space:nowrap}
+.switch-btn{padding:0 18px}
+.filter-row{gap:8px}
+.filter-chip{min-width:52px}
+.switch-btn.on,.filter-chip.on,.rail-chip.on{border-color:rgba(var(--accent-rgb),.55);background:rgba(var(--accent-rgb),.10);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),.03)}
+
+.card-list{gap:12px;padding-top:18px}
+.promo-card{border-color:var(--line-strong);background:linear-gradient(155deg,rgba(46,49,62,.78),rgba(31,35,46,.66));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);transition:transform .28s var(--ease),border-color .25s ease,background .25s ease,box-shadow .25s ease;animation:cardIn .42s var(--ease) both}
+.promo-card:nth-child(2){animation-delay:.035s}.promo-card:nth-child(3){animation-delay:.07s}.promo-card:nth-child(4){animation-delay:.105s}.promo-card:nth-child(5){animation-delay:.14s}.promo-card:nth-child(6){animation-delay:.175s}.promo-card:nth-child(7){animation-delay:.21s}.promo-card:nth-child(8){animation-delay:.245s}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(hover:hover){.promo-card:hover{transform:translateY(-2px);border-color:rgba(var(--accent-rgb),.34);box-shadow:0 22px 70px rgba(4,7,13,.30)}}
+.promo-open:active{transform:scale(.992)}
+.card-title,.section-heading,.queue-title{font-size:1.45rem;line-height:1.12}
+.card-outlets{font-size:.80rem}.card-date{font-size:.86rem}
+.card-status .status-time,.progress-meta{font-size:.68rem}
+.card-foot{font-size:.78rem}
+.progress-track{height:3px}.progress-track i{transition:width .5s var(--ease)}
+
+.queue-card{background:rgba(35,39,51,.67);transition:border-color .25s ease,background .25s ease;animation:cardIn .38s var(--ease) both}
+.queue-card.open{border-color:rgba(var(--accent-rgb),.28);background:rgba(39,43,55,.80)}
+.queue-head{min-height:76px}
+.queue-body{display:block!important;max-height:0;opacity:0;overflow:hidden;padding:0 17px;transition:max-height .42s var(--ease),opacity .25s ease,padding .3s ease}
+.queue-card.open .queue-body{padding-bottom:12px}
+.queue-progress i{transition:width .45s var(--ease)}
+
+.detail-hero{padding-top:30px}
+.detail-hero h1{font-size:clamp(2.6rem,11vw,4.6rem);text-transform:none}
+.facts{margin-top:22px}.fact{padding:14px 0}.fact dt{font-size:.68rem}.fact dd{font-size:.88rem}
+.primary-cta,.secondary-cta{min-height:52px;border-radius:999px;font-size:.68rem;font-weight:400}
+.primary-cta{box-shadow:0 8px 28px rgba(229,236,190,.08)}
+.primary-cta:active,.secondary-cta:active{transform:scale(.985)}
+.folder-empty{border-radius:14px;background:rgba(250,247,245,.025)}
+
+.detail-section{padding:24px 0 6px;scroll-margin-top:100px}
+.section-heading{display:flex;align-items:baseline;gap:8px}
+.section-heading [lang="th"]{color:var(--muted);font-size:.62em;font-weight:300}
+.section-count{font-size:.68rem}
+.activation-card,.text-card{background:rgba(35,39,51,.67);border-color:var(--line-strong)}
+.task-row{min-height:54px}
+.task-toggle{transition:transform .25s var(--ease),color .22s ease}
+body.editor .task-toggle:active{transform:scale(.82)}
+.task-row.done .task-toggle{animation:checkPop .28s var(--ease)}@keyframes checkPop{50%{transform:scale(1.22)}}
+.text-card{padding:17px}
+.text-label{font-size:.68rem}
+.text-copy{font-size:.88rem;line-height:1.62;transition:max-height .42s var(--ease);max-height:none}
+.text-copy.collapsed{max-height:180px!important}
+.text-copy.collapsed:after{background:linear-gradient(transparent,rgba(35,39,51,.99))}
+.source-missing{color:var(--muted);font-style:italic}
+.expand-btn{min-height:38px;margin-top:10px;padding:0 2px;color:var(--accent);font-size:.68rem;background:none}
+.expand-btn [lang="th"]{color:var(--muted)}
+.copy-outlet{margin-top:24px;color:var(--accent);font-size:.68rem;text-transform:uppercase}
+.campaign-copy-label{padding-top:2px}
+
+.detail-rail{gap:6px;background:rgba(46,39,59,.92);border-top-color:rgba(250,247,245,.14);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}
+.rail-chip{flex:1 1 0;max-width:150px;padding:0 10px}
+.rail-chip.on{box-shadow:inset 0 0 0 1px rgba(var(--accent-rgb),.03)}
+
+.sheet-layer{display:flex;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .24s ease,visibility 0s linear .24s}
+.sheet-layer.open{visibility:visible;opacity:1;pointer-events:auto;transition-delay:0s}
+.sheet{background:#2E273B;transform:translateY(28px);opacity:.4;transition:transform .38s var(--ease),opacity .26s ease}
+.sheet-layer.open .sheet{transform:none;opacity:1}
+.sheet-option{transition:color .2s ease,background .2s ease,padding .2s var(--ease)}
+.sheet-option:active{padding-left:6px}
+.sheet-close{width:42px;height:42px}
+.sheet-save{height:50px;border-radius:999px;font-weight:400}
+.toast{background:#2E273B;border-color:rgba(250,247,245,.18);animation:toastIn .3s var(--ease) both}@keyframes toastIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+
+.footer-note{font-size:.68rem}
+@media(max-width:430px){
+  .appbar-inner{min-height:82px}.brand-lockup{width:118px}
+  .mode-badge{padding-inline:11px;font-size:.64rem}.icon-btn{width:42px}
+  .switch-btn,.filter-chip,.rail-chip{font-size:.64rem}
+  .filter-chip{padding-inline:12px}
+}
+@media(max-width:360px){
+  .mode-badge{display:none}.brand-lockup{width:112px}.rail-chip{padding-inline:7px;font-size:.60rem}
+}
+@media(prefers-reduced-motion:reduce){body:before{animation:none}.screen.enter-forward,.screen.enter-back,.view-enter,.promo-card,.queue-card,.toast{animation:none!important}}
+
 </style>
 </head>
 <body>
-<header class="bar"><div class="barin"><button class="round back" id="back" aria-label="Back">‹</button><div class="brand brandhome"><b>SINDHORN MIDTOWN</b><small>Food & Beverage · Campaign Board</small></div><div class="brand branddetail"><b>F&B</b><small>Promotion detail</small></div><span class="mode" id="mode">Read only</span></div></header>
-<main class="shell"><section class="screen on" id="index"><div class="hero"><p class="eyebrow">Food & Beverage</p><h1>Promotions</h1><div class="period">SEP — DEC 2026</div><div class="summary" id="sum"></div></div><div class="controls"><div class="switch"><button class="on" data-view="promos">Promotions</button><button data-view="art">Artwork queue</button></div><div class="filters" id="filters"></div></div><div id="promos"><div class="cards" id="cards"></div></div><div id="art" hidden><div class="queuehead"><p class="eyebrow">Production queue</p><h1>Artwork</h1><div class="qsum" id="qsum"></div></div><div class="qlist" id="qlist"></div></div><div class="note">Review prototype · 8 promotions · 5 outlets · 29 artwork tasks. Completion and link edits are device-local in editor preview only.</div></section><section class="screen" id="detail"><div id="mount"></div></section></main>
-<nav class="rail" id="rail"><button class="on" data-go="overview">Overview</button><button data-go="artwork">Artwork</button><button data-go="brief">Brief</button><button data-go="copy">Copy</button></nav>
-<div class="sheet" id="sheet"><div class="sheetbox"><div class="sheettop"><h2 id="sheettitle">More</h2><button class="close" id="close">×</button></div><div id="sheetbody"></div></div></div><div class="toast" id="toast" hidden></div>
+<header class="appbar">
+  <div class="appbar-inner">
+    <div class="appbar-left">
+      <button class="back-btn" id="backBtn" aria-label="Back to promotions">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="brand-lockup" aria-label="Sindhorn Midtown Hotel Bangkok, Vignette Collection">
+        <img src="/assets/brand/sindhorn-midtown-vignette-white.png" width="1200" height="600" alt="">
+      </div>
+      <span class="detail-brand" id="detailBrandTitle">F&amp;B</span>
+    </div>
+    <div class="app-actions">
+      <button class="editor-reset" id="resetBtn" type="button">Reset demo</button>
+      <span class="mode-badge" id="modeBadge">Read only</span>
+      <button class="icon-btn" id="shareBtn" type="button" aria-label="Share current promotion" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M12 15V3M8 7l4-4 4 4"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <section class="screen active" id="indexScreen">
+    <div class="hero">
+      <p class="eyebrow">Food &amp; Beverage <span aria-hidden="true">·</span> <span lang="th">อาหารและเครื่องดื่ม</span></p>
+      <h1>Promotions <span lang="th">โปรโมชั่น</span></h1>
+      <div class="hero-meta">
+        <div class="period">SEP — DEC 2026</div>
+        <div class="summary" id="indexSummary"></div>
+      </div>
+    </div>
+    <div class="control-block">
+      <div class="view-switch">
+        <button class="switch-btn on" data-view="promotions">Promotions</button>
+        <button class="switch-btn" data-view="artwork">Artwork</button>
+      </div>
+      <div class="filter-row" id="indexFilters"></div>
+    </div>
+    <div id="promotionsView">
+      <div class="card-list" id="cardList"></div>
+    </div>
+    <div id="artworkView" hidden>
+      <div class="queue-hero">
+        <p class="eyebrow">Production queue <span aria-hidden="true">·</span> <span lang="th">คิวงานผลิต</span></p>
+        <h1>Artwork <span lang="th">อาร์ตเวิร์ก</span></h1>
+        <div class="queue-summary" id="queueSummary"></div>
+      </div>
+      <div class="queue-list" id="queueList"></div>
+    </div>
+    <div class="footer-note"><strong>Review prototype</strong> · Promotion content is taken from the Sep–Oct 2026 F&B workbook. Completion and link edits are device-local in editor preview only.</div>
+  </section>
+
+  <section class="screen" id="detailScreen">
+    <div id="detailMount"></div>
+  </section>
+</main>
+
+<nav class="detail-rail" id="detailRail" aria-label="Promotion sections">
+  <button class="rail-chip on" data-target="overview">Overview</button>
+  <button class="rail-chip" data-target="artwork">Artwork</button>
+  <button class="rail-chip" data-target="brief">Brief</button>
+  <button class="rail-chip" data-target="copy">Copy</button>
+</nav>
+
+<div class="sheet-layer" id="sheetLayer" aria-hidden="true">
+  <section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-head"><h2 id="sheetTitle">More</h2><button class="sheet-close" id="sheetClose" type="button" aria-label="Close">×</button></div>
+    <div id="sheetBody"></div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
 <script>
-const D=[
-{id:'fried',title:'Fried Chicken & Waffles',start:'2026-09-01',date:'01 SEP — 31 DEC 2026',summary:'Crispy fried chicken and buttery waffles in four global flavor styles.',brief:'Four Fried Chicken & Waffles styles: Original, Korean Gochujang, Nashville Hot and Tex-Mex Slider.',en:'Where crispy meets fluffy in every bite at Sip & Co. Available throughout September – December 2026. IHG® One Rewards members enjoy an extra 20% savings.',th:'สัมผัสความลงตัวของไก่ทอดกรอบ และวาฟเฟิลเนื้อนุ่มในทุกคำที่คาเฟ่ Sip & Co. พร้อมให้บริการตลอดเดือนกันยายน ถึงเดือนธันวาคม พ.ศ. 2569',a:[{id:'fried-sip',o:'Sip & Co.',t:'TBC',d:'20%',x:null,w:[['fried-a4','A4 Menu'],['fried-a3','A3 Menu'],['fried-qr','QR Standee']]}]},
-{id:'sunset',title:'Sunset Cocktails',start:'2026-09-01',date:'01 SEP — 31 OCT 2026',summary:'Cocktails inspired by famous sunset destinations around the world.',brief:'Famous sunset around the world — a cocktail collection inspired by iconic sunset destinations, capturing their colors, mood and atmosphere in each glass. Laem Phromthep, Santorini and Mallory Square · THB 370++ each.',en:'Sunset Cocktails · A world of sunset flavors in every glass at Horizon Pool · 1 September - 31 October 2026.',th:null,a:[{id:'sunset-horizon',o:'Horizon Pool Bar',t:'TBC',d:'N/A',x:null,w:[['sunset-a4','A4 Menu'],['sunset-a6','A6 Menu'],['sunset-standee','10 × 15 cm Table Standee']]}]},
-{id:'guest',title:'Guest Bartender · ANJU × PHRAYA RUM',start:'2026-09-12',date:'12 SEP 2026',summary:'One-night ANJU × PHRAYA RUM guest shift with three special cocktails.',brief:'SPIRIT OF SEOUL, SOUL OF SIAM · Guest Bartender K. Bank Watcharapong · three special cocktails at THB 420++.',en:'ANJU X PHRAYA RUM: Taste the SPIRIT OF SEOUL, SOUL OF SIAM. Save the date 12 September 2026 from 7 pm - 11 pm.',th:'ANJU X PHRAYA RUM: ลิ้มลอง SPIRIT OF SEOUL, SOUL OF SIAM วันที่ 12 กันยายน พ.ศ. 2569 ตั้งแต่เวลา 19:00 น. - 23:00 น.',a:[{id:'guest-anju',o:'ANJU',t:'7 PM — 11 PM',d:'N/A',x:null,w:[['guest-a3','A3 Menu'],['guest-insert','Insert Menu'],['guest-standee','10 × 15 cm Table Standee']]}]},
-{id:'negroni',title:'Negroni Week',start:'2026-09-21',date:'21 — 27 SEP 2026',summary:'Three Negroni creations inspired by familiar rituals and global flavors.',brief:'A Negroni collection inspired by nostalgic rituals and flavors from around the world — Bangkok Breakfast Negroni, Kurume Negroni and Earl Negroni · THB 420++ each.',en:'A Negroni Week Celebration at The Lobby Lounge and ANJU Korean Rooftop Restaurant & Bar from 21 - 27 September 2026.',th:'เฉลิมฉลอง Negroni Week ที่ The Lobby Lounge และอันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์ ระหว่างวันที่ 21 - 27 กันยายน พ.ศ. 2569',a:[{id:'negroni-anju',o:'ANJU',t:'5 PM — 2 AM',d:'N/A',x:'https://ihg-my.sharepoint.com/:f:/p/decha_kokaew/IgA0mV5yD30oSL9-txoUdbMyAcTnW1RDc_Qq7R0nZRNUFEE?e=eCHgQk',w:[['neg-a4','A4 Menu'],['neg-a3','A3 Menu'],['neg-size','10.5 × 29.7 cm']]},{id:'negroni-lobby',o:'The Lobby Lounge',t:'6:30 AM — 12 AM',d:'N/A',x:'https://ihg-my.sharepoint.com/:f:/p/decha_kokaew/IgBcS-2I-lm0R6tMZkILqseMAfweEsUvjf2sTVucDLePSgQ?e=U5DIfv',w:[['neg-l-a4','A4 Menu'],['neg-l-qr','QR Standee'],['neg-l-size','9.9 × 21 cm']]}]},
-{id:'halloween',title:'Halloween · Sins of Seoul',start:'2026-10-01',date:'01 — 31 OCT 2026',summary:'Three dark cocktail temptations: Lust, Greed and Envy.',brief:'SINS OF SEOUL · Three Dark Temptations, Three Stories of Desire. LUST, GREED and ENVY · THB 420++ each.',en:'Halloween with Sin of Seoul at ANJU Korean Rooftop Restaurant & Bar. Available daily from 5 pm - 2 am throughout October 2026.',th:'ดื่มด่ำเทศกาลฮาโลวีนกับ Sin of Seoul ที่ อันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์ ตลอดเดือนตุลาคม พ.ศ. 2569',a:[{id:'hall-anju',o:'ANJU',t:'5 PM — 2 AM',d:'N/A',x:null,w:[['hall-a4','A4 Menu'],['hall-a3','A3 Menu'],['hall-size','10.5 × 29.7 cm']]}]},
-{id:'midautumn',title:'Korean Mid-Autumn Special',start:'2026-10-01',date:'THROUGHOUT OCT 2026',summary:'Korean harvest-inspired side dishes for charcoal-grilled BBQ.',brief:'Seasonal Korean side dishes: Mushroom Japchae, Kkochi Jeon and Sam-Saek Namul. Add-on price THB 300++ for Charcoal Grill BBQ menu.',en:'Korean Mid-Autumn Special, shared at ANJU Korean Rooftop Restaurant & Bar. Available daily from 5 pm - 2 am throughout October 2026.',th:'ดื่มด่ำกับเทศกาล Mid-Autumn ประเทศเกาหลี ที่ อันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์ พร้อมชุดเมนูพิเศษสำหรับการแบ่งปัน',a:[{id:'mid-anju',o:'ANJU',t:'5 PM — 2 AM',d:'N/A',x:null,w:[['mid-1428','14 × 28 cm Menu'],['mid-a4','A4 Menu'],['mid-standee','10 × 15 cm Table Standee']]}]},
-{id:'veg',title:'Vegetarian Week',start:'2026-10-10',date:'10 — 18 OCT 2026',summary:"Limited-time vegetarian menus across Bangkok'78 and ANJU.",brief:"Vegetarian Week across Bangkok'78 and ANJU with separate restaurant menus and operating hours.",en:"Vegetarian Week at Bangkok'78 and ANJU Korean Rooftop Restaurant & Bar · 10 - 18 October 2026.",th:"เฉลิมฉลองเทศกาลกินเจที่ห้องอาหาร Bangkok'78 และอันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์ วันที่ 10 - 18 ตุลาคม พ.ศ. 2569",a:[{id:'veg-bkk',o:"Bangkok'78",t:'11 AM — 10 PM',d:'20%',x:null,w:[['veg-a4','A4 Menu'],['veg-4375','43 × 75 cm'],['veg-a3park','A3 · Parking'],['veg-a0front','A0 · Hotel Frontage']]},{id:'veg-anju',o:'ANJU',t:'5 PM — 2 AM',d:'N/A',x:null,w:[['veg-insert','Insert Menu'],['veg-standee','10 × 15 cm Table Standee']]}]},
-{id:'hoegaarden',title:'ANJU × Hoegaarden',start:'2026-10-31',date:'31 OCT 2026',summary:'Halloween-night Hoegaarden collaboration with mini-games and prizes.',brief:'Hoegaarden-themed Halloween activation. Buy 2 large glasses for one mini-game and regular prize; buy 4 for one mini-game and special prize.',en:'Raise Your Glass for Exclusive Rewards at ANJU X Hoegaarden · 31 October 2026 from 7 pm to midnight.',th:'ยกแก้วฉลองไปกับ ANJU X Hoegaarden เพื่อรับรางวัลสุดพิเศษ วันที่ 31 ตุลาคม พ.ศ. 2569 เวลา 19.00 น. ถึงเที่ยงคืน',a:[{id:'hoe-anju',o:'ANJU',t:'7 PM — 12 AM',d:'N/A',x:null,w:[['hoe-insert','Insert Menu'],['hoe-standee','10 × 15 cm Table Standee']]}]}
-];
-const E=new URLSearchParams(location.search).get('mode')==='editor';if(E)document.body.classList.add('editor');document.getElementById('mode').textContent=E?'Editor · 10639':'Read only';let S={checks:{},links:{}};try{S=Object.assign(S,JSON.parse(localStorage.getItem('sm-fnb-review-v2')||'{}'))}catch(e){}let filter='ALL',view='promos',cur=null;const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));const save=()=>{try{localStorage.setItem('sm-fnb-review-v2',JSON.stringify(S))}catch(e){}};const done=id=>!!S.checks[id];const link=a=>S.links?.[a.id]!==undefined?S.links[a.id]:a.x;const acts=c=>c.a.filter(a=>filter==='ALL'||a.o===filter);const count=c=>{let n=0,d=0;acts(c).forEach(a=>a.w.forEach(w=>{n++;if(done(w[0]))d++}));return[n,d]};const global=()=>{let n=0,d=0;D.forEach(c=>c.a.forEach(a=>a.w.forEach(w=>{n++;if(done(w[0]))d++})));return[n,d]};const bangkok=()=>{let p=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return new Date(`${p.year}-${p.month}-${p.day}T00:00:00`)};const rel=c=>{let n=Math.ceil((new Date(c.start+'T00:00:00')-bangkok())/86400000);return n>1?`Starts in ${n} days`:n===1?'Starts tomorrow':n===0?'Starts today':'Live / started'};const outs=c=>c.a.map(a=>a.o).join(' + ');const task=(w)=>`<div class="task ${done(w[0])?'done':''}"><button class="tick" data-task="${w[0]}" ${E?'':'disabled'}></button><span class="name">${esc(w[1])}</span></div>`;
-function render(){let g=global();$('#sum').innerHTML=`<b>${D.length} promotions</b> · ${g[0]} artworks · ${g[1]} complete`;let visible=['ALL','ANJU',"Bangkok'78",'Sip & Co.'];$('#filters').innerHTML=visible.map(o=>`<button class="chip ${filter===o?'on':''}" data-f="${esc(o)}">${esc(o)}</button>`).join('')+`<button class="chip ${!visible.includes(filter)?'on':''}" id="more">${!visible.includes(filter)?esc(filter):'+2'}</button>`;document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{filter=b.dataset.f;render()});$('#more').onclick=more;let list=filter==='ALL'?D:D.filter(c=>c.a.some(a=>a.o===filter));$('#cards').innerHTML=list.map(c=>{let q=count(c),p=q[0]?q[1]/q[0]*100:0;return `<article class="card"><button class="openpromo" data-open="${c.id}"><div class="status"><span class="u">UPCOMING</span><small>${rel(c)}</small></div><h2>${esc(c.title)}</h2><p class="outlet">${esc(outs(c))}</p><p class="date">${esc(c.date)}</p><div class="prog"><div class="progmeta"><span>ARTWORK</span><b>${q[1]} / ${q[0]}</b></div><div class="track"><i style="width:${p}%"></i></div></div><div class="foot"><span>${esc(c.summary)}</span><span>›</span></div></button></article>`}).join('');document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openDetail(b.dataset.open));$('#qsum').textContent=`${g[0]-g[1]} remaining · ${g[1]} complete · ${g[0]} total`;$('#qlist').innerHTML=list.map(c=>{let q=count(c);return `<article class="qcard"><button class="qbutton"><div><h2 class="qtitle">${esc(c.title)}</h2><div class="qsub">${esc(c.date)} · ${esc(acts(c).map(a=>a.o).join(' + '))}</div></div><span class="qtally">${q[1]}/${q[0]}</span><i class="chev"></i></button><div class="qbody" hidden>${acts(c).map(a=>`<div class="qout">${esc(a.o)}</div>${a.w.map(task).join('')}`).join('')}</div></article>`}).join('');document.querySelectorAll('.qbutton').forEach(b=>b.onclick=()=>{let c=b.closest('.qcard'),body=c.querySelector('.qbody');c.classList.toggle('open');body.hidden=!body.hidden});bindTasks();document.querySelectorAll('.switch button').forEach(b=>b.classList.toggle('on',b.dataset.view===view));$('#promos').hidden=view!=='promos';$('#art').hidden=view!=='art'}
-function bindTasks(){if(!E)return;document.querySelectorAll('[data-task]').forEach(b=>b.onclick=()=>{S.checks[b.dataset.task]=!done(b.dataset.task);save();render();if(cur)openDetail(cur.id,false)})}
-function openDetail(id,hist=true){cur=D.find(c=>c.id===id);if(!cur)return;document.body.classList.add('detail');$('#index').classList.remove('on');$('#detail').classList.add('on');let q=count(cur),times=[...new Set(cur.a.map(a=>a.t))],dis=[...new Set(cur.a.map(a=>a.d))],links=cur.a.map(a=>({a,u:link(a)})).filter(x=>/^https:\/\//.test(x.u||''));let folder=links.length?`<button class="cta" id="folder">VIEW ARTWORK FOLDER${links.length>1?'S':''}</button>`:`<div class="folderempty"><span>Artwork folder</span><small>Not linked yet</small></div>`;if(E)folder+=`<button class="cta2" id="editlink">ADD / CHANGE ARTWORK LINK</button>`;$('#mount').innerHTML=`<div class="detailhero" id="overview"><p class="eyebrow">UPCOMING</p><h1>${esc(cur.title)}</h1><p class="detaildate">${esc(cur.date)}</p><dl class="facts"><div class="fact"><dt>Outlet</dt><dd>${esc(outs(cur))}</dd></div><div class="fact"><dt>Status</dt><dd>Upcoming</dd></div><div class="fact"><dt>Time</dt><dd>${times.length===1?esc(times[0]):'Varies by outlet'}</dd></div><div class="fact"><dt>IHG One Rewards</dt><dd>${dis.length===1?esc(dis[0]):'Varies by outlet'}</dd></div><div class="fact"><dt>Updated</dt><dd>28 August 2026</dd></div><div class="fact"><dt>Artwork</dt><dd>${q[1]} / ${q[0]} complete</dd></div></dl>${folder}</div><section class="sec" id="artwork"><div class="sectop"><h2 class="sectiontitle">Artwork</h2><span class="count">${q[1]} / ${q[0]} COMPLETE</span></div>${cur.a.map(a=>{let d=a.w.filter(w=>done(w[0])).length;return `<article class="group"><div class="ghead"><div><b>${esc(a.o)}</b><span>${esc(a.t)} · IHG One Rewards ${esc(a.d)}</span></div><span>${d}/${a.w.length}</span></div><div class="tasks">${a.w.map(task).join('')}</div></article>`}).join('')}</section><section class="sec" id="brief"><div class="sectop"><h2 class="sectiontitle">Promotion brief</h2></div><article class="textcard"><p class="textlabel">Workbook brief</p><div class="textcopy">${esc(cur.brief)}</div></article></section><section class="sec" id="copy"><div class="sectop"><h2 class="sectiontitle">Copy</h2></div><article class="textcard"><p class="textlabel">English</p><div class="textcopy">${esc(cur.en)}</div></article><article class="textcard"><p class="textlabel">ไทย</p><div class="textcopy th">${esc(cur.th||'Not supplied in the workbook.')}</div></article></section><div class="note">Source · Sep - Oct 2026 F&B Promotions.xlsx · visual review prototype only.</div>`;bindTasks();if($('#folder'))$('#folder').onclick=()=>links.length===1?window.open(links[0].u,'_blank','noopener'):folderSheet(links);if($('#editlink'))$('#editlink').onclick=()=>editLinks(cur);if(hist)history.pushState({id},'',`#${id}`);scrollTo(0,0)}
-function closeDetail(hist=true){cur=null;document.body.classList.remove('detail');$('#detail').classList.remove('on');$('#index').classList.add('on');if(hist)history.pushState({},'',location.pathname+location.search);scrollTo(0,0)}$('#back').onclick=()=>history.back();document.querySelectorAll('.switch button').forEach(b=>b.onclick=()=>{view=b.dataset.view;render()});document.querySelectorAll('.rail button').forEach(b=>b.onclick=()=>document.getElementById(b.dataset.go)?.scrollIntoView({behavior:'smooth'}));
-function showSheet(title,html){$('#sheettitle').textContent=title;$('#sheetbody').innerHTML=html;$('#sheet').classList.add('on')}function more(){showSheet('More outlets',`<button class="sheetopt" data-mf="Horizon Pool Bar"><span>Horizon Pool Bar</span><small>View promotions</small></button><button class="sheetopt" data-mf="The Lobby Lounge"><span>The Lobby Lounge</span><small>View promotions</small></button>`);document.querySelectorAll('[data-mf]').forEach(b=>b.onclick=()=>{filter=b.dataset.mf;$('#sheet').classList.remove('on');render()})}function folderSheet(L){showSheet('Artwork folders',L.map(x=>`<a class="sheetopt" href="${esc(x.u)}" target="_blank" rel="noopener"><span>${esc(x.a.o)}</span><small>Open ↗</small></a>`).join(''))}function editLinks(c){showSheet('Artwork links',c.a.map(a=>`<label class="copyout">${esc(a.o)}<input class="input" data-link="${a.id}" value="${esc(link(a)||'')}" placeholder="Paste OneDrive or SharePoint folder URL"></label>`).join('')+`<button class="cta" id="savelinks">SAVE LOCAL PREVIEW</button>`);$('#savelinks').onclick=()=>{document.querySelectorAll('[data-link]').forEach(i=>{S.links[i.dataset.link]=i.value.trim()||null});save();$('#sheet').classList.remove('on');openDetail(c.id,false);toast('Local preview saved')}}$('#close').onclick=()=>$('#sheet').classList.remove('on');$('#sheet').onclick=e=>{if(e.target===e.currentTarget)$('#sheet').classList.remove('on')};function toast(t){let x=$('#toast');x.textContent=t;x.hidden=false;setTimeout(()=>x.hidden=true,1800)}window.onpopstate=()=>{let id=location.hash.slice(1);D.some(c=>c.id===id)?openDetail(id,false):closeDetail(false)};render();let init=D.find(c=>'#'+c.id===location.hash);if(init)openDetail(init.id,false);
+const DATA=[{"id":"fried-chicken-waffles","title":"Fried Chicken & Waffles","start":"2026-09-01","end":"2026-12-31","dateLabel":"01 SEP — 31 DEC 2026","summary":"Crispy fried chicken and buttery waffles in four global flavor styles.","brief":"Menu\n\n1.Original-Style Fried Chicken and Waffles (Gluten/Milk/Eggs)\nGolden crispy fried chicken, buttery waffles, finished with maple syrup.\nFull Portion: THB 490 ++ Half Portion: THB 350++\n\n2.Korean Style Fried Chicken and Waffles ( Emoji รูปพริก 2 อัน - Mild Spicy) (Gluten/Milk/Eggs/Sesame Seed/Peanut)\nCrispy fried chicken coated with Gochujang sauce, kimchi butter, Korean pickled and on top with crushed peanut.\nFull Portion: THB 490 ++ Half Portion: THB 350++\n\n3.Nashville Hot Fried Chicken and Waffles ( Emoji รูปพริก 3 อัน - Very Spicy) (Gluten/Milk/Eggs)\nCrispy fried chicken coated in a bold Nashville-style hot sauce.\nTHB 490 ++ Full Portion / 350++ Half Portion\n\n4.Tex-Mex Fried Chicken and Waffles Slider (2 pieces) (Gluten/Milk/Eggs)\nCrispy fried chicken served with rich guacamole, sour cream and fresh coriander.\nTHB 350++","copyEn":"Where crispy meets fluffy in every bite at Sip & Co.\n\nTake your taste buds on a flavor-packed journey with our Fried Chicken & Waffles collection. Savor the timeless charm of the Original-Style, spice things up with the bold Korean-Style, turn up the heat with Nashville Hot, or dive into the vibrant flavors of our Tex-Mex Slider.\n\nGet ready for the perfect combination of crispy fried chicken and warm buttery waffles, elevated with exciting flavor inspirations from around the world.\n\nAvailable throughout September – December 2026 at Sip & Co. and The Lobby Lounge.\n\nIHG® One Rewards members enjoy an extra 20% savings. Become a member for FREE, please visit https://bit.ly/ihg-one-rewards-enrollment-2026-bkksn\n\nFor more information and reservations, please call 02-796-8888 or email eat.sindhornmidtown@ihg.com","copyTh":"สัมผัสความลงตัวของไก่ทอดกรอบ และวาฟเฟิลเนื้อนุ่มในทุกคำที่คาเฟ่ Sip & Co.\n\nเพลิดเพลินไปกับโปรโมชั่น Fried Chicken & Waffles ที่คัดสรรมาเพื่อความอร่อยลงตัว ไม่ว่าจะเป็น Original-Style รสชาติคลาสสิกที่หลงรัก Korean-Style รสชาติจัดจ้านสไตล์เกาหลี Nashville Hot สำหรับสายเผ็ด หรือTex-Mex Slider ที่โดดเด่นด้วยกลิ่นอายเม็กซิกันอันเป็นเอกลักษณ์\n\nเตรียมพบกับการผสมผสานอย่างลงตัวระหว่างไก่ทอดกรุบกรอบ และวาฟเฟิลหอมเนยเนื้อนุ่ม พร้อมเติมเต็มความอร่อยด้วยแรงบันดาลใจจากหลากหลายรสชาติจากทั่วทุกมุมโลก\n\nพร้อมให้บริการทุกวัน ตลอดเดือนกันยายน ถึงเดือนธันวาคม พ.ศ. 2569 ที่ คาเฟ่ Sip & Co. และThe Lobby Lounge\n\nรับทันทีส่วนลด 20% สำหรับสมาชิก IHG One Rewards สมัครสมาชิกฟรี ที่ https://bit.ly/ihg-one-rewards-enrollment-2026-bkksn\n\nสอบถามข้อมูลเพิ่มเติม เเละสำรองที่นั่งได้ที่ โทร 02-796-8888 หรืออีเมล eat.sindhornmidtown@ihg.com","activations":[{"id":"fried-chicken-waffles-sip","outlet":"Sip & Co.","time":"TBC","discount":"20%","artworkUrl":null,"artworks":[{"id":"fried-chicken-waffles::sip::a4-menu","name":"A4 Menu"},{"id":"fried-chicken-waffles::sip::a3-menu","name":"A3 Menu"},{"id":"fried-chicken-waffles::sip::qr-standee","name":"QR Standee"}]}]},{"id":"sunset-cocktails","title":"Sunset Cocktails","start":"2026-09-01","end":"2026-10-31","dateLabel":"01 SEP — 31 OCT 2026","summary":"Cocktails inspired by famous sunset destinations around the world.","brief":"Famous sunset around the world —\na cocktail collection inspired by iconic sunset destinations, capturing their colors, mood, and atmosphere in each glass.\n\nMenu\n1. Laem Phromthep 370++\nWhite Rum, Peachtree Peach Liqueur, Mango Purée, Fresh Lime Juice, Honey Syrup, Angostura Bitters, Orange Peel\n\nInspired by the warm tropical sunset of Phuket’s famous viewpoint, reimagined into a bright and refreshing island cocktail.\n\n2. Santorini 370++\nGin, Peachtree Peach Liqueur, Pink Grapefruit Juice, Fresh Lemon Juice, Rose Syrup, Soda Water, Rosemary\n\nA soft pink pastel sunset inspired by Santorini, bringing a delicate, floral, and refreshing Mediterranean feeling.\n\n3. Mallory Square 370++\nTequila Blanco, Peachtree Peach Liqueur, Pomegranate Juice, Blood Orange, Orange Juice, Fresh Lime Juice, Lime wheel, Light Sugar Rim\n\nInspired by the vibrant party sunset of Mallory Square, full of energy, color, and celebration.","copyEn":"*Only in-hotel collaterals and screens\n\nSunset Cocktails\nA world of sunset flavors in every glass at Horizon Pool\n1 September - 31 October 2026","copyTh":null,"activations":[{"id":"sunset-cocktails-horizon","outlet":"Horizon Pool Bar","time":"TBC","discount":"N/A","artworkUrl":null,"artworks":[{"id":"sunset-cocktails::horizon::a4-menu","name":"A4 Menu"},{"id":"sunset-cocktails::horizon::a6-menu","name":"A6 Menu"},{"id":"sunset-cocktails::horizon::table-standee","name":"10 × 15 cm Table Standee"}]}]},{"id":"guest-bartender-phraya","title":"Guest Bartender · ANJU × PHRAYA RUM","start":"2026-09-12","end":"2026-09-12","dateLabel":"12 SEP 2026","summary":"One-night ANJU × PHRAYA RUM guest shift with three special cocktails.","brief":"SPIRIT OF SEOUL, SOUL OF SIAM\nANJU x PHRAYA RUM\n\nGuest Bartender: K. Bank Watcharapong (Brand Ambassador & Brand Educator)\nDrinks: 3 Special Cocktails\n\nPrice: 420++\"\n\n1. Osmanthus\nPhraya Gold Rum, Bianco Vermouth, Osmanthus, Korean Pear, Lemon\n\n2. Kimchi\nPhraya 8 Y Rum, Banana Liqueur, Caramel, Papaya, Kimchi, Lime\n\n3. Ssal-Sikcho\nPhraya Gold Rum, Ssal-Sikcho, Honey, Lemon, Soda water, Vanilla Espuma","copyEn":"ANJU X PHRAYA RUM: Taste the SPIRIT OF SEOUL, SOUL OF SIAM at ANJU Korean Rooftop Restaurant & Bar\n\nMake a fleeting escape with every sip and indulge in 3 special cocktails exclusively crafted by guest bartender Khun Bank Watcharapong, Brand Ambassador and Brand Educator from PHRAYA RUM. Each cocktail offer a cultural blend of the bright, bold and bustling cities of Bangkok and Seoul, alongside the view of the stunning city skyline which will be sure to elevate your evening.\n\nDon’t miss this one-night wonder and be sure to try these limited one-of-a-kind cocktails!\n\nSave the date 12 September 2026 from 7 pm - 11 pm\n\nFor more information and reservations, please call 02-796-8888 or email eat.sindhornmidtown@ihg.com","copyTh":"ANJU X PHRAYA RUM: ลิ้มลอง SPIRIT OF SEOUL, SOUL OF SIAM ที่ อันจู ห้องอาหารเกาหลีและรูฟท็อปบาร์\n\nดื่มด่ำกับ 3 ค็อกเทลสุดพิเศษที่รังสรรค์โดย Guest Bartender คุณแบงค์ วัชรพงศ์ ซึ่งเป็นตัวแทนแบรนด์ และผู้ถ่ายทอดความรู้ด้านแบรนด์จาก PHRAYA RUM ซึ่งถ่ายทอดเสน่ห์ของการผสมผสานทางวัฒนธรรมจากกรุงเทพฯ และโซล สองสถานที่ที่โดดเด่น และเต็มไปด้วยชีวิตชีวา พร้อมวิวแสงสีของกรุงเทพฯที่จะช่วยเติมเต็มค่ำคืนของคุณให้พิเศษยิ่งขึ้น\n\nห้ามพลาดค่ำคืนสุดพิเศษเพียงคืนเดียวนี้ พร้อมลิ้มลองค็อกเทลลิมิเต็ดที่มีเอกลักษณ์เฉพาะตัวไม่เหมือนใคร\n\nพิเศษ! วันที่ 12 กันยายน พ.ศ. 2569 ตั้งแต่เวลา 19:00 น. - 23:00 น. เท่านั้น\n\nสอบถามข้อมูลเพิ่มเติม เเละสำรองที่นั่งได้ที่ โทร 02-796-8888 หรืออีเมล eat.sindhornmidtown@ihg.com","activations":[{"id":"guest-bartender-phraya-anju","outlet":"ANJU","time":"7 PM — 11 PM","discount":"N/A","artworkUrl":null,"artworks":[{"id":"guest-bartender::anju::a3-menu","name":"A3 Menu"},{"id":"guest-bartender::anju::insert-menu","name":"Insert Menu"},{"id":"guest-bartender::anju::table-standee","name":"10 × 15 cm Table Standee"}]}]},{"id":"negroni-week","title":"Negroni Week","start":"2026-09-21","end":"2026-09-27","dateLabel":"21 — 27 SEP 2026","summary":"Three Negroni creations inspired by familiar rituals and global flavors.","brief":"A Negroni collection inspired by nostalgic rituals and flavors from around the world — reimagining familiar cultural moments through the timeless spirit of aperitivo.\n\nMenu\n1. Bangkok Breakfast Negroni\nGin infused with Thai Tea, Thai Tea Campari, Dry Vermouth, Pa Thong Ko\n\nInspired by the quintessential Thai morning ritual of Thai iced tea and Pa Thong Ko, reimagined as an aperitivo moment.\n\n2. Kurume Negroni\nGin, Soju, Kyoho Lillet Blanc, Bitter Kyoho Cordial, Kyoho Grape Jelly\n\nA celebration of Kurume city's prized Kyoho grape, renowned for its intensely aromatic character and presented in the spirit of an Italian aperitivo.\n\n3. Earl Negroni\nGin infused with Lady Grey Tea, Bianco Vermouth, Passionfruit & Melon Cordial, Campari, Crème de Cacao, Nutella Wafer Bar\n\nBritish afternoon tea culture reimagined, the refined brightness of Lady Grey elevated by passionfruit and melon, finished with a warm touch of cacao.\n\nPrice: THB 420++","copyEn":"A Negroni Week Celebration at The Lobby Lounge and ANJU Korean Rooftop Restaurant & Bar\n\nStep into Negroni Week where the timeless spirit of aperitivo is reimagined through familiar rituals and global flavors. A celebration designed to savor each moment through inspired Negroni creations from 21 - 27 September 2026\n\nThe menu features 3 creations: Bangkok Breakfast Negroni inspired by Thai iced tea and pa thong ko, capturing a vibrant morning ritual in aperitivo form, Kurume Negroni highlighting Japan’s Kyoho grape with rich aromatic depth and Earl Negroni, a refined take on British tea culture with Lady Grey, bright passionfruit and melon, finished with soft cacao warmth.\n\nEach glass is priced at THB 420++\nAvailable from 6:30 am - midnight at The Lobby Lounge and from 5 pm - 2 am at ANJU Korean Rooftop Restaurant & Bar\n\nFor more information and reservations, please call 02-796-8888 or email eat.sindhornmidtown@ihg.com","copyTh":"เฉลิมฉลอง Negroni Week ที่ The Lobby Lounge และอันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์\n\nก้าวเข้าสู่ Negroni Week ตั้งแต่วันที่ 21 - 27 กันยายน พ.ศ. 2569 กับการนำเครื่องดื่มสไตล์ aperitivo มาตีความใหม่ผ่านวัฒนธรรม และพิธีกรรมที่คุ้นเคยจากทั่วโลก เป็นช่วงเวลาที่ชวนให้ทุกคนได้ผ่อนคลาย และดื่มด่ำกับทุกช่วงขณะผ่านค็อกเทล Negroni ที่สร้างสรรค์ขึ้นเป็นพิเศษ\n\nเมนูประกอบด้วย 3 ค็อกเทล ได้แก่ Bangkok Breakfast Negroni ได้แรงบันดาลใจจากชาไทย และปาท่องโก๋ ถ่ายทอดบรรยากาศมื้อเช้าแบบไทยในรูปแบบค็อกเทล Kurume Negroni โดดเด่นด้วยองุ่นเคียวโฮ จากเมือง Kurume ประเทศญี่ปุ่น ให้รสพร้อมกลิ่นที่หอมนุ่มนวล และ Earl Negroni ที่นำวัฒนธรรมชายามบ่ายของอังกฤษมาตีความใหม่ด้วยชา Lady Grey เสริมความสดชื่นของเสาวรส เมลอน พร้อมความนุ่มละมุนของโกโก้\n\nค็อกเทลแก้วละ 420++ บาท\nพร้อมเสิร์ฟตั้งแต่เวลา 06:30 น. - เที่ยงคืนที่ The Lobby Lounge และ 17:00 น. - 02:00 น. ที่ อันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์\n\nสอบถามข้อมูลเพิ่มเติม เเละสำรองที่นั่งได้ที่ โทร 02-796-8888 หรืออีเมล eat.sindhornmidtown@ihg.com","activations":[{"id":"negroni-week-anju","outlet":"ANJU","time":"5 PM — 2 AM","discount":"N/A","artworkUrl":"https://ihg-my.sharepoint.com/:f:/p/decha_kokaew/IgA0mV5yD30oSL9-txoUdbMyAcTnW1RDc_Qq7R0nZRNUFEE?e=eCHgQk","artworks":[{"id":"negroni-week::anju::a4-menu","name":"A4 Menu"},{"id":"negroni-week::anju::a3-menu","name":"A3 Menu"},{"id":"negroni-week::anju::10.5x29.7","name":"10.5 × 29.7 cm"}]},{"id":"negroni-week-lobby","outlet":"The Lobby Lounge","time":"6:30 AM — 12 AM","discount":"N/A","artworkUrl":"https://ihg-my.sharepoint.com/:f:/p/decha_kokaew/IgBcS-2I-lm0R6tMZkILqseMAfweEsUvjf2sTVucDLePSgQ?e=U5DIfv","artworks":[{"id":"negroni-week::lobby::a4-menu","name":"A4 Menu"},{"id":"negroni-week::lobby::qr-standee","name":"QR Standee"},{"id":"negroni-week::lobby::9.9x21","name":"9.9 × 21 cm"}]}]},{"id":"halloween-sins-of-seoul","title":"Halloween · Sins of Seoul","start":"2026-10-01","end":"2026-10-31","dateLabel":"01 — 31 OCT 2026","summary":"Three dark cocktail temptations: Lust, Greed and Envy.","brief":"SINS OF SEOUL\nTHREE DARK TEMPTATIONS, THREE STORIES OF DESIRE.\nMenu\n1. LUST 420++\nVodka, Pomegranate, Lychee, Lemon, Chili Honey, Red Chili\n\nTHE SEDUCTIVE TEMPTATION\nA dangerously alluring cocktail inspired by forbidden desires hidden beneath Seoul’s neon nights. Crimson tones, sweet seduction, and subtle heat awaken the senses like a midnight temptation you know you shouldn’t follow.\n\n2. GREED 420++\nGin, Apple, Basil, Midori, Yuzu, Fresh Lime, Gold Leaf\n\nTHE INSATIABLE TEMPTATION\nAn opulent green cocktail inspired by endless desire and the hunger for more. Bright citrus, crisp apple, and rich herbal notes reflect the excess and ambition hidden behind Seoul’s glamorous façade.\n\n3. ENVY 420++\nTequila Blanco, Kiwi, Green Apple, Lime, Pandan, Matcha, Sea Salt\n\nTHE JEALOUS TEMPTATION\nA vivid green cocktail inspired by hidden jealousy and quiet obsession. Fresh kiwi and apple meet earthy matcha and pandan, balanced with sea salt for a complex taste that lingers like a secret you can’t let go.","copyEn":"Halloween with Sin of Seoul at ANJU Korean Rooftop Restaurant & Bar\n\nThree Dark Temptations. Three Stories of Desire.\n\nThis October, step into the shadows with Sin of Seoul. Inspired by the darker side of desire, this limited-time Halloween collection invites you to indulge in LUST, surrender to GREED, and embrace ENVY through three hauntingly crafted cocktails. Each sip draws you deeper into a world where temptation reigns and every sin is worth tasting.\n\nEach glass is priced at THB 420++\nAvailable daily from 5 pm - 2 am throughout October 2026.\n\nFor more information and reservations, please call 02-796-8888 or email eat.sindhornmidtown@ihg.com","copyTh":"ดื่มด่ำเทศกาลฮาโลวีนกับ Sin of Seoul ที่ อันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์\n\nตลอดเดือนตุลาคมนี้ ก้าวเข้าสู่โลกแห่งความลึกลับกับ Sin of Seoul คอลเลกชันค็อกเทลพิเศษช่วงฮาโลวีน ที่ได้รับแรงบันดาลใจจากด้านมืดของความปรารถนา ถ่ายทอดผ่าน 3 รสชาติแห่งบาปอย่าง LUST, GREED และENVY แต่ละแก้วถูกสร้างสรรค์ขึ้นอย่างพิถีพิถัน ให้ความรู้สึกลึกลับ น่าค้นหา และชวนหลงใหลในทุกสัมผัสที่ได้ลิ้มลอง\n\nค็อกเทลแก้วละ 420++บาท\nให้บริการทุกวันตั้งแต่เวลา 17:00 น. - 02:00 น. ตลอดเดือนตุลาคม พ.ศ. 2569\n\nสอบถามข้อมูลเพิ่มเติม เเละสำรองที่นั่งได้ที่ โทร 02-796-8888 หรืออีเมล eat.sindhornmidtown@ihg.com","activations":[{"id":"halloween-sins-of-seoul-anju","outlet":"ANJU","time":"5 PM — 2 AM","discount":"N/A","artworkUrl":null,"artworks":[{"id":"halloween::anju::a4-menu","name":"A4 Menu"},{"id":"halloween::anju::a3-menu","name":"A3 Menu"},{"id":"halloween::anju::10.5x29.7","name":"10.5 × 29.7 cm"}]}]},{"id":"korean-mid-autumn","title":"Korean Mid-Autumn Special","start":"2026-10-01","end":"2026-10-31","dateLabel":"THROUGHOUT OCT 2026","summary":"Korean harvest-inspired side dishes for charcoal-grilled BBQ.","brief":"Korean Mid-Autumn Special\n\nCelebrate the season with vibrant flavors inspired by traditional Korean harvest traditions.\n\nFestive Korean side dishes:\n• Mushroom Japchae\n• Kkochi Jeon (Korean skewered pancakes)\n• Sam-Saek Namul (Three color seasonal vegetables)\n\nAdd-on price: THB 300++\nAvailable as an add-on for all Charcoal Grill BBQ menu.","copyEn":"Korean Mid-Autumn Special, Shared at ANJU Korean Rooftop Restaurant & Bar\n\nCelebrate the season with vibrant flavors inspired by traditional Korean harvest traditions. Created for sharing, this seasonal experience perfectly complements your favorite charcoal-grilled BBQ selections.\n\nDelight in 3 Korean specialties, featuring mushroom Japchae, Korean skewered pancake, and three color seasonal vegetables. Thoughtfully prepared to enhance your BBQ experience, this limited-time offering brings together to enjoy the comforting flavors.\n\nComplete your charcoal-grilled BBQ menu with this special seasonal add-on for THB 300++.\n\nAvailable daily from 5 pm - 2 am throughout October 2026.\n\nFor more information and reservations, please call 02-796-8888 or email eat.sindhornmidtown@ihg.com","copyTh":"ดื่มด่ำกับเทศกาล Mid-Autumn ประเทศเกาหลี ที่ อันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์\n\nเฉลิมฉลองความอบอุ่นของเทศกาล กับชุดเมนูพิเศษสำหรับการแบ่งปัน ที่ได้รับแรงบันดาลใจจากประเพณีแห่งฤดูเก็บเกี่ยว พร้อมเติมเต็มประสบการณ์การรับประทานบาร์บีคิวเตาถ่านจานโปรดให้สมบูรณ์ยิ่งขึ้น\n\nลิ้มลอง 3 เมนูอาหารเกาหลีต้นตำรับ ได้แก่ จับแชเห็ด, พาจอนเสียบไม้สไตล์เกาหลี และผักตามฤดูกาล 3 สี ที่คัดสรร และปรุงอย่างพิถีพิถัน เพื่อเสริมรสชาติให้เข้ากันอย่างลงตัวกับเมนูบาร์บีคิวเตาถ่าน\n\nเติมเต็มกับเมนูบาร์บีคิว คู่กับชุดเมนูพิเศษตามฤดูกาลนี้ ในราคาเพียง 300++ บาทเท่านั้น\n\nให้บริการทุกวันตั้งแต่เวลา 17:00 น. - 02:00 น. ตลอดเดือนตุลาคม พ.ศ. 2569\nสอบถามข้อมูลเพิ่มเติม เเละสำรองที่นั่งได้ที่ โทร 02-796-8888 หรืออีเมล eat.sindhornmidtown@ihg.com","activations":[{"id":"korean-mid-autumn-anju","outlet":"ANJU","time":"5 PM — 2 AM","discount":"N/A","artworkUrl":null,"artworks":[{"id":"mid-autumn::anju::14x28","name":"14 × 28 cm Menu"},{"id":"mid-autumn::anju::a4-menu","name":"A4 Menu"},{"id":"mid-autumn::anju::table-standee","name":"10 × 15 cm Table Standee"}]}]},{"id":"vegetarian-week","title":"Vegetarian Week","start":"2026-10-10","end":"2026-10-18","dateLabel":"10 — 18 OCT 2026","summary":"Limited-time vegetarian menus across Bangkok'78 and ANJU.","brief":"Celebrate Vegetarian Week at Bangkok'78 and ANJU Korean Rooftop Restaurant & Bar\n\nFrom 10 – 18 October 2026, enjoy a special Vegetarian Week featuring exclusive menus at Bangkok'78 and ANJU Korean Rooftop Restaurant & Bar.\n\nAt Bangkok'78, discover 7 delicious vegetarian menu inspired by Asian flavors, including fried Radish and corn fritters, Bok Choy in Chinese gravy, stir-fried soba noodles, Thai spicy tofu salad, and more. Available daily from 11 am - 10 pm.\n\nAt ANJU Korean Rooftop Restaurant & Bar, savor a curated selection of vegetarian favorites, including crispy potato pancake with black truffle dressing, vegan K-fried chicken, and perilla oil buckwheat noodle. Available daily from 5 pm - 2 am.\n\nCome and experience this special vegetarian dining journey. Enjoy perfectly balanced flavors while sharing in the merit and happiness with every bite you savor.\n\nIHG® One Rewards members enjoy an extra 20% savings only at Bangkok'78. Become a member for FREE, please visit https://bit.ly/ihg-one-rewards-enrollment-2026-bkksn\n\nFor more information and reservations, please call 02-796-8888 or email eat.sindhornmidtown@ihg.com","copyEn":"Celebrate Vegetarian Week at Bangkok'78 and ANJU Korean Rooftop Restaurant & Bar\n\nFrom 10 – 18 October 2026, enjoy a special Vegetarian Week featuring exclusive menus at Bangkok'78 and ANJU Korean Rooftop Restaurant & Bar.\n\nAt Bangkok'78, discover 7 delicious vegetarian menu inspired by Asian flavors, including fried Radish and corn fritters, Bok Choy in Chinese gravy, stir-fried soba noodles, Thai spicy tofu salad, and more. Available daily from 11 am - 10 pm.\n\nAt ANJU Korean Rooftop Restaurant & Bar, savor a curated selection of vegetarian favorites, including crispy potato pancake with black truffle dressing, vegan K-fried chicken, and perilla oil buckwheat noodle. Available daily from 5 pm - 2 am.\n\nCome and experience this special vegetarian dining journey. Enjoy perfectly balanced flavors while sharing in the merit and happiness with every bite you savor.\n\nIHG® One Rewards members enjoy an extra 20% savings only at Bangkok'78. Become a member for FREE, please visit https://bit.ly/ihg-one-rewards-enrollment-2026-bkksn\n\nFor more information and reservations, please call 02-796-8888 or email eat.sindhornmidtown@ihg.com","copyTh":"เฉลิมฉลองเทศกาลกินเจที่ห้องอาหาร Bangkok'78 และอันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์\n\nระหว่างวันที่ 10 - 18 ตุลาคม พ.ศ. 2569 พบกับเมนูเจสุดพิเศษที่รังสรรค์ขึ้นเฉพาะช่วงเทศกาลนี้ ที่ห้องอาหาร Bangkok'78 และอันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์\n\nเริ่มจากห้องอาหาร Bangkok'78 ลิ้มลอง 7 เมนูได้รับแรงบันดาลใจจากรสชาติอาหารเอเชีย ได้แก่ หัวไชเท้า และข้าวโพดทอด, บ๊อกฉ่อยราดน้ำแดง, ผัดเส้นโซบะ, ลาบเต้าหู้เห็ดทอดและเมนูอื่นๆ อีกมากมาย พร้อมให้บริการทุกวัน เวลา 11:00 น. - 22:00 น.\n\nส่วนที่ อันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์ เพลิดเพลินกับเมนูเจยอดนิยมที่คัดสรรมาเป็นพิเศษได้แก่ แพนเค้กมันฝรั่งกรอบ ราดซอสทรัฟเฟิลดำ, ไก่ทอดเกาหลีเจ และบะหมี่บัควีทน้ำมันงาเพอริลลา พร้อมให้บริการทุกวัน เวลา 17:00 น. - 02:00 น.\n\nสัมผัสประสบการณ์อาหารเจในช่วงเวลาพิเศษนี้ อิ่มอร่อยกับรสชาติที่ลงตัว พร้อมอิ่มบุญ และความสุขไปพร้อมกันในทุกคำที่ได้ลิ้มลอง\n\nรับทันทีส่วนลด 20% เฉพาะที่ห้องอาหาร Bangkok'78 สำหรับสมาชิก IHG One Rewards สมัครสมาชิกฟรี ที่ https://bit.ly/ihg-one-rewards-enrollment-2026-bkksn\n\nสอบถามข้อมูลเพิ่มเติม เเละสำรองที่นั่งได้ที่ โทร 02-796-8888 หรืออีเมล eat.sindhornmidtown@ihg.com","activations":[{"id":"vegetarian-week-bangkok78","outlet":"Bangkok'78","time":"11 AM — 10 PM","discount":"20%","artworkUrl":null,"brief":"Menu\nFried radish and corn fritters served with plum and peanut sauce 210++\nหัวไชเท้า และข้าวโพดทอด เสิร์ฟพร้อมน้ำจิ้มบ๊วย และน้ำจิ้มถั่วลิสง\nAllergens: Peanuts, Soy, Gluten\n\nMixed vegetable stew with cabbage, shiitake mushrooms and black tofu 230++\nต้มจับฉ่ายกะหล่ำปลี เห็ดหอม และเต้าหู้ดำโพธาราม\nAllergens: Soy\n\nBok Choy in Chinese gravy with shiitake mushrooms and carrots 230++\nบ๊อกฉ่อยราดน้ำแดง\nAllergens: Soy, Gluten\n\nStir-fried vegetable protein and tofu in chili salt 250++\nโปรตีน และเต้าหู้คั่วพริกเกลือ\nAllergens: Soy, Gluten\n\nStir-fried soba noodles with mixed vegetables and vegetable protein 230++\nผัดเส้นโซบะ ผักรวม และโปรตีน\nAllergens: Soy, Gluten\n\nThai spicy tofu salad with deep-fried mushrooms 210++\nลาบเต้าหู้ และเห็ดทอด\nAllergens: Soy, Gluten\n\nThai spicy banana blossom salad 210++\nยำหัวปลีทอดกรอบ\nAllergens: Soy, Gluten","copyEn":"Vegetarian Week at Bangkok'78\n\nA limited-time vegetarian journey inspired by Asian cuisine\n\nFrom 10 – 18 October 2026, Bangkok'78 invites you to indulge in a special Vegetarian Week featuring a thoughtfully crafted menu inspired by bold Asian flavors and fresh seasonal ingredients.\n\nIndulge the delightful 7 menu, including Fried radish and corn fritters, mixed vegetable stew, Bok Choy in Chinese gravy, Stir-fried vegetable protein and tofu in chili salt, Stir-fried soba noodles, Thai spicy tofu salad with deep-fried mushrooms and Thai spicy banana blossom salad.\n\nAvailable daily from 11 am - 10 pm at Bangkok'78.\n\nIHG® One Rewards members enjoy an extra 20% savings. Become a member for FREE, please visit https://bit.ly/ihg-one-rewards-enrollment-2026-bkksn\n\nFor more information and reservations, please call 02-796-8888 or email eat.sindhornmidtown@ihg.com","copyTh":"เฉลิมฉลองเทศกาลกินเจที่ห้องอาหาร Bangkok'78\n\nตั้งแต่วันที่ 10 - 18 ตุลาคม พ.ศ. 2569 ห้องอาหาร Bangkok'78 ขอเชิญมาลิ้มลองเมนูพิเศษ สำหรับเทศกาลกินเจ ที่รังสรรค์จากรสชาติเอเชียที่จัดจ้าน และวัตถุดิบสดตามฤดูกาล\n\nพบกับ 7 เมนู ได้แก่ หัวไชเท้า และข้าวโพดทอด, ต้มจับฉ่าย, บ๊อกฉ่อยราดน้ำแดง, โปรตีน และเต้าหู้คั่วพริกเกลือ ผัดเส้นโซบะ, ลาบเต้าหู้เห็ดทอด และยำหัวปลีทอดกรอบ\n\nให้บริการทุกวันตั้งแต่เวลา 11:00 น. - 22:00 น. ที่ห้องอาหาร Bangkok'78\n\nรับทันทีส่วนลด 20% สำหรับสมาชิก IHG One Rewards สมัครสมาชิกฟรี ที่ https://bit.ly/ihg-one-rewards-enrollment-2026-bkksn\n\nสอบถามข้อมูลเพิ่มเติม เเละสำรองที่นั่งได้ที่ โทร 02-796-8888 หรืออีเมล eat.sindhornmidtown@ihg.com","artworks":[{"id":"vegetarian-week::bangkok78::a4-menu","name":"A4 Menu"},{"id":"vegetarian-week::bangkok78::43x75","name":"43 × 75 cm"},{"id":"vegetarian-week::bangkok78::a3-parking","name":"A3 · Parking"},{"id":"vegetarian-week::bangkok78::a0-frontage","name":"A0 · Hotel Frontage"}]},{"id":"vegetarian-week-anju","outlet":"ANJU","time":"5 PM — 2 AM","discount":"N/A","artworkUrl":null,"brief":"Menu\nTruffle “Gam Ja Jeon” 290++\nCrispy potato pancake with black truffle dressing\n\nVegan K-Fried Chicken(Yang nyeom, Black olio, Padak, Mala) 290++\nCraggy crust tofu served with your choice of signature sauce\n\nPerilla Oil Buckwheat Noodle 360++\nFresh soba noodle with perilla sesame oil and pickles and radish kimchi","copyEn":"Discover vegetarian selection for Vegetarian Week at ANJU Korean Rooftop Restaurant & Bar\n\nEnjoy a specially curated menu that combines bold flavors, vibrant ingredients and modern takes on vegetarian dining. Whether you follow a vegetarian lifestyle or simply enjoy exploring new tastes, this limited-time experience is designed to delight every palate. Featuring 3 highlight menu:\n\n• Crispy potato pancake with black truffle dressing\n• Vegan K-Fried Chicken from Yangnyeom, Black olio, Padak and Mala\n• Perilla Oil Buckwheat Noodle\n\nExclusively served from 10 - 18 October 2026.\nAvailable daily from 5 pm - 2 am at ANJU Korean Rooftop Restaurant & Bar.\n\nFor more information and reservations, please call 02-796-8888 or email eat.sindhornmidtown@ihg.com","copyTh":"พบกับเมนูเจที่คัดสรรเป็นพิเศษสำหรับเทศกาลกินเจ ที่ อันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์\n\nอิ่มอร่อยกับเมนูเจที่รวมรสชาติหลากหลาย วัตถุดิบคุณภาพ และการนำเสนอในสไตล์ร่วมสมัย เหมาะสำหรับทั้งผู้ที่รับประทานเจเป็นประจำ หรืออยากลองเมนูใหม่ๆที่แตกต่าง เพลิดเพลินกับ 3 เมนูไฮท์ไลท์ดังนี้\n\n• แพนเค้กมันฝรั่งกรอบ ราดซอสทรัฟเฟิลดำ\n• ไก่ทอดเกาหลีเจ รส Yangnyeom, Black olio, Padak และMala\n• บะหมี่บัควีทน้ำมันงาเพอริลลา\n\nพร้อมเสิร์ฟตั้งแต่วันที่ 10 - 18 ตุลาคม พ.ศ. 2569\nให้บริการทุกวันตั้งแต่เวลา 17:00 น. - 02:00 น. ที่ อันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์\nสอบถามข้อมูลเพิ่มเติม เเละสำรองที่นั่งได้ที่ โทร 02-796-8888 หรืออีเมล eat.sindhornmidtown@ihg.com","artworks":[{"id":"vegetarian-week::anju::insert-menu","name":"Insert Menu"},{"id":"vegetarian-week::anju::table-standee","name":"10 × 15 cm Table Standee"}]}]},{"id":"anju-hoegaarden","title":"ANJU × Hoegaarden","start":"2026-10-31","end":"2026-10-31","dateLabel":"31 OCT 2026","summary":"Halloween-night Hoegaarden collaboration with mini-games and prizes.","brief":"For this event, the venue will feature a special Hoegaarden-themed decoration, and guests who order selected beers will have the opportunity to participate in our lucky draw activity and win prizes.\n\nMechanics:\nOrder Hoegaarden Beer (Large Glass)\n2 glasses → Play mini-game 1 time + receive a regular prize\n4 glasses → Play mini-game 1 time + receive a special prize","copyEn":"Raise Your Glass for Exclusive Rewards at ANJU X Hoegaarden\n\nOn 31 October 2026, join us at ANJU Korean Rooftop Restaurant & Bar for a hauntingly unforgettable Halloween Night. Sip on our exclusive trio of cocktails, The Sin of Seoul, and enjoy a night of exceptional pours as we partner with Hoegaarden for a night of great pours and exciting rewards.\n\nFrom 7 pm to midnight, every toast brings you closer to exclusive prizes.\n• Buy 2 Hoegaarden glasses to play a game and receive a regular prize.\n• Buy 4 Hoegaarden glasses to play a game and unlock a special prize.\n\nLimited prizes available!\n\nFor more information and reservations, please call 02-796-8888 or email eat.sindhornmidtown@ihg.com","copyTh":"ยกแก้วฉลองไปกับ ANJU X Hoegaarden เพื่อรับรางวัลสุดพิเศษ!\n\nในวันที่ 31 ตุลาคม พ.ศ. 2569 ร่วมเฉลิมฉลองค่ำคืนฮาโลวีน และน่าจดจำที่ อันจู ห้องอาหารเกาหลี และรูฟท็อปบาร์ ดื่มด่ำกับค็อกเทลคอลเลกชันพิเศษ The Sin of Seoul ทั้ง 3 เมนูพร้อมการร่วมมือพิเศษกับ Hoegaarden ที่จะมอบค่ำคืนแห่งความสนุก รางวัลสุดพิเศษที่ไม่ควรพลาด\n\nร่วมสนุก และลุ้นรับของรางวัลจาก Hoegaarden ตั้งแต่เวลา 19.00 น. ถึงเที่ยงคืน\n• สั่ง Hoegaarden 2 แก้ว เข้าร่วมเกมส์ เพื่อรับรางวัลทั่วไป\n• สั่ง Hoegaarden 4 แก้ว เข้าร่วมเกมส์ เพื่อรับรางวัลพิเศษ\n\nของรางวัลมีจำนวนจำกัด เฉพาะช่วงเวลาของกิจกรรมเท่านั้น\n\nสอบถามข้อมูลเพิ่มเติม เเละสำรองที่นั่งได้ที่ โทร 02-796-8888 หรืออีเมล eat.sindhornmidtown@ihg.com","activations":[{"id":"anju-hoegaarden-anju","outlet":"ANJU","time":"7 PM — 12 AM","discount":"N/A","artworkUrl":null,"artworks":[{"id":"anju-hoegaarden::anju::insert-menu","name":"Insert Menu"},{"id":"anju-hoegaarden::anju::table-standee","name":"10 × 15 cm Table Standee"}]}]}];
+const EDITOR=new URLSearchParams(location.search).get("mode")==="editor";
+if(EDITOR)document.body.classList.add("editor");
+document.getElementById("modeBadge").textContent=EDITOR?"Editor · 10639":"Read only";
+
+const STATE_KEY="sm-fnb-review-v2";
+let state={checks:{},links:{}};
+try{const s=JSON.parse(localStorage.getItem(STATE_KEY)||"{}");state={checks:s.checks||{},links:s.links||{}}}catch(e){}
+let filter="ALL",view="promotions",current=null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>\"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+function save(){try{localStorage.setItem(STATE_KEY,JSON.stringify(state))}catch(e){}}
+function taskDone(id){return !!state.checks[id]}
+function activationLink(a){return Object.prototype.hasOwnProperty.call(state.links,a.id)?state.links[a.id]:a.artworkUrl}
+function safeFolder(v){if(!v)return null;try{const u=new URL(v);return u.protocol==="https:"&&(u.hostname.endsWith("sharepoint.com")||u.hostname.endsWith("1drv.ms")||u.hostname.endsWith("onedrive.live.com"))?u.href:null}catch(e){return null}}
+function taskCounts(c){let total=0,done=0;c.activations.forEach(a=>{if(filter!=="ALL"&&a.outlet!==filter)return;a.artworks.forEach(t=>{total++;if(taskDone(t.id))done++})});return{total,done}}
+function globalCounts(){let total=0,done=0;DATA.forEach(c=>c.activations.forEach(a=>a.artworks.forEach(t=>{total++;if(taskDone(t.id))done++})));return{total,done}}
+function fmtOutlet(c){return c.activations.map(a=>a.outlet).join(" + ")}
+function startDate(c){return new Date(c.start+"T00:00:00+07:00")}
+function todayBkk(){const f=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Bangkok",year:"numeric",month:"2-digit",day:"2-digit"});const p=Object.fromEntries(f.formatToParts(new Date()).map(x=>[x.type,x.value]));return new Date(`${p.year}-${p.month}-${p.day}T00:00:00+07:00`)}
+const TODAY=todayBkk();
+function statusFor(c){const s=startDate(c),e=new Date(c.end+"T23:59:59+07:00");if(TODAY<s)return"UPCOMING";if(TODAY<=e)return"LIVE";return"ENDED"}
+function relativeFor(c){
+  const s=startDate(c),n=Math.ceil((s-TODAY)/86400000);
+  if(n>1)return `Starts in ${n} days`;
+  if(n===1)return "Starts tomorrow";
+  if(n===0)return "Starts today";
+  const e=new Date(c.end+"T23:59:59");
+  if(TODAY<=e)return "Live now";
+  return "Ended";
+}
+function filteredCampaigns(){
+  return filter==="ALL"?DATA:DATA.filter(c=>c.activations.some(a=>a.outlet===filter));
+}
+function discountFor(c){
+  const vals=[...new Set(c.activations.map(a=>a.discount))];
+  return vals.length===1?vals[0]:"Varies by outlet";
+}
+function timeFor(c){
+  const vals=[...new Set(c.activations.map(a=>a.time))];
+  return vals.length===1?vals[0]:"Varies by outlet";
+}
+function toast(msg){
+  const el=document.getElementById("toast");el.textContent=msg;el.hidden=false;
+  clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200);
+}
+
+function renderFilters(){
+  const visible=["ALL","ANJU","Bangkok'78","Sip & Co."];
+  const host=document.getElementById("indexFilters");
+  const hiddenActive=!visible.includes(filter)&&filter!=="ALL";
+  host.innerHTML=visible.map(o=>`<button class="filter-chip ${filter===o?"on":""}" data-filter="${esc(o)}">${esc(o)}</button>`).join("")+
+    `<button class="filter-chip ${hiddenActive?"on":""}" id="moreFilter">${hiddenActive?esc(filter):"+2"}</button>`;
+  host.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{filter=b.dataset.filter;renderAll()});
+  document.getElementById("moreFilter").onclick=openFilterSheet;
+}
+
+function renderSummary(){
+  const g=globalCounts();
+  document.getElementById("indexSummary").innerHTML=`<b>${DATA.length} promotions</b> · ${g.total} artworks · ${g.done} complete`;
+}
+function cardHTML(c){
+  const n=taskCounts(c),pct=n.total?n.done/n.total*100:0;
+  return `<article class="promo-card">
+    <button class="promo-open" data-open="${esc(c.id)}" type="button">
+      <div class="card-status"><span class="utility">${statusFor(c)}</span><span class="status-time">${esc(relativeFor(c))}</span></div>
+      <h2 class="card-title">${esc(c.title)}</h2>
+      <p class="card-outlets">${esc(fmtOutlet(c))}</p>
+      <p class="card-date">${esc(c.dateLabel)}</p>
+      <div class="card-progress">
+        <div class="progress-meta"><span>ARTWORK</span><b>${n.done} / ${n.total}</b></div>
+        <div class="progress-track"><i style="width:${pct}%"></i></div>
+      </div>
+      <div class="card-foot"><span>${esc(c.summary)}</span><span class="chevron">›</span></div>
+    </button>
+  </article>`;
+}
+function renderCards(){
+  const list=filteredCampaigns();
+  document.getElementById("cardList").innerHTML=list.length?list.map(cardHTML).join(""):`<div class="text-card"><div class="text-copy">No promotions for this outlet.</div></div>`;
+  document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>openDetail(b.dataset.open));
+}
+
+function taskRows(a){
+  return a.artworks.map(t=>`<div class="task-row ${taskDone(t.id)?"done":""}" data-task-row="${esc(t.id)}">
+    <button class="task-toggle" data-task="${esc(t.id)}" type="button" aria-label="${taskDone(t.id)?"Mark pending":"Mark complete"}" ${EDITOR?"":"disabled"}></button>
+    <span class="task-name">${esc(t.name)}</span>
+  </div>`).join("");
+}
+function bindTasks(root=document){
+  root.querySelectorAll("[data-task]").forEach(b=>{
+    if(!EDITOR)return;
+    b.onclick=()=>{state.checks[b.dataset.task]=!state.checks[b.dataset.task];save();renderAll();if(current)openDetail(current.id,false)};
+  });
+}
+function queueCardHTML(c){
+  const acts=c.activations.filter(a=>filter==="ALL"||a.outlet===filter),n=taskCounts(c),pct=n.total?n.done/n.total*100:0;
+  return `<article class="queue-card" data-queue="${esc(c.id)}">
+    <button class="queue-head" type="button" aria-expanded="false">
+      <div class="queue-head-copy"><h2 class="queue-title">${esc(c.title)}</h2><div class="queue-sub">${esc(c.dateLabel)} · ${esc(acts.map(a=>a.outlet).join(" + "))}</div></div>
+      <span class="queue-tally ${n.total&&n.done===n.total?"done":""}">${n.done}/${n.total}</span><span class="queue-chevron"></span>
+    </button>
+    <div class="queue-progress"><i style="width:${pct}%"></i></div>
+    <div class="queue-body" aria-hidden="true">${acts.map(a=>`<div class="queue-outlet">${esc(a.outlet)}</div>${taskRows(a)}`).join("")}</div>
+  </article>`;
+}
+function renderQueue(){
+  const list=filteredCampaigns(), g=globalCounts();
+  const remaining=g.total-g.done;
+  document.getElementById("queueSummary").textContent=`${remaining} remaining · ${g.done} complete · ${g.total} total`;
+  document.getElementById("queueList").innerHTML=list.map(queueCardHTML).join("");
+  document.querySelectorAll(".queue-card .queue-head").forEach(btn=>btn.onclick=()=>{
+    const card=btn.closest(".queue-card"),body=card.querySelector(".queue-body"),open=card.classList.toggle("open");
+    btn.setAttribute("aria-expanded",String(open));body.setAttribute("aria-hidden",String(!open));
+    if(open){body.style.maxHeight=body.scrollHeight+"px";body.style.opacity="1"}
+    else{body.style.maxHeight="0px";body.style.opacity="0"}
+  });
+  bindTasks(document.getElementById("queueList"));
+}
+function renderView(){
+  document.querySelectorAll(".switch-btn").forEach(b=>b.classList.toggle("on",b.dataset.view===view));
+  document.getElementById("promotionsView").hidden=view!=="promotions";
+  document.getElementById("artworkView").hidden=view!=="artwork";
+}
+function renderAll(){
+  renderSummary();renderFilters();renderCards();renderQueue();renderView();
+}
+
+function activationBlock(a){
+  const n={total:a.artworks.length,done:a.artworks.filter(t=>taskDone(t.id)).length};
+  return `<article class="activation-card">
+    <div class="activation-head"><div><strong>${esc(a.outlet)}</strong><span>${esc(a.time)} · IHG One Rewards ${esc(a.discount)}</span></div><b>${n.done}/${n.total}</b></div>
+    <div class="task-list">${taskRows(a)}</div>
+  </article>`;
+}
+function textCard(label,text,lang=""){
+  if(!text){
+    const missing=lang==="th"?"ไม่มีข้อความภาษาไทยในไฟล์ต้นทาง":"Not supplied in the source workbook.";
+    return `<article class="text-card"><p class="text-label">${esc(label)}</p><div class="text-copy source-missing" ${lang?`lang="${lang}"`:""}>${esc(missing)}</div></article>`;
+  }
+  const expandable=text.length>380||text.split("\n").length>8;
+  const cls=expandable?"text-copy collapsed":"text-copy";
+  return `<article class="text-card"><p class="text-label">${esc(label)}</p><div class="${cls}" ${lang?`lang="${lang}"`:""}>${esc(text)}</div>${expandable?`<button class="expand-btn" type="button">Show full <span lang="th">· แสดงทั้งหมด</span></button>`:""}</article>`;
+}
+function briefHTML(c){
+  const specific=c.activations.some(a=>a.brief);
+  if(specific)return c.activations.map(a=>`<div class="copy-outlet">${esc(a.outlet)}</div>${textCard("Promotion brief",a.brief||c.brief)}`).join("");
+  return textCard("Promotion brief",c.brief);
+}
+function copyHTML(c){
+  const specific=c.activations.some(a=>a.copyEn||a.copyTh);
+  if(!specific)return `${textCard("English",c.copyEn)}${textCard("ไทย",c.copyTh,"th")}`;
+  let html=`<div class="copy-outlet campaign-copy-label">Campaign / Master copy</div>${textCard("English",c.copyEn)}${textCard("ไทย",c.copyTh,"th")}`;
+  html+=c.activations.filter(a=>a.copyEn||a.copyTh).map(a=>`<div class="copy-outlet">${esc(a.outlet)}</div>${textCard("English",a.copyEn)}${textCard("ไทย",a.copyTh,"th")}`).join("");
+  return html;
+}
+function existingLinks(c){
+  return c.activations.map(a=>({a,url:safeFolder(activationLink(a))})).filter(x=>x.url);
+}
+function folderControls(c){
+  const links=existingLinks(c);
+  let html="";
+  if(links.length){
+    html=`<button class="primary-cta" id="folderPrimary" type="button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+      View artwork folder${links.length>1?"s":""}
+    </button>`;
+  }else{
+    html=`<div class="folder-empty"><span>Artwork folder</span><small>Not linked yet</small></div>`;
+  }
+  if(EDITOR)html+=`<button class="secondary-cta" id="editFolder" type="button">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg>
+    Add / change artwork link
+  </button>`;
+  return html;
+}
+function detailHTML(c){
+  const n=taskCounts(c);
+  return `<div class="detail-hero detail-section" id="overview">
+      <p class="eyebrow">${statusFor(c)}</p>
+      <h1>${esc(c.title)}</h1>
+      <p class="detail-date">${esc(c.dateLabel)}</p>
+      <dl class="facts">
+        <div class="fact"><dt>Outlet</dt><dd>${esc(fmtOutlet(c))}</dd></div>
+        <div class="fact"><dt>Status</dt><dd>${statusFor(c)==="LIVE"?"Live":statusFor(c)==="ENDED"?"Ended":"Upcoming"}</dd></div>
+        <div class="fact"><dt>Time</dt><dd>${esc(timeFor(c))}</dd></div>
+        <div class="fact"><dt>IHG One Rewards</dt><dd>${esc(discountFor(c))}</dd></div>
+        <div class="fact"><dt>Updated</dt><dd>28 August 2026</dd></div>
+        <div class="fact"><dt>Artwork</dt><dd>${n.done} / ${n.total} complete</dd></div>
+      </dl>
+      ${folderControls(c)}
+    </div>
+    <section class="detail-section" id="artwork">
+      <div class="section-top"><h2 class="section-heading">Artwork <span lang="th">อาร์ตเวิร์ก</span></h2><span class="section-count">${n.done} / ${n.total} COMPLETE</span></div>
+      ${c.activations.map(activationBlock).join("")}
+    </section>
+    <section class="detail-section" id="brief">
+      <div class="section-top"><h2 class="section-heading">Promotion brief <span lang="th">รายละเอียดโปรโมชั่น</span></h2></div>
+      ${briefHTML(c)}
+    </section>
+    <section class="detail-section" id="copy">
+      <div class="section-top"><h2 class="section-heading">Copy <span lang="th">ข้อความ</span></h2></div>
+      ${copyHTML(c)}
+    </section>
+    <div class="footer-note"><strong>Source</strong> · Sep - Oct 2026 F&B Promotions.xlsx · visual review prototype only.</div>`;
+}
+function bindDetail(c){
+  bindTasks(document.getElementById("detailMount"));
+  document.querySelectorAll(".expand-btn").forEach(btn=>btn.onclick=()=>{
+    const copy=btn.previousElementSibling;
+    const opening=copy.classList.contains("collapsed");
+    if(opening){
+      copy.classList.remove("collapsed");
+      copy.style.maxHeight=copy.scrollHeight+"px";
+      btn.innerHTML='Show less <span lang="th">· ย่อ</span>';
+    }else{
+      copy.style.maxHeight=copy.scrollHeight+"px";
+      requestAnimationFrame(()=>{copy.classList.add("collapsed");copy.style.maxHeight="180px"});
+      btn.innerHTML='Show full <span lang="th">· แสดงทั้งหมด</span>';
+    }
+  });
+  const primary=document.getElementById("folderPrimary");
+  if(primary)primary.onclick=()=>{
+    const links=existingLinks(c);
+    if(links.length===1)window.open(links[0].url,"_blank","noopener");
+    else openFolderSheet(c);
+  };
+  const edit=document.getElementById("editFolder");if(edit)edit.onclick=()=>openLinkEditor(c);
+  observeSections();
+}
+let indexScrollY=0;
+function activateScreen(show,hide,direction="forward"){
+  hide.classList.remove("active");
+  show.classList.add("active");
+  show.classList.remove("enter-forward","enter-back");
+  void show.offsetWidth;
+  show.classList.add(direction==="back"?"enter-back":"enter-forward");
+}
+function openDetail(id,updateHistory=true){
+  const c=DATA.find(x=>x.id===id);if(!c)return;
+  if(!current)indexScrollY=scrollY;
+  current=c;
+  document.body.classList.add("detail-open");
+  activateScreen(document.getElementById("detailScreen"),document.getElementById("indexScreen"),"forward");
+  document.getElementById("detailMount").innerHTML=detailHTML(c);
+  document.getElementById("detailBrandTitle").textContent="F&B";
+  document.getElementById("shareBtn").hidden=false;
+  if(updateHistory)history.pushState({promotion:id},"","#"+id);
+  bindDetail(c);
+  scrollTo({top:0,behavior:"auto"});
+}
+function closeDetail(updateHistory=true){
+  current=null;document.body.classList.remove("detail-open");activateScreen(document.getElementById("indexScreen"),document.getElementById("detailScreen"),"back");
+  document.getElementById("shareBtn").hidden=true;
+  if(detailObserver)detailObserver.disconnect();
+  if(updateHistory)history.pushState({}, "", location.pathname+location.search);
+  requestAnimationFrame(()=>scrollTo({top:indexScrollY,behavior:"auto"}));
+}
+document.getElementById("backBtn").onclick=()=>history.back();
+
+let detailObserver=null;
+function observeSections(){
+  if(detailObserver)detailObserver.disconnect();
+  const chips=[...document.querySelectorAll(".rail-chip")];
+  const set=id=>chips.forEach(ch=>ch.classList.toggle("on",ch.dataset.target===id));
+  detailObserver=new IntersectionObserver(entries=>{
+    const hit=entries.filter(e=>e.isIntersecting).sort((a,b)=>Math.abs(a.boundingClientRect.top)-Math.abs(b.boundingClientRect.top))[0];
+    if(hit)set(hit.target.id);
+  },{rootMargin:"-22% 0px -65% 0px",threshold:[0,.1]});
+  ["overview","artwork","brief","copy"].forEach(id=>{const el=document.getElementById(id);if(el)detailObserver.observe(el)});
+}
+document.querySelectorAll(".rail-chip").forEach(ch=>ch.onclick=()=>document.getElementById(ch.dataset.target)?.scrollIntoView({behavior:"smooth",block:"start"}));
+
+function openSheet(title,html){
+  document.getElementById("sheetTitle").textContent=title;document.getElementById("sheetBody").innerHTML=html;
+  const layer=document.getElementById("sheetLayer");layer.classList.add("open");layer.setAttribute("aria-hidden","false");
+}
+function closeSheet(){
+  const layer=document.getElementById("sheetLayer");layer.classList.remove("open");layer.setAttribute("aria-hidden","true");
+}
+document.getElementById("sheetClose").onclick=closeSheet;
+document.getElementById("sheetLayer").onclick=e=>{if(e.target===e.currentTarget)closeSheet()};
+
+function openFilterSheet(){
+  const opts=["Horizon Pool Bar","The Lobby Lounge"];
+  openSheet("More outlets",opts.map(o=>`<button class="sheet-option ${filter===o?"on":""}" data-more-filter="${esc(o)}"><span>${esc(o)}</span><small>${filter===o?"Selected":"View promotions"}</small></button>`).join(""));
+  document.querySelectorAll("[data-more-filter]").forEach(b=>b.onclick=()=>{filter=b.dataset.moreFilter;closeSheet();renderAll()});
+}
+function openFolderSheet(c){
+  const links=existingLinks(c);
+  openSheet("Artwork folders",`<div class="link-list">${links.map(x=>`<a href="${esc(x.url)}" target="_blank" rel="noopener"><span>${esc(x.a.outlet)}</span><span>Open ↗</span></a>`).join("")}</div>`);
+}
+function openLinkEditor(c){
+  openSheet("Artwork links",c.activations.map(a=>`<div class="link-field"><label>${esc(a.outlet)}</label><input type="url" inputmode="url" data-link="${esc(a.id)}" value="${esc(activationLink(a)||"")}" placeholder="Paste OneDrive or SharePoint folder URL"></div>`).join("")+
+    `<p class="sheet-note">Review only · saved on this device. No Supabase write is made.</p><button class="sheet-save" id="saveLinks" type="button">Save local preview</button>`);
+  document.getElementById("saveLinks").onclick=()=>{
+    let bad=false;
+    document.querySelectorAll("[data-link]").forEach(inp=>{
+      const v=inp.value.trim();if(v&&!safeFolder(v)){bad=true;inp.focus();return}state.links[inp.dataset.link]=v||null;
+    });
+    if(bad){toast("Use a OneDrive or SharePoint https link");return}
+    save();closeSheet();renderAll();openDetail(c.id,false);toast("Local preview saved");
+  };
+}
+
+document.querySelectorAll(".switch-btn").forEach(b=>b.onclick=()=>{
+  if(view===b.dataset.view)return;
+  view=b.dataset.view;renderView();
+  const target=document.getElementById(view==="promotions"?"promotionsView":"artworkView");
+  target.classList.remove("view-enter");void target.offsetWidth;target.classList.add("view-enter");
+});
+document.getElementById("resetBtn").onclick=()=>{localStorage.removeItem(STATE_KEY);state={checks:{},links:{}};renderAll();toast("Local demo reset")};
+
+document.getElementById("shareBtn").onclick=async()=>{
+  if(!current)return;const url=location.href,title=current.title+" · Sindhorn Midtown F&B";
+  if(navigator.share){try{await navigator.share({title,url})}catch(e){if(e.name!=="AbortError")copyUrl(url)}}else copyUrl(url);
+};
+function copyUrl(url){navigator.clipboard?.writeText(url).then(()=>toast("Link copied")).catch(()=>toast("Copy the address bar"))}
+
+window.addEventListener("popstate",()=>{
+  const id=location.hash.slice(1),c=DATA.find(x=>x.id===id);
+  if(c)openDetail(id,false);else if(current)closeDetail(false);
+});
+
+
+document.addEventListener("pointerdown",e=>{
+  const target=e.target.closest("button,a");
+  if(!target||target.disabled)return;
+  target.classList.remove("tap-active");void target.offsetWidth;target.classList.add("tap-active");
+  setTimeout(()=>target.classList.remove("tap-active"),260);
+  if(target.matches("button,.primary-cta,.secondary-cta,.sheet-option,.sheet-save")){
+    const r=target.getBoundingClientRect(),dot=document.createElement("i");
+    dot.className="tap-ripple";
+    const size=Math.max(r.width,r.height)*1.35;
+    dot.style.width=dot.style.height=size+"px";
+    dot.style.left=(e.clientX-r.left-size/2)+"px";dot.style.top=(e.clientY-r.top-size/2)+"px";
+    target.appendChild(dot);setTimeout(()=>dot.remove(),520);
+  }
+},{passive:true});
+
+renderAll();
+const initial=DATA.find(x=>"#"+x.id===location.hash);if(initial)openDetail(initial.id,false);
 </script>
-</body></html>
+</body>
+</html>
