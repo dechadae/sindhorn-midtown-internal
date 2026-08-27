@@ -39,10 +39,19 @@ const textureSamples=(ATMOSPHERE_FRAGMENT_SHADER.match(/noise4\(/g)||[]).length;
 assert.ok(textureSamples<=8,`shared shader texture-sample call sites should remain bounded (found ${textureSamples})`);
 for(const branch of ['if(uHighCoverage>.003','if(uMidCoverage>.003','if(uLowCoverage>.003'])assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes(branch),branch);
 
-// Cloud aspect contract: cirrus may stretch, but visible mid/low bodies must stay broad and rounded.
-assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('vec2(.90,1.08)'),'mid-cloud sampling must remain wider than tall');
-assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('vec2(.72,.96+.10*lowBuildRound)'),'low monsoon clouds must build rounded crowns without vertical elongation');
+// Cloud aspect contract: cirrus may stretch, but visible mid/low bodies must stay broad,
+// vertically compact and de-aligned so the field cannot collapse back into pillar-like streaks.
+assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('vec2(.72,1.22)'),'mid-cloud sampling must stay strongly wider than tall');
+assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('vec2(.62,1.18+.12*lowBuildRound)'),'low monsoon clouds must stay broad while convective build adds rounded crown detail');
+assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('vec2 mpr=')&&ATMOSPHERE_FRAGMENT_SHADER.includes('vec2 lpr='),'mid/low detail samples must remain rotated to break aligned vertical columns');
 assert.ok(!ATMOSPHERE_FRAGMENT_SHADER.includes('1.02/max(.3,uLowBuild)'),'convective build must not vertically stretch low-cloud coordinates');
+
+// Every app launch receives a new procedural field, while one session remains coherent.
+const shaderSource=fs.readFileSync(new URL('./atmosphere-shader.js',import.meta.url),'utf8');
+assert.ok(shaderSource.includes('function randomCloudSeed()'),'cloud renderer must generate a launch-specific field seed');
+assert.ok(shaderSource.includes('crypto?.getRandomValues?.(entropy)'),'launch randomization should prefer browser entropy');
+assert.ok(shaderSource.includes('let seed=randomCloudSeed()'),'noise texture must use the per-launch seed');
+assert.ok(!shaderSource.includes('let seed=0x2f6e2b1d'),'the cloud field must not restart from one fixed seed');
 
 // Performance contract: keep DPR 2 and visual quality while removing redundant live work.
 const env=fs.readFileSync(new URL('./environment.js',import.meta.url),'utf8');
@@ -54,4 +63,4 @@ const rain=fs.readFileSync(new URL('./rain-layer.js',import.meta.url),'utf8');
 assert.ok(rain.includes("const IS_ATMOSPHERE_TESTER=location.pathname.includes('atmosphere-tester')"),'rain idle optimization must preserve continuous manual tester behavior');
 assert.ok(rain.includes("document.addEventListener('sindhorn:weather-updated',start)"),'rain renderer must wake on live weather updates');
 assert.ok(rain.includes("targetIntensity===0&&currentIntensity<.001"),'dry production rain renderer must be able to sleep');
-console.log(`Phase 8.2 seasonal/cloud fixtures PASS (${PHASE82_FIXTURE_KEYS.length} deterministic cases; ${textureSamples} bounded noise call sites)`);
+console.log(`Phase 8.2 seasonal/cloud fixtures PASS (${PHASE82_FIXTURE_KEYS.length} deterministic cases; ${textureSamples} bounded noise call sites; per-launch cloud seed)`);
