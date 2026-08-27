@@ -34,6 +34,18 @@ function clearLocal(reason='signed_out'){
 }
 function authHeaders(accessToken=session?.access_token){return{apikey:SUPABASE_KEY,'content-type':'application/json',...(accessToken?{authorization:`Bearer ${accessToken}`}:{})}}
 async function responseJson(response){const text=await response.text();const data=safeParse(text)||{};if(!response.ok){const error=new Error(data?.msg||data?.message||data?.error_description||data?.error||`HTTP ${response.status}`);error.status=response.status;error.payload=data;throw error}return data}
+function cleanOAuthUrl(){
+  if(!hasWindow)return;
+  const url=new URL(location.href);url.hash='';url.searchParams.delete('error');url.searchParams.delete('error_code');url.searchParams.delete('error_description');
+  history.replaceState(history.state,'',`${url.pathname}${url.search}${url.hash}`);
+}
+function oauthSessionFromLocation(){
+  if(!hasWindow||!location.hash)return null;
+  const params=new URLSearchParams(location.hash.slice(1));
+  const accessToken=params.get('access_token'),refreshToken=params.get('refresh_token');if(!accessToken||!refreshToken)return null;
+  const jwt=decodeJwt(accessToken),expiresIn=Number(params.get('expires_in')||0),expiresAt=Number(jwt?.exp||0)||Math.floor(Date.now()/1000)+Math.max(60,expiresIn||3600);
+  return normalizedSession({access_token:accessToken,refresh_token:refreshToken,expires_at:expiresAt,token_type:params.get('token_type')||'bearer'});
+}
 
 export function getState(){return{initialized,authenticated:Boolean(session&&profile),session:session?{expires_at:session.expires_at,user:session.user}:null,profile:profile?structuredClone(profile):null,authWorker:authWorker()}}
 export function getAccessToken(){return session?.access_token||null}
@@ -56,7 +68,7 @@ export async function refreshSession({force=false}={}){
 export async function fetchProfile({retry401=true}={}){
   if(!session)return null;
   await refreshSession();
-  const select='id,employee_number,display_name,department_id,role,active,preferred_language,activated_at';
+  const select='id,employee_number,display_name,work_email,account_type,department_id,role,active,preferred_language,activated_at';
   const response=await fetch(`${SUPABASE_URL}/rest/v1/sindhorn_employees?select=${encodeURIComponent(select)}&limit=1`,{cache:'no-store',headers:{apikey:SUPABASE_KEY,authorization:`Bearer ${session.access_token}`,Accept:'application/json'}});
   if(response.status===401&&retry401){await refreshSession({force:true});return fetchProfile({retry401:false})}
   const rows=await responseJson(response),next=Array.isArray(rows)?rows[0]:null;
@@ -74,6 +86,41 @@ export async function activate(employeeNumber,code){
   return{profile:employee,purpose:result.purpose||'activate',preferredLanguage:result.preferredLanguage||employee.preferred_language||'th'};
 }
 
+export function signInWithMicrosoft({redirectTo}={}){
+  if(!hasWindow)throw new Error('Microsoft sign-in requires a browser');
+  const target=redirectTo||`${location.origin}/login.html?oauth=microsoft`;
+  const url=new URL(`${SUPABASE_URL}/auth/v1/authorize`);
+  url.searchParams.set('provider','azure');
+  url.searchParams.set('redirect_to',target);
+  url.searchParams.set('scopes','email');
+  location.assign(url.toString());
+}
+
+export async function linkMicrosoftIdentity(){
+  if(!session?.access_token)throw new Error('Microsoft session is unavailable');
+  const response=await fetch(`${authWorker()}/microsoft/link`,{method:'POST',cache:'no-store',headers:{authorization:`Bearer ${session.access_token}`,'content-type':'application/json'},body:'{}'});
+  const result=await responseJson(response);if(!result?.ok)throw new Error('Microsoft identity could not be linked');return result;
+}
+
+export async function completeMicrosoftOAuth(){
+  if(!hasWindow)return null;
+  const query=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.slice(1));
+  const oauthError=query.get('error_description')||hash.get('error_description')||query.get('error')||hash.get('error');
+  if(oauthError){cleanOAuthUrl();throw new Error(oauthError)}
+  const next=oauthSessionFromLocation();if(!next)return null;
+  persist(next);cleanOAuthUrl();
+  try{
+    const linked=await linkMicrosoftIdentity();
+    const employee=await fetchProfile();if(!employee)throw new Error('Microsoft account is not linked to an active employee');
+    dispatch('sindhorn:microsoft-login-complete',{profile:structuredClone(employee),loginMethod:linked.loginMethod||'microsoft365'});
+    return{profile:employee,loginMethod:linked.loginMethod||'microsoft365'};
+  }catch(error){
+    const token=session?.access_token;clearLocal('microsoft_not_authorized');
+    if(token)fetch(`${SUPABASE_URL}/auth/v1/logout`,{method:'POST',cache:'no-store',headers:authHeaders(token)}).catch(()=>{});
+    throw error;
+  }
+}
+
 export async function signOut(){
   const token=session?.access_token;
   clearLocal('signed_out');
@@ -82,7 +129,11 @@ export async function signOut(){
 }
 
 export async function initAuth(){
-  if(initialized)return getState();initialized=true;session=loadStored();
+  if(initialized)return getState();initialized=true;
+  try{
+    const oauth=await completeMicrosoftOAuth();if(oauth){dispatch('sindhorn:auth-ready',{authenticated:true,profile:structuredClone(oauth.profile)});return getState()}
+  }catch(error){dispatch('sindhorn:auth-oauth-error',{message:String(error?.message||error)});}
+  session=loadStored();
   if(!session){dispatch('sindhorn:auth-ready',{authenticated:false});return getState()}
   try{await refreshSession();await fetchProfile()}catch(_){clearLocal('session_invalid')}
   dispatch('sindhorn:auth-ready',{authenticated:Boolean(session&&profile),profile:profile?structuredClone(profile):null});return getState();
@@ -90,5 +141,5 @@ export async function initAuth(){
 
 if(hasWindow){
   addEventListener('storage',event=>{if(event.key!==STORAGE_KEY)return;session=normalizedSession(safeParse(event.newValue||''));profile=null;if(session)fetchProfile().catch(()=>clearLocal('session_invalid'));else dispatch('sindhorn:auth-changed',{authenticated:false,profile:null,reason:'cross_tab_signout'})});
-  window.SindhornEmployeeAuth={init:initAuth,activate,signOut,refresh:refreshSession,fetchProfile,getState,getProfile,getAccessToken};
+  window.SindhornEmployeeAuth={init:initAuth,activate,signInWithMicrosoft,completeMicrosoftOAuth,linkMicrosoftIdentity,signOut,refresh:refreshSession,fetchProfile,getState,getProfile,getAccessToken};
 }
