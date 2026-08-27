@@ -5,6 +5,7 @@ on:
     branches:
       - phase7-launch-hardening
       - phase8-2-bangkok-seasonal-clouds
+      - "fix-cloud-*"
       - main
     paths:
       - "site/**"
@@ -59,10 +60,10 @@ jobs:
           index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); env=(root/'environment.js').read_text(); shader=(root/'atmosphere-shader.js').read_text()
           assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index and '/storm-effects.js' not in index
           assert "'/sky-calibration.js'" not in sw and "'/sky-color-renderer.js'" not in sw and "'/storm-effects.js'" not in sw
-          assert 'pwa-v23-bangkok-seasonal-clouds' in sw and "'/atmosphere-shader.js'" in sw and "'/seasonal-sky.js'" in sw
+          assert 'pwa-v24-cloud-roundness-randomized-start' in sw and "'/atmosphere-shader.js'" in sw and "'/seasonal-sky.js'" in sw
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw and 'storeNotification' in sw and 'markNotificationRead' in sw
           assert "renderer:'bangkok-seasonal-clouds-v2'" in env and 'const DPR=2' in env and 'renderExport' in env and 'antialias:false' in env and 'ensureSnowCanvas' in env and 'ensureHailCanvas' in env
-          for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','uSun','uSolarAltitude','sunDisc','Visible sun disc','texture2D(uNoise','AirBKK PM2.5 optics'): assert token in shader,token
+          for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','uSun','uSolarAltitude','sunDisc','Visible sun disc','texture2D(uNoise','AirBKK PM2.5 optics','randomCloudSeed'): assert token in shader,token
           wrangler=json.loads(Path('sky-worker/wrangler.jsonc').read_text()); assert wrangler.get('triggers',{}).get('crons')==[]
           assert Path('sky-worker/src/index.js').exists() and Path('site/sky-calibration.js').exists() and Path('site/sky-color-renderer.js').exists()
           PY
@@ -87,7 +88,8 @@ jobs:
               && grep -q 'bangkok-seasonal-clouds-v2' /tmp/environment.js \
               && grep -q 'Low convective / monsoon' /tmp/shader.js \
               && grep -q 'Visible sun disc' /tmp/shader.js \
-              && grep -q 'pwa-v23-bangkok-seasonal-clouds' /tmp/sw.js; then promoted=true; break; fi
+              && grep -q 'randomCloudSeed' /tmp/shader.js \
+              && grep -q 'pwa-v24-cloud-roundness-randomized-start' /tmp/sw.js; then promoted=true; break; fi
             sleep 3
           done
           test "$promoted" = true
