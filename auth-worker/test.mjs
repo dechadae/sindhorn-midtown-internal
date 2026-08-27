@@ -4,7 +4,8 @@ import {
   randomSixDigits,syntheticEmail,validActivationCode,validEmployeeNumber
 } from './src/security.js';
 
-assert.equal(normalizeEmployeeNumber(' sm 001 '),'SM001');
+assert.equal(normalizeEmployeeNumber(' sm001 '),'SM001');
+assert.equal(normalizeEmployeeNumber(' sm 001 '),'SM 001');
 assert.equal(normalizeActivationCode('12 34-56'),'123456');
 assert.equal(validEmployeeNumber('SM-001'),true);
 assert.equal(validEmployeeNumber('bad employee id'),false);
