@@ -43,8 +43,8 @@ export async function handleBrevoDiagnostic(request,env){
     if(!eventsResult.ok)return json({ok:false,provider:'brevo',providerStatus:eventsResult.status},502);
 
     const events=Array.isArray(eventsResult.data?.events)?eventsResult.data.events.filter(hasOtpTag):[];
-    const latest=events[0]||null;
     const failure=events.find(item=>FAILURE_EVENTS.has(String(item?.event||'').toLowerCase()))||null;
+    const latest=failure||events[0]||null;
     const eventCounts={};
     for(const item of events){const key=String(item?.event||'unknown');eventCounts[key]=(eventCounts[key]||0)+1}
 
