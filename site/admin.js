@@ -1,4 +1,4 @@
-import {getAccessToken,getState,initAuth,signOut} from './auth-client.js';
+import {getAccessToken,getState,initAuth,signOut,supabaseRpc} from './auth-client.js';
 
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
@@ -13,21 +13,27 @@ function identityLabel(user){
   if(methods.includes('employee_id')||user.auth_user_id)return 'Employee ID';
   return 'Not activated';
 }
-function worker(){return getState().authWorker}
 function showStatus(element,message,tone='neutral'){element.textContent=message||'';element.dataset.show=String(Boolean(message));element.dataset.tone=tone}
-async function api(path,{method='GET',body}={}){
+async function rpc(name,params={}){
   const token=getAccessToken();if(!token)throw Object.assign(new Error('authentication_required'),{code:'authentication_required'});
-  const response=await fetch(`${worker()}${path}`,{method,cache:'no-store',headers:{authorization:`Bearer ${token}`,...(body?{'content-type':'application/json'}:{})},body:body?JSON.stringify(body):undefined});
-  const text=await response.text();let data={};try{data=JSON.parse(text||'{}')}catch(_){}
-  if(!response.ok){const error=Object.assign(new Error(data.message||data.error||`HTTP ${response.status}`),{status:response.status,code:data.error||'request_failed',payload:data});throw error}
-  return data;
+  try{return await supabaseRpc(name,params,{accessToken:token})}
+  catch(error){
+    const message=String(error?.message||'').toLowerCase(),providerCode=String(error?.payload?.code||'');
+    if(message.includes('admin access required'))error.code='admin_access_required';
+    else if(message.includes('insufficient role'))error.code='insufficient_role';
+    else if(message.includes('cannot remove own admin access'))error.code='cannot_remove_own_admin_access';
+    else if(providerCode==='23505'||message.includes('duplicate key'))error.code='employee_already_exists';
+    else if(message.includes('invalid employee input'))error.code='invalid_employee_input';
+    else error.code=error.code||'request_failed';
+    throw error;
+  }
 }
 function writeError(error){
-  if(error?.code==='mfa_or_admin_required'||error?.code==='reauthentication_required')return 'Additional administrator verification (MFA) is required before changing staff access.';
+  if(error?.code==='admin_access_required'||error?.code==='authentication_required')return 'Administrator sign-in is required.';
   if(error?.code==='insufficient_role')return 'Your administrator role cannot make this access change.';
   if(error?.code==='cannot_remove_own_admin_access')return 'You cannot remove your own administrator access.';
   if(error?.code==='employee_already_exists')return 'That Employee ID or hotel email is already assigned.';
-  if(error?.code==='invalid_work_email')return 'Enter a valid hotel work email or leave it blank.';
+  if(error?.code==='invalid_employee_input')return 'Check the employee details and try again.';
   return 'The change could not be saved. Please try again.';
 }
 
@@ -47,7 +53,7 @@ function renderUsers(){
 
 async function loadUsers(){
   $('#userList').innerHTML='<div class="empty">Loading employees…</div>';
-  try{const result=await api('/admin/users');users=result.users||[];actor=result.actor||null;renderUsers()}
+  try{const result=await rpc('sindhorn_admin_list_users_v2');users=result?.users||[];actor=result?.actor||null;renderUsers()}
   catch(error){$('#userList').innerHTML=`<div class="empty">Could not load employee directory.<br><small>${esc(error.code||error.message)}</small></div>`}
 }
 
@@ -63,12 +69,26 @@ function fillDialog(user){
 function openUserDialog(user=null){fillDialog(user);$('#userDialog').showModal()}
 function closeUserDialog(){if($('#userDialog').open)$('#userDialog').close()}
 function formPayload(){return{employeeId:$('#employeeIdHidden').value||undefined,employeeNumber:$('#employeeNumber').value.trim(),displayName:$('#displayName').value.trim(),workEmail:$('#workEmail').value.trim(),role:$('#role').value,accountType:$('#accountType').value,preferredLanguage:$('#preferredLanguage').value,active:$('#active').value==='true',departmentId:null}}
+function rpcPayload(payload,{editing=false}={}){
+  return{
+    ...(editing?{p_employee_id:payload.employeeId}:{}),
+    p_employee_number:payload.employeeNumber,
+    p_display_name:payload.displayName||null,
+    p_work_email:payload.workEmail||null,
+    p_department_id:payload.departmentId||null,
+    p_role:payload.role,
+    p_active:payload.active,
+    p_preferred_language:payload.preferredLanguage,
+    p_account_type:payload.accountType
+  };
+}
 
 $('#userForm').addEventListener('submit',async event=>{
   event.preventDefault();const editing=Boolean($('#employeeIdHidden').value),save=$('#saveButton');save.disabled=true;showStatus($('#dialogStatus'),'Saving…');
   try{
-    const result=await api(editing?'/admin/users/update':'/admin/users',{method:'POST',body:formPayload()});
-    const employee=result.employee;if(employee){const index=users.findIndex(user=>user.id===employee.id);if(index>=0)users[index]={...users[index],...employee};else users.push({...employee,sindhorn_employee_identities:[]})}
+    const payload=formPayload();
+    const result=await rpc(editing?'sindhorn_admin_update_employee_v2':'sindhorn_admin_create_employee_v2',rpcPayload(payload,{editing}));
+    const employee=result?.employee;if(employee){const index=users.findIndex(user=>user.id===employee.id);if(index>=0)users[index]={...users[index],...employee};else users.push({...employee,sindhorn_employee_identities:[]})}
     closeUserDialog();renderUsers();await loadUsers();
   }catch(error){showStatus($('#dialogStatus'),writeError(error),'error')}
   finally{save.disabled=false}
@@ -76,7 +96,7 @@ $('#userForm').addEventListener('submit',async event=>{
 $('#activationButton').addEventListener('click',async()=>{
   if(!currentUser)return;const button=$('#activationButton');button.disabled=true;showStatus($('#dialogStatus'),'Issuing one-time code…');
   try{
-    const result=await api('/admin/activation-code',{method:'POST',body:{employeeNumber:currentUser.employee_number}});
+    const result=await rpc('sindhorn_admin_issue_activation_code_v2',{p_employee_number:currentUser.employee_number});
     $('#issuedCode').textContent=result.code;$('#issuedCodeMeta').textContent=`Employee ${result.employeeNumber} · ${result.purpose==='recovery'?'Recovery':'Activation'} · expires ${new Date(result.expiresAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`;
     closeUserDialog();$('#codeDialog').showModal();
   }catch(error){showStatus($('#dialogStatus'),writeError(error),'error')}
