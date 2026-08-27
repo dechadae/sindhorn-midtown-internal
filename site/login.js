@@ -33,6 +33,14 @@ function fillOtp(raw,startIndex=0){
   otpDigits[next]?.focus();
   if(startIndex+values.length>=otpDigits.length)otpDigits[otpDigits.length-1]?.select();
 }
+function consumeInvitationHash(){
+  if(!location.hash||location.hash.length<2)return;
+  const params=new URLSearchParams(location.hash.slice(1)),employee=params.get('i')||'',code=params.get('c')||'';
+  const validEmployee=employee.trim().length>0&&employee.length<=64,validCode=/^[0-9]{6}$/.test(code);
+  if(validEmployee)$('#employeeNumber').value=employee.trim();
+  if(validCode){otpDigits.forEach(input=>{input.value=''});fillOtp(code,0)}
+  if(params.has('i')||params.has('c'))history.replaceState(null,'',`${location.pathname}${location.search}`);
+}
 function bindOtp(){
   otpDigits.forEach((input,index)=>{
     input.addEventListener('input',event=>{
@@ -64,7 +72,7 @@ function renderState(){
 }
 
 $$('[data-lang]').forEach(button=>button.addEventListener('click',()=>{setLanguage(button.dataset.lang);renderState()}));
-bindOtp();
+bindOtp();consumeInvitationHash();
 $('#employeeForm').addEventListener('submit',async event=>{
   event.preventDefault();showStatus('');syncOtp();
   const employeeNumber=$('#employeeNumber').value.trim(),code=activationCode.value.trim();
