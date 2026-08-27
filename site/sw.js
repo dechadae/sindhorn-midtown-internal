@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v23-bangkok-seasonal-clouds-web-push-location';
+const VERSION='sindhorn-midtown-internal-pwa-v24-cloud-roundness-randomized-start';
 const UI_PACK_CACHE='sindhorn-midtown-ui-pack-v1';
 const NOTIFICATION_DB='sindhorn-midtown-notification-inbox';
 const NOTIFICATION_STORE='messages';
