@@ -1,0 +1,87 @@
+name: Phase 9 Internal Login Preview
+
+on:
+  push:
+    branches:
+      - phase9-internal-auth-broadcast
+    paths:
+      - "site/auth-client.js"
+      - "site/login.html"
+      - "site/login.js"
+      - "site/admin.html"
+      - "site/admin.js"
+      - "site/internal-auth.css"
+      - ".github/workflows/phase9-internal-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: sindhorn-midtown-phase9-internal-preview
+  cancel-in-progress: true
+
+jobs:
+  validate-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate standalone auth surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/auth-client.js
+          node --check site/login.js
+          node --check site/admin.js
+          grep -q 'Continue with Microsoft 365' site/login.html
+          grep -q 'Employee ID' site/login.html
+          grep -q '/microsoft/link' auth-worker/src/index.js
+          grep -q '/admin/users' auth-worker/src/index.js
+          grep -q 'sindhorn_employee_identities' site/auth-client.js
+          grep -q 'noto-sans-400.woff2' site/internal-auth.css
+          grep -q 'noto-sans-thai-400.woff2' site/internal-auth.css
+          test -f site/assets/brand/sindhorn-midtown-vignette-black.png
+          test -f site/assets/fonts/noto-sans-400.woff2
+          test -f site/assets/fonts/noto-sans-thai-400.woff2
+          ! grep -R -E 'sb_secret_|SUPABASE_SECRET_KEY[[:space:]]*=' site/login* site/admin* site/auth-client.js site/internal-auth.css
+
+      - name: Deploy Phase 9 branch Pages preview
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke test login and admin preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
+          BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in /login.html /login.js /admin.html /admin.js /auth-client.js /internal-auth.css /assets/brand/sindhorn-midtown-vignette-black.png; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/phase9-smoke
+            test -s /tmp/phase9-smoke
+          done
+          curl --fail --silent --show-error "${BASE_URL}/login.html" -o /tmp/login.html
+          curl --fail --silent --show-error "${BASE_URL}/admin.html" -o /tmp/admin.html
+          curl --fail --silent --show-error "${BASE_URL}/auth-client.js" -o /tmp/auth-client.js
+          grep -q 'Microsoft 365' /tmp/login.html
+          grep -q 'Add employee' /tmp/admin.html
+          grep -q 'AUTH_WORKER_PREVIEW' /tmp/auth-client.js
+
+      - name: Verify preview Auth Worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 5 --retry-delay 2 \
+            https://sindhorn-midtown-auth-preview.decha-dae.workers.dev/health -o /tmp/auth-health.json
+          node - <<'NODE'
+          const fs=require('fs');
+          const health=JSON.parse(fs.readFileSync('/tmp/auth-health.json','utf8'));
+          if(health.ok!==true||health.configured!==true) throw new Error('preview auth worker is not ready');
+          console.log('preview auth worker ready');
+          NODE
