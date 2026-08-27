@@ -1,4 +1,4 @@
-name: Phase 9 Auth Broker
+name: Phase 9 Supabase Employee Auth
 
 on:
   push:
@@ -7,10 +7,14 @@ on:
       - phase9-contact-otp
       - main
     paths:
-      - "auth-worker/**"
       - "site/auth-client.js"
-      - "site/login-contact-otp.js"
-      - "site/auth-public-config.js"
+      - "site/login.html"
+      - "site/login.js"
+      - "site/admin.html"
+      - "site/admin.js"
+      - "site/qr-v6.js"
+      - "site/internal-auth.css"
+      - "site/auth-brand.css"
       - "test/auth-client.test.mjs"
       - "supabase/migrations/*phase9*"
       - "docs/PHASE9-*"
@@ -18,10 +22,14 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "auth-worker/**"
       - "site/auth-client.js"
-      - "site/login-contact-otp.js"
-      - "site/auth-public-config.js"
+      - "site/login.html"
+      - "site/login.js"
+      - "site/admin.html"
+      - "site/admin.js"
+      - "site/qr-v6.js"
+      - "site/internal-auth.css"
+      - "site/auth-brand.css"
       - "test/auth-client.test.mjs"
       - "supabase/migrations/*phase9*"
       - "docs/PHASE9-*"
@@ -33,7 +41,7 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -43,126 +51,56 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install auth broker dependencies
-        working-directory: auth-worker
-        run: npm install --no-audit --no-fund
-
       - name: Syntax checks
         run: |
-          node --check auth-worker/src/security.js
-          node --check auth-worker/src/rate-limit.js
-          node --check auth-worker/src/index.js
-          node --check auth-worker/src/contact-otp.js
-          node --check auth-worker/src/brevo-diagnostics.js
-          node --check auth-worker/src/worker.js
-          node --check auth-worker/test.mjs
+          set -euo pipefail
           node --check site/auth-client.js
-          node --check site/login-contact-otp.js
-          node --check site/auth-public-config.js
+          node --check site/login.js
+          node --check site/admin.js
+          node --check site/qr-v6.js
           node --check test/auth-client.test.mjs
 
-      - name: Auth broker tests
-        working-directory: auth-worker
-        run: npm test
-
-      - name: Employee auth client tests
+      - name: Supabase-only auth client test
         run: node test/auth-client.test.mjs
 
-      - name: Security structure checks
+      - name: Security and architecture checks
         shell: bash
         run: |
           set -euo pipefail
-          grep -q "sindhorn_activation_prepare" supabase/migrations/*phase9b_activation_broker_rpc.sql
-          grep -q "from public,anon,authenticated" supabase/migrations/*phase9b_activation_broker_rpc.sql
-          grep -q "ACTIVATION_PEPPER" auth-worker/src/index.js
-          grep -q "aal2" auth-worker/src/index.js
-          grep -q "@auth.invalid" auth-worker/src/security.js
+          grep -q "sindhorn_manual_activate" site/auth-client.js
+          grep -q "authBackend:'supabase'" site/auth-client.js
           grep -q "token_hash:tokenHash,type:'email'" site/auth-client.js
-          grep -q "establishSessionFromBootstrap" site/auth-client.js
-          grep -q "BREVO_SEND_URL" auth-worker/src/contact-otp.js
-          grep -q "BREVO_API_KEY" auth-worker/src/contact-otp.js
-          grep -q "TURNSTILE_VERIFY_URL" auth-worker/src/contact-otp.js
-          grep -q "auth_email_otp_challenges" auth-worker/src/contact-otp.js
-          grep -q "OTP_TTL_SECONDS=5\*60" auth-worker/src/contact-otp.js
-          grep -q "OTP_VERIFY_MAX_ATTEMPTS=5" auth-worker/src/contact-otp.js
-          grep -q "OTP_RESEND_COOLDOWN_SECONDS=60" auth-worker/src/contact-otp.js
-          grep -q "'/otp/request'" auth-worker/src/contact-otp.js
-          grep -q "'/otp/verify'" auth-worker/src/contact-otp.js
-          grep -q "sindhorn_contact_login_lookup" supabase/migrations/*phase9_contact_otp_foundation.sql
-          grep -q "sindhorn_private.employee_contacts" supabase/migrations/*phase9_contact_otp_foundation.sql
-          grep -q "from public, anon, authenticated" supabase/migrations/*phase9_contact_otp_foundation.sql
-          grep -q "to service_role" supabase/migrations/*phase9_contact_otp_foundation.sql
-          grep -q "sindhorn_employee_identities" supabase/migrations/*phase9c_dual_login_identity_foundation.sql
-          grep -q "current_employee_id" supabase/migrations/*phase9c_identity_authorization.sql
-          grep -q "sindhorn_admin_create_employee" supabase/migrations/*phase9_admin_user_rpc.sql
-          grep -q "sindhorn_record_admin_audit" supabase/migrations/*phase9_admin_audit_rpc.sql
-          ! grep -R -E "SUPABASE_(SERVICE_ROLE|SECRET)_KEY['\"]?[[:space:]]*[:=][[:space:]]*['\"][^$]" auth-worker || false
-          ! grep -R -E "xkeysib-[A-Za-z0-9_-]+" auth-worker site || false
+          grep -q "sindhorn_admin_list_users_v3" site/admin.js
+          grep -q "sindhorn_admin_upsert_contact_v2" site/admin.js
+          grep -q "sindhorn_admin_revoke_access_v2" site/admin.js
+          grep -q "sindhorn_admin_issue_activation_code_v2" site/admin.js
+          grep -q "#i=" site/admin.js
+          grep -q "history.replaceState" site/login.js
+          grep -q "letter-spacing:0!important" site/auth-brand.css
+          ! grep -R -q -E 'BREVO|TURNSTILE|/otp/request|/otp/verify|sindhorn-midtown-auth.*workers\.dev' \
+            site/login.html site/login.js site/admin.html site/admin.js site/auth-client.js
+          ! grep -R -E 'sb_secret_|SUPABASE_(SERVICE_ROLE|SECRET)_KEY[[:space:]]*=' \
+            site/login.html site/login.js site/admin.html site/admin.js site/auth-client.js site/internal-auth.css site/auth-brand.css
 
-      - name: Worker production dry-run
-        working-directory: auth-worker
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx --yes wrangler@4.125.0 deploy --dry-run --config wrangler.jsonc
+          latest_admin_migration="$(ls supabase/migrations/*phase9_post_acceptance_admin_users_and_retire_legacy_auth.sql)"
+          grep -q "sindhorn_admin_list_users_v3" "$latest_admin_migration"
+          grep -q "sindhorn_admin_upsert_contact_v2" "$latest_admin_migration"
+          grep -q "sindhorn_admin_revoke_access_v2" "$latest_admin_migration"
+          grep -q "drop function if exists public.sindhorn_bootstrap_activation_prepare" "$latest_admin_migration"
+          grep -q "drop function if exists public.sindhorn_contact_login_lookup" "$latest_admin_migration"
+          grep -q "email_enabled=false" "$latest_admin_migration"
+          grep -q "sms_enabled=false" "$latest_admin_migration"
 
-      - name: Worker preview dry-run
-        working-directory: auth-worker
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx --yes wrangler@4.125.0 deploy --dry-run --config wrangler.preview.jsonc
-
-      - name: Deploy preview Auth Worker
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/phase9-internal-auth-broadcast' || github.ref == 'refs/heads/phase9-contact-otp')
-        working-directory: auth-worker
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx --yes wrangler@4.125.0 deploy --config wrangler.preview.jsonc
-
-      - name: Verify preview runtime
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/phase9-internal-auth-broadcast' || github.ref == 'refs/heads/phase9-contact-otp')
-        shell: bash
+      - name: QR encoder smoke
         run: |
-          set -euo pipefail
-          for attempt in 1 2 3 4 5; do
-            if curl --fail --silent --show-error --max-time 15 \
-              https://sindhorn-midtown-auth-preview.decha-dae.workers.dev/health \
-              -o /tmp/phase9-health.json; then
-              break
-            fi
-            if [ "$attempt" -eq 5 ]; then exit 1; fi
-            sleep 3
-          done
-          node - <<'NODE'
-          const fs=require('fs');
-          const health=JSON.parse(fs.readFileSync('/tmp/phase9-health.json','utf8'));
-          if(health.ok!==true) throw new Error('preview health is not ok');
-          if(health.configured!==true) throw new Error('preview auth worker is not fully configured');
-          if(health.supabaseConfigured!==true) throw new Error('SUPABASE_SECRET_KEY is not configured');
-          if(health.pepperConfigured!==true) throw new Error('ACTIVATION_PEPPER is not configured');
-          if(health.databaseConfigured!==true) throw new Error('D1 binding is not configured');
-          if(health.turnstileConfigured!==true) throw new Error('preview Turnstile test validation is not ready');
-          if(typeof health.emailOtpConfigured!=='boolean') throw new Error('email OTP health state missing');
-          console.log(`preview auth worker ready; Brevo configured=${health.emailOtpConfigured}`);
+          node --input-type=module - <<'NODE'
+          import {qrMatrix,qrSvg} from './site/qr-v6.js';
+          const url='https://phase9-contact-otp.sindhorn-midtown-internal.pages.dev/login.html#i=10639&c=123456';
+          const matrix=qrMatrix(url);
+          if(!Array.isArray(matrix)||matrix.length!==41||matrix.some(row=>row.length!==41)) throw new Error('unexpected QR matrix shape');
+          const dark=matrix.flat().filter(Boolean).length;
+          if(dark<450||dark>1250) throw new Error(`unexpected QR dark module count ${dark}`);
+          const svg=qrSvg(url);
+          if(!svg.includes('<svg')||!svg.includes('viewBox="0 0 49 49"')) throw new Error('QR SVG render failed');
+          console.log(`QR encoder smoke passed; dark modules=${dark}`);
           NODE
-          curl --fail --silent --show-error --max-time 15 \
-            https://sindhorn-midtown-auth-preview.decha-dae.workers.dev/diagnostics/brevo-otp-latest \
-            -o /tmp/brevo-otp-diagnostic.json
-          node - <<'NODE'
-          const fs=require('fs');
-          const result=JSON.parse(fs.readFileSync('/tmp/brevo-otp-diagnostic.json','utf8'));
-          console.log(`Brevo OTP diagnostic: ok=${result.ok} found=${result.found} event=${result.latest?.event||'none'} reason=${result.latest?.reason||'none'}`);
-          console.log(`Brevo OTP events: ${JSON.stringify(result.eventCounts||{})}`);
-          console.log(`Brevo sender check: apiOk=${result.senderCheck?.apiOk} found=${result.senderCheck?.configuredSenderFound} active=${result.senderCheck?.configuredSenderActive}`);
-          console.log(`Brevo domain check: apiOk=${result.domainCheck?.apiOk} listed=${result.domainCheck?.configuredDomainListed} verified=${result.domainCheck?.verified} authenticated=${result.domainCheck?.authenticated}`);
-          console.log(`Brevo relay check: apiOk=${result.relayCheck?.apiOk} enabled=${result.relayCheck?.enabled} status=${result.relayCheck?.status||'unknown'} planType=${result.relayCheck?.planType||'unknown'}`);
-          NODE
-          NEEDS_SENDER=$(node -e "const r=require('/tmp/brevo-otp-diagnostic.json');process.stdout.write(String(r.senderCheck?.configuredSenderFound!==true))")
-          if [ "$NEEDS_SENDER" = "true" ]; then
-            curl --fail --silent --show-error --max-time 15 -X POST \
-              https://sindhorn-midtown-auth-preview.decha-dae.workers.dev/diagnostics/brevo-create-configured-sender \
-              -o /tmp/brevo-sender-create.json
-            node -e "const r=require('/tmp/brevo-sender-create.json'); console.log('Brevo sender registration: ok='+r.ok+' created='+r.created+' alreadyExists='+r.alreadyExists+' senderIdPresent='+r.senderIdPresent+' dkimError='+r.dkimError+' spfError='+r.spfError); if(r.ok!==true) process.exit(1)"
-          fi
