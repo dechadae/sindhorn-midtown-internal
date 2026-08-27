@@ -1,4 +1,4 @@
-const SHELL_VERSION=16;
+const SHELL_VERSION=17;
 const SUPABASE_URL='https://sjpvhgxacsiorrtijqua.supabase.co';
 const SUPABASE_KEY='sb_publishable_NcIExScIXkqsK1ZNNu5a-Q_zZ4afIHz';
 const TABLE='sindhorn_app_files';
@@ -6,8 +6,9 @@ const PACK_CACHE='sindhorn-midtown-ui-pack-v1';
 const PACK_REQUEST='/__sindhorn_ui_pack_v1__';
 const FALLBACK_ROOT='/fallback/';
 const REQUIRED=['header.html','today.html','guidance.html','details.html','footer.html','ui.css','environment-config.json'];
-const ROUTE_FILES={today:'today.html',guidance:'guidance.html',details:'details.html'};
-const routeForPath=path=>path.startsWith('/guidance')?'guidance':path.startsWith('/details')?'details':'today';
+const FALLBACK_REQUIRED=[...REQUIRED,'messages.html'];
+const ROUTE_FILES={today:'today.html',guidance:'guidance.html',details:'details.html',messages:'messages.html'};
+const routeForPath=path=>path.startsWith('/guidance')?'guidance':path.startsWith('/details')?'details':path.startsWith('/messages')?'messages':'today';
 const encoder=new TextEncoder();
 
 let activePack=null;
@@ -42,7 +43,7 @@ async function validatePack(pack){
   return pack;
 }
 async function fallbackPack(){
-  const names=['manifest.json',...REQUIRED];
+  const names=['manifest.json',...FALLBACK_REQUIRED];
   const entries=await Promise.all(names.map(async path=>{
     const response=await fetch(FALLBACK_ROOT+path,{cache:'no-store'});
     if(!response.ok)throw new Error('Fallback resource unavailable: '+path);
@@ -53,6 +54,7 @@ async function fallbackPack(){
   const resources={};
   for(const item of manifest.resources){
     const fallback=map[item.path];
+    if(!fallback)throw new Error('Fallback resource unavailable: '+item.path);
     resources[item.path]={content:fallback.content,contentType:item.contentType};
   }
   return validatePack({manifest,resources,source:'fallback'});
@@ -100,6 +102,7 @@ function applyPersistentPresentation(pack){
 }
 async function mountRoute(route=routeForPath(location.pathname),{animate=true}={}){
   if(!activePack)return;if(!ROUTE_FILES[route])route='today';
+  if(!activePack.resources[ROUTE_FILES[route]])route=route==='messages'?'details':'today';
   routeHost.innerHTML=activePack.resources[ROUTE_FILES[route]].content;
   routeHost.classList.toggle('route-enter',animate);if(animate)requestAnimationFrame(()=>setTimeout(()=>routeHost.classList.remove('route-enter'),280));
   document.body.dataset.route=route;footerHost.querySelectorAll('[data-app-route]').forEach(link=>link.toggleAttribute('aria-current',link.dataset.appRoute===route));
@@ -132,5 +135,6 @@ const initial=(await readCachedPack())||(await fallbackPack());await applyPack(i
 const live=await import('./live-data.js');await live.initLiveData();
 const environment=await import('./environment.js');await environment.initEnvironment();
 presentationRecovery=await import('./presentation-recovery.js');
+const inbox=await import('./notification-inbox.js');await inbox.initNotificationInbox();
 const app=await import('./app.js');await app.initApp();
 refreshPack().catch(error=>console.warn('Sindhorn UI pack update unavailable; using known-good pack.',error));

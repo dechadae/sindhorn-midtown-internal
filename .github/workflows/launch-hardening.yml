@@ -13,6 +13,7 @@ on:
       - "docs/PHASE7-LAUNCH-HARDENING-20260827.md"
       - "docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md"
       - "docs/PHASE8-DIRECTIONAL-LIVE-BANGKOK-SKY-CALIBRATION-20260827.md"
+      - "docs/ANDROID-WEB-PUSH-ACCEPTANCE-20260827.md"
   workflow_dispatch:
 
 permissions:
@@ -37,12 +38,13 @@ jobs:
           node --check site/bootstrap.js
           node --check site/app.js
           node --check site/push-client.js
+          node --check site/notification-inbox.js
           node --check site/sky-calibration.js
           node --check site/sky-color-renderer.js
           node --check site/sw.js
           python3 - <<'PY'
           from pathlib import Path
-          import json, re
+          import hashlib, json, re
           root=Path('site')
           pwa=json.loads((root/'manifest.webmanifest').read_text())
           assert pwa['id']=='/'
@@ -54,16 +56,31 @@ jobs:
           bootstrap=(root/'bootstrap.js').read_text()
           fallback=json.loads((root/'fallback/manifest.json').read_text())
           shell=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
+          assert shell==17
           assert fallback['minimumShell']==shell
+          assert "messages:'messages.html'" in bootstrap
+          assert "path.startsWith('/messages')" in bootstrap
+          assert "FALLBACK_REQUIRED=[...REQUIRED,'messages.html']" in bootstrap
           assert "next.manifest.appPack<activePack.manifest.appPack" in bootstrap
           assert "readCachedPack())||(await fallbackPack())" in bootstrap
           assert "cachePack(next)" in bootstrap
+          for item in fallback['resources']:
+              data=(root/'fallback'/item['path']).read_bytes()
+              assert hashlib.sha256(data).hexdigest()==item['sha256'],item['path']
+          assert any(item['path']=='messages.html' for item in fallback['resources'])
 
           app=(root/'app.js').read_text()
+          assert "messages:'/messages'" in app
+          assert "path.startsWith('/messages')" in app
           assert "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app
           assert 'performPullRefresh' in app and 'touchStart' in app and 'touchMove' in app
           assert 'toggleFullscreen' in app and 'fullscreenchange' in app
           assert 'SindhornSkyCalibration?.refresh' in app
+          assert 'SindhornNotificationInbox?.refresh' in app
+
+          inbox=(root/'notification-inbox.js').read_text()
+          for token in ('sindhorn-midtown-notification-inbox','messageList','messageClearBtn','data-message-badge','SINDHORN_NOTIFICATION_STORED','markAllRead'):
+              assert token in inbox
 
           pwa_css=(root/'pwa.css').read_text()
           assert 'safe-area-inset-top' in pwa_css
@@ -77,10 +94,15 @@ jobs:
           sw=(root/'sw.js').read_text()
           assert "UI_PACK_CACHE='sindhorn-midtown-ui-pack-v1'" in sw
           assert "'/fallback/manifest.json'" in sw
+          assert "'/fallback/messages.html'" in sw
+          assert "'/notification-inbox.js'" in sw
           assert "'/push-client.js'" in sw and "'/push-config.js'" in sw
           assert "'/sky-calibration.js'" in sw
           assert "'/sky-color-renderer.js'" in sw
-          assert 'pwa-v21-live-sky-color-calibration' in sw
+          assert 'pwa-v22-notification-messages-live-sky-color-calibration' in sw
+          assert "url.pathname.startsWith('/messages')" in sw
+          assert "NOTIFICATION_DB='sindhorn-midtown-notification-inbox'" in sw
+          assert 'storeNotification' in sw and 'markNotificationRead' in sw
           assert "addEventListener('push'" in sw
           assert "addEventListener('notificationclick'" in sw
           assert "event.data==='SKIP_WAITING'" in sw
@@ -115,17 +137,19 @@ jobs:
           SKY_WORKER="https://sindhorn-midtown-sky.decha-dae.workers.dev"
 
           promoted=false
-          for attempt in $(seq 1 30); do
+          for attempt in $(seq 1 40); do
             if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
               && curl --fail --silent --show-error --location "${BASE_URL}/sky-calibration.js" -o /tmp/sky-calibration.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sky-color-renderer.js" -o /tmp/sky-color-renderer.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/notification-inbox.js" -o /tmp/notification-inbox.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
               && grep -q '/sky-calibration.js?v=1' /tmp/root.html \
               && grep -q '/sky-color-renderer.js?v=1' /tmp/root.html \
               && grep -q '/push-client.js?v=2' /tmp/root.html \
               && grep -q 'SindhornSkyCalibration' /tmp/sky-calibration.js \
               && grep -q 'SindhornSkyColorRenderer' /tmp/sky-color-renderer.js \
-              && grep -q 'pwa-v21-live-sky-color-calibration' /tmp/sw.js; then
+              && grep -q 'SindhornNotificationInbox' /tmp/notification-inbox.js \
+              && grep -q 'pwa-v22-notification-messages-live-sky-color-calibration' /tmp/sw.js; then
               promoted=true
               break
             fi
@@ -133,22 +157,22 @@ jobs:
           done
           test "$promoted" = true
 
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/location.js" -o /tmp/location.js
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/push-config.js" -o /tmp/push-config.js
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/push-client.js" -o /tmp/push-client.js
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/manifest.webmanifest" -o /tmp/manifest.webmanifest
+          for path in /messages /location.js /push-config.js /push-client.js /notification-inbox.js /manifest.webmanifest; do
+            curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o "/tmp/$(basename "$path" | sed 's/^$/root/')"
+          done
           curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${ALERT_WORKER}/health" -o /tmp/alert-health.json
           curl --fail --silent --show-error --retry 24 --retry-all-errors --retry-delay 3 "${SKY_WORKER}/health" -o /tmp/sky-health.json
           curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${SKY_WORKER}/calibration" -o /tmp/sky-vector.json
 
-          grep -q '/push-client.js?v=2' /tmp/root.html
           grep -q 'Current location' /tmp/location.js
           grep -q 'pushManager.subscribe' /tmp/push-client.js
           grep -q 'PREPARE_TIMEOUT_MS' /tmp/push-client.js
           grep -q 'Retry alerts' /tmp/push-client.js
           ! grep -q 'Notification.requestPermission' /tmp/push-client.js
+          grep -q 'SindhornNotificationInbox' /tmp/notification-inbox.js
           grep -q "addEventListener('push'" /tmp/sw.js
           grep -q "addEventListener('notificationclick'" /tmp/sw.js
+          grep -q 'storeNotification' /tmp/sw.js
           python3 - <<'PY'
           import json
           pwa=json.load(open('/tmp/manifest.webmanifest'))
@@ -186,16 +210,17 @@ jobs:
           req=urllib.request.Request(f'{base}/rest/v1/{table}?{query}',headers={'apikey':key,'Accept':'application/json'})
           with urllib.request.urlopen(req,timeout=20) as response:
               rows=json.load(response)
-          assert len(rows)==8
           packs={int(row['pack_id']) for row in rows}
-          assert packs=={37}
+          assert len(packs)==1
+          pack_id=next(iter(packs))
+          assert pack_id in {37,38}
           rowmap={row['path']:row for row in rows}
           manifest_row=rowmap['manifest.json']
           assert hashlib.sha256(manifest_row['content'].encode()).hexdigest()==manifest_row['content_sha256']
           manifest=json.loads(manifest_row['content'])
-          assert manifest['appPack']==37
-          assert manifest['minimumShell']==16
-          assert len(manifest['resources'])==7
+          assert manifest['appPack']==pack_id
+          assert int(manifest['minimumShell'])<=17
+          assert len(rows)==len(manifest['resources'])+1
           for item in manifest['resources']:
               row=rowmap[item['path']]
               assert row['content_type']==item['contentType']
@@ -206,4 +231,9 @@ jobs:
           ui=rowmap['ui.css']['content']
           for token in ('safe-area-inset-top','safe-area-inset-bottom','safe-area-inset-left','safe-area-inset-right','.pull-refresh','is-fullscreen'):
               assert token in ui
+          if pack_id==38:
+              assert 'messages.html' in rowmap
+              assert 'messageList' in rowmap['messages.html']['content']
+              assert 'data-app-route="messages"' in rowmap['footer.html']['content']
+              assert '.message-badge' in ui
           PY
