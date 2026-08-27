@@ -39,11 +39,16 @@ const textureSamples=(ATMOSPHERE_FRAGMENT_SHADER.match(/noise4\(/g)||[]).length;
 assert.ok(textureSamples<=8,`shared shader texture-sample call sites should remain bounded (found ${textureSamples})`);
 for(const branch of ['if(uHighCoverage>.003','if(uMidCoverage>.003','if(uLowCoverage>.003'])assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes(branch),branch);
 
-// Cloud aspect contract: cirrus may stretch, but visible mid/low bodies must stay broad,
-// vertically compact and de-aligned so the field cannot collapse back into pillar-like streaks.
-assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('vec2(.72,1.22)'),'mid-cloud sampling must stay strongly wider than tall');
-assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('vec2(.62,1.18+.12*lowBuildRound)'),'low monsoon clouds must stay broad while convective build adds rounded crown detail');
-assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('vec2 mpr=')&&ATMOSPHERE_FRAGMENT_SHADER.includes('vec2 lpr='),'mid/low detail samples must remain rotated to break aligned vertical columns');
+// Cloud morphology contract: high cirrus keeps its veil model, while mid/low cloud
+// explicitly remain broad Bangkok banks with cheap domain-warped irregular cells and
+// perimeter breakup. These tokens guard against falling back to smooth Gaussian blobs.
+for(const token of ['midBankField','midBankCore','midCells','midEdgeBreakup','lowBankField','lowBankCore','lowCells','lowEdgeBreakup'])assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes(token),`${token} morphology stage must remain explicit`);
+assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('vec2(.64,1.18)'),'mid-cloud bank sampling must stay strongly wider than tall');
+assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('vec2(.55,1.12+.10*lowBuildRound)'),'low monsoon bank must stay broad while convective build only reshapes crown cells');
+assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('vec2 mpr=')&&ATMOSPHERE_FRAGMENT_SHADER.includes('vec2 lpr='),'mid/low detail samples must remain rotated to break aligned columns');
+assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('mWarp=')&&ATMOSPHERE_FRAGMENT_SHADER.includes('lWarp='),'mid/low cell fields must keep cheap asymmetric domain warping');
+assert.ok(!ATMOSPHERE_FRAGMENT_SHADER.includes('vec2(.72,1.22)'),'retire the previous mid-cloud aspect formula');
+assert.ok(!ATMOSPHERE_FRAGMENT_SHADER.includes('vec2(.62,1.18+.12*lowBuildRound)'),'retire the previous low-cloud aspect formula');
 assert.ok(!ATMOSPHERE_FRAGMENT_SHADER.includes('1.02/max(.3,uLowBuild)'),'convective build must not vertically stretch low-cloud coordinates');
 
 // Every app launch receives a new procedural field, while one session remains coherent.
@@ -63,4 +68,4 @@ const rain=fs.readFileSync(new URL('./rain-layer.js',import.meta.url),'utf8');
 assert.ok(rain.includes("const IS_ATMOSPHERE_TESTER=location.pathname.includes('atmosphere-tester')"),'rain idle optimization must preserve continuous manual tester behavior');
 assert.ok(rain.includes("document.addEventListener('sindhorn:weather-updated',start)"),'rain renderer must wake on live weather updates');
 assert.ok(rain.includes("targetIntensity===0&&currentIntensity<.001"),'dry production rain renderer must be able to sleep');
-console.log(`Phase 8.2 seasonal/cloud fixtures PASS (${PHASE82_FIXTURE_KEYS.length} deterministic cases; ${textureSamples} bounded noise call sites; per-launch cloud seed)`);
+console.log(`Phase 8.2 seasonal/cloud fixtures PASS (${PHASE82_FIXTURE_KEYS.length} deterministic cases; ${textureSamples} bounded noise call sites; per-launch cloud seed; broad bank × irregular cell × edge-breakup morphology)`);
