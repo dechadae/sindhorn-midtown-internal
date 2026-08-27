@@ -7,6 +7,7 @@ on:
       - phase9-contact-otp
     paths:
       - "site/auth-client.js"
+      - "site/auth-public-config.js"
       - "site/login.html"
       - "site/login.js"
       - "site/login-contact-otp.js"
@@ -41,14 +42,18 @@ jobs:
         run: |
           set -euo pipefail
           node --check site/auth-client.js
+          node --check site/auth-public-config.js
           node --check site/login.js
           node --check site/login-contact-otp.js
           node --check site/admin.js
           grep -q 'Employee ID' site/login.html
           grep -q 'Personal email' site/login.html
-          grep -q 'data-otp-channel="sms"' site/login.html
+          grep -q 'turnstileWidget' site/login.html
+          ! grep -q 'data-otp-channel="sms"' site/login.html
           grep -q '/otp/request' site/login-contact-otp.js
           grep -q '/otp/verify' site/login-contact-otp.js
+          grep -q 'establishSessionFromBootstrap' site/login-contact-otp.js
+          grep -q 'TURNSTILE_TEST_SITE_KEY' site/auth-public-config.js
           ! grep -q 'Continue with Microsoft 365' site/login.html
           grep -q '/admin/users' auth-worker/src/index.js
           grep -q 'noto-sans-400.woff2' site/internal-auth.css
@@ -56,7 +61,7 @@ jobs:
           test -f site/assets/brand/sindhorn-midtown-vignette-black.png
           test -f site/assets/fonts/noto-sans-400.woff2
           test -f site/assets/fonts/noto-sans-thai-400.woff2
-          ! grep -R -E 'sb_secret_|SUPABASE_SECRET_KEY[[:space:]]*=' site/login* site/admin* site/auth-client.js site/internal-auth.css site/contact-otp.css
+          ! grep -R -E 'sb_secret_|SUPABASE_SECRET_KEY[[:space:]]*=' site/login* site/admin* site/auth-client.js site/auth-public-config.js site/internal-auth.css site/contact-otp.css
 
       - name: Deploy Phase 9 branch Pages preview
         run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
@@ -68,7 +73,7 @@ jobs:
           BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
           BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in /login.html /login.js /login-contact-otp.js /contact-otp.css /admin.html /admin.js /auth-client.js /internal-auth.css /assets/brand/sindhorn-midtown-vignette-black.png; do
+          for path in /login.html /login.js /login-contact-otp.js /auth-public-config.js /contact-otp.css /admin.html /admin.js /auth-client.js /internal-auth.css /assets/brand/sindhorn-midtown-vignette-black.png; do
             echo "smoke ${path}"
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/phase9-smoke
             test -s /tmp/phase9-smoke
@@ -85,5 +90,7 @@ jobs:
           const fs=require('fs');
           const health=JSON.parse(fs.readFileSync('/tmp/auth-health.json','utf8'));
           if(health.ok!==true||health.configured!==true) throw new Error('preview auth worker is not ready');
-          console.log('preview auth worker ready');
+          if(health.turnstileConfigured!==true) throw new Error('preview Turnstile test path is not ready');
+          if(typeof health.emailOtpConfigured!=='boolean') throw new Error('email OTP configuration state is missing');
+          console.log(`preview auth worker ready; Brevo configured=${health.emailOtpConfigured}`);
           NODE
