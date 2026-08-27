@@ -29,12 +29,11 @@ jobs:
           h=Path('site/volumetric-weather-final.html').read_text()
           base=Path('site/volumetric-weather-final.js').read_text()
           tuned=Path('site/volumetric-weather-final-tuned.js').read_text()
-          assert '12-MONTH BANGKOK PALETTE' in h
-          assert 'IOS-STYLE CLOUD SCENE' in h
+          assert '12-MONTH BANGKOK PALETTE' in h and 'IOS-STYLE CLOUD SCENE' in h
           assert all(m in h for m in ['January','February','March','April','May','June','July','August','September','October','November','December'])
           for t in ["from './seasonal-sky.js'",'const DPR=2','wetCanvas','refractOffset','rainLayer','snowLayer','heatOffset','currentBolt','triggerLightning','preserveDrawingBuffer:false','antialias:false']:
               assert t in base,t
-          for t in ['iOS-Weather-style cloud compositor','cloudLayer','farL=cloudLayer','mainL=cloudLayer','nearL=cloudLayer','3 cloud layers','ios-weather-style-bangkok-compositor-v8','UNPACK_FLIP_Y_WEBGL,true','refractOffset=wetNormal*.0090']:
+          for t in ['cloudLayer','edgeNoise','spanNoise','farL=cloudLayer','mainL=cloudLayer','nearL=cloudLayer','3 cloud layers','ios-weather-style-bangkok-compositor-v9','UNPACK_FLIP_Y_WEBGL,true','refractOffset=wetNormal*.0090']:
               assert t in tuned,t
           assert 'for(int i=0;i<12;i++)' not in tuned
           PY
@@ -57,8 +56,8 @@ jobs:
           sleep 8
           for path in /volumetric-weather-final.html /volumetric-weather-final.js /volumetric-weather-final-tuned.js /seasonal-sky.js; do curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/final-response; test -s /tmp/final-response; done
           curl --fail --silent --show-error --location "${BASE_URL}/volumetric-weather-final-tuned.js" -o /tmp/tuned.js
-          grep -q 'ios-weather-style-bangkok-compositor-v8' /tmp/tuned.js
-          grep -q 'farL=cloudLayer' /tmp/tuned.js
+          grep -q 'ios-weather-style-bangkok-compositor-v9' /tmp/tuned.js
+          grep -q 'spanNoise' /tmp/tuned.js
           grep -q 'UNPACK_FLIP_Y_WEBGL,true' /tmp/tuned.js
       - name: Install Chromium
         run: |
