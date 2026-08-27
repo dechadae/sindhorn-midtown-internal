@@ -1,0 +1,75 @@
+name: F&B Live Route Preview
+
+on:
+  push:
+    branches:
+      - fnb-live-integration
+    paths:
+      - "site/fnb.js"
+      - "site/fnb-data.js"
+      - "site/fnb.css"
+      - "site/sw.js"
+      - ".github/workflows/fnb-live-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: fnb-live-integration-preview
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v6
+
+      - name: Validate in-shell F&B module
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/fnb.js
+          node --check site/fnb-data.js
+          node --check site/sw.js
+          node --input-type=module - <<'NODE'
+          import {FNB_PROMOTIONS} from './site/fnb-data.js';
+          if(FNB_PROMOTIONS.length!==8) throw new Error(`expected 8 promotions, got ${FNB_PROMOTIONS.length}`);
+          const artworks=FNB_PROMOTIONS.reduce((sum,c)=>sum+c.activations.reduce((s,a)=>s+a.artworks.length,0),0);
+          if(artworks!==29) throw new Error(`expected 29 artworks, got ${artworks}`);
+          const outlets=new Set(FNB_PROMOTIONS.flatMap(c=>c.activations.map(a=>a.outlet)));
+          if(outlets.size!==5) throw new Error(`expected 5 outlets, got ${outlets.size}`);
+          NODE
+          grep -q -- "--fnb-chip-h:44px" site/fnb.css
+          grep -q "grid-template-columns:repeat(3,minmax(0,1fr))" site/fnb.css
+          grep -q "background:transparent" site/fnb.css
+          grep -q "mountFnbRoute" site/fnb.js
+          grep -q "employee_number||''.*10639" site/fnb.js
+          grep -q "'/fnb-data.js'" site/sw.js
+          grep -q "'/fnb.css'" site/sw.js
+          ! grep -q "<header class=\"appbar\"" site/fnb.js
+
+      - name: Deploy branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke test shell route and assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb" -o /tmp/fnb-shell.html
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb.js" -o /tmp/fnb.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb-data.js" -o /tmp/fnb-data.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb.css" -o /tmp/fnb.css
+          grep -q 'id="environmentStage"' /tmp/fnb-shell.html
+          grep -q 'id="route-view"' /tmp/fnb-shell.html
+          grep -q 'mountFnbRoute' /tmp/fnb.js
+          grep -q 'FNB_PROMOTIONS' /tmp/fnb-data.js
+          grep -q -- '--fnb-chip-h:44px' /tmp/fnb.css
+          grep -q 'background:transparent' /tmp/fnb.css
