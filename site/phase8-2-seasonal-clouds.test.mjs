@@ -39,6 +39,11 @@ const textureSamples=(ATMOSPHERE_FRAGMENT_SHADER.match(/noise4\(/g)||[]).length;
 assert.ok(textureSamples<=8,`shared shader texture-sample call sites should remain bounded (found ${textureSamples})`);
 for(const branch of ['if(uHighCoverage>.003','if(uMidCoverage>.003','if(uLowCoverage>.003'])assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes(branch),branch);
 
+// Cloud aspect contract: cirrus may stretch, but visible mid/low bodies must stay broad and rounded.
+assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('vec2(.90,1.08)'),'mid-cloud sampling must remain wider than tall');
+assert.ok(ATMOSPHERE_FRAGMENT_SHADER.includes('vec2(.72,.96+.10*lowBuildRound)'),'low monsoon clouds must build rounded crowns without vertical elongation');
+assert.ok(!ATMOSPHERE_FRAGMENT_SHADER.includes('1.02/max(.3,uLowBuild)'),'convective build must not vertically stretch low-cloud coordinates');
+
 // Performance contract: keep DPR 2 and visual quality while removing redundant live work.
 const env=fs.readFileSync(new URL('./environment.js',import.meta.url),'utf8');
 assert.ok(env.includes('const DPR=2'),'fixed DPR 2 must remain');
