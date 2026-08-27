@@ -22,66 +22,85 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python3 - <<'PY'
+          import json, re, urllib.error, urllib.parse, urllib.request
+
           UA='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/140 Safari/537.36'
 
-          inspect_page() {
-            local label="$1" url="$2" out="/tmp/${label}.html" headers="/tmp/${label}.headers"
-            echo "===== ${label}: ${url} ====="
-            curl --silent --show-error --location --compressed --user-agent "$UA" -D "$headers" "$url" -o "$out" || true
-            head -n 20 "$headers" || true
-            echo "bytes=$(wc -c < "$out" 2>/dev/null || echo 0)"
-            echo "-- asset refs --"
-            grep -Eo '(src|href)=["'"'][^"'"']+["'"']' "$out" | head -n 80 || true
-            echo "-- endpoint-like strings --"
-            grep -Eo 'https?://[^"'"' <>]+' "$out" | grep -Ei 'airbkk|api|aqs|station' | head -n 80 || true
-          }
+          def fetch(url, *, data=None, headers=None, timeout=25):
+              h={'User-Agent':UA,'Accept':'*/*'}
+              if headers: h.update(headers)
+              req=urllib.request.Request(url,data=data,headers=h)
+              try:
+                  with urllib.request.urlopen(req,timeout=timeout) as r:
+                      return r.status, dict(r.headers.items()), r.read(), r.geturl()
+              except urllib.error.HTTPError as e:
+                  return e.code, dict(e.headers.items()), e.read(), e.geturl()
+              except Exception as e:
+                  print('FETCH_ERROR',url,repr(e))
+                  return 0,{},b'',url
 
-          inspect_page official 'https://official.airbkk.com/airbkk/'
-          inspect_page legacy 'https://airquality.airbkk.com/PublicWebClient/'
+          pages={}
+          for label,url in {
+              'official':'https://official.airbkk.com/airbkk/',
+              'legacy':'https://airquality.airbkk.com/PublicWebClient/'
+          }.items():
+              status,headers,body,final=fetch(url)
+              pages[label]=(body,final)
+              print(f'===== {label} =====')
+              print('requested',url)
+              print('final',final)
+              print('status',status,'bytes',len(body),'content-type',headers.get('Content-Type'))
+              text=body.decode('utf-8','ignore')
+              refs=[]
+              for m in re.finditer(r'(?:src|href)=["\']([^"\']+)["\']',text,re.I):
+                  ref=m.group(1)
+                  if ref not in refs: refs.append(ref)
+              print('asset_refs')
+              for ref in refs[:100]: print('REF',ref)
+              urls=[]
+              for u in re.findall(r'https?://[^"\' <>]+',text):
+                  if re.search(r'airbkk|api|aqs|station',u,re.I) and u not in urls: urls.append(u)
+              print('endpoint_like_urls')
+              for u in urls[:100]: print('URL',u)
 
-          echo '===== legacy stations API POST ====='
-          curl --silent --show-error --location --user-agent "$UA" \
-            -X POST 'https://stations.airbkk.com/api/web/data' \
-            -H 'Content-Type: application/json' \
-            -H 'Accept: application/json, text/plain, */*' \
-            -H 'Origin: https://official.airbkk.com' \
-            -H 'Referer: https://official.airbkk.com/' \
-            --data '{"message":"Request data"}' \
-            -D /tmp/stations.headers -o /tmp/stations.body || true
-          head -n 30 /tmp/stations.headers || true
-          echo "body-bytes=$(wc -c < /tmp/stations.body 2>/dev/null || echo 0)"
-          head -c 3000 /tmp/stations.body || true
-          echo
+          print('===== stations legacy POST =====')
+          payload=json.dumps({'message':'Request data'}).encode()
+          status,headers,body,final=fetch(
+              'https://stations.airbkk.com/api/web/data',
+              data=payload,
+              headers={
+                  'Content-Type':'application/json',
+                  'Accept':'application/json, text/plain, */*',
+                  'Origin':'https://official.airbkk.com',
+                  'Referer':'https://official.airbkk.com/'
+              }
+          )
+          print('status',status,'final',final,'bytes',len(body),'content-type',headers.get('Content-Type'))
+          print('allow-origin',headers.get('Access-Control-Allow-Origin'))
+          print('body_prefix',body[:4000].decode('utf-8','replace'))
 
-          echo '===== legacy app JavaScript scan ====='
-          python3 - <<'PY'
-          import pathlib, re, urllib.parse, subprocess
-          base='https://airquality.airbkk.com/PublicWebClient/'
-          html=pathlib.Path('/tmp/legacy.html').read_text(errors='ignore')
+          print('===== legacy JavaScript scan =====')
+          legacy_body,legacy_final=pages['legacy']
+          legacy_text=legacy_body.decode('utf-8','ignore')
           refs=[]
-          for m in re.finditer(r'(?:src|href)=["\']([^"\']+)["\']',html,re.I):
+          for m in re.finditer(r'(?:src|href)=["\']([^"\']+)["\']',legacy_text,re.I):
               ref=m.group(1)
-              if ref.lower().endswith('.js'):
-                  refs.append(urllib.parse.urljoin(base,ref))
-          seen=[]
-          for u in refs:
-              if u not in seen: seen.append(u)
-          print('js-assets',len(seen))
-          for i,u in enumerate(seen[:30]):
-              out=f'/tmp/asset-{i}.js'
-              print('FETCH',u)
-              subprocess.run(['curl','--silent','--show-error','--location','--compressed','-A','Mozilla/5.0',u,'-o',out],check=False)
-              p=pathlib.Path(out)
-              if not p.exists(): continue
-              text=p.read_text(errors='ignore')
+              if '.js' in ref.lower():
+                  u=urllib.parse.urljoin(legacy_final,ref)
+                  if u not in refs: refs.append(u)
+          print('js_assets',len(refs))
+          for u in refs[:40]:
+              status,headers,body,final=fetch(u)
+              print('ASSET',status,len(body),final)
+              text=body.decode('utf-8','ignore')
               hits=[]
-              patterns=[
+              for pat in [
                   r'https?://[^"\' <>]+',
-                  r'[^"\']*(?:api|Api|API|Aqs|aqs|PM2\.5|MeasIndex|station)[^"\']*'
-              ]
-              for pat in patterns:
-                  for h in re.findall(pat,text):
-                      h=' '.join(str(h).split())
-                      if h and h not in hits: hits.append(h)
-              for h in hits[:60]: print('HIT',h[:500])
+                  r'[^"\'\n]{0,180}(?:api|Api|API|Aqs|aqs|PM2\.5|MeasIndex|station)[^"\'\n]{0,240}'
+              ]:
+                  for hit in re.findall(pat,text):
+                      hit=' '.join(hit.split())
+                      if hit and hit not in hits: hits.append(hit)
+              for hit in hits[:100]: print('HIT',hit[:600])
           PY
