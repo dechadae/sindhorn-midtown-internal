@@ -1,7 +1,7 @@
 const encoder=new TextEncoder();
 
 export const PREVIEW_ORIGIN=/^https:\/\/[a-z0-9-]+\.sindhorn-midtown-internal\.pages\.dev$/i;
-export const normalizeEmployeeNumber=value=>String(value??'').trim().toUpperCase().replace(/\s+/g,'');
+export const normalizeEmployeeNumber=value=>String(value??'').trim().toUpperCase();
 export const normalizeActivationCode=value=>String(value??'').replace(/\D/g,'').slice(0,12);
 export const validEmployeeNumber=value=>/^[A-Z0-9._-]{1,64}$/.test(normalizeEmployeeNumber(value));
 export const validActivationCode=value=>/^\d{6}$/.test(normalizeActivationCode(value));
