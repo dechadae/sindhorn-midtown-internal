@@ -1,8 +1,8 @@
 import {activate,getState,initAuth,signOut} from './auth-client.js';
 
 const copy={
-  en:{eyebrow:'Internal employee access',title:'Employee sign in.',support:'Enter your Employee ID and personal email to receive a fresh 6-digit sign-in code.',employeeId:'Employee ID',activationCode:'One-time code',employeeButton:'Sign in',hint:'Use an administrator-issued invitation code. It works once. If it has expired, an app administrator can issue a new one.',openApp:'Open app',admin:'Admin',signOut:'Sign out',working:'Signing you in…',success:'Signed in successfully.',badCode:'Check your Employee ID and one-time code, then try again.',genericError:'Sign-in could not be completed. Please try again.'},
-  th:{eyebrow:'สำหรับพนักงาน',title:'เข้าสู่ระบบพนักงาน',support:'กรอกรหัสพนักงานและอีเมลส่วนตัวเพื่อรับรหัสเข้าสู่ระบบ 6 หลักใหม่',employeeId:'รหัสพนักงาน',activationCode:'รหัสใช้ครั้งเดียว',employeeButton:'เข้าสู่ระบบ',hint:'ใช้รหัสคำเชิญที่ผู้ดูแลระบบออกให้ รหัสใช้ได้ครั้งเดียว หากหมดอายุ ผู้ดูแลแอปสามารถออกรหัสใหม่ให้ได้',openApp:'เปิดแอป',admin:'ผู้ดูแลระบบ',signOut:'ออกจากระบบ',working:'กำลังเข้าสู่ระบบ…',success:'เข้าสู่ระบบสำเร็จ',badCode:'กรุณาตรวจสอบรหัสพนักงานและรหัสใช้ครั้งเดียว แล้วลองอีกครั้ง',genericError:'ไม่สามารถเข้าสู่ระบบได้ กรุณาลองอีกครั้ง'}
+  en:{eyebrow:'Internal employee access',title:'Employee sign in.',support:'Enter your Employee ID and the one-time code provided by an administrator.',employeeId:'Employee ID',activationCode:'One-time code',employeeButton:'Sign in',hint:'Your administrator generates this code for your first sign-in or account recovery. Each code works once and expires after 15 minutes.',openApp:'Open app',admin:'Admin',signOut:'Sign out',working:'Signing you in…',success:'Signed in successfully.',badCode:'Check your Employee ID and one-time code, then try again. Ask an administrator for a new code if it has expired.',genericError:'Sign-in could not be completed. Please try again or ask an administrator for a new code.'},
+  th:{eyebrow:'สำหรับพนักงาน',title:'เข้าสู่ระบบพนักงาน',support:'กรอกรหัสพนักงานและรหัสใช้ครั้งเดียวที่ได้รับจากผู้ดูแลระบบ',employeeId:'รหัสพนักงาน',activationCode:'รหัสใช้ครั้งเดียว',employeeButton:'เข้าสู่ระบบ',hint:'ผู้ดูแลระบบจะออกรหัสสำหรับการเข้าสู่ระบบครั้งแรกหรือกู้คืนบัญชี รหัสใช้ได้ครั้งเดียวและหมดอายุภายใน 15 นาที',openApp:'เปิดแอป',admin:'ผู้ดูแลระบบ',signOut:'ออกจากระบบ',working:'กำลังเข้าสู่ระบบ…',success:'เข้าสู่ระบบสำเร็จ',badCode:'กรุณาตรวจสอบรหัสพนักงานและรหัสใช้ครั้งเดียว หากรหัสหมดอายุให้ขอรหัสใหม่จากผู้ดูแลระบบ',genericError:'ไม่สามารถเข้าสู่ระบบได้ กรุณาลองอีกครั้งหรือขอรหัสใหม่จากผู้ดูแลระบบ'}
 };
 
 const $=selector=>document.querySelector(selector);
@@ -18,7 +18,7 @@ function setLanguage(next){
 function setBusy(value,message=''){$('#employeeButton').disabled=value;if(message)showStatus(message,'neutral')}
 function showStatus(message,tone='neutral'){status.textContent=message||'';status.dataset.show=String(Boolean(message));status.dataset.tone=tone}
 function errorMessage(error){
-  const code=error?.payload?.error||'';
+  const code=error?.code||error?.payload?.error||'';
   if(code==='activation_invalid'||code==='too_many_attempts')return copy[language].badCode;
   return copy[language].genericError;
 }
