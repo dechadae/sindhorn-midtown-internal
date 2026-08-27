@@ -1,14 +1,13 @@
 export const ROUTES=Object.freeze({
-  today:Object.freeze({path:'/',title:'Live Air Quality | Sindhorn Midtown Hotel Bangkok',kind:'pack',resource:'today.html'}),
-  guidance:Object.freeze({path:'/guidance',title:'Air Quality Guidance | Sindhorn Midtown Hotel Bangkok',kind:'pack',resource:'guidance.html'}),
-  details:Object.freeze({path:'/details',title:'Reading Details | Sindhorn Midtown Hotel Bangkok',kind:'pack',resource:'details.html'}),
+  today:Object.freeze({path:'/',title:'Live Air Quality | Sindhorn Midtown Hotel Bangkok',kind:'pack',resources:Object.freeze(['today.html','guidance.html','details.html'])}),
+  fnb:Object.freeze({path:'/fnb',title:'F&B | Sindhorn Midtown Internal',kind:'local',module:'./fnb.js',mount:'mountFnbRoute'}),
   messages:Object.freeze({path:'/messages',title:'Environmental Messages | Sindhorn Midtown Hotel Bangkok',kind:'pack',resource:'messages.html'}),
   account:Object.freeze({path:'/account',title:'My account | Sindhorn Midtown Internal',kind:'local',module:'./account.js',mount:'mountAccountRoute'}),
   admin:Object.freeze({path:'/admin',title:'Admin | Sindhorn Midtown Internal',kind:'local',module:'./admin.js',mount:'mountAdminRoute'})
 });
 
 const PATH_TO_ROUTE=new Map(Object.entries(ROUTES).map(([key,value])=>[value.path,key]));
-const LEGACY_ALIASES=new Map([['/index.html','today'],['/account.html','account'],['/admin.html','admin']]);
+const LEGACY_ALIASES=new Map([['/index.html','today'],['/guidance','today'],['/details','today'],['/account.html','account'],['/admin.html','admin']]);
 
 function normalizePath(pathname){
   let path=String(pathname||'/').split('?')[0].split('#')[0]||'/';
