@@ -53,6 +53,7 @@ jobs:
           node --check auth-worker/src/rate-limit.js
           node --check auth-worker/src/index.js
           node --check auth-worker/src/contact-otp.js
+          node --check auth-worker/src/brevo-diagnostics.js
           node --check auth-worker/src/worker.js
           node --check auth-worker/test.mjs
           node --check site/auth-client.js
@@ -145,4 +146,12 @@ jobs:
           if(health.turnstileConfigured!==true) throw new Error('preview Turnstile test validation is not ready');
           if(typeof health.emailOtpConfigured!=='boolean') throw new Error('email OTP health state missing');
           console.log(`preview auth worker ready; Brevo configured=${health.emailOtpConfigured}`);
+          NODE
+          curl --fail --silent --show-error --max-time 15 \
+            https://sindhorn-midtown-auth-preview.decha-dae.workers.dev/diagnostics/brevo-otp-latest \
+            -o /tmp/brevo-otp-diagnostic.json
+          node - <<'NODE'
+          const fs=require('fs');
+          const result=JSON.parse(fs.readFileSync('/tmp/brevo-otp-diagnostic.json','utf8'));
+          console.log(`Brevo OTP diagnostic: ok=${result.ok} found=${result.found} event=${result.latest?.event||'none'} reason=${result.latest?.reason||'none'}`);
           NODE
