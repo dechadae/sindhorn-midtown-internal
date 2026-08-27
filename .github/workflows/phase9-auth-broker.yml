@@ -48,6 +48,7 @@ jobs:
           node --check auth-worker/src/rate-limit.js
           node --check auth-worker/src/index.js
           node --check auth-worker/test.mjs
+          node --check auth-worker/bootstrap-first-admin.mjs
           node --check site/auth-client.js
           node --check test/auth-client.test.mjs
 
@@ -67,6 +68,8 @@ jobs:
           grep -q "ACTIVATION_PEPPER" auth-worker/src/index.js
           grep -q "aal2" auth-worker/src/index.js
           grep -q "@auth.invalid" auth-worker/src/security.js
+          grep -q "super_admin" auth-worker/bootstrap-first-admin.mjs
+          grep -q "sindhorn_issue_activation_code" auth-worker/bootstrap-first-admin.mjs
           grep -q "token_hash:tokenHash,type:'email'" site/auth-client.js
           grep -q "sindhorn_employees" site/auth-client.js
           ! grep -R -E "SUPABASE_(SERVICE_ROLE|SECRET)_KEY['\"]?[[:space:]]*[:=][[:space:]]*['\"][^$]" auth-worker || false
