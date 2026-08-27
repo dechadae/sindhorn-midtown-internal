@@ -5,10 +5,17 @@ on:
     branches:
       - phase9-internal-auth-broadcast
       - phase9-contact-otp
+      - hotfix-phase9-auth-gate
     paths:
+      - "site/index.html"
+      - "site/auth-shell.js"
+      - "site/auth-shell.css"
       - "site/auth-client.js"
       - "site/login.html"
       - "site/login.js"
+      - "site/account.html"
+      - "site/account.js"
+      - "site/account.css"
       - "site/admin.html"
       - "site/admin.js"
       - "site/qr-v6.js"
@@ -40,8 +47,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          node --check site/auth-shell.js
           node --check site/auth-client.js
           node --check site/login.js
+          node --check site/account.js
           node --check site/admin.js
           node --check site/qr-v6.js
           grep -q 'Employee ID' site/login.html
@@ -59,6 +68,21 @@ jobs:
           ! grep -q 'login-contact-otp.js' site/login.html
           grep -q 'sindhorn_manual_activate' site/auth-client.js
           grep -q "authBackend:'supabase'" site/auth-client.js
+          grep -q 'auth-shell.css' site/index.html
+          grep -q 'auth-shell.js' site/index.html
+          ! grep -q 'src="/bootstrap.js"' site/index.html
+          ! grep -q 'src="/location.js"' site/index.html
+          grep -q "await initAuth" site/auth-shell.js
+          grep -q "location.replace(loginUrl())" site/auth-shell.js
+          grep -q "loadClassicScript('/location.js')" site/auth-shell.js
+          grep -q "await import('./bootstrap.js')" site/auth-shell.js
+          grep -q 'masthead-user' site/auth-shell.js
+          grep -q '/account.html' site/auth-shell.js
+          grep -q 'letter-spacing:0!important' site/auth-shell.css
+          grep -q 'My account' site/account.html
+          grep -q 'accountSignOut' site/account.html
+          grep -q 'letter-spacing:0!important' site/account.css
+          grep -q 'setTimeout(()=>location.assign(requestedNext())' site/login.js
           grep -q 'sindhorn_admin_issue_activation_code_v2' site/admin.js
           grep -q 'sindhorn_admin_list_users_v3' site/admin.js
           grep -q 'sindhorn_admin_upsert_contact_v2' site/admin.js
@@ -66,14 +90,14 @@ jobs:
           grep -q 'qrSvg' site/admin.js
           grep -q '#i=' site/admin.js
           grep -q 'history.replaceState' site/login.js
-          ! grep -R -q 'workers.dev' site/auth-client.js site/login.html site/login.js site/admin.js
-          ! grep -R -q -E 'BREVO|TURNSTILE|/otp/request|/otp/verify' site/auth-client.js site/login.html site/login.js site/admin.js
+          ! grep -R -q 'workers.dev' site/auth-client.js site/login.html site/login.js site/account.js site/admin.js
+          ! grep -R -q -E 'BREVO|TURNSTILE|/otp/request|/otp/verify' site/auth-client.js site/login.html site/login.js site/account.js site/admin.js
           grep -q 'noto-sans-400.woff2' site/internal-auth.css
           grep -q 'noto-sans-thai-400.woff2' site/internal-auth.css
           test -f site/assets/brand/sindhorn-midtown-vignette-black.png
           test -f site/assets/fonts/noto-sans-400.woff2
           test -f site/assets/fonts/noto-sans-thai-400.woff2
-          ! grep -R -E 'sb_secret_|SUPABASE_SECRET_KEY[[:space:]]*=' site/login.html site/login.js site/admin.html site/admin.js site/auth-client.js site/internal-auth.css site/auth-brand.css
+          ! grep -R -E 'sb_secret_|SUPABASE_SECRET_KEY[[:space:]]*=' site/index.html site/auth-shell.js site/auth-shell.css site/login.html site/login.js site/account.html site/account.js site/account.css site/admin.html site/admin.js site/auth-client.js site/internal-auth.css site/auth-brand.css
 
       - name: QR encoder smoke
         run: |
@@ -89,7 +113,7 @@ jobs:
       - name: Deploy Phase 9 branch Pages preview
         run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
 
-      - name: Smoke test Supabase-only login and admin preview
+      - name: Smoke test auth gate, account, login and admin preview
         shell: bash
         run: |
           set -euo pipefail
@@ -97,30 +121,34 @@ jobs:
           BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           CACHE_BUST="phase9=${GITHUB_SHA}"
           sleep 8
-          for path in /login.html /login.js /admin.html /admin.js /qr-v6.js /auth-client.js /internal-auth.css /auth-brand.css /assets/brand/sindhorn-midtown-vignette-black.png; do
+          for path in / /auth-shell.js /auth-shell.css /login.html /login.js /account.html /account.js /account.css /admin.html /admin.js /qr-v6.js /auth-client.js /internal-auth.css /auth-brand.css /assets/brand/sindhorn-midtown-vignette-black.png; do
             echo "smoke ${path}"
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 \
               -H 'Cache-Control: no-cache' "${BASE_URL}${path}?${CACHE_BUST}" -o /tmp/phase9-smoke
             test -s /tmp/phase9-smoke
           done
-          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' \
-            "${BASE_URL}/login.html?${CACHE_BUST}" -o /tmp/phase9-login.html
+          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/?${CACHE_BUST}" -o /tmp/phase9-index.html
+          grep -q 'auth-shell.js' /tmp/phase9-index.html
+          ! grep -q 'src="/bootstrap.js"' /tmp/phase9-index.html
+          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/auth-shell.js?${CACHE_BUST}" -o /tmp/phase9-auth-shell.js
+          grep -q 'masthead-user' /tmp/phase9-auth-shell.js
+          grep -q '/account.html' /tmp/phase9-auth-shell.js
+          grep -q "await import('./bootstrap.js')" /tmp/phase9-auth-shell.js
+          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/login.html?${CACHE_BUST}" -o /tmp/phase9-login.html
           grep -q 'One-time code' /tmp/phase9-login.html
           test "$(grep -o 'data-otp-digit=' /tmp/phase9-login.html | wc -l)" -eq 6
-          grep -q 'auth-brand.css' /tmp/phase9-login.html
           ! grep -q 'Personal email' /tmp/phase9-login.html
           ! grep -qi 'turnstile' /tmp/phase9-login.html
-          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' \
-            "${BASE_URL}/auth-client.js?${CACHE_BUST}" -o /tmp/phase9-auth-client.js
+          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/account.html?${CACHE_BUST}" -o /tmp/phase9-account.html
+          grep -q 'My account' /tmp/phase9-account.html
+          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/auth-client.js?${CACHE_BUST}" -o /tmp/phase9-auth-client.js
           grep -q 'sindhorn_manual_activate' /tmp/phase9-auth-client.js
           ! grep -q 'workers.dev' /tmp/phase9-auth-client.js
-          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' \
-            "${BASE_URL}/admin.js?${CACHE_BUST}" -o /tmp/phase9-admin.js
+          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/admin.js?${CACHE_BUST}" -o /tmp/phase9-admin.js
           grep -q 'sindhorn_admin_list_users_v3' /tmp/phase9-admin.js
           grep -q 'sindhorn_admin_upsert_contact_v2' /tmp/phase9-admin.js
           grep -q 'sindhorn_admin_revoke_access_v2' /tmp/phase9-admin.js
-          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' \
-            "${BASE_URL}/auth-brand.css?${CACHE_BUST}" -o /tmp/phase9-auth-brand.css
+          curl --fail --silent --show-error --location -H 'Cache-Control: no-cache' "${BASE_URL}/auth-brand.css?${CACHE_BUST}" -o /tmp/phase9-auth-brand.css
           grep -q 'letter-spacing:0!important' /tmp/phase9-auth-brand.css
           grep -q '#2E273B' /tmp/phase9-auth-brand.css
-          echo "Supabase-only Phase 9 Pages preview verified at ${BASE_URL}"
+          echo "Phase 9 auth gate preview verified at ${BASE_URL}"

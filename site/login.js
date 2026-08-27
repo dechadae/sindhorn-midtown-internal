@@ -7,10 +7,15 @@ const copy={
 
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
-const controls=$('#loginControls'),status=$('#status'),signedCard=$('#signedCard'),signedName=$('#signedName'),signedMeta=$('#signedMeta'),adminLink=$('#adminLink');
+const controls=$('#loginControls'),status=$('#status'),signedCard=$('#signedCard'),signedName=$('#signedName'),signedMeta=$('#signedMeta'),adminLink=$('#adminLink'),openAppLink=$('#signedCard .signed-actions a[href="/"]');
 const otpDigits=$$('[data-otp-digit]'),activationCode=$('#activationCode');
 let language=(localStorage.getItem('sindhorn-login-language')||((navigator.language||'').toLowerCase().startsWith('th')?'th':'en'))==='th'?'th':'en';
 
+function requestedNext(){
+  const value=new URLSearchParams(location.search).get('next')||'/';
+  if(!value.startsWith('/')||value.startsWith('//')||value.startsWith('/login'))return'/';
+  return value;
+}
 function setLanguage(next){
   language=next==='th'?'th':'en';localStorage.setItem('sindhorn-login-language',language);document.documentElement.lang=language;
   $$('[data-lang]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.lang===language)));
@@ -64,6 +69,7 @@ function bindOtp(){
 }
 function renderState(){
   const state=getState(),profile=state.profile;
+  if(openAppLink)openAppLink.href=requestedNext();
   if(!state.authenticated||!profile){controls.hidden=false;signedCard.dataset.show='false';return}
   controls.hidden=true;signedCard.dataset.show='true';showStatus(copy[language].success,'success');
   signedName.textContent=profile.display_name||profile.employee_number;
@@ -80,6 +86,7 @@ $('#employeeForm').addEventListener('submit',async event=>{
   setBusy(true,copy[language].working);
   try{
     const result=await activate(employeeNumber,code);if(result?.preferredLanguage)setLanguage(result.preferredLanguage);renderState();
+    setTimeout(()=>location.assign(requestedNext()),520);
   }catch(error){showStatus(errorMessage(error),'error')}
   finally{setBusy(false)}
 });
