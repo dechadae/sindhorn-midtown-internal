@@ -154,4 +154,8 @@ jobs:
           const fs=require('fs');
           const result=JSON.parse(fs.readFileSync('/tmp/brevo-otp-diagnostic.json','utf8'));
           console.log(`Brevo OTP diagnostic: ok=${result.ok} found=${result.found} event=${result.latest?.event||'none'} reason=${result.latest?.reason||'none'}`);
+          console.log(`Brevo OTP events: ${JSON.stringify(result.eventCounts||{})}`);
+          console.log(`Brevo sender check: apiOk=${result.senderCheck?.apiOk} found=${result.senderCheck?.configuredSenderFound} active=${result.senderCheck?.configuredSenderActive}`);
+          console.log(`Brevo domain check: apiOk=${result.domainCheck?.apiOk} listed=${result.domainCheck?.configuredDomainListed} verified=${result.domainCheck?.verified} authenticated=${result.domainCheck?.authenticated}`);
+          console.log(`Brevo relay check: apiOk=${result.relayCheck?.apiOk} enabled=${result.relayCheck?.enabled} status=${result.relayCheck?.status||'unknown'} planType=${result.relayCheck?.planType||'unknown'}`);
           NODE
