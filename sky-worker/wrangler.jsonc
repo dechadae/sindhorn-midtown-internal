@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "sindhorn-midtown-sky",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-26",
+  "workers_dev": true,
+  "triggers": {
+    "crons": ["*/5 * * * *"]
+  },
+  "ai": {
+    "binding": "AI"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "sindhorn-midtown-alerts-db",
+      "database_id": "4a8f9393-b35d-4f17-a907-b687412042d7"
+    }
+  ],
+  "vars": {
+    "ALLOWED_ORIGIN": "https://sindhorn-midtown-internal.pages.dev",
+    "PREVIEW_MODE": "false",
+    "STATE_PREFIX": "prod"
+  }
+}
