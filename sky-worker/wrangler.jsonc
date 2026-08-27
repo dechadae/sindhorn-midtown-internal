@@ -4,6 +4,9 @@
   "main": "src/index.js",
   "compatibility_date": "2026-08-26",
   "workers_dev": true,
+  "triggers": {
+    "crons": []
+  },
   "ai": {
     "binding": "AI"
   },
