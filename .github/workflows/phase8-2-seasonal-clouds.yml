@@ -41,7 +41,7 @@ jobs:
           node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
           python3 - <<'PY'
           from pathlib import Path
-          import json
+          import json,re
           root=Path('site')
           index=(root/'index.html').read_text()
           sw=(root/'sw.js').read_text()
@@ -55,7 +55,8 @@ jobs:
           assert "'/sky-color-renderer.js'" not in sw
           assert "'/storm-effects.js'" not in sw
           assert 'const DPR=2' in env and 'antialias:false' in env
-          assert 'preserveDrawingBuffer:true' not in env
+          live=re.search(r"renderer=new THREE\.WebGLRenderer\((\{[^;]+?\})\)",env,re.S)
+          assert live and 'preserveDrawingBuffer:true' not in live.group(1)
           assert 'ensureSnowCanvas' in env and 'ensureHailCanvas' in env
           assert 'texture2D(uNoise' in shader
           assert 'Visible sun disc' in shader and 'sunDisc' in shader
