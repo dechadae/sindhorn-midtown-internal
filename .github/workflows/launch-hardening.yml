@@ -38,6 +38,7 @@ jobs:
           node --check site/app.js
           node --check site/push-client.js
           node --check site/sky-calibration.js
+          node --check site/sky-color-renderer.js
           node --check site/sw.js
           python3 - <<'PY'
           from pathlib import Path
@@ -70,13 +71,15 @@ jobs:
 
           index=(root/'index.html').read_text()
           assert '/sky-calibration.js?v=1' in index
+          assert '/sky-color-renderer.js?v=1' in index
 
           sw=(root/'sw.js').read_text()
           assert "UI_PACK_CACHE='sindhorn-midtown-ui-pack-v1'" in sw
           assert "'/fallback/manifest.json'" in sw
           assert "'/push-client.js'" in sw and "'/push-config.js'" in sw
           assert "'/sky-calibration.js'" in sw
-          assert 'pwa-v20-live-sky-calibration' in sw
+          assert "'/sky-color-renderer.js'" in sw
+          assert 'pwa-v21-live-sky-color-calibration' in sw
           assert "addEventListener('push'" in sw
           assert "addEventListener('notificationclick'" in sw
           assert "event.data==='SKIP_WAITING'" in sw
@@ -91,6 +94,12 @@ jobs:
           assert 'sindhorn-midtown-sky-preview.decha-dae.workers.dev' in sky
           assert 'SindhornSkyCalibration' in sky
           assert 'confidence' in sky and 'fallback' in sky
+
+          color=(root/'sky-color-renderer.js').read_text()
+          assert 'SindhornSkyColorRenderer' in color
+          assert 'zenithRgb' in color and 'horizonRgb' in color
+          assert 'sunrise-east' in color and 'sunset-west' in color
+          assert 'compositeExport' in color
           PY
 
       - name: Verify production shell and environmental Workers
@@ -102,13 +111,16 @@ jobs:
           SKY_WORKER="https://sindhorn-midtown-sky.decha-dae.workers.dev"
 
           promoted=false
-          for attempt in $(seq 1 24); do
+          for attempt in $(seq 1 30); do
             if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
               && curl --fail --silent --show-error --location "${BASE_URL}/sky-calibration.js" -o /tmp/sky-calibration.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/sky-color-renderer.js" -o /tmp/sky-color-renderer.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
               && grep -q '/sky-calibration.js?v=1' /tmp/root.html \
+              && grep -q '/sky-color-renderer.js?v=1' /tmp/root.html \
               && grep -q 'SindhornSkyCalibration' /tmp/sky-calibration.js \
-              && grep -q 'pwa-v20-live-sky-calibration' /tmp/sw.js; then
+              && grep -q 'SindhornSkyColorRenderer' /tmp/sky-color-renderer.js \
+              && grep -q 'pwa-v21-live-sky-color-calibration' /tmp/sw.js; then
               promoted=true
               break
             fi
