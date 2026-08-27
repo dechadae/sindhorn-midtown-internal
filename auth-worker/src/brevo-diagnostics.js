@@ -30,15 +30,40 @@ async function getJson(url,env){
 function eventSummary(item){
   return item?{event:String(item.event||'unknown'),date:item.date||null,reason:safeReason(item.reason)}:null;
 }
+async function senderState(env){
+  const result=await getJson(BREVO_SENDERS_URL,env);
+  const configuredSender=normalize(env.BREVO_SENDER_EMAIL);
+  const senders=Array.isArray(result.data?.senders)?result.data.senders:[];
+  const matching=senders.find(item=>normalize(item?.email)===configuredSender)||null;
+  return{result,matching};
+}
 
 export async function handleBrevoDiagnostic(request,env){
   const url=new URL(request.url);
+  if(!preview(env)||!env.BREVO_API_KEY){
+    if(url.pathname.startsWith('/diagnostics/brevo-'))return json({ok:false,error:preview(env)?'brevo_not_configured':'not_found'},preview(env)?503:404);
+    return null;
+  }
+
+  if(url.pathname==='/diagnostics/brevo-create-configured-sender'&&request.method==='POST'){
+    try{
+      const before=await senderState(env);
+      if(before.matching)return json({ok:true,created:false,alreadyExists:true,active:before.matching.active===true});
+      const response=await fetch(BREVO_SENDERS_URL,{
+        method:'POST',
+        headers:{...headers(env),'content-type':'application/json'},
+        body:JSON.stringify({email:env.BREVO_SENDER_EMAIL,name:env.BREVO_SENDER_NAME||'Sindhorn Midtown Internal'})
+      });
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)return json({ok:false,created:false,providerStatus:response.status,errorCode:String(data?.code||'provider_error').slice(0,80)},502);
+      return json({ok:true,created:true,alreadyExists:false,senderIdPresent:Boolean(data?.id),dkimError:typeof data?.dkimError==='boolean'?data.dkimError:null,spfError:typeof data?.spfError==='boolean'?data.spfError:null});
+    }catch(_){return json({ok:false,error:'brevo_sender_creation_unavailable'},503)}
+  }
+
   if(url.pathname!=='/diagnostics/brevo-otp-latest'||request.method!=='GET')return null;
-  if(!preview(env))return json({ok:false,error:'not_found'},404);
-  if(!env.BREVO_API_KEY)return json({ok:false,error:'brevo_not_configured'},503);
   try{
-    const [eventsResult,sendersResult,accountResult,domainsResult]=await Promise.all([
-      getJson(BREVO_EVENTS_URL,env),getJson(BREVO_SENDERS_URL,env),getJson(BREVO_ACCOUNT_URL,env),getJson(BREVO_DOMAINS_URL,env)
+    const [eventsResult,senderResult,accountResult,domainsResult]=await Promise.all([
+      getJson(BREVO_EVENTS_URL,env),senderState(env),getJson(BREVO_ACCOUNT_URL,env),getJson(BREVO_DOMAINS_URL,env)
     ]);
     if(!eventsResult.ok)return json({ok:false,provider:'brevo',providerStatus:eventsResult.status},502);
 
@@ -48,10 +73,7 @@ export async function handleBrevoDiagnostic(request,env){
     const eventCounts={};
     for(const item of events){const key=String(item?.event||'unknown');eventCounts[key]=(eventCounts[key]||0)+1}
 
-    const configuredSender=normalize(env.BREVO_SENDER_EMAIL);
-    const senders=Array.isArray(sendersResult.data?.senders)?sendersResult.data.senders:[];
-    const matchingSender=senders.find(item=>normalize(item?.email)===configuredSender)||null;
-
+    const matchingSender=senderResult.matching;
     const domain=configuredDomain(env);
     const domains=Array.isArray(domainsResult.data?.domains)?domainsResult.data.domains:[];
     const matchingDomain=domains.find(item=>normalize(item?.domain_name||item?.domain)===domain)||null;
@@ -65,7 +87,7 @@ export async function handleBrevoDiagnostic(request,env){
       eventCounts,
       latest:eventSummary(latest),
       failure:eventSummary(failure),
-      senderCheck:{apiOk:sendersResult.ok,configuredSenderFound:Boolean(matchingSender),configuredSenderActive:matchingSender?matchingSender.active===true:null},
+      senderCheck:{apiOk:senderResult.result.ok,configuredSenderFound:Boolean(matchingSender),configuredSenderActive:matchingSender?matchingSender.active===true:null},
       domainCheck:{apiOk:domainsResult.ok,configuredDomainListed:Boolean(matchingDomain),verified:matchingDomain?matchingDomain.verified===true:null,authenticated:matchingDomain?matchingDomain.authenticated===true:null},
       relayCheck:{apiOk:accountResult.ok,enabled:typeof relay.enabled==='boolean'?relay.enabled:null,status:String(relayData.status||relay.status||'unknown').slice(0,80),planType:String(relayData.planType||relay.planType||'unknown').slice(0,80)}
     });
