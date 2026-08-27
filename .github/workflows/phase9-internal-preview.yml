@@ -40,8 +40,9 @@ jobs:
           node --check site/auth-client.js
           node --check site/login.js
           node --check site/admin.js
-          grep -q 'Continue with Microsoft 365' site/login.html
           grep -q 'Employee ID' site/login.html
+          grep -q 'personal email or SMS' site/login.html
+          ! grep -q 'Continue with Microsoft 365' site/login.html
           grep -q '/microsoft/link' auth-worker/src/index.js
           grep -q '/admin/users' auth-worker/src/index.js
           grep -q 'signInWithMicrosoft' site/auth-client.js
