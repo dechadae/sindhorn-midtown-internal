@@ -80,7 +80,7 @@ jobs:
           grep -q "SindhornSkyCalibration?.refresh" site/app.js
           grep -q "'/sky-calibration.js'" site/sw.js
           grep -q "'/sky-color-renderer.js'" site/sw.js
-          grep -q 'pwa-v21-live-sky-color-calibration' site/sw.js
+          grep -q 'live-sky-color-calibration' site/sw.js
           grep -q "addEventListener('push'" site/sw.js
           grep -q "addEventListener('notificationclick'" site/sw.js
 
@@ -180,7 +180,7 @@ jobs:
           grep -q 'SindhornSkyColorRenderer' /tmp/phase8_sky-color-renderer_js
           grep -q 'compositeExport' /tmp/phase8_sky-color-renderer_js
           grep -q 'SindhornSkyCalibration?.refresh' /tmp/phase8_app_js
-          grep -q 'pwa-v21-live-sky-color-calibration' /tmp/phase8_sw_js
+          grep -q 'live-sky-color-calibration' /tmp/phase8_sw_js
           grep -q "'/sky-calibration.js'" /tmp/phase8_sw_js
           grep -q "'/sky-color-renderer.js'" /tmp/phase8_sw_js
           grep -q "addEventListener('push'" /tmp/phase8_sw_js
@@ -222,7 +222,7 @@ jobs:
               && grep -q '/sky-color-renderer.js?v=1' /tmp/prod-root \
               && grep -q 'sindhorn-midtown-sky.decha-dae.workers.dev' /tmp/prod-sky \
               && grep -q 'SindhornSkyColorRenderer' /tmp/prod-color \
-              && grep -q 'pwa-v21-live-sky-color-calibration' /tmp/prod-sw; then
+              && grep -q 'live-sky-color-calibration' /tmp/prod-sw; then
               exit 0
             fi
             sleep 3
