@@ -62,7 +62,7 @@ jobs:
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw and 'storeNotification' in sw and 'markNotificationRead' in sw
           assert "renderer:'bangkok-seasonal-clouds-v2'" in env and 'const DPR=2' in env and 'renderExport' in env and 'antialias:false' in env and 'ensureSnowCanvas' in env and 'ensureHailCanvas' in env
           for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','uSun','uSolarAltitude','sunDisc','Visible sun disc','texture2D(uNoise','AirBKK PM2.5 optics'): assert token in shader,token
-          wrangler=Path('sky-worker/wrangler.jsonc').read_text(); assert '"crons"' not in wrangler
+          wrangler=json.loads(Path('sky-worker/wrangler.jsonc').read_text()); assert wrangler.get('triggers',{}).get('crons')==[]
           assert Path('sky-worker/src/index.js').exists() and Path('site/sky-calibration.js').exists() and Path('site/sky-color-renderer.js').exists()
           PY
 
