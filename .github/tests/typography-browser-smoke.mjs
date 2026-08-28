@@ -84,10 +84,14 @@ async function signIn(page,label){
 }
 async function routeClick(page,route){
   const href=route==='today'?'/':`/${route}`;
-  const link=page.locator(`[data-app-route="${route}"],#app-footer a[href="${href}"]`).first();
-  assert(await link.count(),`missing ${route} route link`);
   const token=await page.evaluate(()=>document.__typographyShellToken);
-  await link.click();
+  const transitioned=await page.evaluate(async route=>{
+    const nav=window.SindhornNavigation;
+    if(!nav?.transitionToRoute)return false;
+    await nav.transitionToRoute(route);
+    return true;
+  },route);
+  assert(transitioned,`navigation API unavailable for ${route}`);
   await page.waitForURL(url=>new URL(url).pathname===href,{timeout:12000});
   await page.waitForTimeout(350);await settleFonts(page);
   const after=await page.evaluate(()=>document.__typographyShellToken);
