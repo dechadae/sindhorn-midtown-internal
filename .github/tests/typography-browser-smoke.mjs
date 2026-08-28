@@ -81,11 +81,12 @@ async function signIn(page,label){
   await page.evaluate(()=>{document.__typographyShellToken=`shell-${Date.now()}-${Math.random()}`});
 }
 async function routeClick(page,route){
-  const link=page.locator(`[data-app-route="${route}"]`).first();
+  const href=route==='today'?'/':`/${route}`;
+  const link=page.locator(`[data-app-route="${route}"],#app-footer a[href="${href}"]`).first();
   assert(await link.count(),`missing ${route} route link`);
   const token=await page.evaluate(()=>document.__typographyShellToken);
   await link.click();
-  await page.waitForURL(url=>new URL(url).pathname===`/${route}`,{timeout:12000});
+  await page.waitForURL(url=>new URL(url).pathname===href,{timeout:12000});
   await page.waitForTimeout(350);await settleFonts(page);
   const after=await page.evaluate(()=>document.__typographyShellToken);
   assert(after===token,`${route} navigation replaced the authenticated document`);
