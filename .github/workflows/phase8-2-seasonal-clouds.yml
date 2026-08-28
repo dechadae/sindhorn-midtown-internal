@@ -6,6 +6,7 @@ on:
       - phase8-2-bangkok-seasonal-clouds
       - fix-airbkk-client-proxy
       - main
+      - design-unification-pass
     paths:
       - "site/**"
       - "sky-worker/**"
