@@ -100,7 +100,7 @@ export async function mountFnbRoute(root,{profile}={}){
     const outlet=event.target.closest('[data-outlet]');if(outlet){filter=outlet.dataset.outlet;renderIndex();return}
     const monthButton=event.target.closest('[data-month]');if(monthButton){month=monthButton.dataset.month;renderIndex();return}
     const card=event.target.closest('[data-open]');if(card){openDetail(card.dataset.open);return}
-    const section=event.target.closest('[data-section]');if(section&&current){q('#'+section.dataset.section)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start');return}
+    const section=event.target.closest('[data-section]');if(section&&current){q('#'+section.dataset.section)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});return}
     if(event.target.closest('[data-sheet-close]')||event.target===q('[data-sheet-layer]')){closeSheet();return}
     if(event.target.closest('[data-save-links]')){let bad=false;q('[data-sheet-body]').querySelectorAll('[data-link]').forEach(input=>{const value=input.value.trim();if(value&&!safeFolder(value)){bad=true;input.focus();return}state.links[input.dataset.link]=value||null});if(bad){toast('Use a OneDrive or SharePoint https link');return}save();closeSheet();const id=current?.id;renderIndex();if(id)openDetail(id,{scrollTop:false});toast('Artwork links saved on this device')}
   };
