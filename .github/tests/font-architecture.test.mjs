@@ -73,7 +73,7 @@ for(const name of ['line-seed-sans-th-regular.woff2','line-seed-sans-th-thin.wof
 if(!login.includes('line-seed-sans-th-regular.woff2'))errors.push('login.html does not preload Regular 400');
 
 const sw=fs.readFileSync(path.join(site,'sw.js'),'utf8');
-for(const required of ['/fonts.css','/assets/fonts/line-seed-sans-th-thin.woff2','/assets/fonts/line-seed-sans-th-regular.woff2','/assets/fonts/line-seed-sans-th-bold.woff2'])if(!sw.includes(required))errors.push(`service worker missing ${required}`);
+for(const required of ['/fonts.css','/fonts.css?v=1','/assets/fonts/line-seed-sans-th-thin.woff2','/assets/fonts/line-seed-sans-th-regular.woff2','/assets/fonts/line-seed-sans-th-bold.woff2'])if(!sw.includes(required))errors.push(`service worker missing ${required}`);
 if(!sw.includes('pwa-v31-line-seed-sans-th'))errors.push('service worker cache version not bumped for LINE Seed');
 
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}
