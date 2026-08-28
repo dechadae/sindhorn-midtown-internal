@@ -1,5 +1,5 @@
-const FOOTER_VERSION='sindhorn-footer-v5-fnb-direct';
-const FNB_MODULE_URL='/fnb.js?v=5';
+const FOOTER_VERSION='sindhorn-footer-v6-fnb-motion';
+const FNB_MODULE_URL='/fnb.js?v=6';
 const NAV_ITEMS=[
   {route:'today',label:'Today',href:'/'},
   {route:'fnb',label:'F&B',direct:true},

@@ -7,7 +7,7 @@ const MONTH_INDEX={SEP:8,OCT:9,NOV:10,DEC:11};
 
 function ensureStylesheet(){
   if(document.querySelector('link[data-fnb-style]'))return Promise.resolve();
-  return new Promise(resolve=>{const link=document.createElement('link');link.rel='stylesheet';link.href='/fnb.css?v=1';link.dataset.fnbStyle='true';link.onload=resolve;link.onerror=resolve;document.head.appendChild(link)});
+  return new Promise(resolve=>{const link=document.createElement('link');link.rel='stylesheet';link.href='/fnb.css?v=2';link.dataset.fnbStyle='true';link.onload=resolve;link.onerror=resolve;document.head.appendChild(link)});
 }
 function esc(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
 function safeFolder(value){if(!value)return null;try{const url=new URL(value);return url.protocol==='https:'&&(url.hostname.endsWith('sharepoint.com')||url.hostname.endsWith('1drv.ms')||url.hostname.endsWith('onedrive.live.com'))?url.href:null}catch(_){return null}}
@@ -51,7 +51,7 @@ const TEMPLATE=`
 
 export async function mountFnbRoute(root,{profile}={}){
   await ensureStylesheet();
-  let disposed=false,filter='ALL',month='ALL',current=null,indexScroll=0,observer=null;
+  let disposed=false,filter='ALL',month='ALL',current=null,indexScroll=0,scrollSpyRaf=0,viewAnimating=false;
   const openActivations=new Set();
   const editor=String(profile?.employee_number||'')==='10639';
   let state={checks:{},links:{}};
@@ -60,6 +60,15 @@ export async function mountFnbRoute(root,{profile}={}){
   root.innerHTML=TEMPLATE;
   const route=root.querySelector('.fnb-route');route.classList.toggle('is-editor',editor);
   const q=selector=>route.querySelector(selector),qa=selector=>[...route.querySelectorAll(selector)];
+  const reducedMotion=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+  async function animateView(el,keyframes,duration){
+    if(!el||reducedMotion()||typeof el.animate!=='function')return;
+    try{await el.animate(keyframes,{duration,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'}).finished}catch(_){}
+  }
+  function animateCardsIn(){
+    if(reducedMotion())return;
+    qa('.fnb-card').forEach((card,index)=>{try{card.animate([{opacity:.01,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:300,delay:Math.min(index,6)*34,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'})}catch(_){}})
+  }
 
   function save(){try{localStorage.setItem(STATE_KEY,JSON.stringify(state))}catch(_){}}
   function isDone(id){return!!state.checks[id]}
@@ -76,7 +85,7 @@ export async function mountFnbRoute(root,{profile}={}){
   function statBlock(label,value){return`<div class="fnb-stat"><span>${esc(label)}</span><b>${esc(value)}</b></div>`}
   function renderSummary(){const campaigns=filteredCampaigns();let total=0,done=0,live=0;campaigns.forEach(campaign=>{const n=counts(campaign,true);total+=n.total;done+=n.done;if(campaignStatus(campaign,today)==='LIVE')live++});q('[data-summary]').innerHTML=statBlock('Promotions',campaigns.length)+statBlock('Live now',live)+statBlock('Artwork done',`${done}/${total}`)}
   function cardHTML(campaign){const n=counts(campaign,true),percent=n.total?n.done/n.total*100:0,status=campaignStatus(campaign,today);return`<article class="fnb-card fnb-status-${status.toLowerCase()}"><button class="fnb-card-button" type="button" data-open="${esc(campaign.id)}"><div class="fnb-card-status"><span class="fnb-utility fnb-status-${status.toLowerCase()}">${status}</span><span class="fnb-card-relative">${esc(campaignRelative(campaign,today))}</span></div><h2 class="fnb-card-title">${esc(campaign.title)}</h2><p class="fnb-card-outlets">${esc(outlets(campaign))}</p><p class="fnb-card-date">${esc(campaign.dateLabel)}</p><div class="fnb-progress"><div class="fnb-progress-meta"><span>Artwork</span><b>${n.done} / ${n.total}</b></div><div class="fnb-progress-track"><i style="width:${percent}%"></i></div></div><div class="fnb-card-foot"><span>${esc(campaign.summary)}</span><span class="fnb-chevron">›</span></div></button></article>`}
-  function renderCards(){const campaigns=filteredCampaigns();q('[data-cards]').innerHTML=campaigns.length?campaigns.map(cardHTML).join(''):'<div class="fnb-empty">No promotions match these filters.</div>'}
+  function renderCards(){const campaigns=filteredCampaigns();q('[data-cards]').innerHTML=campaigns.length?campaigns.map(cardHTML).join(''):'<div class="fnb-empty">No promotions match these filters.</div>';requestAnimationFrame(animateCardsIn)}
   function renderIndex(){renderFilters();renderMonthRail();renderSummary();renderCards()}
 
   function taskRows(activation){return activation.artworks.map(item=>`<div class="fnb-task${isDone(item.id)?' is-done':''}"><button class="fnb-task-toggle" type="button" data-task="${esc(item.id)}" ${editor?'':'disabled'} aria-label="${isDone(item.id)?'Mark pending':'Mark complete'}"></button><span class="fnb-task-name">${esc(item.name)}</span></div>`).join('')}
@@ -87,10 +96,38 @@ export async function mountFnbRoute(root,{profile}={}){
   function folderHTML(campaign){const links=existingLinks(campaign);let html='<div class="fnb-folder">';if(links.length)html+=`<button class="fnb-action is-primary" type="button" data-folder-open><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>View artwork folder${links.length>1?'s':''}</button>`;else html+='<div class="fnb-folder-empty"><span>Artwork folder</span><small>Not linked yet</small></div>';if(editor)html+=`<button class="fnb-action" type="button" data-folder-edit><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg>Add / change artwork link</button>`;return html+'</div>'}
   function detailHTML(campaign){const n=counts(campaign,false),status=campaignStatus(campaign,today),time=uniqueValue(campaign.activations.map(activation=>activation.time)),discount=uniqueValue(campaign.activations.map(activation=>activation.discount));return`<div id="overview" class="fnb-detail-head fnb-section"><button class="fnb-back" type="button" data-back aria-label="Back to promotions"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button><p class="fnb-eyebrow fnb-status-${status.toLowerCase()}">${status}</p><h1 class="fnb-detail-title">${esc(campaign.title)}</h1><p class="fnb-detail-date">${esc(campaign.dateLabel)}</p><div class="fnb-facts"><div class="fnb-fact"><span>Outlet</span><b>${esc(outlets(campaign))}</b></div><div class="fnb-fact"><span>Time</span><b>${esc(time)}</b></div><div class="fnb-fact"><span>IHG One Rewards</span><b>${esc(discount)}</b></div><div class="fnb-fact"><span>Updated</span><b>28 August 2026</b></div></div></div><section id="brief" class="fnb-section"><div class="fnb-section-head"><p class="fnb-section-kicker">01 · Promotion brief</p></div>${briefHTML(campaign)}</section><section id="copy" class="fnb-section"><div class="fnb-section-head"><p class="fnb-section-kicker">02 · Copy</p></div>${copyHTML(campaign)}</section><section id="artwork" class="fnb-section"><div class="fnb-section-head"><p class="fnb-section-kicker">03 · Artwork</p><span class="fnb-section-count">${n.done} / ${n.total} complete</span></div>${campaign.activations.map(activation=>activationHTML(activation)).join('')}${folderHTML(campaign)}</section>`}
 
-  function setSectionActive(id){qa('[data-section]').forEach(button=>button.classList.toggle('is-active',button.dataset.section===id))}
-  function observeDetail(){observer?.disconnect();observer=new IntersectionObserver(entries=>{const hit=entries.filter(entry=>entry.isIntersecting).sort((a,b)=>Math.abs(a.boundingClientRect.top)-Math.abs(b.boundingClientRect.top))[0];if(hit)setSectionActive(hit.target.id)},{rootMargin:'-22% 0px -64% 0px',threshold:[0,.08]});['overview','brief','copy','artwork'].forEach(id=>{const el=q('#'+id);if(el)observer.observe(el)})}
-  function openDetail(id,{scrollTop=true}={}){const campaign=DATA.find(item=>item.id===id);if(!campaign)return;if(!current)indexScroll=scrollY;current=campaign;q('[data-index]').hidden=true;const detail=q('[data-detail]');detail.innerHTML=detailHTML(campaign);detail.hidden=false;document.body.dataset.fnbDetail='true';setSectionActive('overview');bindDetail();observeDetail();if(scrollTop)scrollTo({top:0,behavior:'auto'})}
-  function closeDetail(){current=null;observer?.disconnect();observer=null;q('[data-detail]').hidden=true;q('[data-detail]').replaceChildren();q('[data-index]').hidden=false;delete document.body.dataset.fnbDetail;requestAnimationFrame(()=>scrollTo({top:indexScroll,behavior:'auto'}))}
+  function setSectionActive(id){qa('[data-section]').forEach(button=>{const active=button.dataset.section===id;button.classList.toggle('is-active',active);if(active)button.setAttribute('aria-current','true');else button.removeAttribute('aria-current')})}
+  function updateSectionFromScroll(){
+    if(!current)return;
+    const ids=['overview','brief','copy','artwork'];
+    const probe=Math.min(innerHeight*.30,238);
+    let active='overview';
+    const atBottom=scrollY+innerHeight>=document.documentElement.scrollHeight-36;
+    if(atBottom)active='artwork';
+    else ids.forEach(id=>{const el=q('#'+id);if(el&&el.getBoundingClientRect().top<=probe)active=id});
+    setSectionActive(active)
+  }
+  function scheduleScrollSpy(){if(scrollSpyRaf)return;scrollSpyRaf=requestAnimationFrame(()=>{scrollSpyRaf=0;updateSectionFromScroll()})}
+  function observeDetail(){requestAnimationFrame(updateSectionFromScroll)}
+  async function openDetail(id,{scrollTop=true,animate=null}={}){
+    if(viewAnimating)return;
+    const campaign=DATA.find(item=>item.id===id);if(!campaign)return;
+    const shouldAnimate=animate??scrollTop,index=q('[data-index]'),detail=q('[data-detail]');
+    if(!current)indexScroll=scrollY;viewAnimating=true;
+    if(shouldAnimate)await animateView(index,[{opacity:1,transform:'translateX(0)'},{opacity:0,transform:'translateX(-14px)'}],180);
+    current=campaign;index.hidden=true;detail.innerHTML=detailHTML(campaign);detail.hidden=false;document.body.dataset.fnbDetail='true';setSectionActive('overview');bindDetail();
+    if(scrollTop)scrollTo({top:0,behavior:'auto'});observeDetail();
+    if(shouldAnimate)await animateView(detail,[{opacity:.02,transform:'translateX(18px)'},{opacity:1,transform:'translateX(0)'}],300);
+    viewAnimating=false
+  }
+  async function closeDetail(){
+    if(viewAnimating)return;viewAnimating=true;
+    const detail=q('[data-detail]'),index=q('[data-index]');
+    await animateView(detail,[{opacity:1,transform:'translateX(0)'},{opacity:.02,transform:'translateX(16px)'}],180);
+    current=null;detail.hidden=true;detail.replaceChildren();index.hidden=false;delete document.body.dataset.fnbDetail;scrollTo({top:indexScroll,behavior:'auto'});
+    await animateView(index,[{opacity:.02,transform:'translateX(-12px)'},{opacity:1,transform:'translateX(0)'}],280);
+    viewAnimating=false
+  }
 
   function openSheet(title,html){q('[data-sheet-title]').textContent=title;q('[data-sheet-body]').innerHTML=html;const layer=q('[data-sheet-layer]');layer.classList.add('is-open');layer.setAttribute('aria-hidden','false')}
   function closeSheet(){const layer=q('[data-sheet-layer]');layer.classList.remove('is-open');layer.setAttribute('aria-hidden','true')}
@@ -100,7 +137,7 @@ export async function mountFnbRoute(root,{profile}={}){
 
   const onClick=event=>{
     const card=event.target.closest('[data-open]');if(card){openDetail(card.dataset.open);return}
-    const section=event.target.closest('[data-section]');if(section&&current){q('#'+section.dataset.section)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});return}
+    const section=event.target.closest('[data-section]');if(section&&current){const id=section.dataset.section,target=q('#'+id);setSectionActive(id);if(target){const top=Math.max(0,target.getBoundingClientRect().top+scrollY-72);scrollTo({top,behavior:reducedMotion()?'auto':'smooth'})}return}
     if(event.target.closest('[data-sheet-close]')||event.target===q('[data-sheet-layer]')){closeSheet();return}
     if(event.target.closest('[data-save-links]')){let bad=false;q('[data-sheet-body]').querySelectorAll('[data-link]').forEach(input=>{const value=input.value.trim();if(value&&!safeFolder(value)){bad=true;input.focus();return}state.links[input.dataset.link]=value||null});if(bad){toast('Use a OneDrive or SharePoint https link');return}save();closeSheet();const id=current?.id;renderIndex();if(id)openDetail(id,{scrollTop:false});toast('Artwork links saved on this device')}
   };
@@ -110,7 +147,9 @@ export async function mountFnbRoute(root,{profile}={}){
     if(event.target.matches('[data-month-select]')){month=event.target.value;renderIndex();return}
   };
   route.addEventListener('change',onChange);
+  addEventListener('scroll',scheduleScrollSpy,{passive:true});
+  addEventListener('resize',scheduleScrollSpy,{passive:true});
   renderIndex();
 
-  return()=>{disposed=true;void disposed;route.removeEventListener('click',onClick);route.removeEventListener('change',onChange);observer?.disconnect();clearTimeout(toast.timer);delete document.body.dataset.fnbDetail};
+  return()=>{disposed=true;void disposed;route.removeEventListener('click',onClick);route.removeEventListener('change',onChange);removeEventListener('scroll',scheduleScrollSpy);removeEventListener('resize',scheduleScrollSpy);if(scrollSpyRaf)cancelAnimationFrame(scrollSpyRaf);clearTimeout(toast.timer);delete document.body.dataset.fnbDetail};
 }

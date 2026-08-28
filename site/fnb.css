@@ -172,3 +172,29 @@ body[data-fnb-detail="true"] .fnb-section-rail{display:flex}
 @media(min-width:700px){.fnb-card-list{grid-template-columns:1fr 1fr}.fnb-route{padding-inline:0}}
 @media(max-width:355px){.fnb-summary{grid-template-columns:repeat(2,1fr)}.fnb-facts{grid-template-columns:1fr 1fr}}
 @media(prefers-reduced-motion:reduce){.fnb-index,.fnb-detail{animation:none}.fnb-chip,.fnb-card,.fnb-progress-track i,.fnb-text-copy,.fnb-sheet,.fnb-art-chevron,.fnb-task-list,.fnb-art-head{transition:none}}
+
+
+/* Motion + control consistency pass — responsive without feeling abrupt. */
+:root{--fnb-motion-fast:160ms;--fnb-motion-base:260ms;--fnb-motion-slow:420ms;--fnb-motion-ease:cubic-bezier(.22,1,.36,1)}
+.fnb-index,.fnb-detail{animation:none}
+.fnb-card{transition:transform var(--fnb-motion-base) var(--fnb-motion-ease),border-color var(--fnb-motion-base) ease,background var(--fnb-motion-base) ease,box-shadow var(--fnb-motion-base) var(--fnb-motion-ease)}
+.fnb-card:focus-within{border-color:rgba(var(--fnb-accent-rgb),.32);box-shadow:0 14px 34px rgba(12,9,18,.14)}
+@media(hover:hover){.fnb-card:hover{transform:translateY(-2px);border-color:rgba(var(--fnb-accent-rgb),.25)}}
+.fnb-card-button{transition:opacity var(--fnb-motion-fast) ease,transform var(--fnb-motion-fast) var(--fnb-motion-ease)}
+.fnb-card-button:active{transform:scale(.992);opacity:.88}
+.fnb-select select{transition:border-color var(--fnb-motion-base) ease,background-color var(--fnb-motion-base) ease,box-shadow var(--fnb-motion-base) ease}
+.fnb-select select:focus{border-color:rgba(var(--fnb-accent-rgb),.46);box-shadow:0 0 0 3px rgba(var(--fnb-accent-rgb),.06)}
+.fnb-section-rail{display:flex!important;visibility:hidden;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity var(--fnb-motion-base) ease,transform var(--fnb-motion-base) var(--fnb-motion-ease),visibility 0s linear var(--fnb-motion-base)}
+body[data-fnb-detail="true"] .fnb-section-rail{visibility:visible;opacity:1;pointer-events:auto;transform:none;transition-delay:0s}
+.fnb-chip,.fnb-action,.fnb-expand,.fnb-back,.fnb-sheet-close{transition:background var(--fnb-motion-base) ease,border-color var(--fnb-motion-base) ease,color var(--fnb-motion-base) ease,box-shadow var(--fnb-motion-base) var(--fnb-motion-ease),transform var(--fnb-motion-fast) var(--fnb-motion-ease),opacity var(--fnb-motion-fast) ease}
+.fnb-back{border-radius:12px}
+.fnb-sheet-close{border-radius:10px}
+.fnb-action{border-radius:12px}
+.fnb-expand{border-radius:10px}
+.fnb-action:active,.fnb-expand:active,.fnb-back:active,.fnb-sheet-close:active{transform:scale(.975);opacity:.84}
+.fnb-text-copy{transition:max-height var(--fnb-motion-slow) var(--fnb-motion-ease),opacity var(--fnb-motion-base) ease}
+.fnb-task-list{transition:max-height var(--fnb-motion-slow) var(--fnb-motion-ease),opacity var(--fnb-motion-base) ease,padding var(--fnb-motion-slow) var(--fnb-motion-ease)}
+.fnb-art-chevron{transition:transform var(--fnb-motion-base) var(--fnb-motion-ease),border-color var(--fnb-motion-base) ease}
+.fnb-sheet-layer{transition:opacity var(--fnb-motion-base) ease,visibility 0s linear var(--fnb-motion-base)}
+.fnb-sheet{transition:transform 340ms var(--fnb-motion-ease),opacity var(--fnb-motion-base) ease}
+@media(prefers-reduced-motion:reduce){.fnb-section-rail,.fnb-card,.fnb-card-button,.fnb-select select,.fnb-chip,.fnb-action,.fnb-expand,.fnb-back,.fnb-sheet-close,.fnb-text-copy,.fnb-task-list,.fnb-art-chevron,.fnb-sheet-layer,.fnb-sheet{transition:none!important}}
