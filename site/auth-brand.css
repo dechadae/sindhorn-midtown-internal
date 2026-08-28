@@ -58,7 +58,7 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible),input:focus:not(:fo
 .login-page .signed-actions a,.login-page .signed-actions button{border-color:var(--vg-line);color:var(--vg-plum)}
 
 .auth-step{display:grid;gap:14px}
-.mode-switch{width:100%;padding:5px 3px;border:0;background:transparent;color:var(--vg-plum,#2E273B);font:600 .78rem/1.45 PoppinsLocal,NotoThaiLocal,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-align:center;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
+.mode-switch{width:100%;padding:5px 3px;border:0;background:transparent;color:var(--vg-plum,#2E273B);font:600 .78rem/1.45 "Poppins","Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-align:center;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px}
 .pin-setup{margin-top:28px;padding-top:24px;border-top:1px solid var(--vg-line,rgba(20,20,20,.13))}
 .pin-setup h2{margin:4px 0 0;font-size:1.55rem;line-height:1.12;font-weight:700}
 .step-kicker{margin:0;color:var(--vg-muted,#686868);font-size:.75rem;font-weight:700;text-transform:uppercase}
@@ -74,7 +74,7 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible),input:focus:not(:fo
   background:rgba(255,255,255,.68);
   color:var(--vg-plum,#171717);
   text-align:center;
-  font:600 1.55rem/1 PoppinsLocal,NotoThaiLocal,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font:600 1.55rem/1 "Poppins","Noto Sans Thai",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   font-variant-numeric:tabular-nums;
   caret-color:transparent;
   transition:border-color .16s ease,box-shadow .16s ease,background .16s ease;
