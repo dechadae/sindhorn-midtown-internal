@@ -3,6 +3,7 @@
 @font-face{font-family:"LINE Seed Sans TH";src:url("/assets/fonts/line-seed-sans-th-bold.woff2") format("woff2");font-style:normal;font-weight:700;font-display:swap}
 :root{--font-ui:"LINE Seed Sans TH"!important}
 html,body,button,input,select,textarea,option,dialog{font-family:var(--font-ui)!important;font-synthesis:none}
+html,body{font-weight:400!important}
 body *{font-family:var(--font-ui)!important;font-synthesis:none}
 *,*::before,*::after{letter-spacing:0!important}
 :lang(th),[lang="th"]{font-family:var(--font-ui)!important;letter-spacing:0!important;word-break:normal;overflow-wrap:normal;line-break:loose}
