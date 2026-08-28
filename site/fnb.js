@@ -28,10 +28,8 @@ const TEMPLATE=`
       <div class="fnb-summary" data-summary></div>
     </header>
     <div class="fnb-control">
-      <div class="fnb-filters" data-filters aria-label="Filter by outlet"></div>
-      <div class="fnb-months" data-months aria-label="Filter by month">
-        ${MONTHS.map(key=>`<button class="fnb-chip fnb-chip-month${key==='ALL'?' is-active':''}" type="button" data-month="${key}">${key==='ALL'?'All':key[0]+key.slice(1).toLowerCase()}</button>`).join('')}
-      </div>
+      <label class="fnb-select"><span class="fnb-select-label">Outlet</span><select data-outlet-select aria-label="Filter by outlet">${OUTLETS.map(outlet=>`<option value="${esc(outlet)}">${esc(outlet==='ALL'?'All outlets':outlet)}</option>`).join('')}</select></label>
+      <label class="fnb-select"><span class="fnb-select-label">Month</span><select data-month-select aria-label="Filter by month">${MONTHS.map(key=>`<option value="${key}">${key==='ALL'?'All months':key[0]+key.slice(1).toLowerCase()}</option>`).join('')}</select></label>
     </div>
     <div class="fnb-card-list" data-cards></div>
   </div>
@@ -72,8 +70,8 @@ export async function mountFnbRoute(root,{profile}={}){
   function existingLinks(campaign){return campaign.activations.map(activation=>({activation,url:safeFolder(linkFor(activation))})).filter(item=>item.url)}
   function toast(message){const el=q('[data-toast]');el.textContent=message;el.hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>{if(el.isConnected)el.hidden=true},2100)}
 
-  function renderFilters(){const host=q('[data-filters]');host.innerHTML=OUTLETS.map(outlet=>`<button class="fnb-chip${filter===outlet?' is-active':''}" type="button" data-outlet="${esc(outlet)}">${esc(outlet)}</button>`).join('')}
-  function renderMonthRail(){qa('[data-month]').forEach(button=>button.classList.toggle('is-active',button.dataset.month===month))}
+  function renderFilters(){const select=q('[data-outlet-select]');if(select.value!==filter)select.value=filter}
+  function renderMonthRail(){const select=q('[data-month-select]');if(select.value!==month)select.value=month}
   function statBlock(label,value){return`<div class="fnb-stat"><span>${esc(label)}</span><b>${esc(value)}</b></div>`}
   function renderSummary(){const campaigns=filteredCampaigns();let total=0,done=0,live=0;campaigns.forEach(campaign=>{const n=counts(campaign,true);total+=n.total;done+=n.done;if(campaignStatus(campaign,today)==='LIVE')live++});q('[data-summary]').innerHTML=statBlock('Promotions',campaigns.length)+statBlock('Live now',live)+statBlock('Artwork done',`${done}/${total}`)}
   function cardHTML(campaign){const n=counts(campaign,true),percent=n.total?n.done/n.total*100:0,status=campaignStatus(campaign,today);return`<article class="fnb-card fnb-status-${status.toLowerCase()}"><button class="fnb-card-button" type="button" data-open="${esc(campaign.id)}"><div class="fnb-card-status"><span class="fnb-utility fnb-status-${status.toLowerCase()}">${status}</span><span class="fnb-card-relative">${esc(campaignRelative(campaign,today))}</span></div><h2 class="fnb-card-title">${esc(campaign.title)}</h2><p class="fnb-card-outlets">${esc(outlets(campaign))}</p><p class="fnb-card-date">${esc(campaign.dateLabel)}</p><div class="fnb-progress"><div class="fnb-progress-meta"><span>Artwork</span><b>${n.done} / ${n.total}</b></div><div class="fnb-progress-track"><i style="width:${percent}%"></i></div></div><div class="fnb-card-foot"><span>${esc(campaign.summary)}</span><span class="fnb-chevron">›</span></div></button></article>`}
@@ -100,15 +98,18 @@ export async function mountFnbRoute(root,{profile}={}){
   function bindDetail(){const detail=q('[data-detail]');detail.querySelector('[data-back]')?.addEventListener('click',closeDetail);detail.querySelectorAll('[data-art-toggle]').forEach(button=>button.addEventListener('click',()=>{const card=button.closest('.fnb-art-card'),list=card.querySelector('.fnb-task-list'),open=card.classList.toggle('is-open');list.hidden=!open;button.setAttribute('aria-expanded',String(open))}));detail.querySelectorAll('.fnb-expand').forEach(button=>button.addEventListener('click',()=>{const copy=button.previousElementSibling,collapsed=copy.classList.toggle('is-collapsed');button.textContent=collapsed?'Show full':'Show less'}));detail.querySelectorAll('[data-task]').forEach(button=>{if(!editor)return;button.addEventListener('click',()=>{state.checks[button.dataset.task]=!state.checks[button.dataset.task];save();const id=current?.id;renderIndex();if(id)openDetail(id,{scrollTop:false})})});detail.querySelector('[data-folder-open]')?.addEventListener('click',()=>{const links=existingLinks(current);if(links.length===1)window.open(links[0].url,'_blank','noopener');else openFolderList()});detail.querySelector('[data-folder-edit]')?.addEventListener('click',openLinkEditor)}
 
   const onClick=event=>{
-    const outlet=event.target.closest('[data-outlet]');if(outlet){filter=outlet.dataset.outlet;renderIndex();return}
-    const monthButton=event.target.closest('[data-month]');if(monthButton){month=monthButton.dataset.month;renderIndex();return}
     const card=event.target.closest('[data-open]');if(card){openDetail(card.dataset.open);return}
     const section=event.target.closest('[data-section]');if(section&&current){q('#'+section.dataset.section)?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});return}
     if(event.target.closest('[data-sheet-close]')||event.target===q('[data-sheet-layer]')){closeSheet();return}
     if(event.target.closest('[data-save-links]')){let bad=false;q('[data-sheet-body]').querySelectorAll('[data-link]').forEach(input=>{const value=input.value.trim();if(value&&!safeFolder(value)){bad=true;input.focus();return}state.links[input.dataset.link]=value||null});if(bad){toast('Use a OneDrive or SharePoint https link');return}save();closeSheet();const id=current?.id;renderIndex();if(id)openDetail(id,{scrollTop:false});toast('Artwork links saved on this device')}
   };
   route.addEventListener('click',onClick);
+  const onChange=event=>{
+    if(event.target.matches('[data-outlet-select]')){filter=event.target.value;renderIndex();return}
+    if(event.target.matches('[data-month-select]')){month=event.target.value;renderIndex();return}
+  };
+  route.addEventListener('change',onChange);
   renderIndex();
 
-  return()=>{disposed=true;void disposed;route.removeEventListener('click',onClick);observer?.disconnect();clearTimeout(toast.timer);delete document.body.dataset.fnbDetail};
+  return()=>{disposed=true;void disposed;route.removeEventListener('click',onClick);route.removeEventListener('change',onChange);observer?.disconnect();clearTimeout(toast.timer);delete document.body.dataset.fnbDetail};
 }
