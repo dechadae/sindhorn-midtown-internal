@@ -71,7 +71,7 @@ jobs:
           grep -q "FNB_MODULE_URL='/fnb.js?v=5'" site/footer-route-guard.js
           grep -q "module.mountFnbRoute" site/footer-route-guard.js
           grep -q "grid-template-columns:repeat(3,minmax(0,1fr))!important" site/footer-route-guard.css
-          grep -q "min-height:52px!important" site/footer-route-guard.css
+          grep -q "min-height:54px!important" site/footer-route-guard.css
           grep -q "border-radius:18px!important" site/footer-route-guard.css
           grep -q "border-radius:13px!important" site/footer-route-guard.css
           grep -q "bottom:calc(68px + env(safe-area-inset-bottom))!important" site/footer-route-guard.css
@@ -121,7 +121,7 @@ jobs:
           grep -q 'background:transparent' /tmp/fnb.css
           grep -q 'sindhorn-footer-v5-fnb-direct' /tmp/footer-route-guard.js
           grep -q "FNB_MODULE_URL='/fnb.js?v=5'" /tmp/footer-route-guard.js
-          grep -q 'min-height:52px!important' /tmp/footer-route-guard.css
+          grep -q 'min-height:54px!important' /tmp/footer-route-guard.css
           grep -q 'border-radius:18px!important' /tmp/footer-route-guard.css
           grep -q 'footer-route-guard.js?v=5' /tmp/fnb-footer-smoke.html
 
@@ -153,7 +153,7 @@ jobs:
           console.log('browser-errors',JSON.stringify(errors));
           await browser.close();
           if(errors.length)throw new Error(errors.join('\n'));
-          if(footerBefore.dockRadius!=='18px'||footerBefore.tabRadius!=='13px'||footerBefore.tabHeight!=='42px')throw new Error(`Footer dock geometry mismatch: ${JSON.stringify(footerBefore)}`);
+          if(footerBefore.dockRadius!=='18px'||footerBefore.dockHeight!=='54px'||footerBefore.tabRadius!=='13px'||footerBefore.tabHeight!=='42px')throw new Error(`Footer dock geometry mismatch: ${JSON.stringify(footerBefore)}`);
           if(indexState.path!=='/fnb')throw new Error(`F&B path did not change: ${indexState.path}`);
           if(indexState.title!=='Promotions')throw new Error(`F&B title missing: ${indexState.title}`);
           if(indexState.cards!==8)throw new Error(`Expected 8 promotion cards, got ${indexState.cards}`);
