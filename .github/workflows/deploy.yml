@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - design-unification-pass
+      - fnb-action-plan-redesign
       - today-guidance-details-fnb
       - phase9-single-shell-router
       - hotfix-phase9-deploy-gate
