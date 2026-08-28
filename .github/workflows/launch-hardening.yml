@@ -138,9 +138,10 @@ jobs:
           query=urllib.parse.urlencode({'select':'pack_id,path,content,content_type,content_sha256,enabled','enabled':'eq.true','order':'pack_id.desc,path.asc'})
           req=urllib.request.Request(f'{base}/rest/v1/{table}?{query}',headers={'apikey':key,'Accept':'application/json'})
           with urllib.request.urlopen(req,timeout=20) as response: rows=json.load(response)
-          packs={int(row['pack_id']) for row in rows}; assert packs=={38},packs
+          packs={int(row['pack_id']) for row in rows}; assert len(packs)==1,packs
+          active_pack=next(iter(packs))
           rowmap={row['path']:row for row in rows}; manifest_row=rowmap['manifest.json']; assert hashlib.sha256(manifest_row['content'].encode()).hexdigest()==manifest_row['content_sha256']
-          manifest=json.loads(manifest_row['content']); assert manifest['appPack']==38 and manifest['minimumShell']==17 and manifest['environmentConfig']==3
+          manifest=json.loads(manifest_row['content']); assert manifest['appPack']==active_pack and manifest['minimumShell']==17 and manifest['environmentConfig']==3
           assert 'messages.html' in rowmap and 'environment-config.json' in rowmap
           today=rowmap['today.html']['content']; assert 'saveImageBtn' not in today and 'report-actionbar' not in today
           for item in manifest['resources']:

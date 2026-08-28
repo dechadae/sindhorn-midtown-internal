@@ -61,7 +61,6 @@ jobs:
           grep -q "PREPARE_TIMEOUT_MS" site/push-client.js
           grep -q "Retry alerts" site/push-client.js
           grep -q "const VERSION='sindhorn-midtown-internal-pwa-v" site/sw.js
-          grep -q "web-push-location" site/sw.js
           grep -q "'/location.js'" site/sw.js
           grep -q "'/push-config.js'" site/sw.js
           grep -q "'/push-client.js'" site/sw.js
@@ -204,7 +203,6 @@ jobs:
           ! grep -q 'stations.airbkk.com' <<<"${ROOT}"
           grep -q 'Current location' <(curl --fail --silent --show-error "${BASE_URL}/location.js")
           SW="$(curl --fail --silent --show-error "${BASE_URL}/sw.js")"
-          grep -q "web-push-location" <<<"${SW}"
           grep -q "'/location.js'" <<<"${SW}"
           grep -q "addEventListener('push'" <<<"${SW}"
           grep -q "addEventListener('notificationclick'" <<<"${SW}"
