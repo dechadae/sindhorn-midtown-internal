@@ -56,7 +56,11 @@ async function signIn(page){
   await page.fill('#employeeNumber',smokeEmployeeNumber);
   for(let i=0;i<6;i++)await page.fill(`[data-pin-login-digit="${i}"]`,smokePin[i]);
   await page.click('#pinLoginButton');
-  await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:20000});
+  // waitUntil:'commit' only — the destination boots the full WebGL atmosphere,
+  // which can take longer than this timeout to fire the 'load' event that
+  // waitForURL waits for by default. The URL changing is all that's needed
+  // here; environment-ready is checked separately below.
+  await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:20000,waitUntil:'commit'});
 }
 
 // Verifies the deployed production/preview candidate directly at "/", using
