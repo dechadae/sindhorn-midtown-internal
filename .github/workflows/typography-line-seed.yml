@@ -1,0 +1,128 @@
+name: LINE Seed Sans TH Typography Gate
+
+on:
+  push:
+    branches:
+      - main
+      - typography-line-seed-sans-th
+    paths:
+      - "site/**"
+      - "docs/**"
+      - "AGENTS.md"
+      - ".github/workflows/typography-line-seed.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "docs/**"
+      - "AGENTS.md"
+      - ".github/workflows/typography-line-seed.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: line-seed-typography-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  architecture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Enforce single-family font architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          node site/font-architecture.test.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          banned=re.compile(r'Vignette Sans|Noto Sans Thai|Noto Sans|Poppins|IBM Plex Sans Thai',re.I)
+          offenders=[]
+          for path in Path('site').rglob('*'):
+              if not path.is_file() or 'vendor' in path.parts or path.name in {'environment.bundle.js','font-architecture.test.mjs'}:continue
+              if path.suffix.lower() not in {'.css','.html','.js','.mjs','.json','.webmanifest'}:continue
+              if banned.search(path.read_text(errors='ignore')):offenders.append(str(path))
+          if offenders: raise SystemExit('Retired production font references: '+', '.join(offenders))
+          print('Production site has no retired font-family references.')
+          PY
+      - name: Verify font binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          expected={
+            'line-seed-sans-th-thin.woff2',
+            'line-seed-sans-th-regular.woff2',
+            'line-seed-sans-th-bold.woff2'
+          }
+          files={p.name for p in Path('site/assets/fonts').glob('*') if p.suffix.lower() in {'.woff','.woff2','.ttf','.otf'}}
+          assert files==expected,(files,expected)
+          for name in expected:
+              data=(Path('site/assets/fonts')/name).read_bytes()
+              assert data[:4]==b'wOF2' and len(data)>10000,name
+          license=(Path('site/assets/fonts')/'OFL-LINE-SEED.txt').read_text()
+          assert 'SIL OPEN FONT LICENSE Version 1.1' in license and 'LY Corporation' in license
+          print('LINE Seed WOFF2 + OFL verification PASS')
+          PY
+
+  preview-and-browser:
+    if: github.event_name != 'pull_request'
+    needs: architecture
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install browser test dependency
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Deploy typography candidate
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "BASE_URL=https://sindhorn-midtown-internal.pages.dev" >> "$GITHUB_ENV"
+          else
+            npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+            echo "BASE_URL=https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev" >> "$GITHUB_ENV"
+          fi
+      - name: Smoke font assets and shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 8
+          for path in / /login.html /fonts.css /assets/fonts/line-seed-sans-th-thin.woff2 /assets/fonts/line-seed-sans-th-regular.woff2 /assets/fonts/line-seed-sans-th-bold.woff2 /sw.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/font-smoke
+            test -s /tmp/font-smoke
+          done
+          curl --fail --silent --show-error --location "${BASE_URL}/fonts.css" | grep -q 'LINE Seed Sans TH'
+          curl --fail --silent --show-error --location "${BASE_URL}/sw.js" | grep -q 'pwa-v31-line-seed-sans-th'
+          for font in thin regular bold; do
+            curl --fail --silent --show-error --location "${BASE_URL}/assets/fonts/line-seed-sans-th-${font}.woff2" -o "/tmp/${font}.woff2"
+            python3 - "$font" <<'PY'
+          import pathlib,sys
+          p=pathlib.Path('/tmp/'+sys.argv[1]+'.woff2')
+          d=p.read_bytes();assert d[:4]==b'wOF2' and len(d)>10000
+          PY
+          done
+      - name: Browser typography and layout smoke
+        env:
+          TYPOGRAPHY_BASE_URL: ${{ env.BASE_URL }}
+          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
+          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
+        run: node site/typography-browser-smoke.mjs
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: line-seed-typography-${{ github.ref_name }}-${{ github.run_id }}
+          path: typography-artifacts/
+          if-no-files-found: warn
+          retention-days: 14
