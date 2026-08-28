@@ -8,7 +8,7 @@ function capable(){return Boolean(API&&'serviceWorker'in navigator&&'PushManager
 function base64urlBytes(value){const padding='='.repeat((4-value.length%4)%4),base64=(value+padding).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(base64),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);return bytes}
 function timeout(promise,ms,label){return new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error(label)),ms);Promise.resolve(promise).then(value=>{clearTimeout(timer);resolve(value)},error=>{clearTimeout(timer);reject(error)})})}
 async function request(path,options={}){const response=await timeout(fetch(API+path,{credentials:'omit',cache:'no-store',...options,headers:{'content-type':'application/json',...(options.headers||{})}}),PREPARE_TIMEOUT_MS,'Push API timed out');let body={};try{body=await response.json()}catch(_){ }if(!response.ok)throw new Error(body?.error||('Push API '+response.status));return body}
-function statusNodes(){return{button:byId('alertsBtn'),status:byId('alertsStatus'),en:byId('alertsStatusEn'),th:byId('alertsStatusTh')}}
+function statusNodes(){return{button:byId('alertsBtn'),status:byId('alertsStatus'),en:byId('alertsStatusEn')}}
 function writeStatus(en,state='idle'){const nodes=statusNodes();if(nodes.status)nodes.status.dataset.state=state;if(nodes.en)nodes.en.textContent=en}
 function writeButton(label,disabled=false){const button=byId('alertsBtn');if(!button)return;const labelNode=button.querySelector('.action-label')||button;labelNode.textContent=label;button.disabled=disabled}
 async function ensureServiceWorker(){

@@ -72,7 +72,7 @@ function weatherLabel(code){const c=Number(code);if(c===0)return'Clear';if(c===1
 function windPoint(deg){const labels=['N','NE','E','SE','S','SW','W','NW'];return labels[Math.round(((((Number(deg)||0)%360)+360)%360)/45)%8]}
 function renderWeather(){
   const weatherNow=document.getElementById('weatherNow');if(!weatherNow||!state.weather.known||!Number.isFinite(state.weather.temperatureC))return;
-  const w=state.weather,[en,th]=weatherLabel(w.weatherCode),feels=Number.isFinite(w.apparentTemperatureC)?Math.round(w.apparentTemperatureC):Math.round(w.temperatureC),set=(id,value)=>{const node=document.getElementById(id);if(node)node.textContent=value};
+  const w=state.weather,en=weatherLabel(w.weatherCode),feels=Number.isFinite(w.apparentTemperatureC)?Math.round(w.apparentTemperatureC):Math.round(w.temperatureC),set=(id,value)=>{const node=document.getElementById(id);if(node)node.textContent=value};
   set('weatherTemp',`${Math.round(w.temperatureC)}°`);set('weatherConditionEn',en);set('weatherMetaEn',`Feels ${feels}° · RH ${Math.round(w.humidity*100)}% · Wind ${windPoint(w.windDirectionDeg)} ${Math.round(w.windSpeedKmh)} km/h`);weatherNow.hidden=false;
 }
 function cachedWeather(){try{const cached=JSON.parse(localStorage.getItem(WEATHER_CACHE_KEY)||'null');if(!cached||!cached.savedAt||Date.now()-cached.savedAt>WEATHER_CACHE_MAX_AGE)return null;return cached.value||null}catch(_){return null}}

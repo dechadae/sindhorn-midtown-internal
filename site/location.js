@@ -64,12 +64,11 @@ function setTimezone(timezone){
   dispatch();
 }
 function englishDate(date,timezone){return new Intl.DateTimeFormat('en-GB',{timeZone:timezone,day:'numeric',month:'short',year:'numeric'}).format(date)}
-function thaiDate(date,timezone){return new Intl.DateTimeFormat('th-TH-u-ca-buddhist',{timeZone:timezone,day:'numeric',month:'short',year:'numeric'}).format(date)}
 function updateHeaderDate(){
   const en=document.getElementById('todayEn');
-  if(!en&&!th)return;
+  if(!en)return;
   const now=new Date(),timezone=state.timezone||deviceTimezone();
-  try{if(en)en.textContent=englishDate(now,timezone);if(th)th.textContent=thaiDate(now,timezone)}catch(_){ }
+  try{en.textContent=englishDate(now,timezone)}catch(_){ }
 }
 function useFallback(permission='fallback'){
   finish({...FALLBACK,permission,updatedAt:new Date().toISOString()});
