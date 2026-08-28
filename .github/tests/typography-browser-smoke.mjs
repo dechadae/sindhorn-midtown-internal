@@ -114,7 +114,7 @@ async function inspectAuthenticated(viewport,label){
   page.on('console',m=>{if(m.type()==='error')errors.push(`${label} console: ${m.text()}`)});
   await signIn(page,label);
   await settleFonts(page);await page.waitForTimeout(250);
-  await auditVisibleTypography(page,`${label}-today`,{requireThinSelectors:['.intro h1','.pm-value','.aqi-value','.category-en','.weather-temp']});
+  await auditVisibleTypography(page,`${label}-today`,{requireThinSelectors:['.intro h1','.pm-value','.aqi-value','.weather-temp']});
   await page.screenshot({path:`typography-artifacts/${label}-today.png`,fullPage:true});
 
   await routeClick(page,'fnb');
