@@ -94,6 +94,21 @@ body[data-route="fnb"] .fnb-section-rail .fnb-chip.is-active{
 }
 body[data-route="fnb"] .fnb-section-rail .fnb-chip:active{transform:scale(.98)!important}
 
+/* Visible F&B action controls use the same rounded-rectangle family. */
+body[data-route="fnb"] .fnb-expand{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:34px!important;
+  padding:0 12px!important;
+  border:1px solid rgba(250,247,245,.12)!important;
+  border-radius:10px!important;
+  background:rgba(250,247,245,.035)!important;
+}
+body[data-route="fnb"] .fnb-action{border-radius:14px!important}
+body[data-route="fnb"] .fnb-select select{border-radius:12px!important}
+body[data-route="fnb"] .fnb-link-field input{border-radius:12px!important}
+
 @media(max-width:360px){
   #app-footer .app-tabbar{left:7px!important;right:7px!important}
   #app-footer .nav-chip{font-size:.65rem!important;padding-inline:5px!important}
