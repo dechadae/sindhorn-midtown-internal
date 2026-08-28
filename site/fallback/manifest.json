@@ -2,7 +2,7 @@
   "appPack": 2,
   "minimumShell": 17,
   "environmentConfig": 1,
-  "updatedAt": "2026-08-28T08:41:06Z",
+  "updatedAt": "2026-08-28T17:00:00Z",
   "resources": [
     {
       "path": "header.html",
@@ -27,7 +27,7 @@
     {
       "path": "ui.css",
       "contentType": "text/css",
-      "sha256": "e4b9c540e54f3a19af8ddae5411cbaa74d8d698d82fb6763975e24fc03f0c7fd"
+      "sha256": "96c442a24146c0c72e18dd770b05ddfade602f14ce6722944b6abccf5e2d77b4"
     },
     {
       "path": "details.html",

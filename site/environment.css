@@ -10,6 +10,6 @@ body.environment-ready .environment-canvas{opacity:1}
 body.capture-home .environment-stage,body.capture-home #rainPaneSvg{display:none!important}
 
 /* Debug is renderer diagnostics, intentionally independent of guest-facing UI. */
-.environment-debug{position:fixed;z-index:200;right:10px;bottom:max(10px,env(safe-area-inset-bottom));max-width:min(320px,calc(100vw - 20px));padding:10px 12px;border:1px solid rgba(250,247,245,.25);background:rgba(30,25,39,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#FAF7F5;font:500 11px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap;pointer-events:none}
+.environment-debug{position:fixed;z-index:200;right:10px;bottom:max(10px,env(safe-area-inset-bottom));max-width:min(320px,calc(100vw - 20px));padding:10px 12px;border:1px solid rgba(250,247,245,.25);background:rgba(30,25,39,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#FAF7F5;font:400 11px/1.45 var(--font-ui);white-space:pre-wrap;pointer-events:none}
 
 @media(prefers-reduced-motion:reduce){.environment-canvas{transition:none}}
