@@ -43,9 +43,11 @@ async function auditVisibleTypography(page,label,{requireThinSelectors=[]}={}){
   const badFamily=state.typography.filter(x=>!familyOk(x.family));
   const badWeight=state.typography.filter(x=>!allowedWeights.has(x.weight));
   const badTracking=state.typography.filter(x=>!['normal','0px'].includes(x.letterSpacing));
+  const badThin=state.typography.filter(x=>x.weight==='100'&&x.size<44);
   assert(!badFamily.length,`${label} non-LINE Seed text: ${JSON.stringify(badFamily.slice(0,5))}`);
   assert(!badWeight.length,`${label} unsupported computed weights: ${JSON.stringify(badWeight.slice(0,5))}`);
   assert(!badTracking.length,`${label} nonzero tracking: ${JSON.stringify(badTracking.slice(0,5))}`);
+  assert(!badThin.length,`${label} Thin 100 used below 44px: ${JSON.stringify(badThin.slice(0,5))}`);
   assert(state.scrollWidth<=state.width+2,`${label} horizontal overflow ${state.scrollWidth}>${state.width}`);
   const lineFaces=state.faces.filter(face=>familyOk(face.family));
   for(const weight of ['100','400','700'])assert(lineFaces.some(face=>String(face.weight)===weight),`${label} LINE Seed ${weight} face missing`);
@@ -111,7 +113,7 @@ async function inspectAuthenticated(viewport,label){
   await page.screenshot({path:`typography-artifacts/${label}-today.png`,fullPage:true});
 
   await routeClick(page,'fnb');
-  await auditVisibleTypography(page,`${label}-fnb`,{requireThinSelectors:['.fnb-hero h1']});
+  await auditVisibleTypography(page,`${label}-fnb`);
   await page.screenshot({path:`typography-artifacts/${label}-fnb.png`,fullPage:true});
 
   await routeClick(page,'messages');
