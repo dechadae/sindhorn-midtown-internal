@@ -1,8 +1,25 @@
+# Legacy document aliases -> canonical SPA routes.
 /account.html /account 301
 /admin.html /admin 301
 /guidance / 301
 /details / 301
-/fnb /index.html 200
-/messages /index.html 200
-/account /index.html 200
-/admin /index.html 200
+
+# SPA fallback, one line per authenticated route in site/route-registry.js.
+#
+# The target MUST be "/" and not "/index.html": Cloudflare Pages canonicalises
+# /index.html to / with a 308, so a rewrite pointing at /index.html stops being
+# a rewrite and becomes a real redirect. The SPA then loses the requested path
+# before its JavaScript runs, which is what broke direct loads of every route.
+#
+# These MUST stay explicit. A catch-all ("/* / 200") looks tidier but Cloudflare
+# Pages evaluates splat rules ahead of static assets, so it serves this HTML for
+# /sw.js, /login.html and every stylesheet and module - the whole app goes dark.
+# Verified on a preview deploy, caught by the smoke test.
+#
+# Adding a route? Add it to route-registry.js and here. The deploy workflow
+# asserts the two stay in sync, so a missing line fails the build rather than
+# shipping a route that 308s to Today.
+/fnb / 200
+/messages / 200
+/account / 200
+/admin / 200
