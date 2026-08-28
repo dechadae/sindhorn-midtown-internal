@@ -83,6 +83,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # Workflow files are updated separately through the GitHub connector;
+          # the Actions token intentionally lacks workflow-write permission.
+          git restore .github/workflows/deploy.yml .github/workflows/launch-hardening.yml
           git config user.name "dechadae"
           git config user.email "decha.dae@gmail.com"
           git add -A
