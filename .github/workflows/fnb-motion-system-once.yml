@@ -35,8 +35,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          git checkout -- .github/workflows/fnb-live-preview.yml
           git config user.name "dechadae"
           git config user.email "decha.dae@gmail.com"
-          git add site/fnb.js site/fnb.css site/footer-route-guard.css site/footer-route-guard.js site/index.html site/sw.js .github/workflows/fnb-live-preview.yml
+          git add site/fnb.js site/fnb.css site/footer-route-guard.css site/footer-route-guard.js site/index.html site/sw.js
           git commit -m "Standardize F&B motion, scrollspy and controls"
           git push origin HEAD:fnb-live-integration
