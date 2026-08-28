@@ -1,5 +1,5 @@
-const FOOTER_VERSION='sindhorn-footer-v5-fnb-direct';
-const FNB_MODULE_URL='/fnb.js?v=5';
+const FOOTER_VERSION='sindhorn-footer-v6-fnb-motion';
+const FNB_MODULE_URL='/fnb.js?v=6';
 const NAV_ITEMS=[
   {route:'today',label:'Today',href:'/'},
   {route:'fnb',label:'F&B',direct:true},
@@ -64,7 +64,7 @@ async function openFnb({historyMode='push'}={}){
   fnbOpening=(async()=>{
     const host=document.getElementById('route-view');
     if(!host)throw new Error('F&B route host unavailable');
-    const module=await import(FNB_MODULE_URL);
+    const module=await import(`${FNB_MODULE_URL}&ui=2`);
     if(typeof module.mountFnbRoute!=='function')throw new Error('F&B module unavailable');
     await fadeHost(host,1,0,120);
     if(typeof fnbCleanup==='function'){try{await fnbCleanup()}catch(_){}}
