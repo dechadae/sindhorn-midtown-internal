@@ -21,7 +21,7 @@ async function routeOnlyFade(host,commit,token){
   try{outAnimation=host.animate([{opacity:1},{opacity:0}],{duration:outMs,easing:'cubic-bezier(.4,0,1,1)',fill:'forwards'});await outAnimation.finished}catch(_){}
   if(token!==transitionToken)return;
   host.style.opacity='0';outAnimation?.cancel();
-  await commit();
+  try{await commit()}catch(error){host.style.removeProperty('opacity');throw error}
   if(token!==transitionToken){host.style.removeProperty('opacity');return}
   try{inAnimation=host.animate([{opacity:0},{opacity:1}],{duration:inMs,easing,fill:'forwards'});await inAnimation.finished}catch(_){}
   if(token===transitionToken){inAnimation?.cancel();host.style.removeProperty('opacity')}
@@ -33,8 +33,8 @@ export async function transitionToRoute(route,{historyMode='push',scroll=true}={
   const token=++transitionToken,host=routeHost();let committed=false;
   const commit=async()=>{if(committed)return true;committed=true;return commitRoute(route,{historyMode,scroll})};
   document.documentElement.dataset.appTransitioning='true';
-  try{await routeOnlyFade(host,commit,token)}catch(_){if(token===transitionToken&&!committed)await commit()}
-  finally{if(token===transitionToken)delete document.documentElement.dataset.appTransitioning}
+  try{await routeOnlyFade(host,commit,token)}catch(error){if(token===transitionToken&&!committed)await commit();else console.warn('Sindhorn route transition failed',error)}
+  finally{if(token===transitionToken){host?.style.removeProperty('opacity');delete document.documentElement.dataset.appTransitioning}}
 }
 function eligibleClick(event){return event.button===0&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&!event.altKey}
 function documentTone(url){return url.pathname.startsWith('/login')?'plum':'paper'}
