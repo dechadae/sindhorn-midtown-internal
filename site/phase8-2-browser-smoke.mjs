@@ -3,6 +3,14 @@ import { chromium } from 'playwright';
 
 const base=process.env.PHASE82_BASE_URL;
 if(!base)throw new Error('PHASE82_BASE_URL required');
+// Every authenticated route redirects to /login.html when there is no session,
+// so the renderer cannot be reached at all without signing in first. These come
+// from the CI_SMOKE_* Actions secrets and belong to a dedicated non-admin
+// service employee (role "employee", account_type "service"), never a real person.
+const smokeEmployeeNumber=process.env.CI_SMOKE_EMPLOYEE_NUMBER;
+const smokePin=process.env.CI_SMOKE_PIN;
+if(!smokeEmployeeNumber||!smokePin)throw new Error('CI_SMOKE_EMPLOYEE_NUMBER and CI_SMOKE_PIN required');
+if(!/^[0-9]{6}$/.test(smokePin))throw new Error('CI_SMOKE_PIN must be six digits');
 fs.mkdirSync('phase82-artifacts',{recursive:true});
 const browser=await chromium.launch({
   headless:true,
@@ -41,6 +49,16 @@ async function sampleFrames(page,label,count=30,timeoutMs=15000){
   return{frameAverageMs:+avg.toFixed(2),frameP95Ms:+p95.toFixed(2),frameSamples:samples.length,timedOut:result.timedOut,label};
 }
 
+// Signs in through the real PIN form rather than injecting a session, so the
+// authenticated boot path itself stays covered by this gate.
+async function signIn(page){
+  await page.goto(`${base}/login.html`,{waitUntil:'domcontentloaded',timeout:45000});
+  await page.fill('#employeeNumber',smokeEmployeeNumber);
+  for(let i=0;i<6;i++)await page.fill(`[data-pin-login-digit="${i}"]`,smokePin[i]);
+  await page.click('#pinLoginButton');
+  await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:20000});
+}
+
 // Verifies the deployed production/preview candidate directly at "/", using
 // live astronomy/weather/AirBKK state rather than a forced sun angle. There is
 // no standalone atmosphere tester page anymore (removed 2026-08-28): all
@@ -49,7 +67,10 @@ async function inspectLive(viewport,name){
   const page=await browser.newPage({viewport,screen:viewport});
   page.on('pageerror',err=>errors.push(`${name}: ${err.message}`));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(`${name} console: ${msg.text()}`)});
-  await page.goto(`${base}/?debug=1`,{waitUntil:'domcontentloaded',timeout:45000});
+  await signIn(page);
+  // Stay on the page the sign-in redirect already landed on rather than
+  // navigating again: a second full navigation right after login intermittently
+  // bounces back to /login, seemingly a session-hydration race on reload.
   await page.waitForFunction(()=>document.body.classList.contains('environment-ready'),null,{timeout:30000});
   await page.waitForFunction(()=>{
     const state=window.SindhornLiveData?.getState?.();

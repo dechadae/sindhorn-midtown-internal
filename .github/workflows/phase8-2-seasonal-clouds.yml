@@ -129,6 +129,9 @@ jobs:
 
       - name: Browser rendering and frame-pacing review
         shell: bash
+        env:
+          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
+          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
         run: |
           SAFE_BRANCH="${GITHUB_REF_NAME:0:28}"
           export PHASE82_BASE_URL="https://${SAFE_BRANCH}.sindhorn-midtown-internal.pages.dev"
@@ -210,6 +213,8 @@ jobs:
       - name: Production browser rendering and frame-pacing review
         env:
           PHASE82_BASE_URL: https://sindhorn-midtown-internal.pages.dev
+          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
+          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
         run: node site/phase8-2-browser-smoke.mjs
 
       - name: Upload production Phase 8.2 visual evidence
