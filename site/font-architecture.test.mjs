@@ -26,8 +26,8 @@ function walk(dir){
 for(const file of walk(site)){
   const ext=path.extname(file);
   if(!textExtensions.has(ext))continue;
-  // third-party/minified renderer bundles are not typography sources.
-  if(file.endsWith('environment.bundle.js')||file.endsWith('font-architecture.test.mjs'))continue;
+  // Bundled third-party renderer code and regression harnesses are not production typography sources.
+  if(file.endsWith('environment.bundle.js')||file.endsWith('font-architecture.test.mjs')||file.endsWith('typography-browser-smoke.mjs'))continue;
   const text=fs.readFileSync(file,'utf8');
   if(banned.test(text))errors.push(`${path.relative(site,file)} contains retired family`);
   if(oldAsset.test(text))errors.push(`${path.relative(site,file)} contains retired font asset`);
