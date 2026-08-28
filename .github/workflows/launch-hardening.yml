@@ -53,7 +53,8 @@ jobs:
           assert "fnb:Object.freeze({path:'/fnb'" in registry and "messages:Object.freeze({path:'/messages'" in registry
           assert "mount:'mountFnbRoute'" in registry and "kind:'local'" in registry
           assert "routeLink.dataset.appRoute" in transitions and 'transitionToRoute' in transitions
-          assert "sindhorn-footer-v2" in footer_guard and "route:'fnb'" in footer_guard and "route:'messages'" in footer_guard
+          assert "sindhorn-footer-v3-anchor" in footer_guard and "route:'fnb'" in footer_guard and "route:'messages'" in footer_guard
+          assert "document.createElement('a')" in footer_guard and 'control.href=item.href' in footer_guard and 'fnbFallback' not in footer_guard
           assert 'grid-template-columns:repeat(3,minmax(0,1fr))!important' in footer_css and 'height:44px!important' in footer_css
           for item in fallback['resources']: assert hashlib.sha256((root/'fallback'/item['path']).read_bytes()).hexdigest()==item['sha256'],item['path']
           fallback_today=(root/'fallback'/'today.html').read_text(); assert 'saveImageBtn' not in fallback_today and 'report-actionbar' not in fallback_today
@@ -62,7 +63,7 @@ jobs:
           for token in ('sindhorn-midtown-notification-inbox','messageList','messageClearBtn','SINDHORN_NOTIFICATION_STORED','markAllRead'): assert token in inbox
           push=(root/'push-client.js').read_text(); assert 'pushManager.subscribe' in push and 'enableFromGesture' in push and 'Notification.requestPermission' not in push and 'PREPARE_TIMEOUT_MS' in push
           index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); env=(root/'environment.js').read_text(); shader=(root/'atmosphere-shader.js').read_text()
-          assert '/footer-route-guard.js?v=1' in index and '/footer-route-guard.css?v=1' in index
+          assert '/footer-route-guard.js?v=2' in index and '/footer-route-guard.css?v=2' in index
           assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index and '/storm-effects.js' not in index
           assert "'/sky-calibration.js'" not in sw and "'/sky-color-renderer.js'" not in sw and "'/storm-effects.js'" not in sw
           assert 'pwa-v23-bangkok-seasonal-clouds' in sw and "'/atmosphere-shader.js'" in sw and "'/seasonal-sky.js'" in sw
@@ -94,9 +95,11 @@ jobs:
               && curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/notification-inbox.js" -o /tmp/notification-inbox.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
-              && grep -q '/footer-route-guard.js?v=1' /tmp/root.html \
+              && grep -q '/footer-route-guard.js?v=2' /tmp/root.html \
               && grep -q "path:'/fnb'" /tmp/route-registry.js \
-              && grep -q 'sindhorn-footer-v2' /tmp/footer-route-guard.js \
+              && grep -q 'sindhorn-footer-v3-anchor' /tmp/footer-route-guard.js \
+              && grep -q "document.createElement('a')" /tmp/footer-route-guard.js \
+              && ! grep -q 'fnbFallback' /tmp/footer-route-guard.js \
               && grep -q 'height:44px!important' /tmp/footer-route-guard.css \
               && grep -q 'mountFnbRoute' /tmp/fnb.js \
               && grep -q 'FNB_PROMOTIONS' /tmp/fnb-data.js \
