@@ -6,7 +6,9 @@ html,body,button,input,select,textarea,option,dialog{font-family:var(--font-ui)!
 body *{font-family:var(--font-ui)!important;font-synthesis:none}
 *,*::before,*::after{letter-spacing:0!important}
 :lang(th),[lang="th"]{font-family:var(--font-ui)!important;letter-spacing:0!important;word-break:normal;overflow-wrap:normal;line-break:loose}
-/* Thin is reserved for large premium atmospheric/display typography. */
-.intro>h1,.route-hero>h1,.pm-value,.aqi-value,.weather-temp,.category-en,.fnb-hero h1,.fnb-detail-title{font-weight:100!important}
+/* Thin is reserved for genuinely large premium atmospheric/display typography. */
+.intro>h1,.route-hero>h1,.pm-value,.aqi-value,.weather-temp,.category-en{font-weight:100!important}
+/* F&B display sizes top out at 44px, so Regular is more legible there. */
+.fnb-hero h1,.fnb-detail-title,.fnb-section-title{font-weight:400!important}
 /* Keep the smallest fluid Thin status display at a legible 44px minimum. */
 .category-en{font-size:clamp(2.75rem,12vw,5rem)!important}
