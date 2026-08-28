@@ -3,8 +3,8 @@ varying vec2 vUv;
 void main(){vUv=uv;gl_Position=vec4(position,1.0);}
 `;
 
-// Phase 8.2 shared cloud/sky renderer. The cloud field uses a small deterministic
-// bilinear noise texture. Each active cloud family uses two shared RGBA samples;
+// Phase 8.2 shared cloud/sky renderer. The cloud field uses a deterministic
+// hierarchical noise texture. Each active cloud family uses two shared RGBA samples;
 // inactive families are skipped through uniform branches. This preserves all
 // three morphology families at fixed DPR 2 while bounding fragment cost.
 export const ATMOSPHERE_FRAGMENT_SHADER=`
@@ -71,10 +71,10 @@ void main(){
     vec2 lp=(p+drift*.44)*vec2(.78,1.02/max(.3,uLowBuild))*max(.2,uLowScale);
     vec4 l0=noise4(lp*.047+vec2(.337,.149));vec4 l1=noise4(lp*.103+vec2(.097,.463));
     float lb=l0.b*.68+l0.r*.32;float ll=l0.a*.44+l1.g*.36+l1.b*.20;float lf=lb*.58+ll*.32+l1.r*.10+horizon*.08*sat(uLowBuild-1.0);
-    float lt=mix(.83,.34,sat(uLowCoverage))-uConnected*.13;float low=smoothstep(lt-.10/max(.7,uCloudContrast),lt+.10/max(.7,uCloudContrast),lf);
+    float lt=mix(.83,.34,sat(uLowCoverage));lt-=uConnected*.13;float low=smoothstep(lt-.125/max(.7,uCloudContrast),lt+.125/max(.7,uCloudContrast),lf);
     float connectedDeck=smoothstep(.36,.72,lb*.68+ll*.32)*uConnected*smoothstep(.18,.72,uLowCoverage);low=max(low,connectedDeck);
     float crown=smoothstep(.48,.78,lf+.08*l1.r);float lowRim=sat(low-smoothstep(lt+.06,lt+.26,lf));float lowBottom=sat((1.0-uv.y)*.70+.28*(1.0-crown));
-    vec3 lowCol=mix(uCloudBase*mix(1.0,.48,uBaseDarkness),uCloudAmbient,sat(crown*.72));lowCol*=1.0-lowBottom*uBaseDarkness*.34;float leak=sunNear*lowSun*uLightLeaks*(1.0-uConnected*.55);lowCol=mix(lowCol,uCloudWarm,sat(leak*.72));lowCol+=uCloudWarm*lowRim*lowSun*uLightLeaks*.18;lowCol=mix(lowCol,vec3(.10,.11,.15),sat(uStorm*.82+night*.66));
+    vec3 lowCol=mix(uCloudBase*mix(1.0,.58,uBaseDarkness),uCloudAmbient,sat(crown*.72));lowCol*=1.0-lowBottom*uBaseDarkness*.26;lowCol*=1.0+(ll-.5)*.08;float leak=sunNear*lowSun*uLightLeaks*(1.0-uConnected*.55);lowCol=mix(lowCol,uCloudWarm,sat(leak*.72));lowCol+=uCloudWarm*lowRim*lowSun*uLightLeaks*.18;lowCol=mix(lowCol,vec3(.10,.11,.15),sat(uStorm*.82+night*.66));
     lowA=sat(low*uLowOpacity);c=mix(c,lowCol,lowA);
   }
 
@@ -102,9 +102,18 @@ void main(){
   gl_FragColor=vec4(clamp(c,0.0,1.0),1.0);
 }`;
 
-export function createAtmosphereNoiseTexture(THREE,size=128){
-  const data=new Uint8Array(size*size*4);let seed=0x2f6e2b1d;
+export function createAtmosphereNoiseTexture(THREE,size=256){
+  const baseSize=Math.min(128,size),base=new Uint8Array(baseSize*baseSize*4),data=new Uint8Array(size*size*4);let seed=0x2f6e2b1d;
   const rand=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return(seed>>>24)&255};
-  for(let i=0;i<data.length;i++)data[i]=rand();
+  for(let i=0;i<base.length;i++)base[i]=rand();
+  let fineSeed=0x7f4a7c15;const fine=()=>{fineSeed=(Math.imul(fineSeed,1103515245)+12345)>>>0;return(fineSeed>>>24)&255};
+  const idx=(x,y,c)=>((y%baseSize)*baseSize+(x%baseSize))*4+c;
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++){
+    const gx=x*baseSize/size,gy=y*baseSize/size,x0=Math.floor(gx)%baseSize,y0=Math.floor(gy)%baseSize,x1=(x0+1)%baseSize,y1=(y0+1)%baseSize,tx=gx-Math.floor(gx),ty=gy-Math.floor(gy);
+    for(let c=0;c<4;c++){
+      const a=base[idx(x0,y0,c)]*(1-tx)+base[idx(x1,y0,c)]*tx,b=base[idx(x0,y1,c)]*(1-tx)+base[idx(x1,y1,c)]*tx,v=a*(1-ty)+b*ty+(fine()/255-.5)*14;
+      data[(y*size+x)*4+c]=Math.max(0,Math.min(255,Math.round(v)));
+    }
+  }
   const texture=new THREE.DataTexture(data,size,size,THREE.RGBAFormat);texture.wrapS=texture.wrapT=THREE.RepeatWrapping;texture.minFilter=texture.magFilter=THREE.LinearFilter;texture.generateMipmaps=false;texture.needsUpdate=true;return texture;
 }
