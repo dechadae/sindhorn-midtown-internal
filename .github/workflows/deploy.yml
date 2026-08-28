@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - design-unification-pass
       - today-guidance-details-fnb
       - phase9-single-shell-router
       - hotfix-phase9-deploy-gate
