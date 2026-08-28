@@ -2,19 +2,21 @@
 #app-footer .app-tabbar{
   position:fixed!important;
   z-index:140!important;
-  left:0!important;
-  right:0!important;
-  bottom:0!important;
+  left:10px!important;
+  right:10px!important;
+  bottom:calc(8px + env(safe-area-inset-bottom))!important;
   display:grid!important;
   grid-template-columns:repeat(3,minmax(0,1fr))!important;
   align-items:center!important;
-  gap:0!important;
-  min-height:58px!important;
-  padding:4px max(12px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-right))!important;
-  border-top:1px solid rgba(250,247,245,.12)!important;
-  background:rgba(46,39,59,.76)!important;
-  backdrop-filter:blur(22px) saturate(1.22)!important;
-  -webkit-backdrop-filter:blur(22px) saturate(1.22)!important;
+  gap:4px!important;
+  min-height:52px!important;
+  padding:5px!important;
+  border:1px solid rgba(250,247,245,.11)!important;
+  border-radius:18px!important;
+  background:rgba(38,32,49,.82)!important;
+  box-shadow:0 14px 34px rgba(12,9,18,.24),inset 0 1px 0 rgba(250,247,245,.035)!important;
+  backdrop-filter:blur(24px) saturate(1.22)!important;
+  -webkit-backdrop-filter:blur(24px) saturate(1.22)!important;
 }
 #app-footer .nav-chip{
   position:relative!important;
@@ -24,14 +26,14 @@
   width:100%!important;
   max-width:none!important;
   min-width:0!important;
-  height:44px!important;
-  min-height:44px!important;
+  height:42px!important;
+  min-height:42px!important;
   padding:0 8px!important;
   margin:0!important;
   border:0!important;
-  border-radius:0!important;
+  border-radius:13px!important;
   background:transparent!important;
-  color:rgba(250,247,245,.50)!important;
+  color:rgba(250,247,245,.52)!important;
   text-decoration:none!important;
   font:inherit!important;
   font-size:.69rem!important;
@@ -41,80 +43,63 @@
   letter-spacing:0!important;
   white-space:nowrap!important;
   cursor:pointer!important;
-  transition:color .22s cubic-bezier(.22,1,.36,1),opacity .22s ease,transform .12s ease!important;
-}
-#app-footer .nav-chip::after{
-  content:""!important;
-  position:absolute!important;
-  left:50%!important;
-  bottom:2px!important;
-  width:0!important;
-  height:1px!important;
-  border-radius:999px!important;
-  background:#E5ECBE!important;
-  opacity:0!important;
-  transform:translateX(-50%)!important;
-  transition:width .24s cubic-bezier(.22,1,.36,1),opacity .2s ease!important;
+  transition:background .24s cubic-bezier(.22,1,.36,1),box-shadow .24s cubic-bezier(.22,1,.36,1),color .2s ease,transform .12s ease!important;
 }
 #app-footer .nav-chip>span{display:flex!important;align-items:center!important;justify-content:center!important;height:100%!important;line-height:1!important}
 #app-footer .nav-chip small{display:none!important}
-#app-footer .nav-chip:active{transform:translateY(1px)!important;opacity:.72!important}
-#app-footer .nav-chip[aria-current]{color:#E5ECBE!important;background:transparent!important}
-#app-footer .nav-chip[aria-current]::after{width:24px!important;opacity:.9!important}
-#app-footer .message-badge{position:absolute!important;top:7px!important;right:24%!important}
-body{padding-bottom:calc(60px + env(safe-area-inset-bottom))!important}
+#app-footer .nav-chip:active{transform:scale(.98)!important}
+#app-footer .nav-chip[aria-current]{
+  color:#E5ECBE!important;
+  background:linear-gradient(180deg,rgba(229,236,190,.12),rgba(229,236,190,.055))!important;
+  box-shadow:inset 0 0 0 1px rgba(229,236,190,.14),0 6px 18px rgba(10,8,14,.10)!important;
+}
+#app-footer .message-badge{position:absolute!important;top:6px!important;right:20%!important}
+body{padding-bottom:calc(70px + env(safe-area-inset-bottom))!important}
 
-/* On F&B detail pages the contextual rail becomes the upper tier of the same tab system. */
+/* F&B detail contextual rail: compact rounded buttons floating above the app dock. */
 body[data-route="fnb"] .fnb-section-rail{
-  bottom:calc(58px + env(safe-area-inset-bottom))!important;
-  min-height:42px!important;
-  padding:0 max(12px,env(safe-area-inset-left))!important;
-  gap:0!important;
-  border-top:1px solid rgba(250,247,245,.10)!important;
-  background:rgba(46,39,59,.70)!important;
-  backdrop-filter:blur(20px) saturate(1.2)!important;
-  -webkit-backdrop-filter:blur(20px) saturate(1.2)!important;
+  left:10px!important;
+  right:10px!important;
+  bottom:calc(68px + env(safe-area-inset-bottom))!important;
+  min-height:44px!important;
+  padding:4px!important;
+  gap:4px!important;
+  border:1px solid rgba(250,247,245,.10)!important;
+  border-radius:15px!important;
+  background:rgba(38,32,49,.76)!important;
+  box-shadow:0 10px 26px rgba(12,9,18,.16),inset 0 1px 0 rgba(250,247,245,.025)!important;
+  backdrop-filter:blur(22px) saturate(1.18)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(1.18)!important;
 }
 body[data-route="fnb"] .fnb-section-rail .fnb-chip{
-  position:relative!important;
   flex:1 1 0!important;
   max-width:none!important;
-  height:42px!important;
-  min-height:42px!important;
+  height:36px!important;
+  min-height:36px!important;
   padding:0 6px!important;
   border:0!important;
-  border-radius:0!important;
+  border-radius:10px!important;
   background:transparent!important;
   color:rgba(250,247,245,.46)!important;
   font-size:.66rem!important;
   font-weight:400!important;
   letter-spacing:0!important;
   text-transform:none!important;
-  transition:color .2s ease,opacity .2s ease!important;
+  transition:background .22s cubic-bezier(.22,1,.36,1),box-shadow .22s cubic-bezier(.22,1,.36,1),color .18s ease,transform .12s ease!important;
 }
-body[data-route="fnb"] .fnb-section-rail .fnb-chip::after{
-  content:""!important;
-  position:absolute!important;
-  left:50%!important;
-  bottom:3px!important;
-  width:0!important;
-  height:1px!important;
-  border-radius:999px!important;
-  background:#E5ECBE!important;
-  opacity:0!important;
-  transform:translateX(-50%)!important;
-  transition:width .24s cubic-bezier(.22,1,.36,1),opacity .2s ease!important;
+body[data-route="fnb"] .fnb-section-rail .fnb-chip.is-active{
+  color:#E5ECBE!important;
+  background:rgba(229,236,190,.10)!important;
+  box-shadow:inset 0 0 0 1px rgba(229,236,190,.12)!important;
 }
-body[data-route="fnb"] .fnb-section-rail .fnb-chip.is-active{color:#E5ECBE!important;background:transparent!important}
-body[data-route="fnb"] .fnb-section-rail .fnb-chip.is-active::after{width:22px!important;opacity:.9!important}
-body[data-route="fnb"] .fnb-section-rail .fnb-chip:active{transform:none!important;opacity:.68!important}
+body[data-route="fnb"] .fnb-section-rail .fnb-chip:active{transform:scale(.98)!important}
 
 @media(max-width:360px){
-  #app-footer .app-tabbar{padding-left:8px!important;padding-right:8px!important}
+  #app-footer .app-tabbar{left:7px!important;right:7px!important}
   #app-footer .nav-chip{font-size:.65rem!important;padding-inline:5px!important}
-  body[data-route="fnb"] .fnb-section-rail{padding-left:8px!important;padding-right:8px!important}
+  body[data-route="fnb"] .fnb-section-rail{left:7px!important;right:7px!important}
   body[data-route="fnb"] .fnb-section-rail .fnb-chip{font-size:.62rem!important;padding-inline:4px!important}
 }
 @media(prefers-reduced-motion:reduce){
-  #app-footer .nav-chip,#app-footer .nav-chip::after,body[data-route="fnb"] .fnb-section-rail .fnb-chip,body[data-route="fnb"] .fnb-section-rail .fnb-chip::after{transition:none!important}
+  #app-footer .nav-chip,body[data-route="fnb"] .fnb-section-rail .fnb-chip{transition:none!important}
 }
