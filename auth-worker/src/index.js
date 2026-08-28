@@ -21,7 +21,7 @@ async function requestJson(request){
   const text=await request.text();if(text.length>MAX_BODY_BYTES)throw new Error('request_too_large');
   try{return JSON.parse(text||'{}')}catch(_){throw new Error('invalid_json')}
 }
-function genericActivationError(origin,env,status=401){return json({ok:false,error:'activation_invalid',message:'Employee ID or activation code is invalid, expired, or temporarily locked.',messageTh:'รหัสพนักงานหรือรหัสเปิดใช้งานไม่ถูกต้อง หมดอายุ หรือถูกล็อกชั่วคราว'},status,origin,env)}
+function genericActivationError(origin,env,status=401){return json({ok:false,error:'activation_invalid',message:'Employee ID or activation code is invalid, expired, or temporarily locked.'},status,origin,env)}
 function safeText(value,max=320){return String(value??'').trim().slice(0,max)}
 
 async function resolveEmployeeByAuthUser(client,userId){
@@ -68,7 +68,7 @@ async function upsertEmployeeIdIdentity(client,{employeeId,userId,email}){
 async function handleActivate(request,env,origin){
   if(!configured(env))return json({ok:false,error:'service_not_configured'},503,origin,env);
   const rate=await consumeActivationAttempt(env,request);
-  if(!rate.allowed)return json({ok:false,error:'too_many_attempts',retryAfter:rate.retryAfter,message:'Too many activation attempts. Try again later.',messageTh:'ลองเปิดใช้งานหลายครั้งเกินไป กรุณาลองใหม่ภายหลัง'},429,origin,env);
+  if(!rate.allowed)return json({ok:false,error:'too_many_attempts',retryAfter:rate.retryAfter,message:'Too many activation attempts. Try again later.'},429,origin,env);
 
   let body;try{body=await requestJson(request)}catch(error){return json({ok:false,error:String(error.message||error)},400,origin,env)}
   const employeeNumber=normalizeEmployeeNumber(body.employeeNumber),code=normalizeActivationCode(body.code);
@@ -134,7 +134,7 @@ async function handleActivate(request,env,origin){
     await client.rpc('sindhorn_activation_release_claim',{p_employee_id:claim.employee_id,p_claim_hash:claimHash}).catch(()=>{});
     if(createdNew&&userId)await client.auth.admin.deleteUser(userId).catch(()=>{});
     console.error('activation broker failure',String(error?.message||error));
-    return json({ok:false,error:'activation_unavailable',message:'Activation could not be completed. Please try again or ask an administrator for a new code.',messageTh:'ไม่สามารถเปิดใช้งานได้ กรุณาลองใหม่หรือติดต่อผู้ดูแลเพื่อขอรหัสใหม่'},503,origin,env);
+    return json({ok:false,error:'activation_unavailable',message:'Activation could not be completed. Please try again or ask an administrator for a new code.'},503,origin,env);
   }
 }
 
@@ -160,7 +160,7 @@ async function handleMicrosoftLink(request,env,origin){
 
   const {data:employee,error:employeeError}=await client.from('sindhorn_employees').select('id,employee_number,display_name,work_email,account_type,department_id,role,active,preferred_language,activated_at').eq('work_email',azure.email).eq('active',true).maybeSingle();
   if(employeeError)return json({ok:false,error:'identity_lookup_failed'},503,origin,env);
-  if(!employee)return json({ok:false,error:'employee_not_provisioned',message:'This Microsoft 365 account has not been provisioned for Sindhorn Midtown Internal.',messageTh:'บัญชี Microsoft 365 นี้ยังไม่ได้รับสิทธิ์ใช้งาน Sindhorn Midtown Internal'},403,origin,env);
+  if(!employee)return json({ok:false,error:'employee_not_provisioned',message:'This Microsoft 365 account has not been provisioned for Sindhorn Midtown Internal.'},403,origin,env);
 
   const {data:byUser,error:byUserError}=await client.from('sindhorn_employee_identities').select('id,employee_id,login_method,auth_user_id').eq('auth_user_id',user.id).maybeSingle();
   if(byUserError)return json({ok:false,error:'identity_lookup_failed'},503,origin,env);

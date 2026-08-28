@@ -1,14 +1,10 @@
 import {activate,getState,initAuth,setPermanentPin,signInWithPin,signOut} from './auth-client.js';
 
-const copy={
-  en:{eyebrow:'Internal employee access',title:'Employee sign in.',supportPin:'Enter your Employee ID and permanent 6-digit code.',supportOtp:'Enter your Employee ID and the one-time code provided by an administrator.',employeeId:'Employee ID',permanentCode:'Permanent code',oneTimeCode:'Administrator one-time code',signIn:'Sign in',continue:'Continue',useOneTime:'First time or forgot your code? Use an administrator one-time code.',oneTimeHint:'The administrator code works once and expires after 15 minutes. After verification, you will create a new permanent code.',usePermanent:'Back to permanent code sign in',setupKicker:'Secure your account',setupTitle:'Create your permanent code.',setupSupport:'Choose a 6-digit code you will use with your Employee ID for future sign-ins.',newCode:'New permanent code',confirmCode:'Confirm permanent code',saveCode:'Save code & open app',pinSafety:'Your permanent code is stored only as a secure hash. Five failed attempts temporarily lock PIN sign-in for 15 minutes.',openApp:'Open app',admin:'Admin',signOut:'Sign out',working:'Signing you in…',checkingOtp:'Checking one-time code…',savingPin:'Saving your permanent code…',success:'Signed in successfully.',pinReady:'Permanent code saved.',badPin:'Check your Employee ID and permanent code, then try again. If needed, use an administrator one-time code.',badCode:'Check your Employee ID and administrator one-time code, then try again. Ask an administrator for a new code if it has expired.',pinMismatch:'The two permanent codes do not match.',pinLength:'Enter all 6 digits of your permanent code.',genericError:'Sign-in could not be completed. Please try again.'},
-  th:{eyebrow:'สำหรับพนักงาน',title:'เข้าสู่ระบบพนักงาน',supportPin:'กรอกรหัสพนักงานและรหัสถาวร 6 หลัก',supportOtp:'กรอกรหัสพนักงานและรหัสใช้ครั้งเดียวที่ได้รับจากผู้ดูแลระบบ',employeeId:'รหัสพนักงาน',permanentCode:'รหัสถาวร',oneTimeCode:'รหัสใช้ครั้งเดียวจากผู้ดูแลระบบ',signIn:'เข้าสู่ระบบ',continue:'ดำเนินการต่อ',useOneTime:'เข้าสู่ระบบครั้งแรกหรือลืมรหัส? ใช้รหัสครั้งเดียวจากผู้ดูแลระบบ',oneTimeHint:'รหัสจากผู้ดูแลระบบใช้ได้ครั้งเดียวและหมดอายุภายใน 15 นาที หลังยืนยันแล้วให้ตั้งรหัสถาวรใหม่',usePermanent:'กลับไปใช้รหัสถาวร',setupKicker:'รักษาความปลอดภัยบัญชี',setupTitle:'สร้างรหัสถาวรของคุณ',setupSupport:'เลือกรหัส 6 หลักสำหรับใช้คู่กับรหัสพนักงานในการเข้าสู่ระบบครั้งต่อไป',newCode:'รหัสถาวรใหม่',confirmCode:'ยืนยันรหัสถาวร',saveCode:'บันทึกรหัสและเปิดแอป',pinSafety:'ระบบเก็บรหัสถาวรเป็นค่าแฮชที่ปลอดภัยเท่านั้น หากกรอกรหัสผิด 5 ครั้ง การเข้าสู่ระบบด้วยรหัสถาวรจะถูกล็อกชั่วคราว 15 นาที',openApp:'เปิดแอป',admin:'ผู้ดูแลระบบ',signOut:'ออกจากระบบ',working:'กำลังเข้าสู่ระบบ…',checkingOtp:'กำลังตรวจสอบรหัสครั้งเดียว…',savingPin:'กำลังบันทึกรหัสถาวร…',success:'เข้าสู่ระบบสำเร็จ',pinReady:'บันทึกรหัสถาวรแล้ว',badPin:'กรุณาตรวจสอบรหัสพนักงานและรหัสถาวร หากจำไม่ได้ให้ใช้รหัสครั้งเดียวจากผู้ดูแลระบบ',badCode:'กรุณาตรวจสอบรหัสพนักงานและรหัสใช้ครั้งเดียว หากรหัสหมดอายุให้ขอรหัสใหม่จากผู้ดูแลระบบ',pinMismatch:'รหัสถาวรทั้งสองชุดไม่ตรงกัน',pinLength:'กรอกรหัสถาวรให้ครบ 6 หลัก',genericError:'ไม่สามารถเข้าสู่ระบบได้ กรุณาลองอีกครั้ง'}
-};
+const COPY={eyebrow:'Internal employee access',title:'Employee sign in.',supportPin:'Enter your Employee ID and permanent 6-digit code.',supportOtp:'Enter your Employee ID and the one-time code provided by an administrator.',employeeId:'Employee ID',permanentCode:'Permanent code',oneTimeCode:'Administrator one-time code',signIn:'Sign in',continue:'Continue',useOneTime:'First time or forgot your code? Use an administrator one-time code.',oneTimeHint:'The administrator code works once and expires after 15 minutes. After verification, you will create a new permanent code.',usePermanent:'Back to permanent code sign in',setupKicker:'Secure your account',setupTitle:'Create your permanent code.',setupSupport:'Choose a 6-digit code you will use with your Employee ID for future sign-ins.',newCode:'New permanent code',confirmCode:'Confirm permanent code',saveCode:'Save code & open app',pinSafety:'Your permanent code is stored only as a secure hash. Five failed attempts temporarily lock PIN sign-in for 15 minutes.',openApp:'Open app',admin:'Admin',signOut:'Sign out',working:'Signing you in…',checkingOtp:'Checking one-time code…',savingPin:'Saving your permanent code…',success:'Signed in successfully.',pinReady:'Permanent code saved.',badPin:'Check your Employee ID and permanent code, then try again. If needed, use an administrator one-time code.',badCode:'Check your Employee ID and administrator one-time code, then try again. Ask an administrator for a new code if it has expired.',pinMismatch:'The two permanent codes do not match.',pinLength:'Enter all 6 digits of your permanent code.',genericError:'Sign-in could not be completed. Please try again.'};
 
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
 const controls=$('#loginControls'),status=$('#status'),signedCard=$('#signedCard'),signedName=$('#signedName'),signedMeta=$('#signedMeta'),adminLink=$('#adminLink'),openAppLink=$('#signedCard .signed-actions a[href="/"]'),pinSetupStep=$('#pinSetupStep');
-let language=(localStorage.getItem('sindhorn-login-language')||((navigator.language||'').toLowerCase().startsWith('th')?'th':'en'))==='th'?'th':'en';
 let mode='pin';
 
 function requestedNext(){
@@ -16,20 +12,14 @@ function requestedNext(){
   if(!value.startsWith('/')||value.startsWith('//')||value.startsWith('/login'))return'/';
   return value;
 }
-function setLanguage(next){
-  language=next==='th'?'th':'en';localStorage.setItem('sindhorn-login-language',language);document.documentElement.lang=language;
-  $$('[data-lang]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.lang===language)));
-  $$('[data-i18n]').forEach(node=>{const key=node.dataset.i18n;if(copy[language][key])node.textContent=copy[language][key]});
-  updateModeCopy();
-}
 function showStatus(message,tone='neutral'){status.textContent=message||'';status.dataset.show=String(Boolean(message));status.dataset.tone=tone}
 function errorMessage(error){
   const code=error?.code||error?.payload?.error||'';
-  if(code==='pin_invalid')return copy[language].badPin;
-  if(code==='activation_invalid'||code==='too_many_attempts')return copy[language].badCode;
-  return copy[language].genericError;
+  if(code==='pin_invalid')return COPY.badPin;
+  if(code==='activation_invalid'||code==='too_many_attempts')return COPY.badCode;
+  return COPY.genericError;
 }
-function updateModeCopy(){$('#loginSupport').textContent=mode==='otp'?copy[language].supportOtp:copy[language].supportPin}
+function updateModeCopy(){$('#loginSupport').textContent=mode==='otp'?COPY.supportOtp:COPY.supportPin}
 function group(selector,hiddenSelector){
   const digits=$$(selector),hidden=$(hiddenSelector);
   const sync=()=>{hidden.value=digits.map(input=>input.value).join('');return hidden.value};
@@ -78,13 +68,12 @@ function renderState(){
   if(state.authenticated&&profile&&!profile.pin_configured_at){showPinSetup();return}
   hidePinSetup();
   if(!state.authenticated||!profile){controls.hidden=false;signedCard.dataset.show='false';return}
-  controls.hidden=true;signedCard.dataset.show='true';showStatus(copy[language].success,'success');
+  controls.hidden=true;signedCard.dataset.show='true';showStatus(COPY.success,'success');
   signedName.textContent=profile.display_name||profile.employee_number;
   signedMeta.textContent=`${profile.employee_number} · ${String(profile.role||'employee').replaceAll('_',' ')}${profile.work_email?` · ${profile.work_email}`:''}`;
   adminLink.classList.toggle('hidden',!['admin','super_admin'].includes(profile.role));
 }
 
-$$('[data-lang]').forEach(button=>button.addEventListener('click',()=>{setLanguage(button.dataset.lang);renderState()}));
 $('#useOneTimeButton').addEventListener('click',()=>setMode('otp'));
 $('#usePermanentButton').addEventListener('click',()=>setMode('pin'));
 consumeInvitationHash();
@@ -92,29 +81,29 @@ $('#employeeForm').addEventListener('submit',async event=>{
   event.preventDefault();showStatus('');
   const employeeNumber=$('#employeeNumber').value.trim();
   if(!employeeNumber){$('#employeeNumber').focus();return}
-  setLoginBusy(true,mode==='otp'?copy[language].checkingOtp:copy[language].working);
+  setLoginBusy(true,mode==='otp'?COPY.checkingOtp:COPY.working);
   try{
     if(mode==='otp'){
-      const code=oneTime.sync();if(code.length!==6){showStatus(copy[language].badCode,'error');oneTime.digits.find(input=>!input.value)?.focus();return}
-      const result=await activate(employeeNumber,code);if(result?.preferredLanguage)setLanguage(result.preferredLanguage);renderState();
+      const code=oneTime.sync();if(code.length!==6){showStatus(COPY.badCode,'error');oneTime.digits.find(input=>!input.value)?.focus();return}
+      const result=await activate(employeeNumber,code);renderState();
     }else{
-      const pin=pinLogin.sync();if(pin.length!==6){showStatus(copy[language].badPin,'error');pinLogin.digits.find(input=>!input.value)?.focus();return}
-      const result=await signInWithPin(employeeNumber,pin);if(result?.preferredLanguage)setLanguage(result.preferredLanguage);renderState();setTimeout(()=>location.assign(requestedNext()),420);
+      const pin=pinLogin.sync();if(pin.length!==6){showStatus(COPY.badPin,'error');pinLogin.digits.find(input=>!input.value)?.focus();return}
+      const result=await signInWithPin(employeeNumber,pin);renderState();setTimeout(()=>location.assign(requestedNext()),420);
     }
   }catch(error){showStatus(errorMessage(error),'error')}
   finally{setLoginBusy(false)}
 });
 $('#pinSetupForm').addEventListener('submit',async event=>{
   event.preventDefault();showStatus('');const pin=newPin.sync(),confirm=confirmPin.sync();
-  if(pin.length!==6||confirm.length!==6){showStatus(copy[language].pinLength,'error');(newPin.digits.find(input=>!input.value)||confirmPin.digits.find(input=>!input.value))?.focus();return}
-  if(pin!==confirm){showStatus(copy[language].pinMismatch,'error');confirmPin.clear();confirmPin.digits[0]?.focus();return}
-  const button=$('#savePinButton');button.disabled=true;showStatus(copy[language].savingPin,'neutral');
-  try{await setPermanentPin(pin);showStatus(copy[language].pinReady,'success');renderState();setTimeout(()=>location.assign(requestedNext()),520)}catch(error){showStatus(errorMessage(error),'error')}
+  if(pin.length!==6||confirm.length!==6){showStatus(COPY.pinLength,'error');(newPin.digits.find(input=>!input.value)||confirmPin.digits.find(input=>!input.value))?.focus();return}
+  if(pin!==confirm){showStatus(COPY.pinMismatch,'error');confirmPin.clear();confirmPin.digits[0]?.focus();return}
+  const button=$('#savePinButton');button.disabled=true;showStatus(COPY.savingPin,'neutral');
+  try{await setPermanentPin(pin);showStatus(COPY.pinReady,'success');renderState();setTimeout(()=>location.assign(requestedNext()),520)}catch(error){showStatus(errorMessage(error),'error')}
   finally{button.disabled=false}
 });
 $('#signOutButton').addEventListener('click',async()=>{await signOut();showStatus('');controls.hidden=false;setMode('pin',{focus:false});renderState()});
 document.addEventListener('sindhorn:auth-changed',renderState);
 
-setLanguage(language);setMode(mode,{focus:false});newPin.setDisabled(true);confirmPin.setDisabled(true);
+setMode(mode,{focus:false});newPin.setDisabled(true);confirmPin.setDisabled(true);
 try{await initAuth()}catch(error){showStatus(errorMessage(error),'error')}
 renderState();

@@ -1,4 +1,0 @@
-/* Stable bilingual reading-order contract.
-   English is always first and visually primary; Thai follows as direct support. */
-.instruction-copy .instruction-en{order:0!important;color:var(--sm-text)!important;font-weight:300!important}
-.instruction-copy .instruction-th{order:1!important;color:var(--sm-muted)!important;font-weight:400!important}

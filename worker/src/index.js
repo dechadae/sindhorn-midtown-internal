@@ -9,11 +9,11 @@ const AIR_OUTAGE_ALERT_MS=60*60*1000;
 const PREVIEW_ORIGIN=/^https:\/\/[a-z0-9-]+\.sindhorn-midtown-internal\.pages\.dev$/i;
 
 const AIR_LEVELS=[
-  {en:'Very good',th:'ดีมาก',guidanceEn:'Normal outdoor activities can continue.',guidanceTh:'สามารถทำกิจกรรมกลางแจ้งได้ตามปกติ'},
-  {en:'Good',th:'ดี',guidanceEn:'Outdoor activities can continue as normal.',guidanceTh:'สามารถทำกิจกรรมกลางแจ้งได้ตามปกติ'},
-  {en:'Moderate',th:'ปานกลาง',guidanceEn:'Consider reducing strenuous outdoor activity.',guidanceTh:'ควรลดระยะเวลาทำกิจกรรมกลางแจ้งที่ใช้แรงมาก'},
-  {en:'Health impact begins',th:'เริ่มมีผลกระทบต่อสุขภาพ',guidanceEn:'Limit outdoor activity and take protective measures.',guidanceTh:'ควรจำกัดกิจกรรมกลางแจ้งและป้องกันตนเอง'},
-  {en:'Unhealthy',th:'มีผลกระทบต่อสุขภาพ',guidanceEn:'Avoid outdoor activity where possible.',guidanceTh:'ควรงดกิจกรรมกลางแจ้งเท่าที่ทำได้'}
+  {en:'Very good',guidanceEn:'Normal outdoor activities can continue.'},
+  {en:'Good',guidanceEn:'Outdoor activities can continue as normal.'},
+  {en:'Moderate',guidanceEn:'Consider reducing strenuous outdoor activity.'},
+  {en:'Health impact begins',guidanceEn:'Limit outdoor activity and take protective measures.'},
+  {en:'Unhealthy',guidanceEn:'Avoid outdoor activity where possible.'}
 ];
 
 function json(data,status=200,origin=''){
@@ -45,19 +45,19 @@ async function fetchAir(){
   let row=null;for(const id of AIR_STATIONS){row=payload.message.find(item=>String(item?.MeasIndex)===id&&validAirRow(item));if(row)break}
   if(!row)throw new Error('No valid AirBKK station reading');
   const pm=finite(row['PM2.5'],0,500),rawAqi=finite(row.aqi,0,500),observed=parseBangkok(row.DateTime),level=airLevel(pm);
-  return{stationId:String(row.MeasIndex),pm,aqi:rawAqi===null?calculatedAqi(pm):Math.round(rawAqi),observedAt:observed.toISOString(),category:level.index,categoryEn:level.en,categoryTh:level.th,guidanceEn:level.guidanceEn,guidanceTh:level.guidanceTh};
+  return{stationId:String(row.MeasIndex),pm,aqi:rawAqi===null?calculatedAqi(pm):Math.round(rawAqi),observedAt:observed.toISOString(),category:level.index,categoryEn:level.en,guidanceEn:level.guidanceEn};
 }
 function weatherSeverity(code,gust){
   const n=Number(code)||0,g=Number(gust)||0;if([95,96,99].includes(n))return 2;if([65,67,82].includes(n)||g>=60)return 1;return 0;
 }
 function weatherLabel(code){
-  const n=Number(code)||0;if([95,96,99].includes(n))return{en:'Thunderstorm',th:'พายุฝนฟ้าคะนอง'};if([65,67,82].includes(n))return{en:'Heavy rain',th:'ฝนตกหนัก'};return{en:'Strong winds',th:'ลมแรง'};
+  const n=Number(code)||0;if([95,96,99].includes(n))return{en:'Thunderstorm'};if([65,67,82].includes(n))return{en:'Heavy rain'};return{en:'Strong winds'};
 }
 async function fetchWeather(){
   const url=new URL('https://api.open-meteo.com/v1/forecast');url.searchParams.set('latitude',String(HOTEL_LAT));url.searchParams.set('longitude',String(HOTEL_LON));url.searchParams.set('current','weather_code,precipitation,rain,showers,cloud_cover,wind_speed_10m,wind_gusts_10m');url.searchParams.set('timezone','Asia/Bangkok');
   const response=await fetch(url,{headers:{accept:'application/json'}});if(!response.ok)throw new Error('Open-Meteo '+response.status);const data=await response.json(),current=data?.current;if(!current)throw new Error('Missing Open-Meteo current state');
   const code=Number(current.weather_code)||0,gust=Number(current.wind_gusts_10m)||0,severity=weatherSeverity(code,gust),label=weatherLabel(code);
-  return{code,severity,labelEn:label.en,labelTh:label.th,precipitation:Number(current.precipitation)||0,rain:Number(current.rain)||0,showers:Number(current.showers)||0,cloudCover:Number(current.cloud_cover)||0,windSpeed:Number(current.wind_speed_10m)||0,windGusts:gust,observedAt:String(current.time||new Date().toISOString())};
+  return{code,severity,labelEn:label.en,precipitation:Number(current.precipitation)||0,rain:Number(current.rain)||0,showers:Number(current.showers)||0,cloudCover:Number(current.cloud_cover)||0,windSpeed:Number(current.wind_speed_10m)||0,windGusts:gust,observedAt:String(current.time||new Date().toISOString())};
 }
 
 function validSubscription(value){
@@ -81,10 +81,10 @@ async function notifyAll(env,payload){
   for(let i=0;i<results.length;i+=40){const batch=results.slice(i,i+40),outcomes=await Promise.allSettled(batch.map(row=>sendOne(env,row,payload)));for(const outcome of outcomes){if(outcome.status==='rejected'){failed++;continue}if(outcome.value?.expired)expired++;else if(outcome.value?.sent)sent++}}
   return{sent,failed,expired,configured:true};
 }
-function airWorsePayload(air){return{kind:'air-quality-worse',tag:'air-quality-alert',route:'/guidance',titleEn:'AIR QUALITY HAS WORSENED',titleTh:'คุณภาพอากาศแย่ลง',bodyEn:`PM2.5 ${air.pm.toFixed(1)} µg/m³ · Thai AQI ${air.aqi}. ${air.guidanceEn}`,bodyTh:`${air.categoryTh} · ${air.guidanceTh}`}}
-function airBetterPayload(air){return{kind:'air-quality-better',tag:'air-quality-alert',route:'/guidance',titleEn:'AIR QUALITY HAS IMPROVED',titleTh:'คุณภาพอากาศดีขึ้น',bodyEn:`PM2.5 ${air.pm.toFixed(1)} µg/m³ · Thai AQI ${air.aqi}. Outdoor plans can be reassessed.`,bodyTh:`${air.categoryTh} · สามารถประเมินแผนกิจกรรมกลางแจ้งอีกครั้งได้`}}
-function weatherPayload(weather){return{kind:'severe-weather',tag:'weather-alert',route:'/',titleEn:'WEATHER ALERT NEAR SINDHORN MIDTOWN',titleTh:'แจ้งเตือนสภาพอากาศใกล้สินธร มิดทาวน์',bodyEn:`${weather.labelEn}. Wind gusts ${Math.round(weather.windGusts)} km/h · precipitation ${weather.precipitation.toFixed(1)} mm.`,bodyTh:`${weather.labelTh} · ลมกระโชก ${Math.round(weather.windGusts)} กม./ชม.`}}
-function outagePayload(){return{kind:'air-data-delay',tag:'air-data-alert',route:'/details',titleEn:'AIR QUALITY DATA DELAY',titleTh:'ข้อมูลคุณภาพอากาศล่าช้า',bodyEn:'AirBKK data has been unavailable for more than one hour. Check the app before making outdoor plans.',bodyTh:'ไม่สามารถรับข้อมูล AirBKK ได้นานกว่าหนึ่งชั่วโมง โปรดตรวจสอบแอปก่อนวางแผนกิจกรรมกลางแจ้ง'}}
+function airWorsePayload(air){return{kind:'air-quality-worse',tag:'air-quality-alert',route:'/guidance',titleEn:'AIR QUALITY HAS WORSENED',bodyEn:`PM2.5 ${air.pm.toFixed(1)} µg/m³ · Thai AQI ${air.aqi}. ${air.guidanceEn}`}}
+function airBetterPayload(air){return{kind:'air-quality-better',tag:'air-quality-alert',route:'/guidance',titleEn:'AIR QUALITY HAS IMPROVED',bodyEn:`PM2.5 ${air.pm.toFixed(1)} µg/m³ · Thai AQI ${air.aqi}. Outdoor plans can be reassessed.`}}
+function weatherPayload(weather){return{kind:'severe-weather',tag:'weather-alert',route:'/',titleEn:'WEATHER ALERT NEAR SINDHORN MIDTOWN',bodyEn:`${weather.labelEn}. Wind gusts ${Math.round(weather.windGusts)} km/h · precipitation ${weather.precipitation.toFixed(1)} mm.`}}
+function outagePayload(){return{kind:'air-data-delay',tag:'air-data-alert',route:'/details',titleEn:'AIR QUALITY DATA DELAY',bodyEn:'AirBKK data has been unavailable for more than one hour. Check the app before making outdoor plans.'}}
 
 async function evaluateAndNotify(env){
   await ensureSchema(env);const now=Date.now(),notifications=[];const [airResult,weatherResult]=await Promise.allSettled([fetchAir(),fetchWeather()]);

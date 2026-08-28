@@ -34,28 +34,25 @@ function ensureWeatherLocation(){
   let row=document.getElementById('weatherLocation');
   if(!row){
     row=document.createElement('p');row.className='weather-location';row.id='weatherLocation';
-    row.innerHTML='<span id="weatherLocationEn"></span><span lang="th" id="weatherLocationTh"></span>';
+    row.innerHTML='<span id="weatherLocationEn"></span>';
     const meta=host.querySelector('.weather-meta');if(meta)host.insertBefore(row,meta);else host.appendChild(row);
   }
   return row;
 }
 function updateWeatherLocation(){
   const row=ensureWeatherLocation();if(!row)return;
-  const en=document.getElementById('weatherLocationEn'),th=document.getElementById('weatherLocationTh');
+  const en=document.getElementById('weatherLocationEn');
   if(state.source==='device'){
     const lat=coordinate(state.latitude,'N','S'),lon=coordinate(state.longitude,'E','W');
     if(en)en.textContent=`Current location · ${lat} · ${lon}`;
-    if(th)th.textContent=`ตำแหน่งปัจจุบัน · ${lat} · ${lon}`;
     return;
   }
   if(state.source==='cached'){
     const lat=coordinate(state.latitude,'N','S'),lon=coordinate(state.longitude,'E','W');
     if(en)en.textContent=`Last known location · ${lat} · ${lon}`;
-    if(th)th.textContent=`ตำแหน่งล่าสุด · ${lat} · ${lon}`;
     return;
   }
   if(en)en.textContent='Weather location · Sindhorn Midtown, Bangkok';
-  if(th)th.textContent='ตำแหน่งสภาพอากาศ · สินธร มิดทาวน์ กรุงเทพฯ';
 }
 function dispatch(){setDataset();updateHeaderDate();updateWeatherLocation();document.dispatchEvent(new CustomEvent('sindhorn:location-updated',{detail:cloneState()}))}
 function finish(next){const previous=state;if(movedEnough(previous,next))clearWeatherCache();state=next;dispatch();resolveReady?.(cloneState())}
@@ -67,12 +64,11 @@ function setTimezone(timezone){
   dispatch();
 }
 function englishDate(date,timezone){return new Intl.DateTimeFormat('en-GB',{timeZone:timezone,day:'numeric',month:'short',year:'numeric'}).format(date)}
-function thaiDate(date,timezone){return new Intl.DateTimeFormat('th-TH-u-ca-buddhist',{timeZone:timezone,day:'numeric',month:'short',year:'numeric'}).format(date)}
 function updateHeaderDate(){
-  const en=document.getElementById('todayEn'),th=document.getElementById('todayTh');
-  if(!en&&!th)return;
+  const en=document.getElementById('todayEn');
+  if(!en)return;
   const now=new Date(),timezone=state.timezone||deviceTimezone();
-  try{if(en)en.textContent=englishDate(now,timezone);if(th)th.textContent=thaiDate(now,timezone)}catch(_){ }
+  try{en.textContent=englishDate(now,timezone)}catch(_){ }
 }
 function useFallback(permission='fallback'){
   finish({...FALLBACK,permission,updatedAt:new Date().toISOString()});

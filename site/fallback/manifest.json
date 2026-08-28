@@ -2,15 +2,47 @@
   "appPack": 2,
   "minimumShell": 17,
   "environmentConfig": 1,
-  "updatedAt": "2026-08-28T02:30:00+07:00",
+  "updatedAt": "2026-08-28T08:41:06Z",
   "resources": [
-    {"path":"header.html","contentType":"text/html","sha256":"990156c6379ee79019f2be5dd0345b4d03f0706be4fe83eb7ff3d3e2bdfd1e5a"},
-    {"path":"environment-config.json","contentType":"application/json","sha256":"43b30fe50497ede36a8939fabb42f4d2c85a3761669cb070eaf7dc87e8f943f5"},
-    {"path":"guidance.html","contentType":"text/html","sha256":"b050540cff025d1f2899544a9b0c25a06cdad2de1b5d8b342c69c6da4e4435b3"},
-    {"path":"footer.html","contentType":"text/html","sha256":"0f24a3ceceac28f4452bb76651a0f8bea41d4d980f9dfadf4391c665b78fe34f"},
-    {"path":"ui.css","contentType":"text/css","sha256":"e4b9c540e54f3a19af8ddae5411cbaa74d8d698d82fb6763975e24fc03f0c7fd"},
-    {"path":"details.html","contentType":"text/html","sha256":"369a13a0deb73a10fc1904c3de6be1547009387fb21a7756accfad81c3f8ece9"},
-    {"path":"messages.html","contentType":"text/html","sha256":"5fe65bc8c263e6bd6f6f7c12a27e67189a5ac90d910c34701125a80322a5110d"},
-    {"path":"today.html","contentType":"text/html","sha256":"19d29f4a5c78b66ef524bd3ecc17c67947b5ff111af9c84a709b68276a8f843c"}
+    {
+      "path": "header.html",
+      "contentType": "text/html",
+      "sha256": "0bbae3d00e3e6064522b3d3cdaf01eeddddc042fef79602c5c1f1544804a9320"
+    },
+    {
+      "path": "environment-config.json",
+      "contentType": "application/json",
+      "sha256": "43b30fe50497ede36a8939fabb42f4d2c85a3761669cb070eaf7dc87e8f943f5"
+    },
+    {
+      "path": "guidance.html",
+      "contentType": "text/html",
+      "sha256": "dd509bff2db50adbbf787cdbcc47df4d3fcd9a20ca467579ac438edb1493fe8d"
+    },
+    {
+      "path": "footer.html",
+      "contentType": "text/html",
+      "sha256": "e53bf5be8df92fc49c77e96f67d32b1280cc5cf607fa0caada8a4314e4d88385"
+    },
+    {
+      "path": "ui.css",
+      "contentType": "text/css",
+      "sha256": "e4b9c540e54f3a19af8ddae5411cbaa74d8d698d82fb6763975e24fc03f0c7fd"
+    },
+    {
+      "path": "details.html",
+      "contentType": "text/html",
+      "sha256": "69fecffdc2f6d004cdb497ce2ac2608f9fc4f46d169fe5a3408afa945dd8d17f"
+    },
+    {
+      "path": "messages.html",
+      "contentType": "text/html",
+      "sha256": "b9cee590ff6944d229efc0f3801cb387d7739d955d6618d097e21a2ffc6a6d7c"
+    },
+    {
+      "path": "today.html",
+      "contentType": "text/html",
+      "sha256": "f9911f52c87829fa1ee4b14fa41f663d07eaaba94b610e9089ea2d90906f93bf"
+    }
   ]
 }
