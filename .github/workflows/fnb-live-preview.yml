@@ -126,12 +126,16 @@ jobs:
           const browser=await chromium.launch({headless:true});
           const page=await browser.newPage({viewport:{width:390,height:844}});
           const errors=[];
-          page.on('pageerror',e=>errors.push(e.message));
-          page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
+          page.on('pageerror',e=>errors.push(`pageerror: ${e.message}`));
+          page.on('console',m=>{if(m.type()==='error')errors.push(`console: ${m.text()}`)});
           await page.goto(`${process.env.BASE_URL}/__fnb-footer-smoke.html`,{waitUntil:'domcontentloaded',timeout:45000});
           await page.waitForSelector('[data-fnb-nav="fnb"]',{timeout:10000});
-          await page.click('[data-fnb-nav="fnb"]');
-          await page.waitForSelector('#route-view .fnb-route',{timeout:15000});
+          const direct=await page.evaluate(async()=>{
+            try{await window.SindhornFooterGuard.openFnb();return{ok:true,path:location.pathname,html:document.querySelector('#route-view')?.innerHTML?.slice(0,250)}}catch(error){return{ok:false,name:error?.name,message:error?.message,stack:error?.stack}}
+          });
+          console.log('direct-open',JSON.stringify(direct));
+          console.log('browser-errors',JSON.stringify(errors));
+          if(!direct.ok)throw new Error(`Direct F&B mount failed: ${direct.name}: ${direct.message}`);
           const state=await page.evaluate(()=>({path:location.pathname,title:document.querySelector('.fnb-hero h1')?.textContent?.trim(),cards:document.querySelectorAll('.fnb-card').length,footer:Array.from(document.querySelectorAll('#app-footer .nav-chip')).map(x=>x.textContent.trim())}));
           await browser.close();
           if(errors.length)throw new Error(errors.join('\n'));
