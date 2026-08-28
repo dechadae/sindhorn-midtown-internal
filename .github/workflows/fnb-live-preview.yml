@@ -6,6 +6,7 @@ on:
       - fnb-live-integration
       - fnb-cache-hotfix
       - fix-fnb-footer-route
+      - fix-fnb-chip-anchor
     paths:
       - "site/index.html"
       - "site/app-transitions.js"
@@ -59,10 +60,12 @@ jobs:
           ! grep -q "Intentionally empty shell route" site/fnb.js
           grep -q "employee_number||''.*10639" site/fnb.js
           grep -q '/pwa-version-guard.js?v=1' site/index.html
-          grep -q '/footer-route-guard.js?v=1' site/index.html
-          grep -q '/footer-route-guard.css?v=1' site/index.html
-          grep -q "sindhorn-footer-v2" site/footer-route-guard.js
-          grep -q "data-app-route=\"fnb\"" site/footer-route-guard.js || grep -q "dataset.appRoute=item.route" site/footer-route-guard.js
+          grep -q '/footer-route-guard.js?v=2' site/index.html
+          grep -q '/footer-route-guard.css?v=2' site/index.html
+          grep -q "sindhorn-footer-v3-anchor" site/footer-route-guard.js
+          grep -q "document.createElement('a')" site/footer-route-guard.js
+          grep -q "control.href=item.href" site/footer-route-guard.js
+          ! grep -q "fnbFallback" site/footer-route-guard.js
           grep -q "grid-template-columns:repeat(3,minmax(0,1fr))!important" site/footer-route-guard.css
           grep -q "height:44px!important" site/footer-route-guard.css
           grep -q "pwa-v28-footer-fnb-route-repair" site/sw.js
@@ -99,14 +102,16 @@ jobs:
           grep -q 'id="environmentStage"' /tmp/fnb-shell.html
           grep -q 'id="route-view"' /tmp/fnb-shell.html
           grep -q '/pwa-version-guard.js?v=1' /tmp/fnb-shell.html
-          grep -q '/footer-route-guard.js?v=1' /tmp/fnb-shell.html
-          grep -q '/footer-route-guard.css?v=1' /tmp/fnb-shell.html
+          grep -q '/footer-route-guard.js?v=2' /tmp/fnb-shell.html
+          grep -q '/footer-route-guard.css?v=2' /tmp/fnb-shell.html
           grep -q 'mountFnbRoute' /tmp/fnb.js
           ! grep -q 'Intentionally empty shell route' /tmp/fnb.js
           grep -q 'FNB_PROMOTIONS' /tmp/fnb-data.js
           grep -q -- '--fnb-chip-h:44px' /tmp/fnb.css
           grep -q 'background:transparent' /tmp/fnb.css
-          grep -q 'sindhorn-footer-v2' /tmp/footer-route-guard.js
+          grep -q 'sindhorn-footer-v3-anchor' /tmp/footer-route-guard.js
+          grep -q "document.createElement('a')" /tmp/footer-route-guard.js
+          ! grep -q 'fnbFallback' /tmp/footer-route-guard.js
           grep -q 'height:44px!important' /tmp/footer-route-guard.css
           grep -q 'fnbRouteIsBlank' /tmp/pwa-version-guard.js
           grep -q "host.style.removeProperty('opacity')" /tmp/app-transitions.js

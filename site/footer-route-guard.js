@@ -1,7 +1,7 @@
-const FOOTER_VERSION='sindhorn-footer-v2';
+const FOOTER_VERSION='sindhorn-footer-v3-anchor';
 const NAV_ITEMS=[
   {route:'today',label:'Today',href:'/'},
-  {route:'fnb',label:'F&B',href:'/fnb',button:true},
+  {route:'fnb',label:'F&B',href:'/fnb'},
   {route:'messages',label:'Messages',href:'/messages',badge:true}
 ];
 
@@ -13,11 +13,11 @@ function routeFromPath(){
 }
 
 function buildControl(item){
-  const control=document.createElement(item.button?'button':'a');
+  const control=document.createElement('a');
   control.className='nav-chip';
+  control.href=item.href;
   control.dataset.appRoute=item.route;
   control.setAttribute('aria-label',item.label);
-  if(item.button){control.type='button';control.dataset.routeHref=item.href}else control.href=item.href;
   const label=document.createElement('span');label.textContent=item.label;control.appendChild(label);
   if(item.badge){const badge=document.createElement('i');badge.className='message-badge';badge.dataset.messageBadge='';badge.hidden=true;badge.setAttribute('aria-label','No unread messages');control.appendChild(badge)}
   return control;
@@ -39,21 +39,10 @@ function normalizeFooter(){
   queueMicrotask(()=>window.SindhornNotificationInbox?.refresh?.().catch?.(()=>{}));
 }
 
-function fnbFallback(event){
-  const control=event.target.closest?.('#app-footer [data-app-route="fnb"]');
-  if(!control||event.defaultPrevented)return;
-  const navigation=window.SindhornNavigation;
-  if(navigation?.routeForPath?.('/fnb')==='fnb'&&typeof navigation.transitionToRoute==='function'){
-    event.preventDefault();navigation.transitionToRoute('fnb').catch(()=>location.assign('/fnb'));return;
-  }
-  event.preventDefault();location.assign('/fnb');
-}
-
 const footer=document.getElementById('app-footer');
 if(footer){new MutationObserver(()=>normalizeFooter()).observe(footer,{childList:true})}
 document.addEventListener('sindhorn:pack-updated',normalizeFooter);
 document.addEventListener('sindhorn:route-mounted',()=>{normalizeFooter();updateCurrent()});
-document.addEventListener('click',fnbFallback);
 queueMicrotask(normalizeFooter);
 
 window.SindhornFooterGuard={normalize:normalizeFooter};
