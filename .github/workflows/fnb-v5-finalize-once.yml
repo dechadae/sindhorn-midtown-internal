@@ -1,0 +1,59 @@
+name: One-shot F&B v5 Finalizer
+
+on:
+  push:
+    branches: [fix-fnb-direct-footer-v4]
+    paths: [".github/workflows/fnb-v5-finalize-once.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: fix-fnb-direct-footer-v4
+          fetch-depth: 0
+      - name: Bump F&B runtime URLs and clean temporary diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          guard=Path('site/footer-route-guard.js')
+          text=guard.read_text()
+          text=text.replace("sindhorn-footer-v4-fnb-direct","sindhorn-footer-v5-fnb-direct")
+          text=text.replace("FNB_MODULE_URL='/fnb.js?v=4'","FNB_MODULE_URL='/fnb.js?v=5'")
+          guard.write_text(text)
+
+          preview=Path('.github/workflows/fnb-live-preview.yml')
+          text=preview.read_text()
+          text=text.replace('/footer-route-guard.js?v=4','/footer-route-guard.js?v=5')
+          text=text.replace("sindhorn-footer-v4-fnb-direct","sindhorn-footer-v5-fnb-direct")
+          text=text.replace("FNB_MODULE_URL='/fnb.js?v=4'","FNB_MODULE_URL='/fnb.js?v=5'")
+          text=text.replace('/fnb.js?v=4','/fnb.js?v=5')
+          preview.write_text(text)
+
+          hard=Path('.github/workflows/launch-hardening.yml')
+          text=hard.read_text()
+          text=text.replace('/footer-route-guard.js?v=4','/footer-route-guard.js?v=5')
+          text=text.replace("sindhorn-footer-v4-fnb-direct","sindhorn-footer-v5-fnb-direct")
+          text=text.replace("FNB_MODULE_URL='/fnb.js?v=4'","FNB_MODULE_URL='/fnb.js?v=5'")
+          text=text.replace('/fnb.js?v=4','/fnb.js?v=5')
+          hard.write_text(text)
+          PY
+          rm -f .github/workflows/fnb-diagnostic.yml .github/workflows/fix-fnb-syntax-once.yml .github/workflows/fnb-v5-finalize-once.yml
+          node --check site/fnb.js
+          node --check site/footer-route-guard.js
+          git diff --check
+      - name: Commit final runtime cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "dechadae"
+          git config user.email "decha.dae@gmail.com"
+          git add -A
+          git commit -m "Finalize F&B v5 runtime cache bust"
+          git push origin HEAD:fix-fnb-direct-footer-v4
