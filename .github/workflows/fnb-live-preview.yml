@@ -5,10 +5,13 @@ on:
     branches:
       - fnb-live-integration
       - fnb-cache-hotfix
+      - fix-fnb-footer-route
     paths:
       - "site/index.html"
       - "site/app-transitions.js"
       - "site/pwa-version-guard.js"
+      - "site/footer-route-guard.js"
+      - "site/footer-route-guard.css"
       - "site/fnb.js"
       - "site/fnb-data.js"
       - "site/fnb.css"
@@ -37,6 +40,7 @@ jobs:
           set -euo pipefail
           node --check site/app-transitions.js
           node --check site/pwa-version-guard.js
+          node --check site/footer-route-guard.js
           node --check site/fnb.js
           node --check site/fnb-data.js
           node --check site/sw.js
@@ -55,8 +59,16 @@ jobs:
           ! grep -q "Intentionally empty shell route" site/fnb.js
           grep -q "employee_number||''.*10639" site/fnb.js
           grep -q '/pwa-version-guard.js?v=1' site/index.html
-          grep -q "pwa-v27-fnb-cache-guard" site/sw.js
-          grep -q "'/pwa-version-guard.js'" site/sw.js
+          grep -q '/footer-route-guard.js?v=1' site/index.html
+          grep -q '/footer-route-guard.css?v=1' site/index.html
+          grep -q "sindhorn-footer-v2" site/footer-route-guard.js
+          grep -q "data-app-route=\"fnb\"" site/footer-route-guard.js || grep -q "dataset.appRoute=item.route" site/footer-route-guard.js
+          grep -q "grid-template-columns:repeat(3,minmax(0,1fr))!important" site/footer-route-guard.css
+          grep -q "height:44px!important" site/footer-route-guard.css
+          grep -q "pwa-v28-footer-fnb-route-repair" site/sw.js
+          grep -q "client.navigate(client.url)" site/sw.js
+          grep -q "'/footer-route-guard.js'" site/sw.js
+          grep -q "'/footer-route-guard.css'" site/sw.js
           grep -q "'/fnb-data.js'" site/sw.js
           grep -q "'/fnb.css'" site/sw.js
           grep -q "fnbRouteIsBlank" site/pwa-version-guard.js
@@ -79,17 +91,24 @@ jobs:
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb.js" -o /tmp/fnb.js
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb-data.js" -o /tmp/fnb-data.js
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb.css" -o /tmp/fnb.css
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/footer-route-guard.js" -o /tmp/footer-route-guard.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/footer-route-guard.css" -o /tmp/footer-route-guard.css
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/pwa-version-guard.js" -o /tmp/pwa-version-guard.js
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/app-transitions.js" -o /tmp/app-transitions.js
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/sw.js" -o /tmp/sw.js
           grep -q 'id="environmentStage"' /tmp/fnb-shell.html
           grep -q 'id="route-view"' /tmp/fnb-shell.html
           grep -q '/pwa-version-guard.js?v=1' /tmp/fnb-shell.html
+          grep -q '/footer-route-guard.js?v=1' /tmp/fnb-shell.html
+          grep -q '/footer-route-guard.css?v=1' /tmp/fnb-shell.html
           grep -q 'mountFnbRoute' /tmp/fnb.js
           ! grep -q 'Intentionally empty shell route' /tmp/fnb.js
           grep -q 'FNB_PROMOTIONS' /tmp/fnb-data.js
           grep -q -- '--fnb-chip-h:44px' /tmp/fnb.css
           grep -q 'background:transparent' /tmp/fnb.css
+          grep -q 'sindhorn-footer-v2' /tmp/footer-route-guard.js
+          grep -q 'height:44px!important' /tmp/footer-route-guard.css
           grep -q 'fnbRouteIsBlank' /tmp/pwa-version-guard.js
           grep -q "host.style.removeProperty('opacity')" /tmp/app-transitions.js
-          grep -q 'pwa-v27-fnb-cache-guard' /tmp/sw.js
+          grep -q 'pwa-v28-footer-fnb-route-repair' /tmp/sw.js
+          grep -q 'client.navigate(client.url)' /tmp/sw.js
