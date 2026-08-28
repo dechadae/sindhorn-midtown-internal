@@ -75,12 +75,9 @@ function messageCard(row){
   const time=document.createElement('time');time.dateTime=new Date(Number(row.receivedAt)||Date.now()).toISOString();time.textContent=stamp(row.receivedAt,'en-GB');
   meta.append(kind,time);
   const title=document.createElement('h2');title.className='message-title';title.textContent=String(row.titleEn||'SINDHORN MIDTOWN UPDATE');
-  const titleTh=document.createElement('div');titleTh.className='message-title-th';titleTh.lang='th';titleTh.textContent=String(row.titleTh||'อัปเดตจากสินธร มิดทาวน์');
   const body=document.createElement('p');body.className='message-body';body.textContent=String(row.bodyEn||'New information is available in the app.');
-  const bodyTh=document.createElement('p');bodyTh.className='message-body-th';bodyTh.lang='th';bodyTh.textContent=String(row.bodyTh||'มีข้อมูลใหม่ในแอป');
-  const thaiTime=document.createElement('div');thaiTime.className='message-time-th';thaiTime.lang='th';thaiTime.textContent=stamp(row.receivedAt,'th-TH-u-ca-buddhist');
-  const link=document.createElement('a');link.className='message-open';link.href=String(row.route||'/');link.dataset.appRoute=routeName(row.route);link.textContent='Open';link.setAttribute('aria-label','Open related information / เปิดข้อมูลที่เกี่ยวข้อง');
-  article.append(meta,title,titleTh,body,bodyTh,thaiTime,link);
+  const link=document.createElement('a');link.className='message-open';link.href=String(row.route||'/');link.dataset.appRoute=routeName(row.route);link.textContent='Open';link.setAttribute('aria-label','Open related information');
+  article.append(meta,title,body,link);
   return article;
 }
 
@@ -101,7 +98,7 @@ async function updateBadge(){
   document.querySelectorAll('[data-message-badge]').forEach(node=>{
     node.hidden=count<1;
     node.textContent=count>99?'99+':String(count);
-    node.setAttribute('aria-label',count?`${count} unread messages / ${count} ข้อความที่ยังไม่ได้อ่าน`:'No unread messages / ไม่มีข้อความที่ยังไม่ได้อ่าน');
+    node.setAttribute('aria-label',count?`${count} unread messages`:'No unread messages');
   });
 }
 

@@ -28,7 +28,8 @@ The single-shell router invariant is mandatory for all authenticated app feature
 
 ## Product state that must be preserved
 
-- English first; Thai immediately supports it.
+- **The interface is English-only (decided 2026-08-28).** Every label, heading, button, status line, alert and push notification is English. Do not reintroduce inline Thai in interface chrome, and do not rebuild the old English/Thai pairing markup — a proper language-switch feature is planned instead, and it will select a language rather than render both at once. This supersedes the earlier "English first, Thai immediately supports it" rule in `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md`.
+- **Thai content is not the same as Thai interface.** F&B promotion copy stays bilingual in `site/fnb-data.js`: the Copy section exists to hand the designer both the English and Thai marketing text for artwork, so `copyTh` is work product, not chrome. Noto Sans Thai and the `:lang(th)` font rule must therefore stay shipped.
 - **Typography invariant: every font and text treatment in Sindhorn Midtown Internal uses zero character tracking (`letter-spacing: 0`). Do not introduce positive or negative tracking anywhere in the PWA, auth, admin, messages, or future modules.**
 - **Single-shell navigation invariant: every authenticated current or future screen is an SPA route mounted inside the persistent `#route-view`. Header, footer, atmosphere, auth session and app document must never unload between authenticated screens. `/login.html` is the only intentional standalone document boundary. Never add another standalone authenticated HTML page or a full-document navigation to one.**
 - **Transition invariant: authenticated navigation animates only `#route-view` with the shared opacity crossfade. Never animate the document root, header, footer or atmosphere, and never use browser-dependent cross-document View Transitions as the primary app navigation mechanism.**

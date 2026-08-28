@@ -6,6 +6,7 @@ on:
       - main
       - design-unification-pass
       - phase1-foundation
+      - english-only-interface
       - fnb-action-plan-redesign
       - today-guidance-details-fnb
       - phase9-single-shell-router
@@ -55,7 +56,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/route-registry.js site/app-transitions.js site/auth-shell.js site/auth-client.js site/login.js site/account.js site/admin.js site/fnb.js site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js; do node --check "$file"; done
+          # These all ship as ES modules (<script type="module">), and plain
+          # `node --check` parses as CommonJS - it silently PASSES module files
+          # with real syntax errors. Parse them as modules instead.
+          for file in site/route-registry.js site/app-transitions.js site/auth-shell.js site/auth-client.js site/login.js site/account.js site/admin.js site/fnb.js site/fnb-data.js site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/notification-inbox.js site/push-client.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js worker/src/index.js auth-worker/src/index.js; do
+            if ! node --input-type=module --check < "$file" 2>/tmp/modcheck.err; then
+              echo "ES module syntax error in $file"; cat /tmp/modcheck.err; exit 1
+            fi
+          done
           node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
           python - <<'PY'
           from pathlib import Path

@@ -37,9 +37,9 @@ async function renderNormalFullPage(atmosphereData,width,height,foreignObjectRen
 }
 async function saveNormalFullPage(button){
   if(captureBusy||!button)return;const state=window.SindhornLiveData?.getState?.(),pm=state?.air?.pm,aqi=state?.air?.aqi;
-  if(!Number.isFinite(Number(pm))||!Number.isFinite(Number(aqi))){const original=button.innerHTML;button.textContent='Waiting for data / รอข้อมูล';setTimeout(()=>{if(button.isConnected)button.innerHTML=original},1600);return}
+  if(!Number.isFinite(Number(pm))||!Number.isFinite(Number(aqi))){const original=button.innerHTML;button.textContent='Waiting for data';setTimeout(()=>{if(button.isConnected)button.innerHTML=original},1600);return}
   if(!window.html2canvas)return;
-  captureBusy=true;const original=button.innerHTML;button.disabled=true;button.textContent='Preparing full page / กำลังสร้างภาพทั้งหน้า';
+  captureBusy=true;const original=button.innerHTML;button.disabled=true;button.textContent='Preparing full page';
   try{
     if(document.fonts?.ready)await Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1400))]);
     const {width,height}=captureSize();let atmosphereData=null;
@@ -47,8 +47,8 @@ async function saveNormalFullPage(button){
     let canvas;
     try{canvas=await renderNormalFullPage(atmosphereData,width,height,true)}catch(error){console.warn('Foreign-object capture fallback',error);canvas=await renderNormalFullPage(atmosphereData,width,height,false)}
     const blob=await blobFromCanvas(canvas);if(!blob)throw new Error('PNG failed');
-    const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=captureFilename();document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500);button.textContent='Saved / บันทึกแล้ว';
-  }catch(error){console.warn('Full-page capture failed',error);button.textContent='Try again / ลองอีกครั้ง'}finally{captureBusy=false;setTimeout(()=>{if(button.isConnected){button.innerHTML=original;button.disabled=false}},1600)}
+    const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=captureFilename();document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2500);button.textContent='Saved';
+  }catch(error){console.warn('Full-page capture failed',error);button.textContent='Try again'}finally{captureBusy=false;setTimeout(()=>{if(button.isConnected){button.innerHTML=original;button.disabled=false}},1600)}
 }
 
 document.addEventListener('click',event=>{
