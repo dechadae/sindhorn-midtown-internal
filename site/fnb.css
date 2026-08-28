@@ -10,7 +10,7 @@ body[data-route="fnb"] #route-view{background:transparent;padding-bottom:142px}
 @keyframes fnbFade{from{opacity:.18}to{opacity:1}}
 .fnb-hero{padding:34px 0 24px;border-bottom:1px solid var(--fnb-line-soft)}
 .fnb-eyebrow,.fnb-utility{margin:0;color:var(--sm-accent);font-size:var(--type-caption,.68rem);font-weight:400;line-height:1.3;text-transform:uppercase}
-.fnb-hero h1,.fnb-detail-title{margin:12px 0 0;color:var(--sm-text);font-family:"Vignette Sans",var(--font-ui),sans-serif;font-weight:200;line-height:.96}
+.fnb-hero h1,.fnb-detail-title{margin:12px 0 0;color:var(--sm-text);font-family:"Poppins","Noto Sans Thai",sans-serif;font-weight:300;line-height:.96}
 .fnb-hero h1{font-size:clamp(3rem,12vw,5.2rem);text-transform:uppercase}
 .fnb-period{margin-top:20px;font-size:var(--type-body,.88rem)}
 .fnb-summary{margin-top:5px;color:var(--sm-muted);font-size:var(--type-small,.80rem)}

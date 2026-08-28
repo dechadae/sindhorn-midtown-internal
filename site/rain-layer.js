@@ -7,7 +7,6 @@ const MAX_PANE_DROPS=22;
 const MAX_PANE_BEADS=54;
 const DPR=Math.min(2,Math.max(1,window.devicePixelRatio||1));
 const SVG_NS='http://www.w3.org/2000/svg';
-const IS_ATMOSPHERE_TESTER=location.pathname.includes('atmosphere-tester');
 let stage=null,canvas=null,ctx=null,paneSvg=null,width=1,height=1,raf=0,last=performance.now(),targetIntensity=0,currentIntensity=0,pageVisible=!document.hidden;
 let idleProbe=0;
 
@@ -181,7 +180,7 @@ function clearDryFrame(){
   for(const drop of paneDrops)if(drop.node)drop.node.style.opacity='0';
 }
 function scheduleUnknownWeatherProbe(){
-  if(IS_ATMOSPHERE_TESTER||idleProbe||!pageVisible)return;
+  if(idleProbe||!pageVisible)return;
   idleProbe=window.setTimeout(()=>{idleProbe=0;start()},750);
 }
 function frame(now){
@@ -198,7 +197,7 @@ function frame(now){
     const paneActive=Math.round(3+currentIntensity*8);
     for(let i=0;i<paneDrops.length;i++){if(i<paneActive)updatePaneDrop(paneDrops[i],i,dt,currentIntensity,now/1000);else if(paneDrops[i].node)paneDrops[i].node.style.opacity='0'}
   }
-  if(!IS_ATMOSPHERE_TESTER&&targetIntensity===0&&currentIntensity<.001){
+  if(targetIntensity===0&&currentIntensity<.001){
     currentIntensity=0;clearDryFrame();
     if(!weatherState()?.known)scheduleUnknownWeatherProbe();
     return;
@@ -218,5 +217,3 @@ function init(){
   start();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-
-if(IS_ATMOSPHERE_TESTER)import('./tester-celestials.js?v=2').catch(()=>{});

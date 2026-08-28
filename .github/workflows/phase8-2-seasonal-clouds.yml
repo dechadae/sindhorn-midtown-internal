@@ -36,7 +36,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/cloud-tester-shared.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/sw.js; do
+          for file in site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/sw.js; do
             node --check "$file"
           done
           node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
@@ -48,7 +48,6 @@ jobs:
           sw=(root/'sw.js').read_text()
           env=(root/'environment.js').read_text()
           shader=(root/'atmosphere-shader.js').read_text()
-          tester=(root/'cloud-tester-shared.js').read_text()
           air=(root/'live-data.js').read_text()
           assert '/sky-calibration.js' not in index
           assert '/sky-color-renderer.js' not in index
@@ -70,7 +69,6 @@ jobs:
           assert 'High veil / cirrus' in shader
           assert 'Mid broken cloud' in shader
           assert 'Low convective / monsoon' in shader
-          assert 'disc visible' in tester
           wrangler=json.loads(Path('sky-worker/wrangler.jsonc').read_text())
           assert wrangler.get('triggers',{}).get('crons')==[]
           PY
@@ -105,7 +103,7 @@ jobs:
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /live-data.js /environment.js /atmosphere-shader.js /seasonal-sky.js /cloud-tester.html /cloud-tester-shared.js /phase8-2-fixtures.js /sw.js /messages; do
+          for path in / /live-data.js /environment.js /atmosphere-shader.js /seasonal-sky.js /phase8-2-fixtures.js /sw.js /messages; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done

@@ -1,6 +1,7 @@
-@font-face{font-family:"Vignette Sans";src:url("/assets/fonts/vignette-sans-light.woff") format("woff");font-style:normal;font-weight:200;font-display:swap}
-@font-face{font-family:"Vignette Sans";src:url("/assets/fonts/vignette-sans-regular.woff") format("woff");font-style:normal;font-weight:400;font-display:swap}
-@font-face{font-family:"Vignette Sans";src:url("/assets/fonts/vignette-sans-semibold.woff") format("woff");font-style:normal;font-weight:600;font-display:swap}
+@font-face{font-family:"Poppins";src:url("/assets/fonts/poppins-300.woff2") format("woff2");font-style:normal;font-weight:300;font-display:swap}
+@font-face{font-family:"Poppins";src:url("/assets/fonts/poppins-400.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:"Poppins";src:url("/assets/fonts/poppins-500.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}
+@font-face{font-family:"Poppins";src:url("/assets/fonts/poppins-600.woff2") format("woff2");font-style:normal;font-weight:600;font-display:swap}
 @font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-300.woff2") format("woff2");font-style:normal;font-weight:300;font-display:swap}
 @font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-400.woff2") format("woff2");font-style:normal;font-weight:400;font-display:swap}
 @font-face{font-family:"Noto Sans Thai";src:url("/assets/fonts/noto-sans-thai-500.woff2") format("woff2");font-style:normal;font-weight:500;font-display:swap}

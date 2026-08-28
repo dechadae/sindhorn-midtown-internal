@@ -46,7 +46,6 @@ assert.ok(env.includes('antialias:false'),'fullscreen shader should avoid unnece
 const liveRenderer=env.match(/renderer=new THREE\.WebGLRenderer\((\{[^;]+?\})\)/)?.[1]||'';assert.ok(!liveRenderer.includes('preserveDrawingBuffer:true'),'live renderer must not preserve drawing buffer');
 assert.ok(env.includes('ensureSnowCanvas()')&&env.includes('ensureHailCanvas()'),'rare precipitation overlays should allocate lazily');
 const rain=fs.readFileSync(new URL('./rain-layer.js',import.meta.url),'utf8');
-assert.ok(rain.includes("const IS_ATMOSPHERE_TESTER=location.pathname.includes('atmosphere-tester')"),'rain idle optimization must preserve continuous manual tester behavior');
 assert.ok(rain.includes("document.addEventListener('sindhorn:weather-updated',start)"),'rain renderer must wake on live weather updates');
 assert.ok(rain.includes("targetIntensity===0&&currentIntensity<.001"),'dry production rain renderer must be able to sleep');
 console.log(`Phase 8.2 seasonal/cloud fixtures PASS (${PHASE82_FIXTURE_KEYS.length} deterministic cases; ${textureSamples} bounded noise call sites)`);

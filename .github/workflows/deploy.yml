@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/route-registry.js site/app-transitions.js site/auth-shell.js site/auth-client.js site/login.js site/account.js site/admin.js site/fnb.js site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/atmosphere-tester.js site/cloud-tester-shared.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js; do node --check "$file"; done
+          for file in site/route-registry.js site/app-transitions.js site/auth-shell.js site/auth-client.js site/login.js site/account.js site/admin.js site/fnb.js site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js; do node --check "$file"; done
           node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
           python - <<'PY'
           from pathlib import Path
@@ -125,7 +125,7 @@ jobs:
           set -euo pipefail
           if [ "${GITHUB_REF_NAME}" = "main" ]; then BASE_URL="https://sindhorn-midtown-internal.pages.dev"; else BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"; fi
           sleep 8
-          for path in / /fnb /messages /account /admin /route-registry.js /app-transitions.js /auth-shell.js /auth-shell.css /auth-client.js /login.html /login.js /account.js /account.css /admin.js /admin.css /fnb.js /location.js /bootstrap.js /environment.js /atmosphere-shader.js /seasonal-sky.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /atmosphere-tester.html /atmosphere-tester.js /cloud-tester.html /cloud-tester-shared.js /phase8-2-fixtures.js /notification-inbox.js /push-client.js /sw.js; do
+          for path in / /fnb /messages /account /admin /route-registry.js /app-transitions.js /auth-shell.js /auth-shell.css /auth-client.js /login.html /login.js /account.js /account.css /admin.js /admin.css /fnb.js /location.js /bootstrap.js /environment.js /atmosphere-shader.js /seasonal-sky.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /phase8-2-fixtures.js /notification-inbox.js /push-client.js /sw.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
