@@ -11,8 +11,8 @@
 >
 > - Thai **content** is unaffected. F&B promotion copy remains bilingual in
 >   `site/fnb-data.js`, because that Copy section exists to give the designer
->   both language versions to set into artwork. Noto Sans Thai and the
->   `:lang(th)` font rule stay shipped for it.
+>   both language versions to set into artwork. Both the English and Thai campaign copy use the same self-hosted
+>   `LINE Seed Sans TH` family.
 > - Remote Supabase packs remain versioned and immutable: publish a new pack
 >   version rather than mutating a deployed one.
 >
@@ -28,7 +28,7 @@ The application is bilingual **English first throughout**.
 - Thai follows immediately as direct operational support.
 - This applies to navigation, status, health guidance, actionable instructions, warnings, errors, recovery states, permissions, safety/medical disclaimers, pull-to-refresh states, save/share feedback and push notifications.
 - Critical information must remain understandable without a language selector.
-- English uses Poppins; Thai uses Noto Sans Thai. (Amended 2026-08-28: superseded the earlier Vignette Sans decision at the product owner's explicit request, for more consistent spacing and alignment. Both are self-hosted — see `site/assets/fonts/poppins-*.woff2` — not loaded from Google's CDN, keeping the offline-first PWA font strategy consistent.)
+- English and Thai both use the single self-hosted `LINE Seed Sans TH` family. Production weights are 100 / 400 / 700, and every text treatment uses `letter-spacing: 0`.
 - The official Sindhorn Midtown / Vignette lockup remains artwork and is never re-typeset.
 
 ## Implementation contract

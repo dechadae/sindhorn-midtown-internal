@@ -221,21 +221,13 @@ Primary Sindhorn palette:
 
 Do not import Flipgazine's blue identity as the Sindhorn brand color.
 
-### 6.2 English typography is eminent
+### 6.2 Typography authority — LINE Seed Sans TH
 
-This is the highest visual-language rule:
+**28 August 2026 override:** `LINE Seed Sans TH` is the one and only production family for both English/Latin and Thai. This supersedes the earlier Vignette Sans / Noto Sans Thai split-family decision.
 
-> **English typography is eminent. English defines the premium editorial composition; Thai guarantees operational understanding.**
+Production ships only real weights 100, 400 and 700. Weight 100 is reserved primarily for very large premium atmospheric/display typography; ordinary mobile UI and body copy use 400; emphasis uses 700. No synthetic intermediate weights.
 
-Final typeface rule:
-
-- **English / Latin UI and editorial typography: Vignette Sans.**
-- **Thai: Noto Sans Thai.**
-- Official Sindhorn Midtown / Vignette lockup remains image artwork and is never re-typeset.
-
-The previous v13 global Noto Sans override for English is explicitly superseded. Do **not** use Noto Sans as the app-wide English font.
-
-English may lead through scale, tracking, uppercase treatment, placement and lighter display weights.
+Every text treatment uses `letter-spacing: 0` with no exceptions, including uppercase English labels. The font is self-hosted from the Cloudflare/GitHub shell; no runtime external font service is permitted. The official Sindhorn Midtown / Vignette lockup remains image artwork and is never re-typeset.
 
 ### 6.3 Thai comprehension rule
 
