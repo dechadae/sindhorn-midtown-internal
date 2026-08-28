@@ -38,7 +38,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/bootstrap.js site/app.js site/push-client.js site/notification-inbox.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/phase8-2-fixtures.js site/sw.js; do node --check "$file"; done
+          for file in site/bootstrap.js site/route-registry.js site/app-transitions.js site/footer-route-guard.js site/app.js site/push-client.js site/notification-inbox.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/phase8-2-fixtures.js site/sw.js; do node --check "$file"; done
           node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
           python3 - <<'PY'
           from pathlib import Path
@@ -47,19 +47,26 @@ jobs:
           pwa=json.loads((root/'manifest.webmanifest').read_text())
           assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
           assert 'display_override' not in pwa
-          bootstrap=(root/'bootstrap.js').read_text(); fallback=json.loads((root/'fallback/manifest.json').read_text())
+          bootstrap=(root/'bootstrap.js').read_text(); registry=(root/'route-registry.js').read_text(); transitions=(root/'app-transitions.js').read_text(); footer_guard=(root/'footer-route-guard.js').read_text(); footer_css=(root/'footer-route-guard.css').read_text(); fallback=json.loads((root/'fallback/manifest.json').read_text())
           shell=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1)); assert shell==17 and fallback['minimumShell']==shell
-          assert "messages:'messages.html'" in bootstrap and "path.startsWith('/messages')" in bootstrap and "FALLBACK_REQUIRED=[...REQUIRED,'messages.html']" in bootstrap
+          assert "FALLBACK_REQUIRED=[...REQUIRED,'messages.html']" in bootstrap
+          assert "fnb:Object.freeze({path:'/fnb'" in registry and "messages:Object.freeze({path:'/messages'" in registry
+          assert "mount:'mountFnbRoute'" in registry and "kind:'local'" in registry
+          assert "routeLink.dataset.appRoute" in transitions and 'transitionToRoute' in transitions
+          assert "sindhorn-footer-v2" in footer_guard and "route:'fnb'" in footer_guard and "route:'messages'" in footer_guard
+          assert 'grid-template-columns:repeat(3,minmax(0,1fr))!important' in footer_css and 'height:44px!important' in footer_css
           for item in fallback['resources']: assert hashlib.sha256((root/'fallback'/item['path']).read_bytes()).hexdigest()==item['sha256'],item['path']
           fallback_today=(root/'fallback'/'today.html').read_text(); assert 'saveImageBtn' not in fallback_today and 'report-actionbar' not in fallback_today
-          app=(root/'app.js').read_text(); assert "messages:'/messages'" in app and "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app and 'performPullRefresh' in app
+          app=(root/'app.js').read_text(); assert "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app and 'performPullRefresh' in app
           inbox=(root/'notification-inbox.js').read_text()
           for token in ('sindhorn-midtown-notification-inbox','messageList','messageClearBtn','SINDHORN_NOTIFICATION_STORED','markAllRead'): assert token in inbox
           push=(root/'push-client.js').read_text(); assert 'pushManager.subscribe' in push and 'enableFromGesture' in push and 'Notification.requestPermission' not in push and 'PREPARE_TIMEOUT_MS' in push
           index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); env=(root/'environment.js').read_text(); shader=(root/'atmosphere-shader.js').read_text()
+          assert '/footer-route-guard.js?v=1' in index and '/footer-route-guard.css?v=1' in index
           assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index and '/storm-effects.js' not in index
           assert "'/sky-calibration.js'" not in sw and "'/sky-color-renderer.js'" not in sw and "'/storm-effects.js'" not in sw
           assert 'pwa-v23-bangkok-seasonal-clouds' in sw and "'/atmosphere-shader.js'" in sw and "'/seasonal-sky.js'" in sw
+          assert "'/footer-route-guard.js'" in sw and "'/footer-route-guard.css'" in sw and "'/fnb.js'" in sw and "'/fnb-data.js'" in sw and "'/fnb.css'" in sw
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw and 'storeNotification' in sw and 'markNotificationRead' in sw
           assert "renderer:'bangkok-seasonal-clouds-v2'" in env and 'const DPR=2' in env and 'renderExport' in env and 'antialias:false' in env and 'ensureSnowCanvas' in env and 'ensureHailCanvas' in env
           for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','uSun','uSolarAltitude','sunDisc','Visible sun disc','texture2D(uNoise','AirBKK PM2.5 optics'): assert token in shader,token
@@ -77,10 +84,23 @@ jobs:
           promoted=false
           for attempt in $(seq 1 40); do
             if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
+              && curl --fail --silent --show-error --location "${BASE_URL}/route-registry.js" -o /tmp/route-registry.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/footer-route-guard.js" -o /tmp/footer-route-guard.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/footer-route-guard.css" -o /tmp/footer-route-guard.css \
+              && curl --fail --silent --show-error --location "${BASE_URL}/fnb.js" -o /tmp/fnb.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/fnb-data.js" -o /tmp/fnb-data.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/fnb.css" -o /tmp/fnb.css \
               && curl --fail --silent --show-error --location "${BASE_URL}/environment.js" -o /tmp/environment.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/notification-inbox.js" -o /tmp/notification-inbox.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
+              && grep -q '/footer-route-guard.js?v=1' /tmp/root.html \
+              && grep -q "path:'/fnb'" /tmp/route-registry.js \
+              && grep -q 'sindhorn-footer-v2' /tmp/footer-route-guard.js \
+              && grep -q 'height:44px!important' /tmp/footer-route-guard.css \
+              && grep -q 'mountFnbRoute' /tmp/fnb.js \
+              && grep -q 'FNB_PROMOTIONS' /tmp/fnb-data.js \
+              && grep -q 'background:transparent' /tmp/fnb.css \
               && ! grep -q '/sky-calibration.js' /tmp/root.html \
               && ! grep -q '/sky-color-renderer.js' /tmp/root.html \
               && ! grep -q '/storm-effects.js' /tmp/root.html \
@@ -91,7 +111,7 @@ jobs:
             sleep 3
           done
           test "$promoted" = true
-          for path in /messages /location.js /push-config.js /push-client.js /notification-inbox.js /manifest.webmanifest; do curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o "/tmp/$(basename "$path" | sed 's/^$/root/')"; done
+          for path in /fnb /messages /location.js /push-config.js /push-client.js /notification-inbox.js /manifest.webmanifest; do curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o "/tmp/$(basename "$path" | sed 's/^$/root/')"; done
           curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${ALERT_WORKER}/health" -o /tmp/alert-health.json
           grep -q 'Current location' /tmp/location.js
           grep -q 'pushManager.subscribe' /tmp/push-client.js
