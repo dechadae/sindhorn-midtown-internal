@@ -61,11 +61,11 @@ jobs:
           ! grep -q "Intentionally empty shell route" site/fnb.js
           grep -q "employee_number||''.*10639" site/fnb.js
           grep -q '/pwa-version-guard.js?v=1' site/index.html
-          grep -q '/footer-route-guard.js?v=4' site/index.html
+          grep -q '/footer-route-guard.js?v=5' site/index.html
           grep -q '/footer-route-guard.css?v=2' site/index.html
-          grep -q "sindhorn-footer-v4-fnb-direct" site/footer-route-guard.js
+          grep -q "sindhorn-footer-v5-fnb-direct" site/footer-route-guard.js
           grep -q "data.fnbNav\|dataset.fnbNav" site/footer-route-guard.js
-          grep -q "FNB_MODULE_URL='/fnb.js?v=4'" site/footer-route-guard.js
+          grep -q "FNB_MODULE_URL='/fnb.js?v=5'" site/footer-route-guard.js
           grep -q "module.mountFnbRoute" site/footer-route-guard.js
           grep -q "grid-template-columns:repeat(3,minmax(0,1fr))!important" site/footer-route-guard.css
           grep -q "height:44px!important" site/footer-route-guard.css
@@ -79,7 +79,7 @@ jobs:
         shell: bash
         run: |
           cat > site/__fnb-footer-smoke.html <<'HTML'
-          <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/footer-route-guard.css?v=2"></head><body><main id="route-view"><p id="before">Before F&amp;B</p></main><footer id="app-footer"></footer><script>window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Smoke Test'};</script><script type="module" src="/footer-route-guard.js?v=4"></script></body></html>
+          <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/footer-route-guard.css?v=2"></head><body><main id="route-view"><p id="before">Before F&amp;B</p></main><footer id="app-footer"></footer><script>window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Smoke Test'};</script><script type="module" src="/footer-route-guard.js?v=5"></script></body></html>
           HTML
 
       - name: Deploy branch preview
@@ -95,23 +95,23 @@ jobs:
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb" -o /tmp/fnb-shell.html
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb.js?v=4" -o /tmp/fnb.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb.js?v=5" -o /tmp/fnb.js
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb-data.js" -o /tmp/fnb-data.js
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb.css" -o /tmp/fnb.css
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/footer-route-guard.js?v=4" -o /tmp/footer-route-guard.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/footer-route-guard.js?v=5" -o /tmp/footer-route-guard.js
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/footer-route-guard.css" -o /tmp/footer-route-guard.css
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/__fnb-footer-smoke.html" -o /tmp/fnb-footer-smoke.html
           grep -q 'id="environmentStage"' /tmp/fnb-shell.html
           grep -q 'id="route-view"' /tmp/fnb-shell.html
-          grep -q '/footer-route-guard.js?v=4' /tmp/fnb-shell.html
+          grep -q '/footer-route-guard.js?v=5' /tmp/fnb-shell.html
           grep -q 'mountFnbRoute' /tmp/fnb.js
           grep -q 'FNB_PROMOTIONS' /tmp/fnb-data.js
           grep -q -- '--fnb-chip-h:44px' /tmp/fnb.css
           grep -q 'background:transparent' /tmp/fnb.css
-          grep -q 'sindhorn-footer-v4-fnb-direct' /tmp/footer-route-guard.js
-          grep -q "FNB_MODULE_URL='/fnb.js?v=4'" /tmp/footer-route-guard.js
+          grep -q 'sindhorn-footer-v5-fnb-direct' /tmp/footer-route-guard.js
+          grep -q "FNB_MODULE_URL='/fnb.js?v=5'" /tmp/footer-route-guard.js
           grep -q 'height:44px!important' /tmp/footer-route-guard.css
-          grep -q 'footer-route-guard.js?v=4' /tmp/fnb-footer-smoke.html
+          grep -q 'footer-route-guard.js?v=5' /tmp/fnb-footer-smoke.html
 
       - name: Browser-click F&B footer control
         shell: bash
@@ -130,18 +130,15 @@ jobs:
           page.on('console',m=>{if(m.type()==='error')errors.push(`console: ${m.text()}`)});
           await page.goto(`${process.env.BASE_URL}/__fnb-footer-smoke.html`,{waitUntil:'domcontentloaded',timeout:45000});
           await page.waitForSelector('[data-fnb-nav="fnb"]',{timeout:10000});
-          const direct=await page.evaluate(async()=>{
-            try{await window.SindhornFooterGuard.openFnb();return{ok:true,path:location.pathname,html:document.querySelector('#route-view')?.innerHTML?.slice(0,250)}}catch(error){return{ok:false,name:error?.name,message:error?.message,stack:error?.stack}}
-          });
-          console.log('direct-open',JSON.stringify(direct));
-          console.log('browser-errors',JSON.stringify(errors));
-          if(!direct.ok)throw new Error(`Direct F&B mount failed: ${direct.name}: ${direct.message}`);
+          await page.click('[data-fnb-nav="fnb"]');
+          await page.waitForSelector('#route-view .fnb-route',{timeout:15000});
           const state=await page.evaluate(()=>({path:location.pathname,title:document.querySelector('.fnb-hero h1')?.textContent?.trim(),cards:document.querySelectorAll('.fnb-card').length,footer:Array.from(document.querySelectorAll('#app-footer .nav-chip')).map(x=>x.textContent.trim())}));
+          console.log(JSON.stringify(state));
+          console.log('browser-errors',JSON.stringify(errors));
           await browser.close();
           if(errors.length)throw new Error(errors.join('\n'));
           if(state.path!=='/fnb')throw new Error(`F&B path did not change: ${state.path}`);
           if(state.title!=='Promotions')throw new Error(`F&B title missing: ${state.title}`);
           if(state.cards!==8)throw new Error(`Expected 8 promotion cards, got ${state.cards}`);
           if(state.footer.join('|')!=='Today|F&B|Messages')throw new Error(`Footer mismatch: ${state.footer.join('|')}`);
-          console.log(JSON.stringify(state));
           NODE
