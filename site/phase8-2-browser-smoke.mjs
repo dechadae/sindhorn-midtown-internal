@@ -3,6 +3,14 @@ import { chromium } from 'playwright';
 
 const base=process.env.PHASE82_BASE_URL;
 if(!base)throw new Error('PHASE82_BASE_URL required');
+// Every authenticated route redirects to /login.html when there is no session,
+// so the renderer cannot be reached at all without signing in first. These come
+// from the CI_SMOKE_* Actions secrets and belong to a dedicated non-admin
+// service employee (role "employee", account_type "service"), never a real person.
+const smokeEmployeeNumber=process.env.CI_SMOKE_EMPLOYEE_NUMBER;
+const smokePin=process.env.CI_SMOKE_PIN;
+if(!smokeEmployeeNumber||!smokePin)throw new Error('CI_SMOKE_EMPLOYEE_NUMBER and CI_SMOKE_PIN required');
+if(!/^[0-9]{6}$/.test(smokePin))throw new Error('CI_SMOKE_PIN must be six digits');
 fs.mkdirSync('phase82-artifacts',{recursive:true});
 const browser=await chromium.launch({
   headless:true,
@@ -41,76 +49,83 @@ async function sampleFrames(page,label,count=30,timeoutMs=15000){
   return{frameAverageMs:+avg.toFixed(2),frameP95Ms:+p95.toFixed(2),frameSamples:samples.length,timedOut:result.timedOut,label};
 }
 
-async function inspect(viewport,name){
+// Signs in through the real PIN form rather than injecting a session, so the
+// authenticated boot path itself stays covered by this gate.
+async function signIn(page){
+  await page.goto(`${base}/login.html`,{waitUntil:'domcontentloaded',timeout:45000});
+  await page.fill('#employeeNumber',smokeEmployeeNumber);
+  for(let i=0;i<6;i++)await page.fill(`[data-pin-login-digit="${i}"]`,smokePin[i]);
+  await page.click('#pinLoginButton');
+  // waitUntil:'commit' only — the destination boots the full WebGL atmosphere,
+  // which can take longer than this timeout to fire the 'load' event that
+  // waitForURL waits for by default. The URL changing is all that's needed
+  // here; environment-ready is checked separately below.
+  await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:20000,waitUntil:'commit'});
+}
+
+// Verifies the deployed production/preview candidate directly at "/", using
+// live astronomy/weather/AirBKK state rather than a forced sun angle. There is
+// no standalone atmosphere tester page anymore (removed 2026-08-28): all
+// release verification runs against the live route only.
+async function inspectLive(viewport,name){
   const page=await browser.newPage({viewport,screen:viewport});
   page.on('pageerror',err=>errors.push(`${name}: ${err.message}`));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(`${name} console: ${msg.text()}`)});
-  await page.goto(`${base}/cloud-tester.html`,{waitUntil:'domcontentloaded',timeout:45000});
-  await page.waitForSelector('#sky',{timeout:15000});
-  await page.waitForFunction(()=>document.querySelector('#readout')?.textContent?.includes('renderer   shared Phase 8.2'),null,{timeout:15000});
-  await page.evaluate(()=>{
-    const input=document.querySelector('#solarAltitude');
-    input.value='8';input.dispatchEvent(new Event('input',{bubbles:true}));
-    document.querySelector('#hidePanel')?.click();
-  });
+  await signIn(page);
+  // Stay on the page the sign-in redirect already landed on rather than
+  // navigating again: a second full navigation right after login intermittently
+  // bounces back to /login, seemingly a session-hydration race on reload.
+  await page.waitForFunction(()=>document.body.classList.contains('environment-ready'),null,{timeout:30000});
+  await page.waitForFunction(()=>{
+    const state=window.SindhornLiveData?.getState?.();
+    return state?.delivery==='live'&&Number.isFinite(Number(state?.air?.pm))&&Number.isFinite(Number(state?.air?.aqi));
+  },null,{timeout:20000});
   await page.waitForTimeout(500);
   const state=await page.evaluate(()=>{
-    const canvas=document.querySelector('#sky');
-    const gl=canvas.getContext('webgl2')||canvas.getContext('webgl');
+    const env=window.SindhornEnvironment?.getState?.()||{};
+    const live=window.SindhornLiveData?.getState?.()||{};
+    const canvas=document.querySelector('#environmentCanvas');
+    const gl=canvas?.getContext('webgl2')||canvas?.getContext('webgl');
     const attrs=gl?.getContextAttributes?.()||{};
-    return {width:innerWidth,height:innerHeight,canvasWidth:canvas.width,canvasHeight:canvas.height,dprX:canvas.width/innerWidth,dprY:canvas.height/innerHeight,antialias:attrs.antialias,preserveDrawingBuffer:attrs.preserveDrawingBuffer,readout:document.querySelector('#readout')?.textContent||''};
+    return{
+      width:innerWidth,height:innerHeight,
+      canvasWidth:canvas?.width||0,canvasHeight:canvas?.height||0,
+      dprX:canvas?.width?canvas.width/innerWidth:0,dprY:canvas?.height?canvas.height/innerHeight:0,
+      antialias:attrs.antialias,preserveDrawingBuffer:attrs.preserveDrawingBuffer,
+      renderer:env.renderer||null,quality:env.quality||null,
+      airDelivery:live.delivery||null,airStationId:String(live.air?.stationId||''),
+      pm:Number(live.air?.pm),aqi:Number(live.air?.aqi)
+    };
   });
   if(state.width!==viewport.width||state.height!==viewport.height)throw new Error(`${name}: viewport mismatch ${state.width}x${state.height}`);
+  if(state.renderer!=='bangkok-seasonal-clouds-v2')throw new Error(`${name}: renderer mismatch ${state.renderer}`);
   if(Math.abs(state.dprX-2)>.05||Math.abs(state.dprY-2)>.05)throw new Error(`${name}: DPR not fixed at 2: ${state.dprX}x${state.dprY}`);
   if(state.antialias!==false)throw new Error(`${name}: WebGL antialias should be false`);
   if(state.preserveDrawingBuffer!==false)throw new Error(`${name}: live preserveDrawingBuffer should be false`);
-  if(!state.readout.includes('disc visible'))throw new Error(`${name}: tester does not report visible sun disc`);
+  if(state.airDelivery!=='live')throw new Error(`${name}: air delivery is not live: ${state.airDelivery}`);
+  if(!['114','139','65'].includes(state.airStationId))throw new Error(`${name}: unexpected AirBKK station: ${state.airStationId}`);
+  if(!Number.isFinite(state.pm)||state.pm<0||state.pm>500)throw new Error(`${name}: invalid PM2.5: ${state.pm}`);
+  if(!Number.isFinite(state.aqi)||state.aqi<0||state.aqi>500)throw new Error(`${name}: invalid Thai AQI: ${state.aqi}`);
   await page.screenshot({path:`phase82-artifacts/${name}.png`,fullPage:true});
   const pacing=await sampleFrames(page,name);
   await page.close();
   return {...state,...pacing};
 }
 
-let desktop=null,mobile=null,appState=null,fatal=null;
+let desktop=null,mobile=null,fatal=null;
 try{
-  desktop=await inspect({width:1440,height:1000},'cloud-tester-desktop-sun');
-  mobile=await inspect({width:390,height:844},'cloud-tester-mobile-sun');
-  const viewport={width:390,height:844};
-  const root=await browser.newPage({viewport,screen:viewport});
-  root.on('pageerror',err=>errors.push(`app: ${err.message}`));
-  root.on('console',msg=>{if(msg.type()==='error')errors.push(`app console: ${msg.text()}`)});
-  await root.goto(`${base}/?debug=1`,{waitUntil:'domcontentloaded',timeout:45000});
-  await root.waitForFunction(()=>document.body.classList.contains('environment-ready'),null,{timeout:30000});
-  await root.waitForFunction(()=>{
-    const state=window.SindhornLiveData?.getState?.();
-    return state?.delivery==='live'&&Number.isFinite(Number(state?.air?.pm))&&Number.isFinite(Number(state?.air?.aqi));
-  },null,{timeout:20000});
-  await root.waitForTimeout(500);
-  appState=await root.evaluate(()=>{
-    const env=window.SindhornEnvironment?.getState?.()||{};
-    const live=window.SindhornLiveData?.getState?.()||{};
-    return{renderer:env.renderer||null,quality:env.quality||null,pack:document.body.dataset.appPack||null,viewport:[innerWidth,innerHeight],canvas:[document.querySelector('#environmentCanvas')?.width||0,document.querySelector('#environmentCanvas')?.height||0],airDelivery:live.delivery||null,airStationId:String(live.air?.stationId||''),pm:Number(live.air?.pm),aqi:Number(live.air?.aqi)};
-  });
-  if(appState.renderer!=='bangkok-seasonal-clouds-v2')throw new Error(`app renderer mismatch: ${appState.renderer}`);
-  if(appState.quality!==2)throw new Error(`app DPR mismatch: ${appState.quality}`);
-  if(appState.viewport[0]!==390||appState.viewport[1]!==844)throw new Error(`app viewport mismatch: ${appState.viewport.join('x')}`);
-  if(appState.airDelivery!=='live')throw new Error(`air delivery is not live: ${appState.airDelivery}`);
-  if(!['114','139','65'].includes(appState.airStationId))throw new Error(`unexpected AirBKK station: ${appState.airStationId}`);
-  if(!Number.isFinite(appState.pm)||appState.pm<0||appState.pm>500)throw new Error(`invalid PM2.5: ${appState.pm}`);
-  if(!Number.isFinite(appState.aqi)||appState.aqi<0||appState.aqi>500)throw new Error(`invalid Thai AQI: ${appState.aqi}`);
-  await root.screenshot({path:'phase82-artifacts/app-mobile.png',fullPage:true});
-  appState={...appState,...await sampleFrames(root,'app-mobile',24,15000)};
-  await root.close();
+  desktop=await inspectLive({width:1440,height:1000},'app-desktop');
+  mobile=await inspectLive({width:390,height:844},'app-mobile');
 }catch(error){fatal=error;errors.push(`fatal: ${error.message}`)}finally{
   await browser.close();
-  const metrics={benchmark:'CPU-only SwANGLE diagnostic; physical GPU acceptance remains separate',desktop,mobile,appState,errors};
+  const metrics={benchmark:'CPU-only SwANGLE diagnostic; physical GPU acceptance remains separate',desktop,mobile,errors};
   fs.writeFileSync('phase82-artifacts/metrics.json',JSON.stringify(metrics,null,2));console.log(JSON.stringify(metrics,null,2));
 }
 if(fatal)throw fatal;
 if(errors.length)throw new Error(errors.join('\n'));
 // CPU-only SwANGLE timing is evidence only. Release correctness requires each
 // viewport to produce at least one rAF sample in addition to the successful
-// WebGL context, DPR, shared-renderer, sun-disc and screenshot checks above.
-for(const [name,m] of Object.entries({desktop,mobile,appMobile:appState})){
+// WebGL context, DPR, shared-renderer and live-data checks above.
+for(const [name,m] of Object.entries({desktop,mobile})){
   if(!m||m.frameSamples<1)throw new Error(`${name}: renderer produced no diagnostic frames`);
 }

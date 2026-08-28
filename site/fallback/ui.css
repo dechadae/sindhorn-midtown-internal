@@ -7,7 +7,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth}
-body{margin:0;padding-bottom:calc(76px + env(safe-area-inset-bottom));color:var(--sm-text);font-family:"Vignette Sans",system-ui,sans-serif;font-weight:200;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{margin:0;padding-bottom:calc(76px + env(safe-area-inset-bottom));color:var(--sm-text);font-family:"Poppins","Noto Sans Thai",system-ui,sans-serif;font-weight:300;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 :lang(th){font-family:"Noto Sans Thai",sans-serif;letter-spacing:0;word-break:normal;overflow-wrap:normal;line-break:loose}
 .hotel-name{white-space:nowrap}
 button,a{font:inherit;color:inherit}
@@ -104,7 +104,7 @@ h1 :lang(th){display:block;margin-top:10px;color:var(--sm-muted);font-size:.44em
 .pull-refresh.is-visible{opacity:1}.pull-refresh.is-ready,.pull-refresh.is-refreshing{border-color:rgba(var(--sm-accent-rgb),.62);background:rgba(46,39,59,.58)}
 .pull-refresh-icon{width:21px;height:21px;display:grid;place-items:center;border:1px solid rgba(var(--sm-accent-rgb),.38);border-radius:50%;color:var(--sm-accent);flex:0 0 21px;transition:transform .22s var(--sm-ease)}
 .pull-refresh-icon svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.pull-refresh.is-ready .pull-refresh-icon{transform:rotate(180deg)}.pull-refresh.is-refreshing .pull-refresh-icon{animation:ptrSpin .72s linear infinite}
-.pull-refresh-copy{display:flex;flex-direction:column;line-height:1.08;white-space:nowrap}.pull-refresh-copy strong{font-family:"Vignette Sans",system-ui,sans-serif;font-size:.62rem;font-weight:400;letter-spacing:.13em;text-transform:uppercase}.pull-refresh-copy small{margin-top:3px;font-family:"Noto Sans Thai",sans-serif;font-size:.68rem;font-weight:400;color:var(--sm-muted)}
+.pull-refresh-copy{display:flex;flex-direction:column;line-height:1.08;white-space:nowrap}.pull-refresh-copy strong{font-family:"Poppins",system-ui,sans-serif;font-size:.62rem;font-weight:400;text-transform:uppercase}.pull-refresh-copy small{margin-top:3px;font-family:"Noto Sans Thai",sans-serif;font-size:.68rem;font-weight:400;color:var(--sm-muted)}
 @keyframes ptrSpin{to{transform:rotate(360deg)}}
 
 .capture-home #app-header,.capture-home #app-footer,.capture-home .app-footer-reference,.capture-home .report-actionbar{display:none!important}.capture-home{padding-bottom:0!important}.capture-atmosphere{position:absolute!important;z-index:-1!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;pointer-events:none!important}
@@ -112,3 +112,6 @@ h1 :lang(th){display:block;margin-top:10px;color:var(--sm-muted);font-size:.44em
 @media(max-width:520px){.scale-labels{grid-template-columns:1fr}.scale-labels [role=listitem]{display:grid;grid-template-columns:72px minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:baseline;padding:9px 0}.scale-labels [role=listitem] span{margin-top:0}.fact{grid-template-columns:1fr;gap:6px}.nav-chip{padding-inline:11px;font-size:.65rem}}
 @media(max-width:359px){.today{display:none}.masthead-tools{gap:0}.nav-chip{padding-inline:9px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.route-enter{animation:none}.action,.nav-chip,.pull-refresh,.fullscreen-toggle{transition:none}}
+
+/* Typography invariant: zero character tracking everywhere, matching the live pack. */
+*,*::before,*::after{letter-spacing:0!important}

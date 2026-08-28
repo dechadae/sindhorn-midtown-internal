@@ -10,7 +10,7 @@ The application is bilingual **English first throughout**.
 - Thai follows immediately as direct operational support.
 - This applies to navigation, status, health guidance, actionable instructions, warnings, errors, recovery states, permissions, safety/medical disclaimers, pull-to-refresh states, save/share feedback and push notifications.
 - Critical information must remain understandable without a language selector.
-- English uses Vignette Sans; Thai uses Noto Sans Thai.
+- English uses Poppins; Thai uses Noto Sans Thai. (Amended 2026-08-28: superseded the earlier Vignette Sans decision at the product owner's explicit request, for more consistent spacing and alignment. Both are self-hosted — see `site/assets/fonts/poppins-*.woff2` — not loaded from Google's CDN, keeping the offline-first PWA font strategy consistent.)
 - The official Sindhorn Midtown / Vignette lockup remains artwork and is never re-typeset.
 
 ## Implementation contract

@@ -78,8 +78,9 @@ Implementation components:
 - `site/environment.js` — production environment state, Open-Meteo integration, current-location astronomy, AirBKK optics, renderer, precipitation overlays, export parity.
 - `site/phase8-2-fixtures.js` — deterministic seasonal/date/weather acceptance fixtures.
 - `site/phase8-2-seasonal-clouds.test.mjs` — deterministic architecture/fixture assertions.
-- `site/cloud-tester-shared.js` + `site/cloud-tester.html` — full cloud customization lab using the exact shared production shader, including visible sun-disc/cloud attenuation behavior.
-- `site/phase8-2-browser-smoke.mjs` — Chromium render/DPR/context/frame-pacing regression smoke with desktop/mobile evidence.
+- `site/phase8-2-browser-smoke.mjs` — Chromium render/DPR/context/frame-pacing regression smoke with desktop/mobile evidence, run against the live `/` route only.
+
+**2026-08-28 — tester/example pages removed.** `site/cloud-tester.html`, `site/cloud-tester-shared.js`, `site/atmosphere-tester.html`, `site/atmosphere-tester.js`, `site/tester-celestials.js` and `site/january-sunset-example.html` were deleted at the product owner's explicit request: the app is pre-launch (no employees onboarded yet, single-person testing), and standalone tester/demo pages are no longer wanted — all verification now happens against the live route. `phase8-2-browser-smoke.mjs` was rewritten accordingly to verify `/` directly (renderer identity, DPR, live AirBKK delivery, frame pacing) instead of forcing a sun angle on the retired cloud tester. The dedicated `Phase 8.2 Atmosphere Lab` workflow (`.github/workflows/phase8-2-january-example.yml`) was deleted along with it. Do not recreate a standalone tester page without a new explicit product decision; if a manual cloud/sky tuning tool is needed again, it should be discussed with the product owner first.
 
 Cloud families are conceptual layers in one GPU pass:
 
