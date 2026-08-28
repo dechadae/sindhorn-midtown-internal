@@ -53,7 +53,7 @@ jobs:
           assert "fnb:Object.freeze({path:'/fnb'" in registry and "messages:Object.freeze({path:'/messages'" in registry
           assert "mount:'mountFnbRoute'" in registry and "kind:'local'" in registry
           assert "routeLink.dataset.appRoute" in transitions and 'transitionToRoute' in transitions
-          assert "sindhorn-footer-v6-fnb-direct" in footer_guard and "route:'fnb'" in footer_guard and "route:'messages'" in footer_guard
+          assert "sindhorn-footer-v6-fnb-motion" in footer_guard and "route:'fnb'" in footer_guard and "route:'messages'" in footer_guard
           assert "FNB_MODULE_URL='/fnb.js?v=6'" in footer_guard and 'module.mountFnbRoute' in footer_guard and "dataset.fnbNav='fnb'" in footer_guard
           assert 'grid-template-columns:repeat(3,minmax(0,1fr))!important' in footer_css and 'height:54px!important' in footer_css and 'height:42px!important' in footer_css
           assert 'bottom:calc(68px + env(safe-area-inset-bottom))!important' in footer_css and 'border-radius:18px!important' in footer_css
@@ -101,7 +101,7 @@ jobs:
               && grep -q '/footer-route-guard.js?v=6&ui=3' /tmp/root.html \
               && grep -q '/fnb-approved-polish.css?v=1' /tmp/root.html \
               && grep -q "path:'/fnb'" /tmp/route-registry.js \
-              && grep -q 'sindhorn-footer-v6-fnb-direct' /tmp/footer-route-guard.js \
+              && grep -q 'sindhorn-footer-v6-fnb-motion' /tmp/footer-route-guard.js \
               && grep -q "FNB_MODULE_URL='/fnb.js?v=6'" /tmp/footer-route-guard.js \
               && grep -q 'module.mountFnbRoute' /tmp/footer-route-guard.js \
               && grep -q 'height:54px!important' /tmp/footer-route-guard.css \
