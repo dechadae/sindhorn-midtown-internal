@@ -4,18 +4,22 @@
 /guidance / 301
 /details / 301
 
-# SPA fallback. Every authenticated route is mounted client-side by
-# site/route-registry.js, so any non-asset path must serve the root document
-# with the URL preserved.
+# SPA fallback, one line per authenticated route in site/route-registry.js.
 #
 # The target MUST be "/" and not "/index.html": Cloudflare Pages canonicalises
-# /index.html to / with a 308, so a rewrite pointing at /index.html degrades
-# into a real redirect and the SPA loses the requested path before its
-# JavaScript ever runs. That is what broke direct loads of /fnb, /messages,
-# /account and /admin.
+# /index.html to / with a 308, so a rewrite pointing at /index.html stops being
+# a rewrite and becomes a real redirect. The SPA then loses the requested path
+# before its JavaScript runs, which is what broke direct loads of every route.
 #
-# Static assets are matched before this rule, so /login.html, /sw.js and
-# everything under /assets/ are unaffected. Using a catch-all rather than one
-# line per route also means a new route only has to be registered in
-# route-registry.js, not here as well.
-/* / 200
+# These MUST stay explicit. A catch-all ("/* / 200") looks tidier but Cloudflare
+# Pages evaluates splat rules ahead of static assets, so it serves this HTML for
+# /sw.js, /login.html and every stylesheet and module - the whole app goes dark.
+# Verified on a preview deploy, caught by the smoke test.
+#
+# Adding a route? Add it to route-registry.js and here. The deploy workflow
+# asserts the two stay in sync, so a missing line fails the build rather than
+# shipping a route that 308s to Today.
+/fnb / 200
+/messages / 200
+/account / 200
+/admin / 200
