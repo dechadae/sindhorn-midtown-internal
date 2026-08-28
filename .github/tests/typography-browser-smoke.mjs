@@ -33,8 +33,9 @@ async function auditVisibleTypography(page,label,{requireThinSelectors=[]}={}){
     const typography=candidates.map(el=>{const s=getComputedStyle(el);return{tag:el.tagName,cls:String(el.className||'').slice(0,80),id:el.id||'',text:(el.textContent||el.getAttribute('placeholder')||'').trim().replace(/\s+/g,' ').slice(0,90),family:s.fontFamily,weight:s.fontWeight,letterSpacing:s.letterSpacing,size:parseFloat(s.fontSize)||0,lineHeight:s.lineHeight}});
     const faces=[...document.fonts].map(face=>({family:face.family,weight:face.weight,status:face.status}));
     const resources=performance.getEntriesByType('resource').map(r=>r.name).filter(name=>/font|woff|googleapis|gstatic/i.test(name));
+    const overflowing=[...document.body.querySelectorAll('*')].filter(visible).map(el=>{const r=el.getBoundingClientRect();return{tag:el.tagName,id:el.id||'',cls:String(el.className||'').slice(0,100),text:(el.textContent||'').trim().replace(/\s+/g,' ').slice(0,90),left:Math.round(r.left),right:Math.round(r.right),width:Math.round(r.width),scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,whiteSpace:getComputedStyle(el).whiteSpace}}).filter(x=>x.right>innerWidth+2||x.left<-2||x.scrollWidth>x.clientWidth+2).slice(0,12);
     return{
-      typography,faces,resources,
+      typography,faces,resources,overflowing,
       width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,
       path:location.pathname,
       shellToken:document.__typographyShellToken||null
@@ -48,7 +49,7 @@ async function auditVisibleTypography(page,label,{requireThinSelectors=[]}={}){
   assert(!badWeight.length,`${label} unsupported computed weights: ${JSON.stringify(badWeight.slice(0,5))}`);
   assert(!badTracking.length,`${label} nonzero tracking: ${JSON.stringify(badTracking.slice(0,5))}`);
   assert(!badThin.length,`${label} Thin 100 used below 44px: ${JSON.stringify(badThin.slice(0,5))}`);
-  assert(state.scrollWidth<=state.width+2,`${label} horizontal overflow ${state.scrollWidth}>${state.width}`);
+  assert(state.scrollWidth<=state.width+2,`${label} horizontal overflow ${state.scrollWidth}>${state.width}: ${JSON.stringify(state.overflowing)}`);
   const lineFaces=state.faces.filter(face=>familyOk(face.family));
   for(const weight of ['100','400','700'])assert(lineFaces.some(face=>String(face.weight)===weight),`${label} LINE Seed ${weight} face missing`);
   assert(!state.faces.some(face=>/poppins|noto|vignette sans|ibm plex/i.test(face.family)),`${label} retired face registered`);
