@@ -47,15 +47,17 @@ jobs:
           pwa=json.loads((root/'manifest.webmanifest').read_text())
           assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
           assert 'display_override' not in pwa
-          bootstrap=(root/'bootstrap.js').read_text(); registry=(root/'route-registry.js').read_text(); transitions=(root/'app-transitions.js').read_text(); footer_guard=(root/'footer-route-guard.js').read_text(); footer_css=(root/'footer-route-guard.css').read_text(); fallback=json.loads((root/'fallback/manifest.json').read_text())
+          bootstrap=(root/'bootstrap.js').read_text(); registry=(root/'route-registry.js').read_text(); transitions=(root/'app-transitions.js').read_text(); footer_guard=(root/'footer-route-guard.js').read_text(); footer_css=(root/'footer-route-guard.css').read_text(); fnb_polish=(root/'fnb-approved-polish.css').read_text(); fallback=json.loads((root/'fallback/manifest.json').read_text())
           shell=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1)); assert shell==17 and fallback['minimumShell']==shell
           assert "FALLBACK_REQUIRED=[...REQUIRED,'messages.html']" in bootstrap
           assert "fnb:Object.freeze({path:'/fnb'" in registry and "messages:Object.freeze({path:'/messages'" in registry
           assert "mount:'mountFnbRoute'" in registry and "kind:'local'" in registry
           assert "routeLink.dataset.appRoute" in transitions and 'transitionToRoute' in transitions
-          assert "sindhorn-footer-v5-fnb-direct" in footer_guard and "route:'fnb'" in footer_guard and "route:'messages'" in footer_guard
-          assert "FNB_MODULE_URL='/fnb.js?v=5'" in footer_guard and 'module.mountFnbRoute' in footer_guard and "dataset.fnbNav='fnb'" in footer_guard
-          assert 'grid-template-columns:repeat(3,minmax(0,1fr))!important' in footer_css and 'height:44px!important' in footer_css
+          assert "sindhorn-footer-v6-fnb-direct" in footer_guard and "route:'fnb'" in footer_guard and "route:'messages'" in footer_guard
+          assert "FNB_MODULE_URL='/fnb.js?v=6'" in footer_guard and 'module.mountFnbRoute' in footer_guard and "dataset.fnbNav='fnb'" in footer_guard
+          assert 'grid-template-columns:repeat(3,minmax(0,1fr))!important' in footer_css and 'height:54px!important' in footer_css and 'height:42px!important' in footer_css
+          assert 'bottom:calc(68px + env(safe-area-inset-bottom))!important' in footer_css and 'border-radius:18px!important' in footer_css
+          assert '--fnb-motion-base:260ms' in fnb_polish and '--fnb-disclosure-ms:420ms' in fnb_polish and '.fnb-select-trigger' in fnb_polish
           for item in fallback['resources']: assert hashlib.sha256((root/'fallback'/item['path']).read_bytes()).hexdigest()==item['sha256'],item['path']
           fallback_today=(root/'fallback'/'today.html').read_text(); assert 'saveImageBtn' not in fallback_today and 'report-actionbar' not in fallback_today
           app=(root/'app.js').read_text(); assert "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app and 'performPullRefresh' in app
@@ -63,11 +65,11 @@ jobs:
           for token in ('sindhorn-midtown-notification-inbox','messageList','messageClearBtn','SINDHORN_NOTIFICATION_STORED','markAllRead'): assert token in inbox
           push=(root/'push-client.js').read_text(); assert 'pushManager.subscribe' in push and 'enableFromGesture' in push and 'Notification.requestPermission' not in push and 'PREPARE_TIMEOUT_MS' in push
           index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); env=(root/'environment.js').read_text(); shader=(root/'atmosphere-shader.js').read_text()
-          assert '/footer-route-guard.js?v=5' in index and '/footer-route-guard.css?v=2' in index
+          assert '/footer-route-guard.js?v=6&ui=3' in index and '/footer-route-guard.css?v=6' in index and '/fnb-approved-polish.css?v=1' in index
           assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index and '/storm-effects.js' not in index
           assert "'/sky-calibration.js'" not in sw and "'/sky-color-renderer.js'" not in sw and "'/storm-effects.js'" not in sw
           assert 'pwa-v23-bangkok-seasonal-clouds' in sw and "'/atmosphere-shader.js'" in sw and "'/seasonal-sky.js'" in sw
-          assert "'/footer-route-guard.js'" in sw and "'/footer-route-guard.css'" in sw and "'/fnb.js'" in sw and "'/fnb-data.js'" in sw and "'/fnb.css'" in sw
+          assert "'/footer-route-guard.js'" in sw and "'/footer-route-guard.css'" in sw and "'/fnb.js'" in sw and "'/fnb-data.js'" in sw and "'/fnb.css'" in sw and "'/fnb-approved-polish.css'" in sw
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw and 'storeNotification' in sw and 'markNotificationRead' in sw
           assert "renderer:'bangkok-seasonal-clouds-v2'" in env and 'const DPR=2' in env and 'renderExport' in env and 'antialias:false' in env and 'ensureSnowCanvas' in env and 'ensureHailCanvas' in env
           for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','uSun','uSolarAltitude','sunDisc','Visible sun disc','texture2D(uNoise','AirBKK PM2.5 optics'): assert token in shader,token
@@ -88,22 +90,26 @@ jobs:
               && curl --fail --silent --show-error --location "${BASE_URL}/route-registry.js" -o /tmp/route-registry.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/footer-route-guard.js" -o /tmp/footer-route-guard.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/footer-route-guard.css" -o /tmp/footer-route-guard.css \
-              && curl --fail --silent --show-error --location "${BASE_URL}/fnb.js?v=5" -o /tmp/fnb.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/fnb.js?v=6" -o /tmp/fnb.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/fnb-data.js" -o /tmp/fnb-data.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/fnb.css" -o /tmp/fnb.css \
+              && curl --fail --silent --show-error --location "${BASE_URL}/fnb-approved-polish.css?v=1" -o /tmp/fnb-approved-polish.css \
               && curl --fail --silent --show-error --location "${BASE_URL}/environment.js" -o /tmp/environment.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/notification-inbox.js" -o /tmp/notification-inbox.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
-              && grep -q '/footer-route-guard.js?v=5' /tmp/root.html \
+              && grep -q '/footer-route-guard.js?v=6&ui=3' /tmp/root.html \
+              && grep -q '/fnb-approved-polish.css?v=1' /tmp/root.html \
               && grep -q "path:'/fnb'" /tmp/route-registry.js \
-              && grep -q 'sindhorn-footer-v5-fnb-direct' /tmp/footer-route-guard.js \
-              && grep -q "FNB_MODULE_URL='/fnb.js?v=5'" /tmp/footer-route-guard.js \
+              && grep -q 'sindhorn-footer-v6-fnb-direct' /tmp/footer-route-guard.js \
+              && grep -q "FNB_MODULE_URL='/fnb.js?v=6'" /tmp/footer-route-guard.js \
               && grep -q 'module.mountFnbRoute' /tmp/footer-route-guard.js \
-              && grep -q 'height:44px!important' /tmp/footer-route-guard.css \
+              && grep -q 'height:54px!important' /tmp/footer-route-guard.css \
+              && grep -q 'height:42px!important' /tmp/footer-route-guard.css \
               && grep -q 'mountFnbRoute' /tmp/fnb.js \
               && grep -q 'FNB_PROMOTIONS' /tmp/fnb-data.js \
               && grep -q 'background:transparent' /tmp/fnb.css \
+              && grep -q -- '--fnb-disclosure-ms:420ms' /tmp/fnb-approved-polish.css \
               && ! grep -q '/sky-calibration.js' /tmp/root.html \
               && ! grep -q '/sky-color-renderer.js' /tmp/root.html \
               && ! grep -q '/storm-effects.js' /tmp/root.html \
