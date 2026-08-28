@@ -59,16 +59,20 @@ jobs:
           grep -q "fnb-select select" site/fnb.css
           grep -q "background:transparent" site/fnb.css
           grep -q "mountFnbRoute" site/fnb.js
+          grep -q "updateSectionFromScroll" site/fnb.js
+          grep -q "translateX(18px)" site/fnb.js
+          grep -q "animateCardsIn" site/fnb.js
+          grep -q "fnb-motion-base" site/fnb.css
           ! grep -q "Intentionally empty shell route" site/fnb.js
           grep -q "employee_number||''.*10639" site/fnb.js
           grep -q "data-outlet-select" site/fnb.js
           grep -q "data-month-select" site/fnb.js
           grep -q '/pwa-version-guard.js?v=1' site/index.html
-          grep -q '/footer-route-guard.js?v=5' site/index.html
-          grep -q '/footer-route-guard.css?v=4' site/index.html
-          grep -q "sindhorn-footer-v5-fnb-direct" site/footer-route-guard.js
+          grep -q '/footer-route-guard.js?v=6' site/index.html
+          grep -q '/footer-route-guard.css?v=5' site/index.html
+          grep -q "sindhorn-footer-v6-fnb-motion" site/footer-route-guard.js
           grep -q "data.fnbNav\|dataset.fnbNav" site/footer-route-guard.js
-          grep -q "FNB_MODULE_URL='/fnb.js?v=5'" site/footer-route-guard.js
+          grep -q "FNB_MODULE_URL='/fnb.js?v=6'" site/footer-route-guard.js
           grep -q "module.mountFnbRoute" site/footer-route-guard.js
           grep -q "grid-template-columns:repeat(3,minmax(0,1fr))!important" site/footer-route-guard.css
           grep -q "min-height:54px!important" site/footer-route-guard.css
@@ -76,9 +80,9 @@ jobs:
           grep -q "border-radius:13px!important" site/footer-route-guard.css
           grep -q "bottom:calc(68px + env(safe-area-inset-bottom))!important" site/footer-route-guard.css
           grep -q "fnb-section-rail .fnb-chip" site/footer-route-guard.css
-          grep -q "border-radius:10px!important" site/footer-route-guard.css
-          grep -q "fnb-expand" site/footer-route-guard.css
-          grep -q "pwa-v28-footer-fnb-route-repair" site/sw.js
+          grep -q -- "--sm-control-radius:12px" site/footer-route-guard.css
+          grep -q ".action,.message-clear,.message-open" site/footer-route-guard.css
+          grep -q "pwa-v31-fnb-motion-preview" site/sw.js
           grep -q "'/footer-route-guard.js'" site/sw.js
           grep -q "'/fnb-data.js'" site/sw.js
           grep -q "'/fnb.css'" site/sw.js
@@ -88,7 +92,7 @@ jobs:
         shell: bash
         run: |
           cat > site/__fnb-footer-smoke.html <<'HTML'
-          <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/footer-route-guard.css?v=4"></head><body><main id="route-view"><p id="before">Before F&amp;B</p></main><footer id="app-footer"></footer><script>window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Smoke Test'};</script><script type="module" src="/footer-route-guard.js?v=5"></script></body></html>
+          <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/footer-route-guard.css?v=5"></head><body><main id="route-view"><p id="before">Before F&amp;B</p></main><footer id="app-footer"></footer><script>window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Smoke Test'};</script><script type="module" src="/footer-route-guard.js?v=6"></script></body></html>
           HTML
 
       - name: Deploy branch preview
@@ -104,28 +108,28 @@ jobs:
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
           curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb" -o /tmp/fnb-shell.html
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb.js?v=5" -o /tmp/fnb.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb.js?v=6" -o /tmp/fnb.js
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb-data.js" -o /tmp/fnb-data.js
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb.css" -o /tmp/fnb.css
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/footer-route-guard.js?v=5" -o /tmp/footer-route-guard.js
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/footer-route-guard.css?v=4" -o /tmp/footer-route-guard.css
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb.css?v=2" -o /tmp/fnb.css
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/footer-route-guard.js?v=6" -o /tmp/footer-route-guard.js
+          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/footer-route-guard.css?v=5" -o /tmp/footer-route-guard.css
           curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/__fnb-footer-smoke.html" -o /tmp/fnb-footer-smoke.html
           grep -q 'id="environmentStage"' /tmp/fnb-shell.html
           grep -q 'id="route-view"' /tmp/fnb-shell.html
-          grep -q '/footer-route-guard.js?v=5' /tmp/fnb-shell.html
-          grep -q '/footer-route-guard.css?v=4' /tmp/fnb-shell.html
+          grep -q '/footer-route-guard.js?v=6' /tmp/fnb-shell.html
+          grep -q '/footer-route-guard.css?v=5' /tmp/fnb-shell.html
           grep -q 'mountFnbRoute' /tmp/fnb.js
+          grep -q 'updateSectionFromScroll' /tmp/fnb.js
           grep -q 'FNB_PROMOTIONS' /tmp/fnb-data.js
           grep -q -- '--fnb-chip-h:30px' /tmp/fnb.css
-          grep -q 'fnb-select select' /tmp/fnb.css
-          grep -q 'background:transparent' /tmp/fnb.css
-          grep -q 'sindhorn-footer-v5-fnb-direct' /tmp/footer-route-guard.js
-          grep -q "FNB_MODULE_URL='/fnb.js?v=5'" /tmp/footer-route-guard.js
+          grep -q 'fnb-motion-base' /tmp/fnb.css
+          grep -q 'sindhorn-footer-v6-fnb-motion' /tmp/footer-route-guard.js
+          grep -q "FNB_MODULE_URL='/fnb.js?v=6'" /tmp/footer-route-guard.js
           grep -q 'min-height:54px!important' /tmp/footer-route-guard.css
-          grep -q 'border-radius:18px!important' /tmp/footer-route-guard.css
-          grep -q 'footer-route-guard.js?v=5' /tmp/fnb-footer-smoke.html
+          grep -q -- '--sm-control-radius:12px' /tmp/footer-route-guard.css
+          grep -q 'footer-route-guard.js?v=6' /tmp/fnb-footer-smoke.html
 
-      - name: Browser-click F&B footer control
+      - name: Browser-test motion, scrollspy and controls
         shell: bash
         env:
           BASE_URL: https://${{ github.ref_name }}.sindhorn-midtown-internal.pages.dev
@@ -142,14 +146,22 @@ jobs:
           page.on('console',m=>{if(m.type()==='error')errors.push(`console: ${m.text()}`)});
           await page.goto(`${process.env.BASE_URL}/__fnb-footer-smoke.html`,{waitUntil:'domcontentloaded',timeout:45000});
           await page.waitForSelector('[data-fnb-nav="fnb"]',{timeout:10000});
-          const footerBefore=await page.evaluate(()=>{const dock=document.querySelector('#app-footer .app-tabbar');const tab=document.querySelector('#app-footer .nav-chip');const d=getComputedStyle(dock),t=getComputedStyle(tab);return{dockRadius:d.borderRadius,dockHeight:d.minHeight,tabRadius:t.borderRadius,tabHeight:t.height}});
+          const footerBefore=await page.evaluate(()=>{const dock=document.querySelector('#app-footer .app-tabbar');const tab=document.querySelector('#app-footer .nav-chip');const d=getComputedStyle(dock),t=getComputedStyle(tab);return{dockRadius:d.borderRadius,dockHeight:d.minHeight,tabRadius:t.borderRadius,tabHeight:t.height,transition:t.transitionDuration}});
           await page.click('[data-fnb-nav="fnb"]');
           await page.waitForSelector('#route-view .fnb-route',{timeout:15000});
           const indexState=await page.evaluate(()=>({path:location.pathname,title:document.querySelector('.fnb-hero h1')?.textContent?.trim(),cards:document.querySelectorAll('.fnb-card').length,footer:Array.from(document.querySelectorAll('#app-footer .nav-chip')).map(x=>x.textContent.trim())}));
           await page.click('[data-open]');
           await page.waitForSelector('body[data-fnb-detail="true"] .fnb-section-rail',{timeout:10000});
-          const detailState=await page.evaluate(()=>{const dock=document.querySelector('#app-footer .app-tabbar').getBoundingClientRect();const rail=document.querySelector('.fnb-section-rail').getBoundingClientRect();const chip=getComputedStyle(document.querySelector('.fnb-section-rail .fnb-chip'));const expand=getComputedStyle(document.querySelector('.fnb-expand'));return{gap:Math.round(dock.top-rail.bottom),railRadius:getComputedStyle(document.querySelector('.fnb-section-rail')).borderRadius,chipRadius:chip.borderRadius,expandRadius:expand.borderRadius}});
-          console.log(JSON.stringify({footerBefore,indexState,detailState}));
+          await page.waitForTimeout(360);
+          const detailState=await page.evaluate(()=>{const dock=document.querySelector('#app-footer .app-tabbar').getBoundingClientRect();const railEl=document.querySelector('.fnb-section-rail');const rail=railEl.getBoundingClientRect();const chip=getComputedStyle(railEl.querySelector('.fnb-chip'));const expand=getComputedStyle(document.querySelector('.fnb-expand'));const back=getComputedStyle(document.querySelector('.fnb-back'));return{gap:Math.round(dock.top-rail.bottom),railRadius:getComputedStyle(railEl).borderRadius,chipRadius:chip.borderRadius,expandRadius:expand.borderRadius,backRadius:back.borderRadius,active:railEl.querySelector('.is-active')?.dataset.section}});
+          if(detailState.active!=='overview')throw new Error(`Initial scrollspy mismatch: ${detailState.active}`);
+          await page.evaluate(()=>{const el=document.querySelector('#copy');window.scrollTo({top:el.getBoundingClientRect().top+scrollY-70,behavior:'auto'})});
+          await page.waitForTimeout(160);
+          const copyActive=await page.evaluate(()=>document.querySelector('.fnb-section-rail .is-active')?.dataset.section);
+          await page.evaluate(()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'auto'}));
+          await page.waitForTimeout(160);
+          const artworkActive=await page.evaluate(()=>document.querySelector('.fnb-section-rail .is-active')?.dataset.section);
+          console.log(JSON.stringify({footerBefore,indexState,detailState,copyActive,artworkActive}));
           console.log('browser-errors',JSON.stringify(errors));
           await browser.close();
           if(errors.length)throw new Error(errors.join('\n'));
@@ -158,5 +170,7 @@ jobs:
           if(indexState.title!=='Promotions')throw new Error(`F&B title missing: ${indexState.title}`);
           if(indexState.cards!==8)throw new Error(`Expected 8 promotion cards, got ${indexState.cards}`);
           if(indexState.footer.join('|')!=='Today|F&B|Messages')throw new Error(`Footer mismatch: ${indexState.footer.join('|')}`);
-          if(detailState.gap<6||detailState.railRadius!=='15px'||detailState.chipRadius!=='10px'||detailState.expandRadius!=='10px')throw new Error(`Detail rail/button geometry mismatch: ${JSON.stringify(detailState)}`);
+          if(detailState.gap<6||detailState.railRadius!=='15px'||detailState.chipRadius!=='10px'||detailState.expandRadius!=='10px'||detailState.backRadius!=='12px')throw new Error(`Detail control geometry mismatch: ${JSON.stringify(detailState)}`);
+          if(copyActive!=='copy')throw new Error(`Copy scrollspy mismatch: ${copyActive}`);
+          if(artworkActive!=='artwork')throw new Error(`Artwork scrollspy mismatch: ${artworkActive}`);
           NODE
