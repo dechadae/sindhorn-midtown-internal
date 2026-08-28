@@ -70,13 +70,11 @@ jobs:
           import re
           banned=re.compile(r'Vignette Sans|Noto Sans Thai|Noto Sans|Poppins|IBM Plex Sans Thai',re.I)
           offenders=[]
-          for root in (Path('site'),Path('.github/workflows')):
-              for path in root.rglob('*'):
-                  if not path.is_file() or 'vendor' in path.parts or path.name in {'environment.bundle.js','font-architecture.test.mjs','line-seed-migration-once.yml'}:continue
-                  if path.suffix.lower() not in {'.css','.html','.js','.mjs','.json','.webmanifest','.yml','.yaml'}:continue
-                  text=path.read_text(errors='ignore')
-                  if banned.search(text):offenders.append(str(path))
-          assert not offenders,'retired font references remain in production: '+', '.join(offenders)
+          for path in Path('site').rglob('*'):
+              if not path.is_file() or 'vendor' in path.parts or path.name in {'environment.bundle.js','font-architecture.test.mjs'}:continue
+              if path.suffix.lower() not in {'.css','.html','.js','.mjs','.json','.webmanifest'}:continue
+              if banned.search(path.read_text(errors='ignore')):offenders.append(str(path))
+          assert not offenders,'retired font references remain in production site: '+', '.join(offenders)
           PY
 
       - name: Commit migration
@@ -85,7 +83,7 @@ jobs:
           set -euo pipefail
           # Workflow files are updated separately through the GitHub connector;
           # the Actions token intentionally lacks workflow-write permission.
-          git restore .github/workflows/deploy.yml .github/workflows/launch-hardening.yml
+          git restore .github/workflows
           git config user.name "dechadae"
           git config user.email "decha.dae@gmail.com"
           git add -A
