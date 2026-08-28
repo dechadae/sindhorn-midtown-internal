@@ -2,7 +2,7 @@
    with a soft scrim so text stays legible regardless of current sky state. */
 :root{--fnb-chip-h:44px;--fnb-line:rgba(250,247,245,.16);--fnb-line-soft:rgba(250,247,245,.11);--fnb-surface:rgba(38,41,53,.44);--fnb-surface-strong:rgba(39,41,54,.68);--fnb-ease:cubic-bezier(.22,1,.36,1);--fnb-live:#72A75D}
 body[data-route="fnb"] #route-view{background:transparent;padding-bottom:96px}
-body[data-route="fnb"][data-fnb-detail="true"] #route-view{padding-bottom:150px}
+body[data-route="fnb"][data-fnb-detail="true"] #route-view{padding-bottom:134px}
 .fnb-route{position:relative;min-height:calc(100dvh - 120px);color:var(--sm-text);isolation:isolate}
 .fnb-route::before{content:"";position:fixed;z-index:-1;inset:0;background:linear-gradient(180deg,rgba(24,20,32,.72),rgba(24,20,32,.5) 30%,rgba(24,20,32,.62) 70%,rgba(24,20,32,.86));pointer-events:none}
 .fnb-route,.fnb-route *,.fnb-route *::before,.fnb-route *::after{box-sizing:border-box;letter-spacing:0!important}
@@ -49,8 +49,8 @@ body[data-route="fnb"][data-fnb-detail="true"] #route-view{padding-bottom:150px}
 /* .app-tabbar (the persistent footer) renders at 80px tall with no safe-area
    inset; this rail must clear its real height, not the shell's older 64px
    figure, or the two fixed bars visibly overlap. */
-.fnb-section-rail{position:fixed;z-index:95;left:0;right:0;bottom:calc(80px + env(safe-area-inset-bottom));min-height:60px;padding:8px max(10px,env(safe-area-inset-left)) 8px max(10px,env(safe-area-inset-right));display:none;align-items:center;justify-content:center;gap:6px;border-top:1px solid var(--fnb-line);background:rgba(46,39,59,.86);backdrop-filter:blur(18px) saturate(1.25);-webkit-backdrop-filter:blur(18px) saturate(1.25)}
-.fnb-section-rail .fnb-chip{flex:1 1 0;max-width:132px;padding-inline:5px;text-transform:uppercase}
+.fnb-section-rail{position:fixed;z-index:95;left:0;right:0;bottom:calc(80px + env(safe-area-inset-bottom));min-height:44px;padding:5px max(10px,env(safe-area-inset-left)) 5px max(10px,env(safe-area-inset-right));display:none;align-items:center;justify-content:center;gap:6px;border-top:1px solid var(--fnb-line);background:rgba(46,39,59,.86);backdrop-filter:blur(18px) saturate(1.25);-webkit-backdrop-filter:blur(18px) saturate(1.25)}
+.fnb-section-rail .fnb-chip{flex:1 1 0;max-width:132px;height:34px;min-height:34px;padding-inline:5px;font-size:.6rem;text-transform:uppercase}
 body[data-fnb-detail="true"] .fnb-section-rail{display:flex}
 
 .fnb-detail-head{padding:28px 0 8px}
@@ -79,8 +79,7 @@ body[data-fnb-detail="true"] .fnb-section-rail{display:flex}
 .fnb-text-card{padding:18px}
 .fnb-text-label{margin:0 0 10px;color:var(--sm-accent);font-size:var(--type-caption,.68rem);text-transform:uppercase}
 .fnb-text-copy{position:relative;white-space:pre-line;color:rgba(250,247,245,.86);font-size:var(--type-body,.88rem);line-height:1.62;overflow:hidden;transition:max-height .38s var(--fnb-ease)}
-.fnb-text-copy.is-collapsed{max-height:185px}
-.fnb-text-copy.is-collapsed::after{content:"";position:absolute;left:0;right:0;bottom:0;height:64px;background:linear-gradient(transparent,rgba(34,37,49,.94))}
+.fnb-text-copy.is-collapsed{max-height:185px;-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent 100%)}
 .fnb-expand{height:var(--fnb-chip-h);min-height:var(--fnb-chip-h);margin-top:8px;padding:0;background:transparent;color:var(--sm-accent);font-size:var(--type-caption,.68rem);cursor:pointer}
 .fnb-copy-outlet{margin:24px 0 9px;color:var(--sm-accent);font-size:var(--type-caption,.68rem);text-transform:uppercase}
 .fnb-copy-outlet:first-child{margin-top:0}
@@ -116,7 +115,7 @@ body[data-fnb-detail="true"] .fnb-section-rail{display:flex}
 .fnb-link-field input{width:100%;min-height:48px;padding:10px 12px;border:1px solid var(--fnb-line);border-radius:12px;background:rgba(250,247,245,.05);outline:none}
 .fnb-sheet-note{margin:10px 0 0;color:var(--sm-muted);font-size:var(--type-small,.80rem)}
 .fnb-link-list a{min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid var(--fnb-line-soft);color:inherit;text-decoration:none}.fnb-link-list a span:last-child{color:var(--sm-accent)}
-.fnb-toast{position:fixed;z-index:155;left:50%;bottom:calc(152px + env(safe-area-inset-bottom));transform:translateX(-50%);padding:10px 14px;border:1px solid var(--fnb-line);border-radius:999px;background:rgba(46,39,59,.94);color:var(--sm-text);font-size:var(--type-small,.80rem);box-shadow:0 16px 54px rgba(0,0,0,.22);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.fnb-toast{position:fixed;z-index:155;left:50%;bottom:calc(136px + env(safe-area-inset-bottom));transform:translateX(-50%);padding:10px 14px;border:1px solid var(--fnb-line);border-radius:999px;background:rgba(46,39,59,.94);color:var(--sm-text);font-size:var(--type-small,.80rem);box-shadow:0 16px 54px rgba(0,0,0,.22);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
 
 @media(min-width:700px){.fnb-card-list{grid-template-columns:1fr 1fr}.fnb-card-button{min-height:322px;display:flex;flex-direction:column}.fnb-progress{margin-top:auto}.fnb-route{padding-inline:0}.fnb-filters{gap:10px}}
 @media(max-width:420px){.fnb-chip{font-size:.58rem;padding-inline:4px}.fnb-card-button{padding:18px}.fnb-fact b{font-size:.84rem}}
