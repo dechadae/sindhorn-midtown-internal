@@ -54,12 +54,15 @@ jobs:
           const outlets=new Set(FNB_PROMOTIONS.flatMap(c=>c.activations.map(a=>a.outlet)));
           if(outlets.size!==5) throw new Error(`expected 5 outlets, got ${outlets.size}`);
           NODE
-          grep -q -- "--fnb-chip-h:44px" site/fnb.css
-          grep -q "grid-template-columns:repeat(3,minmax(0,1fr))" site/fnb.css
+          grep -q -- "--fnb-chip-h:30px" site/fnb.css
+          grep -q "grid-template-columns:1fr 1fr" site/fnb.css
+          grep -q "fnb-select select" site/fnb.css
           grep -q "background:transparent" site/fnb.css
           grep -q "mountFnbRoute" site/fnb.js
           ! grep -q "Intentionally empty shell route" site/fnb.js
           grep -q "employee_number||''.*10639" site/fnb.js
+          grep -q "data-outlet-select" site/fnb.js
+          grep -q "data-month-select" site/fnb.js
           grep -q '/pwa-version-guard.js?v=1' site/index.html
           grep -q '/footer-route-guard.js?v=5' site/index.html
           grep -q '/footer-route-guard.css?v=2' site/index.html
@@ -106,7 +109,8 @@ jobs:
           grep -q '/footer-route-guard.js?v=5' /tmp/fnb-shell.html
           grep -q 'mountFnbRoute' /tmp/fnb.js
           grep -q 'FNB_PROMOTIONS' /tmp/fnb-data.js
-          grep -q -- '--fnb-chip-h:44px' /tmp/fnb.css
+          grep -q -- '--fnb-chip-h:30px' /tmp/fnb.css
+          grep -q 'fnb-select select' /tmp/fnb.css
           grep -q 'background:transparent' /tmp/fnb.css
           grep -q 'sindhorn-footer-v5-fnb-direct' /tmp/footer-route-guard.js
           grep -q "FNB_MODULE_URL='/fnb.js?v=5'" /tmp/footer-route-guard.js
