@@ -9,6 +9,7 @@ on:
       - "site/**"
       - "docs/**"
       - "AGENTS.md"
+      - ".github/tests/**"
       - ".github/workflows/typography-line-seed.yml"
   pull_request:
     branches: [main]
@@ -16,6 +17,7 @@ on:
       - "site/**"
       - "docs/**"
       - "AGENTS.md"
+      - ".github/tests/**"
       - ".github/workflows/typography-line-seed.yml"
   workflow_dispatch:
 
@@ -35,14 +37,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node site/font-architecture.test.mjs
+          node .github/tests/font-architecture.test.mjs
           python3 - <<'PY'
           from pathlib import Path
           import re
           banned=re.compile(r'Vignette Sans|Noto Sans Thai|Noto Sans|Poppins|IBM Plex Sans Thai',re.I)
           offenders=[]
           for path in Path('site').rglob('*'):
-              if not path.is_file() or 'vendor' in path.parts or path.name in {'environment.bundle.js','font-architecture.test.mjs','typography-browser-smoke.mjs'}:continue
+              if not path.is_file():continue
               if path.suffix.lower() not in {'.css','.html','.js','.mjs','.json','.webmanifest'}:continue
               if banned.search(path.read_text(errors='ignore')):offenders.append(str(path))
           if offenders: raise SystemExit('Retired production font references: '+', '.join(offenders))
@@ -117,7 +119,7 @@ jobs:
           TYPOGRAPHY_BASE_URL: ${{ env.BASE_URL }}
           CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
           CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
-        run: node site/typography-browser-smoke.mjs
+        run: node .github/tests/typography-browser-smoke.mjs
       - name: Upload visual evidence
         if: always()
         uses: actions/upload-artifact@v4
