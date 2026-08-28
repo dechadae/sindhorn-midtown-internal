@@ -1,0 +1,85 @@
+name: Live Cloud Quality Preview
+
+on:
+  push:
+    branches:
+      - fix-live-cloud-quality
+    paths:
+      - "site/**"
+      - ".github/workflows/live-cloud-quality-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: live-cloud-quality-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate production atmosphere source
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/atmosphere-shader.js
+          node --check site/environment.js
+          node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          shader=Path('site/atmosphere-shader.js').read_text()
+          env=Path('site/environment.js').read_text()
+          assert 'size=256' in shader
+          assert 'hierarchical noise texture' in shader
+          assert 'Low convective / monsoon' in shader
+          assert 'const DPR=2' in env
+          assert "from './atmosphere-shader.js'" in env
+          PY
+
+      - name: Deploy actual app branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke actual app atmosphere
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /environment.js /atmosphere-shader.js /seasonal-sky.js /sw.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
+            test -s /tmp/response
+          done
+          curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js
+          grep -q 'size=256' /tmp/shader.js
+          grep -q 'hierarchical noise texture' /tmp/shader.js
+
+      - name: Install Chromium
+        shell: bash
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Render actual app evidence
+        shell: bash
+        run: |
+          SAFE_BRANCH="${GITHUB_REF_NAME:0:28}"
+          export PHASE82_BASE_URL="https://${SAFE_BRANCH}.sindhorn-midtown-internal.pages.dev"
+          node site/phase8-2-browser-smoke.mjs
+
+      - name: Upload actual app atmosphere evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-cloud-quality-evidence
+          path: phase82-artifacts
+          if-no-files-found: error
+          retention-days: 14
