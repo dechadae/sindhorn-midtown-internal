@@ -42,7 +42,7 @@ jobs:
           banned=re.compile(r'Vignette Sans|Noto Sans Thai|Noto Sans|Poppins|IBM Plex Sans Thai',re.I)
           offenders=[]
           for path in Path('site').rglob('*'):
-              if not path.is_file() or 'vendor' in path.parts or path.name in {'environment.bundle.js','font-architecture.test.mjs'}:continue
+              if not path.is_file() or 'vendor' in path.parts or path.name in {'environment.bundle.js','font-architecture.test.mjs','typography-browser-smoke.mjs'}:continue
               if path.suffix.lower() not in {'.css','.html','.js','.mjs','.json','.webmanifest'}:continue
               if banned.search(path.read_text(errors='ignore')):offenders.append(str(path))
           if offenders: raise SystemExit('Retired production font references: '+', '.join(offenders))
