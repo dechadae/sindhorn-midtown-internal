@@ -73,7 +73,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BASE_URL="https://fnb-workbook-refresh-sep-de.sindhorn-midtown-internal.pages.dev"
+          BASE_URL="https://fnb-workbook-refresh-sep-dec.sindhorn-midtown-internal.pages.dev"
           sleep 8
           for path in /fnb-data.js /__fnb-workbook-review.html /fnb; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
