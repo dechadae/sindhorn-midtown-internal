@@ -1,9 +1,10 @@
-const FOOTER_VERSION='sindhorn-footer-v6-fnb-motion';
+const FOOTER_VERSION='sindhorn-footer-v7-four-tabs';
 const FNB_MODULE_URL='/fnb.js?v=6';
 const NAV_ITEMS=[
   {route:'today',label:'Today',href:'/'},
   {route:'fnb',label:'F&B',direct:true},
-  {route:'messages',label:'Messages',href:'/messages',badge:true}
+  {route:'messages',label:'Messages',href:'/messages',badge:true},
+  {route:'account',label:'Settings',href:'/account'}
 ];
 
 let fnbCleanup=null;
@@ -13,6 +14,7 @@ function routeFromPath(){
   const path=location.pathname.length>1&&location.pathname.endsWith('/')?location.pathname.slice(0,-1):location.pathname;
   if(path==='/fnb')return'fnb';
   if(path==='/messages')return'messages';
+  if(path==='/account')return'account';
   return'today';
 }
 
