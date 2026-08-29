@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - typography-line-seed-sans-th
+      - fix-typography-auth-rate-limit
     paths:
       - "site/**"
       - "docs/**"
