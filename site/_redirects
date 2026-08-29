@@ -4,11 +4,11 @@
 /guidance / 301
 /details / 301
 
-# Public read-only F&B sharing. These rewrites deliberately stay outside the
-# authenticated SPA and resolve the clean social URL directly to crawler-ready
-# HTML. The public HTML is generated from an explicit field allowlist.
-/share/fnb /share-public/fnb.html 200
-/share/fnb/* /share-public/:splat.html 200
+# Public read-only F&B sharing is provided by physical HTML files using
+# Cloudflare Pages clean URLs:
+#   /share/fnb.html -> /share/fnb
+#   /share/fnb/<slug>.html -> /share/fnb/<slug>
+# No rewrite is used, so the initial HTTP response is the crawler-ready HTML.
 
 # SPA fallback, one line per authenticated route in site/route-registry.js.
 #
