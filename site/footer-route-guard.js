@@ -1,10 +1,10 @@
-const FOOTER_VERSION='sindhorn-footer-v9-settings-context';
+const FOOTER_VERSION='sindhorn-footer-v10-brand';
 const FNB_MODULE_URL='/fnb.js?v=7';
 const NAV_ITEMS=[
   {route:'today',label:'Today',href:'/'},
   {route:'fnb',label:'F&B',direct:true},
   {route:'messages',label:'Messages',href:'/messages',badge:true},
-  {route:'settings',label:'Settings',href:'/settings'}
+  {route:'ihgHistory',label:'Brand',href:'/ihg-history'}
 ];
 
 let fnbCleanup=null;
@@ -15,6 +15,7 @@ function routeFromPath(){
   const path=location.pathname.length>1&&location.pathname.endsWith('/')?location.pathname.slice(0,-1):location.pathname;
   if(path==='/fnb')return'fnb';
   if(path==='/messages')return'messages';
+  if(path==='/ihg-history')return'ihgHistory';
   if(path==='/settings'||path==='/account'||path==='/account.html'||path==='/admin'||path==='/admin.html')return'settings';
   return'today';
 }
