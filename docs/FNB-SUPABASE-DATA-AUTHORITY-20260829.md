@@ -73,6 +73,18 @@ Public `/share/fnb` and `/share/fnb/:promotion`:
 
 No normal online path uses a static JS corpus as content authority.
 
+## Data freshness timestamp
+
+The F&B index displays a restrained content timestamp directly below `September – December 2026`, for example:
+
+`Updated 29 August 2026 · 2:07 pm`
+
+This is **not** a Git commit or Cloudflare deployment timestamp. It is derived from the latest `updatedAt` value in the Supabase F&B read model and is rendered in Bangkok time.
+
+Migration `20260829073000_fnb_parent_update_timestamp_cascade.sql` makes child content changes meaningful to that timestamp: insert/update/delete operations on promotion activations, artwork requirements or artwork-folder links touch the related promotion's `updated_at`. A normal Supabase edit therefore advances the visible freshness timestamp even when no executable UI file changes.
+
+The same promotion-level `updatedAt` remains available in the detail view.
+
 ## Offline behavior
 
 The authenticated adapter stores the last successfully validated full dataset under `sindhorn-midtown:fnb-dataset:v2`.
@@ -132,6 +144,33 @@ Thai was changed only for clearly unambiguous spelling/spacing issues; no stylis
 Workbook artwork-folder links are canonical Supabase activation metadata. The old device-local folder-link editor is retired/hidden by the adapter, and its local link overrides are cleared once while preserving local artwork check state.
 
 Artwork completion continues to use stable artwork IDs and the existing `sindhorn_fnb_artwork_status` sync path, so the content-authority migration does not unnecessarily break progress.
+
+## Supabase-without-Git propagation proof
+
+A destructive business-row test was not used. Instead, on **29 August 2026** a clearly labelled temporary promotion and activation were inserted:
+
+- promotion: `__fnb-propagation-proof`
+- activation: `__fnb-propagation-proof-sip`
+
+The already-deployed Cloudflare branch was at Git SHA `0ee444fa55130e519e981fb84be9668630fc30db` with the normal 18-promotion dataset. No Git file was changed and no Cloudflare deployment was performed after inserting the test row.
+
+The same GitHub Actions job was then rerun at the **same SHA**. Its first browser step ran **before any deploy step** and opened the existing Cloudflare branch alias. That existing deployment read Supabase live and rendered **19 promotions**, including `__fnb-propagation-proof`; the hero simultaneously displayed `Updated 29 August 2026 · 2:36 pm`.
+
+The subsequent frozen-count validation intentionally failed because it observed 19 promotions / 22 activations instead of the canonical 18 / 21. This confirms both the runtime and build-time public read path had received the Supabase-only change without a Git rebuild.
+
+The temporary promotion was then deleted. Cascading cleanup removed its activation. Supabase was verified back at:
+
+- 18 published promotions
+- 21 activations
+- 61 artwork requirements
+- 4 artwork-folder links
+- no remaining propagation-proof row
+
+The same SHA was rerun again; the pre-deploy live parity check and the complete architecture/raw/mobile validation suite passed with the restored business dataset.
+
+This is the release evidence for the requirement:
+
+`Supabase content change → deployed F&B runtime changes → no Git deployment required`
 
 ## Validation requirements
 
