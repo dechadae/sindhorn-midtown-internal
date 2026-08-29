@@ -58,6 +58,9 @@ jobs:
           assert 'grid-template-columns:repeat(3,minmax(0,1fr))!important' in footer_css and 'height:54px!important' in footer_css and 'height:42px!important' in footer_css
           assert 'bottom:calc(68px + env(safe-area-inset-bottom))!important' in footer_css and 'border-radius:18px!important' in footer_css
           assert '--fnb-motion-base:260ms' in fnb_polish and '--fnb-disclosure-ms:420ms' in fnb_polish and '.fnb-select-trigger' in fnb_polish
+          assert '.fnb-summary{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important' in fnb_polish
+          assert 'font-size:10px!important' in fnb_polish and 'calc(84px + env(safe-area-inset-bottom))!important' in fnb_polish
+          assert 'content:"September"' in fnb_polish and 'content:"December"' in fnb_polish
           for item in fallback['resources']: assert hashlib.sha256((root/'fallback'/item['path']).read_bytes()).hexdigest()==item['sha256'],item['path']
           fallback_today=(root/'fallback'/'today.html').read_text(); assert 'saveImageBtn' not in fallback_today and 'report-actionbar' not in fallback_today
           app=(root/'app.js').read_text(); assert "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app and 'performPullRefresh' in app
@@ -65,7 +68,7 @@ jobs:
           for token in ('sindhorn-midtown-notification-inbox','messageList','messageClearBtn','SINDHORN_NOTIFICATION_STORED','markAllRead'): assert token in inbox
           push=(root/'push-client.js').read_text(); assert 'pushManager.subscribe' in push and 'enableFromGesture' in push and 'Notification.requestPermission' not in push and 'PREPARE_TIMEOUT_MS' in push
           index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); env=(root/'environment.js').read_text(); shader=(root/'atmosphere-shader.js').read_text()
-          assert '/footer-route-guard.js?v=6&ui=3' in index and '/footer-route-guard.css?v=6' in index and '/fnb-approved-polish.css?v=1' in index
+          assert '/footer-route-guard.js?v=6&ui=3' in index and '/footer-route-guard.css?v=6' in index and '/fnb-approved-polish.css?v=2' in index
           assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index and '/storm-effects.js' not in index
           assert "'/sky-calibration.js'" not in sw and "'/sky-color-renderer.js'" not in sw and "'/storm-effects.js'" not in sw
           assert 'pwa-v23-bangkok-seasonal-clouds' in sw and "'/atmosphere-shader.js'" in sw and "'/seasonal-sky.js'" in sw
@@ -93,13 +96,13 @@ jobs:
               && curl --fail --silent --show-error --location "${BASE_URL}/fnb.js?v=6" -o /tmp/fnb.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/fnb-data.js" -o /tmp/fnb-data.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/fnb.css" -o /tmp/fnb.css \
-              && curl --fail --silent --show-error --location "${BASE_URL}/fnb-approved-polish.css?v=1" -o /tmp/fnb-approved-polish.css \
+              && curl --fail --silent --show-error --location "${BASE_URL}/fnb-approved-polish.css?v=2" -o /tmp/fnb-approved-polish.css \
               && curl --fail --silent --show-error --location "${BASE_URL}/environment.js" -o /tmp/environment.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/notification-inbox.js" -o /tmp/notification-inbox.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
               && grep -q '/footer-route-guard.js?v=6&ui=3' /tmp/root.html \
-              && grep -q '/fnb-approved-polish.css?v=1' /tmp/root.html \
+              && grep -q '/fnb-approved-polish.css?v=2' /tmp/root.html \
               && grep -q "path:'/fnb'" /tmp/route-registry.js \
               && grep -q 'sindhorn-footer-v6-fnb-motion' /tmp/footer-route-guard.js \
               && grep -q "FNB_MODULE_URL='/fnb.js?v=6'" /tmp/footer-route-guard.js \
@@ -110,6 +113,8 @@ jobs:
               && grep -q 'FNB_PROMOTIONS' /tmp/fnb-data.js \
               && grep -q 'background:transparent' /tmp/fnb.css \
               && grep -q -- '--fnb-disclosure-ms:420ms' /tmp/fnb-approved-polish.css \
+              && grep -q 'calc(84px + env(safe-area-inset-bottom))!important' /tmp/fnb-approved-polish.css \
+              && grep -q 'content:"September"' /tmp/fnb-approved-polish.css \
               && ! grep -q '/sky-calibration.js' /tmp/root.html \
               && ! grep -q '/sky-color-renderer.js' /tmp/root.html \
               && ! grep -q '/storm-effects.js' /tmp/root.html \
