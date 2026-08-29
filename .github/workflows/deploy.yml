@@ -64,7 +64,9 @@ jobs:
           if [ "${GITHUB_REF_NAME}" = "main" ]; then
             export PUBLIC_ORIGIN="https://sindhorn-midtown-internal.pages.dev"
           else
-            export PUBLIC_ORIGIN="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
+            PREVIEW_BRANCH="${GITHUB_REF_NAME:0:28}"
+            PREVIEW_BRANCH="${PREVIEW_BRANCH%-}"
+            export PUBLIC_ORIGIN="https://${PREVIEW_BRANCH}.sindhorn-midtown-internal.pages.dev"
           fi
           node scripts/generate-fnb-share.mjs
           node scripts/generate-pwa-icons.mjs
@@ -173,7 +175,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [ "${GITHUB_REF_NAME}" = "main" ]; then BASE_URL="https://sindhorn-midtown-internal.pages.dev"; else BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"; fi
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            BASE_URL="https://sindhorn-midtown-internal.pages.dev"
+          else
+            PREVIEW_BRANCH="${GITHUB_REF_NAME:0:28}"
+            PREVIEW_BRANCH="${PREVIEW_BRANCH%-}"
+            BASE_URL="https://${PREVIEW_BRANCH}.sindhorn-midtown-internal.pages.dev"
+          fi
           sleep 8
           for path in / /fnb /messages /settings /account /admin /route-registry.js /app-transitions.js /auth-shell.js /auth-shell.css /auth-client.js /login.html /login.js /capabilities.js /settings.js /settings-route-v3.js /settings.css /settings-refinements.css /fnb.js /fnb-share-ui.js /fnb-refinements.css /location.js /bootstrap.js /environment.js /atmosphere-shader.js /seasonal-sky.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /phase8-2-fixtures.js /notification-inbox.js /push-client.js /sw.js /share/fnb; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
