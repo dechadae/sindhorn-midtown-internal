@@ -11,8 +11,8 @@
   --ihg-history-disclosure:420ms;
   --ihg-history-ease:cubic-bezier(.22,1,.36,1);
 }
+html:has(body[data-ihg-history="true"]),body[data-ihg-history="true"]{overflow-anchor:none}
 body[data-route="ihgHistory"] #route-view{background:transparent;padding-bottom:96px}
-body[data-ihg-history="true"]{overflow-anchor:none}
 .ihg-history-route{
   position:relative;
   isolation:auto;
@@ -55,8 +55,10 @@ body[data-ihg-history="true"]{overflow-anchor:none}
 .ihg-history-milestone>p:last-child{margin:0;color:var(--ihg-history-muted);font-size:13px;line-height:1.6}
 .ihg-history-visual{margin:10px 0 11px;overflow:hidden;border:1px solid var(--ihg-history-border);border-radius:12px;background:rgba(46,39,59,.34)}
 .ihg-history-period-visual{margin:0 17px 13px}
-.ihg-history-visual img{display:block;width:100%;height:auto;max-height:none;background:rgba(46,39,59,.34)}
+.ihg-history-visual img{display:block;width:100%;height:auto;max-height:none;background:rgba(46,39,59,.34);object-fit:contain}
 .ihg-history-period-visual img{aspect-ratio:auto}
+.ihg-history-period-visual img[src*="img-1770.jpg"],.ihg-history-period-visual img[src*="img-1946.jpg"],.ihg-history-period-visual img[src*="img-1972.jpg"],.ihg-history-period-visual img[src*="history-2.jpg"]{aspect-ratio:auto 750/422}
+.ihg-history-period-visual img[src*="img-1952.jpg"],.ihg-history-period-visual img[src*="img-1961.jpg"],.ihg-history-period-visual img[src*="img-1981.jpg"],.ihg-history-period-visual img[src*="img-1990.jpg"],.ihg-history-period-visual img[src*="img-2000.png"],.ihg-history-period-visual img[src*="img-2010.jpg"]{aspect-ratio:auto 1/1}
 .ihg-history-visual figcaption{padding:7px 10px 8px;color:rgba(250,247,245,.52);font-size:8.5px;font-weight:400;line-height:1.3;text-transform:uppercase}
 .ihg-history-source{margin:18px 0 0;padding:16px 17px;border:1px solid var(--ihg-history-border);border-radius:14px;background:var(--ihg-history-surface);box-shadow:inset 0 1px 0 rgba(250,247,245,.025)}
 .ihg-history-source strong{display:block;margin-top:5px;color:var(--ihg-history-text);font-size:14px;font-weight:400;line-height:1.35}
