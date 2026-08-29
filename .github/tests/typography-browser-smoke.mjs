@@ -109,7 +109,12 @@ async function syntheticAdminVisual(page,label){
   await page.screenshot({path:`typography-artifacts/${label}-admin-style.png`,fullPage:true});
 }
 async function inspectAuthenticated(viewport,label){
-  const page=await browser.newPage({viewport,screen:viewport});
+  // The browser typography gate validates the rendered SPA and persistent-document
+  // routing. Service-worker asset/update behavior is validated separately by the
+  // architecture + HTTP smoke steps. Blocking SW here prevents the intentional
+  // one-time release refresh from racing the in-document persistence assertion.
+  const context=await browser.newContext({viewport,screen:viewport,serviceWorkers:'block'});
+  const page=await context.newPage();
   page.on('pageerror',e=>errors.push(`${label} pageerror: ${e.message}`));
   page.on('console',m=>{if(m.type()==='error')errors.push(`${label} console: ${m.text()}`)});
   await signIn(page,label);
@@ -134,7 +139,7 @@ async function inspectAuthenticated(viewport,label){
   await page.screenshot({path:`typography-artifacts/${label}-account.png`,fullPage:true});
 
   await syntheticAdminVisual(page,label);
-  await page.close();
+  await context.close();
 }
 
 try{
