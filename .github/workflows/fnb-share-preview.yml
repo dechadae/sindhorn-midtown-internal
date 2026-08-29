@@ -24,7 +24,9 @@ jobs:
       - name: Generate safe public share pages
         env:
           PUBLIC_ORIGIN: https://fnb-share-modal-icon.sindhorn-midtown-internal.pages.dev
-        run: node scripts/generate-fnb-share.mjs
+        run: |
+          node scripts/generate-fnb-share.mjs
+          node scripts/normalize-fnb-share-font.mjs
 
       - name: Generate enlarged launcher icons
         run: |
@@ -38,8 +40,10 @@ jobs:
           set -euo pipefail
           node --input-type=module --check < site/fnb-share-ui.js
           node --input-type=module --check < scripts/generate-fnb-share.mjs
+          node --input-type=module --check < scripts/normalize-fnb-share-font.mjs
           node --input-type=module --check < scripts/generate-pwa-icons.mjs
           node .github/tests/fnb-sharing-regression.test.mjs
+          node scripts/normalize-fnb-share-font.mjs
           node .github/tests/font-architecture.test.mjs
           grep -q 'letter-spacing:0!important' site/fnb-refinements.css
           grep -q '/fnb-share-ui.js?v=1' site/index.html
