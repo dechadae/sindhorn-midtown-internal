@@ -1,6 +1,7 @@
 /* Shell-owned persistent footer invariant. Presentation packs may style content, but footer material and geometry live here only. */
 :root{
-  --sm-footer-glass-bg:rgba(38,32,49,.84);
+  --sm-footer-surface-rgb:38,32,49;
+  --sm-footer-glass-alpha:.84;
   --sm-footer-glass-border:rgba(250,247,245,.11);
   --sm-footer-glass-shadow:0 -10px 30px rgba(12,9,18,.18),inset 0 1px 0 rgba(250,247,245,.035);
   --sm-footer-glass-filter:blur(26px) saturate(1.22);
@@ -15,7 +16,7 @@
   --sm-footer-active-shadow:inset 0 0 0 1px rgba(229,236,190,.14),0 6px 18px rgba(10,8,14,.10);
 }
 
-/* One canonical footer component: both rails share geometry, blur, border, shadow and controls. */
+/* ONE footer component. Both rails use this exact material and geometry. */
 #app-footer .app-tabbar,
 body[data-route="fnb"] .fnb-section-rail{
   left:0!important;
@@ -29,7 +30,7 @@ body[data-route="fnb"] .fnb-section-rail{
   border:0!important;
   border-top:1px solid var(--sm-footer-glass-border)!important;
   border-radius:0!important;
-  background:var(--sm-footer-glass-bg)!important;
+  background:rgba(var(--sm-footer-surface-rgb),var(--sm-footer-glass-alpha))!important;
   box-shadow:var(--sm-footer-glass-shadow)!important;
   backdrop-filter:var(--sm-footer-glass-filter)!important;
   -webkit-backdrop-filter:var(--sm-footer-glass-filter)!important;
@@ -46,14 +47,19 @@ body[data-route="fnb"] .fnb-section-rail{
   padding-bottom:calc(6px + env(safe-area-inset-bottom))!important;
 }
 
-/* Same component, four items, one level above. Sorbet is only a Vignette tint on the same glass material. */
+/* Same component, same alpha/blur/border/shadow. Only the approved Vignette secondary palette changes. */
 body[data-route="fnb"] .fnb-section-rail{
+  --sm-footer-surface-rgb:229,236,190;
+  --sm-footer-item-color:rgba(46,39,59,.62);
+  --sm-footer-active:#2E273B;
+  --sm-footer-active-bg:linear-gradient(180deg,rgba(46,39,59,.13),rgba(46,39,59,.065));
+  --sm-footer-active-shadow:inset 0 0 0 1px rgba(46,39,59,.15),0 6px 18px rgba(10,8,14,.08);
+  --sm-footer-glass-border:rgba(46,39,59,.12);
   z-index:139!important;
   bottom:calc(var(--sm-footer-height) + var(--sm-footer-gap) + env(safe-area-inset-bottom))!important;
-  background:linear-gradient(rgba(229,236,190,.07),rgba(229,236,190,.07)),var(--sm-footer-glass-bg)!important;
 }
 
-/* Exact same footer-item rule for global navigation and the F&B section rail. */
+/* ONE footer-item component. No separate F&B chip geometry exists. */
 #app-footer .nav-chip,
 body[data-route="fnb"] .fnb-section-rail .fnb-chip{
   position:relative!important;
@@ -95,11 +101,11 @@ body[data-route="fnb"] .fnb-section-rail .fnb-chip.is-active{
 }
 #app-footer .message-badge{position:absolute!important;top:6px!important;right:20%!important}
 
-/* Reserve the real fixed-footer stack so detail content can scroll fully clear of it. */
+/* Reserve the real fixed-footer stack so detail content scrolls fully clear of both rails. */
 body{padding-bottom:calc(62px + env(safe-area-inset-bottom))!important}
 body[data-route="fnb"][data-fnb-detail="true"] #route-view{padding-bottom:calc((var(--sm-footer-height) * 2) + var(--sm-footer-gap) + 28px + env(safe-area-inset-bottom))!important}
 
-/* Visible F&B action controls use the same rounded-rectangle family. */
+/* Visible F&B action controls use the shared rounded-rectangle family. */
 body[data-route="fnb"] .fnb-expand{
   display:inline-flex!important;
   align-items:center!important;
