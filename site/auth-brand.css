@@ -19,6 +19,8 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible),input:focus:not(:fo
   --login-plum-rgb:46,39,59;
   --login-shadow:0 28px 90px rgba(21,17,31,.22);
   min-height:100dvh;
+  overflow-x:hidden;
+  overflow-x:clip;
   color:var(--login-ink);
   background:
     radial-gradient(90% 62% at 8% 0%,rgba(186,178,211,.24) 0%,rgba(91,84,121,.08) 45%,transparent 76%),
