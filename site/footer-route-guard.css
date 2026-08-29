@@ -128,7 +128,7 @@ body[data-route="fnb"] .fnb-link-field input{border-radius:12px!important}
   border-radius:var(--sm-control-radius)!important;
   transition:background var(--sm-motion-base) ease,border-color var(--sm-motion-base) ease,color var(--sm-motion-base) ease,box-shadow var(--sm-motion-base) var(--sm-motion-ease),transform var(--sm-motion-fast) var(--sm-motion-ease),opacity var(--sm-motion-fast) ease!important;
 }
-.action:active,.message-clear,.message-open:active{transform:scale(.98)!important;opacity:.84!important}
+.action:active,.message-clear:active,.message-open:active{transform:scale(.98)!important;opacity:.84!important}
 .fullscreen-toggle{border-radius:10px!important;transition:background var(--sm-motion-base) ease,border-color var(--sm-motion-base) ease,transform var(--sm-motion-fast) var(--sm-motion-ease)!important}
 #app-footer .nav-chip,body[data-route="fnb"] .fnb-section-rail .fnb-chip{transition:background var(--sm-motion-base) var(--sm-motion-ease),box-shadow var(--sm-motion-base) var(--sm-motion-ease),color 210ms ease,transform var(--sm-motion-fast) var(--sm-motion-ease),opacity var(--sm-motion-fast) ease!important}
 @media(prefers-reduced-motion:reduce){.action,.message-clear,.message-open,.fullscreen-toggle,#app-footer .nav-chip,body[data-route="fnb"] .fnb-section-rail .fnb-chip{transition:none!important}}
