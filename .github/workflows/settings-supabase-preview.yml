@@ -1,0 +1,145 @@
+name: Settings Supabase Authority Preview
+
+on:
+  push:
+    branches: [settings-supabase-capabilities]
+    paths:
+      - "site/**"
+      - "docs/SETTINGS-ADMIN-SUPABASE-CAPABILITY-ARCHITECTURE-20260829.md"
+      - "docs/SINGLE-SHELL-ROUTER-INVARIANT-20260828.md"
+      - "supabase/migrations/**"
+      - ".github/workflows/settings-supabase-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: settings-supabase-preview-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate unified Settings architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in site/capabilities.js site/settings.js site/settings-route-v3.js site/route-registry.js site/auth-shell.js site/footer-route-guard.js site/bootstrap.js site/app-transitions.js site/app.js; do
+            if ! node --input-type=module --check < "$file" 2>/tmp/modcheck.err; then
+              echo "ES module syntax error in $file"; cat /tmp/modcheck.err; exit 1
+            fi
+          done
+          node .github/tests/font-architecture.test.mjs
+          node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
+          python - <<'PY'
+          from pathlib import Path
+          root=Path('site')
+          registry=(root/'route-registry.js').read_text()
+          auth=(root/'auth-shell.js').read_text()
+          settings=(root/'settings.js').read_text()
+          settings_css=(root/'settings.css').read_text()
+          refinements=(root/'settings-refinements.css').read_text()
+          wrapper=(root/'settings-route-v3.js').read_text()
+          fnb_css=(root/'fnb-approved-polish.css').read_text()
+          fnb_refinements=(root/'fnb-refinements.css').read_text()
+          caps=(root/'capabilities.js').read_text()
+          footer=(root/'footer-route-guard.js').read_text()
+          footer_css=(root/'footer-route-guard.css').read_text()
+          index=(root/'index.html').read_text()
+          redirects=(root/'_redirects').read_text()
+          doc=Path('docs/SETTINGS-ADMIN-SUPABASE-CAPABILITY-ARCHITECTURE-20260829.md').read_text()
+
+          assert "settings:Object.freeze({path:'/settings'" in registry
+          assert "module:'./settings-route-v3.js?v=2'" in registry
+          assert "['/account','settings']" in registry and "['/admin','settings']" in registry
+          assert "account:Object.freeze" not in registry and "admin:Object.freeze" not in registry
+          assert '/settings / 200' in redirects and '/account / 200' in redirects and '/admin / 200' in redirects
+          assert "const SETTINGS_PATH='/settings'" in auth and "dataset.appRoute='settings'" in auth
+          assert "route:'settings',label:'Settings',href:'/settings'" in footer
+          assert "sindhorn_settings_manifest" in caps
+          assert "loadSettingsAuthority({force:true})" in settings
+          assert "String(profile?.employee_number||'')==='10639'" not in settings
+          assert "['admin','super_admin'].includes(profile?.role)" not in settings
+          assert "can('people.manage')" in settings and "can('system.manage')" in settings
+          assert "fnb-select settings-select" in settings
+          assert 'data-settings-select-trigger' in settings and 'data-settings-select-option' in settings
+          assert "link.href='/settings.css?v=2'" in settings
+          assert "fast:160,base:260,in:300,out:180,ease:'cubic-bezier(.22,1,.36,1)'" in settings
+          assert '--settings-motion-fast:160ms' in settings_css and '--settings-motion-base:260ms' in settings_css
+          assert '--fnb-motion-fast:160ms' in fnb_css and '--fnb-motion-base:260ms' in fnb_css
+          assert '.fnb-select-trigger' in fnb_css and '.fnb-select-menu' in fnb_css and '.fnb-select-option' in fnb_css
+          assert '--fnb-accent-rgb:229,236,190' in settings_css
+          assert "'/settings-refinements.css?v=2'" in wrapper
+          assert '.settings-route button{border:0}' in refinements
+          assert '.settings-select .fnb-select-option{border:0}' in refinements
+          assert '.settings-select .fnb-select-option+.fnb-select-option{border-top:1px solid rgba(250,247,245,.07)}' in refinements
+          assert '.settings-add{' in refinements
+          assert 'border:1px solid rgba(229,236,190,.44)!important' in refinements
+          assert 'background:rgba(229,236,190,.10)!important' in refinements
+          assert 'border-radius:11px!important' in refinements
+          assert '.fnb-action.is-primary{background:rgba(var(--fnb-accent-rgb),.10);border-color:rgba(var(--fnb-accent-rgb),.44);color:var(--fnb-accent)}' in fnb_refinements
+          assert 'height:100dvh!important' in refinements
+          assert 'overflow-y:auto!important' in refinements
+          assert '#app-footer' in refinements and 'flex-basis:calc((var(--sm-footer-height) * 2)' in refinements
+          assert "settings-section-rail shell-footer-rail" in footer
+          assert '#app-footer .settings-section-rail' in footer_css
+          assert '#app-footer .shell-footer-rail' in footer_css
+          assert '--sm-footer-glass-filter:blur(26px)' in footer_css
+          assert '/footer-route-guard.css?v=11' in index and '/footer-route-guard.js?v=10' in index
+          assert '/auth-shell.js?v=2' in index
+          assert not (root/'settings.html').exists(), 'Settings must remain an in-shell route, not a standalone authenticated document'
+          assert 'Routine Settings/Admin operations must not require a Cloudflare redeploy.' in doc
+          assert 'Supabase = application authority' in doc
+          assert 'Cloudflare Pages = reusable renderer' in doc
+          PY
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke test Settings preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREVIEW_BRANCH="${GITHUB_REF_NAME:0:28}"
+          BASE_URL="https://${PREVIEW_BRANCH}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /settings /account /admin /settings.js /settings.css /settings-route-v3.js /settings-refinements.css /capabilities.js /route-registry.js /auth-shell.js /footer-route-guard.js /footer-route-guard.css; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o "/tmp/$(echo "$path" | tr '/?' '__')"
+          done
+          curl -fsS "$BASE_URL/" -o /tmp/index.html
+          curl -fsS "$BASE_URL/settings.js" -o /tmp/settings.js
+          curl -fsS "$BASE_URL/settings.css?v=2" -o /tmp/settings.css
+          curl -fsS "$BASE_URL/settings-route-v3.js?v=2" -o /tmp/settings-wrapper.js
+          curl -fsS "$BASE_URL/settings-refinements.css?v=2" -o /tmp/settings-refinements.css
+          curl -fsS "$BASE_URL/capabilities.js" -o /tmp/capabilities.js
+          curl -fsS "$BASE_URL/route-registry.js" -o /tmp/registry.js
+          curl -fsS "$BASE_URL/footer-route-guard.js?v=10" -o /tmp/footer.js
+          grep -q '/auth-shell.js?v=2' /tmp/index.html
+          grep -q '/footer-route-guard.js?v=10' /tmp/index.html
+          grep -q 'sindhorn_settings_manifest' /tmp/capabilities.js
+          grep -q 'loadSettingsAuthority' /tmp/settings.js
+          grep -q 'fnb-select settings-select' /tmp/settings.js
+          grep -q 'data-settings-select-option' /tmp/settings.js
+          grep -q -- '--settings-motion-base:260ms' /tmp/settings.css
+          grep -q '/settings-refinements.css?v=2' /tmp/settings-wrapper.js
+          grep -q '.settings-route button{border:0}' /tmp/settings-refinements.css
+          grep -q '.settings-add{' /tmp/settings-refinements.css
+          grep -q 'background:rgba(229,236,190,.10)!important' /tmp/settings-refinements.css
+          grep -q 'overflow-y:auto!important' /tmp/settings-refinements.css
+          grep -q "module:'./settings-route-v3.js?v=2'" /tmp/registry.js
+          grep -q "path:'/settings'" /tmp/registry.js
+          grep -q "label:'Settings',href:'/settings'" /tmp/footer.js
+          for path in /settings /account /admin; do
+            code=$(curl --silent --show-error --output /tmp/route.html --write-out '%{http_code}' "${BASE_URL}${path}")
+            test "$code" = "200"
+            grep -q 'id="route-view"' /tmp/route.html
+            grep -q '/auth-shell.js?v=2' /tmp/route.html
+          done

@@ -1,7 +1,7 @@
 import {getState,initAuth} from './auth-client.js';
 
 const LOGIN_PATH='/login.html';
-const ACCOUNT_PATH='/account';
+const SETTINGS_PATH='/settings';
 
 function safeReturnPath(){
   const value=`${location.pathname}${location.search}${location.hash}`;
@@ -16,7 +16,7 @@ function applyEmployeeHeader(){
   const profile=getState().profile||window.__SINDHORN_AUTH_PROFILE__;if(!profile)return;
   const tools=document.querySelector('.masthead-tools');if(!tools)return;
   const existing=tools.querySelector('.masthead-user'),today=tools.querySelector('.today');if(today)today.remove();
-  const link=existing||document.createElement('a');link.className='masthead-user';link.href=ACCOUNT_PATH;link.dataset.appRoute='account';link.setAttribute('aria-label',`Open account dashboard for ${compactName(profile)}`);link.replaceChildren();
+  const link=existing||document.createElement('a');link.className='masthead-user';link.href=SETTINGS_PATH;link.dataset.appRoute='settings';link.setAttribute('aria-label',`Open settings for ${compactName(profile)}`);link.replaceChildren();
   const name=document.createElement('span');name.className='masthead-user-name';name.textContent=compactName(profile);
   const avatar=document.createElement('span');avatar.className='masthead-user-avatar';avatar.textContent=initials(profile.display_name,initials(profile.employee_number,'SM'));avatar.setAttribute('aria-hidden','true');
   link.append(name,avatar);if(!existing)tools.prepend(link);
