@@ -2,7 +2,7 @@ export const ROUTES=Object.freeze({
   today:Object.freeze({path:'/',title:'Live Air Quality | Sindhorn Midtown Hotel Bangkok',kind:'pack',resources:Object.freeze(['today.html','guidance.html','details.html'])}),
   fnb:Object.freeze({path:'/fnb',title:'F&B | Sindhorn Midtown Internal',kind:'local',module:'./fnb.js',mount:'mountFnbRoute'}),
   messages:Object.freeze({path:'/messages',title:'Environmental Messages | Sindhorn Midtown Hotel Bangkok',kind:'pack',resource:'messages.html'}),
-  settings:Object.freeze({path:'/settings',title:'Settings | Sindhorn Midtown Internal',kind:'local',module:'./settings-route-v3.js?v=1',mount:'mountSettingsRoute'})
+  settings:Object.freeze({path:'/settings',title:'Settings | Sindhorn Midtown Internal',kind:'local',module:'./settings-route-v3.js?v=2',mount:'mountSettingsRoute'})
 });
 
 const PATH_TO_ROUTE=new Map(Object.entries(ROUTES).map(([key,value])=>[value.path,key]));
