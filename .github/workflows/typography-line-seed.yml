@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - typography-line-seed-sans-th
+      - fix-browser-gates-sw-refresh-race
     paths:
       - "site/**"
       - "docs/**"
