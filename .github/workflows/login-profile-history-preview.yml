@@ -1,0 +1,146 @@
+name: Login profile and History preview
+
+on:
+  push:
+    branches:
+      - preview-login-profile-fix
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: preview-login-profile-fix
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate intended source changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < site/settings.js
+          node --input-type=module --check < site/ihg-history.js
+          node --input-type=module --check < site/login.js
+          node --input-type=module --check < site/auth-client.js
+          node --input-type=module --check < site/auth-shell.js
+          node --input-type=module --check < scripts/login-profile-history-browser-smoke.mjs
+          node --input-type=module --check < scripts/history-bottom-visibility-smoke.mjs
+          grep -q "fact('Position',profile.positionTitle" site/settings.js
+          grep -q "fact('Department',profile.departmentName" site/settings.js
+          grep -q 'user.position_title' site/settings.js
+          grep -q 'data-position-title' site/settings.js
+          grep -q 'sindhorn_admin_update_employee_v3' site/settings.js
+          grep -q 'sindhorn_admin_create_employee_v3' site/settings.js
+          grep -q 'p_position_title:payload.positionTitle' site/settings.js
+          grep -q '/assets/brand/sindhorn-midtown-vignette-white.png' site/login.html
+          grep -q '/auth-brand.css?v=4' site/login.html
+          grep -q 'brand-row-bottom' site/login.html
+          ! grep -q 'class="brand-rule"' site/login.html
+          grep -Fq 'inputmode="numeric" pattern="[0-9]*" autocomplete="username"' site/login.html
+          grep -q 'sindhorn_current_employee_profile' site/auth-client.js
+          ! grep -q 'rest/v1/sindhorn_employees?select' site/auth-client.js
+          grep -q 'sindhorn:capabilities-updated' site/auth-shell.js
+          grep -q 'profile?.displayName' site/auth-shell.js
+          grep -q '2026-08-30 live-shell login alignment' site/auth-brand.css
+          grep -q '2026-08-30 login bottom-brand refinement' site/auth-brand.css
+          ! grep -Eiq 'webgl|environment-stage|environmentStage|atmosphere-shader|<canvas' site/login.html site/auth-brand.css
+          grep -q 'clearActiveRunway();' site/ihg-history.js
+          test -f supabase/migrations/20260829190718_sindhorn_employee_position_admin_rpc_v3.sql
+          test -f supabase/migrations/20260830143500_sindhorn_current_employee_profile_rpc.sql
+          grep -q 'sindhorn_current_employee_profile' supabase/migrations/20260830143500_sindhorn_current_employee_profile_rpc.sql
+          test ! -e .github/workflows/apply-login-profile-history.yml
+          test ! -e scripts/apply-login-profile-history.py
+          test ! -e .github/workflows/apply-login-position-tweaks.yml
+          test ! -e scripts/apply-login-position-tweaks.py
+
+      - name: Verify protected runtime systems unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="$(git merge-base origin/main HEAD)"
+          for file in \
+            site/environment.js site/atmosphere-shader.js site/rain-now.js site/rain-layer.js \
+            site/seasonal-sky.js site/weather-authority.js site/sw.js \
+            site/fnb.js site/fnb.css site/fnb-data.js site/fnb-refinements.css site/fnb-approved-polish.css \
+            site/capabilities.js; do
+            git diff --exit-code "$base" HEAD -- "$file"
+          done
+
+      - name: Generate current public F&B share
+        env:
+          PUBLIC_ORIGIN: https://preview-login-profile-fix.sindhorn-midtown-internal.pages.dev
+        run: node scripts/generate-fnb-share.mjs | tee /tmp/fnb-share-generation.json
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Raw route smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://preview-login-profile-fix.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in /login.html / /settings /ihg-history /auth-brand.css /auth-client.js /auth-shell.js /settings.js /ihg-history.js; do
+            echo "Smoke ${path}"
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
+            test -s /tmp/response
+          done
+          curl --fail --silent --show-error --location "${BASE_URL}/login.html" -o /tmp/login.html
+          grep -q 'vignette-white.png' /tmp/login.html
+          grep -q 'brand-row-bottom' /tmp/login.html
+          ! grep -q 'class="brand-rule"' /tmp/login.html
+          grep -Fq 'inputmode="numeric" pattern="[0-9]*" autocomplete="username"' /tmp/login.html
+          curl --fail --silent --show-error --location "${BASE_URL}/auth-brand.css" -o /tmp/auth-brand.css
+          grep -q 'live-shell login alignment' /tmp/auth-brand.css
+          grep -q 'login bottom-brand refinement' /tmp/auth-brand.css
+          curl --fail --silent --show-error --location "${BASE_URL}/auth-client.js" -o /tmp/auth-client.js
+          grep -q 'sindhorn_current_employee_profile' /tmp/auth-client.js
+          ! grep -q 'rest/v1/sindhorn_employees?select' /tmp/auth-client.js
+          curl --fail --silent --show-error --location "${BASE_URL}/auth-shell.js" -o /tmp/auth-shell.js
+          grep -q 'sindhorn:capabilities-updated' /tmp/auth-shell.js
+          grep -q 'profile?.displayName' /tmp/auth-shell.js
+          curl --fail --silent --show-error --location "${BASE_URL}/settings.js" -o /tmp/settings.js
+          grep -q "fact('Position',profile.positionTitle" /tmp/settings.js
+          grep -q "fact('Department',profile.departmentName" /tmp/settings.js
+          grep -q 'data-position-title' /tmp/settings.js
+          grep -q 'sindhorn_admin_update_employee_v3' /tmp/settings.js
+          grep -q 'p_position_title:payload.positionTitle' /tmp/settings.js
+          curl --fail --silent --show-error --location "${BASE_URL}/ihg-history.js" -o /tmp/history.js
+          grep -q 'clearActiveRunway();' /tmp/history.js
+
+      - name: Browser login, profile and History QA
+        shell: bash
+        env:
+          BASE_URL: https://preview-login-profile-fix.sindhorn-midtown-internal.pages.dev
+          SCREENSHOT_DIR: /tmp/login-profile-history
+        run: |
+          set -euo pipefail
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install chromium >/dev/null 2>&1
+          node scripts/login-profile-history-browser-smoke.mjs | tee /tmp/login-profile-history-report.json
+          node scripts/history-bottom-visibility-smoke.mjs | tee /tmp/history-bottom-visibility-report.json
+
+      - name: Upload review screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: login-profile-history-review
+          path: |
+            /tmp/login-profile-history
+            /tmp/login-profile-history-report.json
+            /tmp/history-bottom-visibility-report.json
+            /tmp/fnb-share-generation.json
+          if-no-files-found: warn
+          retention-days: 14

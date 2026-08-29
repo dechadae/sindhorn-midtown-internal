@@ -241,8 +241,7 @@ export async function mountIhgHistoryRoute(root){
 
     if(isOpen){
       setExpanded(card,false);
-      if(reducedMotion())clearActiveRunway();
-      else window.setTimeout(()=>{if(token===interactionId)clearActiveRunway();},DISCLOSURE_MS+20);
+      clearActiveRunway();
       return;
     }
 
@@ -269,6 +268,9 @@ export async function mountIhgHistoryRoute(root){
       if(token!==interactionId)return;
       card.classList.remove('is-preparing');
       pendingCard=null;
+      clearActiveRunway();
+      await new Promise(resolve=>requestAnimationFrame(resolve));
+      if(token!==interactionId)return;
       alignCardInstantly(card);
     })();
   };
