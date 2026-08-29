@@ -75,7 +75,7 @@ if(runtime.includes('sindhorn-midtown:fnb-local'))throw new Error('public runtim
 await writeFile(join(OUTPUT,'fnb-runtime.js'),runtime);
 
 let shareUi=await readFile('site/fnb-share-ui.js','utf8');
-shareUi=shareUi.replace("import {FNB_PROMOTIONS as DATA} from './fnb-data.js';","import {FNB_PROMOTIONS as DATA} from './fnb-public-data.js';
+shareUi=shareUi.replace("import {FNB_PROMOTIONS as DATA} from './fnb-data.js';","import {FNB_PROMOTIONS as DATA} from './fnb-public-data.js';");
 await writeFile(join(OUTPUT,'fnb-share-ui-public.js'),shareUi);
 
 /* Header geometry below is copied verbatim from the enabled Pack 46 ui.css authority. */
