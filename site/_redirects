@@ -4,6 +4,12 @@
 /guidance / 301
 /details / 301
 
+# Public read-only F&B sharing is provided by physical HTML files using
+# Cloudflare Pages clean URLs:
+#   /share/fnb.html -> /share/fnb
+#   /share/fnb/<slug>.html -> /share/fnb/<slug>
+# No rewrite is used, so the initial HTTP response is the crawler-ready HTML.
+
 # SPA fallback, one line per authenticated route in site/route-registry.js.
 #
 # The target MUST be "/" and not "/index.html": Cloudflare Pages canonicalises

@@ -34,6 +34,9 @@ on:
       - live-location-fixtures
     paths:
       - "site/**"
+      - "scripts/generate-fnb-share.mjs"
+      - "scripts/generate-pwa-icons.mjs"
+      - ".github/tests/fnb-sharing-regression.test.mjs"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
@@ -52,6 +55,19 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
+      - name: Generate public F&B shares and launcher icons
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save sharp@0.34.3 >/dev/null 2>&1
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            export PUBLIC_ORIGIN="https://sindhorn-midtown-internal.pages.dev"
+          else
+            export PUBLIC_ORIGIN="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
+          fi
+          node scripts/generate-fnb-share.mjs
+          node scripts/generate-pwa-icons.mjs
+
       - name: Validate shell candidate
         shell: bash
         run: |
@@ -59,11 +75,18 @@ jobs:
           # These all ship as ES modules (<script type="module">), and plain
           # `node --check` parses as CommonJS - it silently PASSES module files
           # with real syntax errors. Parse them as modules instead.
-          for file in site/route-registry.js site/app-transitions.js site/auth-shell.js site/auth-client.js site/login.js site/account.js site/admin.js site/fnb.js site/fnb-data.js site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/notification-inbox.js site/push-client.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js worker/src/index.js auth-worker/src/index.js; do
+          for file in site/route-registry.js site/app-transitions.js site/auth-shell.js site/auth-client.js site/login.js site/account.js site/admin.js site/fnb.js site/fnb-data.js site/fnb-share-ui.js site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/notification-inbox.js site/push-client.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js worker/src/index.js auth-worker/src/index.js; do
             if ! node --input-type=module --check < "$file" 2>/tmp/modcheck.err; then
               echo "ES module syntax error in $file"; cat /tmp/modcheck.err; exit 1
             fi
           done
+          node --input-type=module --check < scripts/generate-fnb-share.mjs
+          node --input-type=module --check < scripts/generate-pwa-icons.mjs
+          node --input-type=module --check < site/share/fnb-runtime.js
+          node --input-type=module --check < site/share/fnb-public-shell.js
+          node --input-type=module --check < site/share/fnb-share-ui-public.js
+          node .github/tests/fnb-sharing-regression.test.mjs
+          node .github/tests/font-architecture.test.mjs
           node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
           python - <<'PY'
           from pathlib import Path
@@ -78,6 +101,7 @@ jobs:
           index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); env=(root/'environment.js').read_text(); shader=(root/'atmosphere-shader.js').read_text(); seasonal=(root/'seasonal-sky.js').read_text(); fixtures=(root/'phase8-2-fixtures.js').read_text()
           assert '/auth-shell.js' in index and '/auth-shell.css' in index
           assert '/account.css' in index and '/admin.css' in index
+          assert '/fnb-refinements.css' in index and '/fnb-share-ui.js' in index
           assert 'src="/location.js"' not in index and 'src="/bootstrap.js"' not in index
           assert "await initAuth" in auth_shell and "location.replace(loginUrl())" in auth_shell
           assert "loadClassicScript('/location.js')" in auth_shell and "await import('./bootstrap.js')" in auth_shell
@@ -95,20 +119,11 @@ jobs:
           assert 'startViewTransition' not in transitions and 'view-transition' not in transitions.lower()
           redirects_raw=(root/'_redirects').read_text()
           assert redirects_raw.endswith('\n'),'_redirects needs a trailing newline or its last rule is dropped'
-          # Only real rule lines are contracts; comments explain the traps below
-          # and must not themselves trip the checks.
           rules=[l.strip() for l in redirects_raw.splitlines() if l.strip() and not l.lstrip().startswith('#')]
           for token in ('/guidance / 301','/details / 301','/account.html /account 301','/admin.html /admin 301'):
               assert token in rules,token
-          # Cloudflare Pages canonicalises /index.html to / with a 308, so any
-          # rewrite pointing at /index.html stops being a rewrite and becomes a
-          # real redirect that strips the requested SPA path. Keep the target "/".
           assert not any('/index.html' in r and r.endswith('200') for r in rules),'SPA rewrite target must be "/" not "/index.html"'
-          # A catch-all splat is evaluated ahead of static assets on Pages and
-          # would serve index.html for /sw.js, /login.html and every stylesheet.
           assert not any(r.startswith('/*') for r in rules),'catch-all splat shadows static assets - list routes explicitly'
-          # Registry and _redirects must stay in sync, or a new route ships
-          # 308-ing to Today on direct load exactly as /fnb and /messages did.
           for path in sorted(set(re.findall(r"path:'(/[a-z]*)'",registry))):
               if path=='/':continue
               assert f'{path} / 200' in rules,f'{path} is in route-registry.js but missing its "_redirects" SPA fallback line'
@@ -138,6 +153,9 @@ jobs:
           assert 'letter-spacing:0!important' in (root/'auth-shell.css').read_text()
           assert 'letter-spacing:0!important' in (root/'account.css').read_text()
           assert 'letter-spacing:0!important' in (root/'admin.css').read_text()
+          public=(root/'share/fnb.html').read_text()
+          assert 'property="og:title"' in public and 'property="og:url"' in public
+          assert 'og:image' not in public.lower() and 'twitter:image' not in public.lower()
           PY
 
       - name: Deploy to Cloudflare Pages
@@ -152,7 +170,7 @@ jobs:
           set -euo pipefail
           if [ "${GITHUB_REF_NAME}" = "main" ]; then BASE_URL="https://sindhorn-midtown-internal.pages.dev"; else BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"; fi
           sleep 8
-          for path in / /fnb /messages /account /admin /route-registry.js /app-transitions.js /auth-shell.js /auth-shell.css /auth-client.js /login.html /login.js /account.js /account.css /admin.js /admin.css /fnb.js /location.js /bootstrap.js /environment.js /atmosphere-shader.js /seasonal-sky.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /phase8-2-fixtures.js /notification-inbox.js /push-client.js /sw.js; do
+          for path in / /fnb /messages /account /admin /route-registry.js /app-transitions.js /auth-shell.js /auth-shell.css /auth-client.js /login.html /login.js /account.js /account.css /admin.js /admin.css /fnb.js /fnb-share-ui.js /fnb-refinements.css /location.js /bootstrap.js /environment.js /atmosphere-shader.js /seasonal-sky.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /phase8-2-fixtures.js /notification-inbox.js /push-client.js /sw.js /share/fnb; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
@@ -161,12 +179,6 @@ jobs:
             grep -q '/auth-shell.js' /tmp/app-route.html
             grep -q 'id="route-view"' /tmp/app-route.html
           done
-          # Direct-load guard. Deliberately WITHOUT --location: every authenticated
-          # route must serve the shell at its own URL, not redirect to "/". A 308
-          # here means the SPA loses the requested path before its JavaScript runs,
-          # so refresh, bookmark, share-a-link and installed-PWA cold start all
-          # land on Today. The checks above use --location and therefore followed
-          # that redirect silently, which is why this shipped unnoticed.
           for path in /fnb /messages /account /admin; do
             code=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' "${BASE_URL}${path}")
             if [ "$code" != "200" ]; then
@@ -189,6 +201,8 @@ jobs:
           curl --fail --silent --show-error --location "${BASE_URL}/environment.js" -o /tmp/environment.js
           curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js
           curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js
+          curl --fail --silent --show-error "${BASE_URL}/share/fnb" -o /tmp/share-fnb.html
+          curl --fail --silent --show-error "${BASE_URL}/share/fnb/fried-chicken-waffles" -o /tmp/share-promo.html
           grep -q '/auth-shell.js' /tmp/root.html
           ! grep -q 'src="/bootstrap.js"' /tmp/root.html
           ! grep -q 'src="/location.js"' /tmp/root.html
@@ -214,3 +228,9 @@ jobs:
           curl --fail --silent --show-error --location "${BASE_URL}/location.js" -o /tmp/location.js
           grep -q 'navigator.geolocation.getCurrentPosition' /tmp/location.js
           grep -q 'sindhorn:location-updated' /tmp/location.js
+          grep -q 'property="og:title"' /tmp/share-fnb.html
+          grep -q 'property="og:url"' /tmp/share-fnb.html
+          ! grep -qi 'og:image' /tmp/share-fnb.html
+          ! grep -qi 'twitter:image' /tmp/share-fnb.html
+          grep -q 'Fried Chicken &amp; Waffles | Sindhorn Midtown' /tmp/share-promo.html
+          ! grep -qiE 'sharepoint\.com|1drv\.ms|onedrive\.live\.com|employee_number|Add / change artwork link|auth-client|id="app-footer"' /tmp/share-promo.html

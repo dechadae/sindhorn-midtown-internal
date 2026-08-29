@@ -1,0 +1,139 @@
+name: F&B Share Modal Icon Preview
+
+on:
+  push:
+    branches:
+      - fnb-share-modal-icon
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: fnb-share-modal-icon-preview
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v6
+
+      - name: Generate safe public share pages
+        env:
+          PUBLIC_ORIGIN: https://fnb-share-modal-icon.sindhorn-midtown-internal.pages.dev
+        run: node scripts/generate-fnb-share.mjs
+
+      - name: Generate enlarged launcher icons
+        run: |
+          npm install --no-save sharp@0.34.3 >/dev/null 2>&1
+          node scripts/generate-pwa-icons.mjs | tee /tmp/icon-report.json
+          grep -q '"widthRatio": 0.8' /tmp/icon-report.json
+          grep -q '"widthRatio": 0.7' /tmp/icon-report.json
+
+      - name: Validate F&B refinements
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < site/fnb-share-ui.js
+          node --input-type=module --check < scripts/generate-fnb-share.mjs
+          node --input-type=module --check < site/share/fnb-runtime.js
+          node --input-type=module --check < site/share/fnb-public-shell.js
+          node --input-type=module --check < site/share/fnb-share-ui-public.js
+          node --input-type=module --check < scripts/generate-pwa-icons.mjs
+          node .github/tests/fnb-sharing-regression.test.mjs
+          node .github/tests/font-architecture.test.mjs
+          grep -q 'letter-spacing:0!important' site/fnb-refinements.css
+          grep -q '/fnb-share-ui.js?v=1' site/index.html
+          grep -q '/fnb-refinements.css?v=1' site/index.html
+          grep -q "from './fnb-public-data.js'" site/share/fnb-runtime.js
+          grep -q 'const editor=false' site/share/fnb-runtime.js
+          ! grep -q 'sindhorn-midtown:fnb-local' site/share/fnb-runtime.js
+          ! grep -q 'localStorage.getItem' site/share/fnb-runtime.js
+          ! grep -RqiE 'sharepoint\.com|1drv\.ms|onedrive\.live\.com|employee_number|auth-client|login.html' site/share/fnb-public-data.js
+          ! grep -q 'og:image' site/share/fnb.html
+          ! grep -q 'twitter:image' site/share/fnb.html
+          grep -q '/assets/brand/sindhorn-midtown-vignette-white.png' site/share/fnb.html
+          grep -q 'id="environmentStage"' site/share/fnb.html
+          grep -q '/share/fnb-public-shell.js' site/share/fnb.html
+          ! grep -q 'id="app-footer"' site/share/fnb.html
+          test ! -e site/share/fnb/index.html
+
+      - name: Create mobile refinement harness
+        shell: bash
+        run: |
+          cat > site/__fnb-refinement-smoke.html <<'HTML'
+          <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/fonts.css?v=1"><link rel="stylesheet" href="/fnb.css"><link rel="stylesheet" href="/fnb-approved-polish.css?v=2"><link rel="stylesheet" href="/fnb-refinements.css?v=1"><style>html,body{margin:0;min-height:100%;background:linear-gradient(#819bb4,#d4aa93);font-family:var(--font-ui);color:#faf7f5}#app-header,#app-footer{position:fixed;left:0;right:0;z-index:80;padding:12px 18px;background:rgba(46,39,59,.55)}#app-header{top:0}#app-footer{bottom:0;height:72px}#route-view{padding:52px 18px 90px}</style></head><body data-route="fnb"><header id="app-header">Sindhorn Midtown · Preview user</header><main id="route-view"></main><footer id="app-footer">Today　 F&amp;B　 Messages</footer><script>window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Preview'};navigator.share=async data=>{window.__sharePayload=data};</script><script type="module">import {mountFnbRoute} from '/fnb.js';await mountFnbRoute(document.getElementById('route-view'),{profile:window.__SINDHORN_AUTH_PROFILE__});document.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route:'fnb'}}));</script><script type="module" src="/fnb-share-ui.js?v=1"></script></body></html>
+          HTML
+          cat > site/__icon-review.html <<'HTML'
+          <!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:32px;background:#17131e;color:white;font:14px system-ui}main{max-width:500px;margin:auto}.row{display:flex;gap:24px;align-items:end;margin:28px 0}.icon{border-radius:22%;box-shadow:0 8px 30px #0008}.s48{width:48px}.s64{width:64px}.s96{width:96px}p{opacity:.7}</style></head><body><main><h1>Android launcher scale review</h1><div class="row"><img class="icon s48" src="/icons/app-512.png?v=2"><img class="icon s64" src="/icons/app-512.png?v=2"><img class="icon s96" src="/icons/app-512.png?v=2"></div><p>48 / 64 / 96 CSS px</p><h2>Maskable source</h2><div class="row"><img class="icon s64" src="/icons/maskable-512.png?v=2"></div></main></body></html>
+          HTML
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Raw HTML and public-boundary smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://fnb-share-modal-icon.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in /share/fnb /share/fnb/fried-chicken-waffles /share/fnb/sunset-cocktails; do
+            echo "Checking ${path}"
+            status="$(curl --silent --show-error --retry 12 --retry-all-errors --retry-delay 2 --output /tmp/share.html --write-out '%{http_code}' "${BASE_URL}${path}")"
+            test "$status" = "200"
+            grep -q '<title>' /tmp/share.html
+            grep -q 'property="og:title"' /tmp/share.html
+            grep -q 'property="og:url"' /tmp/share.html
+            grep -q '/assets/brand/sindhorn-midtown-vignette-white.png' /tmp/share.html
+            grep -q 'id="environmentStage"' /tmp/share.html
+            ! grep -qi 'og:image' /tmp/share.html
+            ! grep -qi 'twitter:image' /tmp/share.html
+            ! grep -qiE 'sharepoint\.com|1drv\.ms|onedrive\.live\.com|employee_number|Add / change artwork link|auth-client|id="app-footer"' /tmp/share.html
+          done
+          curl --fail --silent --show-error "${BASE_URL}/share/fnb-public-data.js" -o /tmp/public-data.js
+          ! grep -qiE 'sharepoint\.com|1drv\.ms|onedrive\.live\.com|employee_number|artworkUrl' /tmp/public-data.js
+          curl --fail --silent --show-error "${BASE_URL}/share/fnb-runtime.js" -o /tmp/public-runtime.js
+          grep -q 'const editor=false' /tmp/public-runtime.js
+          ! grep -q 'sindhorn-midtown:fnb-local' /tmp/public-runtime.js
+          curl --fail --silent --show-error "${BASE_URL}/manifest.webmanifest?v=3" -o /tmp/manifest.json
+          node -e "const p=require('/tmp/manifest.json');if(p.id!=='/'||p.start_url!=='/'||p.scope!=='/'||p.display!=='standalone')process.exit(1)"
+
+      - name: Mobile browser modal and share smoke
+        env:
+          BASE_URL: https://fnb-share-modal-icon.sindhorn-midtown-internal.pages.dev
+        run: |
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install chromium >/dev/null 2>&1
+          node --input-type=module - <<'NODE'
+          import {chromium} from 'playwright';
+          const browser=await chromium.launch({headless:true});
+          const page=await browser.newPage({viewport:{width:390,height:844}});
+          await page.goto(`${process.env.BASE_URL}/__fnb-refinement-smoke.html`,{waitUntil:'networkidle'});
+          await page.waitForSelector('.fnb-card');
+          const before=await page.evaluate(()=>getComputedStyle(document.querySelector('.fnb-route'),'::before').content);
+          if(before!=='none'&&before!=='normal')throw new Error(`F&B dimmer still active: ${before}`);
+          await page.click('.fnb-card [data-open]');
+          await page.waitForSelector('[data-folder-edit]');
+          await page.click('[data-folder-edit]');
+          const geometry=await page.evaluate(()=>{const layer=document.querySelector('[data-sheet-layer]'),modal=document.querySelector('.fnb-sheet'),footer=document.querySelector('#app-footer'),l=layer.getBoundingClientRect(),m=modal.getBoundingClientRect();return{layer:[l.left,l.top,l.width,l.height],modalCenter:[m.left+m.width/2,m.top+m.height/2],layerZ:getComputedStyle(layer).zIndex,footerZ:getComputedStyle(footer).zIndex}});
+          if(Math.abs(geometry.modalCenter[0]-195)>3||Math.abs(geometry.modalCenter[1]-422)>24)throw new Error(`modal not centered ${JSON.stringify(geometry)}`);
+          if(geometry.layer[0]!==0||geometry.layer[1]!==0||Math.abs(geometry.layer[2]-390)>1||Math.abs(geometry.layer[3]-844)>1)throw new Error(`scrim not viewport ${JSON.stringify(geometry)}`);
+          if(Number(geometry.layerZ)<=Number(geometry.footerZ))throw new Error(`scrim must cover footer ${JSON.stringify(geometry)}`);
+          await page.click('[data-sheet-close]');await page.click('[data-back]');await page.click('[data-fnb-share="page"]');
+          const payload=await page.evaluate(()=>window.__sharePayload);if(!payload?.url?.includes('/share/fnb'))throw new Error(`share payload bad ${JSON.stringify(payload)}`);
+
+          const publicPage=await browser.newPage({viewport:{width:390,height:844}});
+          await publicPage.goto(`${process.env.BASE_URL}/share/fnb/fried-chicken-waffles`,{waitUntil:'networkidle'});
+          await publicPage.waitForSelector('.fnb-detail-title');
+          const publicState=await publicPage.evaluate(()=>{const toggle=document.querySelector('.fnb-task-toggle');return{title:document.querySelector('.fnb-detail-title')?.textContent?.trim(),logo:document.querySelector('.brand-lockup .logo-dark')?.getAttribute('src'),footer:!!document.querySelector('#app-footer'),toggleDisplay:toggle?getComputedStyle(toggle).display:null,toggleDisabled:toggle?.disabled??true,folderEdit:!!document.querySelector('[data-folder-edit]'),env:!!document.querySelector('#environmentCanvas'),routePadding:getComputedStyle(document.querySelector('#route-view')).paddingLeft,color:getComputedStyle(document.querySelector('.fnb-detail-title')).color}});
+          if(publicState.title!=='Fried Chicken & Waffles'||publicState.logo!=='/assets/brand/sindhorn-midtown-vignette-white.png'||publicState.footer||publicState.folderEdit||!publicState.env)throw new Error(`public parity bad ${JSON.stringify(publicState)}`);
+          if(publicState.toggleDisplay!=='none'||!publicState.toggleDisabled)throw new Error(`public artwork controls not stripped ${JSON.stringify(publicState)}`);
+          if(parseFloat(publicState.routePadding)<16)throw new Error(`public route lost app gutter ${JSON.stringify(publicState)}`);
+          if(!/rgb\(250, 247, 245\)/.test(publicState.color))throw new Error(`public title not white ${JSON.stringify(publicState)}`);
+          await browser.close();
+          NODE
