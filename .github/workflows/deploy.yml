@@ -32,6 +32,7 @@ on:
       - fix-lunar-phase-v2
       - fix-lunar-phase-shader
       - live-location-fixtures
+      - hotfix-settings-deploy-gate-v2
     paths:
       - "site/**"
       - "scripts/generate-fnb-share.mjs"
@@ -72,10 +73,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # These all ship as ES modules (<script type="module">), and plain
-          # `node --check` parses as CommonJS - it silently PASSES module files
-          # with real syntax errors. Parse them as modules instead.
-          for file in site/route-registry.js site/app-transitions.js site/auth-shell.js site/auth-client.js site/login.js site/account.js site/admin.js site/fnb.js site/fnb-data.js site/fnb-share-ui.js site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/notification-inbox.js site/push-client.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js worker/src/index.js auth-worker/src/index.js; do
+          for file in site/route-registry.js site/app-transitions.js site/auth-shell.js site/auth-client.js site/login.js site/account.js site/admin.js site/capabilities.js site/settings.js site/settings-route-v3.js site/fnb.js site/fnb-data.js site/fnb-share-ui.js site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/notification-inbox.js site/push-client.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js worker/src/index.js auth-worker/src/index.js; do
             if ! node --input-type=module --check < "$file" 2>/tmp/modcheck.err; then
               echo "ES module syntax error in $file"; cat /tmp/modcheck.err; exit 1
             fi
@@ -99,16 +97,19 @@ jobs:
           for item in manifest['resources']:
               assert hashlib.sha256((fallback/item['path']).read_bytes()).hexdigest()==item['sha256'],item['path']
           index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); env=(root/'environment.js').read_text(); shader=(root/'atmosphere-shader.js').read_text(); seasonal=(root/'seasonal-sky.js').read_text(); fixtures=(root/'phase8-2-fixtures.js').read_text()
+          caps=(root/'capabilities.js').read_text(); settings=(root/'settings.js').read_text(); settings_wrapper=(root/'settings-route-v3.js').read_text(); settings_refinements=(root/'settings-refinements.css').read_text()
           assert '/auth-shell.js' in index and '/auth-shell.css' in index
           assert '/account.css' in index and '/admin.css' in index
           assert '/fnb-refinements.css' in index and '/fnb-share-ui.js' in index
           assert 'src="/location.js"' not in index and 'src="/bootstrap.js"' not in index
           assert "await initAuth" in auth_shell and "location.replace(loginUrl())" in auth_shell
           assert "loadClassicScript('/location.js')" in auth_shell and "await import('./bootstrap.js')" in auth_shell
-          assert "const ACCOUNT_PATH='/account'" in auth_shell and "/account.html" not in auth_shell
-          assert "dataset.appRoute='account'" in auth_shell
-          for token in ("resources:Object.freeze(['today.html','guidance.html','details.html'])","fnb:Object.freeze({path:'/fnb'","account:Object.freeze({path:'/account'","admin:Object.freeze({path:'/admin'","kind:'local'","mount:'mountFnbRoute'","mount:'mountAccountRoute'","mount:'mountAdminRoute'"):
+          assert "const SETTINGS_PATH='/settings'" in auth_shell and "/account.html" not in auth_shell
+          assert "dataset.appRoute='settings'" in auth_shell
+          for token in ("resources:Object.freeze(['today.html','guidance.html','details.html'])","fnb:Object.freeze({path:'/fnb'","settings:Object.freeze({path:'/settings'","kind:'local'","mount:'mountFnbRoute'","mount:'mountSettingsRoute'"):
               assert token in registry,token
+          assert "account:Object.freeze" not in registry and "admin:Object.freeze" not in registry
+          assert "['/account','settings']" in registry and "['/admin','settings']" in registry
           assert "guidance:Object.freeze" not in registry and "details:Object.freeze" not in registry
           assert "['/guidance','today']" in registry and "['/details','today']" in registry
           assert "import {ROUTES,canonicalRoute,routeForPath}" in bootstrap
@@ -117,10 +118,16 @@ jobs:
           assert "dataset.appRoute='fnb'" in bootstrap and "querySelectorAll('[data-app-route=\"guidance\"],[data-app-route=\"details\"]')" in bootstrap
           assert 'routeOnlyFade' in transitions and 'appRouteFromAnchor' in transitions
           assert 'startViewTransition' not in transitions and 'view-transition' not in transitions.lower()
+          assert 'sindhorn_settings_manifest' in caps
+          assert 'loadSettingsAuthority({force:true})' in settings
+          assert "fnb-select settings-select" in settings and 'data-settings-select-option' in settings
+          assert "'/settings-refinements.css?v=2'" in settings_wrapper
+          assert '.settings-add{' in settings_refinements and 'background:rgba(229,236,190,.10)' in settings_refinements
+          assert 'overflow-y:auto!important' in settings_refinements
           redirects_raw=(root/'_redirects').read_text()
           assert redirects_raw.endswith('\n'),'_redirects needs a trailing newline or its last rule is dropped'
           rules=[l.strip() for l in redirects_raw.splitlines() if l.strip() and not l.lstrip().startswith('#')]
-          for token in ('/guidance / 301','/details / 301','/account.html /account 301','/admin.html /admin 301'):
+          for token in ('/guidance / 301','/details / 301','/account.html /account 301','/admin.html /admin 301','/settings / 200','/account / 200','/admin / 200'):
               assert token in rules,token
           assert not any('/index.html' in r and r.endswith('200') for r in rules),'SPA rewrite target must be "/" not "/index.html"'
           assert not any(r.startswith('/*') for r in rules),'catch-all splat shadows static assets - list routes explicitly'
@@ -151,8 +158,6 @@ jobs:
           assert "new Set(['today','messages'])" in app
           assert 'pushManager.subscribe' in push and 'Notification.requestPermission' not in push
           assert 'letter-spacing:0!important' in (root/'auth-shell.css').read_text()
-          assert 'letter-spacing:0!important' in (root/'account.css').read_text()
-          assert 'letter-spacing:0!important' in (root/'admin.css').read_text()
           public=(root/'share/fnb.html').read_text()
           assert 'property="og:title"' in public and 'property="og:url"' in public
           assert 'og:image' not in public.lower() and 'twitter:image' not in public.lower()
@@ -170,16 +175,16 @@ jobs:
           set -euo pipefail
           if [ "${GITHUB_REF_NAME}" = "main" ]; then BASE_URL="https://sindhorn-midtown-internal.pages.dev"; else BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"; fi
           sleep 8
-          for path in / /fnb /messages /account /admin /route-registry.js /app-transitions.js /auth-shell.js /auth-shell.css /auth-client.js /login.html /login.js /account.js /account.css /admin.js /admin.css /fnb.js /fnb-share-ui.js /fnb-refinements.css /location.js /bootstrap.js /environment.js /atmosphere-shader.js /seasonal-sky.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /phase8-2-fixtures.js /notification-inbox.js /push-client.js /sw.js /share/fnb; do
+          for path in / /fnb /messages /settings /account /admin /route-registry.js /app-transitions.js /auth-shell.js /auth-shell.css /auth-client.js /login.html /login.js /capabilities.js /settings.js /settings-route-v3.js /settings.css /settings-refinements.css /fnb.js /fnb-share-ui.js /fnb-refinements.css /location.js /bootstrap.js /environment.js /atmosphere-shader.js /seasonal-sky.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /phase8-2-fixtures.js /notification-inbox.js /push-client.js /sw.js /share/fnb; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
-          for path in / /fnb /messages /account /admin; do
+          for path in / /fnb /messages /settings /account /admin; do
             curl --fail --silent --show-error --location "${BASE_URL}${path}" -o /tmp/app-route.html
             grep -q '/auth-shell.js' /tmp/app-route.html
             grep -q 'id="route-view"' /tmp/app-route.html
           done
-          for path in /fnb /messages /account /admin; do
+          for path in /fnb /messages /settings /account /admin; do
             code=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' "${BASE_URL}${path}")
             if [ "$code" != "200" ]; then
               echo "FAIL ${path} returned ${code} (expected 200 with the URL preserved)"
@@ -197,6 +202,9 @@ jobs:
           curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html
           curl --fail --silent --show-error --location "${BASE_URL}/auth-shell.js" -o /tmp/auth-shell.js
           curl --fail --silent --show-error --location "${BASE_URL}/route-registry.js" -o /tmp/route-registry.js
+          curl --fail --silent --show-error --location "${BASE_URL}/capabilities.js" -o /tmp/capabilities.js
+          curl --fail --silent --show-error --location "${BASE_URL}/settings-route-v3.js" -o /tmp/settings-wrapper.js
+          curl --fail --silent --show-error --location "${BASE_URL}/settings-refinements.css" -o /tmp/settings-refinements.css
           curl --fail --silent --show-error --location "${BASE_URL}/bootstrap.js" -o /tmp/bootstrap.js
           curl --fail --silent --show-error --location "${BASE_URL}/environment.js" -o /tmp/environment.js
           curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js
@@ -209,10 +217,15 @@ jobs:
           grep -q "await import('./bootstrap.js')" /tmp/auth-shell.js
           grep -q "loadClassicScript('/location.js')" /tmp/auth-shell.js
           grep -q 'masthead-user' /tmp/auth-shell.js
-          grep -q "ACCOUNT_PATH='/account'" /tmp/auth-shell.js
+          grep -q "SETTINGS_PATH='/settings'" /tmp/auth-shell.js
           grep -q "path:'/fnb'" /tmp/route-registry.js
-          grep -q "path:'/account'" /tmp/route-registry.js
-          grep -q "path:'/admin'" /tmp/route-registry.js
+          grep -q "path:'/settings'" /tmp/route-registry.js
+          grep -q "['/account','settings']" /tmp/route-registry.js
+          grep -q "['/admin','settings']" /tmp/route-registry.js
+          grep -q 'sindhorn_settings_manifest' /tmp/capabilities.js
+          grep -q 'settings-refinements.css?v=2' /tmp/settings-wrapper.js
+          grep -q 'overflow-y:auto!important' /tmp/settings-refinements.css
+          grep -q 'background:rgba(229,236,190,.10)' /tmp/settings-refinements.css
           grep -q "today.html','guidance.html','details.html" /tmp/route-registry.js
           grep -q 'normalizeFooterNavigation' /tmp/bootstrap.js
           ! grep -q '/sky-calibration.js' /tmp/root.html
