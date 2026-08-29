@@ -28,12 +28,20 @@ assert.match(shareUi,/folderControl\(item\)/,'authenticated cards must expose ar
 assert.match(shareUi,/initFnbArtworkSync/,'F&B UI must initialize shared artwork completion state');
 assert.match(sync,/sindhorn_fnb_artwork_status_read/,'shared artwork sync must read authoritative status');
 assert.match(sync,/sindhorn_fnb_artwork_status_write/,'authenticated editor must persist authoritative status');
+assert.match(sync,/new MutationObserver/,'detail artwork sync must observe dynamically rendered detail DOM');
+assert.match(sync,/if\(total===0\)\{card\.hidden=true/,'zero-artwork outlet groups must be hidden');
+assert.match(sync,/\.fnb-art-card:not\(:has\(\.fnb-task\)\)\{display:none!important\}/,'zero-artwork groups need a render-safe hide guard');
 assert.match(adapter,/Canonical business content lives in Supabase/,'F&B adapter must state Supabase authority');
 assert.match(adapter,/sindhorn_fnb_read_model/,'authenticated F&B runtime must use the protected read model');
 assert.match(adapter,/sindhorn_fnb_public_read_model/,'adapter must have explicit public fallback read model');
 assert.match(adapter,/sindhorn-midtown:fnb-dataset:v2/,'adapter must keep last-known-good F&B data');
+assert.match(adapter,/In-room Dining/,'valid workbook outlet must be supported');
+assert.match(adapter,/Offline · showing last saved F&B data/,'offline cache must be visible as stale data');
 for(const label of ['>Show full<',"?'Show full':'Show less'",'>Add / change artwork link<','>Save<'])assert(fnb.includes(label),`expected sentence-case action missing: ${label}`);
 for(const bad of ['>SHOW FULL<','>SHOW LESS<','>ADD / CHANGE ARTWORK LINK<','>SAVE<'])assert(!fnb.includes(bad),`forced uppercase action regressed: ${bad}`);
+assert.match(refinements,/inset:0!important/,'modal scrim must cover the viewport');
+assert.match(refinements,/place-items:center!important/,'modal must be centered');
+assert.match(refinements,/height:100dvh!important/,'modal scrim must use full usable viewport');
 assert.equal(manifest.id,'/');assert.equal(manifest.start_url,'/');assert.equal(manifest.scope,'/');assert.equal(manifest.display,'standalone');
 
 const temp=await mkdtemp(join(tmpdir(),'fnb-share-'));
@@ -67,6 +75,7 @@ assert.match(publicRuntime,/const editor=false/,'public runtime must never grant
 assert.match(livePackCss,/\.masthead-inner,#route-view\{/,'generated share must contain enabled-pack shell geometry');
 assert.match(livePackCss,/\.brand-lockup\{/,'generated share must contain enabled-pack brand geometry');
 assert.match(livePackCss,/--font-ui:\\?"LINE Seed Sans TH/,'generated share must carry the live font authority');
+assert.match(livePackCss,/-webkit-tap-highlight-color:transparent/,'public share must inherit the live tap-highlight suppression');
 
 /* Public CSS is only a read-only subtraction layer. */
 assert.match(publicCss,/#app-footer[^}]*display:none!important/,'public app footer must be hidden');
@@ -74,8 +83,12 @@ assert.match(publicCss,/\.masthead-user[^}]*\.masthead-tools\{display:none!impor
 assert.match(publicCss,/\.fnb-card-actions\{display:none!important\}/,'public promotion-card action footer must be hidden');
 assert.match(publicCss,/\.fnb-card-button\{padding-bottom:16px!important\}/,'hidden card footer must not leave reserved blank space');
 assert.match(publicCss,/\.fnb-section-rail\{display:none!important/,'public detail section rail must be hidden');
+assert.match(publicCss,/-webkit-appearance:none;appearance:none/,'public controls must remove native browser control chrome');
 assert.match(publicCss,/\.fnb-task-toggle\{display:none!important\}/,'public artwork check controls must be hidden');
 assert.match(publicCss,/\[data-folder-edit\]/,'public artwork editor UI must be hidden');
+assert.match(publicCss,/\.fnb-data-updated\{/,'public freshness timestamp must keep restrained treatment');
+assert.doesNotMatch(publicCss,/\[data-folder-open\][^}]*display:none/,'public artwork folder open action must remain visible');
+assert.doesNotMatch(publicCss,/\.fnb-sheet-layer[^}]*display:none/,'public multi-folder modal must remain available');
 assert.doesNotMatch(publicCss,/\.masthead-inner\{min-height:/,'public layer must not maintain a second masthead geometry');
 assert.doesNotMatch(publicCss,/\.brand-lockup\{position:/,'public layer must not maintain a second logo geometry');
 
