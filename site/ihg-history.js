@@ -4,15 +4,15 @@ const STYLE_ID='ihg-history-style';
 const SOURCE_LABEL='IHG Hotels & Resorts — Our history';
 const DISCLOSURE_MS=420;
 const HISTORY_PERIOD_IMAGES=Object.freeze({
-  '1777–1899':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1777.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1777'}),
+  '1777–1899':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1770.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1777'}),
   '1900–1949':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1946.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1946'}),
   '1950–1959':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1952.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 1952'}),
-  '1960–1969':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1961.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1961'}),
+  '1960–1969':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1961.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 1961'}),
   '1970–1979':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1972.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1972'}),
-  '1980–1989':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1981.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1981'}),
-  '1990–1999':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1990.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1990'}),
-  '2000–2009':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-2000.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 2000'}),
-  '2010–2019':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-2010.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 2010'}),
+  '1980–1989':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1981.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 1981'}),
+  '1990–1999':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1990.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 1990'}),
+  '2000–2009':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-2000.png?h=750&iar=0&w=750',caption:'IHG history archive · 2000'}),
+  '2010–2019':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-2010.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 2010'}),
   '2020–Present':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/history-2.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 2021'})
 });
 
