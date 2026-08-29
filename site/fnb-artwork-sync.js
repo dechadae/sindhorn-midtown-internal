@@ -58,19 +58,19 @@ function applyDetail(){
   let overallDone=0,overallTotal=0;
   detail.querySelectorAll('.fnb-art-card').forEach(card=>{
     const rows=[...card.querySelectorAll('.fnb-task')],total=rows.length;
-    if(total===0){card.hidden=true;card.setAttribute('aria-hidden','true');return}
-    card.hidden=false;card.removeAttribute('aria-hidden');
-    const done=rows.filter(row=>row.classList.contains('is-done')).length,complete=done===total;overallDone+=done;overallTotal+=total;card.classList.toggle('is-complete',complete);const tally=card.querySelector('.fnb-art-tally');if(tally)tally.innerHTML=`${done}/${total}<i>${complete?'✓':''}</i>`
+    if(total===0){card.hidden=true;card.setAttribute('aria-hidden','true');card.style.setProperty('display','none','important');return}
+    card.hidden=false;card.removeAttribute('aria-hidden');card.style.removeProperty('display');
+    const done=rows.filter(row=>row.classList.contains('is-done')).length,complete=done===total;overallDone+=done;overallTotal+=total;card.classList.toggle('is-complete',complete);const tally=card.querySelector('.fnb-art-tally'),markup=`${done}/${total}<i>${complete?'✓':''}</i>`;if(tally&&tally.innerHTML!==markup)tally.innerHTML=markup
   });
-  const count=detail.querySelector('.fnb-section-count');if(count)count.textContent=`${overallDone} / ${overallTotal} complete`
+  const count=detail.querySelector('.fnb-section-count'),text=`${overallDone} / ${overallTotal} complete`;if(count&&count.textContent!==text)count.textContent=text
 }
 async function applyShared(){if(document.body.dataset.route!=='fnb')return;await applyIndex();applyDetail()}
 function scheduleApply(){clearTimeout(applyTimer);applyTimer=setTimeout(()=>void applyShared(),0)}
 function watchDetail(){
   detailObserver?.disconnect();detailObserver=null;
-  const route=document.querySelector('.fnb-route');if(!route)return;
+  const detail=document.querySelector('.fnb-route [data-detail]');if(!detail)return;
   detailObserver=new MutationObserver(mutations=>{if(mutations.some(m=>m.type==='childList'&&(m.addedNodes.length||m.removedNodes.length)))scheduleApply()});
-  detailObserver.observe(route,{childList:true,subtree:true});
+  detailObserver.observe(detail,{childList:true});
   scheduleApply()
 }
 async function refresh(){try{await readShared()}catch(_){} }
