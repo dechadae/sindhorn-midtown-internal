@@ -6,6 +6,11 @@ on:
       - fnb-modal-icon-polish
     paths:
       - ".github/workflows/fnb-modal-icon-polish.yml"
+      - "site/fnb-approved-polish.css"
+      - "site/index.html"
+      - "site/manifest.webmanifest"
+      - "site/sw.js"
+      - "site/icons/**"
 
 permissions:
   contents: read
@@ -29,6 +34,7 @@ jobs:
           grep -q 'z-index:220!important' site/fnb-approved-polish.css
           grep -q 'inset:0!important' site/fnb-approved-polish.css
           grep -q 'align-items:center!important' site/fnb-approved-polish.css
+          grep -q '#route-view{z-index:30!important}' site/fnb-approved-polish.css
           grep -q 'background:rgba(8,7,12,.76)!important' site/fnb-approved-polish.css
           grep -q 'text-transform:none!important' site/fnb-approved-polish.css
           grep -q '/fnb-approved-polish.css?v=3' site/index.html
@@ -100,16 +106,17 @@ jobs:
           await page.waitForSelector('.fnb-sheet-layer.is-open');
           await page.waitForTimeout(400);
           const state=await page.evaluate(()=>{
-            const layer=document.querySelector('.fnb-sheet-layer'),sheet=document.querySelector('.fnb-sheet'),footer=document.querySelector('#app-footer .app-tabbar');
-            const lr=layer.getBoundingClientRect(),sr=sheet.getBoundingClientRect(),fr=footer.getBoundingClientRect();
+            const layer=document.querySelector('.fnb-sheet-layer'),sheet=document.querySelector('.fnb-sheet'),footer=document.querySelector('#app-footer .app-tabbar'),header=document.querySelector('#app-header');
+            const lr=layer.getBoundingClientRect(),sr=sheet.getBoundingClientRect(),fr=footer.getBoundingClientRect(),hr=header.getBoundingClientRect();
             const lc=getComputedStyle(layer),action=getComputedStyle(document.querySelector('[data-save-links]'));
             const footerPoint=document.elementFromPoint((fr.left+fr.right)/2,(fr.top+fr.bottom)/2);
-            return {layer:{top:lr.top,left:lr.left,right:lr.right,bottom:lr.bottom},sheet:{top:sr.top,bottom:sr.bottom,width:sr.width},sheetCenter:{x:(sr.left+sr.right)/2,y:(sr.top+sr.bottom)/2},viewport:{x:innerWidth/2,y:innerHeight/2},background:lc.backgroundColor,backdrop:lc.backdropFilter||lc.webkitBackdropFilter,z:lc.zIndex,saveTransform:action.textTransform,footerCovered:Boolean(footerPoint?.closest?.('.fnb-sheet-layer'))};
+            const headerPoint=document.elementFromPoint(innerWidth/2,Math.max(10,Math.min(hr.bottom-4,80)));
+            return {layer:{top:lr.top,left:lr.left,right:lr.right,bottom:lr.bottom},sheet:{top:sr.top,bottom:sr.bottom,width:sr.width},sheetCenter:{x:(sr.left+sr.right)/2,y:(sr.top+sr.bottom)/2},viewport:{x:innerWidth/2,y:innerHeight/2},background:lc.backgroundColor,backdrop:lc.backdropFilter||lc.webkitBackdropFilter,z:lc.zIndex,saveTransform:action.textTransform,footerCovered:Boolean(footerPoint?.closest?.('.fnb-sheet-layer')),headerCovered:Boolean(headerPoint?.closest?.('.fnb-sheet-layer'))};
           });
           console.log('F&B modal geometry',JSON.stringify(state));
           if(Math.abs(state.layer.top)>1||Math.abs(state.layer.left)>1||Math.abs(state.layer.right-390)>1||Math.abs(state.layer.bottom-844)>1) throw new Error('modal dim layer does not cover viewport');
           if(Math.abs(state.sheetCenter.x-state.viewport.x)>3||Math.abs(state.sheetCenter.y-state.viewport.y)>12) throw new Error('modal is not centered');
-          if(Number(state.z)<200||!state.footerCovered) throw new Error('modal does not dim above persistent footer');
+          if(Number(state.z)<200||!state.footerCovered||!state.headerCovered) throw new Error('modal does not dim above persistent shell');
           if(state.saveTransform!=='none') throw new Error('action capitalization is not standardized');
           if(state.backdrop==='none') throw new Error('modal backdrop blur missing');
           await page.screenshot({path:'fnb-centered-modal.png',fullPage:true});
