@@ -174,7 +174,16 @@ try{
     const cardSelector=`[data-history-period="${index-1}"]`;
     await brand.page.evaluate(selector=>document.querySelector(selector)?.click(),buttonSelector);
     await brand.page.waitForFunction(selector=>document.querySelector(selector)?.getAttribute('aria-expanded')==='true',buttonSelector);
-    await brand.page.waitForTimeout(index===1?650:1100);
+    await brand.page.waitForFunction(selector=>{
+      const card=document.querySelector(selector),header=document.getElementById('app-header');
+      if(!card)return false;
+      let expected=10;
+      if(header){
+        const position=getComputedStyle(header).position;
+        if(position==='fixed'||position==='sticky')expected=Math.max(0,header.getBoundingClientRect().bottom)+10;
+      }
+      return Math.abs(card.getBoundingClientRect().top-expected)<=5;
+    },cardSelector,{timeout:5000,polling:50});
     assert(await brand.page.locator('.ihg-history-card.is-open').count()===1,`one-open-at-a-time failed for History period ${index}`);
     const scrollState=await brand.page.evaluate(selector=>{
       const card=document.querySelector(selector),header=document.getElementById('app-header');
