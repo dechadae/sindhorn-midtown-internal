@@ -1,0 +1,103 @@
+name: Login and Employee Profile Preview
+
+on:
+  push:
+    branches:
+      - login-profile-refresh
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: login-profile-refresh
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate login and employee profile integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < site/login.js
+          node --input-type=module --check < site/settings-route-v3.js
+          node --input-type=module --check < site/route-registry.js
+          node --input-type=module --check < scripts/login-profile-browser-smoke.mjs
+          grep -q 'sindhorn-midtown-vignette-white.png' site/login.html
+          grep -q '/auth-brand.css?v=3' site/login.html
+          grep -q 'Employee sign in</h1>' site/login.html
+          ! grep -Eqi '(environment(?:\.bundle)?\.js|atmosphere-shader|weather-authority|rain-layer|<canvas)' site/login.html
+          grep -q -- '--login-accent:#E5ECBE' site/auth-brand.css
+          grep -q 'linear-gradient(152deg' site/auth-brand.css
+          ! grep -q 'url(' site/auth-brand.css
+          grep -q "module:'./settings-route-v3.js?v=3'" site/route-registry.js
+          grep -q "createFact('position','Position'" site/settings-route-v3.js
+          grep -q "createFact('department','Department'" site/settings-route-v3.js
+          grep -q 'position_title text' supabase/migrations/20260829182700_employee_position_and_marcom_profile.sql
+          grep -q "'marcom','Marketing Communications'" supabase/migrations/20260829182700_employee_position_and_marcom_profile.sql
+
+      - name: Verify unrelated runtime systems unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="$(git merge-base origin/main HEAD)"
+          for file in \
+            site/environment.js site/environment.bundle.js site/atmosphere-shader.js site/rain-now.js site/rain-layer.js \
+            site/seasonal-sky.js site/weather-authority.js site/sw.js site/auth-client.js site/auth-shell.js \
+            site/fnb.js site/fnb.css site/fnb-data.js site/fnb-refinements.css site/fnb-approved-polish.css \
+            site/settings.js site/settings.css site/settings-refinements.css site/capabilities.js \
+            site/footer-route-guard.js site/footer-route-guard.css site/ihg-history.js site/ihg-history.css; do
+            git diff --exit-code "$base" HEAD -- "$file"
+          done
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Raw preview smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://login-profile-refresh.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in /login.html /auth-brand.css /login.js /settings /settings-route-v3.js /route-registry.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
+            test -s /tmp/response
+          done
+          curl --fail --silent --show-error "${BASE_URL}/login.html" -o /tmp/login.html
+          grep -q 'sindhorn-midtown-vignette-white.png' /tmp/login.html
+          ! grep -Eqi '(environment(?:\.bundle)?\.js|atmosphere-shader|weather-authority|rain-layer|<canvas)' /tmp/login.html
+          curl --fail --silent --show-error "${BASE_URL}/auth-brand.css" -o /tmp/auth-brand.css
+          grep -q -- '--login-accent:#E5ECBE' /tmp/auth-brand.css
+
+      - name: Browser login and profile smoke
+        shell: bash
+        env:
+          BASE_URL: https://login-profile-refresh.sindhorn-midtown-internal.pages.dev
+          SCREENSHOT_DIR: /tmp/login-profile-preview
+        run: |
+          set -euo pipefail
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install chromium >/dev/null 2>&1
+          node scripts/login-profile-browser-smoke.mjs | tee /tmp/login-profile-report.json
+
+      - name: Upload preview screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: login-profile-preview
+          path: |
+            /tmp/login-profile-preview
+            /tmp/login-profile-report.json
+          if-no-files-found: warn
+          retention-days: 14
