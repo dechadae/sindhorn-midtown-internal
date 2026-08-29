@@ -65,7 +65,7 @@ function resize(){
 }
 
 function drawDrop(drop,index,dt,intensity){
-  const speedPx=(560+drop.speed*520)*(0.68+intensity*.68),lengthPx=(16+drop.length*27)*(0.90+intensity*.32);
+  const speedPx=(300+drop.speed*260)*(0.72+intensity*.42),lengthPx=(14+drop.length*24)*(0.88+intensity*.30);
   drop.y+=speedPx*dt/Math.max(1,height);drop.x+=drop.slant*speedPx*dt/Math.max(1,width);
   if(drop.y>1.08){drop.y=-.08-drop.phase*.18;drop.x=(drop.x+.173+drop.phase*.417)%1}if(drop.x>1.06)drop.x-=1.12;
   const x=drop.x*width,y=drop.y*height,drift=lengthPx*(.14+drop.slant*1.9),alpha=(.075+.14*drop.alpha)*Math.pow(intensity,.72);
