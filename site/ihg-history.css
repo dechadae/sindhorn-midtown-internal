@@ -14,18 +14,10 @@
 body[data-route="ihgHistory"] #route-view{background:transparent;padding-bottom:96px}
 .ihg-history-route{
   position:relative;
-  isolation:isolate;
+  isolation:auto;
   min-height:calc(100dvh - 120px);
   color:var(--ihg-history-text);
   font:400 15px/1.65 var(--font-ui);
-}
-.ihg-history-route::before{
-  content:"";
-  position:fixed;
-  z-index:-1;
-  inset:0;
-  pointer-events:none;
-  background:linear-gradient(180deg,rgba(24,20,32,.72),rgba(24,20,32,.5) 30%,rgba(24,20,32,.62) 70%,rgba(24,20,32,.86));
 }
 .ihg-history-route,.ihg-history-route *,.ihg-history-route *::before,.ihg-history-route *::after{box-sizing:border-box;letter-spacing:0!important}
 .ihg-history-hero{padding:22px 0 20px;border-bottom:1px solid var(--ihg-history-line)}
@@ -34,7 +26,7 @@ body[data-route="ihgHistory"] #route-view{background:transparent;padding-bottom:
   color:var(--ihg-history-accent);
   font-size:9px;
   font-weight:400;
-  line-height:1.2;
+  line-height:1.3;
   text-transform:uppercase;
 }
 .ihg-history-hero h1{
@@ -43,6 +35,7 @@ body[data-route="ihgHistory"] #route-view{background:transparent;padding-bottom:
   font-size:clamp(30px,8.5vw,44px);
   font-weight:400!important;
   line-height:1.05;
+  text-transform:none;
 }
 .ihg-history-intro{
   max-width:34rem;
@@ -199,6 +192,29 @@ body[data-route="ihgHistory"] #route-view{background:transparent;padding-bottom:
   font-size:13px;
   line-height:1.6;
 }
+.ihg-history-visual{
+  margin:10px 0 11px;
+  overflow:hidden;
+  border:1px solid var(--ihg-history-border);
+  border-radius:12px;
+  background:rgba(46,39,59,.34);
+}
+.ihg-history-visual img{
+  display:block;
+  width:100%;
+  max-height:260px;
+  object-fit:cover;
+  object-position:center;
+  background:rgba(46,39,59,.34);
+}
+.ihg-history-visual figcaption{
+  padding:7px 10px 8px;
+  color:rgba(250,247,245,.52);
+  font-size:8.5px;
+  font-weight:400;
+  line-height:1.3;
+  text-transform:uppercase;
+}
 .ihg-history-source{
   margin:18px 0 0;
   padding:16px 17px;
@@ -214,6 +230,12 @@ body[data-route="ihgHistory"] #route-view{background:transparent;padding-bottom:
   font-size:14px;
   font-weight:400;
   line-height:1.35;
+}
+.ihg-history-source-note{
+  margin:5px 0 0;
+  color:var(--ihg-history-muted);
+  font-size:11.5px;
+  line-height:1.5;
 }
 .ihg-history-source a{
   min-height:40px;
