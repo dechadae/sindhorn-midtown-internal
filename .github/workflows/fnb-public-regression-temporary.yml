@@ -1,0 +1,25 @@
+name: Temporary F&B Public Regression
+
+on:
+  push:
+    branches: [fnb-public-live-parity]
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - name: Generate and validate public shares
+        run: |
+          set -euo pipefail
+          PUBLIC_ORIGIN=https://preview.example.test node scripts/generate-fnb-share.mjs
+          node --input-type=module --check < scripts/generate-fnb-share.mjs
+          node --input-type=module --check < site/share/fnb-runtime.js
+          node --input-type=module --check < site/share/fnb-public-shell.js
+          node --input-type=module --check < site/share/fnb-share-ui-public.js
+          node .github/tests/fnb-sharing-regression.test.mjs
+          node .github/tests/font-architecture.test.mjs
