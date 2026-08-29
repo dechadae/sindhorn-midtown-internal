@@ -1,0 +1,70 @@
+name: Temporary Restore Public Card Actions
+
+on:
+  push:
+    branches: [restore-public-card-actions]
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Restore compact card actions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path=Path('scripts/generate-fnb-share.mjs')
+          text=path.read_text()
+          replacements=[
+            ('/share/fnb-public.css?v=7','/share/fnb-public.css?v=8'),
+            ("/* Keep the same asynchronous Share placement as live. The card action row it creates is\n   intentionally hidden by the public-only CSS, while hero/detail Share remains live-parity. */",
+             "/* Keep the same asynchronous Share placement and compact-card action row as live.\n   Public sharing changes capability, not the approved F&B card composition. */"),
+            ("/* Public-only delta. Everything visual above this layer is the current live pack + the\n   exact authenticated F&B styles. We remove only private/edit surfaces and the two\n   footer surfaces requested for read-only sharing: app footer and card action footer. */",
+             "/* Public-only delta. Everything visual above this layer is the current live pack + the\n   exact authenticated F&B styles. Remove only employee/private/edit surfaces and the\n   persistent app footer; compact-card Artwork folder + Share actions remain live-parity. */"),
+            ('body[data-fnb-public="true"] .fnb-card-actions{display:none!important}\n',''),
+            ('body[data-fnb-public="true"] .fnb-card-button{padding-bottom:16px!important}\n',''),
+          ]
+          for old,new in replacements:
+            if text.count(old)!=1:
+              raise SystemExit(f'generator replacement count {text.count(old)} for {old[:80]!r}')
+            text=text.replace(old,new)
+          path.write_text(text)
+
+          path=Path('.github/tests/fnb-sharing-regression.test.mjs')
+          text=path.read_text()
+          replacements=[
+            ("assert.match(publicCss,/\\.fnb-card-actions\\{display:none!important\\}/,'public promotion-card action footer must be hidden');\nassert.match(publicCss,/\\.fnb-card-button\\{padding-bottom:16px!important\\}/,'hidden card footer must not leave reserved blank space');",
+             "assert.doesNotMatch(publicCss,/\\.fnb-card-actions[^}]*display:none!important/,'public promotion cards must keep the live Artwork folder + Share action row');\nassert.doesNotMatch(publicCss,/\\.fnb-card-button\\{padding-bottom:16px!important\\}/,'public cards must retain live action-row spacing');\nassert.match(publicShareUi,/folderControl\\(item\\)/,'public compact cards must expose artwork-folder access when available');\nassert.match(publicShareUi,/actions\\.appendChild\\(button\\('promotion',id\\)\\)/,'public compact cards must expose promotion Share');"),
+            ('/\\/share\\/fnb-public\\.css\\?v=7/','/\\/share\\/fnb-public\\.css\\?v=8/'),
+          ]
+          for old,new in replacements:
+            if text.count(old)!=1:
+              raise SystemExit(f'test replacement count {text.count(old)} for {old[:100]!r}')
+            text=text.replace(old,new)
+          path.write_text(text)
+          PY
+
+      - name: Validate generator and regression suite
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < scripts/generate-fnb-share.mjs
+          node .github/tests/fnb-sharing-regression.test.mjs
+          node .github/tests/font-architecture.test.mjs
+
+      - name: Commit tested fix
+        run: |
+          set -euo pipefail
+          git config user.name "dechadae"
+          git config user.email "decha.dae@gmail.com"
+          git add scripts/generate-fnb-share.mjs .github/tests/fnb-sharing-regression.test.mjs
+          git rm .github/workflows/restore-public-card-actions-temporary.yml
+          git commit -m "Restore public F&B compact card actions"
+          git push origin HEAD:restore-public-card-actions
