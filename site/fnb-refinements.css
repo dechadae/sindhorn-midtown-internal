@@ -33,14 +33,17 @@ body[data-route="fnb"] .fnb-expand:disabled,
 body[data-route="fnb"] .fnb-action-control:disabled{opacity:.38;cursor:default;transform:none}
 .fnb-action-control svg,.fnb-share-button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 
-/* Quiet sharing affordances. */
-.fnb-hero-actions{display:flex;justify-content:flex-start;margin-top:15px}
-.fnb-hero-actions .fnb-share-button{width:auto}
+/* Quiet sharing affordances. Card share remains as approved. */
+.fnb-hero-utility,.fnb-detail-utility{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.fnb-hero-utility{margin-bottom:18px}
+.fnb-hero-utility .fnb-eyebrow{margin:0}
+.fnb-hero-utility .fnb-share-button,.fnb-detail-utility .fnb-share-button{height:36px!important;min-height:36px!important;padding:0 8px!important;background:transparent;border-color:transparent;color:var(--fnb-muted)}
+.fnb-hero-utility .fnb-share-button:focus-visible,.fnb-detail-utility .fnb-share-button:focus-visible{border-color:var(--fnb-glass-brd)}
+.fnb-detail-utility{margin-bottom:22px}
+.fnb-detail-utility .fnb-back{position:static!important;margin:0!important}
 .fnb-card-actions{min-height:44px;padding:2px 10px 4px;display:flex;align-items:center;justify-content:flex-end;border-top:1px solid var(--fnb-line)}
 .fnb-card-actions .fnb-share-button{height:38px!important;min-height:38px!important;padding-inline:11px!important;background:transparent;border-color:transparent;color:var(--fnb-muted)}
 .fnb-card-actions .fnb-share-button:focus-visible{border-color:var(--fnb-glass-brd)}
-.fnb-detail-actions{display:flex;margin:13px 0 2px}
-.fnb-detail-actions .fnb-share-button{width:auto}
 
 /* True centered modal. One full-viewport scrim covers header, atmosphere, route and footer. */
 body[data-route="fnb"] .fnb-sheet-layer{
