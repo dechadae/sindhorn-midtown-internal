@@ -121,7 +121,8 @@ try{
   const avatar=await brand.page.evaluate(()=>({href:document.querySelector('.masthead-user')?.getAttribute('href'),route:document.querySelector('.masthead-user')?.dataset.appRoute}));
   assert(avatar.href==='/settings'&&avatar.route==='settings',`avatar no longer opens Settings/Admin ${JSON.stringify(avatar)}`);
   await brand.page.evaluate(()=>{window.__shellRefs={header:document.getElementById('app-header'),footer:document.getElementById('app-footer'),env:document.getElementById('environmentStage'),doc:document.documentElement}});
-  await brand.page.click('.masthead-user');await brand.page.waitForSelector('.settings-route');
+  await brand.page.evaluate(()=>document.querySelector('.masthead-user')?.click());
+  await brand.page.waitForSelector('.settings-route');
   const avatarSpa=await brand.page.evaluate(()=>window.__shellRefs.header===document.getElementById('app-header')&&window.__shellRefs.footer===document.getElementById('app-footer')&&window.__shellRefs.env===document.getElementById('environmentStage')&&window.__shellRefs.doc===document.documentElement&&location.pathname==='/settings');
   assert(avatarSpa,'avatar caused a document/shell replacement');
   await brand.page.click('#app-footer [data-app-route="ihgHistory"]');await brand.page.waitForSelector('.ihg-history-card');
