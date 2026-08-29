@@ -16,6 +16,6 @@ function ensureStyle(selector,href,attribute){
 
 export async function mountSettingsRoute(root){
   await ensureStyle('link[data-settings-style]','/settings.css?v=2','data-settings-style');
-  await ensureStyle('link[data-settings-refinements]','/settings-refinements.css?v=1','data-settings-refinements');
+  await ensureStyle('link[data-settings-refinements]','/settings-refinements.css?v=2','data-settings-refinements');
   return mountBaseSettingsRoute(root);
 }
