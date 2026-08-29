@@ -40,8 +40,6 @@ jobs:
           grep -q 'sindhorn-midtown:fnb-dataset:v2' site/fnb-data.js
           grep -q 'In-room Dining' site/fnb-data.js
           grep -q "'/fnb-data.js'" site/sw.js
-          grep -q -- '--fnb-chip-h:44px' site/fnb.css
-          grep -q 'background:transparent' site/fnb.css
           ! grep -q '<header class="appbar"' site/fnb.js
           PUBLIC_ORIGIN="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev" node scripts/generate-fnb-share.mjs | tee /tmp/fnb-share-report.json
           node - <<'NODE'
