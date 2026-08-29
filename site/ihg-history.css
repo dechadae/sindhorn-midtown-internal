@@ -1,7 +1,7 @@
 :root{
   --ihg-history-accent:#E5ECBE;
   --ihg-history-accent-rgb:229,236,190;
-  --ihg-history-surface:rgba(46,39,59,.66);
+  --ihg-history-surface:rgba(46,39,59,.48);
   --ihg-history-border:rgba(250,247,245,.14);
   --ihg-history-line:rgba(250,247,245,.11);
   --ihg-history-text:#FAF7F5;
