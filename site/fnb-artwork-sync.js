@@ -4,16 +4,22 @@ const LOCAL_STATE_KEY='sindhorn-midtown:fnb-local:v1';
 const MIGRATION_KEY='sindhorn-midtown:fnb-artwork-shared:v1';
 const READ_RPC='sindhorn_fnb_artwork_status_read';
 const WRITE_RPC='sindhorn_fnb_artwork_status_write';
+const EMPTY_STYLE_ID='fnb-empty-artwork-guard';
 
 let initialized=false;
 let sharedDone=new Set();
 let applyTimer=0;
 let refreshTimer=0;
 let publicDataPromise=null;
+let detailObserver=null;
 
 function safeParse(value){try{return JSON.parse(value)}catch(_){return null}}
 function authToken(){try{return window.SindhornEmployeeAuth?.getAccessToken?.()||null}catch(_){return null}}
 function editorProfile(){try{return window.SindhornEmployeeAuth?.getProfile?.()||null}catch(_){return null}}
+function ensureEmptyArtworkGuard(){
+  if(document.getElementById(EMPTY_STYLE_ID))return;
+  const style=document.createElement('style');style.id=EMPTY_STYLE_ID;style.textContent='.fnb-art-card:not(:has(.fnb-task)){display:none!important}';document.head.appendChild(style)
+}
 async function rpc(name,params={},token=null){
   const response=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${encodeURIComponent(name)}`,{method:'POST',cache:'no-store',headers:{apikey:SUPABASE_KEY,'content-type':'application/json',...(token?{authorization:`Bearer ${token}`}:{})},body:JSON.stringify(params)});
   if(!response.ok)throw new Error(`F&B artwork sync HTTP ${response.status}`);
@@ -55,11 +61,23 @@ function applyDetail(){
   const detail=document.querySelector('.fnb-route [data-detail]:not([hidden])');if(!detail)return;
   detail.querySelectorAll('.fnb-task').forEach(row=>{const button=row.querySelector('[data-task]'),id=button?.dataset.task,isDone=id?sharedDone.has(String(id)):false;row.classList.toggle('is-done',isDone);if(button)button.setAttribute('aria-label',isDone?'Mark pending':'Mark complete')});
   let overallDone=0,overallTotal=0;
-  detail.querySelectorAll('.fnb-art-card').forEach(card=>{const rows=[...card.querySelectorAll('.fnb-task')],done=rows.filter(row=>row.classList.contains('is-done')).length,total=rows.length,complete=total>0&&done===total;overallDone+=done;overallTotal+=total;card.classList.toggle('is-complete',complete);const tally=card.querySelector('.fnb-art-tally');if(tally)tally.innerHTML=`${done}/${total}<i>${complete?'✓':''}</i>`});
-  const count=detail.querySelector('.fnb-section-count');if(count)count.textContent=`${overallDone} / ${overallTotal} complete`
+  detail.querySelectorAll('.fnb-art-card').forEach(card=>{
+    const rows=[...card.querySelectorAll('.fnb-task')],total=rows.length;
+    if(total===0){card.hidden=true;card.setAttribute('aria-hidden','true');card.style.setProperty('display','none','important');return}
+    card.hidden=false;card.removeAttribute('aria-hidden');card.style.removeProperty('display');
+    const done=rows.filter(row=>row.classList.contains('is-done')).length,complete=done===total;overallDone+=done;overallTotal+=total;card.classList.toggle('is-complete',complete);const tally=card.querySelector('.fnb-art-tally'),markup=`${done}/${total}<i>${complete?'✓':''}</i>`;if(tally&&tally.innerHTML!==markup)tally.innerHTML=markup
+  });
+  const count=detail.querySelector('.fnb-section-count'),text=`${overallDone} / ${overallTotal} complete`;if(count&&count.textContent!==text)count.textContent=text
 }
 async function applyShared(){if(document.body.dataset.route!=='fnb')return;await applyIndex();applyDetail()}
 function scheduleApply(){clearTimeout(applyTimer);applyTimer=setTimeout(()=>void applyShared(),0)}
+function watchDetail(){
+  detailObserver?.disconnect();detailObserver=null;
+  const detail=document.querySelector('.fnb-route [data-detail]');if(!detail)return;
+  detailObserver=new MutationObserver(mutations=>{if(mutations.some(m=>m.type==='childList'&&(m.addedNodes.length||m.removedNodes.length)))scheduleApply()});
+  detailObserver.observe(detail,{childList:true});
+  scheduleApply()
+}
 async function refresh(){try{await readShared()}catch(_){} }
 async function migrateAndRefresh(){try{await migrateLocalOnce()}catch(_){}await refresh()}
 function onClick(event){
@@ -68,11 +86,12 @@ function onClick(event){
   if(event.target.closest?.('[data-open],[data-back],[data-filter-option],[data-filter-trigger]'))setTimeout(scheduleApply,30)
 }
 export function initFnbArtworkSync(){
-  if(initialized)return;initialized=true;
-  document.addEventListener('sindhorn:route-mounted',event=>{if(event.detail?.route==='fnb')void migrateAndRefresh()});
+  if(initialized)return;initialized=true;ensureEmptyArtworkGuard();
+  document.addEventListener('sindhorn:route-mounted',event=>{if(event.detail?.route==='fnb'){watchDetail();void migrateAndRefresh()}else{detailObserver?.disconnect();detailObserver=null}});
   document.addEventListener('click',onClick);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&document.body.dataset.route==='fnb')void refresh()});
   refreshTimer=setInterval(()=>{if(document.visibilityState==='visible'&&document.body.dataset.route==='fnb')void refresh()},30000);
+  if(document.body.dataset.route==='fnb')watchDetail();
   void migrateAndRefresh();
 }
 
