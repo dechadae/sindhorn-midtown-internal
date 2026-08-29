@@ -1,0 +1,36 @@
+name: Pack 47 Editorial Smoke
+
+on:
+  push:
+    branches: [typography-line-seed-sans-th]
+    paths:
+      - '.github/tests/pack47-editorial-smoke.mjs'
+      - '.github/workflows/pack47-editorial-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  editorial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Validate live Pack 47 at 390x844
+        env:
+          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
+          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
+        run: node .github/tests/pack47-editorial-smoke.mjs
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pack47-editorial-${{ github.run_id }}
+          path: pack47-artifacts/
+          if-no-files-found: warn
+          retention-days: 7
