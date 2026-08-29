@@ -31,7 +31,7 @@ jobs:
       - name: Validate F&B architecture and generate public shares
         shell: bash
         run: |
-          set -euo pipefail
+          set -euxo pipefail
           for file in site/fnb.js site/fnb-data.js site/fnb-share-ui.js site/fnb-artwork-sync.js site/footer-route-guard.js site/sw.js scripts/generate-fnb-share.mjs; do
             node --input-type=module --check < "$file"
           done
@@ -106,14 +106,12 @@ jobs:
           if(base.path!=='/fnb'||base.title!=='Promotions'||base.cards!==18)throw new Error(`index mismatch ${JSON.stringify(base)}`);
           if(base.footer.join('|')!=='Today|F&B|Messages')throw new Error(`footer mismatch ${JSON.stringify(base.footer)}`);
           for(const outlet of ['ALL','ANJU',"Bangkok'78",'Sip & Co.','Horizon Pool Bar','The Lobby Lounge','In-room Dining'])if(!base.outletOptions.includes(outlet))throw new Error(`missing outlet ${outlet}`);
-
           const monthExpected={SEP:4,OCT:6,NOV:10,DEC:11};
           for(const [month,count] of Object.entries(monthExpected)){await page.selectOption('[data-month-select]',month);await page.waitForTimeout(80);const cards=await page.locator('.fnb-card').count();if(cards!==count)throw new Error(`${month}: expected ${count}, got ${cards}`)}
           await page.selectOption('[data-month-select]','ALL');
           const outletExpected={ANJU:8,"Bangkok'78":4,'Sip & Co.':4,'Horizon Pool Bar':2,'The Lobby Lounge':4,'In-room Dining':1};
           for(const [outlet,count] of Object.entries(outletExpected)){await page.selectOption('[data-outlet-select]',outlet);await page.waitForTimeout(80);const cards=await page.locator('.fnb-card').count();if(cards!==count)throw new Error(`${outlet}: expected ${count}, got ${cards}`)}
           await page.selectOption('[data-outlet-select]','ALL');await page.waitForFunction(()=>document.querySelectorAll('.fnb-card').length===18);
-
           const ids=await page.locator('[data-open]').evaluateAll(nodes=>nodes.map(n=>n.dataset.open));
           if(new Set(ids).size!==18)throw new Error('duplicate promotion cards');
           for(const id of ids){
@@ -124,11 +122,9 @@ jobs:
             await page.click('[data-back]');await page.waitForSelector('.fnb-index:not([hidden])');
           }
           if(errors.length)throw new Error(errors.join('\n'));
-
           const fried=await browser.newPage({viewport:{width:390,height:844}});await fried.addInitScript(()=>{window.__opened=[];window.open=url=>{window.__opened.push(url);return null}});await fried.goto(`${process.env.BASE_URL}/share/fnb/fried-chicken-waffles`,{waitUntil:'networkidle'});await fried.waitForSelector('.fnb-detail-title');
           if(await fried.locator('[data-folder-edit]').count())throw new Error('public folder editor exposed');
           await fried.click('[data-folder-open]');const opened=await fried.evaluate(()=>window.__opened);if(opened.length!==1||!opened[0].includes('sharepoint.com'))throw new Error(`fried chicken folder missing ${JSON.stringify(opened)}`);
-
           const negroni=await browser.newPage({viewport:{width:390,height:844}});await negroni.goto(`${process.env.BASE_URL}/share/fnb/negroni-week`,{waitUntil:'networkidle'});await negroni.waitForSelector('.fnb-detail-title');await negroni.click('[data-folder-open]');await negroni.waitForSelector('.fnb-sheet-layer.is-open');const hrefs=await negroni.locator('.fnb-link-list a').evaluateAll(nodes=>nodes.map(n=>n.href));if(hrefs.length!==2||hrefs.some(x=>!x.includes('sharepoint.com')))throw new Error(`Negroni public folder links bad ${JSON.stringify(hrefs)}`);
           await browser.close();
           NODE
