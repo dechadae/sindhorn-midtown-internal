@@ -52,6 +52,10 @@ async function internalPage(browser,width=390,height=844){
 }
 async function waitShell(page){
   await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false',{timeout:30000});
+  /* bootstrap refreshes the remotely editable presentation pack after the first
+     shell paint. Await that same in-flight promise before interacting with a
+     local route so a legitimate pack swap cannot replace the route mid-click. */
+  await page.evaluate(async()=>{if(window.SindhornAppPack?.refresh)await window.SindhornAppPack.refresh();return true});
   await page.waitForSelector('#app-header .masthead');
   await page.waitForSelector('#app-footer .app-tabbar');
 }
