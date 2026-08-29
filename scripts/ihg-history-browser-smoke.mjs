@@ -149,12 +149,14 @@ async function captureHistory390(browser,fnb){
     assert(historySpecificErrors.length===0,`History-specific browser console error: ${JSON.stringify(historySpecificErrors[0])}`);
 
     await page.evaluate(()=>{
-      window.__historyShellRefs={header:document.getElementById('app-header'),footer:document.getElementById('app-footer'),atmosphere:document.getElementById('environmentStage'),view:document.getElementById('route-view')};
-      window.__historyRouteMounts=0;
-      document.addEventListener('sindhorn:route-mounted',()=>window.__historyRouteMounts++);
+      window.__historyShellRefs={
+        header:document.getElementById('app-header'),
+        footer:document.getElementById('app-footer'),
+        atmosphere:document.getElementById('environmentStage'),
+        view:document.getElementById('route-view'),
+        route:document.querySelector('.ihg-history-route')
+      };
     });
-    await page.waitForTimeout(300);
-    await page.evaluate(()=>{window.__historyRouteMounts=0});
 
     const buttons=page.locator('.ihg-history-card-button');
     await buttons.nth(0).click();
@@ -165,11 +167,14 @@ async function captureHistory390(browser,fnb){
     assert(await buttons.nth(0).getAttribute('aria-expanded')==='false','First period stayed open after second opened');
     assert(await buttons.nth(1).getAttribute('aria-expanded')==='true','Second period did not expand');
     const stable=await page.evaluate(()=>({
-      same:window.__historyShellRefs.header===document.getElementById('app-header')&&window.__historyShellRefs.footer===document.getElementById('app-footer')&&window.__historyShellRefs.atmosphere===document.getElementById('environmentStage')&&window.__historyShellRefs.view===document.getElementById('route-view'),
-      mounts:window.__historyRouteMounts
+      header:window.__historyShellRefs.header===document.getElementById('app-header'),
+      footer:window.__historyShellRefs.footer===document.getElementById('app-footer'),
+      atmosphere:window.__historyShellRefs.atmosphere===document.getElementById('environmentStage'),
+      view:window.__historyShellRefs.view===document.getElementById('route-view'),
+      route:window.__historyShellRefs.route===document.querySelector('.ihg-history-route')
     }));
-    assert(stable.same,'Disclosure interaction replaced a persistent shell node');
-    assert(stable.mounts===0,`Disclosure interaction remounted route ${stable.mounts} time(s)`);
+    assert(stable.header&&stable.footer&&stable.atmosphere&&stable.view,'Disclosure interaction replaced a persistent shell node');
+    assert(stable.route,'Disclosure interaction remounted the History route');
 
     await buttons.nth(1).click();
     await buttons.nth(0).focus();
