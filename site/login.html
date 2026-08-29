@@ -10,14 +10,16 @@
  <link rel="stylesheet" href="/fonts.css?v=1">
  <link rel="stylesheet" href="/app-transitions.css">
  <link rel="stylesheet" href="/internal-auth.css?v=6">
- <link rel="stylesheet" href="/auth-brand.css?v=4">
+ <link rel="stylesheet" href="/auth-brand.css?v=5">
 </head>
 <body class="login-page">
  <main class="auth-shell">
  <section class="auth-card" aria-labelledby="loginTitle">
+ <header class="login-hero">
  <p class="eyebrow" data-i18n="eyebrow">Internal employee access</p>
  <h1 id="loginTitle" data-i18n="title">Employee sign in.</h1>
  <p id="loginSupport" class="support" data-i18n="support">Enter your Employee ID and permanent 6-digit code.</p>
+ </header>
 
  <div id="loginControls" class="stack">
  <form id="employeeForm" class="stack">
@@ -108,11 +110,10 @@
  <button id="signOutButton" type="button" data-i18n="signOut">Sign out</button>
 </div>
 </section>
-
- <div class="brand-row brand-row-bottom">
+ </section>
+ <div class="brand-row brand-row-bottom" aria-label="Sindhorn Midtown Hotel Bangkok, Vignette Collection">
  <img class="brand-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection">
  </div>
-</section>
 </main>
  <script type="module" src="/app-transitions.js"></script>
  <script type="module" src="/login.js?v=5"></script>
