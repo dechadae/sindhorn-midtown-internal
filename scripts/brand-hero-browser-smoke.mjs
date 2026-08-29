@@ -97,6 +97,32 @@ async function captureInternal(browser,route,name,spec,ready){
     throw error;
   }
 }
+async function historyState(page,cardSelector,buttonSelector){
+  return page.evaluate(({cardSelector,buttonSelector})=>{
+    const card=document.querySelector(cardSelector);
+    const button=document.querySelector(buttonSelector);
+    const header=document.getElementById('app-header');
+    const list=document.querySelector('.ihg-history-list');
+    let expected=10;
+    if(header){
+      const position=getComputedStyle(header).position;
+      if(position==='fixed'||position==='sticky')expected=Math.max(0,header.getBoundingClientRect().bottom)+10;
+    }
+    const doc=document.documentElement;
+    return{
+      expanded:button?.getAttribute('aria-expanded')||null,
+      cardTop:card?.getBoundingClientRect().top??NaN,
+      expected,
+      scrollY:window.scrollY,
+      scrollHeight:doc.scrollHeight,
+      clientHeight:doc.clientHeight,
+      maxScroll:Math.max(0,doc.scrollHeight-doc.clientHeight),
+      listPaddingBottom:list?.style.paddingBottom||'',
+      htmlOverflowAnchor:getComputedStyle(doc).overflowAnchor,
+      bodyOverflowAnchor:getComputedStyle(document.body).overflowAnchor
+    };
+  },{cardSelector,buttonSelector});
+}
 
 const specs={
   fnb:{hero:'.fnb-hero',kicker:'.fnb-hero .fnb-eyebrow',title:'.fnb-hero h1',support:'.fnb-hero .fnb-period'},
@@ -172,30 +198,37 @@ try{
   for(let index=1;index<=10;index+=1){
     const buttonSelector=`#ihg-history-period-${index}-button`;
     const cardSelector=`[data-history-period="${index-1}"]`;
+    const before=await historyState(brand.page,cardSelector,buttonSelector);
+    const needsScroll=Math.abs(before.cardTop-before.expected)>8;
+
     await brand.page.evaluate(selector=>document.querySelector(selector)?.click(),buttonSelector);
-    await brand.page.waitForFunction(selector=>document.querySelector(selector)?.getAttribute('aria-expanded')==='true',buttonSelector);
-    await brand.page.waitForFunction(selector=>{
-      const card=document.querySelector(selector),header=document.getElementById('app-header');
-      if(!card)return false;
-      let expected=10;
-      if(header){
-        const position=getComputedStyle(header).position;
-        if(position==='fixed'||position==='sticky')expected=Math.max(0,header.getBoundingClientRect().bottom)+10;
-      }
-      return Math.abs(card.getBoundingClientRect().top-expected)<=5;
-    },cardSelector,{timeout:5000,polling:50});
+    if(needsScroll){
+      await brand.page.waitForTimeout(80);
+      const duringScroll=await historyState(brand.page,cardSelector,buttonSelector);
+      assert(duringScroll.expanded==='false',`History period ${index} expanded before scroll completed: ${JSON.stringify({before,duringScroll})}`);
+    }
+
+    await brand.page.waitForFunction(selector=>document.querySelector(selector)?.getAttribute('aria-expanded')==='true',buttonSelector,{timeout:12000});
+    try{
+      await brand.page.waitForFunction(({cardSelector})=>{
+        const card=document.querySelector(cardSelector),header=document.getElementById('app-header');
+        if(!card)return false;
+        let expected=10;
+        if(header){
+          const position=getComputedStyle(header).position;
+          if(position==='fixed'||position==='sticky')expected=Math.max(0,header.getBoundingClientRect().bottom)+10;
+        }
+        return Math.abs(card.getBoundingClientRect().top-expected)<=5;
+      },{cardSelector},{timeout:7000,polling:50});
+    }catch(error){
+      const failed=await historyState(brand.page,cardSelector,buttonSelector);
+      throw new Error(`History period ${index} did not remain at top after reveal: ${JSON.stringify(failed)}`,{cause:error});
+    }
+
     assert(await brand.page.locator('.ihg-history-card.is-open').count()===1,`one-open-at-a-time failed for History period ${index}`);
-    const scrollState=await brand.page.evaluate(selector=>{
-      const card=document.querySelector(selector),header=document.getElementById('app-header');
-      const cardTop=card?.getBoundingClientRect().top??NaN;
-      let expected=10;
-      if(header){
-        const position=getComputedStyle(header).position;
-        if(position==='fixed'||position==='sticky')expected=Math.max(0,header.getBoundingClientRect().bottom)+10;
-      }
-      return{cardTop,expected,scrollY:window.scrollY};
-    },cardSelector);
-    near(scrollState.cardTop,scrollState.expected,5,`History period ${index} smooth-scroll landing`);
+    let scrollState=await historyState(brand.page,cardSelector,buttonSelector);
+    near(scrollState.cardTop,scrollState.expected,5,`History period ${index} scroll-before-expand landing`);
+
     const imageSelector=`${cardSelector} .ihg-history-period-visual img`;
     try{
       await brand.page.waitForFunction(selector=>{const img=document.querySelector(selector);return Boolean(img&&img.complete&&img.naturalWidth>0)},imageSelector,{timeout:15000});
@@ -203,8 +236,17 @@ try{
       const failed=await brand.page.locator(imageSelector).evaluate(img=>({src:img.currentSrc||img.src,complete:img.complete,width:img.naturalWidth,height:img.naturalHeight}));
       throw new Error(`History image failed for period ${index}: ${JSON.stringify(failed)}`,{cause:error});
     }
-    const imageState=await brand.page.locator(imageSelector).evaluate(img=>({src:img.currentSrc,width:img.naturalWidth,height:img.naturalHeight}));
+    const imageState=await brand.page.locator(imageSelector).evaluate(img=>{
+      const rect=img.getBoundingClientRect();
+      const style=getComputedStyle(img);
+      return{src:img.currentSrc,width:img.naturalWidth,height:img.naturalHeight,renderedWidth:rect.width,renderedHeight:rect.height,objectFit:style.objectFit};
+    });
     assert(/ihgplc\.com/.test(imageState.src)&&imageState.width>0,`official archive image failed for period ${index} ${JSON.stringify(imageState)}`);
+    assert(imageState.objectFit!=='cover',`History period ${index} image is cropped with object-fit:cover`);
+    near(imageState.renderedWidth/imageState.renderedHeight,imageState.width/imageState.height,.025,`History period ${index} natural image ratio`);
+
+    scrollState=await historyState(brand.page,cardSelector,buttonSelector);
+    near(scrollState.cardTop,scrollState.expected,5,`History period ${index} top after image load`);
     imageStates.push({period:index,...imageState,scroll:scrollState});
   }
   await brand.page.screenshot({path:path.join(OUT,'brand-expanded-390x844.png'),fullPage:false});
