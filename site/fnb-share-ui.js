@@ -47,7 +47,10 @@ function enhance(){
   const host=route();if(!host)return;
   const hero=host.querySelector('.fnb-hero');
   if(hero&&!hero.querySelector('[data-fnb-share="page"]')){
-    const actions=document.createElement('div');actions.className='fnb-hero-actions';actions.appendChild(button('page'));hero.appendChild(actions)
+    const eyebrow=hero.querySelector('.fnb-eyebrow');
+    const utility=document.createElement('div');utility.className='fnb-hero-utility';
+    if(eyebrow){hero.insertBefore(utility,eyebrow);utility.appendChild(eyebrow)}else hero.prepend(utility);
+    utility.appendChild(button('page'))
   }
   host.querySelectorAll('.fnb-card').forEach(card=>{
     const opener=card.querySelector('[data-open]'),id=opener?.dataset.open;
@@ -59,8 +62,9 @@ function enhance(){
   const item=currentTitle?DATA.find(candidate=>candidate.title===currentTitle):null;
   const head=detail?.querySelector('.fnb-detail-head');
   if(head&&item&&!head.querySelector('[data-fnb-share="promotion"]')){
-    const actions=document.createElement('div');actions.className='fnb-detail-actions';actions.appendChild(button('promotion',item.id));
-    const facts=head.querySelector('.fnb-facts');facts?.before(actions)
+    const back=head.querySelector('.fnb-back');
+    const utility=document.createElement('div');utility.className='fnb-detail-utility';
+    head.prepend(utility);if(back)utility.appendChild(back);utility.appendChild(button('promotion',item.id))
   }
 }
 function start(){
