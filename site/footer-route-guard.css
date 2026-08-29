@@ -1,4 +1,4 @@
-/* Shell-owned persistent footer invariant. Presentation packs may style content, but footer material and geometry live here only. */
+/* Shell-owned persistent footer invariant. This file must load after all route CSS. */
 :root{
   --sm-footer-surface-rgb:38,32,49;
   --sm-footer-glass-alpha:.84;
@@ -16,12 +16,18 @@
   --sm-footer-active-shadow:inset 0 0 0 1px rgba(229,236,190,.14),0 6px 18px rgba(10,8,14,.10);
 }
 
-/* ONE footer component. Both rails use this exact material and geometry. */
-#app-footer .app-tabbar,
-body[data-route="fnb"] .fnb-section-rail{
+/* The route-owned F&B rail remains only as the existing behavior/source controller. It is never painted. */
+#route-view .fnb-route > .fnb-section-rail{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+
+/* ONE shell footer component. Both visible rails are siblings in #app-footer and share one compositing context. */
+#app-footer .shell-footer-rail{
+  position:fixed!important;
   left:0!important;
   right:0!important;
   box-sizing:border-box!important;
+  z-index:140!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
   align-items:start!important;
   gap:4px!important;
   height:var(--sm-footer-height)!important;
@@ -37,18 +43,14 @@ body[data-route="fnb"] .fnb-section-rail{
 }
 
 #app-footer .app-tabbar{
-  position:fixed!important;
-  z-index:140!important;
   bottom:0!important;
-  display:grid!important;
-  grid-template-columns:repeat(4,minmax(0,1fr))!important;
   height:calc(var(--sm-footer-height) + env(safe-area-inset-bottom))!important;
   min-height:calc(var(--sm-footer-height) + env(safe-area-inset-bottom))!important;
   padding-bottom:calc(6px + env(safe-area-inset-bottom))!important;
 }
 
-/* Same component, same alpha/blur/border/shadow. Only the approved Vignette secondary palette changes. */
-body[data-route="fnb"] .fnb-section-rail{
+/* Exact clone of the main footer. Only the approved Vignette secondary palette variables change. */
+#app-footer .fnb-section-rail{
   --sm-footer-surface-rgb:229,236,190;
   --sm-footer-item-color:rgba(46,39,59,.62);
   --sm-footer-active:#2E273B;
@@ -57,14 +59,16 @@ body[data-route="fnb"] .fnb-section-rail{
   --sm-footer-glass-border:rgba(46,39,59,.12);
   z-index:139!important;
   bottom:calc(var(--sm-footer-height) + var(--sm-footer-gap) + env(safe-area-inset-bottom))!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:auto!important;
+  transform:none!important;
 }
 
-/* ONE footer-item component. No separate F&B chip geometry exists. */
-#app-footer .nav-chip,
-body[data-route="fnb"] .fnb-section-rail .fnb-chip{
+/* ONE footer-item component for Today/F&B/Messages/Settings and Overview/Brief/Copy/Artwork. */
+#app-footer .shell-footer-rail .nav-chip{
   position:relative!important;
   display:flex!important;
-  flex:1 1 0!important;
   align-items:center!important;
   justify-content:center!important;
   width:100%!important;
@@ -87,48 +91,23 @@ body[data-route="fnb"] .fnb-section-rail .fnb-chip{
   letter-spacing:0!important;
   white-space:nowrap!important;
   cursor:pointer!important;
-  transition:background .24s cubic-bezier(.22,1,.36,1),box-shadow .24s cubic-bezier(.22,1,.36,1),color .2s ease,transform .12s ease!important;
+  transition:background .24s cubic-bezier(.22,1,.36,1),box-shadow .24s cubic-bezier(.22,1,.36,1),color .2s ease,transform .12s ease,opacity .12s ease!important;
 }
-#app-footer .nav-chip>span{display:flex!important;align-items:center!important;justify-content:center!important;height:100%!important;line-height:1!important}
-#app-footer .nav-chip small{display:none!important}
-#app-footer .nav-chip:active,
-body[data-route="fnb"] .fnb-section-rail .fnb-chip:active{transform:scale(.98)!important}
-#app-footer .nav-chip[aria-current],
-body[data-route="fnb"] .fnb-section-rail .fnb-chip.is-active{
+#app-footer .shell-footer-rail .nav-chip>span{display:flex!important;align-items:center!important;justify-content:center!important;height:100%!important;line-height:1!important}
+#app-footer .shell-footer-rail .nav-chip small{display:none!important}
+#app-footer .shell-footer-rail .nav-chip:active{transform:scale(.98)!important;opacity:.84!important}
+#app-footer .shell-footer-rail .nav-chip[aria-current]{
   color:var(--sm-footer-active)!important;
   background:var(--sm-footer-active-bg)!important;
   box-shadow:var(--sm-footer-active-shadow)!important;
 }
 #app-footer .message-badge{position:absolute!important;top:6px!important;right:20%!important}
 
-/* Reserve the real fixed-footer stack so detail content scrolls fully clear of both rails. */
+/* Reserve the fixed-footer stack so content scrolls fully clear of both rails. */
 body{padding-bottom:calc(62px + env(safe-area-inset-bottom))!important}
 body[data-route="fnb"][data-fnb-detail="true"] #route-view{padding-bottom:calc((var(--sm-footer-height) * 2) + var(--sm-footer-gap) + 28px + env(safe-area-inset-bottom))!important}
 
-/* Visible F&B action controls use the shared rounded-rectangle family. */
-body[data-route="fnb"] .fnb-expand{
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  min-height:34px!important;
-  padding:0 12px!important;
-  border:1px solid rgba(250,247,245,.12)!important;
-  border-radius:10px!important;
-  background:rgba(250,247,245,.035)!important;
-}
-body[data-route="fnb"] .fnb-action{border-radius:14px!important}
-body[data-route="fnb"] .fnb-select select{border-radius:12px!important}
-body[data-route="fnb"] .fnb-link-field input{border-radius:12px!important}
-
-@media(max-width:360px){
-  :root{--sm-footer-item-font:.65rem}
-  #app-footer .nav-chip,body[data-route="fnb"] .fnb-section-rail .fnb-chip{padding-inline:5px!important}
-}
-@media(prefers-reduced-motion:reduce){
-  #app-footer .nav-chip,body[data-route="fnb"] .fnb-section-rail .fnb-chip{transition:none!important}
-}
-
-/* Shared premium control geometry + motion, loaded after the presentation pack. */
+/* Shared premium control geometry + motion. */
 :root{--sm-control-radius:12px;--sm-motion-fast:160ms;--sm-motion-base:260ms;--sm-motion-ease:cubic-bezier(.22,1,.36,1)}
 .action,.message-clear,.message-open{
   border-radius:var(--sm-control-radius)!important;
@@ -136,5 +115,15 @@ body[data-route="fnb"] .fnb-link-field input{border-radius:12px!important}
 }
 .action:active,.message-clear:active,.message-open:active{transform:scale(.98)!important;opacity:.84!important}
 .fullscreen-toggle{border-radius:10px!important;transition:background var(--sm-motion-base) ease,border-color var(--sm-motion-base) ease,transform var(--sm-motion-fast) var(--sm-motion-ease)!important}
-#app-footer .nav-chip,body[data-route="fnb"] .fnb-section-rail .fnb-chip{transition:background var(--sm-motion-base) var(--sm-motion-ease),box-shadow var(--sm-motion-base) var(--sm-motion-ease),color 210ms ease,transform var(--sm-motion-fast) var(--sm-motion-ease),opacity var(--sm-motion-fast) ease!important}
-@media(prefers-reduced-motion:reduce){.action,.message-clear,.message-open,.fullscreen-toggle,#app-footer .nav-chip,body[data-route="fnb"] .fnb-section-rail .fnb-chip{transition:none!important}}
+body[data-route="fnb"] .fnb-expand{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:34px!important;padding:0 12px!important;border:1px solid rgba(250,247,245,.12)!important;border-radius:10px!important;background:rgba(250,247,245,.035)!important}
+body[data-route="fnb"] .fnb-action{border-radius:14px!important}
+body[data-route="fnb"] .fnb-select select{border-radius:12px!important}
+body[data-route="fnb"] .fnb-link-field input{border-radius:12px!important}
+
+@media(max-width:360px){
+  :root{--sm-footer-item-font:.65rem}
+  #app-footer .shell-footer-rail .nav-chip{padding-inline:5px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .action,.message-clear,.message-open,.fullscreen-toggle,#app-footer .shell-footer-rail .nav-chip{transition:none!important}
+}
