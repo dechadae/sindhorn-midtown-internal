@@ -3,7 +3,7 @@ export const ROUTES=Object.freeze({
   fnb:Object.freeze({path:'/fnb',title:'F&B | Sindhorn Midtown Internal',kind:'local',module:'./fnb.js',mount:'mountFnbRoute'}),
   messages:Object.freeze({path:'/messages',title:'Environmental Messages | Sindhorn Midtown Hotel Bangkok',kind:'pack',resource:'messages.html'}),
   settings:Object.freeze({path:'/settings',title:'Settings | Sindhorn Midtown Internal',kind:'local',module:'./settings-route-v3.js?v=2',mount:'mountSettingsRoute'}),
-  weatherLab:Object.freeze({path:'/weather-lab',title:'TMD Weather Lab | Sindhorn Midtown Internal',kind:'local',module:'./weather-lab.js?v=1',mount:'mountWeatherLabRoute'})
+  weatherLab:Object.freeze({path:'/weather-lab',title:'TMD Weather Lab | Sindhorn Midtown Internal',kind:'local',module:'./weather-lab-v2.js?v=1',mount:'mountWeatherLabRoute'})
 });
 
 const PATH_TO_ROUTE=new Map(Object.entries(ROUTES).map(([key,value])=>[value.path,key]));
