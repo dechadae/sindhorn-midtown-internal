@@ -1,6 +1,7 @@
 export const ROUTES=Object.freeze({
   today:Object.freeze({path:'/',title:'Live Air Quality | Sindhorn Midtown Hotel Bangkok',kind:'pack',resources:Object.freeze(['today.html','guidance.html','details.html'])}),
   fnb:Object.freeze({path:'/fnb',title:'F&B | Sindhorn Midtown Internal',kind:'local',module:'./fnb.js',mount:'mountFnbRoute'}),
+  ihgHistory:Object.freeze({path:'/ihg-history',title:'IHG History | Sindhorn Midtown Internal',kind:'local',module:'./ihg-history.js',mount:'mountIhgHistoryRoute'}),
   messages:Object.freeze({path:'/messages',title:'Environmental Messages | Sindhorn Midtown Hotel Bangkok',kind:'pack',resource:'messages.html'}),
   settings:Object.freeze({path:'/settings',title:'Settings | Sindhorn Midtown Internal',kind:'local',module:'./settings-route-v3.js?v=2',mount:'mountSettingsRoute'})
 });
