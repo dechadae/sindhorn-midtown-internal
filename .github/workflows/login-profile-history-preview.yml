@@ -32,6 +32,7 @@ jobs:
           node --input-type=module --check < site/login.js
           node --input-type=module --check < site/auth-client.js
           node --input-type=module --check < site/auth-shell.js
+          node --input-type=module --check < site/bootstrap.js
           node --input-type=module --check < scripts/login-profile-history-browser-smoke.mjs
           node --input-type=module --check < scripts/history-bottom-visibility-smoke.mjs
           grep -q "fact('Position',profile.positionTitle" site/settings.js
@@ -42,7 +43,8 @@ jobs:
           grep -q 'sindhorn_admin_create_employee_v3' site/settings.js
           grep -q 'p_position_title:payload.positionTitle' site/settings.js
           grep -q '/assets/brand/sindhorn-midtown-vignette-white.png' site/login.html
-          grep -q '/auth-brand.css?v=4' site/login.html
+          grep -q '/auth-brand.css?v=5' site/login.html
+          grep -q 'class="login-hero"' site/login.html
           grep -q 'brand-row-bottom' site/login.html
           ! grep -q 'class="brand-rule"' site/login.html
           grep -Fq 'inputmode="numeric" pattern="[0-9]*" autocomplete="username"' site/login.html
@@ -50,8 +52,25 @@ jobs:
           ! grep -q 'rest/v1/sindhorn_employees?select' site/auth-client.js
           grep -q 'sindhorn:capabilities-updated' site/auth-shell.js
           grep -q 'profile?.displayName' site/auth-shell.js
-          grep -q '2026-08-30 live-shell login alignment' site/auth-brand.css
-          grep -q '2026-08-30 login bottom-brand refinement' site/auth-brand.css
+          grep -q 'login-hero{padding:22px 0 20px' site/auth-brand.css
+          grep -q 'font-weight:400;line-height:1.05' site/auth-brand.css
+          grep -q 'position:static' site/auth-brand.css
+          ! grep -q 'brand-row-bottom{margin-top:auto' site/auth-brand.css
+          grep -q 'settings-quiet-action' site/settings-refinements.css
+          grep -q 'border:1px solid rgba(250,247,245,.14)!important' site/settings-refinements.css
+          grep -q 'background:#2E273B' site/environment.css
+          grep -q 'data-shell-loading="true".*environment-canvas' site/environment.css
+          grep -q 'data-shell-loading="false".*environment-ready.*environment-canvas' site/environment.css
+          grep -q 'requestAnimationFrame(()=>requestAnimationFrame(resolve))' site/bootstrap.js
+          python3 - <<'PY'
+          from pathlib import Path
+          bootstrap=Path('site/bootstrap.js').read_text()
+          assert bootstrap.count("dataset.shellLoading='false'")==1
+          assert "await environment.initEnvironment();" in bootstrap
+          assert bootstrap.index("await environment.initEnvironment();") < bootstrap.index("dataset.shellLoading='false'")
+          index=Path('site/index.html').read_text()
+          assert '/shell.css?v=4' in index and '/environment.css?v=3' in index
+          PY
           ! grep -Eiq 'webgl|environment-stage|environmentStage|atmosphere-shader|<canvas' site/login.html site/auth-brand.css
           grep -q 'clearActiveRunway();' site/ihg-history.js
           test -f supabase/migrations/20260829190718_sindhorn_employee_position_admin_rpc_v3.sql
@@ -92,19 +111,21 @@ jobs:
           set -euo pipefail
           BASE_URL="https://preview-login-profile-fix.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in /login.html / /settings /ihg-history /auth-brand.css /auth-client.js /auth-shell.js /settings.js /ihg-history.js; do
+          for path in /login.html / /settings /ihg-history /auth-brand.css /auth-client.js /auth-shell.js /settings.js /settings-refinements.css /ihg-history.js /bootstrap.js /shell.css /environment.css; do
             echo "Smoke ${path}"
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
           curl --fail --silent --show-error --location "${BASE_URL}/login.html" -o /tmp/login.html
           grep -q 'vignette-white.png' /tmp/login.html
+          grep -q 'class="login-hero"' /tmp/login.html
           grep -q 'brand-row-bottom' /tmp/login.html
+          grep -q '/auth-brand.css?v=5' /tmp/login.html
           ! grep -q 'class="brand-rule"' /tmp/login.html
           grep -Fq 'inputmode="numeric" pattern="[0-9]*" autocomplete="username"' /tmp/login.html
           curl --fail --silent --show-error --location "${BASE_URL}/auth-brand.css" -o /tmp/auth-brand.css
-          grep -q 'live-shell login alignment' /tmp/auth-brand.css
-          grep -q 'login bottom-brand refinement' /tmp/auth-brand.css
+          grep -q 'login-hero{padding:22px 0 20px' /tmp/auth-brand.css
+          grep -q 'position:static' /tmp/auth-brand.css
           curl --fail --silent --show-error --location "${BASE_URL}/auth-client.js" -o /tmp/auth-client.js
           grep -q 'sindhorn_current_employee_profile' /tmp/auth-client.js
           ! grep -q 'rest/v1/sindhorn_employees?select' /tmp/auth-client.js
@@ -117,10 +138,20 @@ jobs:
           grep -q 'data-position-title' /tmp/settings.js
           grep -q 'sindhorn_admin_update_employee_v3' /tmp/settings.js
           grep -q 'p_position_title:payload.positionTitle' /tmp/settings.js
+          curl --fail --silent --show-error --location "${BASE_URL}/settings-refinements.css" -o /tmp/settings-refinements.css
+          grep -q 'settings-quiet-action' /tmp/settings-refinements.css
+          curl --fail --silent --show-error --location "${BASE_URL}/bootstrap.js" -o /tmp/bootstrap.js
+          grep -q 'requestAnimationFrame(()=>requestAnimationFrame(resolve))' /tmp/bootstrap.js
+          curl --fail --silent --show-error --location "${BASE_URL}/environment.css" -o /tmp/environment.css
+          grep -q 'background:#2E273B' /tmp/environment.css
+          grep -q 'data-shell-loading="false".*environment-ready.*environment-canvas' /tmp/environment.css
+          curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/index.html
+          grep -q '/shell.css?v=4' /tmp/index.html
+          grep -q '/environment.css?v=3' /tmp/index.html
           curl --fail --silent --show-error --location "${BASE_URL}/ihg-history.js" -o /tmp/history.js
           grep -q 'clearActiveRunway();' /tmp/history.js
 
-      - name: Browser login, profile and History QA
+      - name: Browser login, profile, WebGL first-paint and History QA
         shell: bash
         env:
           BASE_URL: https://preview-login-profile-fix.sindhorn-midtown-internal.pages.dev
