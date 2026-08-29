@@ -10,14 +10,6 @@ const authShim=`
 window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Preview Admin',pin_configured_at:new Date().toISOString()};
 await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='/location.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});
 await import('/bootstrap.js');
-const tools=document.querySelector('.masthead-tools');
-if(tools&&!tools.querySelector('.masthead-user')){
-  tools.querySelector('.today')?.remove();
-  const link=document.createElement('a');link.className='masthead-user';link.href='/settings';link.dataset.appRoute='settings';link.setAttribute('aria-label','Open settings for Preview Admin');
-  const name=document.createElement('span');name.className='masthead-user-name';name.textContent='Preview Admin';
-  const avatar=document.createElement('span');avatar.className='masthead-user-avatar';avatar.textContent='PA';avatar.setAttribute('aria-hidden','true');
-  link.append(name,avatar);tools.prepend(link);
-}
 `;
 const capabilityShim=`
 export async function loadSettingsAuthority(){return{
@@ -49,6 +41,15 @@ async function waitShell(page){
   await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false',{timeout:30000});
   await page.waitForSelector('#app-header .masthead');
   await page.waitForSelector('#app-footer .app-tabbar');
+  await page.evaluate(()=>{
+    const tools=document.querySelector('.masthead-tools');
+    if(!tools||tools.querySelector('.masthead-user'))return;
+    tools.querySelector('.today')?.remove();
+    const link=document.createElement('a');link.className='masthead-user';link.href='/settings';link.dataset.appRoute='settings';link.setAttribute('aria-label','Open settings for Preview Admin');
+    const name=document.createElement('span');name.className='masthead-user-name';name.textContent='Preview Admin';
+    const avatar=document.createElement('span');avatar.className='masthead-user-avatar';avatar.textContent='PA';avatar.setAttribute('aria-hidden','true');
+    link.append(name,avatar);tools.prepend(link);
+  });
 }
 async function overflow(page,label){
   const d=await page.evaluate(()=>({sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth,bw:document.body.scrollWidth}));
@@ -119,8 +120,7 @@ try{
 
   const avatar=await brand.page.evaluate(()=>({href:document.querySelector('.masthead-user')?.getAttribute('href'),route:document.querySelector('.masthead-user')?.dataset.appRoute}));
   assert(avatar.href==='/settings'&&avatar.route==='settings',`avatar no longer opens Settings/Admin ${JSON.stringify(avatar)}`);
-  const shellRefs=await brand.page.evaluate(()=>{window.__shellRefs={header:document.getElementById('app-header'),footer:document.getElementById('app-footer'),env:document.getElementById('environmentStage'),doc:document.documentElement};return true});
-  assert(shellRefs,'shell refs unavailable');
+  await brand.page.evaluate(()=>{window.__shellRefs={header:document.getElementById('app-header'),footer:document.getElementById('app-footer'),env:document.getElementById('environmentStage'),doc:document.documentElement}});
   await brand.page.click('.masthead-user');await brand.page.waitForSelector('.settings-route');
   const avatarSpa=await brand.page.evaluate(()=>window.__shellRefs.header===document.getElementById('app-header')&&window.__shellRefs.footer===document.getElementById('app-footer')&&window.__shellRefs.env===document.getElementById('environmentStage')&&window.__shellRefs.doc===document.documentElement&&location.pathname==='/settings');
   assert(avatarSpa,'avatar caused a document/shell replacement');
