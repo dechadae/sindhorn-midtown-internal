@@ -102,10 +102,10 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible),input:focus:not(:fo
   line-height:1.55;
 }
 .login-page .stack{gap:16px;margin-top:27px}
+.login-page .auth-step{display:grid;gap:14px}
 .login-page .field{gap:8px}
 .login-page .field label,
 .login-page .otp-fieldset legend{
-  margin:0 0 7px;
   color:var(--login-ink);
   font-size:12px;
   font-weight:400;
@@ -130,14 +130,39 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible),input:focus:not(:fo
   box-shadow:0 0 0 3px rgba(229,236,190,.10);
 }
 
-.login-page .otp-code{gap:8px}
+.login-page .otp-fieldset{
+  min-width:0;
+  margin:0;
+  padding:0;
+  border:0;
+}
+.login-page .otp-fieldset legend{
+  display:block;
+  width:100%;
+  margin:0 0 8px;
+  padding:0;
+}
+.login-page .otp-code{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:8px;
+  width:100%;
+  min-width:0;
+}
 .login-page .otp-digit{
+  width:100%;
+  min-width:0;
   height:58px;
+  padding:0;
   border:1px solid var(--login-line);
   border-radius:13px;
+  outline:none;
   background:var(--login-input);
   color:var(--login-ink);
+  text-align:center;
   font:400 1.48rem/1 var(--font-ui);
+  font-variant-numeric:tabular-nums;
+  caret-color:transparent;
   box-shadow:none;
 }
 .login-page .otp-digit:hover{border-color:var(--login-line-strong)}
@@ -148,6 +173,7 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible),input:focus:not(:fo
   background:rgba(250,247,245,.11);
   box-shadow:0 0 0 3px rgba(229,236,190,.10);
 }
+.login-page .otp-digit:disabled{opacity:.48}
 
 .login-page .primary{
   min-height:54px;
