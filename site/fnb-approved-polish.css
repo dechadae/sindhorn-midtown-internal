@@ -64,3 +64,10 @@ body[data-route="fnb"] .fnb-expand{width:auto!important;height:30px!important;mi
 
 @media(max-width:355px){.fnb-summary{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0 6px!important}.fnb-stat span{font-size:7.5px!important}.fnb-stat b{font-size:13.5px!important}.fnb-select-option>span{font-size:11.5px}.fnb-select-option[data-value="SEP"]>span::after,.fnb-select-option[data-value="OCT"]>span::after,.fnb-select-option[data-value="NOV"]>span::after,.fnb-select-option[data-value="DEC"]>span::after{font-size:11.5px}}
 @media(prefers-reduced-motion:reduce){.fnb-section-rail,.fnb-card,.fnb-card-button,.fnb-chip,.fnb-action,.fnb-expand,.fnb-back,.fnb-sheet-close,.fnb-text-copy,.fnb-task-list,.fnb-art-chevron,.fnb-sheet-layer,.fnb-sheet,.fnb-select-trigger,.fnb-select-menu,.fnb-select-option{transition:none!important}}
+
+
+/* Centered modal + consistent F&B action capitalization. */
+body[data-route="fnb"] .fnb-action,body[data-route="fnb"] .fnb-expand{text-transform:none!important;letter-spacing:0!important}
+.fnb-sheet-layer{z-index:220!important;inset:0!important;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))!important;align-items:center!important;justify-content:center!important;background:rgba(8,7,12,.76)!important;backdrop-filter:blur(5px) saturate(.90)!important;-webkit-backdrop-filter:blur(5px) saturate(.90)!important}
+.fnb-sheet{width:min(100%,520px)!important;max-height:min(72vh,calc(100dvh - 96px))!important;margin:0!important;padding:18px max(18px,var(--sm-gutter)) 18px!important;border:1px solid var(--fnb-glass-brd)!important;border-radius:18px!important;transform:translateY(8px) scale(.985)!important;opacity:0!important;overscroll-behavior:contain!important}
+.fnb-sheet-layer.is-open .fnb-sheet{transform:none!important;opacity:1!important}
