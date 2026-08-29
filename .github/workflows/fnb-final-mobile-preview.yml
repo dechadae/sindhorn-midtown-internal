@@ -1,0 +1,114 @@
+name: F&B Final Mobile Preview
+
+on:
+  push:
+    branches:
+      - fnb-final-mobile-refinements
+    paths:
+      - "site/fnb-approved-polish.css"
+      - "site/index.html"
+      - ".github/workflows/fnb-final-mobile-preview.yml"
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: fnb-final-mobile-preview-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate refinement source
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'grid-template-columns:repeat(3,minmax(0,1fr))!important' site/fnb-approved-polish.css
+          grep -q 'font-size:10px!important' site/fnb-approved-polish.css
+          grep -q 'inset:0 0 calc(68px + env(safe-area-inset-bottom))!important' site/fnb-approved-polish.css
+          grep -q 'fnb-select\[data-filter-field="outlet"\].*width:100%' site/fnb-approved-polish.css
+          grep -q 'content:"September"' site/fnb-approved-polish.css
+          grep -q 'content:"October"' site/fnb-approved-polish.css
+          grep -q 'content:"November"' site/fnb-approved-polish.css
+          grep -q 'content:"December"' site/fnb-approved-polish.css
+          grep -q '/fnb-approved-polish.css?v=2' site/index.html
+          ! grep -Eq 'letter-spacing:[[:space:]]*[^0;!]' site/fnb-approved-polish.css
+      - name: Deploy branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+      - name: Smoke deployed assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "$BASE_URL/" -o /tmp/index.html
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "$BASE_URL/fnb-approved-polish.css?v=2" -o /tmp/fnb-polish.css
+          grep -q '/fnb-approved-polish.css?v=2' /tmp/index.html
+          grep -q 'content:"September"' /tmp/fnb-polish.css
+          grep -q 'font-size:10px!important' /tmp/fnb-polish.css
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify mobile F&B geometry
+        env:
+          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
+          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
+        shell: bash
+        run: |
+          BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev" node --input-type=module <<'NODE'
+          import {chromium} from 'playwright';
+          const base=process.env.BASE_URL,employee=process.env.CI_SMOKE_EMPLOYEE_NUMBER,pin=process.env.CI_SMOKE_PIN;
+          const browser=await chromium.launch({headless:true});
+          const context=await browser.newContext({viewport:{width:390,height:844},screen:{width:390,height:844},serviceWorkers:'block'});
+          const page=await context.newPage();
+          await page.goto(base+'/login.html',{waitUntil:'domcontentloaded'});
+          await page.fill('#employeeNumber',employee);
+          for(let i=0;i<6;i++) await page.fill(`[data-pin-login-digit="${i}"]`,pin[i]);
+          await page.click('#pinLoginButton');
+          await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:20000,waitUntil:'commit'});
+          await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false');
+          await page.evaluate(()=>window.SindhornNavigation.transitionToRoute('fnb'));
+          await page.waitForURL(url=>new URL(url).pathname==='/fnb',{timeout:12000});
+          await page.waitForSelector('.fnb-summary');
+          const summary=await page.locator('.fnb-summary').evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length);
+          if(summary!==3)throw new Error('summary is not three columns: '+summary);
+          const trigger=page.locator('[data-filter-trigger="outlet"]');
+          await trigger.click();
+          const widths=await page.evaluate(()=>{const t=document.querySelector('[data-filter-trigger="outlet"]').getBoundingClientRect(),m=document.querySelector('[data-filter-field="outlet"] .fnb-select-menu').getBoundingClientRect();return{trigger:t.width,menu:m.width}});
+          if(Math.abs(widths.trigger-widths.menu)>2)throw new Error('outlet menu width mismatch '+JSON.stringify(widths));
+          await page.locator('[data-filter-trigger="outlet"]').click();
+          await page.locator('[data-filter-trigger="month"]').click();
+          const september=await page.locator('[data-filter-option="month"][data-value="SEP"] > span').evaluate(el=>getComputedStyle(el,'::after').content);
+          if(!september.includes('September'))throw new Error('full month label missing: '+september);
+          await page.keyboard.press('Escape');
+          await page.locator('[data-open]').first().click();
+          await page.waitForSelector('.fnb-detail:not([hidden])');
+          const expand=page.locator('.fnb-expand').first();
+          if(await expand.count()){
+            const sizes=await expand.evaluate(el=>({button:parseFloat(getComputedStyle(el).fontSize),copy:parseFloat(getComputedStyle(el.previousElementSibling).fontSize),height:el.getBoundingClientRect().height}));
+            if(!(sizes.button<sizes.copy&&sizes.button<=10.1&&sizes.height<=31))throw new Error('expand control scale wrong '+JSON.stringify(sizes));
+          }
+          const layer=page.locator('[data-sheet-layer]');
+          await layer.evaluate(el=>{el.classList.add('is-open');el.setAttribute('aria-hidden','false');const body=el.querySelector('[data-sheet-body]');body.innerHTML='<div style="height:300px">test</div><button class="fnb-action is-primary">Save</button>'});
+          const geometry=await page.evaluate(()=>{const s=document.querySelector('.fnb-sheet').getBoundingClientRect(),f=document.querySelector('#app-footer .app-tabbar').getBoundingClientRect();return{sheetBottom:s.bottom,footerTop:f.top}});
+          if(geometry.sheetBottom>geometry.footerTop+2)throw new Error('artwork sheet overlaps footer '+JSON.stringify(geometry));
+          await page.screenshot({path:'fnb-final-mobile.png',fullPage:true});
+          await context.close();await browser.close();
+          console.log('F&B final mobile geometry PASS');
+          NODE
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fnb-final-mobile-${{ github.run_id }}
+          path: fnb-final-mobile.png
+          if-no-files-found: warn
+          retention-days: 7
