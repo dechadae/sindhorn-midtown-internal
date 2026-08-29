@@ -44,7 +44,7 @@ assert.match(publicShareUi,/\.\/fnb-public-data\.js/,'public Share UI must use a
 
 for(const token of ['artworkUrl','sharepoint.com','1drv.ms','onedrive.live.com','employee_number','auth-client','login.html'])assert(!publicData.toLowerCase().includes(token.toLowerCase()),`public data leaked forbidden token ${token}`);
 
-const pages=[['fnb.html','F&B Promotions | Sindhorn Midtown'],['fnb/fried-chicken-waffles.html','Fried Chicken &amp; Waffles | Sindhorn Midtown'],['fnb/sunset-cocktails.html','Sunset Cocktails | Sindhorn Midtown']];
+const pages=[['fnb.html','F&amp;B Promotions | Sindhorn Midtown'],['fnb/fried-chicken-waffles.html','Fried Chicken &amp; Waffles | Sindhorn Midtown'],['fnb/sunset-cocktails.html','Sunset Cocktails | Sindhorn Midtown']];
 for(const [path,title] of pages){
   const html=await readFile(join(temp,path),'utf8');
   assert.match(html,new RegExp(`<title>${title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}</title>`),`${path}: title missing`);
