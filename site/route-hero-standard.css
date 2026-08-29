@@ -1,4 +1,5 @@
-/* Shared routed-page hero standard. F&B is the visual authority. */
+/* Shared routed-page hero standard. F&B is the visual authority.
+   The public F&B renderer reuses the same F&B hero CSS and is parity-tested against these tokens. */
 :root{
   --route-hero-pad-top:22px;
   --route-hero-pad-bottom:20px;
