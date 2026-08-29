@@ -7,7 +7,6 @@ on:
       - fix-airbkk-client-proxy
       - main
       - design-unification-pass
-      - fix-browser-gates-sw-refresh-race
     paths:
       - "site/**"
       - "sky-worker/**"
