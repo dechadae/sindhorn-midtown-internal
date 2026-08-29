@@ -19,16 +19,21 @@ await page.waitForSelector('[data-fnb-nav="fnb"]',{timeout:15000});
 await page.click('[data-fnb-nav="fnb"]');
 await page.waitForSelector('#route-view .fnb-route',{timeout:20000});
 await page.waitForFunction(()=>document.querySelectorAll('.fnb-card').length===18);
+await page.waitForFunction(()=>[...document.querySelectorAll('[data-filter-option="outlet"]')].some(x=>x.dataset.value==='In-room Dining'));
+await page.waitForSelector('[data-fnb-data-updated]');
 
 const index=await page.evaluate(()=>({
   path:location.pathname,
   title:document.querySelector('.fnb-hero h1')?.textContent?.trim(),
   cards:document.querySelectorAll('.fnb-card').length,
   footer:[...document.querySelectorAll('#app-footer .nav-chip')].map(x=>x.textContent.trim()),
-  outletOptions:[...document.querySelectorAll('[data-filter-option="outlet"]')].map(x=>x.dataset.value)
+  outletOptions:[...document.querySelectorAll('[data-filter-option="outlet"]')].map(x=>x.dataset.value),
+  updated:document.querySelector('[data-fnb-data-updated]')?.textContent?.trim(),
+  updatedUnderPeriod:document.querySelector('.fnb-period')?.nextElementSibling?.matches('[data-fnb-data-updated]')||false
 }));
 if(index.path!=='/fnb'||index.title!=='Promotions'||index.cards!==18)throw new Error(`index mismatch ${JSON.stringify(index)}`);
 if(index.footer.join('|')!=='Today|F&B|Messages')throw new Error(`footer mismatch ${JSON.stringify(index.footer)}`);
+if(!index.updatedUnderPeriod||!/^Updated \d{1,2} [A-Z][a-z]+ \d{4} · \d{1,2}:\d{2} (am|pm)$/.test(index.updated||''))throw new Error(`update timestamp mismatch ${JSON.stringify(index.updated)}`);
 for(const outlet of ['ALL','ANJU',"Bangkok'78",'Sip & Co.','Horizon Pool Bar','The Lobby Lounge','In-room Dining'])if(!index.outletOptions.includes(outlet))throw new Error(`missing outlet ${outlet}`);
 
 for(const [month,count] of Object.entries({SEP:4,OCT:6,NOV:10,DEC:11})){
@@ -81,4 +86,4 @@ const hrefs=await negroni.locator('.fnb-link-list a').evaluateAll(nodes=>nodes.m
 if(hrefs.length!==2||hrefs.some(x=>!x.includes('sharepoint.com')))throw new Error(`Negroni public folder links bad ${JSON.stringify(hrefs)}`);
 
 await browser.close();
-console.log(JSON.stringify({ok:true,promotions:18,viewport:'390x844'}));
+console.log(JSON.stringify({ok:true,promotions:18,viewport:'390x844',updated:index.updated}));
