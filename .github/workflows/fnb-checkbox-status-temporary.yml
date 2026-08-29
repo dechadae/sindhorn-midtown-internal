@@ -1,0 +1,141 @@
+name: Temporary F&B Checkbox Status Gate
+
+on:
+  push:
+    branches: [fnb-public-readonly-checkboxes]
+
+permissions:
+  contents: write
+  deployments: write
+
+jobs:
+  apply-test-preview:
+    if: github.event.head_commit.message != 'Fix F&B checkbox status and interaction'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Apply checkbox UX correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          fnb=Path('site/fnb.js')
+          text=fnb.read_text()
+          old="detail.querySelectorAll('[data-task]').forEach(button=>{if(!editor)return;button.addEventListener('click',()=>{state.checks[button.dataset.task]=!state.checks[button.dataset.task];save();const id=current?.id;renderIndex();if(id)openDetail(id,{scrollTop:false})})});"
+          new="detail.querySelectorAll('[data-task]').forEach(button=>{if(!editor)return;button.addEventListener('click',()=>{const row=button.closest('.fnb-task'),taskId=button.dataset.task,next=!row?.classList.contains('is-done');state.checks[taskId]=next;save();if(row)row.classList.toggle('is-done',next);button.setAttribute('aria-label',next?'Mark pending':'Mark complete');const card=button.closest('.fnb-art-card');if(card){const rows=[...card.querySelectorAll('.fnb-task')],done=rows.filter(item=>item.classList.contains('is-done')).length,total=rows.length,complete=total>0&&done===total;card.classList.toggle('is-complete',complete);const tally=card.querySelector('.fnb-art-tally');if(tally)tally.innerHTML=`${done}/${total}<i>${complete?'✓':''}</i>`}const rows=[...detail.querySelectorAll('.fnb-task')],done=rows.filter(item=>item.classList.contains('is-done')).length,count=detail.querySelector('.fnb-section-count');if(count)count.textContent=`${done} / ${rows.length} complete`})});"
+          if old not in text:
+              raise SystemExit('expected checkbox rerender handler not found')
+          fnb.write_text(text.replace(old,new,1))
+
+          gen=Path('scripts/generate-fnb-share.mjs')
+          text=gen.read_text()
+          text=text.replace('/share/fnb-public.css?v=8','/share/fnb-public.css?v=9',1)
+          old_css='body[data-fnb-public="true"] .fnb-task-toggle{display:none!important}\nbody[data-fnb-public="true"] .fnb-task{grid-template-columns:minmax(0,1fr)!important;padding-left:0!important}'
+          new_css='body[data-fnb-public="true"] .fnb-task-toggle{display:grid!important;color:rgba(250,247,245,.42)!important;opacity:1!important;cursor:default!important;pointer-events:none!important}\nbody[data-fnb-public="true"] .fnb-task-toggle::before{content:"☐"!important}\nbody[data-fnb-public="true"] .fnb-task.is-done .fnb-task-toggle::before{content:"☑"!important}\nbody[data-fnb-public="true"] .fnb-task.is-done .fnb-task-toggle{color:rgba(250,247,245,.52)!important}'
+          if old_css not in text:
+              raise SystemExit('expected public hidden-checkbox CSS not found')
+          gen.write_text(text.replace(old_css,new_css,1))
+
+          test=Path('.github/tests/fnb-sharing-regression.test.mjs')
+          text=test.read_text()
+          anchor="assert.match(sync,/\\.fnb-art-card:not\\(:has\\(\\.fnb-task\\)\\)\\{display:none!important\\}/,'zero-artwork groups need a render-safe hide guard');"
+          addition=anchor+"\nassert.match(fnb,/taskId=button\\.dataset\\.task,next=!row\\?\\.classList\\.contains\\('is-done'\\)/,'checkbox toggles must derive the next value from the rendered shared state');\nassert.doesNotMatch(fnb,/state\\.checks\\[button\\.dataset\\.task\\]=!state\\.checks\\[button\\.dataset\\.task\\];save\\(\\);const id=current\\?\\.id;renderIndex\\(\\);if\\(id\\)openDetail/,'checkbox toggles must not rebuild the detail DOM');"
+          if anchor not in text:
+              raise SystemExit('regression insertion anchor missing')
+          text=text.replace(anchor,addition,1)
+          old_assert="assert.match(publicCss,/\\.fnb-task-toggle\\{display:none!important\\}/,'public artwork check controls must be hidden');"
+          new_assert="assert.doesNotMatch(publicCss,/\\.fnb-task-toggle\\{display:none!important\\}/,'public artwork status checkboxes must remain visible');\nassert.match(publicCss,/\\.fnb-task-toggle\\{display:grid!important;[^}]*pointer-events:none!important\\}/,'public artwork status checkboxes must be visible but non-interactive');\nassert.match(publicCss,/\\.fnb-task-toggle::before\\{content:\"☐\"!important\\}/,'public pending artwork must use a gray empty checkbox');\nassert.match(publicCss,/\\.fnb-task\\.is-done \\.fnb-task-toggle::before\\{content:\"☑\"!important\\}/,'public completed artwork must use a gray checked checkbox');\nassert.match(publicRuntime,/\\$\\{editor\\?'':'disabled'\\}/,'public renderer must keep artwork checkboxes disabled');"
+          if old_assert not in text:
+              raise SystemExit('old public checkbox regression assertion missing')
+          text=text.replace(old_assert,new_assert,1)
+          text=text.replace('/\\/share\\/fnb-public\\.css\\?v=8/','/\\/share\\/fnb-public\\.css\\?v=9/',1)
+          test.write_text(text)
+          PY
+
+      - name: Validate source and regression suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < site/fnb.js
+          node --input-type=module --check < scripts/generate-fnb-share.mjs
+          node .github/tests/fnb-sharing-regression.test.mjs
+
+      - name: Commit tested correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name dechadae
+          git config user.email decha.dae@gmail.com
+          git add site/fnb.js scripts/generate-fnb-share.mjs .github/tests/fnb-sharing-regression.test.mjs
+          git commit -m 'Fix F&B checkbox status and interaction'
+          git push origin HEAD:fnb-public-readonly-checkboxes
+
+      - name: Generate branch share output
+        shell: bash
+        run: |
+          set -euo pipefail
+          PUBLIC_ORIGIN=https://fnb-public-readonly-checkbox.sindhorn-midtown-internal.pages.dev node scripts/generate-fnb-share.mjs
+
+      - name: Deploy branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=fnb-public-readonly-checkboxes
+
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+
+      - name: Browser verify public status and stable editor toggle
+        shell: bash
+        run: |
+          node --input-type=module - <<'NODE'
+          import {chromium} from 'playwright';
+          const PREVIEW='https://fnb-public-readonly-checkbox.sindhorn-midtown-internal.pages.dev';
+          const browser=await chromium.launch({headless:true});
+          const page=await browser.newPage({viewport:{width:390,height:844}});
+          await page.goto(PREVIEW+'/share/fnb',{waitUntil:'networkidle',timeout:45000});
+          await page.waitForSelector('.fnb-card');
+          await page.waitForFunction(()=>[...document.querySelectorAll('.fnb-card .fnb-progress-meta b')].some(el=>{const m=el.textContent.match(/(\d+)\s*\/\s*(\d+)/);return m&&Number(m[1])>0}),null,{timeout:20000});
+          const cards=page.locator('.fnb-card');
+          let opened=false;
+          for(let i=0;i<await cards.count();i++){
+            const progress=await cards.nth(i).locator('.fnb-progress-meta b').textContent();
+            const m=progress?.match(/(\d+)\s*\/\s*(\d+)/);
+            if(m&&Number(m[1])>0){await cards.nth(i).locator('[data-open]').click();opened=true;break}
+          }
+          if(!opened)throw new Error('No promotion with completed artwork found');
+          await page.waitForSelector('.fnb-detail:not([hidden]) .fnb-task-toggle');
+          await page.waitForFunction(()=>document.querySelector('.fnb-detail:not([hidden]) .fnb-task.is-done .fnb-task-toggle'),null,{timeout:20000});
+          const publicState=await page.evaluate(()=>{
+            const detail=document.querySelector('.fnb-detail:not([hidden])');
+            const toggles=[...detail.querySelectorAll('.fnb-task-toggle')];
+            const checked=detail.querySelector('.fnb-task.is-done .fnb-task-toggle');
+            const style=getComputedStyle(checked),before=getComputedStyle(checked,'::before').content;
+            return{count:toggles.length,allDisabled:toggles.every(el=>el.disabled),display:style.display,pointerEvents:style.pointerEvents,color:style.color,before,user:!!document.querySelector('.masthead-user'),footer:!!document.querySelector('#app-footer')};
+          });
+          if(!publicState.count||!publicState.allDisabled||publicState.display==='none'||publicState.pointerEvents!=='none'||!publicState.before.includes('☑')||publicState.user||publicState.footer)throw new Error('Public checkbox boundary failed '+JSON.stringify(publicState));
+
+          const interaction=await page.evaluate(async()=>{
+            const host=document.createElement('div');host.style.cssText='position:fixed;left:-10000px;top:0;width:390px';document.body.appendChild(host);
+            const {mountFnbRoute}=await import('/fnb.js?interaction-test='+Date.now());
+            const dispose=await mountFnbRoute(host,{profile:{employee_number:'10639'}});
+            const opener=host.querySelector('[data-open]');if(!opener)throw new Error('isolated editor promotion missing');
+            opener.click();await new Promise(resolve=>setTimeout(resolve,650));
+            const detail=host.querySelector('[data-detail]:not([hidden])'),button=detail?.querySelector('[data-task]');if(!detail||!button)throw new Error('isolated editor artwork task missing');
+            const id=button.dataset.task,row=button.closest('.fnb-task'),detailRef=detail,buttonRef=button,before=row.classList.contains('is-done');
+            button.click();
+            const immediate={sameDetail:detailRef===host.querySelector('[data-detail]'),sameButton:buttonRef===host.querySelector(`[data-task="${CSS.escape(id)}"]`),connected:buttonRef.isConnected,changed:row.classList.contains('is-done')!==before};
+            await new Promise(requestAnimationFrame);
+            const frame={sameDetail:detailRef===host.querySelector('[data-detail]'),sameButton:buttonRef===host.querySelector(`[data-task="${CSS.escape(id)}"]`),connected:buttonRef.isConnected};
+            dispose?.();host.remove();return{immediate,frame};
+          });
+          if(!interaction.immediate.sameDetail||!interaction.immediate.sameButton||!interaction.immediate.connected||!interaction.immediate.changed||!interaction.frame.sameDetail||!interaction.frame.sameButton||!interaction.frame.connected)throw new Error('Checkbox click rebuilt/flashed the detail DOM '+JSON.stringify(interaction));
+          console.log(JSON.stringify({publicState,interaction},null,2));
+          await browser.close();
+          NODE
