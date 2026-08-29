@@ -21,24 +21,40 @@ assert.match(css,/inset:0!important/,'modal scrim must cover the viewport');
 assert.match(css,/place-items:center!important/,'modal must be centered');
 assert.match(css,/height:100dvh!important/,'modal scrim must use full usable viewport');
 assert.equal(manifest.id,'/');assert.equal(manifest.start_url,'/');assert.equal(manifest.scope,'/');assert.equal(manifest.display,'standalone');
+
 const temp=await mkdtemp(join(tmpdir(),'fnb-share-'));
 const run=spawnSync(process.execPath,['scripts/generate-fnb-share.mjs',temp],{encoding:'utf8',env:{...process.env,PUBLIC_ORIGIN:'https://preview.example.test'}});
 assert.equal(run.status,0,run.stderr||run.stdout);
-const files=['index.html','fried-chicken-waffles/index.html','sunset-cocktails/index.html'];
-const forbidden=['og:image','twitter:image','artworkUrl','sharepoint.com','1drv.ms','onedrive.live.com','employee_number','sindhorn-midtown:fnb-local','Add / change artwork link','auth-client','login.html','id="app-footer"','data-task=','data-folder-open','data-folder-edit'];
-for(const path of files){
+
+const publicRuntime=await readFile(join(temp,'fnb-runtime.js'),'utf8');
+const publicData=await readFile(join(temp,'fnb-public-data.js'),'utf8');
+const publicShareUi=await readFile(join(temp,'fnb-share-ui-public.js'),'utf8');
+const publicCss=await readFile(join(temp,'fnb-public.css'),'utf8');
+assert.match(publicRuntime,/const TEMPLATE=`/,'public share must reuse authenticated F&B route runtime');
+assert.match(publicRuntime,/fnb-card-button/,'authenticated card renderer must be preserved');
+assert.match(publicRuntime,/fnb-detail-title/,'authenticated detail renderer must be preserved');
+assert.match(publicRuntime,/fnb-section-rail/,'authenticated detail section rail must be preserved');
+assert.match(publicRuntime,/import \{FNB_PROMOTIONS as DATA\} from '.\/fnb-public-data\.js'/,'public runtime must use allowlisted data');
+assert.doesNotMatch(publicRuntime,/sindhorn-midtown:fnb-local/,'public runtime must not read private device state');
+assert.doesNotMatch(publicRuntime,/localStorage\.getItem/,'public runtime must not hydrate device-only F&B state');
+assert.match(publicRuntime,/const editor=false/,'public runtime must never grant edit capability');
+assert.match(publicCss,/\.fnb-task-toggle\{display:none!important\}/,'public artwork check controls must be hidden');
+assert.match(publicCss,/\[data-folder-edit\]/,'public artwork editor UI must be hidden');
+assert.match(publicShareUi,/\.\/fnb-public-data\.js/,'public Share UI must use allowlisted data');
+
+for(const token of ['artworkUrl','sharepoint.com','1drv.ms','onedrive.live.com','employee_number','auth-client','login.html'])assert(!publicData.toLowerCase().includes(token.toLowerCase()),`public data leaked forbidden token ${token}`);
+
+const pages=[['fnb.html','F&B Promotions | Sindhorn Midtown'],['fnb/fried-chicken-waffles.html','Fried Chicken &amp; Waffles | Sindhorn Midtown'],['fnb/sunset-cocktails.html','Sunset Cocktails | Sindhorn Midtown']];
+for(const [path,title] of pages){
   const html=await readFile(join(temp,path),'utf8');
-  assert.match(html,/<title>[^<]+<\/title>/,`${path}: title missing`);
+  assert.match(html,new RegExp(`<title>${title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}</title>`),`${path}: title missing`);
   assert.match(html,/<meta property="og:title"/,`${path}: og:title missing`);
   assert.match(html,/<meta property="og:url"/,`${path}: og:url missing`);
   assert.match(html,/https:\/\/preview\.example\.test\/share\/fnb/,`${path}: canonical preview origin missing`);
-  assert.match(html,/class="fnb-route public-fnb-route"/,`${path}: public page must reuse authenticated F&B presentation classes`);
-  for(const token of forbidden)assert(!html.toLowerCase().includes(token.toLowerCase()),`${path}: forbidden public token ${token}`)
+  assert.match(html,/id="environmentStage"/,`${path}: must reuse production atmosphere layer`);
+  assert.match(html,/sindhorn-midtown-vignette-white\.png/,`${path}: must use production hotel lockup`);
+  assert.match(html,/fnb-public-shell\.js/,`${path}: must mount duplicated authenticated runtime`);
+  for(const token of ['og:image','twitter:image','sharepoint.com','1drv.ms','onedrive.live.com','employee_number','Add / change artwork link','auth-client','login.html','id="app-footer"'])assert(!html.toLowerCase().includes(token.toLowerCase()),`${path}: forbidden public token ${token}`)
 }
-const index=await readFile(join(temp,'index.html'),'utf8');
-assert.match(index,/class="fnb-hero"/);assert.match(index,/class="fnb-card/);assert.match(index,/data-public-filter="outlet"/);assert.match(index,/data-public-filter="month"/);
-const fried=await readFile(join(temp,'fried-chicken-waffles/index.html'),'utf8');
-assert.match(fried,/<title>Fried Chicken &amp; Waffles \| Sindhorn Midtown<\/title>/);
-assert.match(fried,/Sip &amp; Co\./);assert.match(fried,/Promotion brief/);assert.match(fried,/id="artwork"/);assert.match(fried,/Read only/);assert.match(fried,/public-fnb-task-dot/);
 await rm(temp,{recursive:true,force:true});
 console.log('F&B share/refinement regression passed');
