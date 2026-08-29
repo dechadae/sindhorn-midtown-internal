@@ -1,24 +1,16 @@
-name: F&B Live Route Preview
+name: F&B Supabase Data Preview
 
 on:
   push:
     branches:
-      - fnb-live-integration
-      - fnb-cache-hotfix
-      - fix-fnb-footer-route
-      - fix-fnb-chip-anchor
-      - fix-fnb-direct-footer-v4
+      - fnb-supabase-data-authority
     paths:
-      - "site/index.html"
-      - "site/app-transitions.js"
-      - "site/pwa-version-guard.js"
-      - "site/footer-route-guard.js"
-      - "site/footer-route-guard.css"
-      - "site/fnb.js"
-      - "site/fnb-data.js"
-      - "site/fnb.css"
-      - "site/sw.js"
+      - "site/**"
+      - "scripts/generate-fnb-share.mjs"
+      - ".github/tests/fnb-sharing-regression.test.mjs"
       - ".github/workflows/fnb-live-preview.yml"
+      - "docs/FNB-SUPABASE-DATA-AUTHORITY-20260829.md"
+      - "supabase/migrations/20260829065500_fnb_supabase_content_authority.sql"
   workflow_dispatch:
 
 permissions:
@@ -26,94 +18,76 @@ permissions:
   deployments: write
 
 concurrency:
-  group: fnb-live-route-preview-${{ github.ref_name }}
+  group: fnb-supabase-data-preview-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
-  deploy-preview:
+  validate-deploy-smoke:
     runs-on: ubuntu-latest
     steps:
       - name: Check out branch
         uses: actions/checkout@v6
 
-      - name: Validate in-shell F&B module
+      - name: Validate F&B architecture and generate public shares
         shell: bash
         run: |
           set -euo pipefail
-          node --check site/app-transitions.js
-          node --check site/pwa-version-guard.js
-          node --check site/footer-route-guard.js
-          node --check site/fnb.js
-          node --check site/fnb-data.js
-          node --check site/sw.js
-          node --input-type=module - <<'NODE'
-          import {FNB_PROMOTIONS} from './site/fnb-data.js';
-          if(FNB_PROMOTIONS.length!==8) throw new Error(`expected 8 promotions, got ${FNB_PROMOTIONS.length}`);
-          const artworks=FNB_PROMOTIONS.reduce((sum,c)=>sum+c.activations.reduce((s,a)=>s+a.artworks.length,0),0);
-          if(artworks!==29) throw new Error(`expected 29 artworks, got ${artworks}`);
-          const outlets=new Set(FNB_PROMOTIONS.flatMap(c=>c.activations.map(a=>a.outlet)));
-          if(outlets.size!==5) throw new Error(`expected 5 outlets, got ${outlets.size}`);
-          NODE
-          grep -q -- "--fnb-chip-h:44px" site/fnb.css
-          grep -q "grid-template-columns:repeat(3,minmax(0,1fr))" site/fnb.css
-          grep -q "background:transparent" site/fnb.css
-          grep -q "mountFnbRoute" site/fnb.js
-          ! grep -q "Intentionally empty shell route" site/fnb.js
-          grep -q "employee_number||''.*10639" site/fnb.js
-          grep -q '/pwa-version-guard.js?v=1' site/index.html
-          grep -q '/footer-route-guard.js?v=5' site/index.html
-          grep -q '/footer-route-guard.css?v=2' site/index.html
-          grep -q "sindhorn-footer-v5-fnb-direct" site/footer-route-guard.js
-          grep -q "data.fnbNav\|dataset.fnbNav" site/footer-route-guard.js
-          grep -q "FNB_MODULE_URL='/fnb.js?v=5'" site/footer-route-guard.js
-          grep -q "module.mountFnbRoute" site/footer-route-guard.js
-          grep -q "grid-template-columns:repeat(3,minmax(0,1fr))!important" site/footer-route-guard.css
-          grep -q "height:44px!important" site/footer-route-guard.css
-          grep -q "pwa-v28-footer-fnb-route-repair" site/sw.js
-          grep -q "'/footer-route-guard.js'" site/sw.js
+          for file in site/fnb.js site/fnb-data.js site/fnb-share-ui.js site/fnb-artwork-sync.js site/footer-route-guard.js site/sw.js scripts/generate-fnb-share.mjs; do
+            node --input-type=module --check < "$file"
+          done
+          grep -q 'Canonical business content lives in Supabase' site/fnb-data.js
+          grep -q 'sindhorn_fnb_read_model' site/fnb-data.js
+          grep -q 'sindhorn-midtown:fnb-dataset:v2' site/fnb-data.js
+          grep -q 'In-room Dining' site/fnb-data.js
           grep -q "'/fnb-data.js'" site/sw.js
-          grep -q "'/fnb.css'" site/sw.js
-          ! grep -q "<header class=\"appbar\"" site/fnb.js
+          grep -q -- '--fnb-chip-h:44px' site/fnb.css
+          grep -q 'background:transparent' site/fnb.css
+          ! grep -q '<header class="appbar"' site/fnb.js
+          PUBLIC_ORIGIN="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev" node scripts/generate-fnb-share.mjs | tee /tmp/fnb-share-report.json
+          node - <<'NODE'
+          const fs=require('fs');const r=JSON.parse(fs.readFileSync('/tmp/fnb-share-report.json','utf8').trim().split('\n').at(-1));
+          if(r.promotions!==18)throw new Error(`expected 18 promotions, got ${r.promotions}`);
+          if(r.activations!==21)throw new Error(`expected 21 activations, got ${r.activations}`);
+          if(r.artworks!==61)throw new Error(`expected 61 artworks, got ${r.artworks}`);
+          if(r.artworkLinks!==4)throw new Error(`expected 4 artwork links, got ${r.artworkLinks}`);
+          NODE
+          node .github/tests/fnb-sharing-regression.test.mjs
 
-      - name: Create browser-only F&B click harness
+      - name: Create single-shell F&B browser harness
         shell: bash
         run: |
           cat > site/__fnb-footer-smoke.html <<'HTML'
           <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/footer-route-guard.css?v=2"></head><body><main id="route-view"><p id="before">Before F&amp;B</p></main><footer id="app-footer"></footer><script>window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Smoke Test'};</script><script type="module" src="/footer-route-guard.js?v=5"></script></body></html>
           HTML
 
-      - name: Deploy branch preview
+      - name: Deploy Cloudflare branch preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
 
-      - name: Smoke test shell route and assets
+      - name: Raw route and public-boundary smoke
         shell: bash
         run: |
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb" -o /tmp/fnb-shell.html
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb.js?v=5" -o /tmp/fnb.js
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb-data.js" -o /tmp/fnb-data.js
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb.css" -o /tmp/fnb.css
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/footer-route-guard.js?v=5" -o /tmp/footer-route-guard.js
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/footer-route-guard.css" -o /tmp/footer-route-guard.css
-          curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}/__fnb-footer-smoke.html" -o /tmp/fnb-footer-smoke.html
-          grep -q 'id="environmentStage"' /tmp/fnb-shell.html
-          grep -q 'id="route-view"' /tmp/fnb-shell.html
-          grep -q '/footer-route-guard.js?v=5' /tmp/fnb-shell.html
-          grep -q 'mountFnbRoute' /tmp/fnb.js
-          grep -q 'FNB_PROMOTIONS' /tmp/fnb-data.js
-          grep -q -- '--fnb-chip-h:44px' /tmp/fnb.css
-          grep -q 'background:transparent' /tmp/fnb.css
-          grep -q 'sindhorn-footer-v5-fnb-direct' /tmp/footer-route-guard.js
-          grep -q "FNB_MODULE_URL='/fnb.js?v=5'" /tmp/footer-route-guard.js
-          grep -q 'height:44px!important' /tmp/footer-route-guard.css
-          grep -q 'footer-route-guard.js?v=5' /tmp/fnb-footer-smoke.html
+          for path in /fnb /fnb.js /fnb-data.js /fnb.css /footer-route-guard.js /share/fnb /share/fnb/fried-chicken-waffles /share/fnb/negroni-week /share/fnb-public-data.js /__fnb-footer-smoke.html; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
+            test -s /tmp/response
+          done
+          curl --fail --silent --show-error "${BASE_URL}/fnb-data.js" -o /tmp/fnb-data.js
+          grep -q 'Canonical business content lives in Supabase' /tmp/fnb-data.js
+          grep -q 'sindhorn_fnb_read_model' /tmp/fnb-data.js
+          curl --fail --silent --show-error "${BASE_URL}/share/fnb-public-data.js" -o /tmp/public-data.js
+          grep -q 'sindhorn_fnb_public_read_model' /tmp/public-data.js
+          grep -qi 'sharepoint.com' /tmp/public-data.js
+          ! grep -qiE 'employee_number|service_role|auth-client|login.html' /tmp/public-data.js
+          curl --fail --silent --show-error "${BASE_URL}/share/fnb/fried-chicken-waffles" -o /tmp/public-promo.html
+          grep -q 'property="og:title"' /tmp/public-promo.html
+          ! grep -qi 'id="app-footer"' /tmp/public-promo.html
 
-      - name: Browser-click F&B footer control
+      - name: Mobile F&B index, filters, details and public artwork smoke
         shell: bash
         env:
           BASE_URL: https://${{ github.ref_name }}.sindhorn-midtown-internal.pages.dev
@@ -125,20 +99,36 @@ jobs:
           import {chromium} from 'playwright';
           const browser=await chromium.launch({headless:true});
           const page=await browser.newPage({viewport:{width:390,height:844}});
-          const errors=[];
-          page.on('pageerror',e=>errors.push(`pageerror: ${e.message}`));
-          page.on('console',m=>{if(m.type()==='error')errors.push(`console: ${m.text()}`)});
+          const errors=[];page.on('pageerror',e=>errors.push(`pageerror: ${e.message}`));page.on('console',m=>{if(m.type()==='error')errors.push(`console: ${m.text()}`)});
           await page.goto(`${process.env.BASE_URL}/__fnb-footer-smoke.html`,{waitUntil:'domcontentloaded',timeout:45000});
-          await page.waitForSelector('[data-fnb-nav="fnb"]',{timeout:10000});
-          await page.click('[data-fnb-nav="fnb"]');
-          await page.waitForSelector('#route-view .fnb-route',{timeout:15000});
-          const state=await page.evaluate(()=>({path:location.pathname,title:document.querySelector('.fnb-hero h1')?.textContent?.trim(),cards:document.querySelectorAll('.fnb-card').length,footer:Array.from(document.querySelectorAll('#app-footer .nav-chip')).map(x=>x.textContent.trim())}));
-          console.log(JSON.stringify(state));
-          console.log('browser-errors',JSON.stringify(errors));
-          await browser.close();
+          await page.waitForSelector('[data-fnb-nav="fnb"]',{timeout:15000});await page.click('[data-fnb-nav="fnb"]');await page.waitForSelector('#route-view .fnb-route',{timeout:20000});await page.waitForFunction(()=>document.querySelectorAll('.fnb-card').length===18);
+          const base=await page.evaluate(()=>({path:location.pathname,title:document.querySelector('.fnb-hero h1')?.textContent?.trim(),cards:document.querySelectorAll('.fnb-card').length,footer:[...document.querySelectorAll('#app-footer .nav-chip')].map(x=>x.textContent.trim()),outletOptions:[...document.querySelectorAll('[data-filter-option="outlet"]')].map(x=>x.dataset.value)}));
+          if(base.path!=='/fnb'||base.title!=='Promotions'||base.cards!==18)throw new Error(`index mismatch ${JSON.stringify(base)}`);
+          if(base.footer.join('|')!=='Today|F&B|Messages')throw new Error(`footer mismatch ${JSON.stringify(base.footer)}`);
+          for(const outlet of ['ALL','ANJU',"Bangkok'78",'Sip & Co.','Horizon Pool Bar','The Lobby Lounge','In-room Dining'])if(!base.outletOptions.includes(outlet))throw new Error(`missing outlet ${outlet}`);
+
+          const monthExpected={SEP:4,OCT:6,NOV:10,DEC:11};
+          for(const [month,count] of Object.entries(monthExpected)){await page.selectOption('[data-month-select]',month);await page.waitForTimeout(80);const cards=await page.locator('.fnb-card').count();if(cards!==count)throw new Error(`${month}: expected ${count}, got ${cards}`)}
+          await page.selectOption('[data-month-select]','ALL');
+          const outletExpected={ANJU:8,"Bangkok'78":4,'Sip & Co.':4,'Horizon Pool Bar':2,'The Lobby Lounge':4,'In-room Dining':1};
+          for(const [outlet,count] of Object.entries(outletExpected)){await page.selectOption('[data-outlet-select]',outlet);await page.waitForTimeout(80);const cards=await page.locator('.fnb-card').count();if(cards!==count)throw new Error(`${outlet}: expected ${count}, got ${cards}`)}
+          await page.selectOption('[data-outlet-select]','ALL');await page.waitForFunction(()=>document.querySelectorAll('.fnb-card').length===18);
+
+          const ids=await page.locator('[data-open]').evaluateAll(nodes=>nodes.map(n=>n.dataset.open));
+          if(new Set(ids).size!==18)throw new Error('duplicate promotion cards');
+          for(const id of ids){
+            await page.click(`[data-open="${id}"]`);await page.waitForSelector('.fnb-detail:not([hidden])');
+            const detail=await page.evaluate(()=>({title:document.querySelector('.fnb-detail-title')?.textContent?.trim(),sections:['overview','brief','copy','artwork'].map(id=>!!document.getElementById(id)),undefinedText:document.querySelector('.fnb-detail')?.textContent?.includes('undefined'),replacement:document.querySelector('.fnb-detail')?.textContent?.includes('\uFFFD'),zwsp:document.querySelector('.fnb-detail')?.textContent?.includes('\u200B'),thai:[...document.querySelectorAll('.fnb-text-copy[lang="th"]:not(.fnb-missing)')].map(x=>x.textContent)}));
+            if(!detail.title||detail.sections.some(x=>!x)||detail.undefinedText||detail.replacement||detail.zwsp)throw new Error(`${id}: malformed detail ${JSON.stringify(detail)}`);
+            for(const text of detail.thai)if(text&&!/[\u0E00-\u0E7F]/.test(text))throw new Error(`${id}: Thai copy lost Unicode`);
+            await page.click('[data-back]');await page.waitForSelector('.fnb-index:not([hidden])');
+          }
           if(errors.length)throw new Error(errors.join('\n'));
-          if(state.path!=='/fnb')throw new Error(`F&B path did not change: ${state.path}`);
-          if(state.title!=='Promotions')throw new Error(`F&B title missing: ${state.title}`);
-          if(state.cards!==8)throw new Error(`Expected 8 promotion cards, got ${state.cards}`);
-          if(state.footer.join('|')!=='Today|F&B|Messages')throw new Error(`Footer mismatch: ${state.footer.join('|')}`);
+
+          const fried=await browser.newPage({viewport:{width:390,height:844}});await fried.addInitScript(()=>{window.__opened=[];window.open=url=>{window.__opened.push(url);return null}});await fried.goto(`${process.env.BASE_URL}/share/fnb/fried-chicken-waffles`,{waitUntil:'networkidle'});await fried.waitForSelector('.fnb-detail-title');
+          if(await fried.locator('[data-folder-edit]').count())throw new Error('public folder editor exposed');
+          await fried.click('[data-folder-open]');const opened=await fried.evaluate(()=>window.__opened);if(opened.length!==1||!opened[0].includes('sharepoint.com'))throw new Error(`fried chicken folder missing ${JSON.stringify(opened)}`);
+
+          const negroni=await browser.newPage({viewport:{width:390,height:844}});await negroni.goto(`${process.env.BASE_URL}/share/fnb/negroni-week`,{waitUntil:'networkidle'});await negroni.waitForSelector('.fnb-detail-title');await negroni.click('[data-folder-open]');await negroni.waitForSelector('.fnb-sheet-layer.is-open');const hrefs=await negroni.locator('.fnb-link-list a').evaluateAll(nodes=>nodes.map(n=>n.href));if(hrefs.length!==2||hrefs.some(x=>!x.includes('sharepoint.com')))throw new Error(`Negroni public folder links bad ${JSON.stringify(hrefs)}`);
+          await browser.close();
           NODE
