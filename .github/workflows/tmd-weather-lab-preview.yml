@@ -29,18 +29,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --input-type=module --check < site/weather-lab.js
-          node --input-type=module --check < site/route-registry.js
+          for file in site/weather-lab.js site/weather-lab-v2.js site/weather-camera-lab.js site/route-registry.js; do
+            node --input-type=module --check < "$file"
+          done
           grep -q "path:'/weather-lab'" site/route-registry.js
+          grep -q "weather-lab-v2.js" site/route-registry.js
           grep -q "mount:'mountWeatherLabRoute'" site/route-registry.js
           grep -q '^/weather-lab / 200$' site/_redirects
           grep -q 'sindhorn-weather-lab' site/weather-lab.js
+          grep -q 'sindhorn-camera-weather-lab' site/weather-camera-lab.js
           grep -q 'RAINING HERE NOW' site/weather-lab.js
           grep -q 'DRY HERE NOW' site/weather-lab.js
           grep -q 'Precise request coordinates are used transiently' supabase/functions/sindhorn-weather-lab/index.ts
           grep -q 'compositeQPE_VTBB_latest.asc.zip' supabase/functions/sindhorn-weather-lab/index.ts
           grep -q '15-minute accumulation and weatherType are supporting evidence' supabase/functions/sindhorn-weather-lab/index.ts
+          grep -q 'OpenCCTV public-camera directory' supabase/functions/sindhorn-camera-weather-lab/index.ts
+          grep -q 'supportOnly:true' supabase/functions/sindhorn-camera-weather-lab/index.ts
+          grep -q 'storesRawFrames:false' supabase/functions/sindhorn-camera-weather-lab/index.ts
           ! grep -q 'sindhorn-weather-lab' site/rain-now.js
+          ! grep -q 'sindhorn-camera-weather-lab' site/rain-now.js
           node site/weather-authority.test.mjs
 
       - name: Deploy Cloudflare branch preview
@@ -54,7 +61,7 @@ jobs:
           PREVIEW_BRANCH="${PREVIEW_BRANCH%-}"
           BASE_URL="https://${PREVIEW_BRANCH}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /weather-lab /weather-lab.js /weather-lab.css /route-registry.js /auth-shell.js /location.js /rain-now.js /weather-authority.js; do
+          for path in / /weather-lab /weather-lab.js /weather-lab-v2.js /weather-camera-lab.js /weather-lab.css /weather-camera-lab.css /route-registry.js /auth-shell.js /location.js /rain-now.js /weather-authority.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
             test -s /tmp/smoke
           done
@@ -63,8 +70,12 @@ jobs:
           grep -q '/auth-shell.js' /tmp/lab-route
           curl --fail --silent --show-error "${BASE_URL}/route-registry.js" -o /tmp/registry
           grep -q "path:'/weather-lab'" /tmp/registry
+          grep -q 'weather-lab-v2.js' /tmp/registry
           curl --fail --silent --show-error "${BASE_URL}/weather-lab.js" -o /tmp/lab-js
           grep -q 'sindhorn-weather-lab' /tmp/lab-js
           grep -q 'TMD Weather Lab' /tmp/lab-js
-          curl --fail --silent --show-error "${BASE_URL}/weather-lab.css" -o /tmp/lab-css
-          grep -q '.weather-lab' /tmp/lab-css
+          curl --fail --silent --show-error "${BASE_URL}/weather-camera-lab.js" -o /tmp/camera-js
+          grep -q 'sindhorn-camera-weather-lab' /tmp/camera-js
+          grep -q 'Visual weather network' /tmp/camera-js
+          curl --fail --silent --show-error "${BASE_URL}/weather-camera-lab.css" -o /tmp/camera-css
+          grep -q '.weather-camera-lab' /tmp/camera-css
