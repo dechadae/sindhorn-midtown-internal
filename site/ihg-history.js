@@ -2,10 +2,18 @@ import {IHG_HISTORY_PERIODS,IHG_HISTORY_SOURCE} from './ihg-history-data.js';
 
 const STYLE_ID='ihg-history-style';
 const SOURCE_LABEL='IHG Hotels & Resorts — Our history';
-const HISTORY_IMAGES=Object.freeze({
-  'The InterContinental brand is founded':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1946.jpg?h=422&iar=0&w=750',caption:'IHG archive · InterContinental, 1946'}),
-  'Holiday Inn opens in Memphis':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1952.jpg?h=750&iar=0&w=750',caption:'IHG archive · Holiday Inn, 1952'}),
-  'IHG becomes IHG Hotels & Resorts':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/history-2.jpg?h=422&iar=0&w=750',caption:'IHG archive · Brand identity, 2021'})
+const DISCLOSURE_MS=420;
+const HISTORY_PERIOD_IMAGES=Object.freeze({
+  '1777–1899':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1777.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1777'}),
+  '1900–1949':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1946.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1946'}),
+  '1950–1959':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1952.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 1952'}),
+  '1960–1969':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1961.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1961'}),
+  '1970–1979':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1972.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1972'}),
+  '1980–1989':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1981.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1981'}),
+  '1990–1999':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1990.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1990'}),
+  '2000–2009':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-2000.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 2000'}),
+  '2010–2019':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-2010.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 2010'}),
+  '2020–Present':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/history-2.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 2021'})
 });
 
 function ensureStylesheet(){
@@ -30,10 +38,10 @@ function esc(value=''){
   return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 }
 
-function imageMarkup(item){
-  const visual=HISTORY_IMAGES[item[1]];
+function periodImageMarkup(period){
+  const visual=HISTORY_PERIOD_IMAGES[period.period];
   if(!visual)return'';
-  return `<figure class="ihg-history-visual">
+  return `<figure class="ihg-history-visual ihg-history-period-visual">
     <img src="${esc(visual.src)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer-when-downgrade">
     <figcaption>${esc(visual.caption)}</figcaption>
   </figure>`;
@@ -43,7 +51,6 @@ function milestoneMarkup(item,index){
   return `<article class="ihg-history-milestone${index===0?' is-first':''}">
     <p class="ihg-history-year">${esc(item[0])}</p>
     <h3>${esc(item[1])}</h3>
-    ${imageMarkup(item)}
     <p>${esc(item[2])}</p>
   </article>`;
 }
@@ -66,6 +73,7 @@ function periodMarkup(period,index){
           <span>At this time</span>
           <p>${esc(period.context)}</p>
         </div>
+        ${periodImageMarkup(period)}
         <div class="ihg-history-milestones">${period.milestones.map(milestoneMarkup).join('')}</div>
       </div>
     </div>
@@ -104,32 +112,50 @@ function setExpanded(card,expanded){
   if('inert'in panel)panel.inert=!expanded;
 }
 
+function reducedMotion(){
+  return typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function persistentHeaderOffset(){
+  const header=document.getElementById('app-header');
+  if(!header)return 0;
+  const position=getComputedStyle(header).position;
+  if(position!=='fixed'&&position!=='sticky')return 0;
+  const rect=header.getBoundingClientRect();
+  return Math.max(0,rect.bottom);
+}
+
+function scrollCardToTop(card){
+  const top=window.scrollY+card.getBoundingClientRect().top-persistentHeaderOffset()-10;
+  window.scrollTo({top:Math.max(0,top),behavior:reducedMotion()?'auto':'smooth'});
+}
+
 export async function mountIhgHistoryRoute(root){
   await ensureStylesheet();
   document.body.dataset.ihgHistory='true';
   root.innerHTML=template();
   root.querySelectorAll('.ihg-history-card').forEach(card=>setExpanded(card,false));
 
+  let scrollTimer=0;
   const onClick=event=>{
     const button=event.target.closest('.ihg-history-card-button');
     if(!button||!root.contains(button))return;
     const card=button.closest('.ihg-history-card');
     const opening=button.getAttribute('aria-expanded')!=='true';
-    const before=card.getBoundingClientRect().top;
-    if(opening){
-      root.querySelectorAll('.ihg-history-card.is-open').forEach(other=>{if(other!==card)setExpanded(other,false)});
-    }
+    const openCards=[...root.querySelectorAll('.ihg-history-card.is-open')].filter(other=>other!==card);
+    const closingAbove=opening&&openCards.some(other=>Boolean(other.compareDocumentPosition(card)&Node.DOCUMENT_POSITION_FOLLOWING));
+    if(opening)openCards.forEach(other=>setExpanded(other,false));
     setExpanded(card,opening);
     if(opening){
-      requestAnimationFrame(()=>{
-        const delta=card.getBoundingClientRect().top-before;
-        if(Math.abs(delta)>1)window.scrollBy(0,delta);
-      });
+      clearTimeout(scrollTimer);
+      const delay=closingAbove&&!reducedMotion()?DISCLOSURE_MS+20:0;
+      scrollTimer=window.setTimeout(()=>requestAnimationFrame(()=>scrollCardToTop(card)),delay);
     }
   };
   root.addEventListener('click',onClick);
 
   return ()=>{
+    clearTimeout(scrollTimer);
     root.removeEventListener('click',onClick);
     delete document.body.dataset.ihgHistory;
   };
