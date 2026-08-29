@@ -10,6 +10,14 @@ const authShim=`
 window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Preview Admin',pin_configured_at:new Date().toISOString()};
 await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='/location.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});
 await import('/bootstrap.js');
+const tools=document.querySelector('.masthead-tools');
+if(tools&&!tools.querySelector('.masthead-user')){
+  tools.querySelector('.today')?.remove();
+  const link=document.createElement('a');link.className='masthead-user';link.href='/settings';link.dataset.appRoute='settings';link.setAttribute('aria-label','Open settings for Preview Admin');
+  const name=document.createElement('span');name.className='masthead-user-name';name.textContent='Preview Admin';
+  const avatar=document.createElement('span');avatar.className='masthead-user-avatar';avatar.textContent='PA';avatar.setAttribute('aria-hidden','true');
+  link.append(name,avatar);tools.prepend(link);
+}
 `;
 const capabilityShim=`
 export async function loadSettingsAuthority(){return{
