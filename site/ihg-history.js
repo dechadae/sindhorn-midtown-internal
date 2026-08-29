@@ -121,13 +121,12 @@ function persistentHeaderOffset(){
   if(!header)return 0;
   const position=getComputedStyle(header).position;
   if(position!=='fixed'&&position!=='sticky')return 0;
-  const rect=header.getBoundingClientRect();
-  return Math.max(0,rect.bottom);
+  return Math.max(0,header.getBoundingClientRect().bottom);
 }
 
 function scrollCardToTop(card){
-  const top=window.scrollY+card.getBoundingClientRect().top-persistentHeaderOffset()-10;
-  window.scrollTo({top:Math.max(0,top),behavior:reducedMotion()?'auto':'smooth'});
+  card.style.scrollMarginTop=`${persistentHeaderOffset()+10}px`;
+  card.scrollIntoView({behavior:reducedMotion()?'auto':'smooth',block:'start',inline:'nearest'});
 }
 
 export async function mountIhgHistoryRoute(root){
