@@ -1,0 +1,115 @@
+name: Temporary F&B Public Live Parity
+
+on:
+  push:
+    branches: [fnb-public-live-parity]
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: fnb-public-live-parity-temporary
+  cancel-in-progress: true
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Generate and validate public F&B shares
+        run: |
+          set -euo pipefail
+          PUBLIC_ORIGIN=https://fnb-public-live-parity.sindhorn-midtown-internal.pages.dev node scripts/generate-fnb-share.mjs | tee /tmp/share-report.json
+          node --input-type=module --check < scripts/generate-fnb-share.mjs
+          node --input-type=module --check < site/share/fnb-runtime.js
+          node --input-type=module --check < site/share/fnb-public-shell.js
+          node --input-type=module --check < site/share/fnb-share-ui-public.js
+          node .github/tests/fnb-sharing-regression.test.mjs
+          node .github/tests/font-architecture.test.mjs
+          grep -q 'fnb-layout-stability.css?v=1' site/share/fnb.html
+          grep -q 'fnb-live-pack.css?v=48' site/share/fnb.html
+          grep -q 'fnb-card-actions{display:none!important}' site/share/fnb-public.css
+          grep -q 'fnb-card-button{padding-bottom:16px!important}' site/share/fnb-public.css
+          ! grep -q 'masthead-tools' site/share/fnb.html
+          ! grep -q 'id="app-footer"' site/share/fnb.html
+
+      - name: Deploy branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=fnb-public-live-parity
+
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+
+      - name: Compare public share with authenticated live F&B and verify Pack 48
+        env:
+          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
+          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
+        run: |
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          import {chromium} from 'playwright';
+          fs.mkdirSync('parity-artifacts',{recursive:true});
+          const employee=process.env.CI_SMOKE_EMPLOYEE_NUMBER,pin=process.env.CI_SMOKE_PIN;
+          if(!employee||!/^\d{6}$/.test(pin||''))throw new Error('CI credentials unavailable');
+          const PROD='https://sindhorn-midtown-internal.pages.dev';
+          const PREVIEW='https://fnb-public-live-parity.sindhorn-midtown-internal.pages.dev';
+          const browser=await chromium.launch({headless:true});
+          const liveCtx=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
+          const live=await liveCtx.newPage();
+          await live.goto(PROD+'/login.html',{waitUntil:'domcontentloaded'});
+          await live.fill('#employeeNumber',employee);
+          for(let i=0;i<6;i++)await live.fill(`[data-pin-login-digit="${i}"]`,pin[i]);
+          await live.click('#pinLoginButton');
+          await live.waitForURL(url=>new URL(url).pathname==='/',{timeout:25000});
+          await live.waitForFunction(()=>window.SindhornAppPack?.refresh&&document.documentElement.dataset.shellLoading==='false',null,{timeout:30000});
+          await live.evaluate(()=>window.SindhornAppPack.refresh());
+          await live.waitForFunction(()=>document.body.dataset.appPack==='48',null,{timeout:20000});
+          await live.waitForSelector('.weather-temp:not(:empty)',{timeout:20000});
+          const today=await live.evaluate(()=>{
+            const s=sel=>getComputedStyle(document.querySelector(sel));
+            return{pack:document.body.dataset.appPack,category:s('.category-en').fontSize,temp:s('.weather-temp').fontSize,guidance:s('.guidance-lead').fontSize,location:s('.weather-location').fontSize};
+          });
+          if(today.category!==today.temp)throw new Error(`Very good != temperature ${JSON.stringify(today)}`);
+          if(today.guidance!==today.location)throw new Error(`guidance != location ${JSON.stringify(today)}`);
+          await live.screenshot({path:'parity-artifacts/today-pack48.png',fullPage:true});
+          await live.evaluate(async()=>window.SindhornNavigation.transitionToRoute('fnb'));
+          await live.waitForURL(url=>new URL(url).pathname==='/fnb',{timeout:12000});
+          await live.waitForSelector('.fnb-card');await live.waitForTimeout(700);
+          const selectors=['.fnb-hero h1','.fnb-period','.fnb-stat span','.fnb-stat b','.fnb-select-label','.fnb-select select','.fnb-card-title','.fnb-card-outlets','.fnb-card-date','.fnb-card-foot','.fnb-hero>.fnb-share-button'];
+          const sample=async(page,selectors)=>page.evaluate(selectors=>Object.fromEntries(selectors.map(sel=>{const el=document.querySelector(sel);if(!el)return[sel,null];const c=getComputedStyle(el),r=el.getBoundingClientRect();return[sel,{fontFamily:c.fontFamily,fontSize:c.fontSize,fontWeight:c.fontWeight,lineHeight:c.lineHeight,color:c.color,textTransform:c.textTransform,borderRadius:c.borderRadius,height:Math.round(r.height*10)/10}]})),selectors);
+          const liveStyles=await sample(live,selectors);
+          await live.screenshot({path:'parity-artifacts/fnb-live.png',fullPage:true});
+
+          const pubCtx=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
+          const pub=await pubCtx.newPage();
+          await pub.goto(PREVIEW+'/share/fnb',{waitUntil:'networkidle',timeout:45000});
+          await pub.waitForSelector('.fnb-card');await pub.waitForTimeout(700);
+          const publicStyles=await sample(pub,selectors);
+          for(const sel of selectors){const a=liveStyles[sel],b=publicStyles[sel];if(!a||!b)throw new Error(`missing parity selector ${sel}`);for(const key of ['fontFamily','fontSize','fontWeight','lineHeight','color','textTransform','borderRadius'])if(a[key]!==b[key])throw new Error(`${sel} ${key} differs: live=${a[key]} public=${b[key]}`);if(Math.abs(a.height-b.height)>1.1)throw new Error(`${sel} height differs: live=${a.height} public=${b.height}`)}
+          const publicState=await pub.evaluate(()=>({pack:document.body.dataset.presentationPack,user:!!document.querySelector('.masthead-user'),footer:!!document.querySelector('#app-footer'),cardActions:getComputedStyle(document.querySelector('.fnb-card-actions')).display,cardPadding:getComputedStyle(document.querySelector('.fnb-card-button')).paddingBottom,heroShareTop:getComputedStyle(document.querySelector('.fnb-hero>.fnb-share-button')).top,scrollWidth:document.documentElement.scrollWidth,width:innerWidth}));
+          if(publicState.pack!=='48'||publicState.user||publicState.footer||publicState.cardActions!=='none'||publicState.cardPadding!=='16px'||publicState.heroShareTop!=='20px'||publicState.scrollWidth>publicState.width+2)throw new Error(`public subtraction/parity failed ${JSON.stringify(publicState)}`);
+          await pub.screenshot({path:'parity-artifacts/fnb-public.png',fullPage:true});
+          await pub.goto(PREVIEW+'/share/fnb/fried-chicken-waffles',{waitUntil:'networkidle',timeout:45000});
+          await pub.waitForSelector('.fnb-detail-title');
+          const detail=await pub.evaluate(()=>({title:document.querySelector('.fnb-detail-title')?.textContent?.trim(),footer:!!document.querySelector('#app-footer'),user:!!document.querySelector('.masthead-user'),rail:getComputedStyle(document.querySelector('.fnb-section-rail')).display,edit:!!document.querySelector('[data-folder-edit]')}));
+          if(detail.title!=='Fried Chicken & Waffles'||detail.footer||detail.user||detail.rail!=='none'||detail.edit)throw new Error(`public detail failed ${JSON.stringify(detail)}`);
+          await pub.screenshot({path:'parity-artifacts/fnb-public-promotion.png',fullPage:true});
+          console.log(JSON.stringify({today,publicState,detail},null,2));
+          await browser.close();
+          NODE
+
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fnb-public-live-parity-${{ github.run_id }}
+          path: parity-artifacts/
+          if-no-files-found: warn
+          retention-days: 7
