@@ -42,6 +42,8 @@ jobs:
           registry=(root/'route-registry.js').read_text()
           auth=(root/'auth-shell.js').read_text()
           settings=(root/'settings.js').read_text()
+          settings_css=(root/'settings.css').read_text()
+          fnb_css=(root/'fnb-approved-polish.css').read_text()
           caps=(root/'capabilities.js').read_text()
           footer=(root/'footer-route-guard.js').read_text()
           footer_css=(root/'footer-route-guard.css').read_text()
@@ -50,6 +52,7 @@ jobs:
           doc=Path('docs/SETTINGS-ADMIN-SUPABASE-CAPABILITY-ARCHITECTURE-20260829.md').read_text()
 
           assert "settings:Object.freeze({path:'/settings'" in registry
+          assert "module:'./settings.js?v=2'" in registry
           assert "['/account','settings']" in registry and "['/admin','settings']" in registry
           assert "account:Object.freeze" not in registry and "admin:Object.freeze" not in registry
           assert '/settings / 200' in redirects and '/account / 200' in redirects and '/admin / 200' in redirects
@@ -60,6 +63,14 @@ jobs:
           assert "String(profile?.employee_number||'')==='10639'" not in settings
           assert "['admin','super_admin'].includes(profile?.role)" not in settings
           assert "can('people.manage')" in settings and "can('system.manage')" in settings
+          assert "fnb-select settings-select" in settings
+          assert 'data-settings-select-trigger' in settings and 'data-settings-select-option' in settings
+          assert "link.href='/settings.css?v=2'" in settings
+          assert "fast:160,base:260,in:300,out:180,ease:'cubic-bezier(.22,1,.36,1)'" in settings
+          assert '--settings-motion-fast:160ms' in settings_css and '--settings-motion-base:260ms' in settings_css
+          assert '--fnb-motion-fast:160ms' in fnb_css and '--fnb-motion-base:260ms' in fnb_css
+          assert '.fnb-select-trigger' in fnb_css and '.fnb-select-menu' in fnb_css and '.fnb-select-option' in fnb_css
+          assert '--fnb-accent-rgb:229,236,190' in settings_css
           assert "settings-section-rail shell-footer-rail" in footer
           assert '#app-footer .settings-section-rail' in footer_css
           assert '#app-footer .shell-footer-rail' in footer_css
@@ -90,6 +101,7 @@ jobs:
           done
           curl -fsS "$BASE_URL/" -o /tmp/index.html
           curl -fsS "$BASE_URL/settings.js" -o /tmp/settings.js
+          curl -fsS "$BASE_URL/settings.css?v=2" -o /tmp/settings.css
           curl -fsS "$BASE_URL/capabilities.js" -o /tmp/capabilities.js
           curl -fsS "$BASE_URL/route-registry.js" -o /tmp/registry.js
           curl -fsS "$BASE_URL/footer-route-guard.js?v=10" -o /tmp/footer.js
@@ -97,6 +109,10 @@ jobs:
           grep -q '/footer-route-guard.js?v=10' /tmp/index.html
           grep -q 'sindhorn_settings_manifest' /tmp/capabilities.js
           grep -q 'loadSettingsAuthority' /tmp/settings.js
+          grep -q 'fnb-select settings-select' /tmp/settings.js
+          grep -q 'data-settings-select-option' /tmp/settings.js
+          grep -q -- '--settings-motion-base:260ms' /tmp/settings.css
+          grep -q "module:'./settings.js?v=2'" /tmp/registry.js
           grep -q "path:'/settings'" /tmp/registry.js
           grep -q "label:'Settings',href:'/settings'" /tmp/footer.js
           for path in /settings /account /admin; do
