@@ -53,6 +53,18 @@ async function historyGap(page){
     };
   });
 }
+async function waitHistorySettled(page,{open}){
+  await page.waitForFunction(expectedOpen=>{
+    const list=document.querySelector('.ihg-history-list');
+    const last=document.querySelector('.ihg-history-card:last-child');
+    const source=document.querySelector('.ihg-history-source');
+    if(!list||!last||!source)return false;
+    const computedPadding=parseFloat(getComputedStyle(list).paddingBottom)||0;
+    const gap=source.getBoundingClientRect().top-last.getBoundingClientRect().bottom;
+    const openCount=document.querySelectorAll('.ihg-history-card.is-open').length;
+    return list.style.paddingBottom===''&&computedPadding<2&&gap<42&&openCount===expectedOpen;
+  },open,{timeout:5000});
+}
 
 const browser=await chromium.launch({headless:true});
 try{
@@ -63,14 +75,17 @@ try{
     await page.waitForSelector('#loginControls');
     const state=await page.evaluate(()=>{
       const body=getComputedStyle(document.body),card=getComputedStyle(document.querySelector('.auth-card')),controls=getComputedStyle(document.querySelector('#loginControls')),title=getComputedStyle(document.querySelector('#loginTitle'));
+      const logoRow=document.querySelector('.brand-row-bottom')?.getBoundingClientRect();
       return{
         canvas:document.querySelectorAll('canvas').length,
         environment:Boolean(document.querySelector('#environmentStage,.environment-stage')),
         logo:document.querySelector('.brand-logo')?.getAttribute('src')||'',
         employeeInputMode:document.querySelector('#employeeNumber')?.inputMode||'',
         employeePattern:document.querySelector('#employeeNumber')?.getAttribute('pattern')||'',
-        logoTop:document.querySelector('.brand-row-bottom')?.getBoundingClientRect().top??-1,
+        logoTop:logoRow?.top??-1,
+        logoBottom:logoRow?.bottom??-1,
         controlsBottom:document.querySelector('#loginControls')?.getBoundingClientRect().bottom??-1,
+        viewportHeight:innerHeight,
         bodyBackground:body.backgroundImage,
         bodyColor:body.color,
         cardBackground:card.backgroundColor,
@@ -84,6 +99,7 @@ try{
     assert(state.logo.includes('vignette-white.png'),`Login is not using white live-shell logo ${state.logo}`);
     assert(state.employeeInputMode==='numeric'&&state.employeePattern==='[0-9]*',`Employee ID should request numeric keyboard ${JSON.stringify(state)}`);
     assert(state.logoTop>state.controlsBottom,`Hotel logo must sit below the sign-in panel ${JSON.stringify(state)}`);
+    assert(state.logoBottom<=state.viewportHeight&&state.viewportHeight-state.logoBottom<90,`Hotel logo must sit at the bottom of the viewport ${JSON.stringify(state)}`);
     assert(state.bodyBackground.includes('gradient'),`Login static shell background missing ${state.bodyBackground}`);
     assert(state.cardBackground==='rgba(0, 0, 0, 0)',`Outer login card should be transparent ${state.cardBackground}`);
     assert(state.controlsBackground!=='rgba(0, 0, 0, 0)',`Login form glass surface missing ${state.controlsBackground}`);
@@ -113,7 +129,7 @@ try{
     const button=`#ihg-history-period-${index}-button`;
     await history.page.evaluate(selector=>document.querySelector(selector)?.click(),button);
     await history.page.waitForFunction(selector=>document.querySelector(selector)?.getAttribute('aria-expanded')==='true',button,{timeout:12000});
-    await history.page.waitForTimeout(750);
+    await waitHistorySettled(history.page,{open:1});
     const gap=await historyGap(history.page);
     assert(gap.inlinePadding==='',`History temporary runway persisted for period ${index}: ${JSON.stringify(gap)}`);
     assert(gap.computedPadding<2,`History list retains artificial bottom padding for period ${index}: ${JSON.stringify(gap)}`);
@@ -125,7 +141,8 @@ try{
   await history.page.waitForTimeout(120);
   await history.page.screenshot({path:path.join(OUT,'history-bottom-open-390x844.png'),fullPage:false});
   await history.page.evaluate(()=>document.querySelector('#ihg-history-period-10-button')?.click());
-  await history.page.waitForTimeout(520);
+  await history.page.waitForFunction(()=>document.querySelector('#ihg-history-period-10-button')?.getAttribute('aria-expanded')==='false',{timeout:5000});
+  await waitHistorySettled(history.page,{open:0});
   const collapsedGap=await historyGap(history.page);
   assert(collapsedGap.inlinePadding===''&&collapsedGap.computedPadding<2,`History runway persisted after collapse ${JSON.stringify(collapsedGap)}`);
   assert(collapsedGap.gap<42,`History blank gap persists after collapse ${JSON.stringify(collapsedGap)}`);
@@ -133,7 +150,7 @@ try{
   await assertNoOverflow(history.page,'History');
   await history.context.close();
 
-  console.log(JSON.stringify({ok:true,login:'static dark live-shell styling + bottom logo + numeric Employee ID',profile:{position:facts.Position,department:facts.Department},history:{gap:collapsedGap.gap}},null,2));
+  console.log(JSON.stringify({ok:true,login:'static dark live-shell styling + bottom-centered logo + numeric Employee ID',profile:{position:facts.Position,department:facts.Department},history:{gap:collapsedGap.gap}},null,2));
 }finally{
   await browser.close();
 }
