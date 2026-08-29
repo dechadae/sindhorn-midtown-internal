@@ -1,0 +1,70 @@
+name: TMD Weather Lab Preview
+
+on:
+  push:
+    branches:
+      - tmd-weather-lab
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: tmd-weather-lab-preview-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate isolated weather lab
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < site/weather-lab.js
+          node --input-type=module --check < site/route-registry.js
+          grep -q "path:'/weather-lab'" site/route-registry.js
+          grep -q "mount:'mountWeatherLabRoute'" site/route-registry.js
+          grep -q '^/weather-lab / 200$' site/_redirects
+          grep -q 'sindhorn-weather-lab' site/weather-lab.js
+          grep -q 'RAINING HERE NOW' site/weather-lab.js
+          grep -q 'DRY HERE NOW' site/weather-lab.js
+          grep -q 'Precise request coordinates are used transiently' supabase/functions/sindhorn-weather-lab/index.ts
+          grep -q 'compositeQPE_VTBB_latest.asc.zip' supabase/functions/sindhorn-weather-lab/index.ts
+          grep -q '15-minute accumulation and weatherType are supporting evidence' supabase/functions/sindhorn-weather-lab/index.ts
+          ! grep -q 'sindhorn-weather-lab' site/rain-now.js
+          node site/weather-authority.test.mjs
+
+      - name: Deploy Cloudflare branch preview
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke test branch preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREVIEW_BRANCH="${GITHUB_REF_NAME:0:28}"
+          PREVIEW_BRANCH="${PREVIEW_BRANCH%-}"
+          BASE_URL="https://${PREVIEW_BRANCH}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /weather-lab /weather-lab.js /weather-lab.css /route-registry.js /auth-shell.js /location.js /rain-now.js /weather-authority.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
+            test -s /tmp/smoke
+          done
+          curl --fail --silent --show-error --location "${BASE_URL}/weather-lab" -o /tmp/lab-route
+          grep -q 'id="route-view"' /tmp/lab-route
+          grep -q '/auth-shell.js' /tmp/lab-route
+          curl --fail --silent --show-error "${BASE_URL}/route-registry.js" -o /tmp/registry
+          grep -q "path:'/weather-lab'" /tmp/registry
+          curl --fail --silent --show-error "${BASE_URL}/weather-lab.js" -o /tmp/lab-js
+          grep -q 'sindhorn-weather-lab' /tmp/lab-js
+          grep -q 'TMD Weather Lab' /tmp/lab-js
+          curl --fail --silent --show-error "${BASE_URL}/weather-lab.css" -o /tmp/lab-css
+          grep -q '.weather-lab' /tmp/lab-css
