@@ -7,10 +7,12 @@ on:
       - "site/**"
       - "scripts/generate-fnb-share.mjs"
       - "scripts/fnb-browser-smoke.mjs"
+      - "scripts/fnb-predeploy-live-parity.mjs"
       - ".github/tests/fnb-sharing-regression.test.mjs"
       - ".github/workflows/fnb-live-preview.yml"
       - "docs/FNB-SUPABASE-DATA-AUTHORITY-20260829.md"
       - "supabase/migrations/20260829065500_fnb_supabase_content_authority.sql"
+      - "supabase/migrations/20260829073000_fnb_parent_update_timestamp_cascade.sql"
   workflow_dispatch:
 
 permissions:
@@ -27,17 +29,27 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Prove existing deployment follows live Supabase before redeploy
+        if: ${{ github.run_attempt > 1 }}
+        env:
+          BASE_URL: https://${{ github.ref_name }}.sindhorn-midtown-internal.pages.dev
+        run: |
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install chromium >/dev/null 2>&1
+          node scripts/fnb-predeploy-live-parity.mjs
+
       - name: Validate architecture and public share build
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/fnb.js site/fnb-data.js site/fnb-share-ui.js site/fnb-artwork-sync.js site/footer-route-guard.js site/sw.js scripts/generate-fnb-share.mjs scripts/fnb-browser-smoke.mjs; do
+          for file in site/fnb.js site/fnb-data.js site/fnb-share-ui.js site/fnb-artwork-sync.js site/footer-route-guard.js site/sw.js scripts/generate-fnb-share.mjs scripts/fnb-browser-smoke.mjs scripts/fnb-predeploy-live-parity.mjs; do
             node --input-type=module --check < "$file"
           done
           grep -q 'Canonical business content lives in Supabase' site/fnb-data.js
           grep -q 'sindhorn_fnb_read_model' site/fnb-data.js
           grep -q 'sindhorn-midtown:fnb-dataset:v2' site/fnb-data.js
           grep -q 'In-room Dining' site/fnb-data.js
+          grep -q 'FNB_DATA_UPDATED_AT' site/fnb-data.js
           grep -q "'/fnb-data.js'" site/sw.js
           ! grep -q '<header class="appbar"' site/fnb.js
           PUBLIC_ORIGIN="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev" node scripts/generate-fnb-share.mjs | tee /tmp/fnb-share-report.json
