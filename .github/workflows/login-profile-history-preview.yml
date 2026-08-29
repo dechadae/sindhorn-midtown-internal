@@ -35,13 +35,23 @@ jobs:
           grep -q "fact('Position',profile.positionTitle" site/settings.js
           grep -q "fact('Department',profile.departmentName" site/settings.js
           grep -q 'user.position_title' site/settings.js
+          grep -q 'data-position-title' site/settings.js
+          grep -q 'sindhorn_admin_update_employee_v3' site/settings.js
+          grep -q 'sindhorn_admin_create_employee_v3' site/settings.js
+          grep -q 'p_position_title:payload.positionTitle' site/settings.js
           grep -q '/assets/brand/sindhorn-midtown-vignette-white.png' site/login.html
-          grep -q '/auth-brand.css?v=3' site/login.html
+          grep -q '/auth-brand.css?v=4' site/login.html
+          grep -q 'brand-row-bottom' site/login.html
+          grep -Fq 'inputmode="numeric" pattern="[0-9]*" autocomplete="username"' site/login.html
           grep -q '2026-08-30 live-shell login alignment' site/auth-brand.css
+          grep -q '2026-08-30 login bottom-brand refinement' site/auth-brand.css
           ! grep -Eiq 'webgl|environment-stage|environmentStage|atmosphere-shader|<canvas' site/login.html site/auth-brand.css
           grep -q 'clearActiveRunway();' site/ihg-history.js
+          test -f supabase/migrations/20260829190718_sindhorn_employee_position_admin_rpc_v3.sql
           test ! -e .github/workflows/apply-login-profile-history.yml
           test ! -e scripts/apply-login-profile-history.py
+          test ! -e .github/workflows/apply-login-position-tweaks.yml
+          test ! -e scripts/apply-login-position-tweaks.py
 
       - name: Verify protected runtime systems unchanged
         shell: bash
@@ -80,11 +90,17 @@ jobs:
           done
           curl --fail --silent --show-error --location "${BASE_URL}/login.html" -o /tmp/login.html
           grep -q 'vignette-white.png' /tmp/login.html
+          grep -q 'brand-row-bottom' /tmp/login.html
+          grep -Fq 'inputmode="numeric" pattern="[0-9]*" autocomplete="username"' /tmp/login.html
           curl --fail --silent --show-error --location "${BASE_URL}/auth-brand.css" -o /tmp/auth-brand.css
           grep -q 'live-shell login alignment' /tmp/auth-brand.css
+          grep -q 'login bottom-brand refinement' /tmp/auth-brand.css
           curl --fail --silent --show-error --location "${BASE_URL}/settings.js" -o /tmp/settings.js
           grep -q "fact('Position',profile.positionTitle" /tmp/settings.js
           grep -q "fact('Department',profile.departmentName" /tmp/settings.js
+          grep -q 'data-position-title' /tmp/settings.js
+          grep -q 'sindhorn_admin_update_employee_v3' /tmp/settings.js
+          grep -q 'p_position_title:payload.positionTitle' /tmp/settings.js
           curl --fail --silent --show-error --location "${BASE_URL}/ihg-history.js" -o /tmp/history.js
           grep -q 'clearActiveRunway();' /tmp/history.js
 
