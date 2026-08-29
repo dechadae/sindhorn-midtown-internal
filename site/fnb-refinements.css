@@ -7,6 +7,9 @@
 .fnb-card,.fnb-text-card,.fnb-art-card{background:rgba(46,39,59,.48)!important}
 .fnb-folder-empty{background:rgba(46,39,59,.46)!important}
 
+/* Artwork cards show outlet + completion only; reward/time metadata remains in Overview. */
+body[data-route="fnb"] #artwork .fnb-art-meta{display:none!important}
+
 /* Actions use sentence/title case and one quiet control system. */
 body[data-route="fnb"] .fnb-action,
 body[data-route="fnb"] .fnb-expand,
