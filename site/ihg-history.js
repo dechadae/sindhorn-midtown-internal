@@ -5,16 +5,16 @@ const SOURCE_LABEL='IHG Hotels & Resorts — Our history';
 const DISCLOSURE_MS=420;
 const SCROLL_SETTLE_MS=1800;
 const HISTORY_PERIOD_IMAGES=Object.freeze({
-  '1777–1899':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1770.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1777'}),
-  '1900–1949':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1946.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1946'}),
-  '1950–1959':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1952.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 1952'}),
-  '1960–1969':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1961.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 1961'}),
-  '1970–1979':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1972.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1972'}),
-  '1980–1989':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1981.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 1981'}),
-  '1990–1999':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1990.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 1990'}),
-  '2000–2009':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-2000.png?h=750&iar=0&w=750',caption:'IHG history archive · 2000'}),
-  '2010–2019':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-2010.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 2010'}),
-  '2020–Present':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/history-2.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 2021'})
+  '1777–1899':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1770.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1777',width:750,height:422}),
+  '1900–1949':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1946.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1946',width:750,height:422}),
+  '1950–1959':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1952.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 1952',width:750,height:750}),
+  '1960–1969':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1961.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 1961',width:750,height:750}),
+  '1970–1979':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1972.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1972',width:750,height:422}),
+  '1980–1989':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1981.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 1981',width:750,height:750}),
+  '1990–1999':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1990.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 1990',width:750,height:750}),
+  '2000–2009':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-2000.png?h=750&iar=0&w=750',caption:'IHG history archive · 2000',width:750,height:750}),
+  '2010–2019':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-2010.jpg?h=750&iar=0&w=750',caption:'IHG history archive · 2010',width:750,height:750}),
+  '2020–Present':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/history-2.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 2021',width:750,height:422})
 });
 
 function ensureStylesheet(){
@@ -43,7 +43,7 @@ function periodImageMarkup(period){
   const visual=HISTORY_PERIOD_IMAGES[period.period];
   if(!visual)return'';
   return `<figure class="ihg-history-visual ihg-history-period-visual">
-    <img src="${esc(visual.src)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer-when-downgrade">
+    <img src="${esc(visual.src)}" width="${visual.width}" height="${visual.height}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer-when-downgrade">
     <figcaption>${esc(visual.caption)}</figcaption>
   </figure>`;
 }
@@ -221,13 +221,12 @@ export async function mountIhgHistoryRoute(root){
   let interactionId=0;
   let pendingCard=null;
   let activeRunway=null;
-  let runwayCleanupTimer=0;
 
-  const resetPending=()=>{
+  const cancelPending=()=>{
     pendingCard?.classList.remove('is-preparing');
     pendingCard=null;
-    clearTimeout(runwayCleanupTimer);
-    runwayCleanupTimer=0;
+  };
+  const clearActiveRunway=()=>{
     clearScrollRunway(activeRunway);
     activeRunway=null;
   };
@@ -238,10 +237,12 @@ export async function mountIhgHistoryRoute(root){
     const card=button.closest('.ihg-history-card');
     const isOpen=button.getAttribute('aria-expanded')==='true';
     const token=++interactionId;
-    resetPending();
+    cancelPending();
 
     if(isOpen){
       setExpanded(card,false);
+      if(reducedMotion())clearActiveRunway();
+      else window.setTimeout(()=>{if(token===interactionId)clearActiveRunway();},DISCLOSURE_MS+20);
       return;
     }
 
@@ -253,12 +254,13 @@ export async function mountIhgHistoryRoute(root){
     void (async()=>{
       if(openCards.length&&!reducedMotion())await wait(DISCLOSURE_MS+20);
       if(token!==interactionId)return;
+      clearActiveRunway();
 
       const runway=prepareScrollRunway(root,card);
       activeRunway=runway;
       await scrollCardToTop(card);
       if(token!==interactionId){
-        clearScrollRunway(runway);
+        if(activeRunway===runway)clearActiveRunway();
         return;
       }
 
@@ -267,16 +269,15 @@ export async function mountIhgHistoryRoute(root){
       if(token!==interactionId)return;
       card.classList.remove('is-preparing');
       pendingCard=null;
-      clearScrollRunway(runway);
       alignCardInstantly(card);
-      activeRunway=null;
     })();
   };
   root.addEventListener('click',onClick);
 
   return ()=>{
     interactionId+=1;
-    resetPending();
+    cancelPending();
+    clearActiveRunway();
     root.removeEventListener('click',onClick);
     delete document.body.dataset.ihgHistory;
   };
