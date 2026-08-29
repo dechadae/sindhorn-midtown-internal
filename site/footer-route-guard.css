@@ -16,103 +16,57 @@
   --sm-footer-active-shadow:inset 0 0 0 1px rgba(229,236,190,.14),0 6px 18px rgba(10,8,14,.10);
 }
 
-/* The route-owned F&B rail remains only as the existing behavior/source controller. It is never painted. */
-#route-view .fnb-route > .fnb-section-rail{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+/* Route-owned context rails remain behavior/source controllers only. They never paint. */
+#route-view .fnb-route > .fnb-section-rail,
+#route-view .settings-route > .settings-section-rail{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
 
-/* ONE shell footer component. Both visible rails are siblings in #app-footer and share one compositing context. */
+/* ONE shell footer component. Visible rails are siblings in #app-footer and share one compositing context. */
 #app-footer .shell-footer-rail{
-  position:fixed!important;
-  left:0!important;
-  right:0!important;
-  box-sizing:border-box!important;
-  z-index:140!important;
-  display:grid!important;
-  grid-template-columns:repeat(4,minmax(0,1fr))!important;
-  align-items:start!important;
-  gap:4px!important;
-  height:var(--sm-footer-height)!important;
-  min-height:var(--sm-footer-height)!important;
+  position:fixed!important;left:0!important;right:0!important;box-sizing:border-box!important;z-index:140!important;
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:start!important;gap:4px!important;
+  height:var(--sm-footer-height)!important;min-height:var(--sm-footer-height)!important;
   padding:6px max(10px,env(safe-area-inset-right)) 6px max(10px,env(safe-area-inset-left))!important;
-  border:0!important;
-  border-top:1px solid var(--sm-footer-glass-border)!important;
-  border-radius:0!important;
+  border:0!important;border-top:1px solid var(--sm-footer-glass-border)!important;border-radius:0!important;
   background:rgba(var(--sm-footer-surface-rgb),var(--sm-footer-glass-alpha))!important;
-  box-shadow:var(--sm-footer-glass-shadow)!important;
-  backdrop-filter:var(--sm-footer-glass-filter)!important;
-  -webkit-backdrop-filter:var(--sm-footer-glass-filter)!important;
+  box-shadow:var(--sm-footer-glass-shadow)!important;backdrop-filter:var(--sm-footer-glass-filter)!important;-webkit-backdrop-filter:var(--sm-footer-glass-filter)!important;
 }
+#app-footer .app-tabbar{bottom:0!important;height:calc(var(--sm-footer-height) + env(safe-area-inset-bottom))!important;min-height:calc(var(--sm-footer-height) + env(safe-area-inset-bottom))!important;padding-bottom:calc(6px + env(safe-area-inset-bottom))!important}
 
-#app-footer .app-tabbar{
-  bottom:0!important;
-  height:calc(var(--sm-footer-height) + env(safe-area-inset-bottom))!important;
-  min-height:calc(var(--sm-footer-height) + env(safe-area-inset-bottom))!important;
-  padding-bottom:calc(6px + env(safe-area-inset-bottom))!important;
-}
-
-/* Exact clone of the main footer. Only the approved Vignette secondary palette variables change. */
-#app-footer .fnb-section-rail{
+/* Exact clone of the main footer. Context rails change only to the approved Sorbet secondary palette. */
+#app-footer .fnb-section-rail,
+#app-footer .settings-section-rail{
   --sm-footer-surface-rgb:229,236,190;
   --sm-footer-item-color:rgba(46,39,59,.62);
   --sm-footer-active:#2E273B;
   --sm-footer-active-bg:linear-gradient(180deg,rgba(46,39,59,.13),rgba(46,39,59,.065));
   --sm-footer-active-shadow:inset 0 0 0 1px rgba(46,39,59,.15),0 6px 18px rgba(10,8,14,.08);
   --sm-footer-glass-border:rgba(46,39,59,.12);
-  z-index:139!important;
-  bottom:calc(var(--sm-footer-height) + var(--sm-footer-gap) + env(safe-area-inset-bottom))!important;
-  visibility:visible!important;
-  opacity:1!important;
-  pointer-events:auto!important;
-  transform:none!important;
+  z-index:139!important;bottom:calc(var(--sm-footer-height) + var(--sm-footer-gap) + env(safe-area-inset-bottom))!important;
+  visibility:visible!important;opacity:1!important;pointer-events:auto!important;transform:none!important;
 }
 
-/* ONE footer-item component for Today/F&B/Messages/Settings and Overview/Brief/Copy/Artwork. */
+/* ONE footer-item component for all global and context navigation. */
 #app-footer .shell-footer-rail .nav-chip{
-  position:relative!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  width:100%!important;
-  max-width:none!important;
-  min-width:0!important;
-  height:var(--sm-footer-item-height)!important;
-  min-height:var(--sm-footer-item-height)!important;
-  padding:0 8px!important;
-  margin:0!important;
-  border:0!important;
-  border-radius:var(--sm-footer-item-radius)!important;
-  background:transparent!important;
-  color:var(--sm-footer-item-color)!important;
-  text-decoration:none!important;
-  font:inherit!important;
-  font-size:var(--sm-footer-item-size)!important;
-  font-weight:400!important;
-  line-height:1!important;
-  text-transform:none!important;
-  letter-spacing:0!important;
-  white-space:nowrap!important;
-  cursor:pointer!important;
+  position:relative!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  width:100%!important;max-width:none!important;min-width:0!important;height:var(--sm-footer-item-height)!important;min-height:var(--sm-footer-item-height)!important;
+  padding:0 8px!important;margin:0!important;border:0!important;border-radius:var(--sm-footer-item-radius)!important;background:transparent!important;color:var(--sm-footer-item-color)!important;text-decoration:none!important;
+  font:inherit!important;font-size:var(--sm-footer-item-size)!important;font-weight:400!important;line-height:1!important;text-transform:none!important;letter-spacing:0!important;white-space:nowrap!important;cursor:pointer!important;
   transition:background .24s cubic-bezier(.22,1,.36,1),box-shadow .24s cubic-bezier(.22,1,.36,1),color .2s ease,transform .12s ease,opacity .12s ease!important;
 }
 #app-footer .shell-footer-rail .nav-chip>span{display:flex!important;align-items:center!important;justify-content:center!important;height:100%!important;line-height:1!important}
 #app-footer .shell-footer-rail .nav-chip small{display:none!important}
 #app-footer .shell-footer-rail .nav-chip:active{transform:scale(.98)!important;opacity:.84!important}
-#app-footer .shell-footer-rail .nav-chip[aria-current]{
-  color:var(--sm-footer-active)!important;
-  background:var(--sm-footer-active-bg)!important;
-  box-shadow:var(--sm-footer-active-shadow)!important;
-}
+#app-footer .shell-footer-rail .nav-chip[aria-current]{color:var(--sm-footer-active)!important;background:var(--sm-footer-active-bg)!important;box-shadow:var(--sm-footer-active-shadow)!important}
 #app-footer .message-badge{position:absolute!important;top:6px!important;right:20%!important}
 
-/* Reserve the fixed-footer stack so content scrolls fully clear of both rails. */
+/* Reserve the fixed-footer stack so content scrolls fully clear. */
 body{padding-bottom:calc(62px + env(safe-area-inset-bottom))!important}
-body[data-route="fnb"][data-fnb-detail="true"] #route-view{padding-bottom:calc((var(--sm-footer-height) * 2) + var(--sm-footer-gap) + 28px + env(safe-area-inset-bottom))!important}
+body[data-route="fnb"][data-fnb-detail="true"] #route-view,
+body[data-route="settings"][data-settings-context="true"] #route-view{padding-bottom:calc((var(--sm-footer-height) * 2) + var(--sm-footer-gap) + 28px + env(safe-area-inset-bottom))!important}
 
 /* Shared premium control geometry + motion. */
 :root{--sm-control-radius:12px;--sm-motion-fast:160ms;--sm-motion-base:260ms;--sm-motion-ease:cubic-bezier(.22,1,.36,1)}
-.action,.message-clear,.message-open{
-  border-radius:var(--sm-control-radius)!important;
-  transition:background var(--sm-motion-base) ease,border-color var(--sm-motion-base) ease,color var(--sm-motion-base) ease,box-shadow var(--sm-motion-base) var(--sm-motion-ease),transform var(--sm-motion-fast) var(--sm-motion-ease),opacity var(--sm-motion-fast) ease!important;
-}
+.action,.message-clear,.message-open{border-radius:var(--sm-control-radius)!important;transition:background var(--sm-motion-base) ease,border-color var(--sm-motion-base) ease,color var(--sm-motion-base) ease,box-shadow var(--sm-motion-base) var(--sm-motion-ease),transform var(--sm-motion-fast) var(--sm-motion-ease),opacity var(--sm-motion-fast) ease!important}
 .action:active,.message-clear:active,.message-open:active{transform:scale(.98)!important;opacity:.84!important}
 .fullscreen-toggle{border-radius:10px!important;transition:background var(--sm-motion-base) ease,border-color var(--sm-motion-base) ease,transform var(--sm-motion-fast) var(--sm-motion-ease)!important}
 body[data-route="fnb"] .fnb-expand{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:34px!important;padding:0 12px!important;border:1px solid rgba(250,247,245,.12)!important;border-radius:10px!important;background:rgba(250,247,245,.035)!important}
@@ -120,10 +74,5 @@ body[data-route="fnb"] .fnb-action{border-radius:14px!important}
 body[data-route="fnb"] .fnb-select select{border-radius:12px!important}
 body[data-route="fnb"] .fnb-link-field input{border-radius:12px!important}
 
-@media(max-width:360px){
-  :root{--sm-footer-item-size:.65rem}
-  #app-footer .shell-footer-rail .nav-chip{padding-inline:5px!important}
-}
-@media(prefers-reduced-motion:reduce){
-  .action,.message-clear,.message-open,.fullscreen-toggle,#app-footer .shell-footer-rail .nav-chip{transition:none!important}
-}
+@media(max-width:360px){:root{--sm-footer-item-size:.65rem}#app-footer .shell-footer-rail .nav-chip{padding-inline:5px!important}}
+@media(prefers-reduced-motion:reduce){.action,.message-clear,.message-open,.fullscreen-toggle,#app-footer .shell-footer-rail .nav-chip{transition:none!important}}
