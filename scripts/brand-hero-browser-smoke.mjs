@@ -130,13 +130,36 @@ try{
 
   const collapsed=await brand.page.evaluate(()=>[...document.querySelectorAll('.ihg-history-card-button')].every(b=>b.getAttribute('aria-expanded')==='false'));
   assert(collapsed,'Brand periods are not collapsed by default');
-  await brand.page.click('#ihg-history-period-2-button');
-  await brand.page.waitForFunction(()=>document.querySelector('#ihg-history-period-2-button')?.getAttribute('aria-expanded')==='true');
-  const image=brand.page.locator('#ihg-history-period-2 .ihg-history-visual img').first();
-  await image.waitFor();
-  await brand.page.waitForFunction(()=>document.querySelector('#ihg-history-period-2 .ihg-history-visual img')?.naturalWidth>0,{timeout:15000});
-  const imageState=await image.evaluate(img=>({src:img.currentSrc,width:img.naturalWidth,height:img.naturalHeight}));
-  assert(/ihgplc\.com/.test(imageState.src)&&imageState.width>0,`official archive image failed ${JSON.stringify(imageState)}`);
+  assert(await brand.page.locator('.ihg-history-card').count()===10,'Brand period count changed');
+  assert(await brand.page.locator('.ihg-history-period-visual').count()===10,'Every Brand period must have one archive image');
+
+  const imageStates=[];
+  for(let index=1;index<=10;index+=1){
+    const buttonSelector=`#ihg-history-period-${index}-button`;
+    const cardSelector=`[data-history-period="${index-1}"]`;
+    await brand.page.evaluate(selector=>document.querySelector(selector)?.click(),buttonSelector);
+    await brand.page.waitForFunction(selector=>document.querySelector(selector)?.getAttribute('aria-expanded')==='true',buttonSelector);
+    await brand.page.waitForTimeout(index===1?650:1100);
+    const openCount=await brand.page.locator('.ihg-history-card.is-open').count();
+    assert(openCount===1,`one-open-at-a-time failed for History period ${index}`);
+    const scrollState=await brand.page.evaluate(selector=>{
+      const card=document.querySelector(selector),header=document.getElementById('app-header');
+      const cardTop=card?.getBoundingClientRect().top??NaN;
+      let expected=10;
+      if(header){
+        const position=getComputedStyle(header).position;
+        if(position==='fixed'||position==='sticky')expected=Math.max(0,header.getBoundingClientRect().bottom)+10;
+      }
+      return{cardTop,expected,scrollY:window.scrollY};
+    },cardSelector);
+    near(scrollState.cardTop,scrollState.expected,5,`History period ${index} smooth-scroll landing`);
+    const imageSelector=`${cardSelector} .ihg-history-period-visual img`;
+    await brand.page.waitForFunction(selector=>{const img=document.querySelector(selector);return Boolean(img&&img.complete&&img.naturalWidth>0)},imageSelector,{timeout:15000});
+    const imageState=await brand.page.locator(imageSelector).evaluate(img=>({src:img.currentSrc,width:img.naturalWidth,height:img.naturalHeight}));
+    assert(/ihgplc\.com/.test(imageState.src)&&imageState.width>0,`official archive image failed for period ${index} ${JSON.stringify(imageState)}`);
+    imageStates.push({period:index,...imageState,scroll:scrollState});
+  }
+  await brand.page.screenshot({path:path.join(OUT,'brand-expanded-390x844.png'),fullPage:false});
 
   for(const item of [fnb,messages,settings,brand]){if(item.keep)await item.context.close()}
 
@@ -150,5 +173,5 @@ try{
     const {context,page}=await internalPage(browser,width,height);await page.goto(`${BASE}/ihg-history`,{waitUntil:'domcontentloaded'});await waitShell(page);await page.waitForSelector('.ihg-history-card');await overflow(page,`Brand ${width}x${height}`);await page.screenshot({path:path.join(OUT,`brand-${width}x${height}.png`),fullPage:false});await context.close();
   }
 
-  console.log(JSON.stringify({ok:true,base:BASE,footer:['Today','F&B','Messages','Brand'],fnb:fnb.metrics,messages:messages.metrics,settings:settings.metrics,brand:brand.metrics,publicFnb:publicMetrics,overlays,image:imageState,screenshots:await fs.readdir(OUT)}));
+  console.log(JSON.stringify({ok:true,base:BASE,footer:['Today','F&B','Messages','Brand'],fnb:fnb.metrics,messages:messages.metrics,settings:settings.metrics,brand:brand.metrics,publicFnb:publicMetrics,overlays,images:imageStates,screenshots:await fs.readdir(OUT)}));
 }finally{await browser.close()}
