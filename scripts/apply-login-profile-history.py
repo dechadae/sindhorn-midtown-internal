@@ -1,0 +1,118 @@
+from pathlib import Path
+
+
+def replace_once(path, old, new):
+    p = Path(path)
+    text = p.read_text()
+    if new in text:
+        return
+    if old not in text:
+        raise SystemExit(f"expected source not found in {path}: {old[:90]!r}")
+    p.write_text(text.replace(old, new, 1))
+
+
+replace_once(
+    "site/settings.js",
+    "${fact('Employee ID',profile.employeeNumber||'—')}${fact('Role',roleLabel(profile.role))}",
+    "${fact('Employee ID',profile.employeeNumber||'—')}${fact('Position',profile.positionTitle||'—')}${fact('Department',profile.departmentName||'—')}${fact('Role',roleLabel(profile.role))}",
+)
+replace_once(
+    "site/settings.js",
+    "[user.employee_number,user.display_name,user.work_email,user.role,user.account_type,departmentLabel(user)]",
+    "[user.employee_number,user.display_name,user.position_title,user.work_email,user.role,user.account_type,departmentLabel(user)]",
+)
+replace_once(
+    "site/settings.js",
+    "<p>${esc(user.employee_number)}${user.work_email?` · ${esc(user.work_email)}`:''}</p>",
+    "<p>${user.position_title?`${esc(user.position_title)} · `:''}${esc(user.employee_number)}${user.work_email?` · ${esc(user.work_email)}`:''}</p>",
+)
+
+replace_once(
+    "site/login.html",
+    "/assets/brand/sindhorn-midtown-vignette-black.png",
+    "/assets/brand/sindhorn-midtown-vignette-white.png",
+)
+replace_once("site/login.html", "/auth-brand.css?v=2", "/auth-brand.css?v=3")
+
+css = Path("site/auth-brand.css")
+text = css.read_text()
+marker = "/* 2026-08-30 live-shell login alignment */"
+if marker not in text:
+    text += r'''
+
+/* 2026-08-30 live-shell login alignment */
+html:has(body.login-page){color-scheme:dark;background:#2E273B}
+body.login-page{
+  --vg-plum:#2E273B;
+  --vg-plum-rgb:46,39,59;
+  --vg-ivory:#FAF7F5;
+  --vg-ivory-rgb:250,247,245;
+  --vg-accent:#E5ECBE;
+  --vg-accent-rgb:229,236,190;
+  --vg-muted:rgba(250,247,245,.62);
+  --vg-line:rgba(250,247,245,.14);
+  --vg-glass:rgba(46,39,59,.52);
+  --vg-glass-strong:rgba(46,39,59,.72);
+  min-height:100dvh;
+  background:
+    radial-gradient(115% 72% at 50% -12%,rgba(120,107,148,.38) 0,rgba(120,107,148,0) 54%),
+    radial-gradient(75% 58% at 88% 56%,rgba(57,74,101,.22) 0,rgba(57,74,101,0) 62%),
+    linear-gradient(180deg,#352E45 0%,#2E273B 48%,#242330 100%);
+  color:var(--vg-ivory);
+}
+.login-page .auth-shell{display:block;min-height:100dvh;padding:max(26px,env(safe-area-inset-top)) 20px max(34px,env(safe-area-inset-bottom))}
+.login-page .auth-card{width:min(100%,440px);margin:0 auto;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+.login-page .brand-row{display:flex;align-items:flex-start;min-height:126px;padding:2px 0 22px;border-bottom:3px solid var(--vg-accent)}
+.login-page .brand-logo{width:160px;height:auto;filter:none}
+.login-page .eyebrow{margin:26px 0 12px;color:var(--vg-accent);font-size:9px;font-weight:400;line-height:1.3;text-transform:uppercase}
+.login-page .auth-card h1{margin:0;color:var(--vg-ivory);font-size:clamp(34px,9vw,44px);font-weight:100;line-height:1.05}
+.login-page .support{max-width:32rem;margin:9px 0 0;color:var(--vg-muted);font-size:13px;line-height:1.55}
+.login-page #loginControls,.login-page .pin-setup,.login-page .signed-card{
+  margin-top:22px;padding:18px;border:1px solid var(--vg-line);border-radius:16px;
+  background:var(--vg-glass);box-shadow:inset 0 1px 0 rgba(250,247,245,.025),0 16px 40px rgba(12,9,18,.14);
+  backdrop-filter:blur(22px) saturate(1.15);-webkit-backdrop-filter:blur(22px) saturate(1.15)
+}
+.login-page #loginControls.stack{display:block}
+.login-page #employeeForm.stack,.login-page .pin-setup .stack{margin-top:0}
+.login-page .field label,.login-page .otp-fieldset legend{color:rgba(250,247,245,.72);font-size:9px;font-weight:400;text-transform:uppercase}
+.login-page .field input,.login-page .otp-digit{border-color:var(--vg-line);background:rgba(250,247,245,.055);color:var(--vg-ivory)}
+.login-page .field input{min-height:48px;border-radius:12px;font-size:14px}
+.login-page .field input:focus,.login-page .otp-digit:focus,.login-page .otp-digit:focus-visible{
+  border-color:rgba(var(--vg-accent-rgb),.55);background:rgba(250,247,245,.085);box-shadow:0 0 0 3px rgba(var(--vg-accent-rgb),.10)
+}
+.login-page .otp-code{gap:7px}
+.login-page .otp-digit{height:56px;border-radius:12px;font-size:1.45rem;font-weight:400}
+.login-page .primary{min-height:48px;border:1px solid var(--vg-accent);border-radius:12px;background:var(--vg-accent);color:var(--vg-plum);font-size:13px;font-weight:400}
+.login-page .mode-switch{padding:7px 4px;color:var(--vg-accent);font-size:11.5px;font-weight:400;text-decoration:none}
+.login-page .note{color:var(--vg-muted);font-size:11.5px}
+.login-page .pin-setup{padding-top:18px;border-top:1px solid var(--vg-line)}
+.login-page .pin-setup h2{color:var(--vg-ivory);font-size:24px;font-weight:100}
+.login-page .step-kicker{color:var(--vg-accent);font-size:9px;font-weight:400}
+.login-page .status{border:1px solid var(--vg-line);background:var(--vg-glass);color:var(--vg-muted)}
+.login-page .status[data-tone=error]{border-color:rgba(240,182,182,.24);background:rgba(172,55,55,.16);color:#F0B6B6}
+.login-page .status[data-tone=success]{border-color:rgba(229,236,190,.25);background:rgba(229,236,190,.08);color:var(--vg-accent)}
+.login-page .signed-card{display:none}
+.login-page .signed-card[data-show=true]{display:block}
+.login-page .signed-name{color:var(--vg-ivory);font-size:18px;font-weight:400}
+.login-page .signed-meta{color:var(--vg-muted)}
+.login-page .signed-actions a,.login-page .signed-actions button{border-color:var(--vg-line);background:rgba(250,247,245,.055);color:var(--vg-ivory);font-weight:400}
+.login-page .signed-actions a:first-child{border-color:rgba(var(--vg-accent-rgb),.30);background:rgba(var(--vg-accent-rgb),.12);color:var(--vg-accent)}
+@media(max-width:520px){
+  .login-page .auth-shell{padding-left:18px;padding-right:18px}
+  .login-page .brand-row{min-height:116px;padding-bottom:20px}
+  .login-page .brand-logo{width:150px}
+  .login-page #loginControls,.login-page .pin-setup,.login-page .signed-card{padding:16px;border-radius:15px}
+}
+'''
+    css.write_text(text)
+
+replace_once(
+    "site/ihg-history.js",
+    "    if(isOpen){\n      setExpanded(card,false);\n      if(reducedMotion())clearActiveRunway();\n      else window.setTimeout(()=>{if(token===interactionId)clearActiveRunway();},DISCLOSURE_MS+20);\n      return;\n    }",
+    "    if(isOpen){\n      setExpanded(card,false);\n      clearActiveRunway();\n      return;\n    }",
+)
+replace_once(
+    "site/ihg-history.js",
+    "      card.classList.remove('is-preparing');\n      pendingCard=null;\n      alignCardInstantly(card);",
+    "      card.classList.remove('is-preparing');\n      pendingCard=null;\n      clearActiveRunway();\n      await new Promise(resolve=>requestAnimationFrame(resolve));\n      if(token!==interactionId)return;\n      alignCardInstantly(card);",
+)
