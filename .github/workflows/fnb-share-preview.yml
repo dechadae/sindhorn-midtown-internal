@@ -24,9 +24,7 @@ jobs:
       - name: Generate safe public share pages
         env:
           PUBLIC_ORIGIN: https://fnb-share-modal-icon.sindhorn-midtown-internal.pages.dev
-        run: |
-          node scripts/generate-fnb-share.mjs
-          node scripts/normalize-fnb-share-font.mjs
+        run: node scripts/generate-fnb-share.mjs
 
       - name: Generate enlarged launcher icons
         run: |
@@ -40,10 +38,8 @@ jobs:
           set -euo pipefail
           node --input-type=module --check < site/fnb-share-ui.js
           node --input-type=module --check < scripts/generate-fnb-share.mjs
-          node --input-type=module --check < scripts/normalize-fnb-share-font.mjs
           node --input-type=module --check < scripts/generate-pwa-icons.mjs
           node .github/tests/fnb-sharing-regression.test.mjs
-          node scripts/normalize-fnb-share-font.mjs
           node .github/tests/font-architecture.test.mjs
           grep -q 'letter-spacing:0!important' site/fnb-refinements.css
           grep -q '/fnb-share-ui.js?v=1' site/index.html
@@ -51,6 +47,11 @@ jobs:
           ! grep -q 'og:image' site/share/fnb.html
           ! grep -q 'twitter:image' site/share/fnb.html
           ! grep -RqiE 'sharepoint\.com|1drv\.ms|onedrive\.live\.com|employee_number|Add / change artwork link' site/share/fnb.html site/share/fnb
+          grep -q '/assets/brand/sindhorn-midtown-vignette-white.png' site/share/fnb.html
+          grep -q 'id="environmentStage"' site/share/fnb.html
+          grep -q "import {initEnvironment} from '/environment.js'" site/share/fnb.html
+          ! grep -q 'id="app-footer"' site/share/fnb.html
+          ! grep -Rqi 'fnb-task-toggle' site/share/fnb.html site/share/fnb
           test ! -e site/share/fnb/index.html
 
       - name: Create mobile refinement harness
@@ -83,9 +84,11 @@ jobs:
             grep -q '<title>' /tmp/share.html
             grep -q 'property="og:title"' /tmp/share.html
             grep -q 'property="og:url"' /tmp/share.html
+            grep -q '/assets/brand/sindhorn-midtown-vignette-white.png' /tmp/share.html
+            grep -q 'id="environmentStage"' /tmp/share.html
             ! grep -qi 'og:image' /tmp/share.html
             ! grep -qi 'twitter:image' /tmp/share.html
-            ! grep -qiE 'sharepoint\.com|1drv\.ms|onedrive\.live\.com|employee_number|Add / change artwork link|auth-client' /tmp/share.html
+            ! grep -qiE 'sharepoint\.com|1drv\.ms|onedrive\.live\.com|employee_number|Add / change artwork link|auth-client|id="app-footer"|fnb-task-toggle' /tmp/share.html
           done
           curl --fail --silent --show-error "${BASE_URL}/share/fnb/fried-chicken-waffles" -o /tmp/fried.html
           grep -q 'Fried Chicken &amp; Waffles | Sindhorn Midtown' /tmp/fried.html
@@ -117,5 +120,12 @@ jobs:
           await page.click('[data-sheet-close]');await page.click('[data-back]');
           await page.click('[data-fnb-share="page"]');
           const payload=await page.evaluate(()=>window.__sharePayload);if(!payload?.url?.includes('/share/fnb'))throw new Error(`share payload bad ${JSON.stringify(payload)}`);
+
+          const publicPage=await browser.newPage({viewport:{width:390,height:844}});
+          await publicPage.goto(`${process.env.BASE_URL}/share/fnb/fried-chicken-waffles`,{waitUntil:'networkidle'});
+          await publicPage.waitForSelector('.fnb-detail-title');
+          const publicState=await publicPage.evaluate(()=>({title:document.querySelector('.fnb-detail-title')?.textContent,logo:document.querySelector('.public-fnb-masthead img')?.getAttribute('src'),footer:!!document.querySelector('#app-footer'),editable:!!document.querySelector('.fnb-task-toggle'),env:!!document.querySelector('#environmentCanvas'),color:getComputedStyle(document.querySelector('.fnb-detail-title')).color}));
+          if(publicState.title!=='Fried Chicken & Waffles'||publicState.logo!=='/assets/brand/sindhorn-midtown-vignette-white.png'||publicState.footer||publicState.editable||!publicState.env)throw new Error(`public parity bad ${JSON.stringify(publicState)}`);
+          if(!/rgb\(250, 247, 245\)/.test(publicState.color))throw new Error(`public title not white ${JSON.stringify(publicState)}`);
           await browser.close();
           NODE
