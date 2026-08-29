@@ -33,3 +33,20 @@ The regular 400 and thin 100 faces are preloaded on the authenticated shell beca
 ## Regression gate
 
 `site/font-architecture.test.mjs` fails release validation if production code reintroduces retired font families/assets, nonzero letter spacing, unsupported numeric weights, external runtime font hosting, or more than the approved three production font binaries.
+
+## Editorial hierarchy — Pack 47
+
+On 29 August 2026 the Today / Guidance / Reading Details presentation was deliberately reduced from many perceived type levels to six editorial roles. This is a hierarchy rule, not a new font architecture.
+
+1. **Display** — `Breathe well`, `Guidance`, `Reading details`; LINE Seed Thin 100, one dramatic headline per major section.
+2. **Primary metric** — PM2.5 and the secondary AQI/weather numerals; LINE Seed Thin 100, with PM2.5 remaining the dominant data point.
+3. **Section headline** — interpretation such as `Very good`; Regular 400, sentence case, clearly subordinate to the display headline.
+4. **Body** — route decks, guidance, explanations, disclaimers and reference prose; one shared reading size.
+5. **Label** — small editorial/navigation labels such as `LIVE AIR QUALITY`, `TODAY’S GUIDANCE`, `PM2.5`, `THAI AQI`, buttons and tab labels.
+6. **Meta** — timestamps, locations, qualifiers, weather metadata and scale references; one subdued supporting size.
+
+Uppercase is reserved for true small editorial/navigation labels. Secondary content headings such as `For everyone`, `Sensitive groups`, field names and weather conditions use sentence case rather than creating additional typographic tiers.
+
+Structural separation should come from spacing, rules and alignment before introducing another font size or weight. `Observation` in Reading Details remains an accessible heading but is visually hidden because the route title and deck already establish the context.
+
+Pack 46 is the immediate rollback target for this presentation change.
