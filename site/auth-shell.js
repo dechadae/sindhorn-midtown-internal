@@ -11,14 +11,15 @@ function safeReturnPath(){
 function loginUrl(){return`${LOGIN_PATH}?next=${encodeURIComponent(safeReturnPath())}`}
 function hasCompleteEmployeeAuth(state){return Boolean(state?.authenticated&&state?.profile&&state.profile.pin_configured_at)}
 function initials(name,fallback='SM'){const words=String(name||'').trim().split(/\s+/).filter(Boolean);if(!words.length)return fallback;return(words.length===1?words[0].slice(0,2):`${words[0][0]||''}${words.at(-1)?.[0]||''}`).toUpperCase()}
-function compactName(profile){const value=String(profile?.display_name||profile?.employee_number||'Account').trim();return value||'Account'}
-function applyEmployeeHeader(){
-  const profile=getState().profile||window.__SINDHORN_AUTH_PROFILE__;if(!profile)return;
+function employeeNumber(profile){return String(profile?.employee_number||profile?.employeeNumber||'').trim()}
+function compactName(profile){const value=String(profile?.display_name||profile?.displayName||employeeNumber(profile)||'Account').trim();return value||'Account'}
+function applyEmployeeHeader(profileInput=null){
+  const profile=(profileInput&&typeof profileInput==='object'&&!('type'in profileInput)?profileInput:null)||getState().profile||window.__SINDHORN_AUTH_PROFILE__;if(!profile)return;
   const tools=document.querySelector('.masthead-tools');if(!tools)return;
   const existing=tools.querySelector('.masthead-user'),today=tools.querySelector('.today');if(today)today.remove();
   const link=existing||document.createElement('a');link.className='masthead-user';link.href=SETTINGS_PATH;link.dataset.appRoute='settings';link.setAttribute('aria-label',`Open settings for ${compactName(profile)}`);link.replaceChildren();
   const name=document.createElement('span');name.className='masthead-user-name';name.textContent=compactName(profile);
-  const avatar=document.createElement('span');avatar.className='masthead-user-avatar';avatar.textContent=initials(profile.display_name,initials(profile.employee_number,'SM'));avatar.setAttribute('aria-hidden','true');
+  const avatar=document.createElement('span');avatar.className='masthead-user-avatar';avatar.textContent=initials(compactName(profile),initials(employeeNumber(profile),'SM'));avatar.setAttribute('aria-hidden','true');
   link.append(name,avatar);if(!existing)tools.prepend(link);
 }
 async function loadClassicScript(src){await new Promise((resolve,reject)=>{if(document.querySelector(`script[data-auth-shell-src="${src}"]`)){resolve();return}const script=document.createElement('script');script.src=src;script.dataset.authShellSrc=src;script.onload=resolve;script.onerror=()=>reject(new Error(`Unable to load ${src}`));document.head.appendChild(script)})}
@@ -26,7 +27,8 @@ async function loadClassicScript(src){await new Promise((resolve,reject)=>{if(do
 let state;try{state=await initAuth()}catch(_){state=getState()}
 if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
   window.__SINDHORN_AUTH_PROFILE__=state.profile;
-  document.addEventListener('sindhorn:pack-updated',applyEmployeeHeader);
-  document.addEventListener('sindhorn:auth-changed',event=>{const nextState=getState();if(!event.detail?.authenticated||!hasCompleteEmployeeAuth(nextState)){location.replace(loginUrl());return}window.__SINDHORN_AUTH_PROFILE__=event.detail.profile||nextState.profile;applyEmployeeHeader()});
+  document.addEventListener('sindhorn:pack-updated',()=>applyEmployeeHeader());
+  document.addEventListener('sindhorn:capabilities-updated',event=>applyEmployeeHeader(event.detail?.profile));
+  document.addEventListener('sindhorn:auth-changed',event=>{const nextState=getState();if(!event.detail?.authenticated||!hasCompleteEmployeeAuth(nextState)){location.replace(loginUrl());return}window.__SINDHORN_AUTH_PROFILE__=event.detail.profile||nextState.profile;applyEmployeeHeader(window.__SINDHORN_AUTH_PROFILE__)});
   await loadClassicScript('/location.js');await import('./bootstrap.js');applyEmployeeHeader();
 }
