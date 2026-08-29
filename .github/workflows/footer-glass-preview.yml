@@ -26,13 +26,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate centralized footer authority and stable F&B actions
+      - name: Validate exact footer clone and prepaint F&B enhancements
         shell: bash
         run: |
           set -euo pipefail
           node --input-type=module --check < site/footer-route-guard.js
           node --input-type=module --check < site/fnb-share-ui.js
-          grep -q -- '--sm-footer-glass-bg:' site/footer-route-guard.css
+          grep -q -- '--sm-footer-surface-rgb:38,32,49' site/footer-route-guard.css
+          grep -q -- '--sm-footer-glass-alpha:.84' site/footer-route-guard.css
           grep -q -- '--sm-footer-glass-filter:blur(26px)' site/footer-route-guard.css
           grep -q -- '--sm-footer-height:54px' site/footer-route-guard.css
           grep -q -- '--sm-footer-item-height:42px' site/footer-route-guard.css
@@ -40,16 +41,24 @@ jobs:
           grep -q '#app-footer .nav-chip,' site/footer-route-guard.css
           grep -q 'body\[data-route="fnb"\] .fnb-section-rail .fnb-chip{' site/footer-route-guard.css
           grep -q -- '--sm-footer-gap:6px' site/footer-route-guard.css
-          grep -q 'rgba(229,236,190,.07)' site/footer-route-guard.css
+          grep -q -- '--sm-footer-surface-rgb:229,236,190' site/footer-route-guard.css
           grep -q "route:'account',label:'Settings',href:'/account'" site/footer-route-guard.js
           grep -q "const ACCOUNT_PATH='/account'" site/auth-shell.js
+          grep -q "source:'footer-prepaint'" site/footer-route-guard.js
+          node - <<'NODE'
+          const fs=require('fs');
+          const s=fs.readFileSync('site/footer-route-guard.js','utf8');
+          const dispatch=s.indexOf("source:'footer-prepaint'");
+          const reveal=s.indexOf('await fadeHost(host,0,1,180)');
+          if(dispatch<0||reveal<0||dispatch>reveal)throw new Error('F&B enhancements are not dispatched before reveal');
+          NODE
           grep -q 'fnb-card-folder' site/fnb-share-ui.js
           grep -q 'Artwork folder' site/fnb-share-ui.js
           grep -q 'padding-bottom:62px' site/fnb-layout-stability.css
           grep -q 'position:absolute!important' site/fnb-layout-stability.css
-          grep -q '/footer-route-guard.css?v=8' site/index.html
+          grep -q '/footer-route-guard.css?v=9' site/index.html
           grep -q '/fnb-layout-stability.css?v=1' site/index.html
-          grep -q '/footer-route-guard.js?v=7' site/index.html
+          grep -q '/footer-route-guard.js?v=8' site/index.html
           grep -q '/fnb-share-ui.js?v=3' site/index.html
 
       - name: Deploy Cloudflare branch preview
@@ -64,9 +73,11 @@ jobs:
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          curl -fsS "$BASE_URL/" | grep -q '/footer-route-guard.css?v=8'
+          curl -fsS "$BASE_URL/" | grep -q '/footer-route-guard.css?v=9'
           curl -fsS "$BASE_URL/" | grep -q '/fnb-layout-stability.css?v=1'
-          curl -fsS "$BASE_URL/footer-route-guard.css?v=8" | grep -q 'grid-template-columns:repeat(4,minmax(0,1fr))'
-          curl -fsS "$BASE_URL/footer-route-guard.js?v=7" | grep -q "label:'Settings',href:'/account'"
+          curl -fsS "$BASE_URL/footer-route-guard.css?v=9" | grep -q -- '--sm-footer-surface-rgb:229,236,190'
+          curl -fsS "$BASE_URL/footer-route-guard.css?v=9" | grep -q 'grid-template-columns:repeat(4,minmax(0,1fr))'
+          curl -fsS "$BASE_URL/footer-route-guard.js?v=8" | grep -q "source:'footer-prepaint'"
+          curl -fsS "$BASE_URL/footer-route-guard.js?v=8" | grep -q "label:'Settings',href:'/account'"
           curl -fsS "$BASE_URL/fnb-share-ui.js?v=3" | grep -q 'fnb-card-folder'
           curl -fsS "$BASE_URL/fnb-layout-stability.css?v=1" | grep -q 'padding-bottom:62px'
