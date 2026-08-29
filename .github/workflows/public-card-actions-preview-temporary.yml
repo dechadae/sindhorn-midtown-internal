@@ -1,0 +1,93 @@
+name: Temporary Public Card Actions Preview
+
+on:
+  push:
+    branches: [restore-public-card-actions]
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Generate public shares
+        run: |
+          set -euo pipefail
+          PUBLIC_ORIGIN=https://restore-public-card-actions.sindhorn-midtown-internal.pages.dev node scripts/generate-fnb-share.mjs
+          node .github/tests/fnb-sharing-regression.test.mjs
+
+      - name: Deploy branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=restore-public-card-actions
+
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+
+      - name: Compare compact card actions with authenticated live F&B
+        env:
+          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
+          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
+        run: |
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          import {chromium} from 'playwright';
+          fs.mkdirSync('evidence',{recursive:true});
+          const employee=process.env.CI_SMOKE_EMPLOYEE_NUMBER,pin=process.env.CI_SMOKE_PIN;
+          if(!employee||!/^\d{6}$/.test(pin||''))throw new Error('CI credentials unavailable');
+          const PROD='https://sindhorn-midtown-internal.pages.dev';
+          const PREVIEW='https://restore-public-card-actions.sindhorn-midtown-internal.pages.dev';
+          const browser=await chromium.launch({headless:true});
+          const liveCtx=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
+          const live=await liveCtx.newPage();
+          await live.goto(PROD+'/login.html',{waitUntil:'domcontentloaded'});
+          await live.fill('#employeeNumber',employee);
+          for(let i=0;i<6;i++)await live.fill(`[data-pin-login-digit="${i}"]`,pin[i]);
+          await live.click('#pinLoginButton');
+          await live.waitForURL(url=>new URL(url).pathname==='/',{timeout:25000});
+          await live.waitForFunction(()=>window.SindhornAppPack?.refresh&&document.documentElement.dataset.shellLoading==='false',null,{timeout:30000});
+          await live.evaluate(()=>window.SindhornAppPack.refresh());
+          await live.evaluate(async()=>window.SindhornNavigation.transitionToRoute('fnb'));
+          await live.waitForURL(url=>new URL(url).pathname==='/fnb',{timeout:12000});
+          await live.waitForSelector('.fnb-card .fnb-card-actions .fnb-card-folder',{timeout:20000});
+          const cardState=async page=>page.evaluate(()=>{
+            const card=[...document.querySelectorAll('.fnb-card')].find(c=>c.querySelector('.fnb-card-title')?.textContent?.includes('Fried Chicken & Waffles'));
+            if(!card)throw new Error('Fried Chicken card missing');
+            const actions=card.querySelector('.fnb-card-actions'),folder=card.querySelector('.fnb-card-folder'),share=card.querySelector('[data-fnb-share="promotion"]'),button=card.querySelector('.fnb-card-button');
+            const pick=el=>{const c=getComputedStyle(el),r=el.getBoundingClientRect();return{display:c.display,height:Math.round(r.height*10)/10,padding:c.padding,borderTop:c.borderTop,fontSize:c.fontSize,color:c.color}};
+            return{actions:pick(actions),folder:pick(folder),share:pick(share),paddingBottom:getComputedStyle(button).paddingBottom};
+          });
+          const liveState=await cardState(live);
+          await live.screenshot({path:'evidence/live-fnb-card-actions.png',fullPage:true});
+
+          const pubCtx=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});
+          const pub=await pubCtx.newPage();
+          await pub.goto(PREVIEW+'/share/fnb',{waitUntil:'networkidle',timeout:45000});
+          await pub.waitForSelector('.fnb-card .fnb-card-actions .fnb-card-folder',{timeout:20000});
+          const publicState=await cardState(pub);
+          const boundary=await pub.evaluate(()=>({user:!!document.querySelector('.masthead-user'),tools:!!document.querySelector('.masthead-tools'),footer:!!document.querySelector('#app-footer'),tabbar:!!document.querySelector('.app-tabbar'),edit:!!document.querySelector('[data-folder-edit]'),width:innerWidth,scrollWidth:document.documentElement.scrollWidth}));
+          for(const key of ['actions','folder','share'])for(const prop of Object.keys(liveState[key]))if(liveState[key][prop]!==publicState[key][prop])throw new Error(`${key}.${prop} mismatch live=${liveState[key][prop]} public=${publicState[key][prop]}`);
+          if(liveState.paddingBottom!==publicState.paddingBottom)throw new Error(`card padding mismatch live=${liveState.paddingBottom} public=${publicState.paddingBottom}`);
+          if(publicState.actions.display==='none'||publicState.actions.height<40)throw new Error('public card actions not visible');
+          if(boundary.user||boundary.tools||boundary.footer||boundary.tabbar||boundary.edit||boundary.scrollWidth>boundary.width+2)throw new Error(`public boundary failed ${JSON.stringify(boundary)}`);
+          await pub.screenshot({path:'evidence/public-fnb-card-actions.png',fullPage:true});
+          console.log(JSON.stringify({liveState,publicState,boundary},null,2));
+          await browser.close();
+          NODE
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-card-actions-${{ github.run_id }}
+          path: evidence/
+          if-no-files-found: warn
+          retention-days: 7
