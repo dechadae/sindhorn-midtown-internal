@@ -150,8 +150,7 @@ function prepareScrollRunway(root,card){
 function scrollCardToTop(card){
   const expected=desiredCardTop();
   const top=Math.max(0,window.scrollY+card.getBoundingClientRect().top-expected);
-  const behavior=reducedMotion()?'auto':'smooth';
-  if(behavior==='auto'||Math.abs(card.getBoundingClientRect().top-expected)<=2){
+  if(reducedMotion()||Math.abs(card.getBoundingClientRect().top-expected)<=2){
     window.scrollTo({top,behavior:'auto'});
     return Promise.resolve();
   }
@@ -167,7 +166,7 @@ function scrollCardToTop(card){
       }
       requestAnimationFrame(settle);
     };
-    window.scrollTo({top,behavior});
+    window.scrollTo({top,behavior:reducedMotion()?'auto':'smooth'});
     requestAnimationFrame(settle);
   });
 }
