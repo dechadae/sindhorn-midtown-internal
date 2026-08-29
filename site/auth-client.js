@@ -64,10 +64,13 @@ export async function refreshSession({force=false}={}){
 export async function fetchProfile({retry401=true}={}){
   if(!session)return null;
   await refreshSession();
-  const select='id,employee_number,display_name,work_email,account_type,department_id,role,active,preferred_language,activated_at,pin_configured_at';
-  const response=await fetch(`${SUPABASE_URL}/rest/v1/sindhorn_employees?select=${encodeURIComponent(select)}&limit=1`,{cache:'no-store',headers:{apikey:SUPABASE_KEY,authorization:`Bearer ${session.access_token}`,Accept:'application/json'}});
-  if(response.status===401&&retry401){await refreshSession({force:true});return fetchProfile({retry401:false})}
-  const rows=await responseJson(response),next=Array.isArray(rows)?rows[0]:null;
+  let next;
+  try{
+    next=await supabaseRpc('sindhorn_current_employee_profile',{}, {accessToken:session.access_token});
+  }catch(error){
+    if(error?.status===401&&retry401){await refreshSession({force:true});return fetchProfile({retry401:false})}
+    throw error;
+  }
   if(!next||next.active!==true){clearLocal('employee_inactive');return null}
   profile=next;dispatch('sindhorn:auth-changed',{authenticated:true,profile:structuredClone(profile),reason:'profile'});return structuredClone(profile);
 }
