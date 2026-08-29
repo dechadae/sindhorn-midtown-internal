@@ -15,6 +15,7 @@ This applies to the canonical authenticated routes:
 - `/` — Today. This route composes the existing `today.html`, `guidance.html` and `details.html` presentation fragments into one continuous scrollable page.
 - `/fnb` — F&B.
 - `/messages` — Messages.
+- `/ihg-history` — Brand, currently presenting the IHG Brand History learning module.
 - `/settings` — unified employee Settings and capability-gated administration.
 
 `/guidance` and `/details` are retired as standalone destinations. Legacy requests resolve back to Today; their content remains present inside the Today route.
@@ -23,7 +24,9 @@ This applies to the canonical authenticated routes:
 
 The persistent global footer navigation is:
 
-`Today / F&B / Messages / Settings`
+`Today / F&B / Messages / Brand`
+
+Settings and administration remain available from the authenticated employee avatar in the persistent header. Removing Settings from the global footer does not change the `/settings` route, its capability model, or the `/account` and `/admin` compatibility aliases.
 
 It also applies to every future authenticated page or module. A future feature must be registered in `site/route-registry.js` and mounted through the persistent shell. It must not introduce a new standalone authenticated HTML document.
 
@@ -49,7 +52,7 @@ Authenticated route transitions must:
 
 `site/route-registry.js` is the executable route registry.
 
-Remote presentation routes use validated Supabase pack fragments. A route may compose more than one validated pack fragment. Shell-owned application routes such as F&B and Settings use local mount modules. Both route types are mounted through `window.SindhornAppPack.mountRoute()` and navigated through the same History API router.
+Remote presentation routes use validated Supabase pack fragments. A route may compose more than one validated pack fragment. Shell-owned application routes such as F&B, Brand and Settings use local mount modules. Both route types are mounted through `window.SindhornAppPack.mountRoute()` and navigated through the same History API router.
 
 Legacy `/account.html` and `/admin.html` URLs remain compatibility entry points only. `/account` and `/admin` resolve to the Settings renderer and are not independent route implementations.
 
