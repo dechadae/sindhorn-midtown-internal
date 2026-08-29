@@ -48,7 +48,7 @@ body[data-fnb-detail="true"] .fnb-section-rail{visibility:visible;opacity:1;poin
 .fnb-stat span{font-size:8.5px!important;line-height:1.2!important}
 .fnb-stat b{font-size:14.5px!important;line-height:1.2!important}
 body[data-route="fnb"] .fnb-expand{width:auto!important;height:30px!important;min-height:30px!important;margin-top:7px!important;padding:0 10px!important;border-radius:9px!important;font-size:10px!important;font-weight:400!important;line-height:1!important;letter-spacing:0!important}
-.fnb-sheet-layer{z-index:135!important;inset:0 0 calc(68px + env(safe-area-inset-bottom))!important;padding:0 10px 8px!important}
+.fnb-sheet-layer{z-index:135!important;inset:0 0 calc(84px + env(safe-area-inset-bottom))!important;padding:0 10px 8px!important}
 .fnb-sheet{width:min(100%,560px)!important;max-height:min(76vh,calc(100dvh - 150px))!important;margin:0!important;padding:16px max(18px,var(--sm-gutter)) 18px!important;border:1px solid var(--fnb-glass-brd)!important;border-radius:18px!important;overscroll-behavior:contain!important}
 .fnb-sheet [data-save-links]{margin-bottom:0!important}
 .fnb-select-option[data-value="SEP"]>span,.fnb-select-option[data-value="OCT"]>span,.fnb-select-option[data-value="NOV"]>span,.fnb-select-option[data-value="DEC"]>span{font-size:0!important}
