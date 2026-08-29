@@ -1,0 +1,47 @@
+.weather-lab{font-family:'LINE Seed Sans TH',sans-serif;letter-spacing:0!important;max-width:980px;margin:0 auto;padding:28px 18px 140px;color:var(--ink,#fff)}
+.weather-lab *{box-sizing:border-box;letter-spacing:0!important}
+.weather-lab-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:10px 0 24px}
+.weather-lab-eyebrow,.weather-lab-kicker,.weather-lab-meta,.weather-lab-note{margin:0;opacity:.68}
+.weather-lab-eyebrow{font-size:12px;font-weight:700;text-transform:uppercase}
+.weather-lab h1{font-size:clamp(32px,8vw,58px);line-height:.95;margin:8px 0 10px;font-weight:100}
+.weather-lab-head p:last-child{max-width:620px;font-size:15px;line-height:1.45}
+.weather-lab-refresh,.weather-lab-truth,.weather-lab-copy{appearance:none;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.1);color:inherit;border-radius:999px;font:inherit;font-weight:700;padding:11px 16px;min-height:44px;cursor:pointer;transition:transform .18s ease,background .18s ease,opacity .18s ease}
+.weather-lab-refresh:active,.weather-lab-truth:active,.weather-lab-copy:active{transform:scale(.97)}
+.weather-lab-refresh[disabled]{opacity:.5;cursor:wait}
+.weather-lab-summary{display:grid;grid-template-columns:1.25fr .75fr;gap:12px;margin-bottom:12px}
+.weather-lab-panel,.weather-lab-card{border:1px solid rgba(255,255,255,.16);background:rgba(25,22,31,.34);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:22px;padding:18px;box-shadow:0 18px 48px rgba(0,0,0,.08)}
+.weather-lab-verdict{min-height:170px;display:flex;flex-direction:column;justify-content:space-between}
+.weather-lab-verdict strong{display:block;font-size:clamp(34px,8vw,62px);font-weight:100;line-height:1;margin:8px 0}
+.weather-lab-verdict[data-state="wet"] strong{font-weight:700}
+.weather-lab-status-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.weather-lab-pill{display:inline-flex;align-items:center;min-height:28px;border-radius:999px;padding:5px 10px;background:rgba(255,255,255,.1);font-size:12px;font-weight:700}
+.weather-lab-pill[data-tone="good"]{background:rgba(202,231,190,.18)}
+.weather-lab-pill[data-tone="warn"]{background:rgba(255,220,154,.16)}
+.weather-lab-location strong{font-size:20px;font-weight:700;display:block;margin:7px 0}
+.weather-lab-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+.weather-lab-card h2{font-size:20px;margin:4px 0 15px;font-weight:700}
+.weather-lab-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.weather-lab-source{font-size:12px;font-weight:700;opacity:.66;text-transform:uppercase}
+.weather-lab-primary{font-size:30px;font-weight:100;line-height:1.05;margin:2px 0 16px;overflow-wrap:anywhere}
+.weather-lab-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:rgba(255,255,255,.1);border-radius:15px;overflow:hidden}
+.weather-lab-metric{background:rgba(25,22,31,.34);padding:11px 12px;min-height:70px}
+.weather-lab-metric span{display:block;font-size:11px;opacity:.62;margin-bottom:5px}
+.weather-lab-metric b{display:block;font-size:15px;font-weight:700;overflow-wrap:anywhere}
+.weather-lab-card .weather-lab-note{font-size:12px;line-height:1.45;margin-top:13px}
+.weather-lab-truth-panel{margin-top:12px}
+.weather-lab-truth-panel h2,.weather-lab-log h2{margin:0 0 6px;font-size:20px}
+.weather-lab-truth-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+.weather-lab-truth[data-truth="wet"]{background:rgba(255,255,255,.18)}
+.weather-lab-truth[data-truth="dry"]{background:rgba(255,255,255,.06)}
+.weather-lab-log{margin-top:12px}
+.weather-lab-log-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.weather-lab-log-list{display:grid;gap:7px;margin-top:12px}
+.weather-lab-log-item{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid rgba(255,255,255,.1);font-size:13px}
+.weather-lab-log-item strong{font-weight:700}
+.weather-lab-log-empty{opacity:.62;font-size:13px;padding-top:12px}
+.weather-lab details{margin-top:12px}
+.weather-lab summary{cursor:pointer;font-weight:700;padding:6px 0}
+.weather-lab pre{white-space:pre-wrap;word-break:break-word;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;max-height:480px;overflow:auto;background:rgba(0,0,0,.18);padding:12px;border-radius:14px}
+.weather-lab-error{padding:11px 13px;border-radius:14px;background:rgba(255,180,180,.12);font-size:13px;line-height:1.45;margin-bottom:12px}
+@media(max-width:720px){.weather-lab-head{align-items:flex-start;flex-direction:column}.weather-lab-summary,.weather-lab-grid{grid-template-columns:1fr}.weather-lab-refresh{align-self:flex-start}.weather-lab-primary{font-size:26px}.weather-lab-panel,.weather-lab-card{border-radius:18px}.weather-lab-truth-actions{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.weather-lab-refresh,.weather-lab-truth,.weather-lab-copy{transition:none}}
