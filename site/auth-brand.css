@@ -1,7 +1,7 @@
 /* Sindhorn Midtown Internal login presentation.
    /login.html is the only standalone document boundary. It deliberately uses
    a CSS-only atmosphere: no WebGL renderer, weather runtime or static image. */
-*,*::before,*::after{letter-spacing:0!important}
+*,*::before,*::after{letter-spacing:0px!important}
 html,body,button,a,input,select,textarea,summary{-webkit-tap-highlight-color:transparent}
 button:focus:not(:focus-visible),a:focus:not(:focus-visible),input:focus:not(:focus-visible),select:focus:not(:focus-visible),textarea:focus:not(:focus-visible){outline:none!important;box-shadow:none}
 
