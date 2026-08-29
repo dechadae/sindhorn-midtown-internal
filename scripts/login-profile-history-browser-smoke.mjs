@@ -67,6 +67,10 @@ try{
         canvas:document.querySelectorAll('canvas').length,
         environment:Boolean(document.querySelector('#environmentStage,.environment-stage')),
         logo:document.querySelector('.brand-logo')?.getAttribute('src')||'',
+        employeeInputMode:document.querySelector('#employeeNumber')?.inputMode||'',
+        employeePattern:document.querySelector('#employeeNumber')?.getAttribute('pattern')||'',
+        logoTop:document.querySelector('.brand-row-bottom')?.getBoundingClientRect().top??-1,
+        controlsBottom:document.querySelector('#loginControls')?.getBoundingClientRect().bottom??-1,
         bodyBackground:body.backgroundImage,
         bodyColor:body.color,
         cardBackground:card.backgroundColor,
@@ -78,6 +82,8 @@ try{
     });
     assert(state.canvas===0&&!state.environment,`Login must not mount WebGL/background renderer ${JSON.stringify(state)}`);
     assert(state.logo.includes('vignette-white.png'),`Login is not using white live-shell logo ${state.logo}`);
+    assert(state.employeeInputMode==='numeric'&&state.employeePattern==='[0-9]*',`Employee ID should request numeric keyboard ${JSON.stringify(state)}`);
+    assert(state.logoTop>state.controlsBottom,`Hotel logo must sit below the sign-in panel ${JSON.stringify(state)}`);
     assert(state.bodyBackground.includes('gradient'),`Login static shell background missing ${state.bodyBackground}`);
     assert(state.cardBackground==='rgba(0, 0, 0, 0)',`Outer login card should be transparent ${state.cardBackground}`);
     assert(state.controlsBackground!=='rgba(0, 0, 0, 0)',`Login form glass surface missing ${state.controlsBackground}`);
@@ -127,7 +133,7 @@ try{
   await assertNoOverflow(history.page,'History');
   await history.context.close();
 
-  console.log(JSON.stringify({ok:true,login:'static dark live-shell styling',profile:{position:facts.Position,department:facts.Department},history:{gap:collapsedGap.gap}},null,2));
+  console.log(JSON.stringify({ok:true,login:'static dark live-shell styling + bottom logo + numeric Employee ID',profile:{position:facts.Position,department:facts.Department},history:{gap:collapsedGap.gap}},null,2));
 }finally{
   await browser.close();
 }

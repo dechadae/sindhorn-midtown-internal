@@ -157,3 +157,15 @@ body.login-page{
   .login-page .brand-logo{width:150px}
   .login-page #loginControls,.login-page .pin-setup,.login-page .signed-card{padding:16px;border-radius:15px}
 }
+
+
+/* 2026-08-30 login bottom-brand refinement */
+.login-page .brand-rule{height:3px;margin:0;background:var(--vg-accent);border-radius:999px}
+.login-page .brand-row-bottom{
+  display:flex;align-items:center;justify-content:center;min-height:0;margin:clamp(44px,8vh,76px) 0 0;padding:0 0 4px;border:0
+}
+.login-page .brand-row-bottom .brand-logo{width:132px;max-width:42vw;height:auto;opacity:.96}
+@media(max-width:520px){
+  .login-page .brand-row-bottom{margin-top:52px;padding-bottom:2px}
+  .login-page .brand-row-bottom .brand-logo{width:124px}
+}

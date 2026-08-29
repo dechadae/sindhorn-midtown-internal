@@ -10,14 +10,12 @@
  <link rel="stylesheet" href="/fonts.css?v=1">
  <link rel="stylesheet" href="/app-transitions.css">
  <link rel="stylesheet" href="/internal-auth.css?v=6">
- <link rel="stylesheet" href="/auth-brand.css?v=3">
+ <link rel="stylesheet" href="/auth-brand.css?v=4">
 </head>
 <body class="login-page">
  <main class="auth-shell">
  <section class="auth-card" aria-labelledby="loginTitle">
- <div class="brand-row">
- <img class="brand-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection">
-</div>
+ <div class="brand-rule" aria-hidden="true"></div>
 
  <p class="eyebrow" data-i18n="eyebrow">Internal employee access</p>
  <h1 id="loginTitle" data-i18n="title">Employee sign in.</h1>
@@ -27,7 +25,7 @@
  <form id="employeeForm" class="stack">
  <div class="field">
  <label for="employeeNumber" data-i18n="employeeId">Employee ID</label>
- <input id="employeeNumber" name="employeeNumber" inputmode="text" autocomplete="username" maxlength="64" required>
+ <input id="employeeNumber" name="employeeNumber" inputmode="numeric" pattern="[0-9]*" autocomplete="username" maxlength="64" required>
 </div>
 
  <section id="pinLoginStep" class="auth-step">
@@ -112,6 +110,10 @@
  <button id="signOutButton" type="button" data-i18n="signOut">Sign out</button>
 </div>
 </section>
+
+ <div class="brand-row brand-row-bottom">
+ <img class="brand-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection">
+ </div>
 </section>
 </main>
  <script type="module" src="/app-transitions.js"></script>
