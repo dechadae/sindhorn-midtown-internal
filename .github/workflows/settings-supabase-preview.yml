@@ -29,7 +29,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/capabilities.js site/settings.js site/route-registry.js site/auth-shell.js site/footer-route-guard.js site/bootstrap.js site/app-transitions.js site/app.js; do
+          for file in site/capabilities.js site/settings.js site/settings-route-v3.js site/route-registry.js site/auth-shell.js site/footer-route-guard.js site/bootstrap.js site/app-transitions.js site/app.js; do
             if ! node --input-type=module --check < "$file" 2>/tmp/modcheck.err; then
               echo "ES module syntax error in $file"; cat /tmp/modcheck.err; exit 1
             fi
@@ -43,6 +43,8 @@ jobs:
           auth=(root/'auth-shell.js').read_text()
           settings=(root/'settings.js').read_text()
           settings_css=(root/'settings.css').read_text()
+          refinements=(root/'settings-refinements.css').read_text()
+          wrapper=(root/'settings-route-v3.js').read_text()
           fnb_css=(root/'fnb-approved-polish.css').read_text()
           caps=(root/'capabilities.js').read_text()
           footer=(root/'footer-route-guard.js').read_text()
@@ -52,7 +54,7 @@ jobs:
           doc=Path('docs/SETTINGS-ADMIN-SUPABASE-CAPABILITY-ARCHITECTURE-20260829.md').read_text()
 
           assert "settings:Object.freeze({path:'/settings'" in registry
-          assert "module:'./settings.js?v=2'" in registry
+          assert "module:'./settings-route-v3.js?v=1'" in registry
           assert "['/account','settings']" in registry and "['/admin','settings']" in registry
           assert "account:Object.freeze" not in registry and "admin:Object.freeze" not in registry
           assert '/settings / 200' in redirects and '/account / 200' in redirects and '/admin / 200' in redirects
@@ -71,6 +73,13 @@ jobs:
           assert '--fnb-motion-fast:160ms' in fnb_css and '--fnb-motion-base:260ms' in fnb_css
           assert '.fnb-select-trigger' in fnb_css and '.fnb-select-menu' in fnb_css and '.fnb-select-option' in fnb_css
           assert '--fnb-accent-rgb:229,236,190' in settings_css
+          assert "'/settings-refinements.css?v=1'" in wrapper
+          assert '.settings-route button{border:0}' in refinements
+          assert '.settings-select .fnb-select-option{border:0}' in refinements
+          assert '.settings-select .fnb-select-option+.fnb-select-option{border-top:1px solid rgba(250,247,245,.07)}' in refinements
+          assert 'height:100dvh!important' in refinements
+          assert 'overflow-y:auto!important' in refinements
+          assert '#app-footer' in refinements and 'flex-basis:calc((var(--sm-footer-height) * 2)' in refinements
           assert "settings-section-rail shell-footer-rail" in footer
           assert '#app-footer .settings-section-rail' in footer_css
           assert '#app-footer .shell-footer-rail' in footer_css
@@ -96,12 +105,14 @@ jobs:
           PREVIEW_BRANCH="${GITHUB_REF_NAME:0:28}"
           BASE_URL="https://${PREVIEW_BRANCH}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /settings /account /admin /settings.js /settings.css /capabilities.js /route-registry.js /auth-shell.js /footer-route-guard.js /footer-route-guard.css; do
+          for path in / /settings /account /admin /settings.js /settings.css /settings-route-v3.js /settings-refinements.css /capabilities.js /route-registry.js /auth-shell.js /footer-route-guard.js /footer-route-guard.css; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o "/tmp/$(echo "$path" | tr '/?' '__')"
           done
           curl -fsS "$BASE_URL/" -o /tmp/index.html
           curl -fsS "$BASE_URL/settings.js" -o /tmp/settings.js
           curl -fsS "$BASE_URL/settings.css?v=2" -o /tmp/settings.css
+          curl -fsS "$BASE_URL/settings-route-v3.js?v=1" -o /tmp/settings-wrapper.js
+          curl -fsS "$BASE_URL/settings-refinements.css?v=1" -o /tmp/settings-refinements.css
           curl -fsS "$BASE_URL/capabilities.js" -o /tmp/capabilities.js
           curl -fsS "$BASE_URL/route-registry.js" -o /tmp/registry.js
           curl -fsS "$BASE_URL/footer-route-guard.js?v=10" -o /tmp/footer.js
@@ -112,7 +123,10 @@ jobs:
           grep -q 'fnb-select settings-select' /tmp/settings.js
           grep -q 'data-settings-select-option' /tmp/settings.js
           grep -q -- '--settings-motion-base:260ms' /tmp/settings.css
-          grep -q "module:'./settings.js?v=2'" /tmp/registry.js
+          grep -q '/settings-refinements.css?v=1' /tmp/settings-wrapper.js
+          grep -q '.settings-route button{border:0}' /tmp/settings-refinements.css
+          grep -q 'overflow-y:auto!important' /tmp/settings-refinements.css
+          grep -q "module:'./settings-route-v3.js?v=1'" /tmp/registry.js
           grep -q "path:'/settings'" /tmp/registry.js
           grep -q "label:'Settings',href:'/settings'" /tmp/footer.js
           for path in /settings /account /admin; do
