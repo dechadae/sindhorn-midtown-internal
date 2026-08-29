@@ -2,13 +2,13 @@
 .environment-stage[hidden]{display:none!important}
 .environment-stage{position:fixed;z-index:0;top:0;left:0;right:0;bottom:auto;width:100vw;height:100vh;height:100lvh;overflow:hidden;background:#2E273B;pointer-events:none;isolation:isolate;contain:strict;transform:translateZ(0);backface-visibility:hidden}
 .environment-stage::before{content:"";position:absolute;z-index:2;inset:0;background:linear-gradient(180deg,rgba(22,19,29,.08) 0%,rgba(22,19,29,.055) 34%,rgba(25,21,31,.13) 68%,rgba(24,20,30,.24) 100%);pointer-events:none}
-.environment-canvas{position:absolute;z-index:1;inset:0;width:100%;height:100%;display:block;opacity:0;transform:translateZ(0);transform-origin:50% 50%;image-rendering:auto;backface-visibility:hidden;will-change:opacity,transform;transition:opacity .18s cubic-bezier(.2,.75,.2,1)}
+.environment-canvas{position:absolute;z-index:1;inset:0;width:100%;height:100%;display:block;opacity:0;transform:translateZ(0);transform-origin:50% 50%;image-rendering:auto;backface-visibility:hidden;will-change:opacity,transform;transition:none}
 body.environment-ready{background:transparent!important}
 /* Keep the GPU surface hidden while the shell is booting. initEnvironment()
    schedules the first render before bootstrap releases data-shell-loading, so
    the first visible WebGL frame is already painted instead of crossfading from
    the old blue/grey fallback gradient. */
-html[data-shell-loading="true"] .environment-canvas{opacity:0!important;transition:none!important}
+html[data-shell-loading="true"] .environment-canvas{opacity:0!important}
 html[data-shell-loading="false"] body.environment-ready .environment-canvas{opacity:1}
 
 /* Full-page save inserts a dedicated full-height atmosphere render. Do not let fixed live viewport layers stack on top of it. */
