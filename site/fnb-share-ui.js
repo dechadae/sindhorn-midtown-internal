@@ -3,7 +3,9 @@ import {initFnbArtworkSync} from '/fnb-artwork-sync.js';
 
 const SHARE_BASE='/share/fnb';
 const SHARE_LABEL='Share';
+const STATE_KEY='sindhorn-midtown:fnb-local:v1';
 const SHARE_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M5 13v6h14v-6"/></svg>';
+const FOLDER_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 6.5h6l2 2h9v9.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></svg>';
 let observer=null;
 let toastTimer=0;
 
@@ -24,6 +26,24 @@ function button(kind,id=''){
   return el
 }
 function route(){return document.querySelector('#route-view .fnb-route')}
+function safeFolder(value){if(!value)return null;try{const url=new URL(value);return url.protocol==='https:'&&(url.hostname.endsWith('sharepoint.com')||url.hostname.endsWith('1drv.ms')||url.hostname.endsWith('onedrive.live.com'))?url.href:null}catch(_){return null}}
+function localLinks(){try{return JSON.parse(localStorage.getItem(STATE_KEY)||'{}')?.links||{}}catch(_){return{}}}
+function artworkLinks(item){
+  if(!item)return[];
+  const overrides=localLinks(),seen=new Set(),links=[];
+  item.activations.forEach(activation=>{
+    const raw=Object.prototype.hasOwnProperty.call(overrides,activation.id)?overrides[activation.id]:activation.artworkUrl;
+    const url=safeFolder(raw);if(!url||seen.has(url))return;seen.add(url);links.push({outlet:activation.outlet,url})
+  });
+  return links
+}
+function folderControl(item){
+  const links=artworkLinks(item);if(!links.length)return null;
+  if(links.length===1){
+    const link=document.createElement('a');link.className='fnb-action-control fnb-card-folder';link.href=links[0].url;link.target='_blank';link.rel='noopener';link.setAttribute('aria-label',`Open artwork folder for ${item.title}`);link.innerHTML=`${FOLDER_ICON}<span>Artwork folder</span>`;return link
+  }
+  const control=document.createElement('button');control.type='button';control.className='fnb-action-control fnb-card-folder';control.dataset.fnbFolder=item.id;control.setAttribute('aria-label',`Open artwork folders for ${item.title}`);control.innerHTML=`${FOLDER_ICON}<span>Artwork folders</span>`;return control
+}
 function notify(message){
   const host=route();
   const existing=host?.querySelector('[data-toast]');
@@ -44,29 +64,31 @@ async function performShare(kind,id=''){
   }
   const copied=await copyFallback(url);notify(copied?'Link copied':'Share link ready')
 }
+function openFolderChooser(item){
+  const host=route(),links=artworkLinks(item);if(!host||!links.length)return;
+  if(links.length===1){window.open(links[0].url,'_blank','noopener');return}
+  const layer=host.querySelector('[data-sheet-layer]'),title=host.querySelector('[data-sheet-title]'),body=host.querySelector('[data-sheet-body]');
+  if(!layer||!title||!body)return;
+  title.textContent='Artwork folders';
+  body.innerHTML=`<div class="fnb-link-list">${links.map(link=>`<a href="${link.url.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" target="_blank" rel="noopener"><span>${String(link.outlet||'Artwork').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span><span>Open ↗</span></a>`).join('')}</div>`;
+  layer.classList.add('is-open');layer.setAttribute('aria-hidden','false')
+}
 function enhance(){
   const host=route();if(!host)return;
   const hero=host.querySelector('.fnb-hero');
-  if(hero&&!hero.querySelector('[data-fnb-share="page"]')){
-    const eyebrow=hero.querySelector('.fnb-eyebrow');
-    const utility=document.createElement('div');utility.className='fnb-hero-utility';
-    if(eyebrow){hero.insertBefore(utility,eyebrow);utility.appendChild(eyebrow)}else hero.prepend(utility);
-    utility.appendChild(button('page'))
-  }
+  if(hero&&!hero.querySelector('[data-fnb-share="page"]'))hero.appendChild(button('page'));
   host.querySelectorAll('.fnb-card').forEach(card=>{
-    const opener=card.querySelector('[data-open]'),id=opener?.dataset.open;
-    if(!id||card.querySelector('[data-fnb-share="promotion"]'))return;
-    const actions=document.createElement('div');actions.className='fnb-card-actions';actions.appendChild(button('promotion',id));card.appendChild(actions)
+    const opener=card.querySelector('[data-open]'),id=opener?.dataset.open,item=promotion(id);if(!id||!item)return;
+    let actions=card.querySelector('.fnb-card-actions');
+    if(!actions){actions=document.createElement('div');actions.className='fnb-card-actions';card.appendChild(actions)}
+    if(!actions.querySelector('.fnb-card-folder')){const folder=folderControl(item);if(folder)actions.appendChild(folder)}
+    if(!actions.querySelector('[data-fnb-share="promotion"]'))actions.appendChild(button('promotion',id))
   });
   const detail=host.querySelector('.fnb-detail:not([hidden])');
   const currentTitle=detail?.querySelector('.fnb-detail-title')?.textContent?.trim();
   const item=currentTitle?DATA.find(candidate=>candidate.title===currentTitle):null;
   const head=detail?.querySelector('.fnb-detail-head');
-  if(head&&item&&!head.querySelector('[data-fnb-share="promotion"]')){
-    const back=head.querySelector('.fnb-back');
-    const utility=document.createElement('div');utility.className='fnb-detail-utility';
-    head.prepend(utility);if(back)utility.appendChild(back);utility.appendChild(button('promotion',item.id))
-  }
+  if(head&&item&&!head.querySelector('[data-fnb-share="promotion"]'))head.appendChild(button('promotion',item.id))
 }
 function start(){
   observer?.disconnect();observer=null;
@@ -75,8 +97,10 @@ function start(){
   observer=new MutationObserver(()=>enhance());observer.observe(host,{childList:true,subtree:true})
 }
 document.addEventListener('click',event=>{
-  const share=event.target.closest?.('[data-fnb-share]');if(!share)return;
-  event.preventDefault();event.stopPropagation();void performShare(share.dataset.fnbShare,share.dataset.promotionId||'')
+  const share=event.target.closest?.('[data-fnb-share]');
+  if(share){event.preventDefault();event.stopPropagation();void performShare(share.dataset.fnbShare,share.dataset.promotionId||'');return}
+  const folder=event.target.closest?.('[data-fnb-folder]');
+  if(folder){event.preventDefault();event.stopPropagation();const item=promotion(folder.dataset.fnbFolder);if(item)openFolderChooser(item)}
 },{capture:true});
 document.addEventListener('sindhorn:route-mounted',()=>queueMicrotask(start));
 initFnbArtworkSync();
