@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {resolveWeatherAuthority,classifyRainRate,locationKey,effectiveWeatherSnapshot,TMD_RAIN_NOW_STALE_MS} from './weather-authority.js';
+const now=Date.parse('2026-08-29T11:20:00Z');
+const om=(over={})=>({weatherCode:3,precipitationMm:0,rainMm:0,showersMm:0,observedAt:'2026-08-29T11:15:00Z',...over});
+const tmd=(over={})=>({ok:true,provider:'tmd-aws',observedAt:'2026-08-29T11:15:00+07:00',rainIntensityMmHr:.8,precipitationIntensityMmHr:.8,precipitationProbability:100,weatherCode:63,...over});
+let r=resolveWeatherAuthority({openMeteo:om(),rainNow:tmd({observedAt:'2026-08-29T11:19:00Z'}),nowMs:now});assert.equal(r.active,true);assert.equal(r.label,'Rain');assert.equal(r.authority,'tmd-aws');const effective=effectiveWeatherSnapshot(om(),r);assert.equal(effective.precipitationActive,true);assert.equal(effective.weatherCode,61);assert.equal(effective.cloudWeatherCode,3);assert.ok(effective.precipitationMm>=.1);
+r=resolveWeatherAuthority({openMeteo:om({weatherCode:0}),rainNow:tmd({observedAt:'2026-08-29T11:05:00Z',rainIntensityMmHr:0,precipitationIntensityMmHr:0,weatherCode:63}),nowMs:now});assert.equal(r.active,true);assert.equal(r.label,'Rain');assert.equal(r.rainNowStale,false);
+r=resolveWeatherAuthority({openMeteo:om({weatherCode:0}),rainNow:tmd({observedAt:new Date(now-TMD_RAIN_NOW_STALE_MS-60_000).toISOString(),rainIntensityMmHr:3}),nowMs:now});assert.equal(r.active,false);assert.equal(r.rainNowStale,true);
+r=resolveWeatherAuthority({openMeteo:om({weatherCode:61,precipitationMm:.4}),rainNow:{ok:false},nowMs:now});assert.equal(r.active,true);assert.equal(r.authority,'open-meteo');
+const started=resolveWeatherAuthority({openMeteo:om(),rainNow:tmd({observedAt:'2026-08-29T11:19:00Z'}),nowMs:now,locationKey:'a'});assert.equal(started.active,true);
+const dry={ok:true,provider:'tmd-aws',observedAt:'2026-08-29T11:22:00Z',rainIntensityMmHr:0,weatherCode:3};
+const firstDry=resolveWeatherAuthority({openMeteo:om({weatherCode:3,observedAt:'2026-08-29T11:20:00Z'}),rainNow:dry,previous:started.state,nowMs:now+3*60*1000,locationKey:'a'});assert.equal(firstDry.active,true);assert.equal(firstDry.authority,'hysteresis');
+const secondDry=resolveWeatherAuthority({openMeteo:om({weatherCode:3,observedAt:'2026-08-29T11:25:00Z'}),rainNow:{...dry,observedAt:'2026-08-29T11:25:00Z'},previous:firstDry.state,nowMs:now+6*60*1000,locationKey:'a'});assert.equal(secondDry.active,false);
+const moved=resolveWeatherAuthority({openMeteo:om({weatherCode:0}),rainNow:{...dry,observedAt:'2026-08-29T11:25:00Z'},previous:firstDry.state,nowMs:now+6*60*1000,locationKey:'b'});assert.equal(moved.locationChanged,true);assert.equal(moved.active,false);
+assert.equal(classifyRainRate(.05),'dry');assert.equal(classifyRainRate(.2),'possible-drizzle');assert.equal(classifyRainRate(.5),'drizzle');assert.equal(classifyRainRate(2),'rain');assert.equal(classifyRainRate(5),'heavy-rain');
+assert.equal(locationKey({latitude:13.74,longitude:100.54}),locationKey({latitude:13.7404,longitude:100.5404}));
+console.log('weather authority tests PASS: TMD AWS + fallback + hysteresis + deterministic thresholds');
