@@ -140,8 +140,11 @@ try{
   await history.page.screenshot({path:path.join(OUT,'history-bottom-open-390x844.png'),fullPage:false});
   await history.page.evaluate(()=>document.querySelector('#ihg-history-period-10-button')?.click());
   await history.page.waitForFunction(()=>document.querySelector('#ihg-history-period-10-button')?.getAttribute('aria-expanded')==='false',{timeout:5000});
-  await waitHistorySettled(history.page,{open:0});
+  // Closing is synchronous in product code; only wait for the 420ms CSS disclosure
+  // transition before measuring the natural Source gap.
+  await history.page.waitForTimeout(560);
   const collapsedGap=await historyGap(history.page);
+  assert(collapsedGap.open===0,`History should have no open period after collapse ${JSON.stringify(collapsedGap)}`);
   assert(collapsedGap.inlinePadding===''&&collapsedGap.computedPadding<2,`History runway persisted after collapse ${JSON.stringify(collapsedGap)}`);
   assert(collapsedGap.gap<42,`History blank gap persists after collapse ${JSON.stringify(collapsedGap)}`);
   await history.page.screenshot({path:path.join(OUT,'history-bottom-collapsed-390x844.png'),fullPage:false});
