@@ -29,8 +29,9 @@ function updateDatasets(){if(!document.body||!resolution)return;document.body.da
 function dispatchResolvedWeather(){
   const weather=effectiveWeather();document.dispatchEvent(new CustomEvent('sindhorn:weather-updated',{detail:{rainAuthorityResolved:true,weatherCode:weather.weatherCode,cloudWeatherCode:weather.cloudWeatherCode??weather.weatherCode,precipitationMm:weather.precipitationMm,rainMm:weather.rainMm,precipitationActive:Boolean(weather.precipitationActive),precipitationState:weather.precipitationState||'dry',rainAuthority:weather.rainAuthority||'open-meteo'}}));
 }
+function sanitizeDebug(){const debug=document.querySelector('.environment-debug');if(!debug)return;const current=String(debug.textContent||''),lines=current.split('\n'),next=lines.map(line=>/^location\s/i.test(line)&&!/precise coordinates hidden/i.test(line)?`location ${safeLocation().source} · precise coordinates hidden`:line).join('\n');if(next!==current)debug.textContent=next}
 function recompute({wakeRain=true}={}){
-  installEnvironmentBridge();const open=openMeteoState();currentLocationKey=locationSignature();resolution=resolveWeatherAuthority({openMeteo:open,rainNow,previous:authorityMemory,nowMs:Date.now(),locationKey:currentLocationKey});authorityMemory=resolution.state;applyLabel();updateDatasets();if(wakeRain)dispatchResolvedWeather();return resolution;
+  installEnvironmentBridge();const open=openMeteoState();currentLocationKey=locationSignature();resolution=resolveWeatherAuthority({openMeteo:open,rainNow,previous:authorityMemory,nowMs:Date.now(),locationKey:currentLocationKey});authorityMemory=resolution.state;applyLabel();updateDatasets();sanitizeDebug();if(wakeRain)dispatchResolvedWeather();return resolution;
 }
 async function providerRequest(){
   const loc=safeLocation();if(!Number.isFinite(loc.latitude)||!Number.isFinite(loc.longitude))throw new Error('location_unavailable');
@@ -46,15 +47,13 @@ async function refreshRainNow({force=false}={}){
 }
 function schedule(){clearInterval(timer);timer=window.setInterval(()=>{if(!document.hidden)refreshRainNow().catch(()=>{})},ACTIVE_POLL_MS)}
 function locationChanged(event){const next=event?.detail||safeLocation(),signature=`${String(next.source||'unknown')}:${locationKey(next)}`;if(signature!==currentLocationKey){authorityMemory=null;currentLocationKey=signature;lastFetchAt=0;refreshRainNow({force:true}).catch(()=>{})}else recompute()}
-function sanitizeDebug(){const debug=document.querySelector('.environment-debug');if(!debug)return;const current=String(debug.textContent||''),lines=current.split('\n'),next=lines.map(line=>/^location\s/i.test(line)&&!/precise coordinates hidden/i.test(line)?`location ${safeLocation().source} · precise coordinates hidden`:line).join('\n');if(next!==current)debug.textContent=next}
 async function waitForRuntime(){
   const deadline=Date.now()+15000;while(Date.now()<deadline){if(window.SindhornLocation&&window.SindhornEnvironment&&window.SindhornEmployeeAuth){installEnvironmentBridge();return true}await new Promise(resolve=>setTimeout(resolve,50))}return false;
 }
 async function init(){
   if(!await waitForRuntime())return;await window.SindhornLocation.ready.catch(()=>{});currentLocationKey=locationSignature();recompute({wakeRain:false});
-  document.addEventListener('sindhorn:weather-updated',event=>{if(event.detail?.rainAuthorityResolved)return;recompute()});document.addEventListener('sindhorn:location-updated',locationChanged);document.addEventListener('sindhorn:route-mounted',()=>{applyLabel();sanitizeDebug()});
+  document.addEventListener('sindhorn:weather-updated',event=>{if(event.detail?.rainAuthorityResolved)return;recompute()});document.addEventListener('sindhorn:location-updated',locationChanged);document.addEventListener('sindhorn:route-mounted',()=>{applyLabel();sanitizeDebug()});document.addEventListener('sindhorn:air-updated',sanitizeDebug);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)return;const loc=safeLocation(),age=Date.now()-Date.parse(String(loc.updatedAt||''));if(!Number.isFinite(age)||age>5*60*1000)window.SindhornLocation?.refresh?.().catch(()=>{});if(Date.now()-lastFetchAt>RESUME_STALE_MS)refreshRainNow({force:true}).catch(()=>{});applyLabel();sanitizeDebug()});
-  const observer=new MutationObserver(sanitizeDebug);observer.observe(document.body,{subtree:true,childList:true,characterData:true});schedule();refreshRainNow({force:true}).catch(()=>{});
-  window.SindhornRainNow={refresh:()=>refreshRainNow({force:true}),getState:()=>resolution?{active:resolution.active,state:resolution.precipitationState,label:resolution.label,authority:resolution.authority,confidence:resolution.confidence,rainNowFresh:resolution.rainNowFresh,rainNowStale:resolution.rainNowStale}:null};
+  schedule();refreshRainNow({force:true}).catch(()=>{});window.SindhornRainNow={refresh:()=>refreshRainNow({force:true}),getState:()=>resolution?{active:resolution.active,state:resolution.precipitationState,label:resolution.label,authority:resolution.authority,confidence:resolution.confidence,rainNowFresh:resolution.rainNowFresh,rainNowStale:resolution.rainNowStale}:null};
 }
 init().catch(()=>{});
