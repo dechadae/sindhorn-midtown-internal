@@ -4,6 +4,7 @@ const LOCAL_STATE_KEY='sindhorn-midtown:fnb-local:v1';
 const MIGRATION_KEY='sindhorn-midtown:fnb-artwork-shared:v1';
 const READ_RPC='sindhorn_fnb_artwork_status_read';
 const WRITE_RPC='sindhorn_fnb_artwork_status_write';
+const EMPTY_STYLE_ID='fnb-empty-artwork-guard';
 
 let initialized=false;
 let sharedDone=new Set();
@@ -15,6 +16,10 @@ let detailObserver=null;
 function safeParse(value){try{return JSON.parse(value)}catch(_){return null}}
 function authToken(){try{return window.SindhornEmployeeAuth?.getAccessToken?.()||null}catch(_){return null}}
 function editorProfile(){try{return window.SindhornEmployeeAuth?.getProfile?.()||null}catch(_){return null}}
+function ensureEmptyArtworkGuard(){
+  if(document.getElementById(EMPTY_STYLE_ID))return;
+  const style=document.createElement('style');style.id=EMPTY_STYLE_ID;style.textContent='.fnb-art-card:not(:has(.fnb-task)){display:none!important}';document.head.appendChild(style)
+}
 async function rpc(name,params={},token=null){
   const response=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${encodeURIComponent(name)}`,{method:'POST',cache:'no-store',headers:{apikey:SUPABASE_KEY,'content-type':'application/json',...(token?{authorization:`Bearer ${token}`}:{})},body:JSON.stringify(params)});
   if(!response.ok)throw new Error(`F&B artwork sync HTTP ${response.status}`);
@@ -81,7 +86,7 @@ function onClick(event){
   if(event.target.closest?.('[data-open],[data-back],[data-filter-option],[data-filter-trigger]'))setTimeout(scheduleApply,30)
 }
 export function initFnbArtworkSync(){
-  if(initialized)return;initialized=true;
+  if(initialized)return;initialized=true;ensureEmptyArtworkGuard();
   document.addEventListener('sindhorn:route-mounted',event=>{if(event.detail?.route==='fnb'){watchDetail();void migrateAndRefresh()}else{detailObserver?.disconnect();detailObserver=null}});
   document.addEventListener('click',onClick);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&document.body.dataset.route==='fnb')void refresh()});
