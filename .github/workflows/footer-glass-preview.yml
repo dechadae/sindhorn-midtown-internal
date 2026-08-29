@@ -82,12 +82,17 @@ jobs:
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          curl -fsS "$BASE_URL/" | grep -q '/footer-route-guard.css?v=10'
-          curl -fsS "$BASE_URL/" | grep -q '/footer-route-guard.js?v=9'
-          curl -fsS "$BASE_URL/" | grep -q '/fnb-timestamp-stability.js?v=1'
-          curl -fsS "$BASE_URL/footer-route-guard.css?v=10" | grep -q '#app-footer .shell-footer-rail'
-          curl -fsS "$BASE_URL/footer-route-guard.css?v=10" | grep -q -- '--sm-footer-glass-filter:blur(26px)'
-          curl -fsS "$BASE_URL/footer-route-guard.js?v=9" | grep -q "rail.className='fnb-section-rail shell-footer-rail'"
-          curl -fsS "$BASE_URL/footer-route-guard.js?v=9" | grep -q "label:'Settings',href:'/account'"
-          curl -fsS "$BASE_URL/fnb-timestamp-stability.js?v=1" | grep -q 'new MutationObserver(enhance)'
-          curl -fsS "$BASE_URL/fnb-share-ui.js?v=3" | grep -q 'fnb-card-folder'
+          curl -fsS "$BASE_URL/" -o /tmp/index.html
+          curl -fsS "$BASE_URL/footer-route-guard.css?v=10" -o /tmp/footer.css
+          curl -fsS "$BASE_URL/footer-route-guard.js?v=9" -o /tmp/footer.js
+          curl -fsS "$BASE_URL/fnb-timestamp-stability.js?v=1" -o /tmp/timestamp.js
+          curl -fsS "$BASE_URL/fnb-share-ui.js?v=3" -o /tmp/share.js
+          grep -q '/footer-route-guard.css?v=10' /tmp/index.html
+          grep -q '/footer-route-guard.js?v=9' /tmp/index.html
+          grep -q '/fnb-timestamp-stability.js?v=1' /tmp/index.html
+          grep -q '#app-footer .shell-footer-rail' /tmp/footer.css
+          grep -q -- '--sm-footer-glass-filter:blur(26px)' /tmp/footer.css
+          grep -q "rail.className='fnb-section-rail shell-footer-rail'" /tmp/footer.js
+          grep -q "label:'Settings',href:'/account'" /tmp/footer.js
+          grep -q 'new MutationObserver(enhance)' /tmp/timestamp.js
+          grep -q 'fnb-card-folder' /tmp/share.js
