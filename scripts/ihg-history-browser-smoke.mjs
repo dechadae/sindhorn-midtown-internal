@@ -22,12 +22,7 @@ function assert(condition,message){if(!condition)throw new Error(message)}
 function near(a,b,t=.75,label='value'){assert(Math.abs(Number(a)-Number(b))<=t,`${label} mismatch: ${a} vs ${b}`)}
 
 async function newPage(browser,width,height){
-  const context=await browser.newContext({
-    viewport:{width,height},
-    deviceScaleFactor:1,
-    reducedMotion:'no-preference',
-    serviceWorkers:'block'
-  });
+  const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:1,reducedMotion:'no-preference',serviceWorkers:'block'});
   const page=await context.newPage();
   page.setDefaultTimeout(15000);
   page.setDefaultNavigationTimeout(30000);
@@ -158,6 +153,9 @@ async function captureHistory390(browser,fnb){
       window.__historyRouteMounts=0;
       document.addEventListener('sindhorn:route-mounted',()=>window.__historyRouteMounts++);
     });
+    await page.waitForTimeout(300);
+    await page.evaluate(()=>{window.__historyRouteMounts=0});
+
     const buttons=page.locator('.ihg-history-card-button');
     await buttons.nth(0).click();
     await page.waitForTimeout(460);
@@ -217,20 +215,9 @@ try{
   const small=await captureHistoryViewport(browser,360,800);
   const tablet=await captureHistoryViewport(browser,768,1024);
   console.log(JSON.stringify({
-    ok:true,
-    baseUrl:BASE_URL,
-    periods:history.initial.cards,
-    milestones:history.initial.milestones,
-    collapsedByDefault:history.initial.expanded.every(v=>v==='false'),
-    firstViewportVisibleCards:history.initial.visibleCards,
-    fnb:fnb.metrics,
-    history:history.metrics,
-    baselineConsoleErrors:fnb.consoleErrors,
-    historyConsoleErrors:history.consoleErrors,
-    small,
-    tablet,
-    screenshots:await fs.readdir(OUT_DIR)
+    ok:true,baseUrl:BASE_URL,periods:history.initial.cards,milestones:history.initial.milestones,
+    collapsedByDefault:history.initial.expanded.every(v=>v==='false'),firstViewportVisibleCards:history.initial.visibleCards,
+    fnb:fnb.metrics,history:history.metrics,baselineConsoleErrors:fnb.consoleErrors,historyConsoleErrors:history.consoleErrors,
+    small,tablet,screenshots:await fs.readdir(OUT_DIR)
   }));
-}finally{
-  await browser.close();
-}
+}finally{await browser.close()}
