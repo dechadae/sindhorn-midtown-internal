@@ -44,15 +44,16 @@ jobs:
           grep -q 'letter-spacing:0!important' site/fnb-refinements.css
           grep -q '/fnb-share-ui.js?v=1' site/index.html
           grep -q '/fnb-refinements.css?v=1' site/index.html
-          ! grep -q 'og:image' site/share/fnb/index.html
-          ! grep -q 'twitter:image' site/share/fnb/index.html
-          ! grep -RqiE 'sharepoint\.com|1drv\.ms|onedrive\.live\.com|employee_number|Add / change artwork link' site/share/fnb
+          ! grep -q 'og:image' site/share-public/fnb.html
+          ! grep -q 'twitter:image' site/share-public/fnb.html
+          ! grep -RqiE 'sharepoint\.com|1drv\.ms|onedrive\.live\.com|employee_number|Add / change artwork link' site/share-public
+          test ! -e site/share/fnb/index.html
 
       - name: Create mobile refinement harness
         shell: bash
         run: |
           cat > site/__fnb-refinement-smoke.html <<'HTML'
-          <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/fonts.css?v=1"><link rel="stylesheet" href="/fnb.css"><link rel="stylesheet" href="/fnb-approved-polish.css?v=2"><link rel="stylesheet" href="/fnb-refinements.css?v=1"><style>html,body{margin:0;min-height:100%;background:linear-gradient(#819bb4,#d4aa93);font-family:"LINE Seed Sans TH",sans-serif;color:#faf7f5}#app-header,#app-footer{position:fixed;left:0;right:0;z-index:80;padding:12px 18px;background:rgba(46,39,59,.55)}#app-header{top:0}#app-footer{bottom:0;height:72px}#route-view{padding:52px 18px 90px}</style></head><body data-route="fnb"><header id="app-header">Sindhorn Midtown · Preview user</header><main id="route-view"></main><footer id="app-footer">Today　 F&amp;B　 Messages</footer><script>window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Preview'};navigator.share=async data=>{window.__sharePayload=data};</script><script type="module">import {mountFnbRoute} from '/fnb.js';await mountFnbRoute(document.getElementById('route-view'),{profile:window.__SINDHORN_AUTH_PROFILE__});document.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route:'fnb'}}));</script><script type="module" src="/fnb-share-ui.js?v=1"></script></body></html>
+          <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="stylesheet" href="/fonts.css?v=1"><link rel="stylesheet" href="/fnb.css"><link rel="stylesheet" href="/fnb-approved-polish.css?v=2"><link rel="stylesheet" href="/fnb-refinements.css?v=1"><style>html,body{margin:0;min-height:100%;background:linear-gradient(#819bb4,#d4aa93);font-family:var(--font-ui);color:#faf7f5}#app-header,#app-footer{position:fixed;left:0;right:0;z-index:80;padding:12px 18px;background:rgba(46,39,59,.55)}#app-header{top:0}#app-footer{bottom:0;height:72px}#route-view{padding:52px 18px 90px}</style></head><body data-route="fnb"><header id="app-header">Sindhorn Midtown · Preview user</header><main id="route-view"></main><footer id="app-footer">Today　 F&amp;B　 Messages</footer><script>window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Preview'};navigator.share=async data=>{window.__sharePayload=data};</script><script type="module">import {mountFnbRoute} from '/fnb.js';await mountFnbRoute(document.getElementById('route-view'),{profile:window.__SINDHORN_AUTH_PROFILE__});document.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route:'fnb'}}));</script><script type="module" src="/fnb-share-ui.js?v=1"></script></body></html>
           HTML
           cat > site/__icon-review.html <<'HTML'
           <!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:32px;background:#17131e;color:white;font:14px system-ui}main{max-width:500px;margin:auto}.row{display:flex;gap:24px;align-items:end;margin:28px 0}.icon{border-radius:22%;box-shadow:0 8px 30px #0008}.s48{width:48px}.s64{width:64px}.s96{width:96px}p{opacity:.7}</style></head><body><main><h1>Android launcher scale review</h1><div class="row"><img class="icon s48" src="/icons/app-512.png?v=2"><img class="icon s64" src="/icons/app-512.png?v=2"><img class="icon s96" src="/icons/app-512.png?v=2"></div><p>48 / 64 / 96 CSS px</p><h2>Maskable source</h2><div class="row"><img class="icon s64" src="/icons/maskable-512.png?v=2"></div></main></body></html>
@@ -71,7 +72,9 @@ jobs:
           BASE_URL="https://fnb-share-modal-icon.sindhorn-midtown-internal.pages.dev"
           sleep 8
           for path in /share/fnb /share/fnb/fried-chicken-waffles /share/fnb/sunset-cocktails; do
-            curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/share.html
+            echo "Checking ${path}"
+            status="$(curl --silent --show-error --retry 12 --retry-all-errors --retry-delay 2 --output /tmp/share.html --write-out '%{http_code}' "${BASE_URL}${path}")"
+            test "$status" = "200"
             grep -q '<title>' /tmp/share.html
             grep -q 'property="og:title"' /tmp/share.html
             grep -q 'property="og:url"' /tmp/share.html
@@ -105,6 +108,7 @@ jobs:
           const geometry=await page.evaluate(()=>{const layer=document.querySelector('[data-sheet-layer]'),modal=document.querySelector('.fnb-sheet'),footer=document.querySelector('#app-footer'),l=layer.getBoundingClientRect(),m=modal.getBoundingClientRect();return{layer:[l.left,l.top,l.width,l.height],modalCenter:[m.left+m.width/2,m.top+m.height/2],viewport:[innerWidth,innerHeight],layerZ:getComputedStyle(layer).zIndex,footerZ:getComputedStyle(footer).zIndex}});
           if(Math.abs(geometry.modalCenter[0]-195)>3||Math.abs(geometry.modalCenter[1]-422)>24)throw new Error(`modal not centered ${JSON.stringify(geometry)}`);
           if(geometry.layer[0]!==0||geometry.layer[1]!==0||Math.abs(geometry.layer[2]-390)>1||Math.abs(geometry.layer[3]-844)>1)throw new Error(`scrim not viewport ${JSON.stringify(geometry)}`);
+          if(Number(geometry.layerZ)<=Number(geometry.footerZ))throw new Error(`scrim must cover footer ${JSON.stringify(geometry)}`);
           await page.click('[data-sheet-close]');await page.click('[data-back]');
           await page.click('[data-fnb-share="page"]');
           const payload=await page.evaluate(()=>window.__sharePayload);if(!payload?.url?.includes('/share/fnb'))throw new Error(`share payload bad ${JSON.stringify(payload)}`);
