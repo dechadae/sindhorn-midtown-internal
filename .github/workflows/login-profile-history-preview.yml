@@ -73,17 +73,18 @@ jobs:
           BASE_URL="https://preview-login-profile-fix.sindhorn-midtown-internal.pages.dev"
           sleep 8
           for path in /login.html / /settings /ihg-history /auth-brand.css /settings.js /ihg-history.js; do
+            echo "Smoke ${path}"
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
-          curl --fail --silent --show-error "${BASE_URL}/login.html" -o /tmp/login.html
+          curl --fail --silent --show-error --location "${BASE_URL}/login.html" -o /tmp/login.html
           grep -q 'vignette-white.png' /tmp/login.html
-          curl --fail --silent --show-error "${BASE_URL}/auth-brand.css" -o /tmp/auth-brand.css
+          curl --fail --silent --show-error --location "${BASE_URL}/auth-brand.css" -o /tmp/auth-brand.css
           grep -q 'live-shell login alignment' /tmp/auth-brand.css
-          curl --fail --silent --show-error "${BASE_URL}/settings.js" -o /tmp/settings.js
+          curl --fail --silent --show-error --location "${BASE_URL}/settings.js" -o /tmp/settings.js
           grep -q "fact('Position',profile.positionTitle" /tmp/settings.js
           grep -q "fact('Department',profile.departmentName" /tmp/settings.js
-          curl --fail --silent --show-error "${BASE_URL}/ihg-history.js" -o /tmp/history.js
+          curl --fail --silent --show-error --location "${BASE_URL}/ihg-history.js" -o /tmp/history.js
           grep -q 'clearActiveRunway();' /tmp/history.js
 
       - name: Browser login, profile and History QA
