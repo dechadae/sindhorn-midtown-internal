@@ -74,21 +74,29 @@ for(const id of ids){
 }
 if(errors.length)throw new Error(errors.join('\n'));
 
+const sharedIndex=await browser.newPage({viewport:{width:390,height:844}});
+await sharedIndex.goto(`${baseUrl}/share/fnb`,{waitUntil:'networkidle'});
+await sharedIndex.waitForSelector('[data-fnb-data-updated]');
+const sharedIndexFreshness=await sharedIndex.evaluate(()=>({
+  updated:document.querySelector('[data-fnb-data-updated]')?.textContent?.trim(),
+  underPeriod:document.querySelector('.fnb-period')?.nextElementSibling?.matches('[data-fnb-data-updated]')||false
+}));
+if(!sharedIndexFreshness.underPeriod||!/^Updated \d{1,2} [A-Z][a-z]+ \d{4} · \d{1,2}:\d{2} (am|pm)$/.test(sharedIndexFreshness.updated||''))throw new Error(`public calendar timestamp missing ${JSON.stringify(sharedIndexFreshness)}`);
+
 const fried=await browser.newPage({viewport:{width:390,height:844}});
 await fried.addInitScript(()=>{window.__opened=[];window.open=url=>{window.__opened.push(url);return null}});
 await fried.goto(`${baseUrl}/share/fnb/fried-chicken-waffles`,{waitUntil:'networkidle'});
 await fried.waitForSelector('.fnb-detail-title');
-await fried.waitForSelector('[data-fnb-data-updated]');
+await fried.waitForFunction(()=>[...document.querySelectorAll('.fnb-detail:not([hidden]) .fnb-fact')].some(fact=>fact.querySelector('span')?.textContent?.trim()==='Updated'&&fact.querySelector('b')?.dataset.fnbPublicUpdated==='true'),{timeout:5000});
 await fried.waitForFunction(()=>{
   const indexCount=document.querySelector('[data-open="fried-chicken-waffles"] .fnb-progress-meta b')?.textContent?.trim();
   return !!indexCount&&document.querySelector('.fnb-section-count')?.textContent?.trim()===`${indexCount} complete`;
 },{timeout:5000});
 const friedState=await fried.evaluate(()=>({
-  updated:document.querySelector('[data-fnb-data-updated]')?.textContent?.trim(),
-  updatedUnderPeriod:document.querySelector('.fnb-period')?.nextElementSibling?.matches('[data-fnb-data-updated]')||false,
+  detailUpdated:[...document.querySelectorAll('.fnb-detail:not([hidden]) .fnb-fact')].find(fact=>fact.querySelector('span')?.textContent?.trim()==='Updated')?.querySelector('b')?.textContent?.trim()||'',
   visibleEmptyArtwork:[...document.querySelectorAll('.fnb-art-card')].filter(card=>card.offsetParent!==null&&/^0\/0/.test(card.querySelector('.fnb-art-tally')?.textContent?.trim()||'')).length
 }));
-if(!friedState.updatedUnderPeriod||!/^Updated \d{1,2} [A-Z][a-z]+ \d{4} · \d{1,2}:\d{2} (am|pm)$/.test(friedState.updated||''))throw new Error(`public timestamp missing ${JSON.stringify(friedState)}`);
+if(!/^\d{1,2} [A-Z][a-z]+ \d{4} · \d{1,2}:\d{2} (am|pm)$/.test(friedState.detailUpdated))throw new Error(`public detail timestamp missing ${JSON.stringify(friedState)}`);
 if(friedState.visibleEmptyArtwork)throw new Error('public Fried Chicken shows a 0/0 artwork group');
 if(await fried.locator('[data-folder-edit]').count())throw new Error('public folder editor exposed');
 await fried.click('[data-folder-open]');
