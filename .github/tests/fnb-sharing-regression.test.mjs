@@ -33,11 +33,15 @@ const publicCss=await readFile(join(temp,'fnb-public.css'),'utf8');
 assert.match(publicRuntime,/const TEMPLATE=`/,'public share must reuse authenticated F&B route runtime');
 assert.match(publicRuntime,/fnb-card-button/,'authenticated card renderer must be preserved');
 assert.match(publicRuntime,/fnb-detail-title/,'authenticated detail renderer must be preserved');
-assert.match(publicRuntime,/fnb-section-rail/,'authenticated detail section rail must be preserved');
+assert.match(publicRuntime,/fnb-section-rail/,'authenticated detail renderer remains source, even though public CSS hides its rail');
 assert.match(publicRuntime,/import \{FNB_PROMOTIONS as DATA\} from '.\/fnb-public-data\.js'/,'public runtime must use allowlisted data');
 assert.doesNotMatch(publicRuntime,/sindhorn-midtown:fnb-local/,'public runtime must not read private device state');
 assert.doesNotMatch(publicRuntime,/localStorage\.getItem/,'public runtime must not hydrate device-only F&B state');
 assert.match(publicRuntime,/const editor=false/,'public runtime must never grant edit capability');
+assert.match(publicCss,/--public-header-h:126px/,'public header must match compact authenticated app height');
+assert.match(publicCss,/\.fnb-section-rail\{display:none!important/,'public detail section rail must be hidden');
+assert.match(publicCss,/-webkit-tap-highlight-color:transparent!important/,'public controls must suppress browser tap highlight');
+assert.match(publicCss,/-webkit-appearance:none;appearance:none/,'public controls must remove native browser control chrome');
 assert.match(publicCss,/\.fnb-task-toggle\{display:none!important\}/,'public artwork check controls must be hidden');
 assert.match(publicCss,/\[data-folder-edit\]/,'public artwork editor UI must be hidden');
 assert.match(publicShareUi,/\.\/fnb-public-data\.js/,'public Share UI must use allowlisted data');
@@ -53,7 +57,8 @@ for(const [path,title] of pages){
   assert.match(html,/https:\/\/preview\.example\.test\/share\/fnb/,`${path}: canonical preview origin missing`);
   assert.match(html,/id="environmentStage"/,`${path}: must reuse production atmosphere layer`);
   assert.match(html,/sindhorn-midtown-vignette-white\.png/,`${path}: must use production hotel lockup`);
-  assert.match(html,/fnb-public-shell\.js/,`${path}: must mount duplicated authenticated runtime`);
+  assert.match(html,/fnb-public\.css\?v=2/,`${path}: public CSS must be cache-busted`);
+  assert.match(html,/fnb-public-shell\.js\?v=2/,`${path}: public shell must be cache-busted`);
   for(const token of ['og:image','twitter:image','sharepoint.com','1drv.ms','onedrive.live.com','employee_number','Add / change artwork link','auth-client','login.html','id="app-footer"'])assert(!html.toLowerCase().includes(token.toLowerCase()),`${path}: forbidden public token ${token}`)
 }
 await rm(temp,{recursive:true,force:true});
