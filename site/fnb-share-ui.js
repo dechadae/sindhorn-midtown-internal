@@ -1,4 +1,5 @@
 import {FNB_PROMOTIONS as DATA} from './fnb-data.js';
+import {initFnbArtworkSync} from '/fnb-artwork-sync.js';
 
 const SHARE_BASE='/share/fnb';
 const SHARE_LABEL='Share';
@@ -78,4 +79,5 @@ document.addEventListener('click',event=>{
   event.preventDefault();event.stopPropagation();void performShare(share.dataset.fnbShare,share.dataset.promotionId||'')
 },{capture:true});
 document.addEventListener('sindhorn:route-mounted',()=>queueMicrotask(start));
+initFnbArtworkSync();
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
