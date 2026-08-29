@@ -124,8 +124,6 @@ jobs:
               assert token in rules,token
           assert not any('/index.html' in r and r.endswith('200') for r in rules),'SPA rewrite target must be "/" not "/index.html"'
           assert not any(r.startswith('/*') for r in rules),'catch-all splat shadows static assets - list routes explicitly'
-          for path in sorted(set(re.findall(r"path:'(/[a-z]*)'",registry)):
-              pass
           for path in sorted(set(re.findall(r"path:'(/[a-z]*)'",registry))):
               if path=='/':continue
               assert f'{path} / 200' in rules,f'{path} is in route-registry.js but missing its "_redirects" SPA fallback line'
