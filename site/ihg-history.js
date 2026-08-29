@@ -125,8 +125,8 @@ function persistentHeaderOffset(){
 }
 
 function scrollCardToTop(card){
-  card.style.scrollMarginTop=`${persistentHeaderOffset()+10}px`;
-  card.scrollIntoView({behavior:reducedMotion()?'auto':'smooth',block:'start',inline:'nearest'});
+  const top=window.scrollY+card.getBoundingClientRect().top-persistentHeaderOffset()-10;
+  window.scrollTo({top:Math.max(0,top),behavior:reducedMotion()?'auto':'smooth'});
 }
 
 export async function mountIhgHistoryRoute(root){
