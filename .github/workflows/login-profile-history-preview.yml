@@ -30,6 +30,8 @@ jobs:
           node --input-type=module --check < site/settings.js
           node --input-type=module --check < site/ihg-history.js
           node --input-type=module --check < site/login.js
+          node --input-type=module --check < site/auth-client.js
+          node --input-type=module --check < site/auth-shell.js
           node --input-type=module --check < scripts/login-profile-history-browser-smoke.mjs
           node --input-type=module --check < scripts/history-bottom-visibility-smoke.mjs
           grep -q "fact('Position',profile.positionTitle" site/settings.js
@@ -42,12 +44,19 @@ jobs:
           grep -q '/assets/brand/sindhorn-midtown-vignette-white.png' site/login.html
           grep -q '/auth-brand.css?v=4' site/login.html
           grep -q 'brand-row-bottom' site/login.html
+          ! grep -q 'class="brand-rule"' site/login.html
           grep -Fq 'inputmode="numeric" pattern="[0-9]*" autocomplete="username"' site/login.html
+          grep -q 'sindhorn_current_employee_profile' site/auth-client.js
+          ! grep -q 'rest/v1/sindhorn_employees?select' site/auth-client.js
+          grep -q 'sindhorn:capabilities-updated' site/auth-shell.js
+          grep -q 'profile?.displayName' site/auth-shell.js
           grep -q '2026-08-30 live-shell login alignment' site/auth-brand.css
           grep -q '2026-08-30 login bottom-brand refinement' site/auth-brand.css
           ! grep -Eiq 'webgl|environment-stage|environmentStage|atmosphere-shader|<canvas' site/login.html site/auth-brand.css
           grep -q 'clearActiveRunway();' site/ihg-history.js
           test -f supabase/migrations/20260829190718_sindhorn_employee_position_admin_rpc_v3.sql
+          test -f supabase/migrations/20260830143500_sindhorn_current_employee_profile_rpc.sql
+          grep -q 'sindhorn_current_employee_profile' supabase/migrations/20260830143500_sindhorn_current_employee_profile_rpc.sql
           test ! -e .github/workflows/apply-login-profile-history.yml
           test ! -e scripts/apply-login-profile-history.py
           test ! -e .github/workflows/apply-login-position-tweaks.yml
@@ -60,7 +69,7 @@ jobs:
           base="$(git merge-base origin/main HEAD)"
           for file in \
             site/environment.js site/atmosphere-shader.js site/rain-now.js site/rain-layer.js \
-            site/seasonal-sky.js site/weather-authority.js site/sw.js site/auth-client.js \
+            site/seasonal-sky.js site/weather-authority.js site/sw.js \
             site/fnb.js site/fnb.css site/fnb-data.js site/fnb-refinements.css site/fnb-approved-polish.css \
             site/capabilities.js; do
             git diff --exit-code "$base" HEAD -- "$file"
@@ -83,7 +92,7 @@ jobs:
           set -euo pipefail
           BASE_URL="https://preview-login-profile-fix.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in /login.html / /settings /ihg-history /auth-brand.css /settings.js /ihg-history.js; do
+          for path in /login.html / /settings /ihg-history /auth-brand.css /auth-client.js /auth-shell.js /settings.js /ihg-history.js; do
             echo "Smoke ${path}"
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
@@ -91,10 +100,17 @@ jobs:
           curl --fail --silent --show-error --location "${BASE_URL}/login.html" -o /tmp/login.html
           grep -q 'vignette-white.png' /tmp/login.html
           grep -q 'brand-row-bottom' /tmp/login.html
+          ! grep -q 'class="brand-rule"' /tmp/login.html
           grep -Fq 'inputmode="numeric" pattern="[0-9]*" autocomplete="username"' /tmp/login.html
           curl --fail --silent --show-error --location "${BASE_URL}/auth-brand.css" -o /tmp/auth-brand.css
           grep -q 'live-shell login alignment' /tmp/auth-brand.css
           grep -q 'login bottom-brand refinement' /tmp/auth-brand.css
+          curl --fail --silent --show-error --location "${BASE_URL}/auth-client.js" -o /tmp/auth-client.js
+          grep -q 'sindhorn_current_employee_profile' /tmp/auth-client.js
+          ! grep -q 'rest/v1/sindhorn_employees?select' /tmp/auth-client.js
+          curl --fail --silent --show-error --location "${BASE_URL}/auth-shell.js" -o /tmp/auth-shell.js
+          grep -q 'sindhorn:capabilities-updated' /tmp/auth-shell.js
+          grep -q 'profile?.displayName' /tmp/auth-shell.js
           curl --fail --silent --show-error --location "${BASE_URL}/settings.js" -o /tmp/settings.js
           grep -q "fact('Position',profile.positionTitle" /tmp/settings.js
           grep -q "fact('Department',profile.departmentName" /tmp/settings.js
