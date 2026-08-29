@@ -29,7 +29,7 @@ jobs:
           set -euo pipefail
           grep -q 'grid-template-columns:repeat(3,minmax(0,1fr))!important' site/fnb-approved-polish.css
           grep -q 'font-size:10px!important' site/fnb-approved-polish.css
-          grep -q 'inset:0 0 calc(68px + env(safe-area-inset-bottom))!important' site/fnb-approved-polish.css
+          grep -q 'inset:0 0 calc(84px + env(safe-area-inset-bottom))!important' site/fnb-approved-polish.css
           grep -q 'fnb-select\[data-filter-field="outlet"\].*width:100%' site/fnb-approved-polish.css
           grep -q 'content:"September"' site/fnb-approved-polish.css
           grep -q 'content:"October"' site/fnb-approved-polish.css
@@ -82,8 +82,9 @@ jobs:
           if(summary!==3)throw new Error('summary is not three columns: '+summary);
           const trigger=page.locator('[data-filter-trigger="outlet"]');
           await trigger.click();
+          await page.waitForTimeout(300);
           const widths=await page.evaluate(()=>{const t=document.querySelector('[data-filter-trigger="outlet"]').getBoundingClientRect(),m=document.querySelector('[data-filter-field="outlet"] .fnb-select-menu').getBoundingClientRect();return{trigger:t.width,menu:m.width}});
-          if(Math.abs(widths.trigger-widths.menu)>3)throw new Error('outlet menu width mismatch '+JSON.stringify(widths));
+          if(Math.abs(widths.trigger-widths.menu)>1)throw new Error('outlet menu width mismatch '+JSON.stringify(widths));
           await page.locator('[data-filter-trigger="outlet"]').click();
           await page.locator('[data-filter-trigger="month"]').click();
           const september=await page.locator('[data-filter-option="month"][data-value="SEP"] > span').evaluate(el=>getComputedStyle(el,'::after').content);
@@ -98,11 +99,11 @@ jobs:
           }
           const layer=page.locator('[data-sheet-layer]');
           await layer.evaluate(el=>{el.classList.add('is-open');el.setAttribute('aria-hidden','false');const body=el.querySelector('[data-sheet-body]');body.innerHTML='<div style="height:300px">test</div><button class="fnb-action is-primary">Save</button>'});
-          const geometry=await page.evaluate(()=>{const s=document.querySelector('.fnb-sheet').getBoundingClientRect(),f=document.querySelector('#app-footer .app-tabbar').getBoundingClientRect();return{sheetBottom:s.bottom,footerTop:f.top}});
-          if(geometry.sheetBottom>geometry.footerTop+2)throw new Error('artwork sheet overlaps footer '+JSON.stringify(geometry));
+          const geometry=await page.evaluate(()=>{const s=document.querySelector('.fnb-sheet').getBoundingClientRect(),f=document.querySelector('#app-footer .app-tabbar').getBoundingClientRect();return{sheetBottom:s.bottom,footerTop:f.top,gap:f.top-s.bottom}});
+          if(geometry.gap<4)throw new Error('artwork sheet lacks footer clearance '+JSON.stringify(geometry));
           await page.screenshot({path:'fnb-final-mobile.png',fullPage:true});
           await context.close();await browser.close();
-          console.log('F&B final mobile geometry PASS');
+          console.log('F&B final mobile geometry PASS',JSON.stringify({widths,geometry}));
           NODE
       - name: Upload visual evidence
         if: always()
