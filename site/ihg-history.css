@@ -12,6 +12,7 @@
   --ihg-history-ease:cubic-bezier(.22,1,.36,1);
 }
 body[data-route="ihgHistory"] #route-view{background:transparent;padding-bottom:96px}
+body[data-ihg-history="true"]{overflow-anchor:none}
 .ihg-history-route{
   position:relative;
   isolation:auto;
