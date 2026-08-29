@@ -77,7 +77,7 @@ ${meta(title,url,description)}
 <link rel="stylesheet" href="/fnb-refinements.css?v=1">
 <link rel="stylesheet" href="/fnb-layout-stability.css?v=1">
 <link rel="stylesheet" href="/share/fnb-live-pack.css?v=${LIVE_PACK.packId}">
-<link rel="stylesheet" href="/share/fnb-public.css?v=8">
+<link rel="stylesheet" href="/share/fnb-public.css?v=9">
 </head>
 <body data-route="fnb" data-fnb-public="true" data-presentation-pack="${LIVE_PACK.packId}"${id?` data-public-promotion="${esc(id)}"`:''}>
 <div class="environment-stage" id="environmentStage" hidden aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
@@ -120,8 +120,10 @@ body[data-fnb-public="true"] #route-view{min-height:calc(100dvh - 54px)!importan
 body[data-fnb-public="true"] .fnb-route{min-height:calc(100dvh - 54px)}
 body[data-fnb-public="true"] button,body[data-fnb-public="true"] a{-webkit-appearance:none;appearance:none}
 body[data-fnb-public="true"] button:focus:not(:focus-visible),body[data-fnb-public="true"] a:focus:not(:focus-visible){outline:none!important;box-shadow:none!important}
-body[data-fnb-public="true"] .fnb-task-toggle{display:none!important}
-body[data-fnb-public="true"] .fnb-task{grid-template-columns:minmax(0,1fr)!important;padding-left:0!important}
+body[data-fnb-public="true"] .fnb-task-toggle{display:grid!important;color:rgba(250,247,245,.42)!important;opacity:1!important;cursor:default!important;pointer-events:none!important}
+body[data-fnb-public="true"] .fnb-task-toggle::before{content:"☐"!important}
+body[data-fnb-public="true"] .fnb-task.is-done .fnb-task-toggle::before{content:"☑"!important}
+body[data-fnb-public="true"] .fnb-task.is-done .fnb-task-toggle{color:rgba(250,247,245,.52)!important}
 body[data-fnb-public="true"] [data-folder-edit],body[data-fnb-public="true"] [data-save-links]{display:none!important}
 body[data-fnb-public="true"] .fnb-section-rail{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
 body[data-fnb-public="true"][data-fnb-detail="true"] #route-view{padding-bottom:max(38px,env(safe-area-inset-bottom))!important}
