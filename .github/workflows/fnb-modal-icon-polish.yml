@@ -52,19 +52,15 @@ jobs:
           await page.waitForURL(url=>new URL(url).pathname==='/fnb',{timeout:12000});
           await page.locator('[data-open]').first().click();
           await page.waitForSelector('.fnb-detail:not([hidden])');
-          await page.evaluate(()=>{
+          const state=await page.evaluate(()=>{
             const layer=document.querySelector('[data-sheet-layer]');
+            const sheet=layer?.querySelector('.fnb-sheet');
+            if(!layer||!sheet) throw new Error('modal layer missing');
+            layer.style.transition='none'; sheet.style.transition='none';
             layer.querySelector('[data-sheet-title]').textContent='Artwork links';
             layer.querySelector('[data-sheet-body]').innerHTML='<div class="fnb-link-field"><label>Sip & Co.</label><input type="url" placeholder="Paste OneDrive or SharePoint folder URL"></div><p class="fnb-sheet-note">Saved on this device only.</p><button class="fnb-action is-primary" type="button" data-save-links>Save</button>';
             layer.classList.add('is-open'); layer.setAttribute('aria-hidden','false');
-          });
-          await page.waitForSelector('.fnb-sheet-layer.is-open');
-          await page.waitForTimeout(450);
-          const state=await page.evaluate(()=>{
-            const layer=document.querySelector('.fnb-sheet-layer.is-open');
-            const sheet=layer.querySelector('.fnb-sheet');
             const action=layer.querySelector('[data-save-links]');
-            if(!sheet||!action) throw new Error('active modal content missing');
             const footer=document.querySelector('#app-footer .app-tabbar');
             const lr=layer.getBoundingClientRect(),sr=sheet.getBoundingClientRect(),fr=footer.getBoundingClientRect();
             const lc=getComputedStyle(layer),ac=getComputedStyle(action);
