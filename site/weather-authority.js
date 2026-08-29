@@ -29,7 +29,7 @@ function openMeteoSignal(openMeteo={},nowMs=Date.now()){
 function rainNowSignal(rainNow={},nowMs=Date.now()){
   const provider=String(rainNow.provider||'rain-now'),observedAt=rainNow.observedAt??null,available=rainNow.ok===true||rainNow.status==='ok',fresh=available&&isFresh(observedAt,nowMs,providerFreshLimit(provider)),rate=Math.max(0,finite(rainNow.rainIntensityMmHr),finite(rainNow.precipitationIntensityMmHr));
   const code=finite(rainNow.weatherCode,-1),probability=Math.max(0,finite(rainNow.precipitationProbability));let state=classifyRainRate(rate);
-  if(PROVIDER_HEAVY_CODES.has(code))state='heavy-rain';else if(PROVIDER_DRIZZLE_CODES.has(code)&&['dry','possible-drizzle'].includes(state))state='drizzle';else if(PROVIDER_WET_CODES.has(code)&&state==='dry')state='rain';
+  if(PROVIDER_HEAVY_CODES.has(code))state='heavy-rain';else if(PROVIDER_DRIZZLE_CODES.has(code)&&['dry','possible-drizzle'].includes(state))state='drizzle';else if(PROVIDER_WET_CODES.has(code)&&!PROVIDER_DRIZZLE_CODES.has(code)&&['dry','possible-drizzle','drizzle'].includes(state))state='rain';
   const strongWet=fresh&&(PROVIDER_WET_CODES.has(code)||rate>=.3),possible=fresh&&!strongWet&&rate>=.1&&(probability>=50||probability===0),wet=strongWet||possible;
   return{available,fresh,rate,code,probability,state,wet,strongWet,possible,observedAt,provider};
 }
