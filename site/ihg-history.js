@@ -3,6 +3,7 @@ import {IHG_HISTORY_PERIODS,IHG_HISTORY_SOURCE} from './ihg-history-data.js';
 const STYLE_ID='ihg-history-style';
 const SOURCE_LABEL='IHG Hotels & Resorts — Our history';
 const DISCLOSURE_MS=420;
+const SCROLL_SETTLE_MS=1800;
 const HISTORY_PERIOD_IMAGES=Object.freeze({
   '1777–1899':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1770.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1777'}),
   '1900–1949':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1946.jpg?h=422&iar=0&w=750',caption:'IHG history archive · 1946'}),
@@ -27,7 +28,7 @@ function ensureStylesheet(){
     const link=document.createElement('link');
     link.id=STYLE_ID;
     link.rel='stylesheet';
-    link.href='/ihg-history.css?v=2';
+    link.href='/ihg-history.css?v=3';
     link.addEventListener('load',resolve,{once:true});
     link.addEventListener('error',resolve,{once:true});
     document.head.appendChild(link);
@@ -124,9 +125,51 @@ function persistentHeaderOffset(){
   return Math.max(0,header.getBoundingClientRect().bottom);
 }
 
+function desiredCardTop(){
+  return persistentHeaderOffset()+10;
+}
+
+function wait(ms){
+  return new Promise(resolve=>window.setTimeout(resolve,ms));
+}
+
+function clearScrollRunway(list){
+  if(list)list.style.paddingBottom='';
+}
+
+function prepareScrollRunway(root,card){
+  const list=root.querySelector('.ihg-history-list');
+  if(!list)return null;
+  clearScrollRunway(list);
+  const target=Math.max(0,window.scrollY+card.getBoundingClientRect().top-desiredCardTop());
+  const needed=Math.ceil(target+window.innerHeight-document.documentElement.scrollHeight+18);
+  if(needed>0)list.style.paddingBottom=`${needed}px`;
+  return list;
+}
+
 function scrollCardToTop(card){
-  const top=window.scrollY+card.getBoundingClientRect().top-persistentHeaderOffset()-10;
-  window.scrollTo({top:Math.max(0,top),behavior:reducedMotion()?'auto':'smooth'});
+  const expected=desiredCardTop();
+  const top=Math.max(0,window.scrollY+card.getBoundingClientRect().top-expected);
+  const behavior=reducedMotion()?'auto':'smooth';
+  if(behavior==='auto'||Math.abs(card.getBoundingClientRect().top-expected)<=2){
+    window.scrollTo({top,behavior:'auto'});
+    return Promise.resolve();
+  }
+  return new Promise(resolve=>{
+    const started=performance.now();
+    let stableFrames=0;
+    const settle=()=>{
+      const delta=Math.abs(card.getBoundingClientRect().top-expected);
+      stableFrames=delta<=3?stableFrames+1:0;
+      if(stableFrames>=3||performance.now()-started>=SCROLL_SETTLE_MS){
+        resolve();
+        return;
+      }
+      requestAnimationFrame(settle);
+    };
+    window.scrollTo({top,behavior});
+    requestAnimationFrame(settle);
+  });
 }
 
 export async function mountIhgHistoryRoute(root){
@@ -135,26 +178,62 @@ export async function mountIhgHistoryRoute(root){
   root.innerHTML=template();
   root.querySelectorAll('.ihg-history-card').forEach(card=>setExpanded(card,false));
 
-  let scrollTimer=0;
+  let interactionId=0;
+  let pendingCard=null;
+  let activeRunway=null;
+  let runwayCleanupTimer=0;
+
+  const resetPending=()=>{
+    pendingCard?.classList.remove('is-preparing');
+    pendingCard=null;
+    clearTimeout(runwayCleanupTimer);
+    runwayCleanupTimer=0;
+    clearScrollRunway(activeRunway);
+    activeRunway=null;
+  };
+
   const onClick=event=>{
     const button=event.target.closest('.ihg-history-card-button');
     if(!button||!root.contains(button))return;
     const card=button.closest('.ihg-history-card');
-    const opening=button.getAttribute('aria-expanded')!=='true';
-    const openCards=[...root.querySelectorAll('.ihg-history-card.is-open')].filter(other=>other!==card);
-    const closingAbove=opening&&openCards.some(other=>Boolean(other.compareDocumentPosition(card)&Node.DOCUMENT_POSITION_FOLLOWING));
-    if(opening)openCards.forEach(other=>setExpanded(other,false));
-    setExpanded(card,opening);
-    if(opening){
-      clearTimeout(scrollTimer);
-      const delay=closingAbove&&!reducedMotion()?DISCLOSURE_MS+20:0;
-      scrollTimer=window.setTimeout(()=>requestAnimationFrame(()=>scrollCardToTop(card)),delay);
+    const isOpen=button.getAttribute('aria-expanded')==='true';
+    const token=++interactionId;
+    resetPending();
+
+    if(isOpen){
+      setExpanded(card,false);
+      return;
     }
+
+    const openCards=[...root.querySelectorAll('.ihg-history-card.is-open')].filter(other=>other!==card);
+    openCards.forEach(other=>setExpanded(other,false));
+    pendingCard=card;
+    card.classList.add('is-preparing');
+
+    void (async()=>{
+      if(openCards.length&&!reducedMotion())await wait(DISCLOSURE_MS+20);
+      if(token!==interactionId)return;
+
+      const runway=prepareScrollRunway(root,card);
+      activeRunway=runway;
+      await scrollCardToTop(card);
+      if(token!==interactionId){
+        clearScrollRunway(runway);
+        return;
+      }
+
+      setExpanded(card,true);
+      card.classList.remove('is-preparing');
+      pendingCard=null;
+      activeRunway=null;
+      runwayCleanupTimer=window.setTimeout(()=>clearScrollRunway(runway),reducedMotion()?0:DISCLOSURE_MS+30);
+    })();
   };
   root.addEventListener('click',onClick);
 
   return ()=>{
-    clearTimeout(scrollTimer);
+    interactionId+=1;
+    resetPending();
     root.removeEventListener('click',onClick);
     delete document.body.dataset.ihgHistory;
   };
