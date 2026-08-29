@@ -151,18 +151,51 @@ function exactCardScrollTop(card){
   return Math.max(0,window.scrollY+card.getBoundingClientRect().top-desiredCardTop());
 }
 
+function withInstantDocumentScroll(callback){
+  const element=document.documentElement;
+  const previous=element.style.scrollBehavior;
+  element.style.scrollBehavior='auto';
+  callback();
+  element.style.scrollBehavior=previous;
+}
+
+function alignCardInstantly(card){
+  const delta=card.getBoundingClientRect().top-desiredCardTop();
+  if(Math.abs(delta)<=.5)return;
+  withInstantDocumentScroll(()=>window.scrollBy(0,delta));
+}
+
+function holdCardAtTop(card,duration=DISCLOSURE_MS+90){
+  if(reducedMotion()){
+    alignCardInstantly(card);
+    return Promise.resolve();
+  }
+  return new Promise(resolve=>{
+    const started=performance.now();
+    const keepAligned=()=>{
+      alignCardInstantly(card);
+      if(performance.now()-started>=duration){
+        resolve();
+        return;
+      }
+      requestAnimationFrame(keepAligned);
+    };
+    requestAnimationFrame(keepAligned);
+  });
+}
+
 function scrollCardToTop(card){
   const expected=desiredCardTop();
   const top=exactCardScrollTop(card);
   if(reducedMotion()||Math.abs(card.getBoundingClientRect().top-expected)<=2){
-    window.scrollTo({top,behavior:'auto'});
+    withInstantDocumentScroll(()=>window.scrollTo({top,behavior:'auto'}));
     return Promise.resolve();
   }
   return new Promise(resolve=>{
     const started=performance.now();
     let stableFrames=0;
     const finish=()=>{
-      window.scrollTo({top:exactCardScrollTop(card),behavior:'auto'});
+      withInstantDocumentScroll(()=>window.scrollTo({top:exactCardScrollTop(card),behavior:'auto'}));
       requestAnimationFrame(resolve);
     };
     const settle=()=>{
@@ -230,10 +263,13 @@ export async function mountIhgHistoryRoute(root){
       }
 
       setExpanded(card,true);
+      await holdCardAtTop(card);
+      if(token!==interactionId)return;
       card.classList.remove('is-preparing');
       pendingCard=null;
+      clearScrollRunway(runway);
+      alignCardInstantly(card);
       activeRunway=null;
-      runwayCleanupTimer=window.setTimeout(()=>clearScrollRunway(runway),reducedMotion()?0:DISCLOSURE_MS+30);
     })();
   };
   root.addEventListener('click',onClick);
