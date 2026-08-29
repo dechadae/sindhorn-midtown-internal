@@ -19,6 +19,7 @@
 #
 # These MUST stay explicit. A catch-all ("/* / 200") shadows static assets.
 /fnb / 200
+/ihg-history / 200
 /messages / 200
 /settings / 200
 /account / 200

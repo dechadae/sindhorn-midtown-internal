@@ -1,0 +1,78 @@
+/* Shared routed-page hero standard. F&B is the visual authority.
+   The public F&B renderer reuses the same F&B hero CSS and is parity-tested against these tokens. */
+:root{
+  --route-hero-pad-top:22px;
+  --route-hero-pad-bottom:20px;
+  --route-hero-kicker-size:9px;
+  --route-hero-title-size:clamp(30px,8.5vw,44px);
+  --route-hero-copy-size:13px;
+  --route-hero-line:rgba(250,247,245,.11);
+  --route-hero-muted:rgba(250,247,245,.66);
+  --route-hero-accent:#E5ECBE;
+}
+
+/* One atmosphere: Settings and Brand History must not add their own page-wide dimmer. */
+.settings-route,.ihg-history-route{isolation:auto!important}
+.settings-route::before,.ihg-history-route::before{content:none!important;background:none!important}
+
+/* Common hero geometry. */
+.fnb-hero,
+.settings-hero,
+.ihg-history-hero,
+body[data-route="messages"] .route-hero{
+  padding:var(--route-hero-pad-top) 0 var(--route-hero-pad-bottom)!important;
+  border-bottom:1px solid var(--route-hero-line)!important;
+}
+
+.fnb-eyebrow,
+.settings-eyebrow,
+.ihg-history-eyebrow,
+body[data-route="messages"] .route-kicker{
+  margin:0 0 12px!important;
+  color:var(--route-hero-accent)!important;
+  font-family:var(--font-ui)!important;
+  font-size:var(--route-hero-kicker-size)!important;
+  font-weight:400!important;
+  line-height:1.3!important;
+  letter-spacing:0!important;
+  text-transform:uppercase!important;
+}
+body[data-route="messages"] .route-kicker::after{content:none!important;display:none!important}
+
+.fnb-hero h1,
+.settings-hero h1,
+.ihg-history-hero h1,
+body[data-route="messages"] .route-hero h1{
+  max-width:100%!important;
+  margin:0!important;
+  color:var(--sm-text)!important;
+  font-family:var(--font-ui)!important;
+  font-size:var(--route-hero-title-size)!important;
+  font-weight:400!important;
+  line-height:1.05!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+}
+
+.fnb-period,
+.settings-name,
+.ihg-history-intro,
+body[data-route="messages"] .route-hero>p:last-child{
+  max-width:34rem!important;
+  margin:8px 0 0!important;
+  color:var(--route-hero-muted)!important;
+  font-family:var(--font-ui)!important;
+  font-size:var(--route-hero-copy-size)!important;
+  font-weight:400!important;
+  line-height:1.55!important;
+  letter-spacing:0!important;
+}
+
+/* Settings no longer needs a second avatar inside the hero; the persistent header owns identity. */
+.settings-identity-row{display:block!important}
+.settings-avatar{display:none!important}
+.settings-identity-row>div:last-child{min-width:0!important}
+
+@media(max-width:355px){
+  :root{--route-hero-title-size:30px}
+}
