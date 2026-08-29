@@ -147,9 +147,13 @@ function prepareScrollRunway(root,card){
   return list;
 }
 
+function exactCardScrollTop(card){
+  return Math.max(0,window.scrollY+card.getBoundingClientRect().top-desiredCardTop());
+}
+
 function scrollCardToTop(card){
   const expected=desiredCardTop();
-  const top=Math.max(0,window.scrollY+card.getBoundingClientRect().top-expected);
+  const top=exactCardScrollTop(card);
   if(reducedMotion()||Math.abs(card.getBoundingClientRect().top-expected)<=2){
     window.scrollTo({top,behavior:'auto'});
     return Promise.resolve();
@@ -157,11 +161,15 @@ function scrollCardToTop(card){
   return new Promise(resolve=>{
     const started=performance.now();
     let stableFrames=0;
+    const finish=()=>{
+      window.scrollTo({top:exactCardScrollTop(card),behavior:'auto'});
+      requestAnimationFrame(resolve);
+    };
     const settle=()=>{
       const delta=Math.abs(card.getBoundingClientRect().top-expected);
       stableFrames=delta<=3?stableFrames+1:0;
       if(stableFrames>=3||performance.now()-started>=SCROLL_SETTLE_MS){
-        resolve();
+        finish();
         return;
       }
       requestAnimationFrame(settle);
