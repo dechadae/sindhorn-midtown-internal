@@ -4,27 +4,28 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 
-const css=await readFile('site/fnb-refinements.css','utf8');
+const refinements=await readFile('site/fnb-refinements.css','utf8');
 const base=await readFile('site/fnb.css','utf8');
-const ui=await readFile('site/fnb-share-ui.js','utf8');
 const stability=await readFile('site/fnb-layout-stability.css','utf8');
+const shareUi=await readFile('site/fnb-share-ui.js','utf8');
 const sync=await readFile('site/fnb-artwork-sync.js','utf8');
 const fnb=await readFile('site/fnb.js','utf8');
 const adapter=await readFile('site/fnb-data.js','utf8');
 const manifest=JSON.parse(await readFile('site/manifest.webmanifest','utf8'));
+
 assert.match(base,/rgba\(24,20,32,\.72\)/,'fixture: previous dark overlay missing from base CSS');
-assert.match(css,/\.fnb-route::before\{content:none!important;background:none!important\}/,'heavy F&B route dimmer must be disabled');
-assert.match(css,/text-transform:none!important/,'action controls must preserve sentence/title case');
-assert.match(ui,/const SHARE_LABEL='Share'/,'Share label must be sentence case');
-assert.match(ui,/hero\.appendChild\(button\('page'\)\)/,'page Share must attach directly to the hero overlay host');
-assert.match(ui,/head\.appendChild\(button\('promotion',item\.id\)\)/,'detail Share must attach directly to the detail-head overlay host');
-assert.match(stability,/\.fnb-hero>\.fnb-share-button/,'page Share must use the reserved overlay selector');
-assert.match(stability,/\.fnb-detail-head>\.fnb-share-button/,'detail Share must use the reserved overlay selector');
+assert.match(refinements,/\.fnb-route::before\{content:none!important;background:none!important\}/,'heavy F&B route dimmer must be disabled');
+assert.match(refinements,/text-transform:none!important/,'action controls must preserve sentence/title case');
+assert.match(shareUi,/const SHARE_LABEL='Share'/,'Share label must be sentence case');
+assert.match(shareUi,/hero\.appendChild\(button\('page'\)\)/,'page Share must attach directly to the hero overlay host');
+assert.match(shareUi,/head\.appendChild\(button\('promotion',item\.id\)\)/,'detail Share must attach directly to the detail-head overlay host');
+assert.match(stability,/\.fnb-hero>\.fnb-share-button/,'page Share must use the live reserved overlay selector');
+assert.match(stability,/\.fnb-detail-head>\.fnb-share-button/,'detail Share must use the live reserved overlay selector');
 assert.match(stability,/position:absolute!important/,'async Share controls must stay out of document flow');
-assert.match(stability,/\.fnb-card-button\{padding-bottom:62px!important\}/,'compact cards must reserve the action row before enhancement');
-assert.match(ui,/fnb-card-actions/,'compact card actions must use the reserved action row');
-assert.match(ui,/folderControl\(item\)/,'compact cards must expose the artwork-folder action when available');
-assert.match(ui,/initFnbArtworkSync/,'F&B UI must initialize shared artwork completion state');
+assert.match(stability,/\.fnb-card-button\{padding-bottom:62px!important\}/,'authenticated cards must reserve the action row');
+assert.match(shareUi,/fnb-card-actions/,'authenticated card actions must use the reserved action row');
+assert.match(shareUi,/folderControl\(item\)/,'authenticated cards must expose artwork folders when available');
+assert.match(shareUi,/initFnbArtworkSync/,'F&B UI must initialize shared artwork completion state');
 assert.match(sync,/sindhorn_fnb_artwork_status_read/,'shared artwork sync must read authoritative status');
 assert.match(sync,/sindhorn_fnb_artwork_status_write/,'authenticated editor must persist authoritative status');
 assert.match(sync,/new MutationObserver/,'detail artwork sync must observe dynamically rendered detail DOM');
@@ -38,9 +39,9 @@ assert.match(adapter,/In-room Dining/,'valid workbook outlet must be supported')
 assert.match(adapter,/Offline · showing last saved F&B data/,'offline cache must be visible as stale data');
 for(const label of ['>Show full<',"?'Show full':'Show less'",'>Add / change artwork link<','>Save<'])assert(fnb.includes(label),`expected sentence-case action missing: ${label}`);
 for(const bad of ['>SHOW FULL<','>SHOW LESS<','>ADD / CHANGE ARTWORK LINK<','>SAVE<'])assert(!fnb.includes(bad),`forced uppercase action regressed: ${bad}`);
-assert.match(css,/inset:0!important/,'modal scrim must cover the viewport');
-assert.match(css,/place-items:center!important/,'modal must be centered');
-assert.match(css,/height:100dvh!important/,'modal scrim must use full usable viewport');
+assert.match(refinements,/inset:0!important/,'modal scrim must cover the viewport');
+assert.match(refinements,/place-items:center!important/,'modal must be centered');
+assert.match(refinements,/height:100dvh!important/,'modal scrim must use full usable viewport');
 assert.equal(manifest.id,'/');assert.equal(manifest.start_url,'/');assert.equal(manifest.scope,'/');assert.equal(manifest.display,'standalone');
 
 const temp=await mkdtemp(join(tmpdir(),'fnb-share-'));
@@ -48,40 +49,55 @@ const run=spawnSync(process.execPath,['scripts/generate-fnb-share.mjs',temp],{en
 assert.equal(run.status,0,run.stderr||run.stdout);
 const report=JSON.parse(run.stdout.trim().split('\n').at(-1));
 assert.equal(report.promotions,18,'public snapshot must include all Sep–Dec promotions');
-assert.equal(report.activations,21,'public snapshot must reflect current normalized activation rows');
+assert.equal(report.activations,21,'public snapshot must reflect normalized activation rows');
 assert.equal(report.artworks,61,'public snapshot must preserve artwork requirements');
-assert.equal(report.artworkLinks,4,'public snapshot must include workbook SharePoint artwork links');
+assert.equal(report.artworkLinks,4,'public snapshot must include workbook artwork links');
+assert.ok(Number.isInteger(report.presentationPack)&&report.presentationPack>0,'generator must bind to the enabled presentation pack');
 
 const publicRuntime=await readFile(join(temp,'fnb-runtime.js'),'utf8');
 const publicData=await readFile(join(temp,'fnb-public-data.js'),'utf8');
 const publicShell=await readFile(join(temp,'fnb-public-shell.js'),'utf8');
 const publicShareUi=await readFile(join(temp,'fnb-share-ui-public.js'),'utf8');
 const publicCss=await readFile(join(temp,'fnb-public.css'),'utf8');
+const livePackCss=await readFile(join(temp,'fnb-live-pack.css'),'utf8');
+
+/* The public renderer is the live renderer, not a second card implementation. */
 assert.match(publicRuntime,/const TEMPLATE=`/,'public share must reuse authenticated F&B route runtime');
 assert.match(publicRuntime,/fnb-card-button/,'authenticated card renderer must be preserved');
 assert.match(publicRuntime,/fnb-detail-title/,'authenticated detail renderer must be preserved');
-assert.match(publicRuntime,/fnb-section-rail/,'authenticated detail renderer remains source, even though public CSS hides its rail');
-assert.match(publicRuntime,/import \{FNB_PROMOTIONS as DATA\} from '.\/fnb-public-data\.js'/,'public runtime must use explicit public data');
+assert.match(publicRuntime,/fnb-section-rail/,'authenticated detail renderer remains the source');
+assert.match(publicRuntime,/import \{FNB_PROMOTIONS as DATA\} from '.\/fnb-public-data\.js'/,'public runtime must use public data');
 assert.doesNotMatch(publicRuntime,/sindhorn-midtown:fnb-local/,'public runtime must not read private device state');
 assert.doesNotMatch(publicRuntime,/localStorage\.getItem/,'public runtime must not hydrate device-only F&B state');
 assert.match(publicRuntime,/const editor=false/,'public runtime must never grant edit capability');
-assert.match(publicCss,/\.masthead-inner\{min-height:54px;padding-top:8px;padding-bottom:8px/,'public masthead must copy Pack 46 mobile geometry');
-assert.match(publicCss,/\.brand-lockup\{position:relative;width:clamp\(108px,28vw,136px\)/,'public logo must copy Pack 46 lockup sizing');
-assert.match(publicCss,/#app-header\{position:sticky;top:0;z-index:120;isolation:isolate\}/,'public header host must copy Pack 46 sticky behavior');
+
+/* Header geometry comes from the enabled pack copied byte-for-byte at generation time. */
+assert.match(livePackCss,/\.masthead-inner,#route-view\{/,'generated share must contain enabled-pack shell geometry');
+assert.match(livePackCss,/\.brand-lockup\{/,'generated share must contain enabled-pack brand geometry');
+assert.match(livePackCss,/--font-ui:\\?"LINE Seed Sans TH/,'generated share must carry the live font authority');
+assert.match(livePackCss,/-webkit-tap-highlight-color:transparent/,'public share must inherit the live tap-highlight suppression');
+
+/* Public CSS is only a read-only subtraction layer. */
+assert.match(publicCss,/#app-footer[^}]*display:none!important/,'public app footer must be hidden');
+assert.match(publicCss,/\.masthead-user[^}]*\.masthead-tools\{display:none!important\}/,'public employee/avatar tools must be hidden');
+assert.match(publicCss,/\.fnb-card-actions\{display:none!important\}/,'public promotion-card action footer must be hidden');
+assert.match(publicCss,/\.fnb-card-button\{padding-bottom:16px!important\}/,'hidden card footer must not leave reserved blank space');
 assert.match(publicCss,/\.fnb-section-rail\{display:none!important/,'public detail section rail must be hidden');
-assert.match(publicCss,/-webkit-tap-highlight-color:transparent!important/,'public controls must suppress browser tap highlight');
 assert.match(publicCss,/-webkit-appearance:none;appearance:none/,'public controls must remove native browser control chrome');
 assert.match(publicCss,/\.fnb-task-toggle\{display:none!important\}/,'public artwork check controls must be hidden');
 assert.match(publicCss,/\[data-folder-edit\]/,'public artwork editor UI must be hidden');
-assert.match(publicCss,/\.fnb-data-updated\{/,'public freshness timestamp must have the same restrained treatment');
+assert.match(publicCss,/\.fnb-data-updated\{/,'public freshness timestamp must keep restrained treatment');
 assert.doesNotMatch(publicCss,/\[data-folder-open\][^}]*display:none/,'public artwork folder open action must remain visible');
 assert.doesNotMatch(publicCss,/\.fnb-sheet-layer[^}]*display:none/,'public multi-folder modal must remain available');
+assert.doesNotMatch(publicCss,/\.masthead-inner\{min-height:/,'public layer must not maintain a second masthead geometry');
+assert.doesNotMatch(publicCss,/\.brand-lockup\{position:/,'public layer must not maintain a second logo geometry');
+
 assert.match(publicShareUi,/\.\/fnb-public-data\.js/,'public Share UI must use public data');
 assert.match(publicShareUi,/\/fnb-artwork-sync\.js/,'public Share UI must consume shared completion state');
 assert.match(publicData,/sindhorn_fnb_public_read_model/,'public data must refresh from Supabase at runtime');
 assert.match(publicData,/FNB_DATA_UPDATED_AT/,'public data must expose Supabase content freshness');
 assert.match(publicData,/sharepoint\.com/i,'public data snapshot must include IHG-gated artwork folder links');
-assert.match(publicData,/artworkUrl/,'public data must retain artwork folder URLs');
+assert.match(publicData,/artworkUrl/,'public data must retain permitted artwork-folder URLs');
 assert.match(publicShell,/FNB_DATA_UPDATED_AT/,'public shell must consume content freshness');
 assert.match(publicShell,/data-fnb-data-updated/,'public shell must render the freshness timestamp under the period');
 assert.match(publicShell,/fnbPublicUpdated/,'public detail must expose a dated-and-timed Updated fact');
@@ -95,13 +111,19 @@ for(const [path,title] of pages){
   assert.match(html,/<meta property="og:url"/,`${path}: og:url missing`);
   assert.match(html,/https:\/\/preview\.example\.test\/share\/fnb/,`${path}: canonical preview origin missing`);
   assert.match(html,/id="environmentStage"/,`${path}: must reuse production atmosphere layer`);
-  assert.match(html,/id="app-header"/,`${path}: must use authenticated header host`);
-  assert.match(html,/class="masthead"/,`${path}: must use authenticated masthead markup`);
-  assert.match(html,/class="brand-lockup"/,`${path}: must use authenticated brand lockup markup`);
-  assert.doesNotMatch(html,/masthead-tools/,`${path}: public masthead must omit employee/fullscreen tools`);
-  assert.match(html,/fnb-public\.css\?v=6/,`${path}: public CSS must be cache-busted`);
-  assert.match(html,/fnb-public-shell\.js\?v=8/,`${path}: public shell must use current cache-bust version`);
+  assert.match(html,/id="app-header"/,`${path}: must use live header host`);
+  assert.match(html,/class="masthead"/,`${path}: must use live masthead structure`);
+  assert.match(html,/class="brand-lockup"/,`${path}: must use live brand lockup structure`);
+  assert.doesNotMatch(html,/masthead-tools/,`${path}: public masthead must omit employee/private tools`);
+  assert.match(html,/\/shell\.css\?v=3/,`${path}: public shell must load authenticated shell base`);
+  assert.match(html,/\/fnb-approved-polish\.css\?v=2/,`${path}: approved live F&B polish missing`);
+  assert.match(html,/\/fnb-refinements\.css\?v=1/,`${path}: live F&B refinements missing`);
+  assert.match(html,/\/fnb-layout-stability\.css\?v=1/,`${path}: live async layout stability missing`);
+  assert.match(html,/\/share\/fnb-live-pack\.css\?v=\d+/,`${path}: live presentation pack CSS missing`);
+  assert.match(html,/\/share\/fnb-public\.css\?v=7/,`${path}: public subtraction layer missing`);
+  assert.match(html,/\/share\/fnb-public-shell\.js\?v=9/,`${path}: current public shell missing`);
+  assert.doesNotMatch(html,/href="\/fnb\.css/,'public HTML must let the cloned runtime load fnb.css in the same order as authenticated F&B');
   for(const token of ['og:image','twitter:image','employee_number','Add / change artwork link','auth-client','login.html','id="app-footer"'])assert(!html.toLowerCase().includes(token.toLowerCase()),`${path}: forbidden public token ${token}`)
 }
 await rm(temp,{recursive:true,force:true});
-console.log('F&B Supabase/share regression passed');
+console.log('F&B live-renderer/public-share parity regression passed');
