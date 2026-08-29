@@ -77,7 +77,7 @@ ${meta(title,url,description)}
 <link rel="stylesheet" href="/fnb-refinements.css?v=1">
 <link rel="stylesheet" href="/fnb-layout-stability.css?v=1">
 <link rel="stylesheet" href="/share/fnb-live-pack.css?v=${LIVE_PACK.packId}">
-<link rel="stylesheet" href="/share/fnb-public.css?v=7">
+<link rel="stylesheet" href="/share/fnb-public.css?v=8">
 </head>
 <body data-route="fnb" data-fnb-public="true" data-presentation-pack="${LIVE_PACK.packId}"${id?` data-public-promotion="${esc(id)}"`:''}>
 <div class="environment-stage" id="environmentStage" hidden aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
@@ -104,15 +104,15 @@ runtime=runtime.replace(/function save\(\)\{try\{localStorage\.setItem\([^\n]+?\
 if(runtime.includes('sindhorn-midtown:fnb-local'))throw new Error('public runtime still references private F&B local state');
 await writeFile(join(OUTPUT,'fnb-runtime.js'),runtime);
 
-/* Keep the same asynchronous Share placement as live. The card action row it creates is
-   intentionally hidden by the public-only CSS, while hero/detail Share remains live-parity. */
+/* Keep the same asynchronous Share placement and compact-card action row as live.
+   Public sharing changes capability, not the approved F&B card composition. */
 let shareUi=await readFile('site/fnb-share-ui.js','utf8');
 shareUi=shareUi.replace("import {FNB_PROMOTIONS as DATA} from './fnb-data.js';","import {FNB_PROMOTIONS as DATA} from './fnb-public-data.js';");
 await writeFile(join(OUTPUT,'fnb-share-ui-public.js'),shareUi);
 
 /* Public-only delta. Everything visual above this layer is the current live pack + the
-   exact authenticated F&B styles. We remove only private/edit surfaces and the two
-   footer surfaces requested for read-only sharing: app footer and card action footer. */
+   exact authenticated F&B styles. Remove only employee/private/edit surfaces and the
+   persistent app footer; compact-card Artwork folder + Share actions remain live-parity. */
 const css=`body[data-fnb-public="true"]{padding-bottom:0!important;overflow-x:hidden!important}
 body[data-fnb-public="true"] #app-footer,body[data-fnb-public="true"] .app-tabbar{display:none!important}
 body[data-fnb-public="true"] .masthead-user,body[data-fnb-public="true"] .masthead-tools{display:none!important}
@@ -124,8 +124,6 @@ body[data-fnb-public="true"] .fnb-task-toggle{display:none!important}
 body[data-fnb-public="true"] .fnb-task{grid-template-columns:minmax(0,1fr)!important;padding-left:0!important}
 body[data-fnb-public="true"] [data-folder-edit],body[data-fnb-public="true"] [data-save-links]{display:none!important}
 body[data-fnb-public="true"] .fnb-section-rail{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
-body[data-fnb-public="true"] .fnb-card-actions{display:none!important}
-body[data-fnb-public="true"] .fnb-card-button{padding-bottom:16px!important}
 body[data-fnb-public="true"][data-fnb-detail="true"] #route-view{padding-bottom:max(38px,env(safe-area-inset-bottom))!important}
 body[data-fnb-public="true"] .fnb-back,body[data-fnb-public="true"] .fnb-action-control,body[data-fnb-public="true"] .fnb-chip{color:inherit}
 body[data-fnb-public="true"] .fnb-back:active,body[data-fnb-public="true"] .fnb-action-control:active{outline:none!important;box-shadow:none!important}

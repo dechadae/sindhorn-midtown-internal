@@ -80,8 +80,10 @@ assert.match(livePackCss,/-webkit-tap-highlight-color:transparent/,'public share
 /* Public CSS is only a read-only subtraction layer. */
 assert.match(publicCss,/#app-footer[^}]*display:none!important/,'public app footer must be hidden');
 assert.match(publicCss,/\.masthead-user[^}]*\.masthead-tools\{display:none!important\}/,'public employee/avatar tools must be hidden');
-assert.match(publicCss,/\.fnb-card-actions\{display:none!important\}/,'public promotion-card action footer must be hidden');
-assert.match(publicCss,/\.fnb-card-button\{padding-bottom:16px!important\}/,'hidden card footer must not leave reserved blank space');
+assert.doesNotMatch(publicCss,/\.fnb-card-actions[^}]*display:none!important/,'public promotion cards must keep the live Artwork folder + Share action row');
+assert.doesNotMatch(publicCss,/\.fnb-card-button\{padding-bottom:16px!important\}/,'public cards must retain live action-row spacing');
+assert.match(publicShareUi,/folderControl\(item\)/,'public compact cards must expose artwork-folder access when available');
+assert.match(publicShareUi,/actions\.appendChild\(button\('promotion',id\)\)/,'public compact cards must expose promotion Share');
 assert.match(publicCss,/\.fnb-section-rail\{display:none!important/,'public detail section rail must be hidden');
 assert.match(publicCss,/-webkit-appearance:none;appearance:none/,'public controls must remove native browser control chrome');
 assert.match(publicCss,/\.fnb-task-toggle\{display:none!important\}/,'public artwork check controls must be hidden');
@@ -120,7 +122,7 @@ for(const [path,title] of pages){
   assert.match(html,/\/fnb-refinements\.css\?v=1/,`${path}: live F&B refinements missing`);
   assert.match(html,/\/fnb-layout-stability\.css\?v=1/,`${path}: live async layout stability missing`);
   assert.match(html,/\/share\/fnb-live-pack\.css\?v=\d+/,`${path}: live presentation pack CSS missing`);
-  assert.match(html,/\/share\/fnb-public\.css\?v=7/,`${path}: public subtraction layer missing`);
+  assert.match(html,/\/share\/fnb-public\.css\?v=8/,`${path}: public subtraction layer missing`);
   assert.match(html,/\/share\/fnb-public-shell\.js\?v=9/,`${path}: current public shell missing`);
   assert.doesNotMatch(html,/href="\/fnb\.css/,'public HTML must let the cloned runtime load fnb.css in the same order as authenticated F&B');
   for(const token of ['og:image','twitter:image','employee_number','Add / change artwork link','auth-client','login.html','id="app-footer"'])assert(!html.toLowerCase().includes(token.toLowerCase()),`${path}: forbidden public token ${token}`)
