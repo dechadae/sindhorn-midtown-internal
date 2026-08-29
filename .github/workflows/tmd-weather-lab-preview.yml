@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - tmd-weather-lab
+      - tmd-camera-weather-lab
   workflow_dispatch:
 
 permissions:
