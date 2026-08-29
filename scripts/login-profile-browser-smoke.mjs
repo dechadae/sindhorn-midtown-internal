@@ -34,8 +34,20 @@ export async function loadSettingsAuthority(){return authority}
 `;
 
 async function checkOverflow(page,label){
-  const value=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,client:document.documentElement.clientWidth,body:document.body.scrollWidth}));
-  assert(value.scroll<=value.client+1&&value.body<=value.client+1,`${label} horizontal overflow ${JSON.stringify(value)}`);
+  const value=await page.evaluate(()=>{
+    const client=document.documentElement.clientWidth;
+    const offenders=[...document.querySelectorAll('body *')].map(el=>{
+      const rect=el.getBoundingClientRect();
+      const style=getComputedStyle(el);
+      return{tag:el.tagName.toLowerCase(),id:el.id||'',className:typeof el.className==='string'?el.className:'',left:Math.round(rect.left*10)/10,right:Math.round(rect.right*10)/10,width:Math.round(rect.width*10)/10,minWidth:style.minWidth,widthStyle:style.width,display:style.display,position:style.position,overflowX:style.overflowX};
+    }).filter(item=>item.right>client+1||item.left<-1).sort((a,b)=>(b.right-client)-(a.right-client)).slice(0,12);
+    const body=getComputedStyle(document.body);
+    const shell=document.querySelector('.auth-shell');
+    const card=document.querySelector('.auth-card');
+    const metrics=el=>el?{rect:(()=>{const r=el.getBoundingClientRect();return{x:r.x,width:r.width,right:r.right}})(),width:getComputedStyle(el).width,minWidth:getComputedStyle(el).minWidth,overflowX:getComputedStyle(el).overflowX}:null;
+    return{scroll:document.documentElement.scrollWidth,client,bodyScroll:document.body.scrollWidth,bodyOverflowX:body.overflowX,shell:metrics(shell),card:metrics(card),offenders};
+  });
+  assert(value.scroll<=value.client+1&&value.bodyScroll<=value.client+1,`${label} horizontal overflow ${JSON.stringify(value)}`);
 }
 
 async function captureLogin(browser,width,height){
