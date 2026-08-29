@@ -1,0 +1,66 @@
+name: Weather Provider Replacement Preview
+
+on:
+  push:
+    branches:
+      - replace-open-meteo-tmd-metno
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: weather-provider-replacement-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate provider replacement
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/location.js
+          node --input-type=module --check < site/weather-authority.js
+          node --input-type=module --check < site/rain-now.js
+          node site/weather-authority.test.mjs
+          node site/phase8-2-seasonal-clouds.test.mjs
+          grep -q 'sindhorn-weather-core' site/location.js
+          grep -q 'open_meteo_used:false' site/location.js
+          grep -q 'sindhorn-weather-core' site/rain-now.js
+          grep -q 'Fresh dry observation releases rain immediately' site/weather-authority.js
+          ! grep -q "authority='open-meteo'" site/weather-authority.js
+          ! grep -q 'functions/v1/sindhorn-rain-now' site/rain-now.js
+
+      - name: Deploy Cloudflare branch preview
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke test branch preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREVIEW_BRANCH="${GITHUB_REF_NAME:0:28}"
+          PREVIEW_BRANCH="${PREVIEW_BRANCH%-}"
+          BASE_URL="https://${PREVIEW_BRANCH}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /location.js /weather-authority.js /rain-now.js /environment.js /seasonal-sky.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
+            test -s /tmp/smoke
+          done
+          curl --fail --silent --show-error "${BASE_URL}/location.js" -o /tmp/location
+          grep -q 'sindhorn-weather-core' /tmp/location
+          grep -q 'open_meteo_used:false' /tmp/location
+          curl --fail --silent --show-error "${BASE_URL}/rain-now.js" -o /tmp/rain
+          grep -q 'sindhorn-weather-core' /tmp/rain
+          ! grep -q 'sindhorn-rain-now' /tmp/rain
+          curl --fail --silent --show-error "${BASE_URL}/weather-authority.js" -o /tmp/authority
+          grep -q 'Fresh dry observation releases rain immediately' /tmp/authority

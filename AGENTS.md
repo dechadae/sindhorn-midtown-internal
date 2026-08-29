@@ -15,18 +15,19 @@ Do not infer that a commit is live merely because it is on `main`. A production 
 ## Read authority in this order
 
 1. `AGENTS.md`
-2. `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md`
-3. `docs/SINGLE-SHELL-ROUTER-INVARIANT-20260828.md`
-4. `docs/FNB-SUPABASE-DATA-AUTHORITY-20260829.md` when working on F&B
-5. `docs/FNB-EXCEL-TO-SUPABASE-UPDATE-RUNBOOK.md` when the product owner supplies updated F&B Excel files
-6. `docs/BANGKOK-SEASONAL-SKY-AND-CLOUD-ARCHITECTURE-OVERRIDE-20260827.md`
-7. `docs/PHASE8.2-BANGKOK-SEASONAL-CLOUD-MORPHOLOGY-PLAN-20260827.md`
-8. `docs/PHASE8.2-IMPLEMENTATION-20260827.md`
-9. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
-10. `docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md` only as historical/future-camera research
-11. earlier phase implementation notes as needed
+2. `docs/WEATHER-AUTHORITY-OVERRIDE-20260829.md` for all weather-source/current-rain decisions
+3. `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md`
+4. `docs/SINGLE-SHELL-ROUTER-INVARIANT-20260828.md`
+5. `docs/FNB-SUPABASE-DATA-AUTHORITY-20260829.md` when working on F&B
+6. `docs/FNB-EXCEL-TO-SUPABASE-UPDATE-RUNBOOK.md` when the product owner supplies updated F&B Excel files
+7. `docs/BANGKOK-SEASONAL-SKY-AND-CLOUD-ARCHITECTURE-OVERRIDE-20260827.md`
+8. `docs/PHASE8.2-BANGKOK-SEASONAL-CLOUD-MORPHOLOGY-PLAN-20260827.md`
+9. `docs/PHASE8.2-IMPLEMENTATION-20260827.md`
+10. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
+11. `docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md` only as historical/future-camera research
+12. earlier phase implementation notes as needed
 
-The single-shell router invariant is mandatory for all authenticated app features. The two Phase 8.2 atmosphere documents supersede older live-camera production architecture wherever they conflict.
+The single-shell router invariant is mandatory for all authenticated app features. The two Phase 8.2 atmosphere documents supersede older live-camera production architecture wherever they conflict. `docs/WEATHER-AUTHORITY-OVERRIDE-20260829.md` supersedes all earlier Open-Meteo/current-weather authority statements wherever they conflict.
 
 ## Product state that must be preserved
 
@@ -38,9 +39,10 @@ The single-shell router invariant is mandatory for all authenticated app feature
 - **Footer navigation invariant: the authenticated footer is `Today / F&B / Messages`. Guidance and Details are not standalone footer routes; their existing presentation fragments are composed below Today in the same continuous page. F&B is a live in-shell route whose operational promotion content is read from Supabase at runtime.**
 - Messages remains a footer destination and its device-local inbox works offline.
 - Environmental Alerts / Web Push is user-gesture initiated only; never auto-prompt notification permission.
-- Current device location drives Open-Meteo weather and sun/moon astronomy after permission; fallback is Sindhorn Midtown Bangkok.
+- Current device location drives TMD AWS observed weather, MET Norway cloud/forecast support, and sun/moon astronomy after permission; fallback location is Sindhorn Midtown Bangkok.
 - AirBKK is authoritative for PM2.5 and Thai AQI.
-- Open-Meteo is authoritative for current local weather.
+- TMD AWS is authoritative for fresh observed current local weather. MET Norway is model support for cloud/forecast fields only and must never activate current rain by itself. Open-Meteo is not a production weather dependency.
+- Current precipitation is observation-only: fresh observed dry releases rain immediately; model/base wet signals must not activate rain.
 - PWA identity stays `id=/`, `start_url=/`, `scope=/`, `display=standalone`.
 - Normal releases require no reinstall and must preserve existing push subscriptions.
 - The visible **Save full page** action was explicitly removed on 2026-08-27 from live Pack 38 and the offline fallback. Do not restore that button/action bar without a new explicit product decision. Internal capture/export code may remain as non-visible infrastructure unless separately removed.
@@ -93,18 +95,22 @@ Always re-query live Supabase before relying on those values in a later session.
 Approved production model:
 
 `Bangkok Seasonal Sky Profile`
-`+ current Open-Meteo weather`
+`+ TMD AWS observed current weather`
+`+ MET Norway cloud / forecast support`
 `+ actual local sun/moon astronomy`
 `+ AirBKK PM2.5 optics`
 `→ rendered atmosphere`
 
-Weather always wins. The seasonal profile is a continuous annual prior, not a weather generator.
+Observed weather always wins. The seasonal profile is a continuous annual prior, not a weather generator. Model precipitation never creates a current rain state.
 
 Implementation components:
 
 - `site/seasonal-sky.js` — continuous 12-month Bangkok profile, weather family classification, cloud morphology controls, seasonal sky state.
 - `site/atmosphere-shader.js` — shared GLSL for seasonal sky plus three cloud depth families.
-- `site/environment.js` — production environment state, Open-Meteo integration, current-location astronomy, AirBKK optics, renderer, precipitation overlays, export parity.
+- `site/environment.js` — production environment state, current-location astronomy, AirBKK optics, renderer, precipitation overlays and export parity. During the provider migration its existing weather-shape contract is fed by the TMD/MET normalized adapter in `site/location.js`; it does not receive live Open-Meteo data.
+- `site/location.js` — device-location authority plus the current TMD/MET weather-core compatibility adapter. The legacy Open-Meteo URL string is only a request signature for the unchanged renderer contract; no production network request is sent to Open-Meteo.
+- `site/weather-authority.js` — observation-only current precipitation arbitration; fresh observed dry releases immediately and model/base wet signals cannot activate rain.
+- `site/rain-now.js` — reads current precipitation evidence from `sindhorn-weather-core`.
 - `site/phase8-2-fixtures.js` — deterministic seasonal/date/weather acceptance fixtures.
 - `site/phase8-2-seasonal-clouds.test.mjs` — deterministic architecture/fixture assertions.
 - `site/phase8-2-browser-smoke.mjs` — Chromium render/DPR/context/frame-pacing regression smoke with desktop/mobile evidence, run against the live `/` route only.
@@ -129,7 +135,7 @@ The former live-camera calibration system is preserved for future rooftop/360-ca
 - `sky-worker/src/**` remains research code.
 - Production `sky-worker/wrangler.jsonc` explicitly has an empty cron list. Therefore normal operation consumes no scheduled Workers AI allocation after that configuration is deployed to main.
 - Historical Phase 8 camera workflows are manual-only research archives.
-- Do not restore public bridge/river cameras as a production dependency without a new approved architecture override.
+- Public Bangkok camera-weather analysis remains support-only research unless a later explicit architecture decision promotes it; it must not override fresh exact-point radar/QPE or fresh observed dry evidence.
 
 ## Deterministic Phase 8.2 fixtures
 
