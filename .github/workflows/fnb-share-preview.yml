@@ -44,9 +44,9 @@ jobs:
           grep -q 'letter-spacing:0!important' site/fnb-refinements.css
           grep -q '/fnb-share-ui.js?v=1' site/index.html
           grep -q '/fnb-refinements.css?v=1' site/index.html
-          ! grep -q 'og:image' site/share-public/fnb.html
-          ! grep -q 'twitter:image' site/share-public/fnb.html
-          ! grep -RqiE 'sharepoint\.com|1drv\.ms|onedrive\.live\.com|employee_number|Add / change artwork link' site/share-public
+          ! grep -q 'og:image' site/share/fnb.html
+          ! grep -q 'twitter:image' site/share/fnb.html
+          ! grep -RqiE 'sharepoint\.com|1drv\.ms|onedrive\.live\.com|employee_number|Add / change artwork link' site/share/fnb.html site/share/fnb
           test ! -e site/share/fnb/index.html
 
       - name: Create mobile refinement harness
@@ -74,6 +74,7 @@ jobs:
           for path in /share/fnb /share/fnb/fried-chicken-waffles /share/fnb/sunset-cocktails; do
             echo "Checking ${path}"
             status="$(curl --silent --show-error --retry 12 --retry-all-errors --retry-delay 2 --output /tmp/share.html --write-out '%{http_code}' "${BASE_URL}${path}")"
+            echo "HTTP ${status}"
             test "$status" = "200"
             grep -q '<title>' /tmp/share.html
             grep -q 'property="og:title"' /tmp/share.html
