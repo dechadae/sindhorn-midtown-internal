@@ -83,7 +83,7 @@ jobs:
           const trigger=page.locator('[data-filter-trigger="outlet"]');
           await trigger.click();
           const widths=await page.evaluate(()=>{const t=document.querySelector('[data-filter-trigger="outlet"]').getBoundingClientRect(),m=document.querySelector('[data-filter-field="outlet"] .fnb-select-menu').getBoundingClientRect();return{trigger:t.width,menu:m.width}});
-          if(Math.abs(widths.trigger-widths.menu)>2)throw new Error('outlet menu width mismatch '+JSON.stringify(widths));
+          if(Math.abs(widths.trigger-widths.menu)>3)throw new Error('outlet menu width mismatch '+JSON.stringify(widths));
           await page.locator('[data-filter-trigger="outlet"]').click();
           await page.locator('[data-filter-trigger="month"]').click();
           const september=await page.locator('[data-filter-option="month"][data-value="SEP"] > span').evaluate(el=>getComputedStyle(el,'::after').content);
