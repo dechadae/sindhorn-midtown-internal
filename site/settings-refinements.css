@@ -8,6 +8,35 @@ body[data-route="settings"] .settings-select{display:grid;gap:6px;min-width:0;po
 body[data-route="settings"] .settings-select .fnb-select-option{border:0}
 body[data-route="settings"] .settings-select .fnb-select-option+.fnb-select-option{border-top:1px solid rgba(250,247,245,.07)}
 
+/* Exact F&B primary-action recipe for the People creation CTA.
+   This mirrors .fnb-action.is-primary; only width/margin remain contextual. */
+body[data-route="settings"] .settings-add{
+  width:auto!important;
+  min-height:40px!important;
+  height:40px!important;
+  padding:0 14px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  border:1px solid rgba(229,236,190,.44)!important;
+  border-radius:11px!important;
+  background:rgba(229,236,190,.10)!important;
+  color:#E5ECBE!important;
+  font-family:var(--font-ui)!important;
+  font-size:12px!important;
+  font-weight:400!important;
+  line-height:1!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+  box-shadow:none!important;
+  cursor:pointer;
+  transition:background var(--settings-motion-base) ease,border-color var(--settings-motion-base) ease,color var(--settings-motion-base) ease,box-shadow var(--settings-motion-base) var(--settings-ease),transform var(--settings-motion-fast) var(--settings-ease),opacity var(--settings-motion-fast) ease!important;
+}
+body[data-route="settings"] .settings-add:active{transform:scale(.975)!important;opacity:.82!important}
+body[data-route="settings"] .settings-add:focus-visible{outline:2px solid #E5ECBE!important;outline-offset:2px!important;box-shadow:0 0 0 4px rgba(229,236,190,.08)!important}
+body[data-route="settings"] .settings-add:disabled{opacity:.38!important;cursor:default!important;transform:none!important}
+
 /* True shell-sized viewport: short tabs do not scroll; long tabs scroll only
    inside the visible area between the persistent header and footer stack. */
 body[data-route="settings"]{
