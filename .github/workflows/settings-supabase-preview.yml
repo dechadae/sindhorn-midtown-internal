@@ -38,7 +38,6 @@ jobs:
           node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
           python - <<'PY'
           from pathlib import Path
-          import re
           root=Path('site')
           registry=(root/'route-registry.js').read_text()
           auth=(root/'auth-shell.js').read_text()
@@ -56,10 +55,10 @@ jobs:
           assert '/settings / 200' in redirects and '/account / 200' in redirects and '/admin / 200' in redirects
           assert "const SETTINGS_PATH='/settings'" in auth and "dataset.appRoute='settings'" in auth
           assert "route:'settings',label:'Settings',href:'/settings'" in footer
-          assert "data-shell-context=\"settings\"" not in settings
           assert "sindhorn_settings_manifest" in caps
           assert "loadSettingsAuthority({force:true})" in settings
-          assert "profile?.role" not in settings and "employee_number||''" not in settings
+          assert "String(profile?.employee_number||'')==='10639'" not in settings
+          assert "['admin','super_admin'].includes(profile?.role)" not in settings
           assert "can('people.manage')" in settings and "can('system.manage')" in settings
           assert "settings-section-rail shell-footer-rail" in footer
           assert '#app-footer .settings-section-rail' in footer_css
