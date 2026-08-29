@@ -7,6 +7,7 @@ import {spawnSync} from 'node:child_process';
 const css=await readFile('site/fnb-refinements.css','utf8');
 const base=await readFile('site/fnb.css','utf8');
 const ui=await readFile('site/fnb-share-ui.js','utf8');
+const sync=await readFile('site/fnb-artwork-sync.js','utf8');
 const fnb=await readFile('site/fnb.js','utf8');
 const manifest=JSON.parse(await readFile('site/manifest.webmanifest','utf8'));
 assert.match(base,/rgba\(24,20,32,\.72\)/,'fixture: previous dark overlay missing from base CSS');
@@ -15,6 +16,9 @@ assert.match(css,/text-transform:none!important/,'action controls must preserve 
 assert.match(ui,/const SHARE_LABEL='Share'/,'Share label must be sentence case');
 assert.match(ui,/fnb-hero-utility/,'page Share belongs in the hero utility row');
 assert.match(ui,/fnb-detail-utility/,'detail Share belongs beside the back action');
+assert.match(ui,/initFnbArtworkSync/,'F&B UI must initialize shared artwork completion state');
+assert.match(sync,/sindhorn_fnb_artwork_status_read/,'shared artwork sync must read authoritative status');
+assert.match(sync,/sindhorn_fnb_artwork_status_write/,'authenticated editor must persist authoritative status');
 for(const label of ['>Show full<',"?'Show full':'Show less'",'>Add / change artwork link<','>Save<'])assert(fnb.includes(label),`expected sentence-case action missing: ${label}`);
 for(const bad of ['>SHOW FULL<','>SHOW LESS<','>ADD / CHANGE ARTWORK LINK<','>SAVE<'])assert(!fnb.includes(bad),`forced uppercase action regressed: ${bad}`);
 assert.match(css,/inset:0!important/,'modal scrim must cover the viewport');
@@ -47,6 +51,7 @@ assert.match(publicCss,/-webkit-appearance:none;appearance:none/,'public control
 assert.match(publicCss,/\.fnb-task-toggle\{display:none!important\}/,'public artwork check controls must be hidden');
 assert.match(publicCss,/\[data-folder-edit\]/,'public artwork editor UI must be hidden');
 assert.match(publicShareUi,/\.\/fnb-public-data\.js/,'public Share UI must use allowlisted data');
+assert.match(publicShareUi,/\/fnb-artwork-sync\.js/,'public Share UI must consume shared completion state');
 
 for(const token of ['artworkUrl','sharepoint.com','1drv.ms','onedrive.live.com','employee_number','auth-client','login.html'])assert(!publicData.toLowerCase().includes(token.toLowerCase()),`public data leaked forbidden token ${token}`);
 
@@ -63,7 +68,7 @@ for(const [path,title] of pages){
   assert.match(html,/class="brand-lockup"/,`${path}: must use authenticated brand lockup markup`);
   assert.doesNotMatch(html,/masthead-tools/,`${path}: public masthead must omit employee/fullscreen tools`);
   assert.match(html,/fnb-public\.css\?v=4/,`${path}: public CSS must be cache-busted`);
-  assert.match(html,/fnb-public-shell\.js\?v=4/,`${path}: public shell must be cache-busted`);
+  assert.match(html,/fnb-public-shell\.js\?v=5/,`${path}: public shell must use current cache-bust version`);
   for(const token of ['og:image','twitter:image','sharepoint.com','1drv.ms','onedrive.live.com','employee_number','Add / change artwork link','auth-client','login.html','id="app-footer"'])assert(!html.toLowerCase().includes(token.toLowerCase()),`${path}: forbidden public token ${token}`)
 }
 await rm(temp,{recursive:true,force:true});
