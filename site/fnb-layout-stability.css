@@ -1,0 +1,58 @@
+/* F&B async-action stability: reserve share/folder affordance geometry before JS enhances the route. */
+body[data-route="fnb"] .fnb-hero,
+body[data-route="fnb"] .fnb-detail-head,
+body[data-route="fnb"] .fnb-card{position:relative}
+
+/* Page/detail Share controls attach asynchronously but never enter document flow. */
+body[data-route="fnb"] .fnb-hero>.fnb-share-button,
+body[data-route="fnb"] .fnb-detail-head>.fnb-share-button{
+  position:absolute!important;
+  z-index:3;
+  top:20px;
+  right:0;
+  height:36px!important;
+  min-height:36px!important;
+  padding:0 8px!important;
+  background:transparent!important;
+  border-color:transparent!important;
+  color:var(--fnb-muted)!important
+}
+body[data-route="fnb"] .fnb-hero>.fnb-share-button:focus-visible,
+body[data-route="fnb"] .fnb-detail-head>.fnb-share-button:focus-visible{border-color:var(--fnb-glass-brd)!important}
+body[data-route="fnb"] .fnb-hero>.fnb-eyebrow{padding-right:82px}
+body[data-route="fnb"] .fnb-detail-head>.fnb-back{margin-right:82px}
+
+/* Every compact promotion card reserves its action row on first paint. JS only fills it. */
+body[data-route="fnb"] .fnb-card-button{padding-bottom:62px!important}
+body[data-route="fnb"] .fnb-card-actions{
+  position:absolute!important;
+  z-index:3;
+  left:10px!important;
+  right:10px!important;
+  bottom:5px!important;
+  height:44px!important;
+  min-height:44px!important;
+  padding:2px 0 0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:6px!important;
+  border-top:1px solid var(--fnb-line)!important;
+  pointer-events:auto
+}
+body[data-route="fnb"] .fnb-card-actions .fnb-action-control{
+  height:38px!important;
+  min-height:38px!important;
+  padding-inline:10px!important;
+  background:transparent!important;
+  border-color:transparent!important;
+  color:var(--fnb-muted)!important;
+  white-space:nowrap
+}
+body[data-route="fnb"] .fnb-card-actions .fnb-card-folder{margin-right:auto;color:var(--fnb-accent)!important;text-decoration:none}
+body[data-route="fnb"] .fnb-card-actions .fnb-card-folder svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+body[data-route="fnb"] .fnb-card-actions .fnb-action-control:focus-visible{border-color:var(--fnb-glass-brd)!important}
+
+@media(max-width:355px){
+  body[data-route="fnb"] .fnb-card-actions .fnb-action-control{padding-inline:7px!important;font-size:11px!important}
+}

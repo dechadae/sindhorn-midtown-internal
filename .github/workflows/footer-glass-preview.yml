@@ -1,0 +1,98 @@
+name: Edge Glass Footer Preview
+
+on:
+  push:
+    branches: [ui-edge-glass-footers]
+    paths:
+      - "site/footer-route-guard.css"
+      - "site/footer-route-guard.js"
+      - "site/fnb-share-ui.js"
+      - "site/fnb-layout-stability.css"
+      - "site/fnb-timestamp-stability.js"
+      - "site/index.html"
+      - ".github/workflows/footer-glass-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: edge-glass-footer-preview-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate shell-level cloned footer and prepaint stability
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < site/footer-route-guard.js
+          node --input-type=module --check < site/fnb-share-ui.js
+          node --input-type=module --check < site/fnb-timestamp-stability.js
+          grep -q -- '--sm-footer-glass-filter:blur(26px)' site/footer-route-guard.css
+          grep -q -- '--sm-footer-glass-alpha:.84' site/footer-route-guard.css
+          grep -q '#app-footer .shell-footer-rail{' site/footer-route-guard.css
+          grep -q '#route-view .fnb-route > .fnb-section-rail{display:none!important' site/footer-route-guard.css
+          grep -q 'grid-template-columns:repeat(4,minmax(0,1fr))' site/footer-route-guard.css
+          grep -q -- '--sm-footer-surface-rgb:229,236,190' site/footer-route-guard.css
+          grep -q "nav.className='app-tabbar bottom-nav shell-footer-rail'" site/footer-route-guard.js
+          grep -q "rail.className='fnb-section-rail shell-footer-rail'" site/footer-route-guard.js
+          grep -q "host.insertBefore(rail,global||null)" site/footer-route-guard.js
+          grep -q "route:'account',label:'Settings',href:'/account'" site/footer-route-guard.js
+          grep -q "const ACCOUNT_PATH='/account'" site/auth-shell.js
+          grep -q "source:'footer-prepaint'" site/footer-route-guard.js
+          grep -q 'new MutationObserver(enhance)' site/fnb-timestamp-stability.js
+          grep -q 'FNB_DATA_UPDATED_AT' site/fnb-timestamp-stability.js
+          grep -q 'fnb-card-folder' site/fnb-share-ui.js
+          grep -q 'Artwork folder' site/fnb-share-ui.js
+          grep -q 'padding-bottom:62px' site/fnb-layout-stability.css
+          grep -q '/footer-route-guard.css?v=10' site/index.html
+          grep -q '/footer-route-guard.js?v=9' site/index.html
+          grep -q '/fnb-timestamp-stability.js?v=1' site/index.html
+          node - <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('site/index.html','utf8');
+          const polish=html.indexOf('/fnb-approved-polish.css');
+          const layout=html.indexOf('/fnb-layout-stability.css');
+          const footerCss=html.indexOf('/footer-route-guard.css?v=10');
+          if(polish<0||layout<0||footerCss<0||footerCss<polish||footerCss<layout)throw new Error('Footer authority must load after all F&B CSS');
+          const footerJs=html.indexOf('/footer-route-guard.js?v=9');
+          const timestampJs=html.indexOf('/fnb-timestamp-stability.js?v=1');
+          if(timestampJs<0||footerJs<0||timestampJs>footerJs)throw new Error('Timestamp stability must register before F&B route opening');
+          const shell=fs.readFileSync('site/footer-route-guard.js','utf8');
+          const dispatch=shell.indexOf("source:'footer-prepaint'");
+          const reveal=shell.indexOf('await fadeHost(host,0,1,180)');
+          if(dispatch<0||reveal<0||dispatch>reveal)throw new Error('F&B enhancements are not dispatched before reveal');
+          NODE
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke test branch preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          curl -fsS "$BASE_URL/" -o /tmp/index.html
+          curl -fsS "$BASE_URL/footer-route-guard.css?v=10" -o /tmp/footer.css
+          curl -fsS "$BASE_URL/footer-route-guard.js?v=9" -o /tmp/footer.js
+          curl -fsS "$BASE_URL/fnb-timestamp-stability.js?v=1" -o /tmp/timestamp.js
+          curl -fsS "$BASE_URL/fnb-share-ui.js?v=3" -o /tmp/share.js
+          grep -q '/footer-route-guard.css?v=10' /tmp/index.html
+          grep -q '/footer-route-guard.js?v=9' /tmp/index.html
+          grep -q '/fnb-timestamp-stability.js?v=1' /tmp/index.html
+          grep -q '#app-footer .shell-footer-rail' /tmp/footer.css
+          grep -q -- '--sm-footer-glass-filter:blur(26px)' /tmp/footer.css
+          grep -q "rail.className='fnb-section-rail shell-footer-rail'" /tmp/footer.js
+          grep -q "label:'Settings',href:'/account'" /tmp/footer.js
+          grep -q 'new MutationObserver(enhance)' /tmp/timestamp.js
+          grep -q 'fnb-card-folder' /tmp/share.js
