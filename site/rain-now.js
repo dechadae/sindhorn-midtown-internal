@@ -1,4 +1,4 @@
-import {effectiveWeatherSnapshot,locationKey,resolveWeatherAuthority} from './weather-authority.js';
+import {effectiveWeatherSnapshot,locationKey,resolveWeatherAuthority} from './weather-authority.js?v=2';
 
 const SUPABASE_URL='https://sjpvhgxacsiorrtijqua.supabase.co';
 const SUPABASE_KEY='sb_publishable_NcIExScIXkqsK1ZNNu5a-Q_zZ4afIHz';
@@ -17,7 +17,7 @@ function authHeaders(){const token=window.SindhornEmployeeAuth?.getAccessToken?.
 function sanitizeRainNow(value){
   if(!value||value.ok!==true)return{ok:false,status:'unavailable',provider:String(value?.provider||'rain-now'),observedAt:null,fetchedAt:new Date().toISOString()};
   const n=(x,fallback=0)=>Number.isFinite(Number(x))?Number(x):fallback;
-  return{ok:true,status:'ok',provider:String(value.provider||'rain-now'),observedAt:value.observedAt||null,fetchedAt:value.fetchedAt||new Date().toISOString(),rainIntensityMmHr:Math.max(0,n(value.rainIntensityMmHr)),precipitationIntensityMmHr:Math.max(0,n(value.precipitationIntensityMmHr)),precipitationProbability:Math.max(0,n(value.precipitationProbability)),weatherCode:n(value.weatherCode,-1),providerLatencyMs:Math.max(0,n(value.providerLatencyMs))};
+  return{ok:true,status:'ok',provider:String(value.provider||'rain-now'),observedAt:value.observedAt||null,fetchedAt:value.fetchedAt||new Date().toISOString(),rainIntensityMmHr:Math.max(0,n(value.rainIntensityMmHr)),precipitationIntensityMmHr:Math.max(0,n(value.precipitationIntensityMmHr)),precipitationProbability:Math.max(0,n(value.precipitationProbability)),weatherCode:n(value.weatherCode,-1),providerLatencyMs:Math.max(0,n(value.providerLatencyMs)),stationId:n(value.stationId,-1),stationNameEn:String(value.stationNameEn||''),stationDistanceKm:Math.max(0,n(value.stationDistanceKm)),precip15MinsMm:Math.max(0,n(value.precip15MinsMm)),precip1HrMm:Math.max(0,n(value.precip1HrMm)),secondaryOf:value.secondaryOf?String(value.secondaryOf):null};
 }
 function resolvedWeatherFrom(base={}){const weather=resolution?effectiveWeatherSnapshot(base,resolution):base;return resolution?.active?{...weather,known:true}:weather}
 function effectiveWeather(){return resolvedWeatherFrom(rawEnvironmentState()?.weather||{})}
@@ -55,7 +55,7 @@ async function waitForRuntime(){
 }
 async function init(){
   if(!await waitForRuntime())return;await window.SindhornLocation.ready.catch(()=>{});currentLocationKey=locationSignature();recompute({wakeRain:false});
-  window.SindhornRainNow={refresh:()=>refreshRainNow({force:true}),getState:()=>resolution?{active:resolution.active,state:resolution.precipitationState,label:resolution.label,authority:resolution.authority,confidence:resolution.confidence,rainRateMmHr:resolution.rainRateMmHr,rainNowFresh:resolution.rainNowFresh,rainNowStale:resolution.rainNowStale}:null};
+  window.SindhornRainNow={refresh:()=>refreshRainNow({force:true}),getState:()=>resolution?{active:resolution.active,state:resolution.precipitationState,label:resolution.label,authority:resolution.authority,confidence:resolution.confidence,rainRateMmHr:resolution.rainRateMmHr,rainNowFresh:resolution.rainNowFresh,rainNowStale:resolution.rainNowStale,provider:rainNow.provider,observedAt:rainNow.observedAt,stationNameEn:rainNow.stationNameEn||null,stationDistanceKm:rainNow.stationDistanceKm??null,precip15MinsMm:rainNow.precip15MinsMm??null,precip1HrMm:rainNow.precip1HrMm??null}:null};
   document.addEventListener('sindhorn:weather-updated',event=>{if(event.detail?.rainAuthorityResolved)return;recompute()});document.addEventListener('sindhorn:location-updated',locationChanged);document.addEventListener('sindhorn:route-mounted',()=>{applyLabel();sanitizeDebug()});document.addEventListener('sindhorn:air-updated',sanitizeDebug);
   document.addEventListener('visibilitychange',()=>{if(document.hidden)return;const loc=safeLocation(),age=Date.now()-Date.parse(String(loc.updatedAt||''));if(!Number.isFinite(age)||age>5*60*1000)window.SindhornLocation?.refresh?.().catch(()=>{});if(Date.now()-lastFetchAt>RESUME_STALE_MS)refreshRainNow({force:true}).catch(()=>{});applyLabel();sanitizeDebug()});
   schedule();refreshRainNow({force:true}).catch(()=>{});
