@@ -22,6 +22,7 @@ assert.match(sync,/sindhorn_fnb_artwork_status_read/,'shared artwork sync must r
 assert.match(sync,/sindhorn_fnb_artwork_status_write/,'authenticated editor must persist authoritative status');
 assert.match(sync,/new MutationObserver/,'detail artwork sync must observe dynamically rendered detail DOM');
 assert.match(sync,/if\(total===0\)\{card\.hidden=true/,'zero-artwork outlet groups must be hidden');
+assert.match(sync,/\.fnb-art-card:not\(:has\(\.fnb-task\)\)\{display:none!important\}/,'zero-artwork groups need a render-safe hide guard');
 assert.match(adapter,/Canonical business content lives in Supabase/,'F&B adapter must state Supabase authority');
 assert.match(adapter,/sindhorn_fnb_read_model/,'authenticated F&B runtime must use the protected read model');
 assert.match(adapter,/sindhorn_fnb_public_read_model/,'adapter must have explicit public fallback read model');
@@ -76,6 +77,7 @@ assert.match(publicData,/sharepoint\.com/i,'public data snapshot must include IH
 assert.match(publicData,/artworkUrl/,'public data must retain artwork folder URLs');
 assert.match(publicShell,/FNB_DATA_UPDATED_AT/,'public shell must consume content freshness');
 assert.match(publicShell,/data-fnb-data-updated/,'public shell must render the freshness timestamp under the period');
+assert.match(publicShell,/fnbPublicUpdated/,'public detail must expose a dated-and-timed Updated fact');
 for(const token of ['employee_number','auth-client','login.html','service_role'])assert(!publicData.toLowerCase().includes(token.toLowerCase()),`public data leaked forbidden token ${token}`);
 
 const pages=[['fnb.html','F&amp;B Promotions | Sindhorn Midtown'],['fnb/fried-chicken-waffles.html','Fried Chicken &amp; Waffles | Sindhorn Midtown'],['fnb/sunset-cocktails.html','Sunset Cocktails | Sindhorn Midtown']];
@@ -91,7 +93,7 @@ for(const [path,title] of pages){
   assert.match(html,/class="brand-lockup"/,`${path}: must use authenticated brand lockup markup`);
   assert.doesNotMatch(html,/masthead-tools/,`${path}: public masthead must omit employee/fullscreen tools`);
   assert.match(html,/fnb-public\.css\?v=6/,`${path}: public CSS must be cache-busted`);
-  assert.match(html,/fnb-public-shell\.js\?v=7/,`${path}: public shell must use current cache-bust version`);
+  assert.match(html,/fnb-public-shell\.js\?v=8/,`${path}: public shell must use current cache-bust version`);
   for(const token of ['og:image','twitter:image','employee_number','Add / change artwork link','auth-client','login.html','id="app-footer"'])assert(!html.toLowerCase().includes(token.toLowerCase()),`${path}: forbidden public token ${token}`)
 }
 await rm(temp,{recursive:true,force:true});
