@@ -57,6 +57,8 @@ button:focus:not(:focus-visible),a:focus:not(:focus-visible),input:focus:not(:fo
 }
 .login-page .auth-card{
   width:min(100%,480px);
+  min-width:0;
+  max-width:100%;
   padding:30px;
   border:1px solid var(--login-line);
   border-radius:26px;
