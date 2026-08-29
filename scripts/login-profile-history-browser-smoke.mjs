@@ -49,21 +49,19 @@ async function historyGap(page){
       inlinePadding:list.style.paddingBottom,
       computedPadding:parseFloat(getComputedStyle(list).paddingBottom)||0,
       gap:source.getBoundingClientRect().top-last.getBoundingClientRect().bottom,
-      open:[...document.querySelectorAll('.ihg-history-card.is-open')].length
+      open:[...document.querySelectorAll('.ihg-history-card.is-open')].length,
+      preparing:[...document.querySelectorAll('.ihg-history-card.is-preparing')].length
     };
   });
 }
 async function waitHistorySettled(page,{open}){
   await page.waitForFunction(expectedOpen=>{
     const list=document.querySelector('.ihg-history-list');
-    const last=document.querySelector('.ihg-history-card:last-child');
-    const source=document.querySelector('.ihg-history-source');
-    if(!list||!last||!source)return false;
-    const computedPadding=parseFloat(getComputedStyle(list).paddingBottom)||0;
-    const gap=source.getBoundingClientRect().top-last.getBoundingClientRect().bottom;
+    if(!list)return false;
     const openCount=document.querySelectorAll('.ihg-history-card.is-open').length;
-    return list.style.paddingBottom===''&&computedPadding<2&&gap<42&&openCount===expectedOpen;
-  },open,{timeout:5000});
+    const preparingCount=document.querySelectorAll('.ihg-history-card.is-preparing').length;
+    return list.style.paddingBottom===''&&openCount===expectedOpen&&preparingCount===0;
+  },open,{timeout:7000});
 }
 
 const browser=await chromium.launch({headless:true});
@@ -134,7 +132,7 @@ try{
     assert(gap.inlinePadding==='',`History temporary runway persisted for period ${index}: ${JSON.stringify(gap)}`);
     assert(gap.computedPadding<2,`History list retains artificial bottom padding for period ${index}: ${JSON.stringify(gap)}`);
     assert(gap.gap<42,`History has oversized blank gap before Source for period ${index}: ${JSON.stringify(gap)}`);
-    assert(gap.open===1,`History one-open-at-a-time failed ${JSON.stringify(gap)}`);
+    assert(gap.open===1&&gap.preparing===0,`History one-open-at-a-time cleanup failed ${JSON.stringify(gap)}`);
   }
 
   await history.page.evaluate(()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'auto'}));
