@@ -1,28 +1,18 @@
-import {mkdir,rm,writeFile} from 'node:fs/promises';
+import {mkdir,rm,writeFile,readFile} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {FNB_PROMOTIONS} from '../site/fnb-data.js';
 
-const DEFAULT_OUTPUT=process.argv[2]===undefined;
 const OUTPUT=resolve(process.argv[2]||'site/share');
 const ORIGIN=(process.env.PUBLIC_ORIGIN||'https://sindhorn-midtown-internal.pages.dev').replace(/\/$/,'');
 const SITE='Sindhorn Midtown';
-const OUTLETS=['ALL','ANJU',"Bangkok'78",'Sip & Co.','Horizon Pool Bar','The Lobby Lounge'];
-const MONTHS=['ALL','SEP','OCT','NOV','DEC'];
-const MONTH_INDEX={SEP:8,OCT:9,NOV:10,DEC:11};
-
-function esc(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
-function publicPromotion(item){return Object.freeze({
-  id:String(item.id),title:String(item.title),start:String(item.start),end:String(item.end),dateLabel:String(item.dateLabel),summary:String(item.summary||''),
-  brief:String(item.brief||''),copyEn:String(item.copyEn||''),copyTh:String(item.copyTh||''),
-  activations:item.activations.map(a=>Object.freeze({
-    outlet:String(a.outlet||''),time:String(a.time||''),discount:String(a.discount||''),brief:String(a.brief||''),copyEn:String(a.copyEn||''),copyTh:String(a.copyTh||''),
-    artworks:(a.artworks||[]).map(x=>Object.freeze({name:String(x.name||'')}))
-  }))
-})}
-const PUBLIC=FNB_PROMOTIONS.map(publicPromotion);
-const canonical=path=>`${ORIGIN}${path}`;
-function meta(title,url,description){return `<title>${esc(title)}</title>\n<meta name="description" content="${esc(description)}">\n<link rel="canonical" href="${esc(url)}">\n<meta property="og:title" content="${esc(title)}">\n<meta property="og:type" content="website">\n<meta property="og:url" content="${esc(url)}">\n<meta property="og:description" content="${esc(description)}">`}
-function shell(title,url,description,body,detail=false){return `<!doctype html>
+const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safePromotion=item=>({
+  id:String(item.id),title:String(item.title),start:String(item.start),end:String(item.end),dateLabel:String(item.dateLabel),summary:String(item.summary||''),brief:String(item.brief||''),copyEn:String(item.copyEn||''),copyTh:String(item.copyTh||''),
+  activations:(item.activations||[]).map(a=>({id:String(a.id||''),outlet:String(a.outlet||''),time:String(a.time||''),discount:String(a.discount||''),brief:String(a.brief||''),copyEn:String(a.copyEn||''),copyTh:String(a.copyTh||''),artworks:(a.artworks||[]).map(x=>({id:String(x.id||''),name:String(x.name||'')}))}))
+});
+const PUBLIC=FNB_PROMOTIONS.map(safePromotion);
+const meta=(title,url,description)=>`<title>${esc(title)}</title>\n<meta name="description" content="${esc(description)}">\n<link rel="canonical" href="${esc(url)}">\n<meta property="og:title" content="${esc(title)}">\n<meta property="og:type" content="website">\n<meta property="og:url" content="${esc(url)}">\n<meta property="og:description" content="${esc(description)}">`;
+const shell=(title,url,description,id='')=>`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -31,55 +21,46 @@ function shell(title,url,description,body,detail=false){return `<!doctype html>
 <meta name="color-scheme" content="dark">
 ${meta(title,url,description)}
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
-<link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-thin.woff2">
 <link rel="preload" as="image" href="/assets/brand/sindhorn-midtown-vignette-white.png">
 <link rel="stylesheet" href="/fonts.css?v=1">
-<link rel="stylesheet" href="/shell.css?v=3">
 <link rel="stylesheet" href="/environment.css?v=2">
 <link rel="stylesheet" href="/fnb.css?v=2&ui=2">
 <link rel="stylesheet" href="/fnb-approved-polish.css?v=2">
 <link rel="stylesheet" href="/fnb-refinements.css?v=1">
-<link rel="stylesheet" href="/share/fnb-share.css?v=3">
+<link rel="stylesheet" href="/share/fnb-public.css?v=1">
 </head>
-<body data-route="fnb" data-fnb-public="true"${detail?' data-fnb-detail="true"':''}>
+<body data-route="fnb" data-fnb-public="true"${id?` data-public-promotion="${esc(id)}"`:''}>
 <div class="environment-stage" id="environmentStage" hidden aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
-<header class="public-fnb-masthead" aria-label="Sindhorn Midtown"><img src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Vignette Collection"></header>
-<main id="route-view">${body}</main>
-<script type="module">import {initEnvironment} from '/environment.js';initEnvironment().catch(()=>{});</script>
-<script src="/share/fnb-share.js?v=3" defer></script>
+<header class="public-app-header"><img src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown · Vignette Collection"></header>
+<main id="route-view" aria-live="polite"></main>
+<script type="module" src="/share/fnb-public-shell.js?v=1"></script>
 </body>
-</html>`}
-function monthMatch(item,key){if(key==='ALL')return true;const month=MONTH_INDEX[key],from=new Date(2026,month,1),to=new Date(2026,month+1,0,23,59,59),start=new Date(item.start+'T00:00:00'),end=new Date(item.end+'T23:59:59');return start<=to&&end>=from}
-function status(item){const now=new Date(),start=new Date(item.start+'T00:00:00+07:00'),end=new Date(item.end+'T23:59:59+07:00');if(now<start)return'UPCOMING';if(now<=end)return'LIVE';return'ENDED'}
-function relative(item){const now=new Date(),start=new Date(item.start+'T00:00:00+07:00'),days=Math.ceil((start-now)/86400000);if(days>1)return`Starts in ${days} days`;if(days===1)return'Starts tomorrow';if(days===0)return'Starts today';return status(item)==='LIVE'?'Live now':'Ended'}
-const outlets=item=>item.activations.map(a=>a.outlet).join(' + ');
-function unique(values,fallback='Varies by outlet'){const u=[...new Set(values)];return u.length===1?u[0]:fallback}
-function filterField(kind,label,values){const labelFor=v=>v==='ALL'?`All ${kind==='outlet'?'outlets':'months'}`:kind==='month'?v[0]+v.slice(1).toLowerCase():v;return `<label class="fnb-select public-fnb-select"><span class="fnb-select-label">${label}</span><select data-public-filter="${kind}">${values.map(v=>`<option value="${esc(v)}">${esc(labelFor(v))}</option>`).join('')}</select></label>`}
-const stat=(label,value)=>`<div class="fnb-stat"><span>${esc(label)}</span><b>${esc(value)}</b></div>`;
-function shareControl(item){return `<button class="fnb-action-control fnb-share-button public-fnb-share" type="button" data-public-share="${item?esc(item.id):''}" aria-label="Share ${item?esc(item.title):'F&B promotions'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M5 13v6h14v-6"/></svg><span>Share</span></button>`}
-function cardHTML(item){const s=status(item),total=item.activations.reduce((n,a)=>n+a.artworks.length,0);return `<article class="fnb-card fnb-status-${s.toLowerCase()}" data-public-card data-outlets="${esc(item.activations.map(a=>a.outlet).join('|'))}" data-months="${MONTHS.filter(m=>monthMatch(item,m)).join('|')}"><a class="fnb-card-button public-fnb-card-link" href="/share/fnb/${encodeURIComponent(item.id)}"><div class="fnb-card-status"><span class="fnb-utility fnb-status-${s.toLowerCase()}">${s}</span><span class="fnb-card-relative">${esc(relative(item))}</span></div><h2 class="fnb-card-title">${esc(item.title)}</h2><p class="fnb-card-outlets">${esc(outlets(item))}</p><p class="fnb-card-date">${esc(item.dateLabel)}</p><div class="fnb-progress"><div class="fnb-progress-meta"><span>Artwork</span><b>${total} item${total===1?'':'s'}</b></div><div class="fnb-progress-track" aria-hidden="true"><i style="width:0"></i></div></div><div class="fnb-card-foot"><span>${esc(item.summary)}</span><span class="fnb-chevron">›</span></div></a><div class="fnb-card-actions">${shareControl(item)}</div></article>`}
-function textCard(label,text,lang=''){const labelHtml=label?`<p class="fnb-text-label">${esc(label)}</p>`:'';if(!text)return`<article class="fnb-text-card">${labelHtml}<div class="fnb-text-copy fnb-missing"${lang?` lang="${lang}"`:''}>${lang==='th'?'Thai copy was not supplied in the source workbook.':'Not supplied in the source workbook.'}</div></article>`;const expandable=text.length>380||text.split('\n').length>8;return `<article class="fnb-text-card">${labelHtml}<div class="fnb-text-copy${expandable?' is-collapsed':''}"${lang?` lang="${lang}"`:''}>${esc(text)}</div>${expandable?'<button class="fnb-expand" type="button" aria-expanded="false">Show full</button>':''}</article>`}
-function briefHTML(item){const specific=item.activations.some(a=>a.brief);return specific?item.activations.map(a=>`<div class="fnb-copy-outlet">${esc(a.outlet)}</div>${textCard('',a.brief||item.brief)}`).join(''):textCard('',item.brief)}
-function copyHTML(item){const specific=item.activations.some(a=>a.copyEn||a.copyTh);if(!specific)return `${textCard('English',item.copyEn)}${textCard('Thai',item.copyTh,'th')}`;let html=`<div class="fnb-copy-outlet">Campaign / Master copy</div>${textCard('English',item.copyEn)}${textCard('Thai',item.copyTh,'th')}`;html+=item.activations.filter(a=>a.copyEn||a.copyTh).map(a=>`<div class="fnb-copy-outlet">${esc(a.outlet)}</div>${textCard('English',a.copyEn)}${textCard('Thai',a.copyTh,'th')}`).join('');return html}
-function artworkHTML(item){return item.activations.map(a=>`<article class="fnb-art-card is-open public-fnb-art-card"><div class="fnb-art-head public-fnb-art-head"><span class="fnb-art-head-text"><strong>${esc(a.outlet)}</strong><span class="fnb-art-meta">${esc(a.time)} · IHG One Rewards ${esc(a.discount)}</span></span><span class="fnb-art-tally">${a.artworks.length} item${a.artworks.length===1?'':'s'}</span></div><div class="fnb-task-list">${a.artworks.map(x=>`<div class="fnb-task public-fnb-task"><span class="public-fnb-task-dot" aria-hidden="true"></span><span class="fnb-task-name">${esc(x.name)}</span></div>`).join('')}</div></article>`).join('')}
-function indexPage(){const title=`F&B Promotions | ${SITE}`,url=canonical('/share/fnb'),description='Food & Beverage promotions at Sindhorn Midtown Bangkok.',live=PUBLIC.filter(x=>status(x)==='LIVE').length,outletCount=new Set(PUBLIC.flatMap(x=>x.activations.map(a=>a.outlet))).size;return shell(title,url,description,`<section class="fnb-route public-fnb-route" aria-labelledby="fnbTitle"><div class="fnb-index"><header class="fnb-hero"><div class="fnb-hero-utility"><p class="fnb-eyebrow">Food &amp; Beverage</p>${shareControl()}</div><h1 id="fnbTitle">Promotions</h1><div class="fnb-period">September – December 2026</div><div class="fnb-summary">${stat('Promotions',PUBLIC.length)}${stat('Live now',live)}${stat('Outlets',outletCount)}</div></header><div class="fnb-control">${filterField('outlet','Outlet',OUTLETS)}${filterField('month','Month',MONTHS)}</div><div class="fnb-card-list" data-public-cards>${PUBLIC.map(cardHTML).join('')}</div></div></section>`)}
-function detailPage(item){const title=`${item.title} | ${SITE}`,url=canonical(`/share/fnb/${item.id}`),description=item.summary||`Food & Beverage promotion at ${SITE}.`,s=status(item),time=unique(item.activations.map(a=>a.time)),discount=unique(item.activations.map(a=>a.discount)),total=item.activations.reduce((n,a)=>n+a.artworks.length,0);return shell(title,url,description,`<section class="fnb-route public-fnb-route"><div class="fnb-detail public-fnb-detail"><div id="overview" class="fnb-detail-head fnb-section"><div class="fnb-detail-utility"><a class="fnb-back" href="/share/fnb" aria-label="Back to promotions"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></a>${shareControl(item)}</div><p class="fnb-eyebrow fnb-status-${s.toLowerCase()}">${s}</p><h1 class="fnb-detail-title">${esc(item.title)}</h1><p class="fnb-detail-date">${esc(item.dateLabel)}</p><div class="fnb-facts"><div class="fnb-fact"><span>Outlet</span><b>${esc(outlets(item))}</b></div><div class="fnb-fact"><span>Time</span><b>${esc(time)}</b></div><div class="fnb-fact"><span>IHG One Rewards</span><b>${esc(discount)}</b></div><div class="fnb-fact"><span>Artwork</span><b>${total} item${total===1?'':'s'}</b></div></div></div><section id="brief" class="fnb-section"><div class="fnb-section-head"><p class="fnb-section-kicker">01 · Promotion brief</p></div>${briefHTML(item)}</section><section id="copy" class="fnb-section"><div class="fnb-section-head"><p class="fnb-section-kicker">02 · Copy</p></div>${copyHTML(item)}</section><section id="artwork" class="fnb-section"><div class="fnb-section-head"><p class="fnb-section-kicker">03 · Artwork</p><span class="fnb-section-count">Read only</span></div>${artworkHTML(item)}</section></div><nav class="fnb-section-rail is-visible" data-public-section-rail aria-label="Promotion sections"><a class="fnb-chip is-active" href="#overview">Overview</a><a class="fnb-chip" href="#brief">Brief</a><a class="fnb-chip" href="#copy">Copy</a><a class="fnb-chip" href="#artwork">Artwork</a></nav></section>`,true)}
+</html>\n`;
 
-const CSS=`:root{--sm-text:#FAF7F5;--sm-muted:rgba(250,247,245,.55);color:#FAF7F5;background:#2E273B}html,body{min-height:100%;margin:0;letter-spacing:0!important;background:#2E273B;color:#FAF7F5}body[data-fnb-public="true"]{overflow-x:hidden}body[data-fnb-public="true"] .environment-stage{position:fixed!important;inset:0!important;z-index:0!important;display:block}body[data-fnb-public="true"] .environment-stage[hidden]{display:none!important}.public-fnb-masthead{position:relative;z-index:20;height:126px;padding:max(18px,env(safe-area-inset-top)) 32px 18px;background:#2E273B;border-bottom:1px solid rgba(250,247,245,.10);display:flex;align-items:flex-end;box-sizing:border-box}.public-fnb-masthead img{display:block;width:146px;height:auto;object-fit:contain}.public-fnb-route{position:relative;z-index:2;min-height:calc(100dvh - 126px)!important;color:#FAF7F5!important}.public-fnb-route,.public-fnb-route *{color:inherit}.public-fnb-route .fnb-muted,.public-fnb-route .fnb-period,.public-fnb-route .fnb-card-outlets,.public-fnb-route .fnb-card-relative,.public-fnb-route .fnb-card-foot,.public-fnb-route .fnb-select-label,.public-fnb-route .fnb-stat span,.public-fnb-route .fnb-section-count,.public-fnb-route .fnb-art-meta{color:var(--fnb-muted)!important}body[data-fnb-public="true"] #route-view{position:relative;z-index:2;min-height:calc(100dvh - 126px);padding-bottom:max(28px,env(safe-area-inset-bottom));background:transparent}.public-fnb-route .fnb-index,.public-fnb-route .fnb-detail{max-width:none}.public-fnb-route .fnb-hero-utility,.public-fnb-route .fnb-detail-utility{display:flex;align-items:center;justify-content:space-between;gap:12px}.public-fnb-route .fnb-hero-utility .fnb-eyebrow{margin-bottom:0}.public-fnb-route .fnb-share-button{height:38px!important;min-height:38px!important;width:auto!important;padding:0 12px!important;background:rgba(46,39,59,.44)!important;border:1px solid var(--fnb-glass-brd)!important;border-radius:11px!important;color:#FAF7F5!important}.public-fnb-route .fnb-share-button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.public-fnb-route .fnb-card-actions .fnb-share-button{background:transparent!important;border-color:transparent!important;color:var(--fnb-muted)!important}.public-fnb-card-link{display:block;color:inherit!important;text-decoration:none}.public-fnb-select{position:relative}.public-fnb-select select{width:100%;height:54px;min-height:54px;padding:0 40px 0 20px;border:1px solid var(--fnb-glass-brd);border-radius:15px;background:rgba(46,39,59,.66);color:#FAF7F5!important;font:400 16px/1 var(--font-ui);letter-spacing:0!important;appearance:none}.public-fnb-select::after{content:"⌄";position:absolute;right:18px;bottom:17px;color:var(--fnb-muted);pointer-events:none}.public-fnb-task{min-height:45px}.public-fnb-task-dot{width:17px;height:17px;flex:0 0 17px;border:1px solid var(--fnb-glass-brd);border-radius:50%;opacity:.42}.public-fnb-art-head{cursor:default!important}.public-fnb-detail{padding-bottom:86px}.public-fnb-detail .fnb-detail-utility .fnb-back{display:flex!important}.public-fnb-route .fnb-section-rail{z-index:60!important;bottom:max(12px,env(safe-area-inset-bottom))!important}.public-fnb-route .fnb-chip{text-decoration:none}.public-fnb-route .fnb-card,.public-fnb-route .fnb-text-card,.public-fnb-route .fnb-art-card{background:rgba(46,39,59,.48)!important}.public-fnb-route .fnb-route::before{content:none!important}.public-fnb-route .fnb-progress-track i{opacity:.35}.public-fnb-route .fnb-action-control,.public-fnb-route .fnb-expand{font-family:var(--font-ui)!important;letter-spacing:0!important;text-transform:none!important}@media(max-width:520px){.public-fnb-masthead{height:126px;padding-left:32px;padding-right:32px}.public-fnb-masthead img{width:146px}}`;
+await rm(OUTPUT,{recursive:true,force:true});
+await mkdir(join(OUTPUT,'fnb'),{recursive:true});
 
-const JS=`(()=>{const shareBase='/share/fnb';const titleFor=()=>document.title;async function share(id=''){const url=new URL(id?shareBase+'/'+encodeURIComponent(id):shareBase,location.origin).href;const title=titleFor();if(navigator.share){try{await navigator.share({title,url});return}catch(e){if(e&&e.name==='AbortError')return}}try{await navigator.clipboard.writeText(url)}catch(_){}}document.addEventListener('click',e=>{const shareButton=e.target.closest('[data-public-share]');if(shareButton){e.preventDefault();share(shareButton.dataset.publicShare||'');return}const expand=e.target.closest('.fnb-expand');if(expand){const copy=expand.previousElementSibling,collapsed=copy.classList.toggle('is-collapsed');expand.textContent=collapsed?'Show full':'Show less';expand.setAttribute('aria-expanded',String(!collapsed))}});const outlet=document.querySelector('[data-public-filter="outlet"]'),month=document.querySelector('[data-public-filter="month"]'),cards=[...document.querySelectorAll('[data-public-card]')];function filter(){const o=outlet?.value||'ALL',m=month?.value||'ALL';cards.forEach(card=>{const okO=o==='ALL'||card.dataset.outlets.split('|').includes(o),okM=m==='ALL'||card.dataset.months.split('|').includes(m);card.hidden=!(okO&&okM)})}outlet?.addEventListener('change',filter);month?.addEventListener('change',filter);const rail=document.querySelector('[data-public-section-rail]');if(rail){const links=[...rail.querySelectorAll('a')],ids=links.map(a=>a.getAttribute('href').slice(1));function active(){let current='overview';const probe=Math.min(innerHeight*.30,238);ids.forEach(id=>{const el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<=probe)current=id});links.forEach(a=>a.classList.toggle('is-active',a.getAttribute('href')==='#'+current))}addEventListener('scroll',active,{passive:true});active()}})();`;
+await writeFile(join(OUTPUT,'fnb-public-data.js'),`export const FNB_PROMOTIONS=${JSON.stringify(PUBLIC)};\n`);
 
-await rm(OUTPUT,{recursive:true,force:true});await mkdir(OUTPUT,{recursive:true});
-if(DEFAULT_OUTPUT){
-  await writeFile(join(OUTPUT,'fnb.html'),indexPage());
-  await writeFile(join(OUTPUT,'fnb-share.css'),CSS);
-  await writeFile(join(OUTPUT,'fnb-share.js'),JS);
-  const detailDir=join(OUTPUT,'fnb');await mkdir(detailDir,{recursive:true});
-  for(const item of PUBLIC)await writeFile(join(detailDir,`${item.id}.html`),detailPage(item));
-}else{
-  await writeFile(join(OUTPUT,'index.html'),indexPage());
-  await writeFile(join(OUTPUT,'share.css'),CSS);
-  await writeFile(join(OUTPUT,'share.js'),JS);
-  for(const item of PUBLIC){const dir=join(OUTPUT,item.id);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),detailPage(item))}
-}
-console.log(`generated ${PUBLIC.length+1} public F&B share pages at ${OUTPUT}`);
+let runtime=await readFile('site/fnb.js','utf8');
+runtime=runtime.replace("import {FNB_PROMOTIONS as DATA} from './fnb-data.js';","import {FNB_PROMOTIONS as DATA} from './fnb-public-data.js';");
+runtime=runtime.replace(/^const STATE_KEY=.*\n/m,'');
+runtime=runtime.replace(/const editor=String\(profile\?\.employee_number\|\|''\)==='10639';/,'const editor=false;');
+runtime=runtime.replace(/let state=\{checks:\{\},links:\{\}\};\s*try\{const saved=JSON\.parse\(localStorage\.getItem\([^\n]+?\}\s*catch\(_\)\{\}/s,'let state={checks:{},links:{}};');
+runtime=runtime.replace(/function save\(\)\{try\{localStorage\.setItem\([^\n]+?\}\s*catch\(_\)\{\}\}/s,'function save(){}');
+if(runtime.includes('sindhorn-midtown:fnb-local'))throw new Error('public runtime still references private F&B local state');
+await writeFile(join(OUTPUT,'fnb-runtime.js'),runtime);
+
+let shareUi=await readFile('site/fnb-share-ui.js','utf8');
+shareUi=shareUi.replace("import {FNB_PROMOTIONS as DATA} from './fnb-data.js';","import {FNB_PROMOTIONS as DATA} from './fnb-public-data.js';");
+await writeFile(join(OUTPUT,'fnb-share-ui-public.js'),shareUi);
+
+const css=`:root{--sm-text:#FAF7F5;--sm-gutter:20px}html,body{min-height:100%;margin:0;background:#2E273B;color:var(--sm-text);letter-spacing:0!important}body[data-fnb-public="true"]{overflow-x:hidden}.environment-stage{position:fixed!important;inset:0!important;z-index:0!important}.public-app-header{position:relative;z-index:20;height:126px;box-sizing:border-box;padding:18px var(--sm-gutter);display:flex;align-items:center;background:#2E273B;border-bottom:1px solid rgba(250,247,245,.08)}.public-app-header img{display:block;width:92px;height:auto;object-fit:contain}body[data-fnb-public="true"] #route-view{position:relative;z-index:2;box-sizing:border-box;min-height:calc(100dvh - 126px);padding:0 var(--sm-gutter) max(38px,env(safe-area-inset-bottom));background:transparent}body[data-fnb-public="true"] .fnb-route{min-height:calc(100dvh - 126px)}body[data-fnb-public="true"] .fnb-task-toggle{display:none!important}body[data-fnb-public="true"] .fnb-task{grid-template-columns:minmax(0,1fr)!important;padding-left:0!important}body[data-fnb-public="true"] [data-folder-edit],body[data-fnb-public="true"] [data-folder-open],body[data-fnb-public="true"] [data-save-links],body[data-fnb-public="true"] .fnb-sheet-layer{display:none!important}body[data-fnb-public="true"] .fnb-section-rail{bottom:max(12px,env(safe-area-inset-bottom))!important}body[data-fnb-public="true"][data-fnb-detail="true"] #route-view{padding-bottom:104px!important}@media(min-width:700px){:root{--sm-gutter:32px}.public-app-header img{width:104px}body[data-fnb-public="true"] #route-view{max-width:760px;margin:0 auto}}`;
+await writeFile(join(OUTPUT,'fnb-public.css'),css);
+
+const publicShell=`import {initEnvironment} from '/environment.js';\nimport {mountFnbRoute} from './fnb-runtime.js';\nimport './fnb-share-ui-public.js';\ndocument.body.dataset.route='fnb';\nawait initEnvironment();\nconst root=document.getElementById('route-view');\nawait mountFnbRoute(root,{profile:null});\ndocument.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route:'fnb',public:true}}));\nconst id=document.body.dataset.publicPromotion||'';\nif(id){await new Promise(requestAnimationFrame);const opener=root.querySelector('[data-open="'+CSS.escape(id)+'"]');if(opener)opener.click();}\n`;
+await writeFile(join(OUTPUT,'fnb-public-shell.js'),publicShell);
+
+await writeFile(join(OUTPUT,'fnb.html'),shell(`F&B Promotions | ${SITE}`,`${ORIGIN}/share/fnb`,'Food & Beverage promotions at Sindhorn Midtown Bangkok.'));
+for(const item of PUBLIC){const title=`${item.title} | ${SITE}`,url=`${ORIGIN}/share/fnb/${item.id}`,description=item.summary||`Food & Beverage promotion at ${SITE}.`;await writeFile(join(OUTPUT,'fnb',`${item.id}.html`),shell(title,url,description,item.id))}
+console.log(`generated ${PUBLIC.length+1} public F&B share documents using the authenticated F&B runtime`);
