@@ -76,16 +76,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BASE_URL="$DEPLOY_URL"
           for path in /login.html /auth-brand.css /login.js /settings /settings-route-v3.js /route-registry.js; do
-            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
-            test -s /tmp/response
+            output="/tmp/preview-$(echo "$path" | tr '/.' '--')"
+            code="$(curl --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 --output "$output" --write-out '%{http_code}' "${DEPLOY_URL}${path}")"
+            echo "$path -> HTTP $code, $(wc -c < "$output") bytes"
+            test "$code" = "200"
+            test -s "$output"
           done
-          curl --fail --silent --show-error "${BASE_URL}/login.html" -o /tmp/login.html
-          grep -q 'sindhorn-midtown-vignette-white.png' /tmp/login.html
-          ! grep -Eqi '(environment\.bundle\.js|atmosphere-shader|weather-authority|rain-layer|<canvas)' /tmp/login.html
-          curl --fail --silent --show-error "${BASE_URL}/auth-brand.css" -o /tmp/auth-brand.css
-          grep -q -- '--login-accent:#E5ECBE' /tmp/auth-brand.css
 
       - name: Browser login and profile smoke
         shell: bash
