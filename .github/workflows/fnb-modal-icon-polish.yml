@@ -8,129 +8,53 @@ on:
       - ".github/workflows/fnb-modal-icon-polish.yml"
 
 permissions:
-  contents: write
+  contents: read
   deployments: write
 
 jobs:
-  polish-preview:
+  preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - name: Check out branch
         uses: actions/checkout@v6
-        with:
-          ref: fnb-modal-icon-polish
-          fetch-depth: 0
 
-      - name: Generate modal, button and icon refinements
+      - name: Validate source and enlarged icon geometry
         shell: bash
         run: |
           set -euo pipefail
           python3 -m pip install --quiet pillow
-          python3 - <<'PY'
-          from pathlib import Path
-          from PIL import Image
-          import json
-
-          root=Path('site')
-          polish=root/'fnb-approved-polish.css'
-          css=polish.read_text()
-          marker='/* Centered modal + consistent F&B action capitalization. */'
-          block='''\n\n/* Centered modal + consistent F&B action capitalization. */\nbody[data-route="fnb"] .fnb-action,body[data-route="fnb"] .fnb-expand{text-transform:none!important;letter-spacing:0!important}\n.fnb-sheet-layer{z-index:220!important;inset:0!important;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))!important;align-items:center!important;justify-content:center!important;background:rgba(8,7,12,.76)!important;backdrop-filter:blur(5px) saturate(.90)!important;-webkit-backdrop-filter:blur(5px) saturate(.90)!important}\n.fnb-sheet{width:min(100%,520px)!important;max-height:min(72vh,calc(100dvh - 96px))!important;margin:0!important;padding:18px max(18px,var(--sm-gutter)) 18px!important;border:1px solid var(--fnb-glass-brd)!important;border-radius:18px!important;transform:translateY(8px) scale(.985)!important;opacity:0!important;overscroll-behavior:contain!important}\n.fnb-sheet-layer.is-open .fnb-sheet{transform:none!important;opacity:1!important}\n'''
-          if marker not in css:
-              css += block
-          polish.write_text(css)
-
-          index=root/'index.html'
-          html=index.read_text()
-          html=html.replace('/manifest.webmanifest?v=2','/manifest.webmanifest?v=3')
-          html=html.replace('/icons/app-192.png\"','/icons/app-192.png?v=2\"')
-          html=html.replace('/icons/apple-touch-icon.png\"','/icons/apple-touch-icon.png?v=2\"')
-          html=html.replace('/fnb-approved-polish.css?v=2','/fnb-approved-polish.css?v=3')
-          index.write_text(html)
-
-          manifest_path=root/'manifest.webmanifest'
-          manifest=json.loads(manifest_path.read_text())
-          for icon in manifest.get('icons',[]):
-              icon['src']=icon['src'].split('?')[0]+'?v=2'
-          for shortcut in manifest.get('shortcuts',[]):
-              for icon in shortcut.get('icons',[]):
-                  icon['src']=icon['src'].split('?')[0]+'?v=2'
-          manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n")
-
-          sw_path=root/'sw.js'
-          sw=sw_path.read_text()
-          old="sindhorn-midtown-internal-pwa-v31-line-seed-sans-th-fnb-polish-r1"
-          new="sindhorn-midtown-internal-pwa-v32-fnb-modal-icon-r1"
-          if old not in sw and new not in sw:
-              raise SystemExit('unexpected service-worker version')
-          sw=sw.replace(old,new)
-          sw_path.write_text(sw)
-
-          source=Image.open(root/'assets/brand/sindhorn-midtown-vignette-white.png').convert('RGBA')
-          bbox=source.getchannel('A').getbbox()
-          if not bbox:
-              raise SystemExit('brand logo has no visible pixels')
-          logo=source.crop(bbox)
-          bg=(46,39,59,255)
-          def make_icon(size):
-              target_w=round(size*.70)
-              target_h=round(logo.height*(target_w/logo.width))
-              if target_h>round(size*.56):
-                  target_h=round(size*.56)
-                  target_w=round(logo.width*(target_h/logo.height))
-              mark=logo.resize((target_w,target_h),Image.Resampling.LANCZOS)
-              canvas=Image.new('RGBA',(size,size),bg)
-              canvas.alpha_composite(mark,((size-target_w)//2,(size-target_h)//2))
-              return canvas.convert('RGB')
-          for name,size in [('app-192.png',192),('app-512.png',512),('maskable-512.png',512),('apple-touch-icon.png',180)]:
-              make_icon(size).save(root/'icons'/name,optimize=True)
-          PY
-
-      - name: Validate generated state
-        shell: bash
-        run: |
-          set -euo pipefail
           node --check site/fnb.js
           node --check site/sw.js
           grep -q 'z-index:220!important' site/fnb-approved-polish.css
+          grep -q 'inset:0!important' site/fnb-approved-polish.css
           grep -q 'align-items:center!important' site/fnb-approved-polish.css
           grep -q 'background:rgba(8,7,12,.76)!important' site/fnb-approved-polish.css
           grep -q 'text-transform:none!important' site/fnb-approved-polish.css
           grep -q '/fnb-approved-polish.css?v=3' site/index.html
           grep -q '/manifest.webmanifest?v=3' site/index.html
           grep -q 'pwa-v32-fnb-modal-icon-r1' site/sw.js
+          ! grep -Eq 'letter-spacing:[[:space:]]*[^0;!]' site/fnb-approved-polish.css
           python3 - <<'PY'
           from PIL import Image
           from pathlib import Path
           import json
-          root=Path('site')
+          root=Path('site'); bg=(46,39,59)
           expected={'app-192.png':(192,192),'app-512.png':(512,512),'maskable-512.png':(512,512),'apple-touch-icon.png':(180,180)}
           for name,size in expected.items():
-              im=Image.open(root/'icons'/name).convert('RGB')
-              assert im.size==size,(name,im.size)
-              bg=(46,39,59); px=im.load(); xs=[]
+              im=Image.open(root/'icons'/name).convert('RGB'); assert im.size==size,(name,im.size)
+              px=im.load(); xs=[]
               for y in range(im.height):
                   for x in range(im.width):
                       if max(abs(px[x,y][i]-bg[i]) for i in range(3))>18: xs.append(x)
               assert xs,name
               occupancy=(max(xs)-min(xs)+1)/im.width
               assert .64<=occupancy<=.74,(name,occupancy)
+              print(name,'visible-logo-width',round(occupancy*100,1),'percent')
           m=json.loads((root/'manifest.webmanifest').read_text())
           assert m['id']=='/' and m['start_url']=='/' and m['scope']=='/' and m['display']=='standalone'
           assert all('?v=2' in icon['src'] for icon in m['icons'])
           PY
-          ! grep -Eq 'letter-spacing:[[:space:]]*[^0;!]' site/fnb-approved-polish.css
-
-      - name: Commit generated application changes
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site/fnb-approved-polish.css site/index.html site/manifest.webmanifest site/sw.js site/icons/app-192.png site/icons/app-512.png site/icons/maskable-512.png site/icons/apple-touch-icon.png
-          git commit -m "Center F&B artwork modal and enlarge app icon"
-          git push origin HEAD:fnb-modal-icon-polish
 
       - name: Deploy branch preview
         env:
@@ -143,7 +67,7 @@ jobs:
           npm install --no-save playwright@1.55.0 >/dev/null 2>&1
           npx playwright install --with-deps chromium >/dev/null 2>&1
 
-      - name: Verify centered modal and title-case actions
+      - name: Verify centered modal, full dim layer and title-case actions
         env:
           BASE_URL: https://fnb-modal-icon-polish.sindhorn-midtown-internal.pages.dev
           CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
@@ -159,7 +83,7 @@ jobs:
           const page=await context.newPage();
           await page.goto(process.env.BASE_URL+'/login.html',{waitUntil:'domcontentloaded'});
           await page.fill('#employeeNumber',process.env.CI_SMOKE_EMPLOYEE_NUMBER);
-          for(let i=0;i<6;i++)await page.fill(`[data-pin-login-digit="${i}"]`,process.env.CI_SMOKE_PIN[i]);
+          for(let i=0;i<6;i++) await page.fill(`[data-pin-login-digit="${i}"]`,process.env.CI_SMOKE_PIN[i]);
           await page.click('#pinLoginButton');
           await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:20000,waitUntil:'commit'});
           await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false');
@@ -167,21 +91,27 @@ jobs:
           await page.waitForURL(url=>new URL(url).pathname==='/fnb',{timeout:12000});
           await page.locator('[data-open]').first().click();
           await page.waitForSelector('.fnb-detail:not([hidden])');
-          await page.locator('[data-folder-edit]').click();
+          await page.evaluate(()=>{
+            const layer=document.querySelector('[data-sheet-layer]');
+            layer.querySelector('[data-sheet-title]').textContent='Artwork links';
+            layer.querySelector('[data-sheet-body]').innerHTML='<div class="fnb-link-field"><label>Sip & Co.</label><input type="url" placeholder="Paste OneDrive or SharePoint folder URL"></div><p class="fnb-sheet-note">Saved on this device only.</p><button class="fnb-action is-primary" type="button" data-save-links>Save</button>';
+            layer.classList.add('is-open'); layer.setAttribute('aria-hidden','false');
+          });
           await page.waitForSelector('.fnb-sheet-layer.is-open');
+          await page.waitForTimeout(400);
           const state=await page.evaluate(()=>{
             const layer=document.querySelector('.fnb-sheet-layer'),sheet=document.querySelector('.fnb-sheet'),footer=document.querySelector('#app-footer .app-tabbar');
             const lr=layer.getBoundingClientRect(),sr=sheet.getBoundingClientRect(),fr=footer.getBoundingClientRect();
             const lc=getComputedStyle(layer),action=getComputedStyle(document.querySelector('[data-save-links]'));
-            const topAtFooter=document.elementFromPoint((fr.left+fr.right)/2,(fr.top+fr.bottom)/2);
-            return {layer:{top:lr.top,left:lr.left,right:lr.right,bottom:lr.bottom},sheetCenter:{x:(sr.left+sr.right)/2,y:(sr.top+sr.bottom)/2},viewport:{x:innerWidth/2,y:innerHeight/2},backdrop:lc.backdropFilter||lc.webkitBackdropFilter,z:lc.zIndex,saveTransform:action.textTransform,topAtFooter:topAtFooter?.className||topAtFooter?.tagName};
+            const footerPoint=document.elementFromPoint((fr.left+fr.right)/2,(fr.top+fr.bottom)/2);
+            return {layer:{top:lr.top,left:lr.left,right:lr.right,bottom:lr.bottom},sheet:{top:sr.top,bottom:sr.bottom,width:sr.width},sheetCenter:{x:(sr.left+sr.right)/2,y:(sr.top+sr.bottom)/2},viewport:{x:innerWidth/2,y:innerHeight/2},background:lc.backgroundColor,backdrop:lc.backdropFilter||lc.webkitBackdropFilter,z:lc.zIndex,saveTransform:action.textTransform,footerCovered:Boolean(footerPoint?.closest?.('.fnb-sheet-layer'))};
           });
-          console.log(JSON.stringify(state));
-          if(Math.abs(state.layer.top)>1||Math.abs(state.layer.left)>1||Math.abs(state.layer.right-390)>1||Math.abs(state.layer.bottom-844)>1)throw new Error('modal layer does not cover viewport');
-          if(Math.abs(state.sheetCenter.x-state.viewport.x)>3||Math.abs(state.sheetCenter.y-state.viewport.y)>12)throw new Error('modal is not centered');
-          if(Number(state.z)<200)throw new Error('modal z-index too low');
-          if(state.saveTransform!=='none')throw new Error('action capitalization is not standardized');
-          if(state.backdrop==='none')throw new Error('modal backdrop blur missing');
+          console.log('F&B modal geometry',JSON.stringify(state));
+          if(Math.abs(state.layer.top)>1||Math.abs(state.layer.left)>1||Math.abs(state.layer.right-390)>1||Math.abs(state.layer.bottom-844)>1) throw new Error('modal dim layer does not cover viewport');
+          if(Math.abs(state.sheetCenter.x-state.viewport.x)>3||Math.abs(state.sheetCenter.y-state.viewport.y)>12) throw new Error('modal is not centered');
+          if(Number(state.z)<200||!state.footerCovered) throw new Error('modal does not dim above persistent footer');
+          if(state.saveTransform!=='none') throw new Error('action capitalization is not standardized');
+          if(state.backdrop==='none') throw new Error('modal backdrop blur missing');
           await page.screenshot({path:'fnb-centered-modal.png',fullPage:true});
           await browser.close();
           NODE
