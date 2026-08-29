@@ -9,7 +9,7 @@
   --sm-footer-gap:6px;
   --sm-footer-item-height:42px;
   --sm-footer-item-radius:13px;
-  --sm-footer-item-font:.69rem;
+  --sm-footer-item-size:.69rem;
   --sm-footer-item-color:rgba(250,247,245,.52);
   --sm-footer-active:#E5ECBE;
   --sm-footer-active-bg:linear-gradient(180deg,rgba(229,236,190,.12),rgba(229,236,190,.055));
@@ -84,7 +84,7 @@
   color:var(--sm-footer-item-color)!important;
   text-decoration:none!important;
   font:inherit!important;
-  font-size:var(--sm-footer-item-font)!important;
+  font-size:var(--sm-footer-item-size)!important;
   font-weight:400!important;
   line-height:1!important;
   text-transform:none!important;
@@ -121,7 +121,7 @@ body[data-route="fnb"] .fnb-select select{border-radius:12px!important}
 body[data-route="fnb"] .fnb-link-field input{border-radius:12px!important}
 
 @media(max-width:360px){
-  :root{--sm-footer-item-font:.65rem}
+  :root{--sm-footer-item-size:.65rem}
   #app-footer .shell-footer-rail .nav-chip{padding-inline:5px!important}
 }
 @media(prefers-reduced-motion:reduce){
