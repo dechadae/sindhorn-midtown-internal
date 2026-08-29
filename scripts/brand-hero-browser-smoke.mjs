@@ -34,28 +34,25 @@ async function internalPage(browser,width=390,height=844){
   await page.route('**/auth-shell.js*',route=>route.fulfill({status:200,contentType:'text/javascript',body:authShim}));
   await page.route('**/capabilities.js*',route=>route.fulfill({status:200,contentType:'text/javascript',body:capabilityShim}));
   await page.route('**/share/fnb-public-data.js*',route=>route.fulfill({status:200,contentType:'text/javascript',body:'export const FNB_PUBLIC_DATA=[];export default [];'}));
-  const errors=[];page.on('console',msg=>{if(msg.type()==='error')errors.push({text:msg.text(),url:msg.location()?.url||''})});
+  const errors=[];
+  page.on('console',msg=>{if(msg.type()==='error')errors.push({text:msg.text(),url:msg.location()?.url||''})});
   return{context,page,errors};
 }
 async function waitShell(page){
   await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false',{timeout:30000});
   await page.waitForSelector('#app-header .masthead');
   await page.waitForSelector('#app-footer .app-tabbar');
-  await page.evaluate(()=>{
-    const tools=document.querySelector('.masthead-tools');
-    if(!tools||tools.querySelector('.masthead-user'))return;
-    tools.querySelector('.today')?.remove();
-    const link=document.createElement('a');link.className='masthead-user';link.href='/settings';link.dataset.appRoute='settings';link.setAttribute('aria-label','Open settings for Preview Admin');
-    const name=document.createElement('span');name.className='masthead-user-name';name.textContent='Preview Admin';
-    const avatar=document.createElement('span');avatar.className='masthead-user-avatar';avatar.textContent='PA';avatar.setAttribute('aria-hidden','true');
-    link.append(name,avatar);tools.prepend(link);
-  });
 }
 async function overflow(page,label){
   const d=await page.evaluate(()=>({sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth,bw:document.body.scrollWidth}));
   assert(d.sw<=d.cw+1&&d.bw<=d.cw+1,`${label} overflow ${JSON.stringify(d)}`);
 }
-async function footer(page){return page.evaluate(()=>({labels:[...document.querySelectorAll('#app-footer .app-tabbar .nav-chip>span')].map(x=>x.textContent.trim()),current:document.querySelector('#app-footer .app-tabbar [aria-current] span')?.textContent?.trim()||null}))}
+async function footer(page){
+  return page.evaluate(()=>({
+    labels:[...document.querySelectorAll('#app-footer .app-tabbar .nav-chip>span')].map(x=>x.textContent.trim()),
+    current:document.querySelector('#app-footer .app-tabbar [aria-current] span')?.textContent?.trim()||null
+  }));
+}
 async function hero(page,{hero,kicker,title,support}){
   return page.evaluate(({hero,kicker,title,support})=>{
     const h=document.querySelector(hero),k=document.querySelector(kicker),t=document.querySelector(title),s=document.querySelector(support);
@@ -72,24 +69,33 @@ async function hero(page,{hero,kicker,title,support}){
 }
 function compare(target,actual,label){
   for(const [key,tol] of [['x',.75],['width',.75],['padTop',.1],['padBottom',.1]])near(actual[key],target[key],tol,`${label} ${key}`);
-  near(actual.kicker.size,target.kicker.size,.1,`${label} kicker size`);near(actual.kicker.marginBottom,target.kicker.marginBottom,.1,`${label} kicker margin`);
-  near(actual.title.size,target.title.size,.2,`${label} title size`);near(actual.title.line,target.title.line,.3,`${label} title line`);
-  near(actual.support.size,target.support.size,.1,`${label} support size`);near(actual.support.marginTop,target.support.marginTop,.1,`${label} support margin`);
+  near(actual.kicker.size,target.kicker.size,.1,`${label} kicker size`);
+  near(actual.kicker.marginBottom,target.kicker.marginBottom,.1,`${label} kicker margin`);
+  near(actual.title.size,target.title.size,.2,`${label} title size`);
+  near(actual.title.line,target.title.line,.3,`${label} title line`);
+  near(actual.support.size,target.support.size,.1,`${label} support size`);
+  near(actual.support.marginTop,target.support.marginTop,.1,`${label} support margin`);
   assert(actual.title.weight===target.title.weight,`${label} title weight ${actual.title.weight} vs ${target.title.weight}`);
   assert(actual.title.family.includes('LINE Seed Sans TH'),`${label} wrong title font ${actual.title.family}`);
   assert(actual.title.letter===target.title.letter,`${label} title tracking drift`);
   assert(actual.title.transform==='none',`${label} title forced case ${actual.title.transform}`);
 }
-
 async function captureInternal(browser,route,name,spec,ready){
   const {context,page,errors}=await internalPage(browser);
   try{
-    await page.goto(`${BASE}${route}`,{waitUntil:'domcontentloaded'});await waitShell(page);await page.waitForSelector(ready);await page.waitForTimeout(350);await overflow(page,name);
+    await page.goto(`${BASE}${route}`,{waitUntil:'domcontentloaded'});
+    await waitShell(page);
+    await page.waitForSelector(ready);
+    await page.waitForTimeout(350);
+    await overflow(page,name);
     const m=await hero(page,spec),f=await footer(page);
     assert(JSON.stringify(f.labels)===JSON.stringify(['Today','F&B','Messages','Brand']),`${name} footer ${JSON.stringify(f.labels)}`);
     await page.screenshot({path:path.join(OUT,`${name}-390x844.png`),fullPage:false});
     return{metrics:m,footer:f,errors,page,context,keep:true};
-  }catch(error){await context.close();throw error}
+  }catch(error){
+    await context.close();
+    throw error;
+  }
 }
 
 const specs={
@@ -106,8 +112,13 @@ try{
   const settings=await captureInternal(browser,'/settings','settings',specs.settings,'.settings-route');
   const brand=await captureInternal(browser,'/ihg-history','brand',specs.brand,'.ihg-history-card');
 
-  compare(fnb.metrics,messages.metrics,'Messages');compare(fnb.metrics,settings.metrics,'Settings');compare(fnb.metrics,brand.metrics,'Brand');
-  assert(messages.footer.current==='Messages','Messages footer not active');assert(fnb.footer.current==='F&B','F&B footer not active');assert(brand.footer.current==='Brand','Brand footer not active');assert(settings.footer.current===null,'Settings should not own a global footer tab');
+  compare(fnb.metrics,messages.metrics,'Messages');
+  compare(fnb.metrics,settings.metrics,'Settings');
+  compare(fnb.metrics,brand.metrics,'Brand');
+  assert(messages.footer.current==='Messages','Messages footer not active');
+  assert(fnb.footer.current==='F&B','F&B footer not active');
+  assert(brand.footer.current==='Brand','Brand footer not active');
+  assert(settings.footer.current===null,'Settings should not own a global footer tab');
 
   const overlays=await Promise.all([
     settings.page.evaluate(()=>getComputedStyle(document.querySelector('.settings-route'),'::before').content),
@@ -118,14 +129,38 @@ try{
   const duplicateAvatar=await settings.page.locator('.settings-hero .settings-avatar').evaluate(el=>getComputedStyle(el).display);
   assert(duplicateAvatar==='none','Settings hero duplicate avatar is still visible');
 
-  const avatar=await brand.page.evaluate(()=>({href:document.querySelector('.masthead-user')?.getAttribute('href'),route:document.querySelector('.masthead-user')?.dataset.appRoute}));
+  const avatar=await brand.page.evaluate(()=>{
+    const tools=document.querySelector('.masthead-tools');
+    if(!tools)throw new Error('masthead tools missing');
+    let link=tools.querySelector('.masthead-user');
+    if(!link){
+      tools.querySelector('.today')?.remove();
+      link=document.createElement('a');
+      link.className='masthead-user';
+      link.href='/settings';
+      link.dataset.appRoute='settings';
+      link.setAttribute('aria-label','Open settings for Preview Admin');
+      const name=document.createElement('span');
+      name.className='masthead-user-name';
+      name.textContent='Preview Admin';
+      const badge=document.createElement('span');
+      badge.className='masthead-user-avatar';
+      badge.textContent='PA';
+      badge.setAttribute('aria-hidden','true');
+      link.append(name,badge);
+      tools.prepend(link);
+    }
+    window.__shellRefs={header:document.getElementById('app-header'),footer:document.getElementById('app-footer'),env:document.getElementById('environmentStage'),doc:document.documentElement};
+    const state={href:link.getAttribute('href'),route:link.dataset.appRoute};
+    link.click();
+    return state;
+  });
   assert(avatar.href==='/settings'&&avatar.route==='settings',`avatar no longer opens Settings/Admin ${JSON.stringify(avatar)}`);
-  await brand.page.evaluate(()=>{window.__shellRefs={header:document.getElementById('app-header'),footer:document.getElementById('app-footer'),env:document.getElementById('environmentStage'),doc:document.documentElement}});
-  await brand.page.evaluate(()=>document.querySelector('.masthead-user')?.click());
   await brand.page.waitForSelector('.settings-route');
   const avatarSpa=await brand.page.evaluate(()=>window.__shellRefs.header===document.getElementById('app-header')&&window.__shellRefs.footer===document.getElementById('app-footer')&&window.__shellRefs.env===document.getElementById('environmentStage')&&window.__shellRefs.doc===document.documentElement&&location.pathname==='/settings');
   assert(avatarSpa,'avatar caused a document/shell replacement');
-  await brand.page.click('#app-footer [data-app-route="ihgHistory"]');await brand.page.waitForSelector('.ihg-history-card');
+  await brand.page.evaluate(()=>document.querySelector('#app-footer [data-app-route="ihgHistory"]')?.click());
+  await brand.page.waitForSelector('.ihg-history-card');
   assert(await brand.page.evaluate(()=>location.pathname==='/ihg-history'),'Brand tab did not return to History');
 
   const collapsed=await brand.page.evaluate(()=>[...document.querySelectorAll('.ihg-history-card-button')].every(b=>b.getAttribute('aria-expanded')==='false'));
@@ -140,8 +175,7 @@ try{
     await brand.page.evaluate(selector=>document.querySelector(selector)?.click(),buttonSelector);
     await brand.page.waitForFunction(selector=>document.querySelector(selector)?.getAttribute('aria-expanded')==='true',buttonSelector);
     await brand.page.waitForTimeout(index===1?650:1100);
-    const openCount=await brand.page.locator('.ihg-history-card.is-open').count();
-    assert(openCount===1,`one-open-at-a-time failed for History period ${index}`);
+    assert(await brand.page.locator('.ihg-history-card.is-open').count()===1,`one-open-at-a-time failed for History period ${index}`);
     const scrollState=await brand.page.evaluate(selector=>{
       const card=document.querySelector(selector),header=document.getElementById('app-header');
       const cardTop=card?.getBoundingClientRect().top??NaN;
@@ -154,24 +188,43 @@ try{
     },cardSelector);
     near(scrollState.cardTop,scrollState.expected,5,`History period ${index} smooth-scroll landing`);
     const imageSelector=`${cardSelector} .ihg-history-period-visual img`;
-    await brand.page.waitForFunction(selector=>{const img=document.querySelector(selector);return Boolean(img&&img.complete&&img.naturalWidth>0)},imageSelector,{timeout:15000});
+    try{
+      await brand.page.waitForFunction(selector=>{const img=document.querySelector(selector);return Boolean(img&&img.complete&&img.naturalWidth>0)},imageSelector,{timeout:15000});
+    }catch(error){
+      const failed=await brand.page.locator(imageSelector).evaluate(img=>({src:img.currentSrc||img.src,complete:img.complete,width:img.naturalWidth,height:img.naturalHeight}));
+      throw new Error(`History image failed for period ${index}: ${JSON.stringify(failed)}`,{cause:error});
+    }
     const imageState=await brand.page.locator(imageSelector).evaluate(img=>({src:img.currentSrc,width:img.naturalWidth,height:img.naturalHeight}));
     assert(/ihgplc\.com/.test(imageState.src)&&imageState.width>0,`official archive image failed for period ${index} ${JSON.stringify(imageState)}`);
     imageStates.push({period:index,...imageState,scroll:scrollState});
   }
   await brand.page.screenshot({path:path.join(OUT,'brand-expanded-390x844.png'),fullPage:false});
 
-  for(const item of [fnb,messages,settings,brand]){if(item.keep)await item.context.close()}
+  for(const item of [fnb,messages,settings,brand])if(item.keep)await item.context.close();
 
-  const publicContext=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,serviceWorkers:'block'});const publicPage=await publicContext.newPage();
-  await publicPage.goto(`${BASE}/share/fnb`,{waitUntil:'domcontentloaded'});await publicPage.waitForSelector('.fnb-hero');await publicPage.waitForTimeout(350);await overflow(publicPage,'public-fnb');
-  const publicMetrics=await hero(publicPage,specs.fnb);compare(fnb.metrics,publicMetrics,'Public F&B');
+  const publicContext=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,serviceWorkers:'block'});
+  const publicPage=await publicContext.newPage();
+  await publicPage.goto(`${BASE}/share/fnb`,{waitUntil:'domcontentloaded'});
+  await publicPage.waitForSelector('.fnb-hero');
+  await publicPage.waitForTimeout(350);
+  await overflow(publicPage,'public-fnb');
+  const publicMetrics=await hero(publicPage,specs.fnb);
+  compare(fnb.metrics,publicMetrics,'Public F&B');
   assert(!(await publicPage.locator('#app-footer').count()),'Public F&B unexpectedly has authenticated footer');
-  await publicPage.screenshot({path:path.join(OUT,'public-fnb-390x844.png'),fullPage:false});await publicContext.close();
+  await publicPage.screenshot({path:path.join(OUT,'public-fnb-390x844.png'),fullPage:false});
+  await publicContext.close();
 
   for(const [width,height] of [[360,800],[768,1024]]){
-    const {context,page}=await internalPage(browser,width,height);await page.goto(`${BASE}/ihg-history`,{waitUntil:'domcontentloaded'});await waitShell(page);await page.waitForSelector('.ihg-history-card');await overflow(page,`Brand ${width}x${height}`);await page.screenshot({path:path.join(OUT,`brand-${width}x${height}.png`),fullPage:false});await context.close();
+    const {context,page}=await internalPage(browser,width,height);
+    await page.goto(`${BASE}/ihg-history`,{waitUntil:'domcontentloaded'});
+    await waitShell(page);
+    await page.waitForSelector('.ihg-history-card');
+    await overflow(page,`Brand ${width}x${height}`);
+    await page.screenshot({path:path.join(OUT,`brand-${width}x${height}.png`),fullPage:false});
+    await context.close();
   }
 
   console.log(JSON.stringify({ok:true,base:BASE,footer:['Today','F&B','Messages','Brand'],fnb:fnb.metrics,messages:messages.metrics,settings:settings.metrics,brand:brand.metrics,publicFnb:publicMetrics,overlays,images:imageStates,screenshots:await fs.readdir(OUT)}));
-}finally{await browser.close()}
+}finally{
+  await browser.close();
+}
