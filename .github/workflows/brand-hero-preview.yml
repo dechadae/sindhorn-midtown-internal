@@ -44,9 +44,13 @@ jobs:
           grep -q '.settings-route::before,.ihg-history-route::before' site/route-hero-standard.css
           grep -q 'content:none!important' site/route-hero-standard.css
           ! grep -q 'background:linear-gradient(180deg,rgba(24,20,32' site/ihg-history.css
-          grep -q 'img-1946.jpg' site/ihg-history.js
-          grep -q 'img-1952.jpg' site/ihg-history.js
-          grep -q 'history-2.jpg' site/ihg-history.js
+          test "$(grep -o "caption:'IHG history archive" site/ihg-history.js | wc -l | tr -d ' ')" -eq 10
+          for image in img-1777.jpg img-1946.jpg img-1952.jpg img-1961.jpg img-1972.jpg img-1981.jpg img-1990.jpg img-2000.jpg img-2010.jpg history-2.jpg; do
+            grep -q "$image" site/ihg-history.js
+          done
+          grep -q 'scrollCardToTop' site/ihg-history.js
+          grep -q 'behavior:reducedMotion()' site/ihg-history.js
+          grep -q 'ihg-history-period-visual' site/ihg-history.css
           grep -q "title:'Brand | Sindhorn Midtown Internal'" site/route-registry.js
           grep -q '^/ihg-history / 200$' site/_redirects
 
@@ -89,6 +93,9 @@ jobs:
           ! grep -q "label:'Settings'" /tmp/footer.js
           curl --fail --silent --show-error "${BASE_URL}/route-hero-standard.css" -o /tmp/hero.css
           grep -q 'route-hero-title-size' /tmp/hero.css
+          curl --fail --silent --show-error "${BASE_URL}/ihg-history.js" -o /tmp/history.js
+          test "$(grep -o "caption:'IHG history archive" /tmp/history.js | wc -l | tr -d ' ')" -eq 10
+          grep -q 'scrollCardToTop' /tmp/history.js
           curl --fail --silent --show-error "${BASE_URL}/share/fnb" -o /tmp/public.html
           grep -q 'F&amp;B Promotions' /tmp/public.html
 
