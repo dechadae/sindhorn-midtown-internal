@@ -1,16 +1,37 @@
 import {mkdir,rm,writeFile,readFile} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
-import {FNB_PROMOTIONS} from '../site/fnb-data.js';
 
 const OUTPUT=resolve(process.argv[2]||'site/share');
 const ORIGIN=(process.env.PUBLIC_ORIGIN||'https://sindhorn-midtown-internal.pages.dev').replace(/\/$/,'');
 const SITE='Sindhorn Midtown';
+const SUPABASE_URL='https://sjpvhgxacsiorrtijqua.supabase.co';
+const SUPABASE_KEY='sb_publishable_NcIExScIXkqsK1ZNNu5a-Q_zZ4afIHz';
+const RPC='sindhorn_fnb_public_read_model';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const safePromotion=item=>({
-  id:String(item.id),title:String(item.title),start:String(item.start),end:String(item.end),dateLabel:String(item.dateLabel),summary:String(item.summary||''),brief:String(item.brief||''),copyEn:String(item.copyEn||''),copyTh:String(item.copyTh||''),
-  activations:(item.activations||[]).map(a=>({id:String(a.id||''),outlet:String(a.outlet||''),time:String(a.time||''),discount:String(a.discount||''),brief:String(a.brief||''),copyEn:String(a.copyEn||''),copyTh:String(a.copyTh||''),artworks:(a.artworks||[]).map(x=>({id:String(x.id||''),name:String(x.name||'')}))}))
-});
-const PUBLIC=FNB_PROMOTIONS.map(safePromotion);
+
+function validIso(value){return /^\d{4}-\d{2}-\d{2}$/.test(String(value||''))&&!Number.isNaN(Date.parse(`${value}T00:00:00Z`))}
+function validate(data){
+  if(!Array.isArray(data)||!data.length)throw new Error('Supabase returned an empty F&B public dataset');
+  const pids=new Set(),aids=new Set(),artids=new Set();
+  for(const item of data){
+    if(!item?.id||pids.has(item.id)||!item.title||!validIso(item.start)||!validIso(item.end)||item.start>item.end||!Array.isArray(item.activations))throw new Error(`Invalid public promotion ${item?.id||'<unknown>'}`);pids.add(item.id);
+    for(const activation of item.activations){
+      if(!activation?.id||aids.has(activation.id)||!activation.outlet||!Array.isArray(activation.artworks))throw new Error(`Invalid public activation ${activation?.id||'<unknown>'}`);aids.add(activation.id);
+      for(const artwork of activation.artworks){if(!artwork?.id||artids.has(artwork.id)||!artwork.name)throw new Error(`Invalid public artwork ${artwork?.id||'<unknown>'}`);artids.add(artwork.id)}
+    }
+  }
+  return data
+}
+async function fetchPublic(){
+  const response=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${RPC}`,{method:'POST',headers:{apikey:SUPABASE_KEY,'content-type':'application/json'},body:'{}'});
+  if(!response.ok)throw new Error(`Supabase F&B public read HTTP ${response.status}`);
+  return validate(await response.json())
+}
+function safePromotion(item){return{
+  id:String(item.id),title:String(item.title),start:String(item.start),end:String(item.end),dateLabel:String(item.dateLabel||''),summary:String(item.summary||''),brief:String(item.brief||''),copyEn:String(item.copyEn||''),copyTh:String(item.copyTh||''),updatedAt:String(item.updatedAt||''),displayOutlets:Array.isArray(item.displayOutlets)?item.displayOutlets.map(String):[],
+  activations:(item.activations||[]).map(a=>({id:String(a.id||''),outlet:String(a.outlet||''),time:String(a.time||''),discount:String(a.discount||''),brief:String(a.brief||''),copyEn:String(a.copyEn||''),copyTh:String(a.copyTh||''),artworkUrl:a.artworkUrl?String(a.artworkUrl):null,artworks:(a.artworks||[]).map(x=>({id:String(x.id||''),name:String(x.name||''),dimensions:x.dimensions?String(x.dimensions):null,notes:x.notes?String(x.notes):null}))}))
+}}
+const PUBLIC=(await fetchPublic()).map(safePromotion);
 const meta=(title,url,description)=>`<title>${esc(title)}</title>\n<meta name="description" content="${esc(description)}">\n<link rel="canonical" href="${esc(url)}">\n<meta property="og:title" content="${esc(title)}">\n<meta property="og:type" content="website">\n<meta property="og:url" content="${esc(url)}">\n<meta property="og:description" content="${esc(description)}">`;
 const header=`<header id="app-header"><div class="masthead" role="banner"><div class="masthead-inner"><div class="brand-lockup"><span class="screen-reader" role="img" aria-label="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></span><img class="logo-light" src="/assets/brand/sindhorn-midtown-vignette-black.png" width="1200" height="600" alt="" aria-hidden="true"><img class="logo-dark" src="/assets/brand/sindhorn-midtown-vignette-white.png" width="1200" height="600" alt="" aria-hidden="true"></div></div><div class="fg-progress-rule" aria-hidden="true"><i></i></div></div></header>`;
 const shell=(title,url,description,id='')=>`<!doctype html>
@@ -28,20 +49,21 @@ ${meta(title,url,description)}
 <link rel="stylesheet" href="/fnb.css?v=2&ui=2">
 <link rel="stylesheet" href="/fnb-approved-polish.css?v=2">
 <link rel="stylesheet" href="/fnb-refinements.css?v=1">
-<link rel="stylesheet" href="/share/fnb-public.css?v=4">
+<link rel="stylesheet" href="/share/fnb-public.css?v=5">
 </head>
 <body data-route="fnb" data-fnb-public="true"${id?` data-public-promotion="${esc(id)}"`:''}>
 <div class="environment-stage" id="environmentStage" hidden aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
 ${header}
 <main id="route-view" aria-live="polite"></main>
-<script type="module" src="/share/fnb-public-shell.js?v=5"></script>
+<script type="module" src="/share/fnb-public-shell.js?v=6"></script>
 </body>
 </html>\n`;
 
 await rm(OUTPUT,{recursive:true,force:true});
 await mkdir(join(OUTPUT,'fnb'),{recursive:true});
 
-await writeFile(join(OUTPUT,'fnb-public-data.js'),`export const FNB_PROMOTIONS=${JSON.stringify(PUBLIC)};\n`);
+const publicData=`const SUPABASE_URL=${JSON.stringify(SUPABASE_URL)};\nconst SUPABASE_KEY=${JSON.stringify(SUPABASE_KEY)};\nconst SNAPSHOT=${JSON.stringify(PUBLIC)};\nfunction valid(data){return Array.isArray(data)&&data.length>0&&data.every(p=>p&&p.id&&p.title&&Array.isArray(p.activations));}\nasync function live(){try{const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/${RPC}',{method:'POST',cache:'no-store',headers:{apikey:SUPABASE_KEY,'content-type':'application/json'},body:'{}'});if(!r.ok)return null;const d=await r.json();return valid(d)?d:null}catch(_){return null}}\nexport const FNB_PROMOTIONS=(await live())||SNAPSHOT;\n`;
+await writeFile(join(OUTPUT,'fnb-public-data.js'),publicData);
 
 let runtime=await readFile('site/fnb.js','utf8');
 runtime=runtime.replace("import {FNB_PROMOTIONS as DATA} from './fnb-data.js';","import {FNB_PROMOTIONS as DATA} from './fnb-public-data.js';");
@@ -53,16 +75,16 @@ if(runtime.includes('sindhorn-midtown:fnb-local'))throw new Error('public runtim
 await writeFile(join(OUTPUT,'fnb-runtime.js'),runtime);
 
 let shareUi=await readFile('site/fnb-share-ui.js','utf8');
-shareUi=shareUi.replace("import {FNB_PROMOTIONS as DATA} from './fnb-data.js';","import {FNB_PROMOTIONS as DATA} from './fnb-public-data.js';");
+shareUi=shareUi.replace("import {FNB_PROMOTIONS as DATA} from './fnb-data.js';","import {FNB_PROMOTIONS as DATA} from './fnb-public-data.js';
 await writeFile(join(OUTPUT,'fnb-share-ui-public.js'),shareUi);
 
 /* Header geometry below is copied verbatim from the enabled Pack 46 ui.css authority. */
-const css=`:root{--sm-bg:#2E273B;--sm-bg-rgb:46,39,59;--sm-text:#FAF7F5;--sm-text-rgb:250,247,245;--sm-muted:rgba(250,247,245,.68);--sm-accent:#E5ECBE;--sm-accent-rgb:229,236,190;--sm-line:rgba(250,247,245,.12);--sm-glass:rgba(46,39,59,.52);--sm-glass-brd:rgba(250,247,245,.16);--sm-max:720px;--sm-gutter:clamp(20px,4vw,48px)}*,*::before,*::after{box-sizing:border-box;letter-spacing:0!important;-webkit-tap-highlight-color:transparent!important}html,body{min-height:100%;margin:0;background:#2E273B;color:var(--sm-text)}body[data-fnb-public="true"]{overflow-x:hidden;font-family:var(--font-ui);font-weight:400;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}button,a{font:inherit;color:inherit}img,svg{display:block;max-width:100%}.screen-reader{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}#app-header{position:sticky;top:0;z-index:120;isolation:isolate}.masthead{position:relative;z-index:1;background:rgba(var(--sm-bg-rgb),.94);border-bottom:1px solid var(--sm-glass-brd);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}.masthead-inner,#route-view{width:min(100%,var(--sm-max));margin-inline:auto;padding-inline:var(--sm-gutter)}.masthead-inner{min-height:54px;padding-top:8px;padding-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:14px}.brand-lockup{position:relative;width:clamp(108px,28vw,136px);flex:0 0 auto}.brand-lockup img{width:100%;height:auto}.brand-lockup .logo-light{opacity:0}.brand-lockup .logo-dark{position:absolute;inset:0;opacity:1}.fg-progress-rule{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;pointer-events:none}.fg-progress-rule i{display:block;width:0;height:100%;background:var(--sm-accent)}.environment-stage{position:fixed!important;inset:0!important;z-index:0!important}body[data-fnb-public="true"] #route-view{position:relative;z-index:2;min-height:calc(100dvh - 54px);padding-bottom:max(38px,env(safe-area-inset-bottom));background:transparent}body[data-fnb-public="true"] .fnb-route{min-height:calc(100dvh - 54px)}body[data-fnb-public="true"] button,body[data-fnb-public="true"] a{-webkit-appearance:none;appearance:none}body[data-fnb-public="true"] button:focus:not(:focus-visible),body[data-fnb-public="true"] a:focus:not(:focus-visible){outline:none!important;box-shadow:none!important}body[data-fnb-public="true"] .fnb-task-toggle{display:none!important}body[data-fnb-public="true"] .fnb-task{grid-template-columns:minmax(0,1fr)!important;padding-left:0!important}body[data-fnb-public="true"] [data-folder-edit],body[data-fnb-public="true"] [data-folder-open],body[data-fnb-public="true"] [data-save-links],body[data-fnb-public="true"] .fnb-sheet-layer{display:none!important}body[data-fnb-public="true"] .fnb-section-rail{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}body[data-fnb-public="true"][data-fnb-detail="true"] #route-view{padding-bottom:max(38px,env(safe-area-inset-bottom))!important}body[data-fnb-public="true"] .fnb-back,body[data-fnb-public="true"] .fnb-action-control,body[data-fnb-public="true"] .fnb-chip{color:inherit}body[data-fnb-public="true"] .fnb-back:active,body[data-fnb-public="true"] .fnb-action-control:active{outline:none!important;box-shadow:none!important}@media(min-width:700px){.masthead-inner{min-height:60px}.brand-lockup{width:clamp(118px,18vw,150px)}}`;
+const css=`:root{--sm-bg:#2E273B;--sm-bg-rgb:46,39,59;--sm-text:#FAF7F5;--sm-text-rgb:250,247,245;--sm-muted:rgba(250,247,245,.68);--sm-accent:#E5ECBE;--sm-accent-rgb:229,236,190;--sm-line:rgba(250,247,245,.12);--sm-glass:rgba(46,39,59,.52);--sm-glass-brd:rgba(250,247,245,.16);--sm-max:720px;--sm-gutter:clamp(20px,4vw,48px)}*,*::before,*::after{box-sizing:border-box;letter-spacing:0!important;-webkit-tap-highlight-color:transparent!important}html,body{min-height:100%;margin:0;background:#2E273B;color:var(--sm-text)}body[data-fnb-public="true"]{overflow-x:hidden;font-family:var(--font-ui);font-weight:400;line-height:1.55;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}button,a{font:inherit;color:inherit}img,svg{display:block;max-width:100%}.screen-reader{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}#app-header{position:sticky;top:0;z-index:120;isolation:isolate}.masthead{position:relative;z-index:1;background:rgba(var(--sm-bg-rgb),.94);border-bottom:1px solid var(--sm-glass-brd);backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3)}.masthead-inner,#route-view{width:min(100%,var(--sm-max));margin-inline:auto;padding-inline:var(--sm-gutter)}.masthead-inner{min-height:54px;padding-top:8px;padding-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:14px}.brand-lockup{position:relative;width:clamp(108px,28vw,136px);flex:0 0 auto}.brand-lockup img{width:100%;height:auto}.brand-lockup .logo-light{opacity:0}.brand-lockup .logo-dark{position:absolute;inset:0;opacity:1}.fg-progress-rule{position:absolute;left:0;right:0;bottom:-1px;height:2px;overflow:hidden;pointer-events:none}.fg-progress-rule i{display:block;width:0;height:100%;background:var(--sm-accent)}.environment-stage{position:fixed!important;inset:0!important;z-index:0!important}body[data-fnb-public="true"] #route-view{position:relative;z-index:2;min-height:calc(100dvh - 54px);padding-bottom:max(38px,env(safe-area-inset-bottom));background:transparent}body[data-fnb-public="true"] .fnb-route{min-height:calc(100dvh - 54px)}body[data-fnb-public="true"] button,body[data-fnb-public="true"] a{-webkit-appearance:none;appearance:none}body[data-fnb-public="true"] button:focus:not(:focus-visible),body[data-fnb-public="true"] a:focus:not(:focus-visible){outline:none!important;box-shadow:none!important}body[data-fnb-public="true"] .fnb-task-toggle{display:none!important}body[data-fnb-public="true"] .fnb-task{grid-template-columns:minmax(0,1fr)!important;padding-left:0!important}body[data-fnb-public="true"] [data-folder-edit],body[data-fnb-public="true"] [data-save-links]{display:none!important}body[data-fnb-public="true"] .fnb-section-rail{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}body[data-fnb-public="true"][data-fnb-detail="true"] #route-view{padding-bottom:max(38px,env(safe-area-inset-bottom))!important}body[data-fnb-public="true"] .fnb-back,body[data-fnb-public="true"] .fnb-action-control,body[data-fnb-public="true"] .fnb-chip{color:inherit}body[data-fnb-public="true"] .fnb-back:active,body[data-fnb-public="true"] .fnb-action-control:active{outline:none!important;box-shadow:none!important}@media(min-width:700px){.masthead-inner{min-height:60px}.brand-lockup{width:clamp(118px,18vw,150px)}}`;
 await writeFile(join(OUTPUT,'fnb-public.css'),css);
 
-const publicShell=`import {initEnvironment} from '/environment.js';\nimport {mountFnbRoute} from './fnb-runtime.js';\nimport './fnb-share-ui-public.js?v=2';\ndocument.body.dataset.route='fnb';\nawait initEnvironment();\nconst root=document.getElementById('route-view');\nawait mountFnbRoute(root,{profile:null});\ndocument.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route:'fnb',public:true}}));\nconst id=document.body.dataset.publicPromotion||'';\nif(id){await new Promise(requestAnimationFrame);const opener=root.querySelector('[data-open="'+CSS.escape(id)+'"]');if(opener)opener.click();}\n`;
+const publicShell=`import {initEnvironment} from '/environment.js';\nimport {mountFnbRoute} from './fnb-runtime.js';\nimport './fnb-share-ui-public.js?v=3';\ndocument.body.dataset.route='fnb';\nawait initEnvironment();\nconst root=document.getElementById('route-view');\nawait mountFnbRoute(root,{profile:null});\ndocument.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route:'fnb',public:true}}));\nconst id=document.body.dataset.publicPromotion||'';\nif(id){await new Promise(requestAnimationFrame);const opener=root.querySelector('[data-open="'+CSS.escape(id)+'"]');if(opener)opener.click();}\n`;
 await writeFile(join(OUTPUT,'fnb-public-shell.js'),publicShell);
 
 await writeFile(join(OUTPUT,'fnb.html'),shell(`F&B Promotions | ${SITE}`,`${ORIGIN}/share/fnb`,'Food & Beverage promotions at Sindhorn Midtown Bangkok.'));
 for(const item of PUBLIC){const title=`${item.title} | ${SITE}`,url=`${ORIGIN}/share/fnb/${item.id}`,description=item.summary||`Food & Beverage promotion at ${SITE}.`;await writeFile(join(OUTPUT,'fnb',`${item.id}.html`),shell(title,url,description,item.id))}
-console.log(`generated ${PUBLIC.length+1} public F&B share documents using the authenticated F&B runtime and Pack 46 masthead geometry`);
+console.log(JSON.stringify({generated:PUBLIC.length+1,promotions:PUBLIC.length,activations:PUBLIC.reduce((n,p)=>n+p.activations.length,0),artworks:PUBLIC.reduce((n,p)=>n+p.activations.reduce((m,a)=>m+a.artworks.length,0),0),artworkLinks:PUBLIC.reduce((n,p)=>n+p.activations.filter(a=>a.artworkUrl).length,0)}));
