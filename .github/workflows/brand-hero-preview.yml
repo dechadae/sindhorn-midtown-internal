@@ -65,7 +65,7 @@ jobs:
 
       - name: Generate current public F&B share
         env:
-          PUBLIC_ORIGIN: https://preview-brand-hero-unification.sindhorn-midtown-internal.pages.dev
+          PUBLIC_ORIGIN: https://preview-brand-hero-unificati.sindhorn-midtown-internal.pages.dev
         run: node scripts/generate-fnb-share.mjs | tee /tmp/fnb-share-generation.json
 
       - name: Deploy Cloudflare branch preview
@@ -78,7 +78,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BASE_URL="https://preview-brand-hero-unification.sindhorn-midtown-internal.pages.dev"
+          BASE_URL="https://preview-brand-hero-unificati.sindhorn-midtown-internal.pages.dev"
           sleep 8
           for path in / /fnb /messages /settings /ihg-history /route-hero-standard.css /footer-route-guard.js /ihg-history.js /share/fnb; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
@@ -95,7 +95,7 @@ jobs:
       - name: Browser hero, navigation and atmosphere parity
         shell: bash
         env:
-          BASE_URL: https://preview-brand-hero-unification.sindhorn-midtown-internal.pages.dev
+          BASE_URL: https://preview-brand-hero-unificati.sindhorn-midtown-internal.pages.dev
           SCREENSHOT_DIR: /tmp/brand-hero-parity
         run: |
           set -euo pipefail
