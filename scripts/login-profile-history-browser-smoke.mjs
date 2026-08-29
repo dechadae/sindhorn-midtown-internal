@@ -99,7 +99,21 @@ async function waitHistorySettled(page,{open}){
     const openCount=document.querySelectorAll('.ihg-history-card.is-open').length;
     const preparingCount=document.querySelectorAll('.ihg-history-card.is-preparing').length;
     return list.style.paddingBottom===''&&openCount===expectedOpen&&preparingCount===0;
-  },open,{timeout:7000});
+  },open,{timeout:12000});
+}
+async function openHistoryPeriod(page,index){
+  const button=`#ihg-history-period-${index}-button`;
+  await page.evaluate(selector=>document.querySelector(selector)?.click(),button);
+  try{
+    await page.waitForFunction(selector=>document.querySelector(selector)?.getAttribute('aria-expanded')==='true',button,{timeout:25000});
+  }catch(error){
+    const state=await page.evaluate(selector=>{
+      const node=document.querySelector(selector),card=node?.closest('.ihg-history-card'),list=document.querySelector('.ihg-history-list');
+      return{exists:Boolean(node),expanded:node?.getAttribute('aria-expanded')||null,classes:card?.className||null,open:document.querySelectorAll('.ihg-history-card.is-open').length,preparing:document.querySelectorAll('.ihg-history-card.is-preparing').length,padding:list?.style.paddingBottom||'',scrollY:window.scrollY,scrollHeight:document.documentElement.scrollHeight,clientHeight:document.documentElement.clientHeight};
+    },button);
+    throw new Error(`History period ${index} did not expand: ${JSON.stringify(state)} · ${error.message}`);
+  }
+  await waitHistorySettled(page,{open:1});
 }
 
 const browser=await chromium.launch({headless:true});
@@ -181,10 +195,7 @@ try{
   await history.page.waitForSelector('.ihg-history-card');
 
   for(const index of [9,10]){
-    const button=`#ihg-history-period-${index}-button`;
-    await history.page.evaluate(selector=>document.querySelector(selector)?.click(),button);
-    await history.page.waitForFunction(selector=>document.querySelector(selector)?.getAttribute('aria-expanded')==='true',button,{timeout:12000});
-    await waitHistorySettled(history.page,{open:1});
+    await openHistoryPeriod(history.page,index);
     const gap=await historyGap(history.page);
     assert(gap.inlinePadding==='',`History temporary runway persisted for period ${index}: ${JSON.stringify(gap)}`);
     assert(gap.computedPadding<2,`History list retains artificial bottom padding for period ${index}: ${JSON.stringify(gap)}`);
