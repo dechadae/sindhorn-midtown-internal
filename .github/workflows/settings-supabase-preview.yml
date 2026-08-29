@@ -46,6 +46,7 @@ jobs:
           refinements=(root/'settings-refinements.css').read_text()
           wrapper=(root/'settings-route-v3.js').read_text()
           fnb_css=(root/'fnb-approved-polish.css').read_text()
+          fnb_refinements=(root/'fnb-refinements.css').read_text()
           caps=(root/'capabilities.js').read_text()
           footer=(root/'footer-route-guard.js').read_text()
           footer_css=(root/'footer-route-guard.css').read_text()
@@ -54,7 +55,7 @@ jobs:
           doc=Path('docs/SETTINGS-ADMIN-SUPABASE-CAPABILITY-ARCHITECTURE-20260829.md').read_text()
 
           assert "settings:Object.freeze({path:'/settings'" in registry
-          assert "module:'./settings-route-v3.js?v=1'" in registry
+          assert "module:'./settings-route-v3.js?v=2'" in registry
           assert "['/account','settings']" in registry and "['/admin','settings']" in registry
           assert "account:Object.freeze" not in registry and "admin:Object.freeze" not in registry
           assert '/settings / 200' in redirects and '/account / 200' in redirects and '/admin / 200' in redirects
@@ -73,10 +74,15 @@ jobs:
           assert '--fnb-motion-fast:160ms' in fnb_css and '--fnb-motion-base:260ms' in fnb_css
           assert '.fnb-select-trigger' in fnb_css and '.fnb-select-menu' in fnb_css and '.fnb-select-option' in fnb_css
           assert '--fnb-accent-rgb:229,236,190' in settings_css
-          assert "'/settings-refinements.css?v=1'" in wrapper
+          assert "'/settings-refinements.css?v=2'" in wrapper
           assert '.settings-route button{border:0}' in refinements
           assert '.settings-select .fnb-select-option{border:0}' in refinements
           assert '.settings-select .fnb-select-option+.fnb-select-option{border-top:1px solid rgba(250,247,245,.07)}' in refinements
+          assert '.settings-add{' in refinements
+          assert 'border:1px solid rgba(229,236,190,.44)!important' in refinements
+          assert 'background:rgba(229,236,190,.10)!important' in refinements
+          assert 'border-radius:11px!important' in refinements
+          assert '.fnb-action.is-primary{background:rgba(var(--fnb-accent-rgb),.10);border-color:rgba(var(--fnb-accent-rgb),.44);color:var(--fnb-accent)}' in fnb_refinements
           assert 'height:100dvh!important' in refinements
           assert 'overflow-y:auto!important' in refinements
           assert '#app-footer' in refinements and 'flex-basis:calc((var(--sm-footer-height) * 2)' in refinements
@@ -111,8 +117,8 @@ jobs:
           curl -fsS "$BASE_URL/" -o /tmp/index.html
           curl -fsS "$BASE_URL/settings.js" -o /tmp/settings.js
           curl -fsS "$BASE_URL/settings.css?v=2" -o /tmp/settings.css
-          curl -fsS "$BASE_URL/settings-route-v3.js?v=1" -o /tmp/settings-wrapper.js
-          curl -fsS "$BASE_URL/settings-refinements.css?v=1" -o /tmp/settings-refinements.css
+          curl -fsS "$BASE_URL/settings-route-v3.js?v=2" -o /tmp/settings-wrapper.js
+          curl -fsS "$BASE_URL/settings-refinements.css?v=2" -o /tmp/settings-refinements.css
           curl -fsS "$BASE_URL/capabilities.js" -o /tmp/capabilities.js
           curl -fsS "$BASE_URL/route-registry.js" -o /tmp/registry.js
           curl -fsS "$BASE_URL/footer-route-guard.js?v=10" -o /tmp/footer.js
@@ -123,10 +129,12 @@ jobs:
           grep -q 'fnb-select settings-select' /tmp/settings.js
           grep -q 'data-settings-select-option' /tmp/settings.js
           grep -q -- '--settings-motion-base:260ms' /tmp/settings.css
-          grep -q '/settings-refinements.css?v=1' /tmp/settings-wrapper.js
+          grep -q '/settings-refinements.css?v=2' /tmp/settings-wrapper.js
           grep -q '.settings-route button{border:0}' /tmp/settings-refinements.css
+          grep -q '.settings-add{' /tmp/settings-refinements.css
+          grep -q 'background:rgba(229,236,190,.10)!important' /tmp/settings-refinements.css
           grep -q 'overflow-y:auto!important' /tmp/settings-refinements.css
-          grep -q "module:'./settings-route-v3.js?v=1'" /tmp/registry.js
+          grep -q "module:'./settings-route-v3.js?v=2'" /tmp/registry.js
           grep -q "path:'/settings'" /tmp/registry.js
           grep -q "label:'Settings',href:'/settings'" /tmp/footer.js
           for path in /settings /account /admin; do
