@@ -1,0 +1,211 @@
+name: F&B Modal + App Icon Polish
+
+on:
+  push:
+    branches:
+      - fnb-modal-icon-polish
+    paths:
+      - ".github/workflows/fnb-modal-icon-polish.yml"
+
+permissions:
+  contents: write
+  deployments: write
+
+jobs:
+  polish-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v6
+        with:
+          ref: fnb-modal-icon-polish
+          fetch-depth: 0
+
+      - name: Generate approved modal, button and icon refinements
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import json
+
+          root=Path('site')
+          polish=root/'fnb-approved-polish.css'
+          css=polish.read_text()
+          marker='/* Centered modal + consistent F&B action capitalization. */'
+          block='''\n\n/* Centered modal + consistent F&B action capitalization. */\nbody[data-route="fnb"] .fnb-action,body[data-route="fnb"] .fnb-expand{text-transform:none!important;letter-spacing:0!important}\n.fnb-sheet-layer{z-index:220!important;inset:0!important;padding:calc(18px + env(safe-area-inset-top)) 16px calc(18px + env(safe-area-inset-bottom))!important;align-items:center!important;justify-content:center!important;background:rgba(8,7,12,.76)!important;backdrop-filter:blur(5px) saturate(.90)!important;-webkit-backdrop-filter:blur(5px) saturate(.90)!important}\n.fnb-sheet{width:min(100%,520px)!important;max-height:min(72vh,calc(100dvh - 96px))!important;margin:0!important;padding:18px max(18px,var(--sm-gutter)) 18px!important;border:1px solid var(--fnb-glass-brd)!important;border-radius:18px!important;transform:translateY(8px) scale(.985)!important;opacity:0!important;overscroll-behavior:contain!important}\n.fnb-sheet-layer.is-open .fnb-sheet{transform:none!important;opacity:1!important}\n'''
+          if marker not in css:
+              css += block
+          polish.write_text(css)
+
+          index=root/'index.html'
+          html=index.read_text()
+          html=html.replace('/manifest.webmanifest?v=2','/manifest.webmanifest?v=3')
+          html=html.replace('/icons/app-192.png\"','/icons/app-192.png?v=2\"')
+          html=html.replace('/icons/apple-touch-icon.png\"','/icons/apple-touch-icon.png?v=2\"')
+          html=html.replace('/fnb-approved-polish.css?v=2','/fnb-approved-polish.css?v=3')
+          index.write_text(html)
+
+          manifest_path=root/'manifest.webmanifest'
+          manifest=json.loads(manifest_path.read_text())
+          for icon in manifest.get('icons',[]):
+              icon['src']=icon['src'].split('?')[0]+'?v=2'
+          for shortcut in manifest.get('shortcuts',[]):
+              for icon in shortcut.get('icons',[]):
+                  icon['src']=icon['src'].split('?')[0]+'?v=2'
+          manifest_path.write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+"\n")
+
+          sw_path=root/'sw.js'
+          sw=sw_path.read_text()
+          old="sindhorn-midtown-internal-pwa-v31-line-seed-sans-th-fnb-polish-r1"
+          new="sindhorn-midtown-internal-pwa-v32-fnb-modal-icon-r1"
+          if old not in sw and new not in sw:
+              raise SystemExit('unexpected service-worker version')
+          sw=sw.replace(old,new)
+          sw_path.write_text(sw)
+
+          hard=Path('.github/workflows/launch-hardening.yml')
+          text=hard.read_text()
+          text=text.replace('/fnb-approved-polish.css?v=2','/fnb-approved-polish.css?v=3')
+          text=text.replace("assert '/footer-route-guard.js?v=6&ui=3' in index and '/footer-route-guard.css?v=6' in index and '/fnb-approved-polish.css?v=2' in index",
+                            "assert '/footer-route-guard.js?v=6&ui=3' in index and '/footer-route-guard.css?v=6' in index and '/fnb-approved-polish.css?v=3' in index")
+          text=text.replace("assert '--fnb-motion-base:260ms' in fnb_polish and '--fnb-disclosure-ms:420ms' in fnb_polish and '.fnb-select-trigger' in fnb_polish",
+                            "assert '--fnb-motion-base:260ms' in fnb_polish and '--fnb-disclosure-ms:420ms' in fnb_polish and '.fnb-select-trigger' in fnb_polish and 'z-index:220!important' in fnb_polish and 'align-items:center!important' in fnb_polish and 'text-transform:none!important' in fnb_polish")
+          text=text.replace("grep -q '/fnb-approved-polish.css?v=2' /tmp/root.html", "grep -q '/fnb-approved-polish.css?v=3' /tmp/root.html")
+          hard.write_text(text)
+
+          source=Image.open(root/'assets/brand/sindhorn-midtown-vignette-white.png').convert('RGBA')
+          alpha=source.getchannel('A')
+          bbox=alpha.getbbox()
+          if not bbox:
+              raise SystemExit('brand logo has no visible pixels')
+          logo=source.crop(bbox)
+          bg=(46,39,59,255)
+          def make_icon(size):
+              target_w=round(size*.70)
+              target_h=round(logo.height*(target_w/logo.width))
+              if target_h>round(size*.56):
+                  target_h=round(size*.56)
+                  target_w=round(logo.width*(target_h/logo.height))
+              mark=logo.resize((target_w,target_h),Image.Resampling.LANCZOS)
+              canvas=Image.new('RGBA',(size,size),bg)
+              canvas.alpha_composite(mark,((size-target_w)//2,(size-target_h)//2))
+              return canvas.convert('RGB')
+          outputs=[('app-192.png',192),('app-512.png',512),('maskable-512.png',512),('apple-touch-icon.png',180)]
+          for name,size in outputs:
+              out=make_icon(size)
+              out.save(root/'icons'/name,optimize=True)
+          PY
+
+      - name: Validate generated state
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/fnb.js
+          node --check site/sw.js
+          grep -q 'z-index:220!important' site/fnb-approved-polish.css
+          grep -q 'align-items:center!important' site/fnb-approved-polish.css
+          grep -q 'background:rgba(8,7,12,.76)!important' site/fnb-approved-polish.css
+          grep -q 'text-transform:none!important' site/fnb-approved-polish.css
+          grep -q '/fnb-approved-polish.css?v=3' site/index.html
+          grep -q '/manifest.webmanifest?v=3' site/index.html
+          grep -q 'pwa-v32-fnb-modal-icon-r1' site/sw.js
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import json
+          root=Path('site')
+          expected={'app-192.png':(192,192),'app-512.png':(512,512),'maskable-512.png':(512,512),'apple-touch-icon.png':(180,180)}
+          for name,size in expected.items():
+              im=Image.open(root/'icons'/name).convert('RGB')
+              assert im.size==size,(name,im.size)
+              bg=(46,39,59)
+              px=im.load(); xs=[]; ys=[]
+              for y in range(im.height):
+                  for x in range(im.width):
+                      if max(abs(px[x,y][i]-bg[i]) for i in range(3))>18:
+                          xs.append(x);ys.append(y)
+              assert xs,name
+              occupancy=(max(xs)-min(xs)+1)/im.width
+              assert .64<=occupancy<=.74,(name,occupancy)
+          m=json.loads((root/'manifest.webmanifest').read_text())
+          assert m['id']=='/' and m['start_url']=='/' and m['scope']=='/' and m['display']=='standalone'
+          assert all('?v=2' in icon['src'] for icon in m['icons'])
+          PY
+          ! grep -Eq 'letter-spacing:[[:space:]]*[^0;!]' site/fnb-approved-polish.css
+
+      - name: Commit generated application changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/fnb-approved-polish.css site/index.html site/manifest.webmanifest site/sw.js site/icons/app-192.png site/icons/app-512.png site/icons/maskable-512.png site/icons/apple-touch-icon.png .github/workflows/launch-hardening.yml
+          git commit -m "Center F&B artwork modal and enlarge app icon"
+          git push origin HEAD:fnb-modal-icon-polish
+
+      - name: Deploy branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="fnb-modal-icon-polish"
+
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+
+      - name: Verify centered modal and button capitalization
+        env:
+          BASE_URL: https://fnb-modal-icon-polish.sindhorn-midtown-internal.pages.dev
+          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
+          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sleep 8
+          node --input-type=module <<'NODE'
+          import {chromium} from 'playwright';
+          const browser=await chromium.launch({headless:true});
+          const context=await browser.newContext({viewport:{width:390,height:844},screen:{width:390,height:844},serviceWorkers:'block'});
+          const page=await context.newPage();
+          await page.goto(process.env.BASE_URL+'/login.html',{waitUntil:'domcontentloaded'});
+          await page.fill('#employeeNumber',process.env.CI_SMOKE_EMPLOYEE_NUMBER);
+          for(let i=0;i<6;i++)await page.fill(`[data-pin-login-digit="${i}"]`,process.env.CI_SMOKE_PIN[i]);
+          await page.click('#pinLoginButton');
+          await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:20000,waitUntil:'commit'});
+          await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false');
+          await page.evaluate(()=>window.SindhornNavigation.transitionToRoute('fnb'));
+          await page.waitForURL(url=>new URL(url).pathname==='/fnb',{timeout:12000});
+          await page.locator('[data-open]').first().click();
+          await page.waitForSelector('.fnb-detail:not([hidden])');
+          await page.locator('[data-folder-edit]').click();
+          await page.waitForSelector('.fnb-sheet-layer.is-open');
+          const state=await page.evaluate(()=>{
+            const layer=document.querySelector('.fnb-sheet-layer'),sheet=document.querySelector('.fnb-sheet'),footer=document.querySelector('#app-footer .app-tabbar');
+            const lr=layer.getBoundingClientRect(),sr=sheet.getBoundingClientRect(),fr=footer.getBoundingClientRect();
+            const lc=getComputedStyle(layer),action=getComputedStyle(document.querySelector('[data-save-links]'));
+            const cx=(sr.left+sr.right)/2,cy=(sr.top+sr.bottom)/2;
+            const topAtFooter=document.elementFromPoint((fr.left+fr.right)/2,(fr.top+fr.bottom)/2);
+            return {layer:{top:lr.top,left:lr.left,right:lr.right,bottom:lr.bottom},sheetCenter:{x:cx,y:cy},viewport:{x:innerWidth/2,y:innerHeight/2},background:lc.backgroundColor,backdrop:lc.backdropFilter||lc.webkitBackdropFilter,z:lc.zIndex,saveTransform:action.textTransform,topAtFooter:topAtFooter?.className||topAtFooter?.tagName};
+          });
+          console.log(JSON.stringify(state));
+          if(Math.abs(state.layer.top)>1||Math.abs(state.layer.left)>1||Math.abs(state.layer.right-390)>1||Math.abs(state.layer.bottom-844)>1)throw new Error('modal layer does not cover viewport');
+          if(Math.abs(state.sheetCenter.x-state.viewport.x)>3||Math.abs(state.sheetCenter.y-state.viewport.y)>12)throw new Error('modal is not centered');
+          if(Number(state.z)<200)throw new Error('modal z-index too low');
+          if(state.saveTransform!=='none')throw new Error('action capitalization is not standardized');
+          if(state.backdrop==='none')throw new Error('modal backdrop blur missing');
+          await page.screenshot({path:'fnb-centered-modal.png',fullPage:true});
+          await browser.close();
+          NODE
+
+      - name: Upload visual evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: fnb-centered-modal-${{ github.run_id }}
+          path: fnb-centered-modal.png
+          if-no-files-found: error
+          retention-days: 7
