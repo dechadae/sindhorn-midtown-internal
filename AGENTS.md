@@ -17,23 +17,25 @@ Do not infer that a commit is live merely because it is on `main`. A production 
 1. `AGENTS.md`
 2. `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md`
 3. `docs/SINGLE-SHELL-ROUTER-INVARIANT-20260828.md`
-4. `docs/BANGKOK-SEASONAL-SKY-AND-CLOUD-ARCHITECTURE-OVERRIDE-20260827.md`
-5. `docs/PHASE8.2-BANGKOK-SEASONAL-CLOUD-MORPHOLOGY-PLAN-20260827.md`
-6. `docs/PHASE8.2-IMPLEMENTATION-20260827.md`
-7. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
-8. `docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md` only as historical/future-camera research
-9. earlier phase implementation notes as needed
+4. `docs/FNB-SUPABASE-DATA-AUTHORITY-20260829.md` when working on F&B
+5. `docs/FNB-EXCEL-TO-SUPABASE-UPDATE-RUNBOOK.md` when the product owner supplies updated F&B Excel files
+6. `docs/BANGKOK-SEASONAL-SKY-AND-CLOUD-ARCHITECTURE-OVERRIDE-20260827.md`
+7. `docs/PHASE8.2-BANGKOK-SEASONAL-CLOUD-MORPHOLOGY-PLAN-20260827.md`
+8. `docs/PHASE8.2-IMPLEMENTATION-20260827.md`
+9. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
+10. `docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md` only as historical/future-camera research
+11. earlier phase implementation notes as needed
 
 The single-shell router invariant is mandatory for all authenticated app features. The two Phase 8.2 atmosphere documents supersede older live-camera production architecture wherever they conflict.
 
 ## Product state that must be preserved
 
 - **The interface is English-only (decided 2026-08-28).** Every label, heading, button, status line, alert and push notification is English. Do not reintroduce inline Thai in interface chrome, and do not rebuild the old English/Thai pairing markup — a proper language-switch feature is planned instead, and it will select a language rather than render both at once. This supersedes the earlier "English first, Thai immediately supports it" rule in `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md`.
-- **Thai content is not the same as Thai interface.** F&B promotion copy stays bilingual in `site/fnb-data.js`: the Copy section exists to hand the designer both the English and Thai marketing text for artwork, so `copyTh` is work product, not chrome. Noto Sans Thai and the `:lang(th)` font rule must therefore stay shipped.
+- **Thai content is not the same as Thai interface.** F&B promotion copy stays bilingual in the canonical Supabase F&B operational rows: the Copy section exists to hand the designer both the English and Thai marketing text for artwork, so Thai copy is work product, not chrome. `site/fnb-data.js` is only the runtime data adapter/emergency fallback structure and must not become the business-content authority again.
 - **Typography invariant: `LINE Seed Sans TH` is the sole production font family for both English and Thai. Production ships only real weights 100 / 400 / 700. Every text treatment uses zero character tracking (`letter-spacing: 0`), with no exceptions. Do not reintroduce Poppins, Noto Sans, Noto Sans Thai, Vignette Sans, IBM Plex, split-language font logic, synthetic weights, or external runtime font hosting.**
 - **Single-shell navigation invariant: every authenticated current or future screen is an SPA route mounted inside the persistent `#route-view`. Header, footer, atmosphere, auth session and app document must never unload between authenticated screens. `/login.html` is the only intentional standalone document boundary. Never add another standalone authenticated HTML page or a full-document navigation to one.**
 - **Transition invariant: authenticated navigation animates only `#route-view` with the shared opacity crossfade. Never animate the document root, header, footer or atmosphere, and never use browser-dependent cross-document View Transitions as the primary app navigation mechanism.**
-- **Footer navigation invariant: the authenticated footer is `Today / F&B / Messages`. Guidance and Details are not standalone footer routes; their existing presentation fragments are composed below Today in the same continuous page. F&B is currently an intentionally empty in-shell route reserved for the F&B module.**
+- **Footer navigation invariant: the authenticated footer is `Today / F&B / Messages`. Guidance and Details are not standalone footer routes; their existing presentation fragments are composed below Today in the same continuous page. F&B is a live in-shell route whose operational promotion content is read from Supabase at runtime.**
 - Messages remains a footer destination and its device-local inbox works offline.
 - Environmental Alerts / Web Push is user-gesture initiated only; never auto-prompt notification permission.
 - Current device location drives Open-Meteo weather and sun/moon astronomy after permission; fallback is Sindhorn Midtown Bangkok.
@@ -45,6 +47,20 @@ The single-shell router invariant is mandatory for all authenticated app feature
 - Tilt, rain/window pane, storm effects, offline shell, navigation and current-location behavior are release invariants.
 - Mobile atmosphere quality must remain desktop-equivalent. Do not lower DPR, cloud depth, or celestial quality as a performance shortcut.
 - No static atmosphere background images.
+
+## F&B operational-content invariant
+
+Supabase is the canonical F&B business-content authority. GitHub/Cloudflare owns executable UI, routing, rendering, validation, sharing behavior and offline logic.
+
+When the product owner uploads updated F&B Excel workbooks, follow `docs/FNB-EXCEL-TO-SUPABASE-UPDATE-RUNBOOK.md`. Do not ask the product owner to convert the workbook to CSV or manually identify changed rows. Inspect the workbook programmatically, compare it with live Supabase, preserve stable promotion/activation/artwork IDs, and update operational rows in Supabase.
+
+Routine existing-promotion edits are:
+
+`updated Excel → validated Supabase rows → deployed F&B runtime reflects change`
+
+They do not require editing business content into JS or deploying Cloudflare. The current exception is a genuinely new promotion ID whose individual crawler-ready `/share/fnb/<id>` physical HTML page has not yet been generated; the runbook documents that share-route release step.
+
+Artwork completion state is separate from workbook content and must not be reset by imports. Workbook SharePoint/OneDrive artwork-folder links are canonical activation metadata and are intentionally available in public read-only F&B shares; the destination still enforces IHG authentication.
 
 ## Presentation / Supabase split
 
