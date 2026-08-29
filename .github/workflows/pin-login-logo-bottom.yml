@@ -1,0 +1,43 @@
+name: Pin login logo to viewport bottom
+
+on:
+  push:
+    branches:
+      - preview-login-profile-fix
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pin-login-logo-bottom
+  cancel-in-progress: true
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Pin bottom logo
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('site/auth-brand.css')
+          s=p.read_text()
+          marker='/* 2026-08-30 bottom-logo viewport anchor */'
+          if marker not in s:
+              s += '''\n\n/* 2026-08-30 bottom-logo viewport anchor */\n.login-page .auth-card{min-height:calc(100dvh - 60px);display:flex;flex-direction:column}\n.login-page .brand-row-bottom{margin-top:auto;padding-top:clamp(44px,8vh,76px)}\n@media(max-width:520px){.login-page .brand-row-bottom{margin-top:auto;padding-top:52px}}\n'''
+              p.write_text(s)
+          PY
+          if git diff --quiet -- site/auth-brand.css; then
+            echo 'Already anchored.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add site/auth-brand.css
+          git commit -m 'Anchor login logo at bottom center'
+          git push origin HEAD:preview-login-profile-fix
