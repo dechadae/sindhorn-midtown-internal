@@ -169,3 +169,9 @@ body.login-page{
   .login-page .brand-row-bottom{margin-top:52px;padding-bottom:2px}
   .login-page .brand-row-bottom .brand-logo{width:124px}
 }
+
+
+/* 2026-08-30 bottom-logo viewport anchor */
+.login-page .auth-card{min-height:calc(100dvh - 60px);display:flex;flex-direction:column}
+.login-page .brand-row-bottom{margin-top:auto;padding-top:clamp(44px,8vh,76px)}
+@media(max-width:520px){.login-page .brand-row-bottom{margin-top:auto;padding-top:52px}}
