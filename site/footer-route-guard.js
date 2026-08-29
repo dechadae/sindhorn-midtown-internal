@@ -77,11 +77,16 @@ async function openFnb({historyMode='push'}={}){
     if(historyMode&&location.pathname!=='/fnb')history[historyMode==='replace'?'replaceState':'pushState']({route:'fnb'},'', '/fnb');
     document.body.dataset.route='fnb';
     document.title='F&B | Sindhorn Midtown Internal';
+
+    /* Route enhancements (timestamps, share controls, artwork state) must settle while hidden. */
     host.style.opacity='0';
+    document.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route:'fnb',source:'footer-prepaint'}}));
+    await Promise.resolve();
+    await Promise.resolve();
+    updateCurrent();
+
     await fadeHost(host,0,1,180);
     host.style.removeProperty('opacity');
-    updateCurrent();
-    document.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route:'fnb',source:'footer-direct'}}));
     return true;
   })().catch(error=>{
     document.getElementById('route-view')?.style.removeProperty('opacity');
