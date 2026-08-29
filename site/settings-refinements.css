@@ -37,6 +37,34 @@ body[data-route="settings"] .settings-add:active{transform:scale(.975)!important
 body[data-route="settings"] .settings-add:focus-visible{outline:2px solid #E5ECBE!important;outline-offset:2px!important;box-shadow:0 0 0 4px rgba(229,236,190,.08)!important}
 body[data-route="settings"] .settings-add:disabled{opacity:.38!important;cursor:default!important;transform:none!important}
 
+/* Account sign-out uses the same quiet glass-control geometry as the rest of
+   the system. The stronger selector intentionally restores the border removed
+   by the route-wide button reset above. */
+body[data-route="settings"] .settings-quiet-action{
+  width:auto!important;
+  min-height:40px!important;
+  height:40px!important;
+  padding:0 14px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:1px solid rgba(250,247,245,.14)!important;
+  border-radius:11px!important;
+  background:rgba(46,39,59,.42)!important;
+  color:rgba(250,247,245,.72)!important;
+  font-family:var(--font-ui)!important;
+  font-size:12px!important;
+  font-weight:400!important;
+  line-height:1!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+  box-shadow:none!important;
+  backdrop-filter:blur(18px) saturate(1.18)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(1.18)!important;
+}
+body[data-route="settings"] .settings-quiet-action:active{transform:scale(.975)!important;opacity:.84!important}
+body[data-route="settings"] .settings-quiet-action:focus-visible{outline:2px solid #E5ECBE!important;outline-offset:2px!important;box-shadow:0 0 0 4px rgba(229,236,190,.08)!important}
+
 /* True shell-sized viewport: short tabs do not scroll; long tabs scroll only
    inside the visible area between the persistent header and footer stack. */
 body[data-route="settings"]{

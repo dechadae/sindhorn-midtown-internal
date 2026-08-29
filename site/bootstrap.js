@@ -141,7 +141,7 @@ async function mountRoute(route=routeForPath(location.pathname)||'today',{animat
 }
 async function applyPack(pack,{mount=true}={}){
   activePack=pack;applyPersistentPresentation(pack);if(mount)await mountRoute(routeForPath(location.pathname)||'today',{animate:false});
-  document.documentElement.dataset.shellLoading='false';document.body.dataset.appPack=String(pack.manifest.appPack);document.body.dataset.appPackSource=pack.source||'unknown';
+  document.body.dataset.appPack=String(pack.manifest.appPack);document.body.dataset.appPackSource=pack.source||'unknown';
   document.dispatchEvent(new CustomEvent('sindhorn:environment-config',{detail:environmentConfig()}));document.dispatchEvent(new CustomEvent('sindhorn:pack-updated',{detail:{packId:pack.manifest.appPack,source:pack.source}}));
 }
 async function refreshPack(){
@@ -162,6 +162,11 @@ document.documentElement.dataset.shellLoading='true';
 const initial=(await readCachedPack())||(await fallbackPack());await applyPack(initial,{mount:true});
 const live=await import('./live-data.js');await live.initLiveData();
 const environment=await import('./environment.js');await environment.initEnvironment();
+/* initEnvironment schedules its first WebGL render on requestAnimationFrame.
+   Keep the persistent shell hidden for two paint opportunities so the GPU
+   canvas is already populated before the header/route/footer are released. */
+await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+document.documentElement.dataset.shellLoading='false';
 presentationRecovery=await import('./presentation-recovery.js');
 const inbox=await import('./notification-inbox.js');await inbox.initNotificationInbox();
 const app=await import('./app.js');await app.initApp();
