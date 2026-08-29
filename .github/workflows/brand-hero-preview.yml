@@ -45,7 +45,7 @@ jobs:
           grep -q 'content:none!important' site/route-hero-standard.css
           ! grep -q 'background:linear-gradient(180deg,rgba(24,20,32' site/ihg-history.css
           test "$(grep -o "caption:'IHG history archive" site/ihg-history.js | wc -l | tr -d ' ')" -eq 10
-          for image in img-1777.jpg img-1946.jpg img-1952.jpg img-1961.jpg img-1972.jpg img-1981.jpg img-1990.jpg img-2000.jpg img-2010.jpg history-2.jpg; do
+          for image in img-1770.jpg img-1946.jpg img-1952.jpg img-1961.jpg img-1972.jpg img-1981.jpg img-1990.jpg img-2000.png img-2010.jpg history-2.jpg; do
             grep -q "$image" site/ihg-history.js
           done
           grep -q 'scrollCardToTop' site/ihg-history.js
