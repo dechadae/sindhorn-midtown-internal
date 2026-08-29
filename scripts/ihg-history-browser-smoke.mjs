@@ -22,10 +22,18 @@ function assert(condition,message){if(!condition)throw new Error(message)}
 function near(a,b,t=.75,label='value'){assert(Math.abs(Number(a)-Number(b))<=t,`${label} mismatch: ${a} vs ${b}`)}
 
 async function newPage(browser,width,height){
-  const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:1,reducedMotion:'no-preference'});
+  const context=await browser.newContext({
+    viewport:{width,height},
+    deviceScaleFactor:1,
+    reducedMotion:'no-preference',
+    serviceWorkers:'block'
+  });
   const page=await context.newPage();
+  page.setDefaultTimeout(15000);
+  page.setDefaultNavigationTimeout(30000);
   const consoleErrors=[];
   await page.route('**/auth-shell.js*',route=>route.fulfill({status:200,contentType:'text/javascript',body:authShim}));
+  await page.route('**/share/fnb-public-data.js*',route=>route.fulfill({status:200,contentType:'text/javascript',body:'export const FNB_PUBLIC_DATA=[]; export default [];'}));
   page.on('console',msg=>{
     if(msg.type()!=='error')return;
     const location=msg.location();
@@ -51,10 +59,11 @@ async function readMetrics(page,prefix){
   return page.evaluate(prefix=>{
     const route=document.querySelector(`.${prefix}-route`);
     const hero=document.querySelector(`.${prefix}-hero`);
-    const h1=hero.querySelector('h1');
+    const h1=hero?.querySelector('h1');
     const card=document.querySelector(`.${prefix}-card`);
-    const button=card.querySelector(`.${prefix}-card-button`);
+    const button=card?.querySelector(`.${prefix}-card-button`);
     const footer=document.querySelector('#app-footer .app-tabbar');
+    if(!route||!hero||!h1||!card||!button||!footer)throw new Error(`Missing ${prefix} parity node`);
     const rr=route.getBoundingClientRect(),fr=footer.getBoundingClientRect();
     const cs=el=>getComputedStyle(el);
     return {
@@ -72,13 +81,13 @@ async function readMetrics(page,prefix){
 async function captureFnb(browser){
   const {context,page,consoleErrors}=await newPage(browser,390,844);
   try{
-    await page.goto(`${BASE_URL}/fnb`,{waitUntil:'domcontentloaded',timeout:30000});
+    await page.goto(`${BASE_URL}/fnb`,{waitUntil:'domcontentloaded'});
     await waitForShell(page);
     await page.waitForSelector('.fnb-route .fnb-card',{timeout:25000});
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(250);
     await noOverflow(page,'F&B 390x844');
     const metrics=await readMetrics(page,'fnb');
-    await page.screenshot({path:path.join(OUT_DIR,'fnb-390x844.png'),fullPage:true});
+    await page.screenshot({path:path.join(OUT_DIR,'fnb-390x844.png'),fullPage:false});
     return {metrics,consoleErrors};
   }finally{await context.close()}
 }
@@ -86,10 +95,10 @@ async function captureFnb(browser){
 async function captureHistory390(browser,fnb){
   const {context,page,consoleErrors}=await newPage(browser,390,844);
   try{
-    await page.goto(`${BASE_URL}/ihg-history`,{waitUntil:'domcontentloaded',timeout:30000});
+    await page.goto(`${BASE_URL}/ihg-history`,{waitUntil:'domcontentloaded'});
     await waitForShell(page);
-    await page.waitForSelector('.ihg-history-route .ihg-history-card',{timeout:15000});
-    await page.waitForTimeout(350);
+    await page.waitForSelector('.ihg-history-route .ihg-history-card');
+    await page.waitForTimeout(250);
     await noOverflow(page,'History 390x844');
 
     const initial=await page.evaluate(()=>{
@@ -173,7 +182,7 @@ async function captureHistory390(browser,fnb){
     await page.waitForTimeout(100);
     assert(await buttons.nth(0).getAttribute('aria-expanded')==='false','Period did not collapse again');
 
-    await page.screenshot({path:path.join(OUT_DIR,'history-390x844.png'),fullPage:true});
+    await page.screenshot({path:path.join(OUT_DIR,'history-390x844.png'),fullPage:false});
     return {initial,metrics,consoleErrors};
   }finally{await context.close()}
 }
@@ -181,10 +190,10 @@ async function captureHistory390(browser,fnb){
 async function captureHistoryViewport(browser,width,height){
   const {context,page,consoleErrors}=await newPage(browser,width,height);
   try{
-    await page.goto(`${BASE_URL}/ihg-history`,{waitUntil:'domcontentloaded',timeout:30000});
+    await page.goto(`${BASE_URL}/ihg-history`,{waitUntil:'domcontentloaded'});
     await waitForShell(page);
-    await page.waitForSelector('.ihg-history-card',{timeout:15000});
-    await page.waitForTimeout(250);
+    await page.waitForSelector('.ihg-history-card');
+    await page.waitForTimeout(200);
     await noOverflow(page,`History ${width}x${height}`);
     const state=await page.evaluate(()=>({
       cards:document.querySelectorAll('.ihg-history-card').length,
@@ -196,7 +205,7 @@ async function captureHistoryViewport(browser,width,height){
     assert(!state.footerHistory,`${width}x${height}: History appeared in footer`);
     const historySpecificErrors=consoleErrors.filter(e=>/ihg-history/i.test(e.url)||/ihg-history/i.test(e.text));
     assert(historySpecificErrors.length===0,`${width}x${height}: History-specific console error`);
-    await page.screenshot({path:path.join(OUT_DIR,`history-${width}x${height}.png`),fullPage:true});
+    await page.screenshot({path:path.join(OUT_DIR,`history-${width}x${height}.png`),fullPage:false});
     return {...state,consoleErrors};
   }finally{await context.close()}
 }
@@ -208,9 +217,20 @@ try{
   const small=await captureHistoryViewport(browser,360,800);
   const tablet=await captureHistoryViewport(browser,768,1024);
   console.log(JSON.stringify({
-    ok:true,baseUrl:BASE_URL,periods:history.initial.cards,milestones:history.initial.milestones,
-    collapsedByDefault:history.initial.expanded.every(v=>v==='false'),firstViewportVisibleCards:history.initial.visibleCards,
-    fnb:fnb.metrics,history:history.metrics,baselineConsoleErrors:fnb.consoleErrors,historyConsoleErrors:history.consoleErrors,
-    small,tablet,screenshots:await fs.readdir(OUT_DIR)
+    ok:true,
+    baseUrl:BASE_URL,
+    periods:history.initial.cards,
+    milestones:history.initial.milestones,
+    collapsedByDefault:history.initial.expanded.every(v=>v==='false'),
+    firstViewportVisibleCards:history.initial.visibleCards,
+    fnb:fnb.metrics,
+    history:history.metrics,
+    baselineConsoleErrors:fnb.consoleErrors,
+    historyConsoleErrors:history.consoleErrors,
+    small,
+    tablet,
+    screenshots:await fs.readdir(OUT_DIR)
   }));
-}finally{await browser.close()}
+}finally{
+  await browser.close();
+}
