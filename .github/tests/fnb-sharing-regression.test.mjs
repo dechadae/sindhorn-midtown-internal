@@ -9,6 +9,7 @@ const base=await readFile('site/fnb.css','utf8');
 const ui=await readFile('site/fnb-share-ui.js','utf8');
 const sync=await readFile('site/fnb-artwork-sync.js','utf8');
 const fnb=await readFile('site/fnb.js','utf8');
+const adapter=await readFile('site/fnb-data.js','utf8');
 const manifest=JSON.parse(await readFile('site/manifest.webmanifest','utf8'));
 assert.match(base,/rgba\(24,20,32,\.72\)/,'fixture: previous dark overlay missing from base CSS');
 assert.match(css,/\.fnb-route::before\{content:none!important;background:none!important\}/,'heavy F&B route dimmer must be disabled');
@@ -19,6 +20,12 @@ assert.match(ui,/fnb-detail-utility/,'detail Share belongs beside the back actio
 assert.match(ui,/initFnbArtworkSync/,'F&B UI must initialize shared artwork completion state');
 assert.match(sync,/sindhorn_fnb_artwork_status_read/,'shared artwork sync must read authoritative status');
 assert.match(sync,/sindhorn_fnb_artwork_status_write/,'authenticated editor must persist authoritative status');
+assert.match(adapter,/Canonical business content lives in Supabase/,'F&B adapter must state Supabase authority');
+assert.match(adapter,/sindhorn_fnb_read_model/,'authenticated F&B runtime must use the protected read model');
+assert.match(adapter,/sindhorn_fnb_public_read_model/,'adapter must have explicit public fallback read model');
+assert.match(adapter,/sindhorn-midtown:fnb-dataset:v2/,'adapter must keep last-known-good F&B data');
+assert.match(adapter,/In-room Dining/,'valid workbook outlet must be supported');
+assert.match(adapter,/Offline · showing last saved F&B data/,'offline cache must be visible as stale data');
 for(const label of ['>Show full<',"?'Show full':'Show less'",'>Add / change artwork link<','>Save<'])assert(fnb.includes(label),`expected sentence-case action missing: ${label}`);
 for(const bad of ['>SHOW FULL<','>SHOW LESS<','>ADD / CHANGE ARTWORK LINK<','>SAVE<'])assert(!fnb.includes(bad),`forced uppercase action regressed: ${bad}`);
 assert.match(css,/inset:0!important/,'modal scrim must cover the viewport');
@@ -29,6 +36,11 @@ assert.equal(manifest.id,'/');assert.equal(manifest.start_url,'/');assert.equal(
 const temp=await mkdtemp(join(tmpdir(),'fnb-share-'));
 const run=spawnSync(process.execPath,['scripts/generate-fnb-share.mjs',temp],{encoding:'utf8',env:{...process.env,PUBLIC_ORIGIN:'https://preview.example.test'}});
 assert.equal(run.status,0,run.stderr||run.stdout);
+const report=JSON.parse(run.stdout.trim().split('\n').at(-1));
+assert.equal(report.promotions,18,'public snapshot must include all Sep–Dec promotions');
+assert.equal(report.activations,21,'public snapshot must reflect current normalized activation rows');
+assert.equal(report.artworks,61,'public snapshot must preserve artwork requirements');
+assert.equal(report.artworkLinks,4,'public snapshot must include workbook SharePoint artwork links');
 
 const publicRuntime=await readFile(join(temp,'fnb-runtime.js'),'utf8');
 const publicData=await readFile(join(temp,'fnb-public-data.js'),'utf8');
@@ -38,7 +50,7 @@ assert.match(publicRuntime,/const TEMPLATE=`/,'public share must reuse authentic
 assert.match(publicRuntime,/fnb-card-button/,'authenticated card renderer must be preserved');
 assert.match(publicRuntime,/fnb-detail-title/,'authenticated detail renderer must be preserved');
 assert.match(publicRuntime,/fnb-section-rail/,'authenticated detail renderer remains source, even though public CSS hides its rail');
-assert.match(publicRuntime,/import \{FNB_PROMOTIONS as DATA\} from '.\/fnb-public-data\.js'/,'public runtime must use allowlisted data');
+assert.match(publicRuntime,/import \{FNB_PROMOTIONS as DATA\} from '.\/fnb-public-data\.js'/,'public runtime must use explicit public data');
 assert.doesNotMatch(publicRuntime,/sindhorn-midtown:fnb-local/,'public runtime must not read private device state');
 assert.doesNotMatch(publicRuntime,/localStorage\.getItem/,'public runtime must not hydrate device-only F&B state');
 assert.match(publicRuntime,/const editor=false/,'public runtime must never grant edit capability');
@@ -50,10 +62,14 @@ assert.match(publicCss,/-webkit-tap-highlight-color:transparent!important/,'publ
 assert.match(publicCss,/-webkit-appearance:none;appearance:none/,'public controls must remove native browser control chrome');
 assert.match(publicCss,/\.fnb-task-toggle\{display:none!important\}/,'public artwork check controls must be hidden');
 assert.match(publicCss,/\[data-folder-edit\]/,'public artwork editor UI must be hidden');
-assert.match(publicShareUi,/\.\/fnb-public-data\.js/,'public Share UI must use allowlisted data');
+assert.doesNotMatch(publicCss,/\[data-folder-open\][^}]*display:none/,'public artwork folder open action must remain visible');
+assert.doesNotMatch(publicCss,/\.fnb-sheet-layer[^}]*display:none/,'public multi-folder modal must remain available');
+assert.match(publicShareUi,/\.\/fnb-public-data\.js/,'public Share UI must use public data');
 assert.match(publicShareUi,/\/fnb-artwork-sync\.js/,'public Share UI must consume shared completion state');
-
-for(const token of ['artworkUrl','sharepoint.com','1drv.ms','onedrive.live.com','employee_number','auth-client','login.html'])assert(!publicData.toLowerCase().includes(token.toLowerCase()),`public data leaked forbidden token ${token}`);
+assert.match(publicData,/sindhorn_fnb_public_read_model/,'public data must refresh from Supabase at runtime');
+assert.match(publicData,/sharepoint\.com/i,'public data snapshot must include IHG-gated artwork folder links');
+assert.match(publicData,/artworkUrl/,'public data must retain artwork folder URLs');
+for(const token of ['employee_number','auth-client','login.html','service_role'])assert(!publicData.toLowerCase().includes(token.toLowerCase()),`public data leaked forbidden token ${token}`);
 
 const pages=[['fnb.html','F&amp;B Promotions | Sindhorn Midtown'],['fnb/fried-chicken-waffles.html','Fried Chicken &amp; Waffles | Sindhorn Midtown'],['fnb/sunset-cocktails.html','Sunset Cocktails | Sindhorn Midtown']];
 for(const [path,title] of pages){
@@ -67,9 +83,9 @@ for(const [path,title] of pages){
   assert.match(html,/class="masthead"/,`${path}: must use authenticated masthead markup`);
   assert.match(html,/class="brand-lockup"/,`${path}: must use authenticated brand lockup markup`);
   assert.doesNotMatch(html,/masthead-tools/,`${path}: public masthead must omit employee/fullscreen tools`);
-  assert.match(html,/fnb-public\.css\?v=4/,`${path}: public CSS must be cache-busted`);
-  assert.match(html,/fnb-public-shell\.js\?v=5/,`${path}: public shell must use current cache-bust version`);
-  for(const token of ['og:image','twitter:image','sharepoint.com','1drv.ms','onedrive.live.com','employee_number','Add / change artwork link','auth-client','login.html','id="app-footer"'])assert(!html.toLowerCase().includes(token.toLowerCase()),`${path}: forbidden public token ${token}`)
+  assert.match(html,/fnb-public\.css\?v=5/,`${path}: public CSS must be cache-busted`);
+  assert.match(html,/fnb-public-shell\.js\?v=6/,`${path}: public shell must use current cache-bust version`);
+  for(const token of ['og:image','twitter:image','employee_number','Add / change artwork link','auth-client','login.html','id="app-footer"'])assert(!html.toLowerCase().includes(token.toLowerCase()),`${path}: forbidden public token ${token}`)
 }
 await rm(temp,{recursive:true,force:true});
-console.log('F&B share/refinement regression passed');
+console.log('F&B Supabase/share regression passed');
