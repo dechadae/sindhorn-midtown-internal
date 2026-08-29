@@ -82,7 +82,7 @@ jobs:
           await live.evaluate(async()=>window.SindhornNavigation.transitionToRoute('fnb'));
           await live.waitForURL(url=>new URL(url).pathname==='/fnb',{timeout:12000});
           await live.waitForSelector('.fnb-card');await live.waitForTimeout(700);
-          const selectors=['.fnb-hero h1','.fnb-period','.fnb-stat span','.fnb-stat b','.fnb-select-label','.fnb-select select','.fnb-card-title','.fnb-card-outlets','.fnb-card-date','.fnb-card-foot','.fnb-hero>.fnb-share-button'];
+          const selectors=['.fnb-hero h1','.fnb-period','.fnb-stat span','.fnb-stat b','.fnb-select-label','.fnb-select-trigger','.fnb-card-title','.fnb-card-outlets','.fnb-card-date','.fnb-card-foot','.fnb-hero>.fnb-share-button'];
           const sample=async(page,selectors)=>page.evaluate(selectors=>Object.fromEntries(selectors.map(sel=>{const el=document.querySelector(sel);if(!el)return[sel,null];const c=getComputedStyle(el),r=el.getBoundingClientRect();return[sel,{fontFamily:c.fontFamily,fontSize:c.fontSize,fontWeight:c.fontWeight,lineHeight:c.lineHeight,color:c.color,textTransform:c.textTransform,borderRadius:c.borderRadius,height:Math.round(r.height*10)/10}]})),selectors);
           const liveStyles=await sample(live,selectors);
           await live.screenshot({path:'parity-artifacts/fnb-live.png',fullPage:true});
