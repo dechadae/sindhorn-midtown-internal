@@ -61,7 +61,10 @@ async function auditVisibleTypography(page,label,{requireThinSelectors=[]}={}){
   report.checks.push({label,path:state.path,textNodes:state.typography.length,width:state.width,height:state.height,scrollWidth:state.scrollWidth,shellToken:state.shellToken});
   return state;
 }
-async function signIn(page,label){
+async function inspectLoginVisual(viewport,label){
+  const context=await browser.newContext({viewport,screen:viewport,serviceWorkers:'block'});
+  const page=await context.newPage();
+  page.on('pageerror',e=>errors.push(`${label} login pageerror: ${e.message}`));
   await page.goto(`${base}/login.html`,{waitUntil:'domcontentloaded',timeout:45000});
   await settleFonts(page);
   await auditVisibleTypography(page,`${label}-login`);
@@ -74,8 +77,10 @@ async function signIn(page,label){
   });
   await auditVisibleTypography(page,`${label}-pin-setup`);
   await page.screenshot({path:`typography-artifacts/${label}-pin-setup.png`,fullPage:true});
-  await page.reload({waitUntil:'domcontentloaded'});await settleFonts(page);
-
+  await context.close();
+}
+async function signIn(page){
+  await page.goto(`${base}/login.html`,{waitUntil:'domcontentloaded',timeout:45000});
   await page.fill('#employeeNumber',employee);
   for(let i=0;i<6;i++)await page.fill(`[data-pin-login-digit="${i}"]`,pin[i]);
   await page.click('#pinLoginButton');
@@ -108,16 +113,9 @@ async function syntheticAdminVisual(page,label){
   await auditVisibleTypography(page,`${label}-admin-style`);
   await page.screenshot({path:`typography-artifacts/${label}-admin-style.png`,fullPage:true});
 }
-async function inspectAuthenticated(viewport,label){
-  // The browser typography gate validates the rendered SPA and persistent-document
-  // routing. Service-worker asset/update behavior is validated separately by the
-  // architecture + HTTP smoke steps. Blocking SW here prevents the intentional
-  // one-time release refresh from racing the in-document persistence assertion.
-  const context=await browser.newContext({viewport,screen:viewport,serviceWorkers:'block'});
-  const page=await context.newPage();
-  page.on('pageerror',e=>errors.push(`${label} pageerror: ${e.message}`));
-  page.on('console',m=>{if(m.type()==='error')errors.push(`${label} console: ${m.text()}`)});
-  await signIn(page,label);
+async function inspectAuthenticated(page,viewport,label){
+  await page.setViewportSize(viewport);
+  if(new URL(page.url()).pathname!=='/')await routeClick(page,'today');
   await settleFonts(page);await page.waitForTimeout(250);
   await auditVisibleTypography(page,`${label}-today`,{requireThinSelectors:['.intro h1','.pm-value','.aqi-value','.weather-temp']});
   await page.screenshot({path:`typography-artifacts/${label}-today.png`,fullPage:true});
@@ -139,13 +137,27 @@ async function inspectAuthenticated(viewport,label){
   await page.screenshot({path:`typography-artifacts/${label}-account.png`,fullPage:true});
 
   await syntheticAdminVisual(page,label);
-  await context.close();
 }
 
 try{
-  await inspectAuthenticated({width:360,height:800},'android-360');
-  await inspectAuthenticated({width:390,height:844},'android-390');
-  await inspectAuthenticated({width:768,height:1024},'tablet-768');
+  const viewports=[
+    [{width:360,height:800},'android-360'],
+    [{width:390,height:844},'android-390'],
+    [{width:768,height:1024},'tablet-768']
+  ];
+
+  // Login/PIN layout remains checked at every target viewport, but the real PIN
+  // submission happens only once. Repeated CI sign-ins can legitimately hit the
+  // auth broker's abuse throttle and should not turn a typography gate flaky.
+  for(const [viewport,label] of viewports)await inspectLoginVisual(viewport,label);
+
+  const authContext=await browser.newContext({viewport:viewports[0][0],screen:viewports[0][0],serviceWorkers:'block'});
+  const page=await authContext.newPage();
+  page.on('pageerror',e=>errors.push(`authenticated pageerror: ${e.message}`));
+  page.on('console',m=>{if(m.type()==='error')errors.push(`authenticated console: ${m.text()}`)});
+  await signIn(page);
+  for(const [viewport,label] of viewports)await inspectAuthenticated(page,viewport,label);
+  await authContext.close();
 }catch(e){errors.push(`fatal: ${e.message}`)}
 await browser.close();
 fs.writeFileSync('typography-artifacts/report.json',JSON.stringify(report,null,2));
