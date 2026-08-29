@@ -1,0 +1,116 @@
+name: Brand and Hero Unification Preview
+
+on:
+  push:
+    branches:
+      - preview-brand-hero-unification
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: preview-brand-hero-unification
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate route, hero, footer and History data
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < site/footer-route-guard.js
+          node --input-type=module --check < site/ihg-history.js
+          node --input-type=module --check < site/route-registry.js
+          node --input-type=module --check < scripts/brand-hero-browser-smoke.mjs
+          node --experimental-default-type=module --input-type=module <<'NODE'
+          import {IHG_HISTORY_PERIODS} from './site/ihg-history-data.js';
+          const milestones=IHG_HISTORY_PERIODS.reduce((sum,period)=>sum+period.milestones.length,0);
+          if(IHG_HISTORY_PERIODS.length!==10||milestones!==76)throw new Error(`History count drift ${IHG_HISTORY_PERIODS.length}/${milestones}`);
+          NODE
+          grep -q "label:'Brand'" site/footer-route-guard.js
+          ! grep -q "label:'Settings'" site/footer-route-guard.js
+          grep -q "href:'/ihg-history'" site/footer-route-guard.js
+          grep -q "const SETTINGS_PATH='/settings'" site/auth-shell.js
+          grep -q '/route-hero-standard.css?v=1' site/index.html
+          grep -q '.settings-route::before,.ihg-history-route::before' site/route-hero-standard.css
+          grep -q 'content:none!important' site/route-hero-standard.css
+          ! grep -q 'background:linear-gradient(180deg,rgba(24,20,32' site/ihg-history.css
+          grep -q 'img-1946.jpg' site/ihg-history.js
+          grep -q 'img-1952.jpg' site/ihg-history.js
+          grep -q 'history-2.jpg' site/ihg-history.js
+          grep -q "title:'Brand | Sindhorn Midtown Internal'" site/route-registry.js
+          grep -q '^/ihg-history / 200$' site/_redirects
+
+      - name: Verify protected runtime systems unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="$(git merge-base origin/main HEAD)"
+          for file in \
+            site/environment.js site/atmosphere-shader.js site/rain-now.js site/rain-layer.js \
+            site/seasonal-sky.js site/weather-authority.js site/sw.js site/auth-client.js \
+            site/fnb.js site/fnb.css site/fnb-data.js site/fnb-refinements.css site/fnb-approved-polish.css \
+            site/settings.js site/settings.css site/settings-refinements.css site/capabilities.js; do
+            git diff --exit-code "$base" HEAD -- "$file"
+          done
+
+      - name: Generate current public F&B share
+        env:
+          PUBLIC_ORIGIN: https://preview-brand-hero-unification.sindhorn-midtown-internal.pages.dev
+        run: node scripts/generate-fnb-share.mjs | tee /tmp/fnb-share-generation.json
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Raw route and public-share smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://preview-brand-hero-unification.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /fnb /messages /settings /ihg-history /route-hero-standard.css /footer-route-guard.js /ihg-history.js /share/fnb; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
+            test -s /tmp/response
+          done
+          curl --fail --silent --show-error "${BASE_URL}/footer-route-guard.js" -o /tmp/footer.js
+          grep -q "label:'Brand'" /tmp/footer.js
+          ! grep -q "label:'Settings'" /tmp/footer.js
+          curl --fail --silent --show-error "${BASE_URL}/route-hero-standard.css" -o /tmp/hero.css
+          grep -q 'route-hero-title-size' /tmp/hero.css
+          curl --fail --silent --show-error "${BASE_URL}/share/fnb" -o /tmp/public.html
+          grep -q 'F&amp;B Promotions' /tmp/public.html
+
+      - name: Browser hero, navigation and atmosphere parity
+        shell: bash
+        env:
+          BASE_URL: https://preview-brand-hero-unification.sindhorn-midtown-internal.pages.dev
+          SCREENSHOT_DIR: /tmp/brand-hero-parity
+        run: |
+          set -euo pipefail
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install chromium >/dev/null 2>&1
+          node scripts/brand-hero-browser-smoke.mjs | tee /tmp/brand-hero-report.json
+
+      - name: Upload review screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: brand-hero-parity-screenshots
+          path: |
+            /tmp/brand-hero-parity
+            /tmp/brand-hero-report.json
+            /tmp/fnb-share-generation.json
+          if-no-files-found: warn
+          retention-days: 14
