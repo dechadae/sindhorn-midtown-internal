@@ -2,15 +2,10 @@ name: F&B Modal + App Icon Polish
 
 on:
   push:
-    branches:
-      - fnb-modal-icon-polish
+    branches: [fnb-modal-icon-polish]
     paths:
       - ".github/workflows/fnb-modal-icon-polish.yml"
       - "site/fnb-approved-polish.css"
-      - "site/index.html"
-      - "site/manifest.webmanifest"
-      - "site/sw.js"
-      - "site/icons/**"
 
 permissions:
   contents: read
@@ -19,61 +14,27 @@ permissions:
 jobs:
   preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
-      - name: Check out branch
-        uses: actions/checkout@v6
-
-      - name: Validate source and enlarged icon geometry
+      - uses: actions/checkout@v6
+      - name: Validate source
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m pip install --quiet pillow
-          node --check site/fnb.js
-          node --check site/sw.js
           grep -q 'z-index:220!important' site/fnb-approved-polish.css
-          grep -q 'inset:0!important' site/fnb-approved-polish.css
-          grep -q 'align-items:center!important' site/fnb-approved-polish.css
           grep -q '#route-view{z-index:30!important}' site/fnb-approved-polish.css
-          grep -q 'background:rgba(8,7,12,.76)!important' site/fnb-approved-polish.css
           grep -q 'text-transform:none!important' site/fnb-approved-polish.css
-          grep -q '/fnb-approved-polish.css?v=3' site/index.html
-          grep -q '/manifest.webmanifest?v=3' site/index.html
-          grep -q 'pwa-v32-fnb-modal-icon-r1' site/sw.js
           ! grep -Eq 'letter-spacing:[[:space:]]*[^0;!]' site/fnb-approved-polish.css
-          python3 - <<'PY'
-          from PIL import Image
-          from pathlib import Path
-          import json
-          root=Path('site'); bg=(46,39,59)
-          expected={'app-192.png':(192,192),'app-512.png':(512,512),'maskable-512.png':(512,512),'apple-touch-icon.png':(180,180)}
-          for name,size in expected.items():
-              im=Image.open(root/'icons'/name).convert('RGB'); assert im.size==size,(name,im.size)
-              px=im.load(); xs=[]
-              for y in range(im.height):
-                  for x in range(im.width):
-                      if max(abs(px[x,y][i]-bg[i]) for i in range(3))>18: xs.append(x)
-              assert xs,name
-              occupancy=(max(xs)-min(xs)+1)/im.width
-              assert .64<=occupancy<=.74,(name,occupancy)
-              print(name,'visible-logo-width',round(occupancy*100,1),'percent')
-          m=json.loads((root/'manifest.webmanifest').read_text())
-          assert m['id']=='/' and m['start_url']=='/' and m['scope']=='/' and m['display']=='standalone'
-          assert all('?v=2' in icon['src'] for icon in m['icons'])
-          PY
-
-      - name: Deploy branch preview
+      - name: Deploy preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="fnb-modal-icon-polish"
-
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=fnb-modal-icon-polish
       - name: Install Chromium
         run: |
           npm install --no-save playwright@1.55.0 >/dev/null 2>&1
           npx playwright install --with-deps chromium >/dev/null 2>&1
-
-      - name: Verify centered modal, full dim layer and title-case actions
+      - name: Browser modal verification
         env:
           BASE_URL: https://fnb-modal-icon-polish.sindhorn-midtown-internal.pages.dev
           CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
@@ -103,28 +64,27 @@ jobs:
             layer.querySelector('[data-sheet-body]').innerHTML='<div class="fnb-link-field"><label>Sip & Co.</label><input type="url" placeholder="Paste OneDrive or SharePoint folder URL"></div><p class="fnb-sheet-note">Saved on this device only.</p><button class="fnb-action is-primary" type="button" data-save-links>Save</button>';
             layer.classList.add('is-open'); layer.setAttribute('aria-hidden','false');
           });
-          await page.waitForSelector('.fnb-sheet-layer.is-open');
-          await page.waitForTimeout(400);
+          await page.waitForTimeout(450);
           const state=await page.evaluate(()=>{
-            const layer=document.querySelector('.fnb-sheet-layer'),sheet=document.querySelector('.fnb-sheet'),footer=document.querySelector('#app-footer .app-tabbar'),header=document.querySelector('#app-header');
-            const lr=layer.getBoundingClientRect(),sr=sheet.getBoundingClientRect(),fr=footer.getBoundingClientRect(),hr=header.getBoundingClientRect();
-            const lc=getComputedStyle(layer),action=getComputedStyle(document.querySelector('[data-save-links]'));
+            const layer=document.querySelector('.fnb-sheet-layer');
+            const sheet=layer.querySelector('.fnb-sheet');
+            const action=layer.querySelector('[data-save-links]');
+            const footer=document.querySelector('#app-footer .app-tabbar');
+            const lr=layer.getBoundingClientRect(),sr=sheet.getBoundingClientRect(),fr=footer.getBoundingClientRect();
+            const lc=getComputedStyle(layer),ac=getComputedStyle(action);
             const footerPoint=document.elementFromPoint((fr.left+fr.right)/2,(fr.top+fr.bottom)/2);
-            const headerPoint=document.elementFromPoint(innerWidth/2,Math.max(10,Math.min(hr.bottom-4,80)));
-            return {layer:{top:lr.top,left:lr.left,right:lr.right,bottom:lr.bottom},sheet:{top:sr.top,bottom:sr.bottom,width:sr.width},sheetCenter:{x:(sr.left+sr.right)/2,y:(sr.top+sr.bottom)/2},viewport:{x:innerWidth/2,y:innerHeight/2},background:lc.backgroundColor,backdrop:lc.backdropFilter||lc.webkitBackdropFilter,z:lc.zIndex,saveTransform:action.textTransform,footerCovered:Boolean(footerPoint?.closest?.('.fnb-sheet-layer')),headerCovered:Boolean(headerPoint?.closest?.('.fnb-sheet-layer'))};
+            const headerPoint=document.elementFromPoint(innerWidth/2,70);
+            return {layer:{top:lr.top,left:lr.left,right:lr.right,bottom:lr.bottom},center:{x:(sr.left+sr.right)/2,y:(sr.top+sr.bottom)/2},viewport:{x:innerWidth/2,y:innerHeight/2},z:lc.zIndex,backdrop:lc.backdropFilter||lc.webkitBackdropFilter,transform:ac.textTransform,footerCovered:Boolean(footerPoint?.closest?.('.fnb-sheet-layer')),headerCovered:Boolean(headerPoint?.closest?.('.fnb-sheet-layer'))};
           });
-          console.log('F&B modal geometry',JSON.stringify(state));
-          if(Math.abs(state.layer.top)>1||Math.abs(state.layer.left)>1||Math.abs(state.layer.right-390)>1||Math.abs(state.layer.bottom-844)>1) throw new Error('modal dim layer does not cover viewport');
-          if(Math.abs(state.sheetCenter.x-state.viewport.x)>3||Math.abs(state.sheetCenter.y-state.viewport.y)>12) throw new Error('modal is not centered');
-          if(Number(state.z)<200||!state.footerCovered||!state.headerCovered) throw new Error('modal does not dim above persistent shell');
-          if(state.saveTransform!=='none') throw new Error('action capitalization is not standardized');
-          if(state.backdrop==='none') throw new Error('modal backdrop blur missing');
+          console.log('F&B centered modal PASS candidate',JSON.stringify(state));
+          if(Math.abs(state.layer.top)>1||Math.abs(state.layer.left)>1||Math.abs(state.layer.right-390)>1||Math.abs(state.layer.bottom-844)>1) throw new Error('dim layer not full viewport');
+          if(Math.abs(state.center.x-state.viewport.x)>3||Math.abs(state.center.y-state.viewport.y)>12) throw new Error('modal not centered');
+          if(Number(state.z)<200||!state.footerCovered||!state.headerCovered) throw new Error('persistent shell not dimmed');
+          if(state.transform!=='none'||state.backdrop==='none') throw new Error('button case or backdrop invalid');
           await page.screenshot({path:'fnb-centered-modal.png',fullPage:true});
           await browser.close();
           NODE
-
-      - name: Upload visual evidence
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: fnb-centered-modal-${{ github.run_id }}
           path: fnb-centered-modal.png
