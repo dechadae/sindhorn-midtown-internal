@@ -4,14 +4,20 @@ const OPEN_METEO_HEAVY_CODES=new Set([65,67,82,96,99]);
 const TOMORROW_WET_CODES=new Set([4000,4001,4200,4201,8000]);
 const TOMORROW_DRIZZLE_CODES=new Set([4000]);
 const TOMORROW_HEAVY_CODES=new Set([4201,8000]);
+const PROVIDER_WET_CODES=new Set([...OPEN_METEO_RAIN_CODES,...TOMORROW_WET_CODES]);
+const PROVIDER_DRIZZLE_CODES=new Set([...OPEN_METEO_DRIZZLE_CODES,...TOMORROW_DRIZZLE_CODES]);
+const PROVIDER_HEAVY_CODES=new Set([...OPEN_METEO_HEAVY_CODES,...TOMORROW_HEAVY_CODES]);
 export const RAIN_NOW_STALE_MS=7*60*1000;
+export const TMD_RAIN_NOW_STALE_MS=20*60*1000;
+export const RADAR_RAIN_NOW_STALE_MS=12*60*1000;
 export const OPEN_METEO_STALE_MS=20*60*1000;
 export const DRY_HOLD_MAX_MS=7*60*1000;
 const finite=(value,fallback=0)=>Number.isFinite(Number(value))?Number(value):fallback;
 const parseTime=value=>{const ms=Date.parse(String(value||''));return Number.isFinite(ms)?ms:null};
 export function weatherLabel(code){const c=Number(code);if(c===0)return'Clear';if(c===1)return'Mainly clear';if(c===2)return'Partly cloudy';if(c===3)return'Overcast';if([45,48].includes(c))return'Fog';if(OPEN_METEO_DRIZZLE_CODES.has(c))return'Drizzle';if([61,63,65,66,67].includes(c))return'Rain';if([71,73,75,77].includes(c))return'Snow';if([80,81,82].includes(c))return'Rain showers';if([85,86].includes(c))return'Snow showers';if([95,96,99].includes(c))return'Thunderstorm';return'Current weather'}
 export function classifyRainRate(rateMmHr){const rate=Math.max(0,finite(rateMmHr));if(rate<.1)return'dry';if(rate<.3)return'possible-drizzle';if(rate<1)return'drizzle';if(rate<4)return'rain';return'heavy-rain'}
-export function isFresh(observedAt,nowMs=Date.now(),limitMs=RAIN_NOW_STALE_MS){const observed=parseTime(observedAt);return observed!==null&&observed<=nowMs+60_000&&nowMs-observed<=limitMs}
+export function isFresh(observedAt,nowMs=Date.now(),limitMs=RAIN_NOW_STALE_MS){const observed=parseTime(observedAt);return observed!==null&&observed<=nowMs+2*60_000&&nowMs-observed<=limitMs}
+function providerFreshLimit(provider=''){const p=String(provider).toLowerCase();if(p.startsWith('tmd-'))return TMD_RAIN_NOW_STALE_MS;if(p.includes('radar'))return RADAR_RAIN_NOW_STALE_MS;return RAIN_NOW_STALE_MS}
 function openMeteoSignal(openMeteo={},nowMs=Date.now()){
   const observedAt=openMeteo.observedAt??openMeteo.currentTime??null;
   const fresh=observedAt?isFresh(observedAt,nowMs,OPEN_METEO_STALE_MS):openMeteo.cached!==true;
@@ -21,13 +27,13 @@ function openMeteoSignal(openMeteo={},nowMs=Date.now()){
   return{fresh,wet,state,amount,code,label:weatherLabel(code),observedAt};
 }
 function rainNowSignal(rainNow={},nowMs=Date.now()){
-  const observedAt=rainNow.observedAt??null,available=rainNow.ok===true||rainNow.status==='ok',fresh=available&&isFresh(observedAt,nowMs,RAIN_NOW_STALE_MS),rate=Math.max(0,finite(rainNow.rainIntensityMmHr),finite(rainNow.precipitationIntensityMmHr));
+  const provider=String(rainNow.provider||'rain-now'),observedAt=rainNow.observedAt??null,available=rainNow.ok===true||rainNow.status==='ok',fresh=available&&isFresh(observedAt,nowMs,providerFreshLimit(provider)),rate=Math.max(0,finite(rainNow.rainIntensityMmHr),finite(rainNow.precipitationIntensityMmHr));
   const code=finite(rainNow.weatherCode,-1),probability=Math.max(0,finite(rainNow.precipitationProbability));let state=classifyRainRate(rate);
-  if(TOMORROW_HEAVY_CODES.has(code))state='heavy-rain';else if(TOMORROW_DRIZZLE_CODES.has(code)&&state==='dry')state='drizzle';else if(TOMORROW_WET_CODES.has(code)&&state==='dry')state='rain';
-  const strongWet=fresh&&(TOMORROW_WET_CODES.has(code)||rate>=.3),possible=fresh&&!strongWet&&rate>=.1&&(probability>=50||probability===0),wet=strongWet||possible;
-  return{available,fresh,rate,code,probability,state,wet,strongWet,possible,observedAt,provider:String(rainNow.provider||'rain-now')};
+  if(PROVIDER_HEAVY_CODES.has(code))state='heavy-rain';else if(PROVIDER_DRIZZLE_CODES.has(code)&&['dry','possible-drizzle'].includes(state))state='drizzle';else if(PROVIDER_WET_CODES.has(code)&&state==='dry')state='rain';
+  const strongWet=fresh&&(PROVIDER_WET_CODES.has(code)||rate>=.3),possible=fresh&&!strongWet&&rate>=.1&&(probability>=50||probability===0),wet=strongWet||possible;
+  return{available,fresh,rate,code,probability,state,wet,strongWet,possible,observedAt,provider};
 }
-function labelForState(state,providerCode){if(Number(providerCode)===8000)return'Thunderstorm';if(state==='heavy-rain')return'Heavy rain';if(state==='drizzle'||state==='possible-drizzle')return'Drizzle';return'Rain'}
+function labelForState(state,providerCode){const c=Number(providerCode);if(c===8000||[95,96,99].includes(c))return'Thunderstorm';if([80,81,82].includes(c))return'Rain showers';if(state==='heavy-rain')return'Heavy rain';if(state==='drizzle'||state==='possible-drizzle'||OPEN_METEO_DRIZZLE_CODES.has(c))return'Drizzle';return'Rain'}
 function drySampleKey(rain,open){return`${rain.observedAt||'rain-none'}|${open.observedAt||'om-none'}|${rain.fresh?'f':'s'}|${open.fresh?'f':'s'}`}
 export function resolveWeatherAuthority({openMeteo={},rainNow={},previous=null,nowMs=Date.now(),locationKey='default'}={}){
   const open=openMeteoSignal(openMeteo,nowMs),rain=rainNowSignal(rainNow,nowMs),locationChanged=Boolean(previous&&previous.locationKey!==locationKey);const prior=locationChanged?null:previous;
