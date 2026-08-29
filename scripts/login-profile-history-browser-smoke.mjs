@@ -77,6 +77,7 @@ try{
       return{
         canvas:document.querySelectorAll('canvas').length,
         environment:Boolean(document.querySelector('#environmentStage,.environment-stage')),
+        topRule:Boolean(document.querySelector('.brand-rule')),
         logo:document.querySelector('.brand-logo')?.getAttribute('src')||'',
         employeeInputMode:document.querySelector('#employeeNumber')?.inputMode||'',
         employeePattern:document.querySelector('#employeeNumber')?.getAttribute('pattern')||'',
@@ -94,6 +95,7 @@ try{
       };
     });
     assert(state.canvas===0&&!state.environment,`Login must not mount WebGL/background renderer ${JSON.stringify(state)}`);
+    assert(!state.topRule,`Login top divider must be removed ${JSON.stringify(state)}`);
     assert(state.logo.includes('vignette-white.png'),`Login is not using white live-shell logo ${state.logo}`);
     assert(state.employeeInputMode==='numeric'&&state.employeePattern==='[0-9]*',`Employee ID should request numeric keyboard ${JSON.stringify(state)}`);
     assert(state.logoTop>state.controlsBottom,`Hotel logo must sit below the sign-in panel ${JSON.stringify(state)}`);
@@ -151,7 +153,7 @@ try{
   await assertNoOverflow(history.page,'History');
   await history.context.close();
 
-  console.log(JSON.stringify({ok:true,login:'static dark live-shell styling + bottom-centered logo + numeric Employee ID',profile:{position:facts.Position,department:facts.Department},history:{gap:collapsedGap.gap}},null,2));
+  console.log(JSON.stringify({ok:true,login:'static dark live-shell styling + no top divider + bottom-centered logo + numeric Employee ID',profile:{position:facts.Position,department:facts.Department},history:{gap:collapsedGap.gap}},null,2));
 }finally{
   await browser.close();
 }
