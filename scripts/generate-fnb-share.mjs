@@ -3,7 +3,7 @@ import {resolve,join} from 'node:path';
 import {FNB_PROMOTIONS} from '../site/fnb-data.js';
 
 const DEFAULT_OUTPUT=process.argv[2]===undefined;
-const OUTPUT=resolve(process.argv[2]||'site/share-public');
+const OUTPUT=resolve(process.argv[2]||'site/share');
 const ORIGIN=(process.env.PUBLIC_ORIGIN||'https://sindhorn-midtown-internal.pages.dev').replace(/\/$/,'');
 const SITE='Sindhorn Midtown';
 
@@ -16,7 +16,7 @@ function publicPromotion(item){return Object.freeze({
 const PUBLIC=FNB_PROMOTIONS.map(publicPromotion);
 function canonical(path){return `${ORIGIN}${path}`}
 function meta(title,url,description){return `<title>${esc(title)}</title>\n<meta name="description" content="${esc(description)}">\n<link rel="canonical" href="${esc(url)}">\n<meta property="og:title" content="${esc(title)}">\n<meta property="og:type" content="website">\n<meta property="og:url" content="${esc(url)}">\n<meta property="og:description" content="${esc(description)}">`}
-function shell(title,url,description,body){return `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<meta name="theme-color" content="#2E273B">\n${meta(title,url,description)}\n<link rel="stylesheet" href="/fonts.css?v=1">\n<link rel="stylesheet" href="/share-public/share.css?v=1">\n</head>\n<body>\n<main class="public-fnb">${body}</main>\n</body>\n</html>\n`}
+function shell(title,url,description,body){return `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n<meta name="theme-color" content="#2E273B">\n${meta(title,url,description)}\n<link rel="stylesheet" href="/fonts.css?v=1">\n<link rel="stylesheet" href="/share/fnb-share.css?v=1">\n</head>\n<body>\n<main class="public-fnb">${body}</main>\n</body>\n</html>\n`}
 function activationList(item){return `<ul class="public-fnb-facts">${item.activations.map(a=>`<li><span>Outlet</span><strong>${esc(a.outlet)}</strong><small>${esc(a.time)} · IHG One Rewards ${esc(a.discount)}</small></li>`).join('')}</ul>`}
 function indexPage(){
   const title=`F&B Promotions | ${SITE}`,url=canonical('/share/fnb'),description='Food & Beverage promotions at Sindhorn Midtown Bangkok.';
@@ -32,8 +32,10 @@ const CSS=`:root{font-family:var(--font-ui);color:#FAF7F5;background:#2E273B;let
 
 await rm(OUTPUT,{recursive:true,force:true});await mkdir(OUTPUT,{recursive:true});
 if(DEFAULT_OUTPUT){
-  await writeFile(join(OUTPUT,'fnb.html'),indexPage());await writeFile(join(OUTPUT,'share.css'),CSS);
-  for(const item of PUBLIC)await writeFile(join(OUTPUT,`${item.id}.html`),detailPage(item));
+  await writeFile(join(OUTPUT,'fnb.html'),indexPage());
+  await writeFile(join(OUTPUT,'fnb-share.css'),CSS);
+  const detailDir=join(OUTPUT,'fnb');await mkdir(detailDir,{recursive:true});
+  for(const item of PUBLIC)await writeFile(join(detailDir,`${item.id}.html`),detailPage(item));
 }else{
   await writeFile(join(OUTPUT,'index.html'),indexPage());await writeFile(join(OUTPUT,'share.css'),CSS);
   for(const item of PUBLIC){const dir=join(OUTPUT,item.id);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),detailPage(item))}
