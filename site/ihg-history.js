@@ -2,6 +2,11 @@ import {IHG_HISTORY_PERIODS,IHG_HISTORY_SOURCE} from './ihg-history-data.js';
 
 const STYLE_ID='ihg-history-style';
 const SOURCE_LABEL='IHG Hotels & Resorts — Our history';
+const HISTORY_IMAGES=Object.freeze({
+  'The InterContinental brand is founded':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1946.jpg?h=422&iar=0&w=750',caption:'IHG archive · InterContinental, 1946'}),
+  'Holiday Inn opens in Memphis':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/img-1952.jpg?h=750&iar=0&w=750',caption:'IHG archive · Holiday Inn, 1952'}),
+  'IHG becomes IHG Hotels & Resorts':Object.freeze({src:'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/history-2.jpg?h=422&iar=0&w=750',caption:'IHG archive · Brand identity, 2021'})
+});
 
 function ensureStylesheet(){
   const existing=document.getElementById(STYLE_ID);
@@ -14,7 +19,7 @@ function ensureStylesheet(){
     const link=document.createElement('link');
     link.id=STYLE_ID;
     link.rel='stylesheet';
-    link.href='/ihg-history.css?v=1';
+    link.href='/ihg-history.css?v=2';
     link.addEventListener('load',resolve,{once:true});
     link.addEventListener('error',resolve,{once:true});
     document.head.appendChild(link);
@@ -25,10 +30,20 @@ function esc(value=''){
   return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 }
 
+function imageMarkup(item){
+  const visual=HISTORY_IMAGES[item[1]];
+  if(!visual)return'';
+  return `<figure class="ihg-history-visual">
+    <img src="${esc(visual.src)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer-when-downgrade">
+    <figcaption>${esc(visual.caption)}</figcaption>
+  </figure>`;
+}
+
 function milestoneMarkup(item,index){
   return `<article class="ihg-history-milestone${index===0?' is-first':''}">
     <p class="ihg-history-year">${esc(item[0])}</p>
     <h3>${esc(item[1])}</h3>
+    ${imageMarkup(item)}
     <p>${esc(item[2])}</p>
   </article>`;
 }
@@ -73,6 +88,7 @@ function template(){
     <aside class="ihg-history-source" aria-label="Source">
       <span>Source</span>
       <strong>${SOURCE_LABEL}</strong>
+      <p class="ihg-history-source-note">Milestones and selected archive images are sourced from IHG plc.</p>
       <a href="${IHG_HISTORY_SOURCE}" target="_blank" rel="noopener noreferrer">View official history <span aria-hidden="true">→</span></a>
     </aside>
   </section>`;
@@ -86,11 +102,6 @@ function setExpanded(card,expanded){
   button.setAttribute('aria-expanded',expanded?'true':'false');
   panel.setAttribute('aria-hidden',expanded?'false':'true');
   if('inert'in panel)panel.inert=!expanded;
-}
-
-function clearFooterCurrent(){
-  if(document.body.dataset.route!=='ihgHistory')return;
-  document.querySelectorAll('#app-footer [aria-current]').forEach(node=>node.removeAttribute('aria-current'));
 }
 
 export async function mountIhgHistoryRoute(root){
@@ -116,14 +127,10 @@ export async function mountIhgHistoryRoute(root){
       });
     }
   };
-  const onRouteMounted=()=>queueMicrotask(clearFooterCurrent);
   root.addEventListener('click',onClick);
-  document.addEventListener('sindhorn:route-mounted',onRouteMounted);
-  setTimeout(clearFooterCurrent,0);
 
   return ()=>{
     root.removeEventListener('click',onClick);
-    document.removeEventListener('sindhorn:route-mounted',onRouteMounted);
     delete document.body.dataset.ihgHistory;
   };
 }
