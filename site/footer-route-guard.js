@@ -1,4 +1,4 @@
-const FOOTER_VERSION='sindhorn-footer-v7-four-tabs';
+const FOOTER_VERSION='sindhorn-footer-v8-shell-context';
 const FNB_MODULE_URL='/fnb.js?v=6';
 const NAV_ITEMS=[
   {route:'today',label:'Today',href:'/'},
@@ -9,6 +9,8 @@ const NAV_ITEMS=[
 
 let fnbCleanup=null;
 let fnbOpening=null;
+let contextObserver=null;
+let contextSource=null;
 
 function routeFromPath(){
   const path=location.pathname.length>1&&location.pathname.endsWith('/')?location.pathname.slice(0,-1):location.pathname;
@@ -24,7 +26,8 @@ function buildControl(item){
   control.setAttribute('aria-label',item.label);
   if(item.direct){
     control.type='button';
-    control.dataset.fnbNav='fnb';
+    if(item.section)control.dataset.fnbSectionNav=item.section;
+    else control.dataset.fnbNav='fnb';
   }else{
     control.href=item.href;
     control.dataset.appRoute=item.route;
@@ -42,17 +45,47 @@ function updateCurrent(){
   });
 }
 
+function sourceContextRail(){return document.querySelector('#route-view .fnb-route > .fnb-section-rail')}
+function syncContextState(){
+  const host=document.getElementById('app-footer'),rail=host?.querySelector('[data-shell-context="fnb"]'),source=contextSource||sourceContextRail();
+  if(!rail||!source)return;
+  rail.querySelectorAll('[data-fnb-section-nav]').forEach(control=>{
+    const id=control.dataset.fnbSectionNav;
+    const sourceControl=[...source.querySelectorAll('[data-section]')].find(button=>button.dataset.section===id);
+    const active=Boolean(sourceControl&&(sourceControl.classList.contains('is-active')||sourceControl.hasAttribute('aria-current')));
+    control.toggleAttribute('aria-current',active);
+  });
+}
+function disconnectContextObserver(){contextObserver?.disconnect();contextObserver=null;contextSource=null}
+function syncContextFooter(){
+  const host=document.getElementById('app-footer');if(!host)return;
+  const source=sourceContextRail();
+  const shouldShow=document.body.dataset.route==='fnb'&&document.body.dataset.fnbDetail==='true'&&Boolean(source);
+  let rail=host.querySelector('[data-shell-context="fnb"]');
+  if(!shouldShow){rail?.remove();disconnectContextObserver();return}
+  if(!rail){
+    rail=document.createElement('nav');rail.className='fnb-section-rail shell-footer-rail';rail.dataset.shellContext='fnb';rail.setAttribute('aria-label',source.getAttribute('aria-label')||'Promotion sections');
+    source.querySelectorAll('[data-section]').forEach(button=>rail.appendChild(buildControl({label:button.textContent.trim(),direct:true,section:button.dataset.section})));
+    const global=host.querySelector('.app-tabbar');host.insertBefore(rail,global||null);
+  }
+  if(contextSource!==source){
+    disconnectContextObserver();contextSource=source;
+    contextObserver=new MutationObserver(syncContextState);contextObserver.observe(source,{subtree:true,attributes:true,attributeFilter:['class','aria-current']});
+  }
+  syncContextState();
+}
+
 function normalizeFooter(){
   const host=document.getElementById('app-footer');if(!host)return;
   const current=host.querySelector(`[data-shell-footer="${FOOTER_VERSION}"]`);
   if(current){
     current.querySelectorAll('[data-app-route="fnb"]').forEach(node=>node.remove());
-    updateCurrent();return;
+    updateCurrent();syncContextFooter();return;
   }
-  const nav=document.createElement('nav');nav.className='app-tabbar bottom-nav';nav.dataset.shellFooter=FOOTER_VERSION;nav.setAttribute('aria-label','App navigation');
+  const nav=document.createElement('nav');nav.className='app-tabbar bottom-nav shell-footer-rail';nav.dataset.shellFooter=FOOTER_VERSION;nav.setAttribute('aria-label','App navigation');
   NAV_ITEMS.forEach(item=>nav.appendChild(buildControl(item)));
   host.replaceChildren(nav);
-  updateCurrent();
+  updateCurrent();syncContextFooter();
   queueMicrotask(()=>window.SindhornNotificationInbox?.refresh?.().catch?.(()=>{}));
 }
 
@@ -78,12 +111,12 @@ async function openFnb({historyMode='push'}={}){
     document.body.dataset.route='fnb';
     document.title='F&B | Sindhorn Midtown Internal';
 
-    /* Route enhancements (timestamps, share controls, artwork state) must settle while hidden. */
+    /* Route enhancements settle while hidden; shell context footer is created in the same phase. */
     host.style.opacity='0';
     document.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route:'fnb',source:'footer-prepaint'}}));
     await Promise.resolve();
     await Promise.resolve();
-    updateCurrent();
+    updateCurrent();syncContextFooter();
 
     await fadeHost(host,0,1,180);
     host.style.removeProperty('opacity');
@@ -102,16 +135,25 @@ function handleFnbClick(event){
   event.preventDefault();
   openFnb().catch(()=>{});
 }
+function handleSectionClick(event){
+  const control=event.target.closest?.('#app-footer [data-fnb-section-nav]');if(!control)return;
+  event.preventDefault();
+  const id=control.dataset.fnbSectionNav,source=contextSource||sourceContextRail();
+  const sourceControl=source?[...source.querySelectorAll('[data-section]')].find(button=>button.dataset.section===id):null;
+  sourceControl?.click();
+}
 
 const footer=document.getElementById('app-footer');
 if(footer){new MutationObserver(()=>normalizeFooter()).observe(footer,{childList:true})}
+if(document.body){new MutationObserver(syncContextFooter).observe(document.body,{attributes:true,attributeFilter:['data-route','data-fnb-detail']})}
 document.addEventListener('sindhorn:pack-updated',normalizeFooter);
 document.addEventListener('sindhorn:route-mounted',event=>{
   const route=event.detail?.route||routeFromPath();
   if(route!=='fnb'&&typeof fnbCleanup==='function'){try{fnbCleanup()}catch(_){}fnbCleanup=null}
-  normalizeFooter();updateCurrent();
+  normalizeFooter();updateCurrent();syncContextFooter();
 });
 document.addEventListener('click',handleFnbClick);
+document.addEventListener('click',handleSectionClick);
 addEventListener('popstate',()=>{
   if(routeFromPath()!=='fnb')return;
   setTimeout(()=>{if(!document.querySelector('#route-view .fnb-route'))openFnb({historyMode:null}).catch(()=>{})},0);
