@@ -2,8 +2,8 @@ import {mkdir,rm,writeFile} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {FNB_PROMOTIONS} from '../site/fnb-data.js';
 
-const OUTPUT=resolve(process.argv[2]||'site/share/fnb');
 const DEFAULT_OUTPUT=process.argv[2]===undefined;
+const OUTPUT=resolve(process.argv[2]||'site/share-public');
 const ORIGIN=(process.env.PUBLIC_ORIGIN||'https://sindhorn-midtown-internal.pages.dev').replace(/\/$/,'');
 const SITE='Sindhorn Midtown';
 
@@ -31,11 +31,11 @@ function detailPage(item){
 const CSS=`:root{font-family:var(--font-ui);color:#FAF7F5;background:#2E273B;letter-spacing:0}*{box-sizing:border-box;letter-spacing:0!important}body{margin:0;background:#2E273B;color:#FAF7F5}.public-fnb{width:min(100% - 32px,760px);margin:0 auto;padding:42px 0 64px}.public-fnb-hero{padding:18px 0 26px;border-bottom:1px solid rgba(250,247,245,.14)}.public-fnb-label{margin:0 0 10px;color:#E5ECBE;font-size:10px;text-transform:uppercase}.public-fnb h1{margin:0;font-size:clamp(36px,11vw,64px);font-weight:100;line-height:1.02}.public-fnb h2{margin:4px 0 8px;font-size:22px;font-weight:400;line-height:1.18}.public-fnb a{color:inherit}.public-fnb-grid{display:grid;gap:12px;padding-top:18px}.public-fnb-card{padding:18px;border:1px solid rgba(250,247,245,.14);border-radius:16px;background:rgba(250,247,245,.04)}.public-fnb-card p{margin:8px 0;color:rgba(250,247,245,.76);line-height:1.55}.public-fnb-date,.public-fnb-outlets{font-size:13px;color:rgba(250,247,245,.62)!important}.public-fnb-back{display:inline-block;margin-bottom:22px;font-size:13px;text-decoration:none}.public-fnb-summary{font-size:16px;line-height:1.55;color:rgba(250,247,245,.82)}.public-fnb-facts{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:1px}.public-fnb-facts li{padding:12px 0;border-top:1px solid rgba(250,247,245,.12)}.public-fnb-facts span,.public-fnb-facts strong,.public-fnb-facts small{display:block}.public-fnb-facts span{font-size:9px;text-transform:uppercase;color:rgba(250,247,245,.5)}.public-fnb-facts strong{margin-top:3px;font-size:14px;font-weight:400}.public-fnb-facts small{margin-top:3px;color:rgba(250,247,245,.62)}.public-fnb section{padding:26px 0;border-bottom:1px solid rgba(250,247,245,.12)}.public-fnb-copy{white-space:pre-line;font-size:14px;line-height:1.7;color:rgba(250,247,245,.82)}@media(min-width:680px){.public-fnb-grid{grid-template-columns:1fr 1fr}}`;
 
 await rm(OUTPUT,{recursive:true,force:true});await mkdir(OUTPUT,{recursive:true});
-await writeFile(join(OUTPUT,'index.html'),indexPage());await writeFile(join(OUTPUT,'share.css'),CSS);
-for(const item of PUBLIC){const dir=join(OUTPUT,item.id);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),detailPage(item))}
 if(DEFAULT_OUTPUT){
-  const flat=resolve('site/share-public');await rm(flat,{recursive:true,force:true});await mkdir(flat,{recursive:true});
-  await writeFile(join(flat,'fnb.html'),indexPage());await writeFile(join(flat,'share.css'),CSS);
-  for(const item of PUBLIC)await writeFile(join(flat,`${item.id}.html`),detailPage(item));
+  await writeFile(join(OUTPUT,'fnb.html'),indexPage());await writeFile(join(OUTPUT,'share.css'),CSS);
+  for(const item of PUBLIC)await writeFile(join(OUTPUT,`${item.id}.html`),detailPage(item));
+}else{
+  await writeFile(join(OUTPUT,'index.html'),indexPage());await writeFile(join(OUTPUT,'share.css'),CSS);
+  for(const item of PUBLIC){const dir=join(OUTPUT,item.id);await mkdir(dir,{recursive:true});await writeFile(join(dir,'index.html'),detailPage(item))}
 }
 console.log(`generated ${PUBLIC.length+1} public F&B share pages at ${OUTPUT}`);
