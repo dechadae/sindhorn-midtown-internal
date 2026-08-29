@@ -31,6 +31,8 @@ assert.match(sync,/sindhorn_fnb_artwork_status_write/,'authenticated editor must
 assert.match(sync,/new MutationObserver/,'detail artwork sync must observe dynamically rendered detail DOM');
 assert.match(sync,/if\(total===0\)\{card\.hidden=true/,'zero-artwork outlet groups must be hidden');
 assert.match(sync,/\.fnb-art-card:not\(:has\(\.fnb-task\)\)\{display:none!important\}/,'zero-artwork groups need a render-safe hide guard');
+assert.match(fnb,/taskId=button\.dataset\.task,next=!row\?\.classList\.contains\('is-done'\)/,'checkbox toggles must derive the next value from the rendered shared state');
+assert.doesNotMatch(fnb,/state\.checks\[button\.dataset\.task\]=!state\.checks\[button\.dataset\.task\];save\(\);const id=current\?\.id;renderIndex\(\);if\(id\)openDetail/,'checkbox toggles must not rebuild the detail DOM');
 assert.match(adapter,/Canonical business content lives in Supabase/,'F&B adapter must state Supabase authority');
 assert.match(adapter,/sindhorn_fnb_read_model/,'authenticated F&B runtime must use the protected read model');
 assert.match(adapter,/sindhorn_fnb_public_read_model/,'adapter must have explicit public fallback read model');
@@ -86,7 +88,11 @@ assert.match(publicShareUi,/folderControl\(item\)/,'public compact cards must ex
 assert.match(publicShareUi,/actions\.appendChild\(button\('promotion',id\)\)/,'public compact cards must expose promotion Share');
 assert.match(publicCss,/\.fnb-section-rail\{display:none!important/,'public detail section rail must be hidden');
 assert.match(publicCss,/-webkit-appearance:none;appearance:none/,'public controls must remove native browser control chrome');
-assert.match(publicCss,/\.fnb-task-toggle\{display:none!important\}/,'public artwork check controls must be hidden');
+assert.doesNotMatch(publicCss,/\.fnb-task-toggle\{display:none!important\}/,'public artwork status checkboxes must remain visible');
+assert.match(publicCss,/\.fnb-task-toggle\{display:grid!important;[^}]*pointer-events:none!important\}/,'public artwork status checkboxes must be visible but non-interactive');
+assert.match(publicCss,/\.fnb-task-toggle::before\{content:"☐"!important\}/,'public pending artwork must use a gray empty checkbox');
+assert.match(publicCss,/\.fnb-task\.is-done \.fnb-task-toggle::before\{content:"☑"!important\}/,'public completed artwork must use a gray checked checkbox');
+assert.match(publicRuntime,/\$\{editor\?'':'disabled'\}/,'public renderer must keep artwork checkboxes disabled');
 assert.match(publicCss,/\[data-folder-edit\]/,'public artwork editor UI must be hidden');
 assert.match(publicCss,/\.fnb-data-updated\{/,'public freshness timestamp must keep restrained treatment');
 assert.doesNotMatch(publicCss,/\[data-folder-open\][^}]*display:none/,'public artwork folder open action must remain visible');
@@ -122,7 +128,7 @@ for(const [path,title] of pages){
   assert.match(html,/\/fnb-refinements\.css\?v=1/,`${path}: live F&B refinements missing`);
   assert.match(html,/\/fnb-layout-stability\.css\?v=1/,`${path}: live async layout stability missing`);
   assert.match(html,/\/share\/fnb-live-pack\.css\?v=\d+/,`${path}: live presentation pack CSS missing`);
-  assert.match(html,/\/share\/fnb-public\.css\?v=8/,`${path}: public subtraction layer missing`);
+  assert.match(html,/\/share\/fnb-public\.css\?v=9/,`${path}: public subtraction layer missing`);
   assert.match(html,/\/share\/fnb-public-shell\.js\?v=9/,`${path}: current public shell missing`);
   assert.doesNotMatch(html,/href="\/fnb\.css/,'public HTML must let the cloned runtime load fnb.css in the same order as authenticated F&B');
   for(const token of ['og:image','twitter:image','employee_number','Add / change artwork link','auth-client','login.html','id="app-footer"'])assert(!html.toLowerCase().includes(token.toLowerCase()),`${path}: forbidden public token ${token}`)
