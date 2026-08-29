@@ -38,7 +38,9 @@ assert.match(publicRuntime,/import \{FNB_PROMOTIONS as DATA\} from '.\/fnb-publi
 assert.doesNotMatch(publicRuntime,/sindhorn-midtown:fnb-local/,'public runtime must not read private device state');
 assert.doesNotMatch(publicRuntime,/localStorage\.getItem/,'public runtime must not hydrate device-only F&B state');
 assert.match(publicRuntime,/const editor=false/,'public runtime must never grant edit capability');
-assert.match(publicCss,/--public-header-h:126px/,'public header must match compact authenticated app height');
+assert.match(publicCss,/\.masthead-inner\{min-height:54px;padding-top:8px;padding-bottom:8px/,'public masthead must copy Pack 46 mobile geometry');
+assert.match(publicCss,/\.brand-lockup\{position:relative;width:clamp\(108px,28vw,136px\)/,'public logo must copy Pack 46 lockup sizing');
+assert.match(publicCss,/#app-header\{position:sticky;top:0;z-index:120;isolation:isolate\}/,'public header host must copy Pack 46 sticky behavior');
 assert.match(publicCss,/\.fnb-section-rail\{display:none!important/,'public detail section rail must be hidden');
 assert.match(publicCss,/-webkit-tap-highlight-color:transparent!important/,'public controls must suppress browser tap highlight');
 assert.match(publicCss,/-webkit-appearance:none;appearance:none/,'public controls must remove native browser control chrome');
@@ -56,9 +58,12 @@ for(const [path,title] of pages){
   assert.match(html,/<meta property="og:url"/,`${path}: og:url missing`);
   assert.match(html,/https:\/\/preview\.example\.test\/share\/fnb/,`${path}: canonical preview origin missing`);
   assert.match(html,/id="environmentStage"/,`${path}: must reuse production atmosphere layer`);
-  assert.match(html,/sindhorn-midtown-vignette-white\.png/,`${path}: must use production hotel lockup`);
-  assert.match(html,/fnb-public\.css\?v=2/,`${path}: public CSS must be cache-busted`);
-  assert.match(html,/fnb-public-shell\.js\?v=2/,`${path}: public shell must be cache-busted`);
+  assert.match(html,/id="app-header"/,`${path}: must use authenticated header host`);
+  assert.match(html,/class="masthead"/,`${path}: must use authenticated masthead markup`);
+  assert.match(html,/class="brand-lockup"/,`${path}: must use authenticated brand lockup markup`);
+  assert.doesNotMatch(html,/masthead-tools/,`${path}: public masthead must omit employee/fullscreen tools`);
+  assert.match(html,/fnb-public\.css\?v=4/,`${path}: public CSS must be cache-busted`);
+  assert.match(html,/fnb-public-shell\.js\?v=4/,`${path}: public shell must be cache-busted`);
   for(const token of ['og:image','twitter:image','sharepoint.com','1drv.ms','onedrive.live.com','employee_number','Add / change artwork link','auth-client','login.html','id="app-footer"'])assert(!html.toLowerCase().includes(token.toLowerCase()),`${path}: forbidden public token ${token}`)
 }
 await rm(temp,{recursive:true,force:true});
