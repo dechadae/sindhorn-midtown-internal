@@ -68,7 +68,12 @@ async function signIn(page){
 // no standalone atmosphere tester page anymore (removed 2026-08-28): all
 // release verification runs against the live route only.
 async function inspectLive(viewport,name){
-  const page=await browser.newPage({viewport,screen:viewport});
+  // This is a renderer/frame-pacing gate, not a service-worker lifecycle gate.
+  // SW architecture and production shell assets are checked separately in the
+  // workflow. Blocking SW here prevents the intentional one-time PWA release
+  // refresh from destroying the WebGL evaluation context mid-measurement.
+  const context=await browser.newContext({viewport,screen:viewport,serviceWorkers:'block'});
+  const page=await context.newPage();
   page.on('pageerror',err=>errors.push(`${name}: ${err.message}`));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(`${name} console: ${msg.text()}`)});
   await signIn(page);
@@ -108,7 +113,7 @@ async function inspectLive(viewport,name){
   if(!Number.isFinite(state.aqi)||state.aqi<0||state.aqi>500)throw new Error(`${name}: invalid Thai AQI: ${state.aqi}`);
   await page.screenshot({path:`phase82-artifacts/${name}.png`,fullPage:true});
   const pacing=await sampleFrames(page,name);
-  await page.close();
+  await context.close();
   return {...state,...pacing};
 }
 
