@@ -29,8 +29,13 @@ try{
   assert(settled.gap<42,`source gap too large ${JSON.stringify(settled)}`);
   assert(settled.scrollY<=settled.maxScroll+1,`scroll position exceeds document after runway cleanup ${JSON.stringify(settled)}`);
 
-  await page.evaluate(()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'auto'}));
-  await page.waitForTimeout(180);
+  await page.evaluate(()=>{
+    const doc=document.documentElement,previous=doc.style.scrollBehavior;
+    doc.style.scrollBehavior='auto';
+    window.scrollTo(0,doc.scrollHeight);
+    doc.style.scrollBehavior=previous;
+  });
+  await page.waitForTimeout(80);
   const bottom=await page.evaluate(()=>{
     const doc=document.documentElement,source=document.querySelector('.ihg-history-source'),footer=document.getElementById('app-footer'),sr=source.getBoundingClientRect(),fr=footer.getBoundingClientRect();
     return{scrollY:scrollY,maxScroll:Math.max(0,doc.scrollHeight-doc.clientHeight),sourceTop:sr.top,sourceBottom:sr.bottom,footerTop:fr.top,viewport:innerHeight,sourceVisible:sr.bottom>0&&sr.top<innerHeight,footerVisible:fr.bottom>0&&fr.top<innerHeight};
