@@ -1,0 +1,82 @@
+name: F&B Artwork Sync Preview
+
+on:
+  push:
+    branches:
+      - hotfix-fnb-artwork-sync
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: fnb-artwork-sync-preview
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Generate public shares and launcher icons
+        env:
+          PUBLIC_ORIGIN: https://hotfix-fnb-artwork-sync.sindhorn-midtown-internal.pages.dev
+        run: |
+          npm install --no-save sharp@0.34.3 >/dev/null 2>&1
+          node scripts/generate-fnb-share.mjs
+          node scripts/generate-pwa-icons.mjs >/dev/null
+      - name: Validate sync modules
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < site/fnb-artwork-sync.js
+          node --input-type=module --check < site/fnb-share-ui.js
+          node --input-type=module --check < site/share/fnb-share-ui-public.js
+          grep -q "initFnbArtworkSync" site/fnb-share-ui.js
+          grep -q "fnb-artwork-sync.js" site/share/fnb-share-ui-public.js
+          ! grep -RqiE 'sharepoint\.com|1drv\.ms|onedrive\.live\.com|employee_number|artworkUrl' site/share/fnb-public-data.js
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+      - name: Smoke public artwork-state RPC and assets
+        run: |
+          set -euo pipefail
+          BASE_URL="https://hotfix-fnb-artwork-sync.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/fnb-artwork-sync.js" -o /tmp/sync.js
+          grep -q 'sindhorn_fnb_artwork_status_read' /tmp/sync.js
+          curl --fail --silent --show-error "${BASE_URL}/share/fnb" -o /tmp/share.html
+          grep -q '/share/fnb-public-shell.js' /tmp/share.html
+          curl --fail --silent --show-error -X POST \
+            -H 'apikey: sb_publishable_NcIExScIXkqsK1ZNNu5a-Q_zZ4afIHz' \
+            -H 'content-type: application/json' \
+            -d '{}' \
+            'https://sjpvhgxacsiorrtijqua.supabase.co/rest/v1/rpc/sindhorn_fnb_artwork_status_read' -o /tmp/status.json
+          node -e "const x=require('/tmp/status.json');if(!Array.isArray(x))process.exit(1)"
+      - name: Verify public UI consumes shared completion state
+        env:
+          BASE_URL: https://hotfix-fnb-artwork-sync.sindhorn-midtown-internal.pages.dev
+        run: |
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install chromium >/dev/null 2>&1
+          node --input-type=module - <<'NODE'
+          import {chromium} from 'playwright';
+          import {FNB_PROMOTIONS} from './site/share/fnb-public-data.js';
+          const campaign=FNB_PROMOTIONS.find(item=>item.id==='fried-chicken-waffles');
+          const ids=campaign.activations.flatMap(a=>a.artworks).map(x=>x.id);
+          if(ids.length!==3)throw new Error(`expected 3 FCW artworks, got ${ids.length}`);
+          const browser=await chromium.launch({headless:true});
+          const page=await browser.newPage({viewport:{width:390,height:844}});
+          await page.route('**/rest/v1/rpc/sindhorn_fnb_artwork_status_read',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(ids.map(artwork_id=>({artwork_id,done:true})))}));
+          await page.goto(`${process.env.BASE_URL}/share/fnb`,{waitUntil:'networkidle'});
+          const card=page.locator('.fnb-card').filter({hasText:'Fried Chicken & Waffles'});
+          await card.waitFor();
+          await page.waitForFunction(()=>[...document.querySelectorAll('.fnb-card')].some(card=>card.textContent.includes('Fried Chicken & Waffles')&&card.querySelector('.fnb-progress-meta b')?.textContent.trim()==='3 / 3'));
+          await card.locator('[data-open]').click();
+          await page.waitForSelector('.fnb-detail-title');
+          await page.waitForFunction(()=>document.querySelector('.fnb-section-count')?.textContent.trim()==='3 / 3 complete');
+          const toggles=await page.locator('.fnb-task-toggle').count();
+          if(toggles!==3)throw new Error(`expected 3 read-only task rows, got ${toggles}`);
+          await browser.close();
+          NODE
