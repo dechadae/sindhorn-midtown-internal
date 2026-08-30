@@ -1,0 +1,47 @@
+/* Shared actionable-card primitive.
+   Geometry and tactile behavior are derived from the approved F&B promotion card.
+   Route composition/content remains route-owned; material values may be supplied by CSS variables. */
+:root{
+  --app-action-card-motion-fast:160ms;
+  --app-action-card-motion-base:260ms;
+  --app-action-card-ease:cubic-bezier(.22,1,.36,1);
+}
+.app-action-card{
+  --app-action-card-border:rgba(250,247,245,.14);
+  --app-action-card-bg:rgba(46,39,59,.48);
+  --app-action-card-accent-rgb:229,236,190;
+  --app-action-card-filter:none;
+  display:block;
+  border:1px solid var(--app-action-card-border);
+  border-radius:14px;
+  background:var(--app-action-card-bg);
+  color:inherit;
+  text-decoration:none;
+  box-shadow:none;
+  backdrop-filter:var(--app-action-card-filter);
+  -webkit-backdrop-filter:var(--app-action-card-filter);
+  transition:transform var(--app-action-card-motion-base) var(--app-action-card-ease),border-color var(--app-action-card-motion-base) ease,background var(--app-action-card-motion-base) ease,box-shadow var(--app-action-card-motion-base) var(--app-action-card-ease);
+}
+.app-action-card-control{
+  width:100%;
+  padding:16px 17px;
+  display:block;
+  border:0;
+  background:transparent;
+  color:inherit;
+  text-align:left;
+  text-decoration:none;
+  cursor:pointer;
+  transition:opacity var(--app-action-card-motion-fast) ease,transform var(--app-action-card-motion-fast) var(--app-action-card-ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.app-action-card.app-action-card-control{border:1px solid var(--app-action-card-border);background:var(--app-action-card-bg)}
+.app-action-card:focus-within{border-color:rgba(var(--app-action-card-accent-rgb),.32);box-shadow:0 14px 34px rgba(12,9,18,.14)}
+.app-action-card-control:focus-visible{outline:2px solid rgba(var(--app-action-card-accent-rgb),.72);outline-offset:3px}
+.app-action-card-control:active{transform:scale(.992);opacity:.88}
+.app-action-card-title{margin:0;font-size:clamp(16px,3.6vw,19px);font-weight:400;line-height:1.25;letter-spacing:0!important}
+.app-action-card-meta{margin:6px 0 0;font-size:12.5px;line-height:1.5}
+.app-action-card-foot{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin-top:12px;font-size:12.5px;line-height:1.5}
+.app-action-card-chevron{display:grid;place-items:center;width:20px;height:20px;line-height:1}
+@media(hover:hover){.app-action-card:hover{transform:translateY(-2px);border-color:rgba(var(--app-action-card-accent-rgb),.25)}}
+@media(prefers-reduced-motion:reduce){.app-action-card,.app-action-card-control{transition:none!important}}
