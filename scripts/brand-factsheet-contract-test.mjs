@@ -7,6 +7,7 @@ const routeText=await fs.readFile(new URL('../site/route-registry.js',import.met
 const footerText=await fs.readFile(new URL('../site/footer-route-guard.js',import.meta.url),'utf8');
 const footerCss=await fs.readFile(new URL('../site/footer-route-guard.css',import.meta.url),'utf8');
 const heroCss=await fs.readFile(new URL('../site/route-hero-standard.css',import.meta.url),'utf8');
+const controlsText=await fs.readFile(new URL('../site/brand-route-controls.js',import.meta.url),'utf8');
 const redirects=await fs.readFile(new URL('../site/_redirects',import.meta.url),'utf8');
 const brandText=await fs.readFile(new URL('../site/brand.js',import.meta.url),'utf8');
 const brandCss=await fs.readFile(new URL('../site/brand.css',import.meta.url),'utf8');
@@ -48,6 +49,11 @@ assert(heroCss.includes('.brand-route,.factsheet-route'),'Central one-atmosphere
 assert(heroCss.includes('.brand-hero')&&heroCss.includes('.factsheet-hero'),'Central F&B hero standard does not include Brand/Factsheet');
 assert(heroCss.includes('.ihg-history-hero h1{text-transform:capitalize!important}'),'History title-case rule missing');
 assert(heroCss.includes('.factsheet-section-head h2')&&heroCss.includes('font-weight:400!important'),'Regular-weight Brand/Factsheet title standard missing');
+assert(heroCss.includes('.route-back-control')&&heroCss.includes('width:36px;height:36px')&&heroCss.includes('border-radius:12px'),'Shared F&B back-control recipe missing');
+assert(heroCss.includes('.route-quiet-action')&&heroCss.includes('height:36px;min-height:36px')&&heroCss.includes('font-size:12px'),'Shared Share-style Back-to-top recipe missing');
+assert(controlsText.includes("link.href='/brand'")&&controlsText.includes("link.dataset.appRoute='brand'"),'Brand child back control is not SPA-routed');
+assert(controlsText.includes("button.dataset.routeBackToTop='true'")&&controlsText.includes("window.scrollTo({top:0"),'Back-to-top behavior missing');
+assert(controlsText.includes(".ihg-history-route")&&controlsText.includes(".factsheet-route"),'History/Factsheet controls are not centralized together');
 assert(brandText.includes('<h1>Know Our Hotel</h1>'),'Brand title case mismatch');
 assert(brandText.includes('<h2>Our History</h2>')&&brandText.includes('<h2>Hotel Factsheet</h2>'),'Brand card title case mismatch');
 assert(brandCss.includes('background:var(--brand-glass);backdrop-filter:blur(18px) saturate(1.18);-webkit-backdrop-filter:blur(18px) saturate(1.18)'),'Brand card final F&B glass recipe missing');
@@ -62,7 +68,8 @@ assert(factsheetCss.includes('width:108px;min-width:108px;max-width:108px'),'Mee
 assert(redirects.includes('/brand / 200')&&redirects.includes('/hotel-factsheet / 200'),'Cloudflare SPA rewrites missing');
 assert(indexText.includes('/footer-route-guard.css?v=14')&&indexText.includes('/footer-route-guard.js?v=14'),'Footer guard cache-bust missing');
 assert(!indexText.includes('/factsheet-footer-align.js'),'Factsheet-only second-footer enhancer is still loaded');
-assert(indexText.includes('/route-hero-standard.css?v=3'),'Central hero cache-bust missing');
+assert(indexText.includes('/route-hero-standard.css?v=4'),'Central hero/control cache-bust missing');
+assert(indexText.includes('/brand-route-controls.js?v=1'),'Shared Brand child controls module is not loaded');
 
 console.log(JSON.stringify({
   ok:true,verifiedOn:DATA.verifiedOn,rooms:DATA.hotel.roomsAndSuites,roomTypes:DATA.rooms.length,
