@@ -37,6 +37,7 @@
 /* Navigation/actions keep corners, never capsule ends. */
 .nav-chip,
 .action,
+.fnb-action,
 .message-open,
 .pull-refresh,
 .admin-nav,
