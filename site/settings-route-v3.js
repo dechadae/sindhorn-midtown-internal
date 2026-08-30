@@ -62,7 +62,7 @@ export async function mountSettingsRoute(root){
     await Promise.all([
       ensureStyle('link[data-settings-style]','/settings.css?v=2','data-settings-style'),
       ensureStyle('link[data-settings-refinements]','/settings-refinements.css?v=2','data-settings-refinements'),
-      ensureStyle('link[data-business-card-settings-style]','/business-card-settings.css?v=7','data-business-card-settings-style')
+      ensureStyle('link[data-business-card-settings-style]','/business-card-settings.css?v=8','data-business-card-settings-style')
     ]);
     baseCleanup=await mountBaseSettingsRoute(root);
     signOutCleanup=installHeroSignOut(root);
