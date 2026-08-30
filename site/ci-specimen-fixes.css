@@ -1,4 +1,17 @@
 /* Documentation-host fixes only. Product component styles remain owned by their production modules. */
+.ci-route{
+  /* Factsheet disclosure styles are intentionally component-scoped. The CI host is
+     not a .factsheet-route, so bridge the canonical tokens here so the living
+     specimen demonstrates the real interaction/motion instead of invalid var() fallbacks. */
+  --fs-muted:var(--ci-muted);
+  --fs-accent:var(--ci-accent);
+  --fs-accent-rgb:229,236,190;
+  --fs-line:var(--ci-line);
+  --fs-glass:var(--ci-glass);
+  --fs-border:var(--ci-border);
+  --fs-ease:cubic-bezier(.22,1,.36,1);
+  --fs-disclosure:420ms;
+}
 .ci-specimen:has(.ci-select-demo .fnb-select.is-open){position:relative;z-index:160}
 .ci-select-demo{position:relative}
 .ci-select-demo .fnb-select{position:relative;z-index:1}
