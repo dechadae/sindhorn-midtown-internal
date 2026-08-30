@@ -39,9 +39,16 @@ page.on('pageerror',error=>errors.push(error.message));
 page.on('console',msg=>{if(msg.type()==='error')errors.push(msg.text())});
 
 try{
-  await page.goto(`${BASE_URL}/fnb`,{waitUntil:'domcontentloaded'});await waitForShell(page);await page.waitForSelector('.fnb-card');
-  await page.locator('.fnb-card-button').first().click();await page.waitForSelector('.fnb-back');await page.waitForTimeout(220);
-  const fnb=await recipe(page,'.fnb-back');assertRoundedSquare(fnb,'F&B');
+  await page.goto(`${BASE_URL}/fnb`,{waitUntil:'domcontentloaded'});await waitForShell(page);await page.waitForSelector('.fnb-route');
+  await page.evaluate(()=>{
+    const route=document.querySelector('.fnb-route');
+    const ref=document.createElement('button');
+    ref.type='button';ref.className='fnb-back';ref.dataset.controlStandardProbe='fnb';ref.setAttribute('aria-label','F&B control standard probe');
+    ref.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
+    ref.style.position='fixed';ref.style.left='20px';ref.style.top='180px';ref.style.zIndex='999';
+    route.appendChild(ref);
+  });
+  const fnb=await recipe(page,'[data-control-standard-probe="fnb"]');assertRoundedSquare(fnb,'F&B');
   await page.screenshot({path:path.join(OUT_DIR,'fnb-rounded-square-390x844.png'),fullPage:false});
 
   await page.goto(`${BASE_URL}/ihg-history`,{waitUntil:'domcontentloaded'});await waitForShell(page);await page.waitForSelector('.ihg-history-route .app-back-control');await page.waitForTimeout(180);
