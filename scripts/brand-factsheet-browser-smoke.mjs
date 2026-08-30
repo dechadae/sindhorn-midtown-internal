@@ -28,6 +28,12 @@ async function waitForShell(page){
   await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false',{timeout:25000});
   await page.waitForSelector('#app-header .masthead');await page.waitForSelector('#app-footer .app-tabbar');
 }
+async function waitForHeroReady(page,selector){
+  await page.waitForFunction(selector=>{
+    const hero=document.querySelector(selector),title=hero?.querySelector('h1');
+    return Boolean(hero&&hero.querySelector('p:first-child')&&title&&title.nextElementSibling);
+  },selector,{timeout:10000});
+}
 async function assertNoOverflow(page,label){
   const size=await page.evaluate(()=>({root:document.documentElement.scrollWidth,client:document.documentElement.clientWidth,body:document.body.scrollWidth}));
   assert(size.root<=size.client+1&&size.body<=size.client+1,`${label} horizontal overflow ${JSON.stringify(size)}`);
@@ -74,8 +80,8 @@ async function captureViewport(browser,width,height){
 
     await page.evaluate(()=>{window.__previewRefs={header:document.getElementById('app-header'),footer:document.getElementById('app-footer'),atmosphere:document.getElementById('environmentStage')};});
 
-    // F&B is the visual authority: compare Brand hero geometry/type against the rendered F&B hero itself.
-    await page.locator('#app-footer [data-fnb-nav="fnb"]').click();await page.waitForURL(url=>url.pathname==='/fnb');await page.waitForSelector('.fnb-hero');await page.waitForTimeout(320);
+    // F&B is the visual authority: wait for its complete hero markup before reading computed styles.
+    await page.locator('#app-footer [data-fnb-nav="fnb"]').click();await page.waitForURL(url=>url.pathname==='/fnb');await page.waitForSelector('.fnb-hero');await waitForHeroReady(page,'.fnb-hero');await page.waitForTimeout(320);
     const fnbHero=await heroSnapshot(page,'.fnb-hero');
     assert(sameHero(fnbHero,brandHero),`${width}: Brand hero does not match F&B authority ${JSON.stringify({fnbHero,brandHero})}`);
     if(width===390)await page.screenshot({path:path.join(OUT_DIR,'fnb-hero-reference-390x844.png'),fullPage:false});
