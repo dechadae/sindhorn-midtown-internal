@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import {chromium} from 'playwright';
 
 const base=process.env.BETTA_BASE_URL;
@@ -14,16 +15,23 @@ const browser=await chromium.launch({
   ]
 });
 const errors=[];
+const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
 async function inspect(viewport,name,preset){
   const context=await browser.newContext({viewport,screen:viewport,deviceScaleFactor:1,serviceWorkers:'block'});
   const page=await context.newPage();
   page.on('pageerror',error=>errors.push(`${name}: ${error.message}`));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(`${name} console: ${msg.text()}`)});
-  await page.goto(`${base}/betta-fin-lab.html`,{waitUntil:'networkidle',timeout:45000});
+  await page.goto(`${base}/betta-fin-lab.html?motion-smoke=2`,{waitUntil:'networkidle',timeout:45000});
   await page.waitForFunction(()=>window.SindhornBettaLab?.getDiagnostics?.().triangles>0,null,{timeout:20000});
   await page.evaluate(key=>window.SindhornBettaLab.setPreset(key),preset);
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(900);
   const before=await page.evaluate(()=>window.SindhornBettaLab.getDiagnostics());
+  const canvas=page.locator('#bettaCanvas');
+  const motionA=await canvas.screenshot();
+  await page.waitForTimeout(1800);
+  const motionB=await canvas.screenshot();
+  const motionHashA=hash(motionA),motionHashB=hash(motionB);
+  if(motionHashA===motionHashB)throw new Error(`${name}: WebGL canvas did not visibly change across motion probe`);
   const frames=await page.evaluate(()=>new Promise(resolve=>{
     const times=[];let last=performance.now();
     function tick(now){
@@ -44,7 +52,7 @@ async function inspect(viewport,name,preset){
   if(before.drawCalls<1||before.drawCalls>3)throw new Error(`${name}: draw calls outside 1-3: ${before.drawCalls}`);
   if(before.triangles<4000||before.triangles>25000)throw new Error(`${name}: triangle count unexpected: ${before.triangles}`);
   if(before.textures!==0)throw new Error(`${name}: procedural lab should use zero textures, got ${before.textures}`);
-  return{...before,frameAverageMs:+avg.toFixed(2),frameP95Ms:+p95.toFixed(2),frameSamples:frames.length};
+  return{...before,motionProbe:{intervalMs:1800,changed:true,hashA:motionHashA.slice(0,12),hashB:motionHashB.slice(0,12)},frameAverageMs:+avg.toFixed(2),frameP95Ms:+p95.toFixed(2),frameSamples:frames.length};
 }
 let mobile,desktop,fatal;
 try{
