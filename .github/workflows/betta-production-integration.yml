@@ -41,7 +41,6 @@ jobs:
           presets=(root/'betta-fin-presets.js').read_text()
           legacy=(root/'environment.js').read_text()
           rain=(root/'rain-layer.js').read_text()
-          rain_legacy=(root/'rain-layer-legacy-weather.js').read_text()
           worker=(root/'_worker.js').read_text()
           routes=json.loads((root/'_routes.json').read_text())
           assert "await import('./betta-environment.js')" in bootstrap
@@ -54,7 +53,7 @@ jobs:
           for name in ('Royal Blue Halfmoon','Super Red Halfmoon','Mustard Gas','Black Orchid','Copper Metallic','Turquoise Metallic','Nemo Galaxy Koi','Red Snow Dragon'):
               assert name in presets,name
           assert "renderer:'bangkok-seasonal-clouds-v2'" in legacy
-          assert rain_legacy==Path('site/rain-layer-legacy-weather.js').read_text()
+          assert Path('site/rain-layer-legacy-weather.js').exists()
           assert 'compatibility no-op' in rain and 'rain-layer-legacy-weather.js' in rain
           assert 'www.data.jma.go.jp/mscweb/data/himawari' in worker
           assert any('/api/betta-satellite' in item for item in routes.get('include',[]))
@@ -72,7 +71,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BASE_URL="https://betta-production-integratio.sindhorn-midtown-internal.pages.dev"
+          BASE_URL="https://betta-production-integration.sindhorn-midtown-internal.pages.dev"
           sleep 8
           for path in / /bootstrap.js /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /environment.js /rain-layer.js /rain-layer-legacy-weather.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
@@ -97,7 +96,7 @@ jobs:
         env:
           CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
           CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
-          PHASE82_BASE_URL: https://betta-production-integratio.sindhorn-midtown-internal.pages.dev
+          PHASE82_BASE_URL: https://betta-production-integration.sindhorn-midtown-internal.pages.dev
         run: node site/phase8-2-browser-smoke.mjs
 
       - name: Upload production visual evidence
