@@ -8,6 +8,12 @@
   --route-hero-line:rgba(250,247,245,.11);
   --route-hero-muted:rgba(250,247,245,.66);
   --route-hero-accent:#E5ECBE;
+  --route-control-border:rgba(250,247,245,.14);
+  --route-control-glass:rgba(46,39,59,.55);
+  --route-control-muted:rgba(250,247,245,.55);
+  --route-motion-fast:160ms;
+  --route-motion-base:260ms;
+  --route-motion-ease:cubic-bezier(.22,1,.36,1);
 }
 
 /* One atmosphere: routed pages do not paint a page-wide black/dark veil over WebGL. */
@@ -83,9 +89,31 @@ body[data-route="messages"] .route-hero>p:last-child{
   letter-spacing:0!important;
 }
 
+/* Brand child controls reuse the final F&B back/share interaction recipes. */
+.route-back-control{
+  width:36px;height:36px;margin:0 0 16px;display:grid;place-items:center;box-sizing:border-box;
+  border:1px solid var(--route-control-border);border-radius:12px;background:var(--route-control-glass);
+  color:var(--sm-text);text-decoration:none;cursor:pointer;
+  transition:background var(--route-motion-base) ease,border-color var(--route-motion-base) ease,color var(--route-motion-base) ease,box-shadow var(--route-motion-base) var(--route-motion-ease),transform var(--route-motion-fast) var(--route-motion-ease),opacity var(--route-motion-fast) ease
+}
+.route-back-control svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.route-back-control:active{transform:scale(.975);opacity:.84}
+.route-back-control:focus-visible{outline:2px solid var(--route-hero-accent);outline-offset:2px;box-shadow:0 0 0 4px rgba(229,236,190,.08)}
+.route-end-actions{display:flex;align-items:center;justify-content:flex-end;padding:14px 0 4px}
+.route-quiet-action{
+  height:36px;min-height:36px;padding:0 8px;display:inline-flex;align-items:center;justify-content:center;gap:8px;box-sizing:border-box;
+  border:1px solid transparent;border-radius:11px;background:transparent;color:var(--route-control-muted);
+  font-family:var(--font-ui)!important;font-size:12px;font-weight:400;line-height:1;letter-spacing:0!important;text-transform:none;cursor:pointer;
+  transition:background var(--route-motion-base) ease,border-color var(--route-motion-base) ease,color var(--route-motion-base) ease,box-shadow var(--route-motion-base) var(--route-motion-ease),transform var(--route-motion-fast) var(--route-motion-ease),opacity var(--route-motion-fast) ease
+}
+.route-quiet-action svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.route-quiet-action:active{transform:scale(.975);opacity:.82}
+.route-quiet-action:focus-visible{outline:2px solid var(--route-hero-accent);outline-offset:2px;border-color:var(--route-control-border);box-shadow:0 0 0 4px rgba(229,236,190,.08)}
+
 /* Settings no longer needs a second avatar inside the hero; the persistent header owns identity. */
 .settings-identity-row{display:block!important}
 .settings-avatar{display:none!important}
 .settings-identity-row>div:last-child{min-width:0!important}
 
 @media(max-width:355px){:root{--route-hero-title-size:30px}}
+@media(prefers-reduced-motion:reduce){.route-back-control,.route-quiet-action{transition:none!important}}
