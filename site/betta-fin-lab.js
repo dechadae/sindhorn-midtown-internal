@@ -1,6 +1,7 @@
 import * as THREE from './vendor/three.module.js';
 import {BETTA_PRESETS,DEFAULT_PRESET,clonePreset} from './betta-fin-presets.js';
 import {BETTA_VERTEX_SHADER,BETTA_FRAGMENT_SHADER} from './betta-fin-shader.js';
+import {startSatelliteStream,SATELLITE_SOURCE} from './betta-satellite.js';
 
 const DPR=2;
 const RADIAL_SEGMENTS=72;
@@ -12,8 +13,11 @@ const tuneButton=document.querySelector('#tuneButton');
 const closeTune=document.querySelector('#closeTune');
 const uiToggle=document.querySelector('#uiToggle');
 const uiSpecimen=document.querySelector('#uiSpecimen');
-const tiltButton=document.querySelector('#tiltButton');
 const sheetPresetName=document.querySelector('#sheetPresetName');
+const satellitePanel=document.querySelector('#satellitePanel');
+const satelliteStatusEl=document.querySelector('#satelliteStatus');
+const satelliteObservedEl=document.querySelector('#satelliteObserved');
+const satelliteMetricEls=new Map([...document.querySelectorAll('[data-satellite]')].map(el=>[el.dataset.satellite,el]));
 const inputs=[...document.querySelectorAll('[data-param]')];
 const outputs=new Map([...document.querySelectorAll('[data-output]')].map(el=>[el.dataset.output,el]));
 
@@ -38,15 +42,6 @@ let active=clonePreset(activeKey);
 let sharedGeometry=null;
 const meshes=[];
 const materials=[];
-const drag={active:false,lastX:0,lastY:0,impulse:new THREE.Vector2()};
-const living={
-  current:new THREE.Vector2(.12,-.06),
-  target:new THREE.Vector2(.12,-.06),
-  nextChange:0,
-  transitionRate:.06,
-  tilt:new THREE.Vector2(),
-  enabledTilt:false
-};
 let raf=0;
 let activeTime=0;
 let previousNow=performance.now();
@@ -55,21 +50,23 @@ let frameCount=0;
 let fps=0;
 let reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function random01(){
-  if(globalThis.crypto?.getRandomValues){
-    const a=new Uint32Array(1);
-    crypto.getRandomValues(a);
-    return a[0]/4294967295;
-  }
-  return Math.random();
-}
-function scheduleCurrent(now){
-  const angle=random01()*Math.PI*2;
-  const magnitude=.18+random01()*.62;
-  living.target.set(Math.cos(angle)*magnitude,Math.sin(angle)*magnitude*.76);
-  living.nextChange=now+(13000+random01()*29000);
-  living.transitionRate=.025+random01()*.055;
-}
+const neutralDrivers={
+  energy:.58,cloud:.35,cold:.35,cooling:0,texture:.32,vapor:.42,
+  motion:[0,0],color:[.18,.23,.52],visible:0,fingerprint:[.5,.5,.5]
+};
+const copyDrivers=source=>({
+  energy:source.energy,cloud:source.cloud,cold:source.cold,cooling:source.cooling,texture:source.texture,vapor:source.vapor,
+  motion:[...source.motion],color:[...source.color],visible:source.visible,fingerprint:[...source.fingerprint]
+});
+const satellite={
+  status:'loading',state:null,error:null,
+  current:copyDrivers(neutralDrivers),target:copyDrivers(neutralDrivers),
+  transitionBoost:0
+};
+
+const clamp=(value,min=0,max=1)=>Math.min(max,Math.max(min,value));
+const lerp=(a,b,t)=>a+(b-a)*t;
+
 function makeGeometry(rayCount){
   const rays=Math.max(32,Math.min(80,Math.round(rayCount/4)*4));
   const count=(rays+1)*(RADIAL_SEGMENTS+1);
@@ -98,19 +95,20 @@ function makeGeometry(rayCount){
       indices.push(a,b,a+1,b,b+1,a+1);
     }
   }
-  const g=new THREE.BufferGeometry();
-  g.setAttribute('position',new THREE.BufferAttribute(positions,3));
-  g.setAttribute('aU',new THREE.BufferAttribute(aU,1));
-  g.setAttribute('aV',new THREE.BufferAttribute(aV,1));
-  g.setAttribute('aRayJitter',new THREE.BufferAttribute(aRayJitter,1));
-  g.setIndex(indices);
-  g.computeBoundingSphere();
-  return g;
+  const geometry=new THREE.BufferGeometry();
+  geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
+  geometry.setAttribute('aU',new THREE.BufferAttribute(aU,1));
+  geometry.setAttribute('aV',new THREE.BufferAttribute(aV,1));
+  geometry.setAttribute('aRayJitter',new THREE.BufferAttribute(aRayJitter,1));
+  geometry.setIndex(indices);
+  geometry.computeBoundingSphere();
+  return geometry;
 }
-function color(hex){return new THREE.Color(hex);}
+function color(hex){return new THREE.Color(hex)}
 function makeMaterial(layer,preset){
   const p=preset.params;
-  const material=new THREE.ShaderMaterial({
+  const s=satellite.current;
+  return new THREE.ShaderMaterial({
     vertexShader:BETTA_VERTEX_SHADER,
     fragmentShader:BETTA_FRAGMENT_SHADER,
     transparent:true,
@@ -123,16 +121,19 @@ function makeMaterial(layer,preset){
       uSpread:{value:p.spread},uFoldDensity:{value:p.foldDensity},uCurl:{value:p.curl},uTwist:{value:p.twist},
       uEdgeFlutter:{value:p.edgeFlutter},uDepth:{value:p.depth},uCurrentStrength:{value:p.currentStrength},
       uMotionSpeed:{value:p.motionSpeed},uTurbulence:{value:p.turbulence},uMotionAmplitude:{value:p.motionAmplitude},
-      uCurrent:{value:living.current.clone()},
+      uCurrent:{value:new THREE.Vector2(s.motion[0],s.motion[1])},
       uOpacity:{value:p.opacity},uTransmission:{value:p.transmission},uRimStrength:{value:p.rimStrength},
       uFoldHighlight:{value:p.foldHighlight},uIridescence:{value:p.iridescence},uBloom:{value:p.bloom},
       uSaturation:{value:p.saturation},uBrightness:{value:p.brightness},uGradientPosition:{value:p.gradientPosition},
       uLayerAlpha:{value:layer.alpha??1},
       uColor0:{value:color(preset.palette[0])},uColor1:{value:color(preset.palette[1])},
-      uColor2:{value:color(preset.palette[2])},uColor3:{value:color(preset.palette[3])}
+      uColor2:{value:color(preset.palette[2])},uColor3:{value:color(preset.palette[3])},
+      uSatelliteEnergy:{value:s.energy},uSatelliteCloud:{value:s.cloud},uSatelliteCold:{value:s.cold},
+      uSatelliteCooling:{value:s.cooling},uSatelliteTexture:{value:s.texture},uSatelliteVapor:{value:s.vapor},
+      uSatelliteVisible:{value:s.visible},uSatelliteMotion:{value:new THREE.Vector2(s.motion[0],s.motion[1])},
+      uSatelliteColor:{value:new THREE.Vector3(...s.color)},uSatelliteFingerprint:{value:new THREE.Vector3(...s.fingerprint)}
     }
   });
-  return material;
 }
 function clearFins(){
   for(const mesh of meshes)scene.remove(mesh);
@@ -149,18 +150,16 @@ function buildFins({rebuildGeometry=true}={}){
     const material=makeMaterial(layer,active);
     const mesh=new THREE.Mesh(sharedGeometry,material);
     const common=active.params;
-    const s=common.scale*(layer.scale||1);
-    mesh.scale.setScalar(s);
+    const scale=common.scale*(layer.scale||1);
+    mesh.scale.setScalar(scale);
     mesh.rotation.z=common.rotation+(layer.rotation||0);
     mesh.position.set(common.offsetX+(layer.offset?.[0]||0),common.offsetY+(layer.offset?.[1]||0),common.cameraDepth+(layer.offset?.[2]||0));
     mesh.renderOrder=index;
-    // Vertex positions are reconstructed in GLSL from radial attributes, so the CPU-side
-    // zero-position buffer cannot provide a meaningful frustum-culling bound.
     mesh.frustumCulled=false;
     scene.add(mesh);meshes.push(mesh);materials.push(material);
   });
 }
-function applyUniforms(){
+function applyBaseUniforms(){
   const p=active.params;
   for(const material of materials){
     const u=material.uniforms;
@@ -174,11 +173,44 @@ function applyUniforms(){
   active.layers.forEach((layer,index)=>{
     const mesh=meshes[index];
     if(!mesh)return;
-    const s=p.scale*(layer.scale||1);
-    mesh.scale.setScalar(s);
+    const scale=p.scale*(layer.scale||1);
+    mesh.scale.setScalar(scale);
     mesh.rotation.z=p.rotation+(layer.rotation||0);
     mesh.position.set(p.offsetX+(layer.offset?.[0]||0),p.offsetY+(layer.offset?.[1]||0),p.cameraDepth+(layer.offset?.[2]||0));
   });
+}
+function applySatelliteUniforms(){
+  const s=satellite.current;
+  for(const material of materials){
+    const u=material.uniforms;
+    u.uCurrent.value.set(s.motion[0],s.motion[1]);
+    u.uSatelliteEnergy.value=s.energy;
+    u.uSatelliteCloud.value=s.cloud;
+    u.uSatelliteCold.value=s.cold;
+    u.uSatelliteCooling.value=s.cooling;
+    u.uSatelliteTexture.value=s.texture;
+    u.uSatelliteVapor.value=s.vapor;
+    u.uSatelliteVisible.value=s.visible;
+    u.uSatelliteMotion.value.set(s.motion[0],s.motion[1]);
+    u.uSatelliteColor.value.set(s.color[0],s.color[1],s.color[2]);
+    u.uSatelliteFingerprint.value.set(s.fingerprint[0],s.fingerprint[1],s.fingerprint[2]);
+  }
+  const base=color(active.background);
+  const satelliteTint=new THREE.Color(s.color[0],s.color[1],s.color[2]);
+  scene.background=base.lerp(satelliteTint,.025+.025*s.cloud+.018*s.visible);
+}
+function easeSatellite(deltaMs){
+  const seconds=deltaMs*.001;
+  const boost=satellite.transitionBoost;
+  const response=1-Math.exp(-seconds*(.13+boost*.22));
+  const c=satellite.current,t=satellite.target;
+  for(const key of ['energy','cloud','cold','cooling','texture','vapor','visible'])c[key]=lerp(c[key],t[key],response);
+  for(let i=0;i<2;i++)c.motion[i]=lerp(c.motion[i],t.motion[i],response);
+  for(let i=0;i<3;i++){
+    c.color[i]=lerp(c.color[i],t.color[i],response);
+    c.fingerprint[i]=lerp(c.fingerprint[i],t.fingerprint[i],response);
+  }
+  satellite.transitionBoost=Math.max(0,boost-seconds*.055);
 }
 function resize(){
   const w=Math.max(1,innerWidth),h=Math.max(1,innerHeight);
@@ -199,34 +231,57 @@ function applyPreset(key){
   if(!BETTA_PRESETS[key])return;
   activeKey=key;
   active=clonePreset(key);
-  scene.background=color(active.background);
   descriptionEl.textContent=active.description;
   sheetPresetName.textContent=active.name;
   document.querySelectorAll('[data-preset]').forEach(btn=>btn.classList.toggle('is-active',btn.dataset.preset===key));
   buildFins({rebuildGeometry:true});
   updateControls();
+  applySatelliteUniforms();
+}
+function formatObserved(value){
+  const date=new Date(String(value).replace(' ','T')+'Z');
+  if(!Number.isFinite(date.getTime()))return String(value||'');
+  return new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Bangkok',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(date);
+}
+function setMetric(key,value){
+  const el=satelliteMetricEls.get(key);if(el)el.textContent=value;
+}
+function updateSatellitePanel(){
+  satellitePanel?.classList.toggle('is-live',satellite.status==='live');
+  satellitePanel?.classList.toggle('is-error',satellite.status==='error');
+  if(satellite.status==='live'&&satellite.state){
+    const m=satellite.state.metrics;
+    satelliteStatusEl.textContent='HIMAWARI-9 · LIVE';
+    satelliteObservedEl.textContent=`Observed ${formatObserved(satellite.state.observedAt)} Bangkok · 10 min cadence`;
+    setMetric('cloud',`${Math.round(m.cloudAmount*100)}%`);
+    setMetric('motion',`${m.motionMagnitude.toFixed(1)} px`);
+    setMetric('cold',m.coldCloud.toFixed(2));
+    setMetric('vapor',m.waterVapor.toFixed(2));
+    setMetric('energy',m.energy.toFixed(2));
+    setMetric('fingerprint',m.fingerprint.toUpperCase());
+  }else if(satellite.status==='error'){
+    satelliteStatusEl.textContent='HIMAWARI-9 · SIGNAL RETRYING';
+    satelliteObservedEl.textContent=satellite.error||'Satellite imagery temporarily unavailable';
+  }else{
+    satelliteStatusEl.textContent='HIMAWARI-9 · CONNECTING';
+    satelliteObservedEl.textContent='Reading current Bangkok satellite field…';
+  }
 }
 function diagnostics(){
   const info=renderer.info;
   const tris=info.render.triangles;
   const draws=info.render.calls;
-  diagnosticsEl.textContent=`${fps||'—'} fps · ${draws} draw${draws===1?'':'s'} · ${tris.toLocaleString()} tris · DPR ${DPR}`;
+  const sat=satellite.status==='live'?'sat live':satellite.status;
+  diagnosticsEl.textContent=`${fps||'—'} fps · ${draws} draw${draws===1?'':'s'} · ${tris.toLocaleString()} tris · DPR ${DPR} · ${sat}`;
 }
 function animate(now){
   const rawDelta=Math.min(50,Math.max(0,now-previousNow));
   previousNow=now;
-  if(now>=living.nextChange)scheduleCurrent(now);
   const motionFactor=reduceMotion?.35:1;
-  const response=1-Math.exp(-rawDelta*living.transitionRate*.015);
-  living.current.lerp(living.target,response);
-  living.current.addScaledVector(drag.impulse,.012);
-  living.current.addScaledVector(living.tilt,.006);
-  drag.impulse.multiplyScalar(.94);
   activeTime+=rawDelta*.001*motionFactor;
-  for(const material of materials){
-    material.uniforms.uTime.value=activeTime;
-    material.uniforms.uCurrent.value.copy(living.current);
-  }
+  easeSatellite(rawDelta);
+  applySatelliteUniforms();
+  for(const material of materials)material.uniforms.uTime.value=activeTime;
   renderer.render(scene,camera);
   frameCount++;
   if(now-sampleStart>=700){
@@ -250,6 +305,7 @@ function openTune(open){
   tuneSheet.setAttribute('aria-hidden',String(!open));
   tuneButton.setAttribute('aria-expanded',String(open));
 }
+
 document.querySelectorAll('[data-preset]').forEach(btn=>btn.addEventListener('click',()=>applyPreset(btn.dataset.preset)));
 tuneButton.addEventListener('click',()=>openTune(!tuneSheet.classList.contains('is-open')));
 closeTune.addEventListener('click',()=>openTune(false));
@@ -264,63 +320,45 @@ inputs.forEach(input=>input.addEventListener('input',()=>{
   active.params[key]=value;
   const out=outputs.get(key);
   if(out)out.value=key==='rayCount'?String(Math.round(value)):value.toFixed(2);
-  if(key==='rayCount')buildFins({rebuildGeometry:true});else applyUniforms();
+  if(key==='rayCount')buildFins({rebuildGeometry:true});else applyBaseUniforms();
+  applySatelliteUniforms();
 }));
-canvas.addEventListener('pointerdown',event=>{
-  drag.active=true;drag.lastX=event.clientX;drag.lastY=event.clientY;canvas.setPointerCapture?.(event.pointerId);
-});
-canvas.addEventListener('pointermove',event=>{
-  if(!drag.active)return;
-  const dx=(event.clientX-drag.lastX)/Math.max(innerWidth,1);
-  const dy=(event.clientY-drag.lastY)/Math.max(innerHeight,1);
-  drag.impulse.x+=dx*1.8;drag.impulse.y-=dy*1.8;
-  drag.lastX=event.clientX;drag.lastY=event.clientY;
-});
-const release=()=>{drag.active=false};
-canvas.addEventListener('pointerup',release);canvas.addEventListener('pointercancel',release);
-
-async function enableTilt(){
-  if(typeof DeviceOrientationEvent==='undefined'){
-    tiltButton.textContent='No tilt';return;
-  }
-  try{
-    if(typeof DeviceOrientationEvent.requestPermission==='function'){
-      const answer=await DeviceOrientationEvent.requestPermission();
-      if(answer!=='granted')return;
-    }
-    living.enabledTilt=!living.enabledTilt;
-    tiltButton.setAttribute('aria-pressed',String(living.enabledTilt));
-    tiltButton.textContent=living.enabledTilt?'Tilt on':'Tilt';
-  }catch(error){
-    console.warn('Tilt permission unavailable',error);
-  }
-}
-tiltButton.addEventListener('click',enableTilt);
-addEventListener('deviceorientation',event=>{
-  if(!living.enabledTilt)return;
-  living.tilt.set(
-    THREE.MathUtils.clamp((event.gamma||0)/45,-1,1),
-    THREE.MathUtils.clamp(-(event.beta||0)/70,-1,1)
-  ).multiplyScalar(.28);
-});
 addEventListener('resize',resize,{passive:true});
-document.addEventListener('visibilitychange',()=>{
-  if(document.hidden)stop();else start();
-});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else start()});
 matchMedia('(prefers-reduced-motion: reduce)').addEventListener?.('change',event=>{reduceMotion=event.matches});
 
-scheduleCurrent(performance.now());
+updateSatellitePanel();
 resize();
 applyPreset(DEFAULT_PRESET);
 start();
+const stopSatellite=startSatelliteStream({
+  onState(state){
+    const changed=satellite.state?.observedAt!==state.observedAt;
+    satellite.status='live';satellite.error=null;satellite.state=state;satellite.target=copyDrivers(state.drivers);
+    if(changed)satellite.transitionBoost=1;
+    updateSatellitePanel();
+  },
+  onError(error){
+    satellite.error=error?.message||String(error);
+    if(!satellite.state)satellite.status='error';
+    updateSatellitePanel();
+  }
+});
+addEventListener('pagehide',stopSatellite,{once:true});
 
 window.SindhornBettaLab={
-  renderer:'betta-radial-membrane-v1',
+  renderer:'betta-radial-membrane-v2-himawari',
+  inputMode:'satellite-only',
+  satelliteSource:SATELLITE_SOURCE,
   getDiagnostics(){
     const gl=renderer.getContext();
     const attrs=gl.getContextAttributes?.()||{};
     return{
       preset:activeKey,
+      inputMode:'satellite-only',
+      satelliteStatus:satellite.status,
+      satelliteObservedAt:satellite.state?.observedAt||null,
+      satelliteEnergy:satellite.state?.metrics?.energy??null,
       dpr:DPR,
       canvasWidth:canvas.width,canvasHeight:canvas.height,
       width:innerWidth,height:innerHeight,
@@ -333,6 +371,7 @@ window.SindhornBettaLab={
       fps
     };
   },
+  getSatelliteState(){return satellite.state?JSON.parse(JSON.stringify(satellite.state)):{status:satellite.status,error:satellite.error}},
   setPreset:applyPreset,
   getPreset:()=>clonePreset(activeKey)
 };
