@@ -34,8 +34,9 @@ async function ensureSettingsAvatar(page){
   await page.waitForSelector('[data-shape-audit-settings-avatar]',{state:'attached'});
 }
 async function style(page,selector,{visible=false}={}){
-  if(visible)await page.waitForSelector(selector,{state:'visible'});else await page.waitForSelector(selector,{state:'attached'});
-  return page.locator(selector).first().evaluate((node,sel)=>{const s=getComputedStyle(node),r=node.getBoundingClientRect(),radius=parseFloat(s.borderTopLeftRadius)||0,width=r.width||parseFloat(s.width)||0,height=r.height||parseFloat(s.height)||0;return{selector:sel,width,height,radius,radiusText:s.borderRadius,display:s.display,visibility:s.visibility}},selector);
+  const resolvedSelector=visible?`${selector}:visible`:selector;
+  if(visible)await page.waitForSelector(resolvedSelector,{state:'visible'});else await page.waitForSelector(resolvedSelector,{state:'attached'});
+  return page.locator(resolvedSelector).first().evaluate((node,sel)=>{const s=getComputedStyle(node),r=node.getBoundingClientRect(),radius=parseFloat(s.borderTopLeftRadius)||0,width=r.width||parseFloat(s.width)||0,height=r.height||parseFloat(s.height)||0;return{selector:sel,width,height,radius,radiusText:s.borderRadius,display:s.display,visibility:s.visibility}},selector);
 }
 function rounded(item,label,maxRatio=.45){const min=Math.min(item.width||1,item.height||1);assert(item.radius<min*maxRatio,`${label} still reads as circular/pill: ${JSON.stringify(item)}`);return item}
 function exact(item,label,radius){assert(Math.abs(item.radius-radius)<.6,`${label} radius expected ${radius}px: ${JSON.stringify(item)}`);return item}
@@ -51,12 +52,12 @@ try{
   await page.screenshot({path:`${SCREENSHOT_DIR}/shape-today-390x844.png`,fullPage:false});
 
   await page.goto(`${BASE_URL}/fnb`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.fnb-card');
-  report.fnbChip=exact(await style(page,'.fnb-chip'),'F&B source chip',9);
+  report.fnbChip=exact(await style(page,'.fnb-chip',{visible:true}),'F&B source chip',9);
   await page.locator('.fnb-card-button').first().click();await page.waitForSelector('.fnb-back',{state:'visible'});
   report.fnbBack=exact(await style(page,'.fnb-back',{visible:true}),'F&B back',12);
 
   await page.goto(`${BASE_URL}/hotel-factsheet`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.factsheet-route');
-  report.nearby=exact(await style(page,'.factsheet-nearby span'),'Factsheet metadata',9);
+  report.nearby=exact(await style(page,'.factsheet-nearby span',{visible:true}),'Factsheet metadata',9);
 
   await page.goto(`${BASE_URL}/settings`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.settings-route');await ensureSettingsAvatar(page);
   report.settingsAvatar=exact(await style(page,'[data-shape-audit-settings-avatar]'),'Settings avatar',12);
@@ -64,7 +65,7 @@ try{
 
   await page.goto(`${BASE_URL}/ci`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.ci-route');
   report.ciStatus=exact(await style(page,'.ci-status-dot',{visible:true}),'CI status indicator',2);
-  report.ciChip=exact(await style(page,'.ci-chip-row .fnb-chip'),'CI chip specimen',9);
+  report.ciChip=exact(await style(page,'.ci-chip-row .fnb-chip',{visible:true}),'CI chip specimen',9);
   await page.locator('#ci-selectors').scrollIntoViewIfNeeded();await page.waitForTimeout(120);
   await page.screenshot({path:`${SCREENSHOT_DIR}/shape-ci-chips-390x844.png`,fullPage:false});
 
