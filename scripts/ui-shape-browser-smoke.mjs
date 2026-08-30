@@ -26,9 +26,10 @@ async function ensureHeaderAvatar(page){
 }
 async function ensureSettingsAvatar(page){
   await page.evaluate(()=>{
-    const host=document.querySelector('.settings-route');if(!host)return;
     document.querySelector('[data-shape-audit-settings-avatar]')?.remove();
-    const avatar=document.createElement('div');avatar.className='settings-avatar';avatar.dataset.shapeAuditSettingsAvatar='';avatar.textContent='SA';avatar.setAttribute('aria-hidden','true');host.prepend(avatar);
+    const avatar=document.createElement('div');avatar.className='settings-avatar';avatar.dataset.shapeAuditSettingsAvatar='';avatar.textContent='SA';avatar.setAttribute('aria-hidden','true');
+    Object.assign(avatar.style,{position:'fixed',top:'80px',left:'16px',zIndex:'9999',display:'grid',visibility:'visible',opacity:'1'});
+    document.body.appendChild(avatar);
   });
   await page.waitForSelector('[data-shape-audit-settings-avatar]',{state:'visible'});
 }
