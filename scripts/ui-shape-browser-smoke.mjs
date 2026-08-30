@@ -18,7 +18,7 @@ async function harness(browser){
 async function shell(page){await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false');await page.waitForSelector('#app-header .masthead-user-avatar');await page.waitForSelector('#app-footer .app-tabbar')}
 async function style(page,selector,{visible=false}={}){
   if(visible)await page.waitForSelector(selector,{state:'visible'});else await page.waitForSelector(selector,{state:'attached'});
-  return page.locator(selector).first().evaluate(node=>{const s=getComputedStyle(node),r=node.getBoundingClientRect(),radius=parseFloat(s.borderTopLeftRadius)||0;return{selector,width:r.width,height:r.height,radius,radiusText:s.borderRadius,display:s.display,visibility:s.visibility}});
+  return page.locator(selector).first().evaluate((node,sel)=>{const s=getComputedStyle(node),r=node.getBoundingClientRect(),radius=parseFloat(s.borderTopLeftRadius)||0;return{selector:sel,width:r.width,height:r.height,radius,radiusText:s.borderRadius,display:s.display,visibility:s.visibility}},selector);
 }
 function rounded(item,label,maxRatio=.45){const min=Math.min(item.width||1,item.height||1);assert(item.radius<min*maxRatio,`${label} still reads as circular/pill: ${JSON.stringify(item)}`);return item}
 function exact(item,label,radius){assert(Math.abs(item.radius-radius)<.6,`${label} radius expected ${radius}px: ${JSON.stringify(item)}`);return item}
