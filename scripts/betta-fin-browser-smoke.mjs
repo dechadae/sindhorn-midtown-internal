@@ -5,6 +5,10 @@ import {chromium} from 'playwright';
 const base=process.env.BETTA_BASE_URL;
 if(!base)throw new Error('BETTA_BASE_URL required');
 const dir=process.env.BETTA_SCREENSHOT_DIR||'betta-fin-artifacts';
+const baselineKeys=[
+  'royalBlueHalfmoon','superRedHalfmoon','mustardGas','blackOrchid',
+  'copperMetallic','turquoiseMetallic','nemoGalaxyKoi','redSnowDragon'
+];
 fs.mkdirSync(dir,{recursive:true});
 const browser=await chromium.launch({
   headless:true,
@@ -29,9 +33,17 @@ async function inspect(viewport,name,preset){
   const page=await context.newPage();
   page.on('pageerror',error=>errors.push(`${name}: ${error.message}`));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(`${name} console: ${msg.text()}`)});
-  await page.goto(`${base}/betta-fin-lab.html?satellite-jma-smoke=1`,{waitUntil:'networkidle',timeout:60000});
+  await page.goto(`${base}/betta-fin-lab.html?real-betta-smoke=1`,{waitUntil:'networkidle',timeout:60000});
   await page.waitForFunction(()=>window.SindhornBettaLab?.getDiagnostics?.().triangles>0,null,{timeout:20000});
   await page.waitForFunction(()=>window.SindhornBettaLab?.getSatelliteState?.().status==='live',null,{timeout:60000});
+  for(const key of baselineKeys){
+    await page.evaluate(value=>window.SindhornBettaLab.setPreset(value),key);
+    await page.waitForTimeout(90);
+    const probe=await page.evaluate(()=>({d:window.SindhornBettaLab.getDiagnostics(),p:window.SindhornBettaLab.getPreset()}));
+    if(probe.d.preset!==key)throw new Error(`${name}: failed to activate baseline ${key}`);
+    if(probe.d.triangles<4000||probe.d.triangles>25000)throw new Error(`${name}: baseline ${key} triangles unexpected: ${probe.d.triangles}`);
+    if(!Number.isFinite(probe.p.morphMode))throw new Error(`${name}: baseline ${key} morph mode missing`);
+  }
   await page.evaluate(key=>window.SindhornBettaLab.setPreset(key),preset);
   await page.waitForTimeout(1000);
   const before=await page.evaluate(()=>window.SindhornBettaLab.getDiagnostics());
@@ -85,6 +97,7 @@ async function inspect(viewport,name,preset){
   if(before.textures!==0)throw new Error(`${name}: procedural lab should use zero WebGL textures, got ${before.textures}`);
   return{
     ...before,
+    baselinesValidated:baselineKeys,
     satellite:{
       observedAt:satellite.observedAt,
       sourceLastModified:satellite.sourceLastModified,
@@ -100,13 +113,14 @@ async function inspect(viewport,name,preset){
 }
 let mobile,desktop,fatal;
 try{
-  mobile=await inspect({width:390,height:844},'mobile-cobalt','cobaltVeil');
-  desktop=await inspect({width:1440,height:1000},'desktop-crimson','crimsonSilk');
+  mobile=await inspect({width:390,height:844},'mobile-royal-blue','royalBlueHalfmoon');
+  desktop=await inspect({width:1440,height:1000},'desktop-nemo-galaxy','nemoGalaxyKoi');
 }catch(error){fatal=error;errors.push(`fatal: ${error.message}`)}
 await browser.close();
 const report={
   benchmark:'CPU-only SwANGLE diagnostic; physical Android GPU remains the visual/performance acceptance target',
   realtimeInput:'JMA Himawari-9 High-Resolution Asia 1 satellite imagery only',
+  biologicalBaselines:baselineKeys,
   mobile,desktop,errors
 };
 fs.writeFileSync(`${dir}/metrics.json`,JSON.stringify(report,null,2));
