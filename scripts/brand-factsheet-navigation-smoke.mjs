@@ -58,7 +58,7 @@ try{
     return {borderRadius:rs.borderRadius,borderTopWidth:rs.borderTopWidth,borderTopColor:rs.borderTopColor,backgroundColor:rs.backgroundColor,backdropFilter:rs.backdropFilter||rs.webkitBackdropFilter||'none',paddingTop:rs.paddingTop,paddingRight:rs.paddingRight,paddingBottom:rs.paddingBottom,paddingLeft:rs.paddingLeft,titleSize:ts.fontSize,titleWeight:ts.fontWeight,titleLineHeight:ts.lineHeight,copySize:cs.fontSize};
   });
   for(const key of Object.keys(fnbCard))assert(brandCard[key]===fnbCard[key],`Brand card ${key} diverges from F&B: ${brandCard[key]} vs ${fnbCard[key]}`);
-  assert(brandCard.backgroundColor==='rgba(46, 39, 59, 0.48)'&&brandCard.backdropFilter==='none','Brand card final F&B surface mismatch');
+  assert(brandCard.backgroundColor==='rgba(46, 39, 59, 0.48)'&&brandCard.backdropFilter==='blur(18px) saturate(1.18)','Brand card final F&B surface mismatch');
 
   await page.locator('.brand-card').nth(1).click();await page.waitForURL(url=>url.pathname==='/hotel-factsheet');await page.waitForSelector('.factsheet-route');await page.waitForTimeout(320);
   const headings=await page.evaluate(()=>({
