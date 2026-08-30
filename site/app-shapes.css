@@ -39,13 +39,15 @@
 .action,
 .message-open,
 .pull-refresh,
+.admin-nav,
 .admin-nav button{border-radius:var(--app-radius-control)!important}
 #app-footer .shell-footer-rail .nav-chip{border-radius:var(--app-radius-footer)!important}
 
 /* Tiny state marks remain legible but use softened corners instead of circles. */
 .connection-dot,
 .fnb-select-option i,
-.ci-status-dot{border-radius:var(--app-radius-indicator)!important}
+.ci-status-dot,
+.public-card-loading span{border-radius:var(--app-radius-indicator)!important}
 .message-badge{border-radius:var(--app-radius-badge)!important}
 .message-card[data-read="false"]::before{border-radius:1px!important}
 .scale-marker{border-radius:3px!important}
@@ -54,5 +56,9 @@
 
 /* Transient feedback follows the same geometry. */
 .fnb-toast{border-radius:var(--app-radius-control)!important}
+
+/* Even custom scroll thumbs avoid capsule geometry. */
+.public-card-scroll::-webkit-scrollbar-thumb,
+.settings-modal-scroll::-webkit-scrollbar-thumb{border-radius:2px!important}
 
 /* Shape invariant: no component listed above may reintroduce 50%/999px locally. */
