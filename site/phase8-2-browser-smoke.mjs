@@ -47,9 +47,14 @@ async function sampleFrames(page,label,count=30,timeoutMs=15000){
 
 async function signIn(page,name){
   await page.goto(`${base}/login.html`,{waitUntil:'domcontentloaded',timeout:45000});
+  await page.waitForFunction(()=>Boolean(window.SindhornEmployeeAuth?.getState),null,{timeout:20000});
   await page.fill('#employeeNumber',smokeEmployeeNumber);
   for(let i=0;i<6;i++)await page.fill(`[data-pin-login-digit="${i}"]`,smokePin[i]);
-  await page.click('#pinLoginButton');
+  /* CI_SMOKE_EMPLOYEE_NUMBER is a non-production synthetic identifier and may
+     intentionally not match the human-facing numeric Employee ID HTML pattern.
+     Dispatch the form submit event directly so this smoke exercises the same
+     login.js controller + Supabase RPC without weakening employee form rules. */
+  await page.evaluate(()=>document.querySelector('#employeeForm')?.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
   try{
     await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:45000,waitUntil:'commit'});
   }catch(error){
