@@ -15,6 +15,8 @@ on:
       - "supabase/migrations/*daily_business_dashboard*.sql"
       - "scripts/business-dashboard-browser-smoke.mjs"
       - "scripts/business-dashboard-pwa-smoke.mjs"
+      - "scripts/business-dashboard-ci-audit.mjs"
+      - "scripts/business-dashboard-ci-parity-smoke.mjs"
       - ".github/workflows/business-dashboard-preview.yml"
   workflow_dispatch:
 
@@ -38,7 +40,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard.js site/app.js site/sw.js scripts/business-dashboard-browser-smoke.mjs scripts/business-dashboard-pwa-smoke.mjs; do
+          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard.js site/app.js site/sw.js scripts/business-dashboard-browser-smoke.mjs scripts/business-dashboard-pwa-smoke.mjs scripts/business-dashboard-ci-audit.mjs scripts/business-dashboard-ci-parity-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
           grep -q "today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local'" site/route-registry.js
@@ -46,7 +48,8 @@ jobs:
           grep -q "business-dashboard-route" site/business-dashboard.js site/business-dashboard.css
           grep -q "SindhornBusinessDashboard.*refresh" site/app.js
           grep -q "business-dashboard.js" site/sw.js
-          grep -q "pwa-v32-business-dashboard-r1" site/sw.js
+          grep -q "hotel-factsheet.css" site/sw.js
+          grep -q "pwa-v33-business-dashboard-ci-r1" site/sw.js
           grep -q "<title>Today | Sindhorn Midtown Internal</title>" site/index.html
           if grep -Eqi 'border-radius:[[:space:]]*(50%|999px|9999px)' site/business-dashboard.css; then
             echo 'Circular/capsule dashboard UI is not allowed'; exit 1
@@ -54,6 +57,10 @@ jobs:
           if grep -Eq 'letter-spacing:[[:space:]]*[^0!]' site/business-dashboard.css; then
             echo 'Non-zero dashboard letter spacing detected'; exit 1
           fi
+
+      - name: Audit Today against UI Library source
+        shell: bash
+        run: node scripts/business-dashboard-ci-audit.mjs | tee /tmp/business-dashboard-ci-audit.json
 
       - name: Verify protected product systems are untouched
         shell: bash
@@ -76,16 +83,17 @@ jobs:
           set -euo pipefail
           BASE_URL="https://daily-business-dashboard-pre.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /app.js /sw.js /manifest.webmanifest; do
+          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /hotel-factsheet.css /app.js /sw.js /manifest.webmanifest; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
           curl --fail --silent --show-error "${BASE_URL}/route-registry.js" -o /tmp/routes.js
-          grep -q "kind:'local',module:'./business-dashboard.js?v=1'" /tmp/routes.js
+          grep -q "kind:'local',module:'./business-dashboard.js?v=2'" /tmp/routes.js
           curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/sw.js
           grep -q "business-dashboard-data.js" /tmp/sw.js
+          grep -q "hotel-factsheet.css" /tmp/sw.js
 
-      - name: Mobile dashboard and installed-PWA smoke
+      - name: Mobile, CI-parity and installed-PWA smoke
         shell: bash
         env:
           BASE_URL: https://daily-business-dashboard-pre.sindhorn-midtown-internal.pages.dev
@@ -95,9 +103,10 @@ jobs:
           npm install --no-save playwright@1.55.0 >/dev/null 2>&1
           npx playwright install chromium >/dev/null 2>&1
           node scripts/business-dashboard-browser-smoke.mjs | tee /tmp/business-dashboard-browser-report.json
+          node scripts/business-dashboard-ci-parity-smoke.mjs | tee /tmp/business-dashboard-ci-parity-report.json
           node scripts/business-dashboard-pwa-smoke.mjs | tee /tmp/business-dashboard-pwa-report.json
 
-      - name: Upload screenshots and report
+      - name: Upload screenshots and reports
         if: always()
         uses: actions/upload-artifact@v6
         with:
@@ -105,6 +114,8 @@ jobs:
           path: |
             /tmp/business-dashboard-preview
             /tmp/business-dashboard-browser-report.json
+            /tmp/business-dashboard-ci-audit.json
+            /tmp/business-dashboard-ci-parity-report.json
             /tmp/business-dashboard-pwa-report.json
           if-no-files-found: warn
           retention-days: 14
