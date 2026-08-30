@@ -1,4 +1,4 @@
-export const UI_SYSTEM_VERSION='1.2.0-preview';
+export const UI_SYSTEM_VERSION='1.3.0-preview';
 export const UI_SYSTEM_CAPABILITY='developer.ui_library';
 
 export const UI_SYSTEM_SECTIONS=Object.freeze([
@@ -33,7 +33,7 @@ export const UI_SYSTEM_COMPONENTS=Object.freeze([
   Object.freeze({id:'hero',label:'Route hero',selector:'.app-route-hero',owner:'site/route-hero-standard.css',use:'Every new authenticated top-level route.',avoid:'Do not invent route-specific title sizing, weights or padding.',a11y:'Exactly one route h1. Keep supporting copy concise.'}),
   Object.freeze({id:'back',label:'Back control',selector:'.app-back-control',owner:'site/app-controls.css',use:'Contextual return from a child/detail route.',avoid:'Do not redraw the chevron or change the 36 × 36 / 12px geometry.',a11y:'Provide an explicit aria-label and preserve a visible focus ring.'}),
   Object.freeze({id:'quiet',label:'Quiet action',selector:'.app-quiet-action',owner:'site/app-controls.css',use:'Low-emphasis utilities such as Back to top.',avoid:'Do not promote a quiet utility into a filled primary button.',a11y:'Visible text plus semantic button/link behavior.'}),
-  Object.freeze({id:'action-card',label:'Actionable glass card',selector:'.fnb-card + .fnb-card-button',owner:'site/fnb.css + site/fnb-approved-polish.css',use:'Whole-surface actions that open detail or another route.',avoid:'Do not make non-actionable information look tappable.',a11y:'One semantic button or link owns the entire hit area.'}),
+  Object.freeze({id:'action-card',label:'Actionable glass card',selector:'.app-action-card + .app-action-card-control',owner:'site/app-action-card.css',use:'Whole-surface actions that open detail or another route. Brand is the first direct consumer; F&B remains the approved visual reference during compatibility migration.',avoid:'Do not make non-actionable information look tappable or recreate the interaction in route CSS.',a11y:'One semantic button or link owns the entire hit area and keeps a visible focus ring.'}),
   Object.freeze({id:'selector',label:'Selector',selector:'.fnb-select',owner:'site/fnb-approved-polish.css',use:'Compact finite filters and Settings select fields.',avoid:'Do not create a visually different dropdown for a new page.',a11y:'Trigger exposes listbox state; options remain keyboard reachable.'}),
   Object.freeze({id:'disclosure',label:'Disclosure card',selector:'.factsheet-room-card',owner:'site/hotel-factsheet.css',use:'Structured content that expands in place.',avoid:'Do not animate layout with arbitrary heights or route-specific timings.',a11y:'Button maintains aria-expanded and content remains in DOM.'}),
   Object.freeze({id:'field',label:'Form field',selector:'.settings-field',owner:'site/settings.css',use:'Settings and future authenticated forms.',avoid:'Do not remove labels in favor of placeholders.',a11y:'Associate visible labels and expose error/status text.'}),
@@ -50,6 +50,7 @@ export const UI_SYSTEM_RULES=Object.freeze([
   ['Do not paint a route-wide dark overlay.','The Bangkok atmosphere is the visual ground; use translucent structural surfaces above it.'],
   ['Use the shared hero authority.','New pages use app-route-hero / app-route-eyebrow / app-route-title / app-route-copy.'],
   ['Use the shared control authority.','Back and quiet actions come from app-controls.css; do not redraw them per route.'],
+  ['Use the shared actionable-card authority.','New whole-surface actions use app-action-card / app-action-card-control; route CSS owns composition/content, not card press/focus geometry.'],
   ['Reuse before creating.','If a proven card, selector, dialog or disclosure already exists, consume it instead of approximating it.'],
   ['Keep Settings navigation fixed.','The secondary Settings rail is always Account / People / Comms / System. Authorization changes content, never rail geometry.'],
   ['Use capability-driven privileged UI.','Developer UI Library access is granted by developer.ui_library; hiding a card is not the only route gate.'],
@@ -62,11 +63,11 @@ export const UI_SYSTEM_OWNERSHIP=Object.freeze([
   ['Typography','site/fonts.css'],['Persistent shell','site/shell.css + site/bootstrap.js'],
   ['Route registry','site/route-registry.js'],['Route transition','site/app-transitions.js + site/app-transitions.css'],
   ['Route hero','site/route-hero-standard.css'],['Back / quiet controls','site/app-controls.css'],
-  ['UI shape language','site/app-shapes.css'],
+  ['Actionable cards','site/app-action-card.css'],['UI shape language','site/app-shapes.css'],
   ['Main + contextual footer','site/footer-route-guard.js + site/footer-route-guard.css'],
-  ['F&B cards / selectors','site/fnb.css + site/fnb-approved-polish.css + site/fnb-refinements.css'],
+  ['F&B composition / selectors','site/fnb.css + site/fnb-approved-polish.css + site/fnb-refinements.css'],
   ['Settings renderer','site/settings.js + site/settings-route-v3.js'],['Settings dialogs','site/settings-dialog-standard.js + site/settings-dialog-standard.css'],
-  ['Brand cards','site/brand.css'],['History disclosures','site/ihg-history.js + site/ihg-history.css'],
+  ['Brand composition','site/brand.css + site/brand.js'],['History disclosures','site/ihg-history.js + site/ihg-history.css'],
   ['Factsheet tables / room cards','site/hotel-factsheet.js + site/hotel-factsheet.css'],
   ['Developer CI registry','site/ui-system-registry.js'],['Developer CI renderer','site/ci.js + site/ci.css']
 ]);
@@ -82,7 +83,11 @@ export const NEW_PAGE_BLUEPRINT=`export async function mountExampleRoute(root){
         <h1 class="app-route-title">Page Title</h1>
         <p class="app-route-copy">Short supporting copy.</p>
       </header>
-      <main>...</main>
+      <a class="app-action-card app-action-card-control" href="/brand" data-app-route="brand">
+        <h2 class="app-action-card-title">Actionable Card</h2>
+        <p class="app-action-card-meta">Supporting information</p>
+        <div class="app-action-card-foot"><span>Open route</span><span class="app-action-card-chevron">›</span></div>
+      </a>
     </section>\`;
   return ()=>{};
 }`;
@@ -91,7 +96,7 @@ export const COMPONENT_CODE=Object.freeze({
   back:`<button class="app-back-control" type="button" aria-label="Back">\n  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>\n</button>`,
   quiet:`<button class="app-quiet-action" type="button">\n  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M7 10l5-5 5 5"/></svg>\n  <span>Back to top</span>\n</button>`,
   hero:`<header class="app-route-hero">\n  <p class="app-route-eyebrow">Section</p>\n  <h1 class="app-route-title">Page Title</h1>\n  <p class="app-route-copy">Supporting copy.</p>\n</header>`,
-  card:`<article class="fnb-card">\n  <button class="fnb-card-button" type="button">\n    <div class="fnb-card-status"><span class="fnb-text-label">Upcoming</span></div>\n    <h2 class="fnb-card-title">Actionable Card</h2>\n    <p class="fnb-card-outlets">Supporting information</p>\n    <div class="fnb-card-foot"><span>Open detail</span><span class="fnb-chevron">›</span></div>\n  </button>\n</article>`,
+  card:`<a class="app-action-card app-action-card-control" href="/brand" data-app-route="brand">\n  <h2 class="app-action-card-title">Actionable Card</h2>\n  <p class="app-action-card-meta">Supporting information</p>\n  <div class="app-action-card-foot"><span>Open route</span><span class="app-action-card-chevron">›</span></div>\n</a>`,
   select:`<div class="fnb-select">\n  <button class="fnb-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">\n    <span>All outlets</span>\n    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5"/></svg>\n  </button>\n  <div class="fnb-select-menu" role="listbox" aria-hidden="true">…</div>\n</div>`,
   input:`<div class="settings-field">\n  <label for="fieldId">Label</label>\n  <input id="fieldId" type="text" placeholder="Value">\n</div>`,
   navigation:`<a href="/brand" data-app-route="brand">Brand</a>`,
