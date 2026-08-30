@@ -1,0 +1,5 @@
+/* Documentation-host fixes only. Product component styles remain owned by their production modules. */
+.ci-specimen:has(.ci-select-demo .fnb-select.is-open){position:relative;z-index:160}
+.ci-select-demo{position:relative}
+.ci-select-demo .fnb-select{position:relative;z-index:1}
+.ci-select-demo .fnb-select-menu{z-index:2}
