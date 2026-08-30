@@ -1,5 +1,5 @@
 import {isBusinessCardSlug} from './business-card-core.js';
-import {BUSINESS_CARD_HOTEL_NAME,businessCardSharePayload,renderBusinessCardMarkup} from './business-card-renderer.js?v=1';
+import {BUSINESS_CARD_HOTEL_NAME,businessCardSharePayload,renderBusinessCardMarkup} from './business-card-renderer.js?v=2';
 import {standardCloseButton} from './settings-dialog-standard.js?v=1';
 
 const SUPABASE_URL='https://sjpvhgxacsiorrtijqua.supabase.co';
