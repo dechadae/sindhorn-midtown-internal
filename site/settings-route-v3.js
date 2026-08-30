@@ -1,5 +1,5 @@
 import {mountSettingsRoute as mountBaseSettingsRoute} from './settings.js?v=2';
-import {mountSettingsBusinessCard,preloadSettingsBusinessCard} from './business-card-settings.js?v=6';
+import {mountSettingsBusinessCard,preloadSettingsBusinessCard} from './business-card-settings.js?v=7';
 function ensureStyle(selector,href,attribute){const existing=document.querySelector(selector);if(existing)return existing.sheet?Promise.resolve():new Promise(resolve=>{existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',resolve,{once:true})});return new Promise(resolve=>{const link=document.createElement('link');link.rel='stylesheet';link.href=href;link.setAttribute(attribute,'true');link.addEventListener('load',resolve,{once:true});link.addEventListener('error',resolve,{once:true});document.head.appendChild(link)})}
 function promoteSignOutToHero(root){
   const hero=root.querySelector('.settings-hero');if(!hero)return;
