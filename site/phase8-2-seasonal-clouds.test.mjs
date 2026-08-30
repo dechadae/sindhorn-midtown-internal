@@ -54,7 +54,10 @@ assert.ok(!bootstrap.includes("await import('./environment.js')"),'legacy weathe
 assert.ok(betta.includes("renderer:'sindhorn-betta-satellite-v1'"),'Betta renderer identity must remain production authority');
 assert.ok(betta.includes("inputMode:'satellite-only'"),'Betta visual input must remain satellite-only');
 assert.ok(betta.includes('const DPR=2'),'Betta production renderer must keep DPR 2');
-assert.ok(betta.includes('antialias:false')&&!betta.includes('preserveDrawingBuffer:true,precision'), 'Betta live renderer must keep the approved context budget');
+const bettaLiveRenderer=betta.match(/renderer=new THREE\.WebGLRenderer\((\{[^;]+?\})\)/)?.[1]||'';
+assert.ok(bettaLiveRenderer.includes('antialias:false'),'Betta live renderer must keep MSAA disabled');
+assert.ok(!bettaLiveRenderer.includes('preserveDrawingBuffer:true'),'Betta live renderer must not preserve its drawing buffer');
+assert.ok(betta.includes('preserveDrawingBuffer:true'),'one-shot export renderer may preserve its drawing buffer for capture');
 
 // Operational weather transport remains TMD AWS + MET Norway through the authenticated weather core.
 // betta-environment.js retains the historical Open-Meteo-shaped request signature only because location.js intercepts it locally.
