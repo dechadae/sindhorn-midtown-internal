@@ -1,11 +1,9 @@
-const NICT_ORIGIN='https://himawari8-dl.nict.go.jp/himawari8/img';
-const SOURCE='NICT Himawari real-time imagery from JMA Himawari-9';
-const DATASETS={
-  true:['D531106'],
-  b13:['FULL_24H/B13','FULL_24h/B13'],
-  b08:['FULL_24H/B08','FULL_24h/B08']
-};
-const ALLOWED_ZOOMS=new Set([1,2,4,8,16,20]);
+const JMA_ORIGIN='https://www.data.jma.go.jp/mscweb/data/himawari';
+const SOURCE='JMA Himawari-9 High-Resolution Asia 1';
+const SECTOR='High-Resolution Asia 1';
+const BOUNDS={west:99,east:110,north:16,south:7};
+const BANDS=new Set(['b03','b08','b13']);
+const MAX_LATEST_AGE_MINUTES=120;
 
 function json(body,status=200,cache='no-store'){
   return new Response(JSON.stringify(body),{
@@ -17,73 +15,96 @@ function json(body,status=200,cache='no-store'){
     }
   });
 }
-
-async function fetchFirst(urls,init){
-  let last=null;
-  for(const url of urls){
-    try{
-      const response=await fetch(url,init);
-      if(response.ok)return response;
-      last=response;
-    }catch(error){
-      last=error;
-    }
-  }
-  return last;
+function pad(value){return String(value).padStart(2,'0')}
+function slotFor(date){return `${pad(date.getUTCHours())}${pad(Math.floor(date.getUTCMinutes()/10)*10)}`}
+function roundedSlot(date){
+  const value=new Date(date);
+  value.setUTCSeconds(0,0);
+  value.setUTCMinutes(Math.floor(value.getUTCMinutes()/10)*10);
+  return value;
 }
-
-function parseTileParams(url){
-  const dataset=url.searchParams.get('dataset')||'';
-  const time=url.searchParams.get('time')||'';
-  const zoom=Number(url.searchParams.get('zoom')||4);
-  const x=Number(url.searchParams.get('x'));
-  const y=Number(url.searchParams.get('y'));
-  if(!DATASETS[dataset])return{error:'unsupported dataset'};
-  if(!/^\d{4}\/\d{2}\/\d{2}\/\d{6}$/.test(time))return{error:'invalid time'};
-  if(!ALLOWED_ZOOMS.has(zoom))return{error:'invalid zoom'};
-  if(!Number.isInteger(x)||!Number.isInteger(y)||x<0||y<0||x>=zoom||y>=zoom)return{error:'invalid tile coordinate'};
-  return{dataset,time,zoom,x,y};
+function frameUrl(band,slot){
+  return `${JMA_ORIGIN}/img/ha1/ha1_${band}_${slot}.jpg`;
+}
+function parseModified(response){
+  const text=response.headers.get('last-modified');
+  if(!text)return null;
+  const ms=Date.parse(text);
+  return Number.isFinite(ms)?new Date(ms):null;
+}
+async function fetchFrame(band,slot){
+  return fetch(frameUrl(band,slot),{
+    headers:{accept:'image/jpeg'},
+    cf:{cacheTtl:0,cacheEverything:false}
+  });
+}
+function isFreshCandidate(response,candidate,now){
+  if(!response.ok)return false;
+  const contentType=response.headers.get('content-type')||'';
+  if(!contentType.toLowerCase().includes('image'))return false;
+  const modified=parseModified(response);
+  if(!modified)return false;
+  const modifiedAge=(now.getTime()-modified.getTime())/60000;
+  const candidateAge=(now.getTime()-candidate.getTime())/60000;
+  if(modifiedAge< -10||modifiedAge>MAX_LATEST_AGE_MINUTES)return false;
+  if(candidateAge< -1||candidateAge>MAX_LATEST_AGE_MINUTES)return false;
+  return true;
 }
 
 async function latest(){
-  const urls=[
-    `${NICT_ORIGIN}/FULL_24h/latest.json`,
-    `${NICT_ORIGIN}/D531106/latest.json`
-  ];
-  const response=await fetchFirst(urls,{headers:{accept:'application/json'}});
-  if(!(response instanceof Response)||!response.ok){
-    return json({ok:false,error:'Himawari latest metadata unavailable',source:SOURCE},502);
+  const now=new Date();
+  const base=roundedSlot(now);
+  for(let back=0;back<=MAX_LATEST_AGE_MINUTES;back+=10){
+    const candidate=new Date(base.getTime()-back*60000);
+    const slot=slotFor(candidate);
+    let response;
+    try{response=await fetchFrame('b13',slot)}catch{continue}
+    if(!isFreshCandidate(response,candidate,now)){
+      try{await response.body?.cancel()}catch{}
+      continue;
+    }
+    const modified=parseModified(response);
+    try{await response.body?.cancel()}catch{}
+    return json({
+      ok:true,
+      satellite:'Himawari-9',
+      provider:'JMA',
+      source:SOURCE,
+      sector:SECTOR,
+      bounds:BOUNDS,
+      observedAt:candidate.toISOString(),
+      date:candidate.toISOString(),
+      sourceLastModified:modified?.toISOString()||null,
+      slot,
+      cadenceMinutes:10
+    },200,'public, max-age=35, s-maxage=35, stale-while-revalidate=30');
   }
-  let payload;
-  try{payload=await response.json();}catch{return json({ok:false,error:'Invalid Himawari metadata',source:SOURCE},502)}
-  const date=typeof payload?.date==='string'?payload.date:null;
-  if(!date)return json({ok:false,error:'Himawari metadata missing date',source:SOURCE},502);
-  return json({
-    ok:true,
-    satellite:'Himawari-9',
-    provider:'NICT / JMA',
-    source:SOURCE,
-    date,
-    file:typeof payload.file==='string'?payload.file:null,
-    cadenceMinutes:10
-  },200,'public, max-age=45, s-maxage=45, stale-while-revalidate=90');
+  return json({ok:false,error:'Fresh JMA Himawari High-Resolution Asia 1 frame unavailable',source:SOURCE},502);
 }
 
-async function tile(url){
-  const parsed=parseTileParams(url);
-  if(parsed.error)return json({ok:false,error:parsed.error},400);
-  const {dataset,time,zoom,x,y}=parsed;
-  const urls=DATASETS[dataset].map(path=>`${NICT_ORIGIN}/${path}/${zoom}d/550/${time}_${x}_${y}.png`);
-  const response=await fetchFirst(urls,{headers:{accept:'image/png'}});
-  if(!(response instanceof Response)||!response.ok){
-    return json({ok:false,error:'Himawari tile unavailable',dataset,time,zoom,x,y,source:SOURCE},502);
+async function frame(url){
+  const band=(url.searchParams.get('band')||'').toLowerCase();
+  const slot=url.searchParams.get('time')||'';
+  if(!BANDS.has(band))return json({ok:false,error:'unsupported band'},400);
+  if(!/^\d{4}$/.test(slot)||Number(slot.slice(0,2))>23||Number(slot.slice(2))>59||Number(slot.slice(2))%10!==0){
+    return json({ok:false,error:'invalid time slot'},400);
   }
+  let response;
+  try{response=await fetchFrame(band,slot)}catch{return json({ok:false,error:'JMA Himawari frame fetch failed',band,slot},502)}
+  if(!response.ok)return json({ok:false,error:'JMA Himawari frame unavailable',band,slot,status:response.status},502);
+  const contentType=response.headers.get('content-type')||'';
+  if(!contentType.toLowerCase().includes('image'))return json({ok:false,error:'JMA Himawari response was not an image',band,slot},502);
   const headers=new Headers();
-  headers.set('content-type',response.headers.get('content-type')||'image/png');
-  headers.set('cache-control','public, max-age=600, s-maxage=86400, immutable');
+  headers.set('content-type',contentType||'image/jpeg');
+  headers.set('cache-control','public, max-age=90, s-maxage=180, stale-while-revalidate=120');
   headers.set('x-content-type-options','nosniff');
-  headers.set('x-betta-satellite-source','NICT-Himawari');
-  headers.set('x-betta-satellite-dataset',dataset);
+  headers.set('x-betta-satellite-source','JMA-Himawari-HA1');
+  headers.set('x-betta-satellite-band',band);
+  headers.set('x-betta-satellite-sector','ha1');
+  const modified=response.headers.get('last-modified');
+  if(modified)headers.set('last-modified',modified);
+  const etag=response.headers.get('etag');
+  if(etag)headers.set('etag',etag);
   return new Response(response.body,{status:200,headers});
 }
 
@@ -94,7 +115,7 @@ export default{
     if(url.pathname!=='/api/betta-satellite')return json({ok:false,error:'not found'},404);
     const kind=url.searchParams.get('kind')||'latest';
     if(kind==='latest')return latest();
-    if(kind==='tile')return tile(url);
+    if(kind==='frame')return frame(url);
     return json({ok:false,error:'unsupported kind'},400);
   }
 };
