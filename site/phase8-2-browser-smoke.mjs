@@ -45,12 +45,20 @@ async function sampleFrames(page,label,count=30,timeoutMs=15000){
   return{frameAverageMs:+avg.toFixed(2),frameP95Ms:+p95.toFixed(2),frameSamples:samples.length,timedOut:result.timedOut,label};
 }
 
-async function signIn(page){
+async function signIn(page,name){
   await page.goto(`${base}/login.html`,{waitUntil:'domcontentloaded',timeout:45000});
   await page.fill('#employeeNumber',smokeEmployeeNumber);
   for(let i=0;i<6;i++)await page.fill(`[data-pin-login-digit="${i}"]`,smokePin[i]);
   await page.click('#pinLoginButton');
-  await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:20000,waitUntil:'commit'});
+  try{
+    await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:45000,waitUntil:'commit'});
+  }catch(error){
+    const status=(await page.locator('#status').textContent().catch(()=>''))?.trim()||'';
+    const tone=await page.locator('#status').getAttribute('data-tone').catch(()=>null);
+    const signed=await page.locator('#signedCard').getAttribute('data-show').catch(()=>null);
+    await page.screenshot({path:`phase82-artifacts/${name}-login-failure.png`,fullPage:true}).catch(()=>{});
+    throw new Error(`${name}: CI service-employee sign-in did not reach the app${status?` · ${tone||'status'}: ${status}`:''}${signed==='true'?' · signed card was visible before redirect':''}`);
+  }
 }
 
 async function inspectLive(viewport,name){
@@ -58,7 +66,7 @@ async function inspectLive(viewport,name){
   const page=await context.newPage();
   page.on('pageerror',err=>errors.push(`${name}: ${err.message}`));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(`${name} console: ${msg.text()}`)});
-  await signIn(page);
+  await signIn(page,name);
   await page.waitForFunction(()=>document.body.classList.contains('environment-ready'),null,{timeout:30000});
   await page.waitForFunction(()=>window.SindhornEnvironment?.getState?.().renderer==='sindhorn-betta-satellite-v1',null,{timeout:30000});
   await page.waitForFunction(()=>window.SindhornEnvironment?.getState?.().betta?.satelliteStatus==='live',null,{timeout:60000});
