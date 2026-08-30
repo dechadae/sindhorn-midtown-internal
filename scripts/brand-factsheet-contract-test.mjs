@@ -6,7 +6,6 @@ const dataUrl=new URL('../site/hotel-factsheet-data.js',import.meta.url);
 const routeText=await fs.readFile(new URL('../site/route-registry.js',import.meta.url),'utf8');
 const footerText=await fs.readFile(new URL('../site/footer-route-guard.js',import.meta.url),'utf8');
 const footerCss=await fs.readFile(new URL('../site/footer-route-guard.css',import.meta.url),'utf8');
-const footerAlignText=await fs.readFile(new URL('../site/factsheet-footer-align.js',import.meta.url),'utf8');
 const heroCss=await fs.readFile(new URL('../site/route-hero-standard.css',import.meta.url),'utf8');
 const redirects=await fs.readFile(new URL('../site/_redirects',import.meta.url),'utf8');
 const brandText=await fs.readFile(new URL('../site/brand.js',import.meta.url),'utf8');
@@ -39,16 +38,12 @@ assert(routeText.includes("settings-route-v3.js?v=9&r=5"),'Current Settings rout
 assert(routeText.includes("module:'./brand.js?v=3'"),'Brand cache revision missing');
 assert(footerText.includes("{route:'brand',label:'Brand',href:'/brand'}"),'Footer Brand target mismatch');
 assert(footerText.includes("path==='/brand'||path==='/ihg-history'||path==='/hotel-factsheet'"),'Brand child active-state mapping missing');
-assert(footerText.includes('factsheet:{'),'Factsheet shell context missing');
-assert(footerText.includes('factsheetSectionNav'),'Factsheet context forwarding missing');
-assert(footerAlignText.includes("const SELECTOR='#app-footer [data-shell-context=\"factsheet\"]'"),'Factsheet-only footer enhancer missing');
-assert(footerAlignText.includes("rail.scrollTo({left:target,behavior:smooth&&!reduceMotion()?'smooth':'auto'})"),'Factsheet active-chip start alignment missing');
-assert(footerCss.includes('#app-footer .factsheet-section-rail'),'Factsheet second footer styling missing');
-assert(footerCss.includes('overflow-x:auto!important'),'Factsheet second footer is not side-scrollable');
-assert(footerCss.includes('padding-left:max(10px,env(safe-area-inset-left))!important'),'Factsheet footer live edge inset missing');
-assert(footerCss.includes('scroll-padding-inline-start:max(10px,env(safe-area-inset-left))'),'Factsheet footer scroll inset missing');
-assert(footerCss.includes('.factsheet-section-rail::after'),'Factsheet footer trailing alignment runway missing');
-assert(footerCss.includes('#route-view .factsheet-route > .factsheet-section-rail'),'Route-owned factsheet rail is not hidden');
+assert(footerText.includes("factsheet:{")&&footerText.includes('show:()=>false'),'Factsheet secondary footer is not explicitly disabled');
+assert(!footerCss.includes('#app-footer .factsheet-section-rail{\n  display:flex!important'),'Legacy Factsheet second footer styling remains active');
+assert(footerCss.includes('body[data-route="hotelFactsheet"] #route-view{padding-bottom:28px!important}'),'Factsheet single-footer bottom spacing missing');
+assert(footerCss.includes('grid-template-columns:88px minmax(0,1fr)!important'),'Access contact alignment grid missing');
+assert(footerCss.includes('align-items:baseline!important'),'Access contact baseline alignment missing');
+assert(footerCss.includes('[data-factsheet-section-target="access"]>.factsheet-inline-source{padding-left:100px!important}'),'Location source alignment missing');
 assert(heroCss.includes('.brand-route,.factsheet-route'),'Central one-atmosphere rule does not include Brand/Factsheet');
 assert(heroCss.includes('.brand-hero')&&heroCss.includes('.factsheet-hero'),'Central F&B hero standard does not include Brand/Factsheet');
 assert(heroCss.includes('.ihg-history-hero h1{text-transform:capitalize!important}'),'History title-case rule missing');
@@ -65,9 +60,8 @@ assert(factsheetText.includes('factsheet-included-card'),'Meeting Included card 
 assert(!factsheetText.includes('factsheet-provenance')&&!factsheetText.includes('Verification notes'),'Visible Sources section still rendered');
 assert(factsheetCss.includes('width:108px;min-width:108px;max-width:108px'),'Meeting room column was not narrowed');
 assert(redirects.includes('/brand / 200')&&redirects.includes('/hotel-factsheet / 200'),'Cloudflare SPA rewrites missing');
-assert(indexText.includes('/footer-route-guard.css?v=13')&&indexText.includes('/footer-route-guard.js?v=13'),'Footer guard cache-bust missing');
-assert(indexText.includes('/factsheet-footer-align.js?v=1'),'Factsheet footer enhancer not loaded after shell guard');
-assert(indexText.indexOf('/factsheet-footer-align.js?v=1')>indexText.indexOf('/footer-route-guard.js?v=13'),'Factsheet footer enhancer must load after shell footer guard');
+assert(indexText.includes('/footer-route-guard.css?v=14')&&indexText.includes('/footer-route-guard.js?v=14'),'Footer guard cache-bust missing');
+assert(!indexText.includes('/factsheet-footer-align.js'),'Factsheet-only second-footer enhancer is still loaded');
 assert(indexText.includes('/route-hero-standard.css?v=3'),'Central hero cache-bust missing');
 
 console.log(JSON.stringify({
