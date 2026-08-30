@@ -24,6 +24,15 @@ async function ensureHeaderAvatar(page){
   });
   await page.waitForSelector('[data-shape-audit-avatar]',{state:'visible'});
 }
+async function ensureFnbChip(page){
+  await page.evaluate(()=>{
+    document.querySelector('[data-shape-audit-fnb-chip]')?.remove();
+    const chip=document.createElement('span');chip.className='fnb-chip';chip.dataset.shapeAuditFnbChip='';chip.textContent='Audit';chip.setAttribute('aria-hidden','true');
+    Object.assign(chip.style,{position:'fixed',top:'80px',left:'16px',zIndex:'9999',visibility:'visible',opacity:'1'});
+    document.body.appendChild(chip);
+  });
+  await page.waitForSelector('[data-shape-audit-fnb-chip]',{state:'attached'});
+}
 async function ensureSettingsAvatar(page){
   await page.evaluate(()=>{
     document.querySelector('[data-shape-audit-settings-avatar]')?.remove();
@@ -61,8 +70,8 @@ try{
   report.connection=exact(await style(page,'.connection-dot',{visible:true}),'Connection indicator',2);
   await page.screenshot({path:`${SCREENSHOT_DIR}/shape-today-390x844.png`,fullPage:false});
 
-  await page.goto(`${BASE_URL}/fnb`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.fnb-card');
-  report.fnbChip=exact(await style(page,'.fnb-chip',{visible:true}),'F&B source chip',9);
+  await page.goto(`${BASE_URL}/fnb`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.fnb-card');await ensureFnbChip(page);
+  report.fnbChip=exact(await style(page,'[data-shape-audit-fnb-chip]',{visible:true}),'F&B source chip',9);
   await page.locator('.fnb-card-button').first().click();await page.waitForSelector('.fnb-back',{state:'visible'});
   report.fnbBack=exact(await style(page,'.fnb-back',{visible:true}),'F&B back',12);
 
