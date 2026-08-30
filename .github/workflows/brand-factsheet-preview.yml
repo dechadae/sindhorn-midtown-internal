@@ -11,6 +11,7 @@ on:
       - "site/footer-route-guard.css"
       - "site/factsheet-footer-align.js"
       - "site/route-hero-standard.css"
+      - "site/brand-route-controls.js"
       - "site/brand.js"
       - "site/brand.css"
       - "site/hotel-factsheet-route.js"
@@ -20,6 +21,7 @@ on:
       - "scripts/brand-factsheet-contract-test.mjs"
       - "scripts/brand-factsheet-browser-smoke.mjs"
       - "scripts/brand-factsheet-navigation-smoke.mjs"
+      - "scripts/brand-route-controls-smoke.mjs"
       - ".github/workflows/brand-factsheet-preview.yml"
   workflow_dispatch:
 
@@ -44,19 +46,19 @@ jobs:
         run: |
           set -euo pipefail
           for file in \
-            site/brand.js site/hotel-factsheet-route.js site/hotel-factsheet.js site/hotel-factsheet-data.js \
+            site/brand.js site/brand-route-controls.js site/hotel-factsheet-route.js site/hotel-factsheet.js site/hotel-factsheet-data.js \
             site/route-registry.js site/footer-route-guard.js site/factsheet-footer-align.js \
-            scripts/brand-factsheet-contract-test.mjs scripts/brand-factsheet-browser-smoke.mjs scripts/brand-factsheet-navigation-smoke.mjs; do
+            scripts/brand-factsheet-contract-test.mjs scripts/brand-factsheet-browser-smoke.mjs scripts/brand-factsheet-navigation-smoke.mjs scripts/brand-route-controls-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
           node scripts/brand-factsheet-contract-test.mjs
           grep -q 'LINE Seed Sans TH' site/fonts.css
           ! grep -qiE 'Poppins|Noto|IBM Plex|Vignette Sans' \
-            site/brand.js site/brand.css site/hotel-factsheet.js site/hotel-factsheet.css site/hotel-factsheet-data.js
+            site/brand.js site/brand.css site/brand-route-controls.js site/hotel-factsheet.js site/hotel-factsheet.css site/hotel-factsheet-data.js
           python - <<'PY'
           from pathlib import Path
           files = [
-              'site/brand.js','site/brand.css','site/hotel-factsheet.js',
+              'site/brand.js','site/brand.css','site/brand-route-controls.js','site/hotel-factsheet.js',
               'site/hotel-factsheet.css','site/hotel-factsheet-data.js'
           ]
           for name in files:
@@ -96,7 +98,7 @@ jobs:
           sleep 8
           for path in \
             /brand /hotel-factsheet /ihg-history \
-            /brand.js /brand.css /hotel-factsheet-route.js /hotel-factsheet.js /hotel-factsheet.css /hotel-factsheet-data.js \
+            /brand.js /brand.css /brand-route-controls.js /hotel-factsheet-route.js /hotel-factsheet.js /hotel-factsheet.css /hotel-factsheet-data.js \
             /route-registry.js /route-hero-standard.css /footer-route-guard.js /footer-route-guard.css /factsheet-footer-align.js /fnb /settings; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
@@ -121,6 +123,7 @@ jobs:
           npx playwright install chromium >/dev/null 2>&1
           node scripts/brand-factsheet-browser-smoke.mjs | tee /tmp/brand-factsheet-browser-report.json
           node scripts/brand-factsheet-navigation-smoke.mjs | tee /tmp/brand-factsheet-navigation-report.json
+          node scripts/brand-route-controls-smoke.mjs | tee /tmp/brand-route-controls-report.json
 
       - name: Upload screenshots and report
         if: always()
@@ -131,5 +134,6 @@ jobs:
             /tmp/brand-factsheet-preview
             /tmp/brand-factsheet-browser-report.json
             /tmp/brand-factsheet-navigation-report.json
+            /tmp/brand-route-controls-report.json
           if-no-files-found: warn
           retention-days: 14
