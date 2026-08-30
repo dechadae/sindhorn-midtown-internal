@@ -24,14 +24,18 @@ async function ensureHeaderAvatar(page){
   });
   await page.waitForSelector('[data-shape-audit-avatar]',{state:'visible'});
 }
-async function ensureFnbChip(page){
+async function ensureFnbSpecimens(page){
   await page.evaluate(()=>{
     document.querySelector('[data-shape-audit-fnb-chip]')?.remove();
+    document.querySelector('[data-shape-audit-fnb-back]')?.remove();
     const chip=document.createElement('span');chip.className='fnb-chip';chip.dataset.shapeAuditFnbChip='';chip.textContent='Audit';chip.setAttribute('aria-hidden','true');
     Object.assign(chip.style,{position:'fixed',top:'80px',left:'16px',zIndex:'9999',visibility:'visible',opacity:'1'});
-    document.body.appendChild(chip);
+    const back=document.createElement('button');back.type='button';back.className='fnb-back';back.dataset.shapeAuditFnbBack='';back.textContent='Back';back.setAttribute('aria-hidden','true');
+    Object.assign(back.style,{position:'fixed',top:'120px',left:'16px',zIndex:'9999',visibility:'visible',opacity:'1'});
+    document.body.append(chip,back);
   });
   await page.waitForSelector('[data-shape-audit-fnb-chip]',{state:'attached'});
+  await page.waitForSelector('[data-shape-audit-fnb-back]',{state:'attached'});
 }
 async function ensureSettingsAvatar(page){
   await page.evaluate(()=>{
@@ -70,10 +74,9 @@ try{
   report.connection=exact(await style(page,'.connection-dot',{visible:true}),'Connection indicator',2);
   await page.screenshot({path:`${SCREENSHOT_DIR}/shape-today-390x844.png`,fullPage:false});
 
-  await page.goto(`${BASE_URL}/fnb`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.fnb-card');await ensureFnbChip(page);
+  await page.goto(`${BASE_URL}/fnb`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.fnb-card');await ensureFnbSpecimens(page);
   report.fnbChip=exact(await style(page,'[data-shape-audit-fnb-chip]',{visible:true}),'F&B source chip',9);
-  await page.locator('.fnb-card-button').first().click();await page.waitForSelector('.fnb-back',{state:'visible'});
-  report.fnbBack=exact(await style(page,'.fnb-back',{visible:true}),'F&B back',12);
+  report.fnbBack=exact(await style(page,'[data-shape-audit-fnb-back]',{visible:true}),'F&B back',12);
 
   await page.goto(`${BASE_URL}/hotel-factsheet`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.factsheet-route');
   report.nearby=exact(await style(page,'.factsheet-nearby span',{visible:true}),'Factsheet metadata',9);
