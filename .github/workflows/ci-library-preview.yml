@@ -25,6 +25,7 @@ on:
       - "scripts/ci-library-browser-smoke.mjs"
       - "scripts/ci-library-visual-smoke.mjs"
       - "scripts/ui-shape-browser-smoke.mjs"
+      - "scripts/ui-shape-source-audit.mjs"
       - "docs/SETTINGS-FIXED-RAIL-AND-DEVELOPER-CI-OVERRIDE-20260830.md"
       - ".github/workflows/ci-library-preview.yml"
   workflow_dispatch:
@@ -52,10 +53,12 @@ jobs:
           for file in \
             site/route-registry.js site/footer-route-guard.js site/settings-route-v3.js \
             site/settings-system-library.js site/ui-system-registry.js site/ci.js \
-            scripts/ci-library-contract-test.mjs scripts/ci-library-browser-smoke.mjs scripts/ci-library-visual-smoke.mjs scripts/ui-shape-browser-smoke.mjs; do
+            scripts/ci-library-contract-test.mjs scripts/ci-library-browser-smoke.mjs scripts/ci-library-visual-smoke.mjs \
+            scripts/ui-shape-browser-smoke.mjs scripts/ui-shape-source-audit.mjs; do
             node --input-type=module --check < "$file"
           done
           node scripts/ci-library-contract-test.mjs
+          node scripts/ui-shape-source-audit.mjs | tee /tmp/ui-shape-source-audit.json
           grep -q 'LINE Seed Sans TH' site/fonts.css
           grep -q '.app-route-hero' site/route-hero-standard.css
           grep -q -- '--app-radius-avatar:12px' site/app-shapes.css
@@ -149,5 +152,6 @@ jobs:
             /tmp/ci-library-browser-report.json
             /tmp/ci-library-visual-report.json
             /tmp/ui-shape-browser-report.json
+            /tmp/ui-shape-source-audit.json
           if-no-files-found: warn
           retention-days: 14
