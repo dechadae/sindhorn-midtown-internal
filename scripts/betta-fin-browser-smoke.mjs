@@ -16,10 +16,11 @@ const browser=await chromium.launch({
 });
 const errors=[];
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
-function observedAgeMinutes(value){
-  const date=new Date(String(value).replace(' ','T')+'Z');
-  return (Date.now()-date.getTime())/60000;
+function parseUtc(value){
+  const text=String(value||'').trim().replace(' ','T');
+  return new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(text)?text:`${text}Z`);
 }
+function ageMinutes(value){return (Date.now()-parseUtc(value).getTime())/60000}
 function finite01(value,name){
   if(!Number.isFinite(value)||value<0||value>1)throw new Error(`${name} outside 0..1: ${value}`);
 }
@@ -28,7 +29,7 @@ async function inspect(viewport,name,preset){
   const page=await context.newPage();
   page.on('pageerror',error=>errors.push(`${name}: ${error.message}`));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(`${name} console: ${msg.text()}`)});
-  await page.goto(`${base}/betta-fin-lab.html?satellite-smoke=3`,{waitUntil:'networkidle',timeout:60000});
+  await page.goto(`${base}/betta-fin-lab.html?satellite-jma-smoke=1`,{waitUntil:'networkidle',timeout:60000});
   await page.waitForFunction(()=>window.SindhornBettaLab?.getDiagnostics?.().triangles>0,null,{timeout:20000});
   await page.waitForFunction(()=>window.SindhornBettaLab?.getSatelliteState?.().status==='live',null,{timeout:60000});
   await page.evaluate(key=>window.SindhornBettaLab.setPreset(key),preset);
@@ -37,8 +38,12 @@ async function inspect(viewport,name,preset){
   const satellite=await page.evaluate(()=>window.SindhornBettaLab.getSatelliteState());
   if(before.inputMode!=='satellite-only'||satellite.inputMode!=='satellite-only')throw new Error(`${name}: satellite-only runtime contract missing`);
   if(satellite.satellite!=='Himawari-9')throw new Error(`${name}: unexpected satellite ${satellite.satellite}`);
-  const age=observedAgeMinutes(satellite.observedAt);
-  if(!Number.isFinite(age)||age<0||age>90)throw new Error(`${name}: Himawari observation is not fresh enough (${age.toFixed(1)} min)`);
+  if(satellite.provider!=='JMA')throw new Error(`${name}: unexpected provider ${satellite.provider}`);
+  if(satellite.sector!=='High-Resolution Asia 1')throw new Error(`${name}: unexpected sector ${satellite.sector}`);
+  const age=ageMinutes(satellite.observedAt);
+  if(!Number.isFinite(age)||age< -5||age>120)throw new Error(`${name}: Himawari observation is not fresh enough (${age.toFixed(1)} min)`);
+  const sourceAge=ageMinutes(satellite.sourceLastModified);
+  if(!Number.isFinite(sourceAge)||sourceAge< -10||sourceAge>120)throw new Error(`${name}: JMA source file is not freshly modified (${sourceAge.toFixed(1)} min)`);
   for(const [key,value] of Object.entries({
     cloud:satellite.metrics.cloudAmount,
     cold:satellite.metrics.coldCloud,
@@ -48,7 +53,10 @@ async function inspect(viewport,name,preset){
     visible:satellite.metrics.visibleConfidence,
     energy:satellite.metrics.energy
   }))finite01(value,`${name} satellite ${key}`);
+  if(!Number.isFinite(satellite.metrics.irVariation)||satellite.metrics.irVariation<.006)throw new Error(`${name}: IR Bangkok patch degenerate (${satellite.metrics.irVariation})`);
+  if(!Number.isFinite(satellite.metrics.vaporVariation)||satellite.metrics.vaporVariation<.004)throw new Error(`${name}: water-vapor Bangkok patch degenerate (${satellite.metrics.vaporVariation})`);
   if(!/^[0-9a-f]{8}$/i.test(satellite.metrics.fingerprint))throw new Error(`${name}: satellite fingerprint invalid`);
+  if(!(satellite.bangkok?.imageWidth>100&&satellite.bangkok?.imageHeight>100))throw new Error(`${name}: JMA source image dimensions invalid`);
   const canvas=page.locator('#bettaCanvas');
   const motionA=await canvas.screenshot();
   await page.waitForTimeout(1200);
@@ -79,8 +87,11 @@ async function inspect(viewport,name,preset){
     ...before,
     satellite:{
       observedAt:satellite.observedAt,
+      sourceLastModified:satellite.sourceLastModified,
       observationAgeMinutes:+age.toFixed(1),
-      zoom:satellite.zoom,
+      sourceAgeMinutes:+sourceAge.toFixed(1),
+      sector:satellite.sector,
+      bangkok:satellite.bangkok,
       metrics:satellite.metrics
     },
     motionProbe:{intervalMs:1200,changed:true,hashA:motionHashA.slice(0,12),hashB:motionHashB.slice(0,12)},
@@ -95,7 +106,7 @@ try{
 await browser.close();
 const report={
   benchmark:'CPU-only SwANGLE diagnostic; physical Android GPU remains the visual/performance acceptance target',
-  realtimeInput:'Himawari-9 satellite imagery only',
+  realtimeInput:'JMA Himawari-9 High-Resolution Asia 1 satellite imagery only',
   mobile,desktop,errors
 };
 fs.writeFileSync(`${dir}/metrics.json`,JSON.stringify(report,null,2));
