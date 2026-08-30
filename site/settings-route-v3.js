@@ -1,7 +1,7 @@
 import {mountSettingsRoute as mountBaseSettingsRoute} from './settings.js?v=3&r=modal-shell-2';
 import {mountSettingsBusinessCard,preloadSettingsBusinessCard} from './business-card-settings.js?v=10&r=modal-shell-2';
 // Cache lineage: business-card-settings.js?v=9 -> v10 for the fixed-shell renderer.
-// Cache lineage: /settings-dialog-standard.css?v=1&r=4 -> r=5 for the centralized modal shell.
+// Cache lineage: /settings-dialog-standard.css?v=1&r=5 -> r=6 for Business Card scrollbar/action parity.
 // Validation lineage: all Settings popups now resolve through settings-dialog-standard.js.
 function ensureStyle(selector,href,attribute){const existing=document.querySelector(selector);if(existing)return existing.sheet?Promise.resolve():new Promise(resolve=>{existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',resolve,{once:true})});return new Promise(resolve=>{const link=document.createElement('link');link.rel='stylesheet';link.href=href;link.setAttribute(attribute,'true');link.addEventListener('load',resolve,{once:true});link.addEventListener('error',resolve,{once:true});document.head.appendChild(link)})}
 function promoteSignOutToHero(root){
@@ -65,7 +65,7 @@ export async function mountSettingsRoute(root){
     await Promise.all([
       ensureStyle('link[data-settings-style]','/settings.css?v=2','data-settings-style'),
       ensureStyle('link[data-settings-refinements]','/settings-refinements.css?v=2','data-settings-refinements'),
-      ensureStyle('link[data-settings-dialog-standard]','/settings-dialog-standard.css?v=1&r=5','data-settings-dialog-standard'),
+      ensureStyle('link[data-settings-dialog-standard]','/settings-dialog-standard.css?v=1&r=6','data-settings-dialog-standard'),
       ensureStyle('link[data-business-card-component]','/business-card-component.css?v=1&r=3','data-business-card-component'),
       ensureStyle('link[data-business-card-settings-style]','/business-card-settings.css?v=10','data-business-card-settings-style')
     ]);
