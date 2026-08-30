@@ -15,19 +15,20 @@ Do not infer that a commit is live merely because it is on `main`. A production 
 ## Read authority in this order
 
 1. `AGENTS.md`
-2. `docs/WEATHER-AUTHORITY-OVERRIDE-20260829.md` for all weather-source/current-rain decisions
-3. `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md`
-4. `docs/SINGLE-SHELL-ROUTER-INVARIANT-20260828.md`
-5. `docs/FNB-SUPABASE-DATA-AUTHORITY-20260829.md` when working on F&B
-6. `docs/FNB-EXCEL-TO-SUPABASE-UPDATE-RUNBOOK.md` when the product owner supplies updated F&B Excel files
-7. `docs/BANGKOK-SEASONAL-SKY-AND-CLOUD-ARCHITECTURE-OVERRIDE-20260827.md`
-8. `docs/PHASE8.2-BANGKOK-SEASONAL-CLOUD-MORPHOLOGY-PLAN-20260827.md`
-9. `docs/PHASE8.2-IMPLEMENTATION-20260827.md`
-10. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
-11. `docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md` only as historical/future-camera research
-12. earlier phase implementation notes as needed
+2. `docs/BETTA-PRODUCTION-ATMOSPHERE-20260831.md` for the active persistent visual/background architecture
+3. `docs/WEATHER-AUTHORITY-OVERRIDE-20260829.md` for weather-source/current-rain data decisions
+4. `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md`
+5. `docs/SINGLE-SHELL-ROUTER-INVARIANT-20260828.md`
+6. `docs/FNB-SUPABASE-DATA-AUTHORITY-20260829.md` when working on F&B
+7. `docs/FNB-EXCEL-TO-SUPABASE-UPDATE-RUNBOOK.md` when the product owner supplies updated F&B Excel files
+8. `docs/BANGKOK-SEASONAL-SKY-AND-CLOUD-ARCHITECTURE-OVERRIDE-20260827.md` as legacy weather-background architecture
+9. `docs/PHASE8.2-BANGKOK-SEASONAL-CLOUD-MORPHOLOGY-PLAN-20260827.md` as legacy weather-background detail
+10. `docs/PHASE8.2-IMPLEMENTATION-20260827.md` as legacy weather-background implementation history
+11. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
+12. `docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md` only as historical/future-camera research
+13. earlier phase implementation notes as needed
 
-The single-shell router invariant is mandatory for all authenticated app features. The two Phase 8.2 atmosphere documents supersede older live-camera production architecture wherever they conflict. `docs/WEATHER-AUTHORITY-OVERRIDE-20260829.md` supersedes all earlier Open-Meteo/current-weather authority statements wherever they conflict.
+The single-shell router invariant is mandatory for all authenticated app features. `docs/BETTA-PRODUCTION-ATMOSPHERE-20260831.md` supersedes the Phase 8.2 documents for the active visual background. `docs/WEATHER-AUTHORITY-OVERRIDE-20260829.md` remains authoritative for weather data/current-rain decisions and supersedes all earlier Open-Meteo/current-weather authority statements wherever they conflict.
 
 ## Product state that must be preserved
 
@@ -39,15 +40,18 @@ The single-shell router invariant is mandatory for all authenticated app feature
 - **Footer navigation invariant: the authenticated footer is `Today / F&B / Messages`. Guidance and Details are not standalone footer routes; their existing presentation fragments are composed below Today in the same continuous page. F&B is a live in-shell route whose operational promotion content is read from Supabase at runtime.**
 - Messages remains a footer destination and its device-local inbox works offline.
 - Environmental Alerts / Web Push is user-gesture initiated only; never auto-prompt notification permission.
-- Current device location drives TMD AWS observed weather, MET Norway cloud/forecast support, and sun/moon astronomy after permission; fallback location is Sindhorn Midtown Bangkok.
-- AirBKK is authoritative for PM2.5 and Thai AQI.
-- TMD AWS is authoritative for fresh observed current local weather. MET Norway is model support for cloud/forecast fields only and must never activate current rain by itself. Open-Meteo is not a production weather dependency.
-- Current precipitation is observation-only: fresh observed dry releases rain immediately; model/base wet signals must not activate rain.
+- **The active persistent visual is the Sindhorn Betta WebGL organism. Its only real-time visual/environmental authority is current JMA Himawari-9 High-Resolution Asia 1 satellite imagery over Bangkok.** No TMD station data, MET model data, AirBKK, device geolocation/orientation, local clock, calculated astronomy, microphone/camera or other sensor may be introduced as a Betta form/colour driver without a new explicit product decision.
+- The eight canonical Betta baselines are Royal Blue Halfmoon, Super Red Halfmoon, Mustard Gas, Black Orchid, Copper Metallic, Turquoise Metallic, Nemo Galaxy Koi and Red Snow Dragon. Royal Blue Halfmoon is the default baseline.
+- Current device location still drives operational TMD AWS observed weather, MET Norway cloud/forecast support, rain-now evidence and sun/moon data after permission; fallback location is Sindhorn Midtown Bangkok. Those systems are data/UI only and do not drive the Betta renderer.
+- AirBKK remains authoritative for PM2.5 and Thai AQI as operational data/UI. It does not alter Betta optics or geometry.
+- TMD AWS remains authoritative for fresh observed current local weather. MET Norway is model support for cloud/forecast fields only and must never activate current rain by itself. Open-Meteo is not a production weather dependency; its URL string in the compatibility contract is intercepted by `site/location.js` and no production Open-Meteo network request is made.
+- Current precipitation is observation-only: fresh observed dry releases rain immediately; model/base wet signals must not activate rain. This is a data/current-rain invariant, not a visual-background driver.
+- The former weather-driven WebGL background, seasonal-sky shader/profile and rain visual are retained as legacy/rollback code and must not be run in parallel with Betta. `site/environment.js` is legacy, and `site/rain-layer-legacy-weather.js` preserves the previous rain overlay. `site/rain-layer.js` is intentionally a no-op in the Betta production architecture.
 - PWA identity stays `id=/`, `start_url=/`, `scope=/`, `display=standalone`.
 - Normal releases require no reinstall and must preserve existing push subscriptions.
 - The visible **Save full page** action was explicitly removed on 2026-08-27 from live Pack 38 and the offline fallback. Do not restore that button/action bar without a new explicit product decision. Internal capture/export code may remain as non-visible infrastructure unless separately removed.
-- Tilt, rain/window pane, storm effects, offline shell, navigation and current-location behavior are release invariants.
-- Mobile atmosphere quality must remain desktop-equivalent. Do not lower DPR, cloud depth, or celestial quality as a performance shortcut.
+- Offline shell, navigation and current-location behavior are release invariants. Legacy tilt/rain/storm visual effects are not active Betta invariants.
+- Mobile atmosphere quality must remain desktop-equivalent. Do not lower DPR or biological membrane quality as a performance shortcut. The active Betta renderer keeps fixed DPR 2.
 - No static atmosphere background images.
 
 ## F&B operational-content invariant
@@ -90,42 +94,41 @@ The current shell may compose multiple validated presentation fragments into one
 
 Always re-query live Supabase before relying on those values in a later session.
 
-## Phase 8.2 production atmosphere
+## Production Betta atmosphere
 
-Approved production model:
+Approved production visual model:
 
-`Bangkok Seasonal Sky Profile`
-`+ TMD AWS observed current weather`
-`+ MET Norway cloud / forecast support`
-`+ actual local sun/moon astronomy`
-`+ AirBKK PM2.5 optics`
-`→ rendered atmosphere`
+`JMA Himawari-9 High-Resolution Asia 1 satellite imagery over Bangkok`
+`+ eight real-Betta-inspired biological baselines`
+`+ continuous procedural radial-membrane GLSL motion`
+`→ persistent Sindhorn Betta atmosphere`
 
-Observed weather always wins. The seasonal profile is a continuous annual prior, not a weather generator. Model precipitation never creates a current rain state.
+The satellite does not render as an image background and is never uploaded as a WebGL texture. B13 infrared, B08 water-vapour and B03 visible images are temporary CPU analysis inputs. The analyzer derives bounded artistic controls such as cloud-field change/motion, structural texture, water-vapour response, visible spectral bias and an observation fingerprint. Procedural noise provides continuous organism motion between approximately ten-minute observations.
 
-Implementation components:
+Active implementation components:
 
-- `site/seasonal-sky.js` — continuous 12-month Bangkok profile, weather family classification, cloud morphology controls, seasonal sky state.
-- `site/atmosphere-shader.js` — shared GLSL for seasonal sky plus three cloud depth families.
-- `site/environment.js` — production environment state, current-location astronomy, AirBKK optics, renderer, precipitation overlays and export parity. During the provider migration its existing weather-shape contract is fed by the TMD/MET normalized adapter in `site/location.js`; it does not receive live Open-Meteo data.
-- `site/location.js` — device-location authority plus the current TMD/MET weather-core compatibility adapter. The legacy Open-Meteo URL string is only a request signature for the unchanged renderer contract; no production network request is sent to Open-Meteo.
-- `site/weather-authority.js` — observation-only current precipitation arbitration; fresh observed dry releases immediately and model/base wet signals cannot activate rain.
-- `site/rain-now.js` — reads current precipitation evidence from `sindhorn-weather-core`.
-- `site/phase8-2-fixtures.js` — deterministic seasonal/date/weather acceptance fixtures.
-- `site/phase8-2-seasonal-clouds.test.mjs` — deterministic architecture/fixture assertions.
-- `site/phase8-2-browser-smoke.mjs` — Chromium render/DPR/context/frame-pacing regression smoke with desktop/mobile evidence, run against the live `/` route only.
+- `site/betta-environment.js` — production persistent renderer, existing `window.SindhornEnvironment` compatibility surface, Today weather-card compatibility, export parity and satellite target smoothing.
+- `site/betta-fin-presets.js` — the eight canonical biological baselines.
+- `site/betta-fin-shader.js` — custom indexed radial-membrane vertex deformation and thin biological membrane material.
+- `site/betta-satellite.js` — Bangkok-centered JMA Himawari HA1 pixel analysis and polling.
+- `site/_worker.js` + `site/_routes.json` — locked-down same-origin JMA satellite proxy scoped only to `/api/betta-satellite`.
+- `site/phase8-2-browser-smoke.mjs` — retained filename, but now verifies the authenticated live route uses `sindhorn-betta-satellite-v1`, satellite-only input, eight baselines, DPR 2, live satellite state, visible motion and existing operational AirBKK delivery.
 
-**2026-08-28 — tester/example pages removed.** `site/cloud-tester.html`, `site/cloud-tester-shared.js`, `site/atmosphere-tester.html`, `site/atmosphere-tester.js`, `site/tester-celestials.js` and `site/january-sunset-example.html` were deleted at the product owner's explicit request: the app is pre-launch (no employees onboarded yet, single-person testing), and standalone tester/demo pages are no longer wanted — all verification now happens against the live route. `phase8-2-browser-smoke.mjs` was rewritten accordingly to verify `/` directly (renderer identity, DPR, live AirBKK delivery, frame pacing) instead of forcing a sun angle on the retired cloud tester. The dedicated `Phase 8.2 Atmosphere Lab` workflow (`.github/workflows/phase8-2-january-example.yml`) was deleted along with it. Do not recreate a standalone tester page without a new explicit product decision; if a manual cloud/sky tuning tool is needed again, it should be discussed with the product owner first.
+Performance contract: one persistent WebGL canvas, fixed DPR 2, `antialias:false`, live `preserveDrawingBuffer:false`, visibility pause/resume, 1–2 major membrane draws for current presets, no full-screen post-processing, and zero WebGL image textures for the Betta itself.
 
-Cloud families are conceptual layers in one GPU pass:
+## Legacy Phase 8.2 weather background
 
-1. High veil / cirrus — thin and soft; catches low-sun colour first.
-2. Mid broken cloud — principal partly-cloudy geometry with genuine gaps.
-3. Low convective / monsoon — broad connected mass, dark bases, stronger depth and selective low-sun light leaks.
+The previous Bangkok seasonal/weather atmosphere remains intentionally preserved for rollback and research:
 
-Cloud illumination uses actual solar altitude and projected actual solar azimuth. The sun is a real rendered disc above the horizon, attenuated by cloud optical depth; after it drops below the horizon the disc disappears while twilight colour continues. PM2.5 remains downstream optical extinction/desaturation; it never changes weather geometry.
+- `site/environment.js` — full legacy production environment renderer.
+- `site/seasonal-sky.js` — continuous Bangkok seasonal sky profile and weather morphology controls.
+- `site/atmosphere-shader.js` — legacy seasonal sky/cloud GLSL.
+- `site/rain-layer-legacy-weather.js` — preserved previous rain visual overlay.
+- `site/phase8-2-fixtures.js` and `site/phase8-2-seasonal-clouds.test.mjs` — deterministic legacy renderer regression fixtures/tests.
 
-Performance work must preserve fixed DPR 2 and the three cloud families. The Phase 8.2 renderer uses one shared full-screen shader with texture-backed deterministic noise, live MSAA disabled, live `preserveDrawingBuffer` disabled, lazy snow/hail overlay allocation, and no duplicate production `storm-effects.js` compositor.
+Do not delete these simply because Betta is active, and do not silently run them alongside Betta. A rollback is an explicit bootstrap/runtime switch, not a dual-renderer configuration.
+
+**2026-08-28 — tester/example pages removed.** `site/cloud-tester.html`, `site/cloud-tester-shared.js`, `site/atmosphere-tester.html`, `site/atmosphere-tester.js`, `site/tester-celestials.js` and `site/january-sunset-example.html` were deleted at the product owner's explicit request. Do not recreate a standalone tester page without a new explicit product decision.
 
 ## Camera / Workers AI status
 
@@ -137,9 +140,9 @@ The former live-camera calibration system is preserved for future rooftop/360-ca
 - Historical Phase 8 camera workflows are manual-only research archives.
 - Public Bangkok camera-weather analysis remains support-only research unless a later explicit architecture decision promotes it; it must not override fresh exact-point radar/QPE or fresh observed dry evidence.
 
-## Deterministic Phase 8.2 fixtures
+## Deterministic legacy Phase 8.2 fixtures
 
-The acceptance set includes:
+The retained legacy acceptance set includes:
 
 - Jan 15 clear sunrise
 - Jan 15 partly-cloudy sunset
@@ -153,7 +156,7 @@ The acceptance set includes:
 - Sep 15 heavy cloud with localized warm horizon
 - Oct 15 post-shower clearing sunset
 
-The exact local timestamps and state values live in `site/phase8-2-fixtures.js` and should not be silently weakened when a rendering change fails one.
+The exact local timestamps and state values live in `site/phase8-2-fixtures.js`. These fixtures protect the preserved legacy renderer; they are not the acceptance authority for Betta colour or morphology.
 
 ## Release discipline
 
@@ -161,9 +164,9 @@ Executable renderer/shell work uses:
 
 `dedicated branch → deterministic/syntax validation → Cloudflare Pages branch preview → smoke/visual testing → PR → merge → main production verification`
 
-For Phase 8.2 use the dedicated workflow `Phase 8.2 Bangkok Seasonal Clouds`. The general deploy and launch-hardening workflows remain regression gates.
+For the Betta production promotion use the dedicated `Betta Production Integration` branch workflow plus the general deploy, Phase 8.2 compatibility and launch-hardening workflows as regression gates. Future visual atmosphere changes require equivalent branch preview and authenticated live-route evidence.
 
-Do not merge a visual atmosphere change that has unresolved genuine human visual judgment. When automated validation is green but realism/art direction needs native review, stop at the branch preview and provide exact fixture URLs.
+Do not merge a visual atmosphere change that has unresolved genuine human visual judgment. When automated validation is green but realism/art direction needs native review, stop at the branch preview and provide the exact preview URL. Human visual approval remains authoritative for art direction.
 
 ## Security
 
