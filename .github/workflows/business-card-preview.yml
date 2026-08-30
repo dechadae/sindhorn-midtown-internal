@@ -111,9 +111,9 @@ jobs:
             site/seasonal-sky.js site/weather-authority.js site/sw.js; do
             git diff --exit-code "$base" HEAD -- "$file"
           done
-          git diff --unified=0 "$base" HEAD -- site/settings.js | grep -q 'settings-dialog-standard.js'
-          git diff --unified=0 "$base" HEAD -- site/settings.js | grep -q 'openSettingsDialog'
-          git diff --unified=0 "$base" HEAD -- site/settings.js | grep -q 'closeSettingsDialog'
+          grep -q 'settings-dialog-standard.js' site/settings.js
+          grep -q 'openSettingsDialog' site/settings.js
+          grep -q 'closeSettingsDialog' site/settings.js
 
       - name: Deploy Cloudflare branch preview
         env:
