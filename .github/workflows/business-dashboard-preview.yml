@@ -12,6 +12,7 @@ on:
       - "site/business-dashboard.css"
       - "site/route-registry.js"
       - "site/ui-system-registry.js"
+      - "site/ci-specimen-fixes.css"
       - "supabase/migrations/*daily_business_dashboard*.sql"
       - "scripts/business-dashboard-browser-smoke.mjs"
       - "scripts/business-dashboard-pwa-smoke.mjs"
