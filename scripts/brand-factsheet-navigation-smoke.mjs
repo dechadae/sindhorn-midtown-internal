@@ -40,7 +40,9 @@ try{
   assert(brandBefore.cardTitles.map(x=>x.text).join('|')==='Our History|Hotel Factsheet','Brand card titles mismatch');
   assert(brandBefore.cardTitles.every(x=>weight(x.weight)>=400),`Brand card title is thin ${JSON.stringify(brandBefore.cardTitles)}`);
 
-  // Use the rendered F&B card CSS as the Brand-card authority.
+  // Use the rendered F&B card CSS as the Brand-card authority. F&B reserves extra
+  // bottom padding for its asynchronous folder/share action row, so that one
+  // content-specific spacing value is intentionally excluded from style parity.
   await page.locator('#app-footer [data-fnb-nav="fnb"]').click();await page.waitForURL(url=>url.pathname==='/fnb');await page.waitForSelector('.fnb-hero');await page.waitForTimeout(260);
   const fnbCard=await page.evaluate(()=>{
     const ref=document.createElement('article');ref.className='fnb-card';ref.style.position='fixed';ref.style.left='-10000px';ref.style.top='0';
@@ -57,7 +59,10 @@ try{
     const rs=getComputedStyle(ref),ts=getComputedStyle(title),cs=getComputedStyle(copy);
     return {borderRadius:rs.borderRadius,borderTopWidth:rs.borderTopWidth,borderTopColor:rs.borderTopColor,backgroundColor:rs.backgroundColor,backdropFilter:rs.backdropFilter||rs.webkitBackdropFilter||'none',paddingTop:rs.paddingTop,paddingRight:rs.paddingRight,paddingBottom:rs.paddingBottom,paddingLeft:rs.paddingLeft,titleSize:ts.fontSize,titleWeight:ts.fontWeight,titleLineHeight:ts.lineHeight,copySize:cs.fontSize};
   });
-  for(const key of Object.keys(fnbCard))assert(brandCard[key]===fnbCard[key],`Brand card ${key} diverges from F&B: ${brandCard[key]} vs ${fnbCard[key]}`);
+  for(const key of Object.keys(fnbCard)){
+    if(key==='paddingBottom')continue;
+    assert(brandCard[key]===fnbCard[key],`Brand card ${key} diverges from F&B: ${brandCard[key]} vs ${fnbCard[key]}`);
+  }
   assert(brandCard.backgroundColor==='rgba(46, 39, 59, 0.48)'&&brandCard.backdropFilter==='blur(18px) saturate(1.18)','Brand card final F&B surface mismatch');
 
   await page.locator('.brand-card').nth(1).click();await page.waitForURL(url=>url.pathname==='/hotel-factsheet');await page.waitForSelector('.factsheet-route');await page.waitForTimeout(320);
