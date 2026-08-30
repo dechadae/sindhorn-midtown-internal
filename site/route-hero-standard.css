@@ -106,9 +106,15 @@ body[data-route="messages"] .route-hero>p:last-child{
   font-family:var(--font-ui)!important;font-size:12px;font-weight:400;line-height:1;letter-spacing:0!important;text-transform:none;cursor:pointer;
   transition:background var(--route-motion-base) ease,border-color var(--route-motion-base) ease,color var(--route-motion-base) ease,box-shadow var(--route-motion-base) var(--route-motion-ease),transform var(--route-motion-fast) var(--route-motion-ease),opacity var(--route-motion-fast) ease
 }
+.ihg-history-route .route-quiet-action,
+.factsheet-route .route-quiet-action{
+  height:36px!important;min-height:36px!important;padding:0 8px!important;
+  border-color:transparent!important;background:transparent!important;color:var(--route-control-muted)!important;
+  font-family:var(--font-ui)!important;font-size:12px!important;font-weight:400!important;line-height:1!important;letter-spacing:0!important;text-transform:none!important
+}
 .route-quiet-action svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .route-quiet-action:active{transform:scale(.975);opacity:.82}
-.route-quiet-action:focus-visible{outline:2px solid var(--route-hero-accent);outline-offset:2px;border-color:var(--route-control-border);box-shadow:0 0 0 4px rgba(229,236,190,.08)}
+.route-quiet-action:focus-visible{outline:2px solid var(--route-hero-accent);outline-offset:2px;border-color:var(--route-control-border)!important;box-shadow:0 0 0 4px rgba(229,236,190,.08)}
 
 /* Settings no longer needs a second avatar inside the hero; the persistent header owns identity. */
 .settings-identity-row{display:block!important}
