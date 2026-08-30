@@ -37,10 +37,14 @@ function assertRecipe(value,label){
   assert(value.top.height==='36px'&&value.top.minHeight==='36px'&&value.top.fontSize==='12px'&&value.top.fontWeight==='400'&&value.top.iconWidth==='15px'&&value.topText==='Back to top',`${label}: Share-style top recipe mismatch ${JSON.stringify(value.top)}`);
 }
 async function exerciseTop(page,routeSelector,label,screenshot){
-  await page.evaluate(()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'auto'}));
-  await page.waitForFunction(()=>window.scrollY>100);
+  const top=page.locator(`${routeSelector} [data-route-back-to-top]`);
+  await top.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(180);
+  const visible=await top.evaluate(node=>{const r=node.getBoundingClientRect();return r.width>0&&r.height>0&&r.top>=0&&r.bottom<=innerHeight});
+  assert(visible,`${label}: Back to top is not visible at the actual page end`);
+  assert((await page.evaluate(()=>window.scrollY))>100,`${label}: page did not scroll to the end action`);
   if(screenshot)await page.screenshot({path:path.join(OUT_DIR,screenshot),fullPage:false});
-  await page.locator(`${routeSelector} [data-route-back-to-top]`).click();
+  await top.click();
   await page.waitForFunction(()=>window.scrollY<5,{timeout:5000});
   assert((await page.evaluate(()=>window.scrollY))<5,`${label}: Back to top did not reach top`);
 }
