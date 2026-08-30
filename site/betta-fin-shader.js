@@ -150,6 +150,7 @@ uniform vec3 uColor0;
 uniform vec3 uColor1;
 uniform vec3 uColor2;
 uniform vec3 uColor3;
+uniform float uMorphMode;
 uniform float uOpacity;
 uniform float uTransmission;
 uniform float uRimStrength;
@@ -180,6 +181,16 @@ float hash21(vec2 p){
   p+=dot(p,p+45.32);
   return fract(p.x*p.y);
 }
+float valueNoise(vec2 p){
+  vec2 i=floor(p);
+  vec2 f=fract(p);
+  f=f*f*(3.0-2.0*f);
+  float a=hash21(i);
+  float b=hash21(i+vec2(1.0,0.0));
+  float c=hash21(i+vec2(0.0,1.0));
+  float d=hash21(i+vec2(1.0,1.0));
+  return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);
+}
 vec3 palette(float t){
   t=clamp(t,0.0,1.0);
   if(t<.34)return mix(uColor0,uColor1,t/.34);
@@ -198,15 +209,45 @@ void main(){
   float fresnel=pow(1.0-nv,2.1);
   float rayRidge=pow(1.0-vRay,5.5);
   float micro=hash21(floor(vFinUv*vec2(211.0,377.0)+uSeed*17.0));
-  float satelliteGradient=(uSatelliteFingerprint.x-.5)*.12+(uSatelliteCold-uSatelliteVapor)*.075;
+  float patchA=valueNoise(vFinUv*vec2(4.4,6.8)+vec2(uSeed*.13,uSeed*.07));
+  float patchB=valueNoise(vFinUv*vec2(8.1,4.9)+vec2(-uSeed*.09,uSeed*.16));
+  float satelliteGradient=(uSatelliteFingerprint.x-.5)*.1+(uSatelliteCold-uSatelliteVapor)*.06;
   float gradient=clamp(vFinUv.x*.67+vFinUv.y*.28+uGradientPosition+satelliteGradient+.055*sin(vFinUv.y*13.0+uSeed),0.0,1.0);
+  if(uMorphMode>2.5&&uMorphMode<3.5){
+    gradient=clamp(vFinUv.x*.94+vFinUv.y*.05+uGradientPosition+satelliteGradient*.55,0.0,1.0);
+  }
   vec3 base=palette(gradient);
-  vec3 satTint=saturateColor(max(uSatelliteColor,vec3(.02)),1.45);
-  float satMix=clamp(.08+uSatelliteVisible*.18+uSatelliteVapor*.07,0.0,.34);
-  base=mix(base,base*(.64+satTint*.82),satMix);
+
+  if(uMorphMode>.5&&uMorphMode<1.5){
+    vec3 koi=uColor1;
+    koi=mix(koi,uColor2,smoothstep(.3,.58,patchA));
+    koi=mix(koi,uColor3,smoothstep(.63,.84,patchA));
+    float darkPatch=smoothstep(.7,.9,patchB);
+    koi=mix(koi,vec3(.008,.008,.012),darkPatch*.78);
+    float galaxyCell=hash21(floor(vFinUv*vec2(34.0,56.0)+uSeed*5.0));
+    float galaxyMask=smoothstep(.965,1.0,galaxyCell)*(1.0-darkPatch);
+    koi=mix(koi,uColor0*1.35,galaxyMask*.86);
+    base=koi;
+  }else if(uMorphMode>1.5&&uMorphMode<2.5){
+    float boundary=.59+(patchA-.5)*.2+(patchB-.5)*.08;
+    float redZone=smoothstep(boundary-.055,boundary+.055,vFinUv.x);
+    vec3 pearl=mix(uColor0,uColor1,clamp(vFinUv.x/.7,0.0,1.0));
+    vec3 red=mix(uColor2,uColor3,smoothstep(boundary,1.0,vFinUv.x));
+    base=mix(pearl,red,redZone);
+    base+=uColor0*rayRidge*.07*(1.0-redZone);
+  }else if(uMorphMode>3.5&&uMorphMode<4.5){
+    base=mix(base,uColor3,clamp(rayRidge*.26+fresnel*.08,0.0,.3));
+  }else if(uMorphMode>4.5&&uMorphMode<5.5){
+    float metallic=clamp(fresnel*.34+rayRidge*.2+(micro-.5)*.06,0.0,.38);
+    base=mix(base,uColor3,metallic);
+  }
+
+  vec3 satTint=saturateColor(max(uSatelliteColor,vec3(.02)),1.35);
+  float satMix=clamp(.035+uSatelliteVisible*.085+uSatelliteVapor*.035,0.0,.17);
+  base=mix(base,base*(.78+satTint*.42),satMix);
   float irShift=(fresnel*.65+vFold*.35)*uIridescence;
-  irShift+=uSatelliteVapor*.08+(uSatelliteFingerprint.z-.5)*.055;
-  base=mix(base,base.brg,clamp(irShift*.28,0.0,.38));
+  irShift+=uSatelliteVapor*.065+(uSatelliteFingerprint.z-.5)*.045;
+  base=mix(base,base.brg,clamp(irShift*.26,0.0,.32));
   base=saturateColor(base,uSaturation*(.94+.12*uSatelliteEnergy))*uBrightness;
   vec3 lightA=normalize(vec3(-.35,.72,.9));
   vec3 lightB=normalize(vec3(.72,-.28,.55));
@@ -217,7 +258,7 @@ void main(){
   float biologicalNoise=(micro-.5)*.045;
   vec3 transmitted=base*(.36+.44*uTransmission+.2*nv);
   vec3 lit=transmitted+base*(foldLight*.42+edgeLight*.25)+vec3(1.0,.82,.92)*edgeLight*uBloom*.13;
-  lit+=satTint*uSatelliteCold*vFold*.045;
+  lit+=satTint*uSatelliteCold*vFold*.035;
   lit+=biologicalNoise*base;
   float membrane=.42+.35*(1.0-uTransmission)+.22*(1.0-nv);
   float alpha=uOpacity*uLayerAlpha*membrane;
