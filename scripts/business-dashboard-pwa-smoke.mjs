@@ -23,7 +23,7 @@ try{
     await new Promise(resolve=>setTimeout(resolve,500));
     const manifest=await fetch('/manifest.webmanifest',{cache:'no-store'}).then(r=>r.json());
     const keys=await caches.keys();
-    const key=keys.find(value=>value.includes('pwa-v33-business-dashboard-ci-r1'));
+    const key=keys.find(value=>value.includes('pwa-v31-line-seed-sans-th-v33-business-dashboard-ci-r1'));
     const cache=key?await caches.open(key):null;
     const expected=['/index.html','/route-registry.js','/business-dashboard.js','/business-dashboard-data.js','/business-dashboard.css','/hotel-factsheet.css','/app.js'];
     const cached={};
