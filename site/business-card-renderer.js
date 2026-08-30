@@ -9,6 +9,7 @@ function telHref(value){const raw=String(value||'').trim();if(!raw)return'';cons
 function emailHref(value){return value?`mailto:${encodeURIComponent(String(value).trim())}`:''}
 function safeLogoPath(value){const path=String(value||'');return /^\/assets\/brand\/[a-z0-9._-]+$/i.test(path)?path:BUSINESS_CARD_HOTEL_LOGO}
 function hotelNameHtml(value){const name=String(value||BUSINESS_CARD_HOTEL_NAME).trim(),comma=name.indexOf(',');return comma<0?esc(name):`${esc(name.slice(0,comma+1))}<br>${esc(name.slice(comma+1).trim())}`}
+function hotelAddressHtml(value){const address=String(value||'').trim(),lower=address.toLowerCase(),marker=', bangkok',index=lower.indexOf(marker);if(index<0)return esc(address);return`${esc(address.slice(0,index+1))}<br>${esc(address.slice(index+2))}`}
 function websiteLabel(value){try{return new URL(value).hostname.replace(/^www\./,'')||'Hotel website'}catch(_){return'Hotel website'}}
 function balancedNameHtml(value){
   const name=String(value||'').trim().toUpperCase(),words=name.split(/\s+/).filter(Boolean);
@@ -18,6 +19,7 @@ function balancedNameHtml(value){
   return`${esc(words.slice(0,split).join(' '))}<br>${esc(words.slice(split).join(' '))}`;
 }
 function detail(label,value,href='',displayValue=value){if(!value)return'';const body=href?`<a href="${esc(href)}">${esc(displayValue)}</a>`:`<b>${esc(displayValue)}</b>`;return`<div class="public-card-detail"><span>${esc(label)}</span>${body}</div>`}
+function detailHtml(label,value,html){if(!value)return'';return`<div class="public-card-detail"><span>${esc(label)}</span><b>${html}</b></div>`}
 
 export function normalizeSelfBusinessCard(data){
   const card=data?.card||{},hotel=data?.hotel||{},vis=card.fieldVisibility||{};
@@ -54,7 +56,7 @@ export function renderBusinessCardMarkup(card,{origin=location.origin,closeMarku
       ${detail('Business mobile',card.businessMobile,telHref(card.businessMobile))}
       ${detail('Direct phone',card.directPhone,telHref(card.directPhone))}
       ${detail('Hotel telephone',card.hotelMainPhone,telHref(card.hotelMainPhone))}
-      ${detail('Hotel address',card.hotelAddress)}
+      ${detailHtml('Hotel address',card.hotelAddress,hotelAddressHtml(card.hotelAddress))}
       ${detail('Hotel website',card.hotelWebsite,card.hotelWebsite,websiteLabel(card.hotelWebsite))}
     </div>
     <div class="public-card-actions">
