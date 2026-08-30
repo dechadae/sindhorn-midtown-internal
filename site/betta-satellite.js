@@ -1,10 +1,7 @@
 const API='/api/betta-satellite';
-const TILE_SIZE=550;
-const SATELLITE_LONGITUDE=140.7;
-const SATELLITE_DISTANCE=(35793+6371)/6371;
 const BANGKOK={lat:13.7563,lon:100.5018};
-const ZOOM_CANDIDATES=[4,2,1];
-const SOURCE='Himawari-9 · NICT / JMA';
+const HA1_BOUNDS={west:99,east:110,north:16,south:7};
+const SOURCE='Himawari-9 · JMA High-Resolution Asia 1';
 
 const clamp=(v,min=0,max=1)=>Math.min(max,Math.max(min,v));
 const mix=(a,b,t)=>a+(b-a)*t;
@@ -15,51 +12,22 @@ function utcDate(value){
   return new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(text)?text:`${text}Z`);
 }
 function pad(value){return String(value).padStart(2,'0')}
-function timePath(value){
+function slotFor(value){
   const date=utcDate(value);
   if(!Number.isFinite(date.getTime()))throw new Error('Invalid Himawari timestamp');
-  return `${date.getUTCFullYear()}/${pad(date.getUTCMonth()+1)}/${pad(date.getUTCDate())}/${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())}`;
+  return `${pad(date.getUTCHours())}${pad(Math.floor(date.getUTCMinutes()/10)*10)}`;
 }
 function previousObservation(value){
   const date=utcDate(value);
   return new Date(date.getTime()-10*60*1000);
 }
-
-function projectBangkok(zoom){
-  const phi=BANGKOK.lat*Math.PI/180;
-  const lambda=(BANGKOK.lon-SATELLITE_LONGITUDE)*Math.PI/180;
-  const cosc=Math.cos(phi)*Math.cos(lambda);
-  const k=(SATELLITE_DISTANCE-1)/(SATELLITE_DISTANCE-cosc);
-  const x=k*Math.cos(phi)*Math.sin(lambda);
-  const y=k*Math.sin(phi);
-  const limb=Math.sqrt((SATELLITE_DISTANCE-1)/(SATELLITE_DISTANCE+1));
-  const diskSize=zoom*TILE_SIZE;
-  const scale=diskSize/(2*limb);
-  const globalX=diskSize/2+x*scale;
-  const globalY=diskSize/2-y*scale;
-  const tileX=Math.floor(globalX/TILE_SIZE);
-  const tileY=Math.floor(globalY/TILE_SIZE);
-  return{
-    zoom,
-    tileX:clamp(tileX,0,zoom-1),
-    tileY:clamp(tileY,0,zoom-1),
-    localX:globalX-tileX*TILE_SIZE,
-    localY:globalY-tileY*TILE_SIZE,
-    globalX,globalY
-  };
-}
-
-function tileUrl(dataset,time,projection){
-  const params=new URLSearchParams({
-    kind:'tile',dataset,time:timePath(time),zoom:String(projection.zoom),
-    x:String(projection.tileX),y:String(projection.tileY)
-  });
+function frameUrl(band,time){
+  const params=new URLSearchParams({kind:'frame',band,time:slotFor(time)});
   return `${API}?${params}`;
 }
-
-async function imageData(dataset,time,projection){
-  const response=await fetch(tileUrl(dataset,time,projection),{cache:'force-cache'});
-  if(!response.ok)throw new Error(`${dataset} tile ${response.status}`);
+async function imageData(band,time){
+  const response=await fetch(frameUrl(band,time),{cache:'no-store'});
+  if(!response.ok)throw new Error(`${band} Himawari frame ${response.status}`);
   const blob=await response.blob();
   const bitmap=await createImageBitmap(blob);
   const canvas=document.createElement('canvas');
@@ -70,12 +38,24 @@ async function imageData(dataset,time,projection){
   bitmap.close?.();
   return context.getImageData(0,0,canvas.width,canvas.height);
 }
-
-function patchFrom(image,projection,radius){
-  const cx=Math.round(projection.localX),cy=Math.round(projection.localY);
-  const left=Math.max(1,cx-radius),right=Math.min(image.width-2,cx+radius);
-  const top=Math.max(1,cy-radius),bottom=Math.min(image.height-2,cy+radius);
+function projectBangkok(image){
+  const xNorm=clamp((BANGKOK.lon-HA1_BOUNDS.west)/(HA1_BOUNDS.east-HA1_BOUNDS.west));
+  const yNorm=clamp((HA1_BOUNDS.north-BANGKOK.lat)/(HA1_BOUNDS.north-HA1_BOUNDS.south));
+  return{
+    x:xNorm*(image.width-1),
+    y:yNorm*(image.height-1),
+    xNorm,yNorm
+  };
+}
+function patchFrom(image,radiusDegrees=.72){
+  const projection=projectBangkok(image);
+  const radiusX=Math.max(18,Math.round(image.width*radiusDegrees/(HA1_BOUNDS.east-HA1_BOUNDS.west)));
+  const radiusY=Math.max(18,Math.round(image.height*radiusDegrees/(HA1_BOUNDS.north-HA1_BOUNDS.south)));
+  const cx=Math.round(projection.x),cy=Math.round(projection.y);
+  const left=Math.max(1,cx-radiusX),right=Math.min(image.width-2,cx+radiusX);
+  const top=Math.max(1,cy-radiusY),bottom=Math.min(image.height-2,cy+radiusY);
   const width=right-left+1,height=bottom-top+1;
+  if(width<12||height<12)throw new Error('Bangkok satellite patch too small');
   const gray=new Float32Array(width*height);
   const rgb=new Float32Array(width*height*3);
   let p=0,q=0;
@@ -87,11 +67,25 @@ function patchFrom(image,projection,radius){
       rgb[q++]=r;rgb[q++]=g;rgb[q++]=b;
     }
   }
-  return{gray,rgb,width,height,left,top};
+  return{
+    gray,rgb,width,height,left,top,
+    sourceWidth:image.width,sourceHeight:image.height,
+    centerX:projection.x,centerY:projection.y,
+    radiusDegrees
+  };
 }
 function mean(values){
   let sum=0;for(let i=0;i<values.length;i++)sum+=values[i];
   return values.length?sum/values.length:0;
+}
+function standardDeviation(values){
+  if(!values.length)return 0;
+  const avg=mean(values);
+  let sum=0;
+  for(let i=0;i<values.length;i++){
+    const d=values[i]-avg;sum+=d*d;
+  }
+  return Math.sqrt(sum/values.length);
 }
 function percentile(values,p){
   if(!values.length)return 0;
@@ -113,20 +107,21 @@ function gradientEnergy(patch){
   return count?sum/count:0;
 }
 function cloudMetrics(current,previous){
-  const p40=percentile(current.gray,.4),p82=percentile(current.gray,.82),p92=percentile(current.gray,.92);
-  const prev82=percentile(previous.gray,.82),prev92=percentile(previous.gray,.92);
-  const threshold=Math.max(.38,p40+(p92-p40)*.46);
+  const p30=percentile(current.gray,.3),p70=percentile(current.gray,.7),p90=percentile(current.gray,.9),p97=percentile(current.gray,.97);
+  const prev70=percentile(previous.gray,.7),prev90=percentile(previous.gray,.9);
+  const contrast=Math.max(.025,p97-p30);
+  const threshold=p30+contrast*.43;
   let cloudPixels=0;
   for(let i=0;i<current.gray.length;i++)if(current.gray[i]>threshold)cloudPixels++;
   const cloudAmount=clamp(cloudPixels/Math.max(1,current.gray.length));
-  const coldCloud=clamp((p92-.42)/.5);
-  const cooling=clamp((p92-prev92)*3.2+(p82-prev82)*2.1,-1,1);
-  const texture=clamp(gradientEnergy(current)/.16);
-  return{cloudAmount,coldCloud,cooling,texture,p40,p82,p92};
+  const coldCloud=clamp((p90-p30)/Math.max(.08,contrast));
+  const cooling=clamp((p90-prev90)*3.2+(p70-prev70)*2.1,-1,1);
+  const texture=clamp(gradientEnergy(current)/.14);
+  return{cloudAmount,coldCloud,cooling,texture,p30,p70,p90,p97};
 }
 function motionMetrics(current,previous){
   const width=Math.min(current.width,previous.width),height=Math.min(current.height,previous.height);
-  const search=Math.max(2,Math.min(8,Math.floor(width/9)));
+  const search=Math.max(2,Math.min(9,Math.floor(Math.min(width,height)/10)));
   const margin=search+3;
   let best={score:-2,dx:0,dy:0};
   for(let dy=-search;dy<=search;dy++){
@@ -154,17 +149,18 @@ function motionMetrics(current,previous){
     }
   }
   const magnitude=Math.sqrt(best.dx*best.dx+best.dy*best.dy);
-  const confidence=clamp((best.score-.15)/.7);
+  const confidence=clamp((best.score-.18)/.67);
   return{
     dx:best.dx,dy:best.dy,correlation:best.score,confidence,
-    magnitude,energy:clamp(magnitude/5.5)*confidence
+    magnitude,energy:clamp(magnitude/6)*confidence
   };
 }
 function waterVaporMetrics(patch){
   const p72=percentile(patch.gray,.72);
-  const texture=clamp(gradientEnergy(patch)/.17);
-  const moisture=clamp((p72-.25)/.58)*.68+texture*.32;
-  return{moisture:clamp(moisture),texture,p72};
+  const p25=percentile(patch.gray,.25);
+  const texture=clamp(gradientEnergy(patch)/.15);
+  const moisture=clamp((p72-p25)/.42)*.68+texture*.32;
+  return{moisture:clamp(moisture),texture,p25,p72};
 }
 function visibleMetrics(patch){
   let r=0,g=0,b=0,l=0,count=0,active=0;
@@ -200,43 +196,54 @@ function fingerprint(...patches){
   const c=((hash>>>16)&0xffff)/65535;
   return{hash:hash.toString(16).padStart(8,'0'),a,b,c};
 }
-
-function deriveState({latest,projection,currentIR,previousIR,waterVapor,visible}){
+function deriveState({latest,currentIR,previousIR,waterVapor,visible}){
+  const irVariation=standardDeviation(currentIR.gray);
+  const vaporVariation=standardDeviation(waterVapor.gray);
+  if(irVariation<.006||vaporVariation<.004){
+    throw new Error(`Degenerate Himawari Bangkok patch (IR ${irVariation.toFixed(4)}, WV ${vaporVariation.toFixed(4)})`);
+  }
   const cloud=cloudMetrics(currentIR,previousIR);
   const motion=motionMetrics(currentIR,previousIR);
   const vapor=waterVaporMetrics(waterVapor);
   const color=visibleMetrics(visible);
   const fp=fingerprint(currentIR,waterVapor);
   const positiveCooling=Math.max(0,cloud.cooling);
-  const energy=clamp(.56+motion.energy*.19+cloud.texture*.12+cloud.coldCloud*.07+positiveCooling*.16,.56,1);
+  const energy=clamp(.62+motion.energy*.2+cloud.texture*.13+cloud.coldCloud*.08+positiveCooling*.18,.62,1);
   const measuredAngle=Math.atan2(-motion.dy,motion.dx);
   const fingerprintAngle=(fp.a*2-1)*Math.PI;
   const directionAngle=mix(fingerprintAngle,measuredAngle,motion.confidence);
-  const directionMagnitude=.42+energy*.5;
+  const directionMagnitude=.5+energy*.55;
   const morphologyVector=[Math.cos(directionAngle)*directionMagnitude,Math.sin(directionAngle)*directionMagnitude];
   const infraredColor=[
-    clamp(.18+.48*cloud.coldCloud+.14*fp.c),
-    clamp(.16+.5*vapor.moisture+.12*fp.b),
-    clamp(.42+.38*(1-cloud.coldCloud)+.18*fp.a)
+    clamp(.16+.48*cloud.coldCloud+.16*fp.c),
+    clamp(.15+.48*vapor.moisture+.14*fp.b),
+    clamp(.4+.4*(1-cloud.coldCloud)+.18*fp.a)
   ];
   const satelliteColor=[
-    mix(infraredColor[0],color.color[0],color.confidence),
-    mix(infraredColor[1],color.color[1],color.confidence),
-    mix(infraredColor[2],color.color[2],color.confidence)
+    mix(infraredColor[0],color.color[0],color.confidence*.7),
+    mix(infraredColor[1],color.color[1],color.confidence*.7),
+    mix(infraredColor[2],color.color[2],color.confidence*.7)
   ];
   return{
     status:'live',
     inputMode:'satellite-only',
-    satellite:'Himawari-9',provider:'NICT / JMA',source:SOURCE,
-    observedAt:latest.date,
+    satellite:'Himawari-9',provider:'JMA',source:SOURCE,
+    sector:latest.sector||'High-Resolution Asia 1',bounds:latest.bounds||HA1_BOUNDS,
+    observedAt:latest.observedAt||latest.date,
+    sourceLastModified:latest.sourceLastModified||null,
     cadenceMinutes:latest.cadenceMinutes||10,
-    zoom:projection.zoom,
-    bangkok:{...BANGKOK,tileX:projection.tileX,tileY:projection.tileY,localX:+projection.localX.toFixed(1),localY:+projection.localY.toFixed(1)},
+    bangkok:{
+      ...BANGKOK,
+      imageWidth:currentIR.sourceWidth,imageHeight:currentIR.sourceHeight,
+      pixelX:+currentIR.centerX.toFixed(1),pixelY:+currentIR.centerY.toFixed(1),
+      radiusDegrees:currentIR.radiusDegrees
+    },
     metrics:{
       cloudAmount:+cloud.cloudAmount.toFixed(3),coldCloud:+cloud.coldCloud.toFixed(3),cooling:+cloud.cooling.toFixed(3),
       cloudTexture:+cloud.texture.toFixed(3),waterVapor:+vapor.moisture.toFixed(3),
       motionX:motion.dx,motionY:motion.dy,motionMagnitude:+motion.magnitude.toFixed(3),motionConfidence:+motion.confidence.toFixed(3),
-      visibleConfidence:+color.confidence.toFixed(3),energy:+energy.toFixed(3),fingerprint:fp.hash
+      visibleConfidence:+color.confidence.toFixed(3),energy:+energy.toFixed(3),fingerprint:fp.hash,
+      irVariation:+irVariation.toFixed(4),vaporVariation:+vaporVariation.toFixed(4)
     },
     drivers:{
       energy,
@@ -252,44 +259,33 @@ function deriveState({latest,projection,currentIR,previousIR,waterVapor,visible}
     }
   };
 }
-
 async function latestMetadata(){
   const response=await fetch(`${API}?kind=latest`,{cache:'no-store'});
   if(!response.ok)throw new Error(`Himawari metadata ${response.status}`);
   const payload=await response.json();
-  if(!payload?.ok||!payload.date)throw new Error(payload?.error||'Himawari metadata unavailable');
+  if(!payload?.ok||!(payload.observedAt||payload.date))throw new Error(payload?.error||'Himawari metadata unavailable');
   return payload;
 }
-async function frameSet(latest,projection){
-  const current=utcDate(latest.date),previous=previousObservation(current);
-  const radius=projection.zoom>=4?42:projection.zoom===2?30:18;
+async function frameSet(latest){
+  const current=utcDate(latest.observedAt||latest.date),previous=previousObservation(current);
   const [currentIRRaw,previousIRRaw,waterRaw,visibleRaw]=await Promise.all([
-    imageData('b13',current,projection),
-    imageData('b13',previous,projection),
-    imageData('b08',current,projection),
-    imageData('true',current,projection)
+    imageData('b13',current),
+    imageData('b13',previous),
+    imageData('b08',current),
+    imageData('b03',current)
   ]);
   return{
-    currentIR:patchFrom(currentIRRaw,projection,radius),
-    previousIR:patchFrom(previousIRRaw,projection,radius),
-    waterVapor:patchFrom(waterRaw,projection,radius),
-    visible:patchFrom(visibleRaw,projection,radius)
+    currentIR:patchFrom(currentIRRaw),
+    previousIR:patchFrom(previousIRRaw),
+    waterVapor:patchFrom(waterRaw),
+    visible:patchFrom(visibleRaw)
   };
 }
-
 export async function readSatelliteState(){
   const latest=await latestMetadata();
-  let lastError=null;
-  for(const zoom of ZOOM_CANDIDATES){
-    const projection=projectBangkok(zoom);
-    try{
-      const frames=await frameSet(latest,projection);
-      return deriveState({latest,projection,...frames});
-    }catch(error){lastError=error}
-  }
-  throw lastError||new Error('No Himawari imagery available');
+  const frames=await frameSet(latest);
+  return deriveState({latest,...frames});
 }
-
 export function startSatelliteStream({onState,onError,intervalMs=90000}={}){
   let stopped=false,lastObserved='';
   async function refresh(){
@@ -303,5 +299,4 @@ export function startSatelliteStream({onState,onError,intervalMs=90000}={}){
   const timer=setInterval(refresh,Math.max(30000,intervalMs));
   return()=>{stopped=true;clearInterval(timer)};
 }
-
 export const SATELLITE_SOURCE=SOURCE;
