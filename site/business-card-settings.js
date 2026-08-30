@@ -4,6 +4,7 @@ import {businessCardUrl} from './business-card-core.js';
 
 const HOTEL_NAME='Sindhorn Midtown Hotel Bangkok, Vignette Collection by IHG';
 const HOTEL_LOGO='/assets/brand/sindhorn-midtown-vignette-white.png';
+const SETTINGS_MOTION={in:300,out:180,ease:'cubic-bezier(.22,1,.36,1)'};
 
 function esc(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
 function disabled(value){return value?' disabled':''}
@@ -27,6 +28,21 @@ function setSelect(dialog,selector,value,disabledValue=false){
   select.value=String(value);
   select.disabled=disabledValue;
   syncSettingsSelect(select);
+}
+function reducedMotion(){return matchMedia('(prefers-reduced-motion: reduce)').matches}
+async function animateSettingsDialog(element,keyframes,duration){
+  if(!element||reducedMotion()||typeof element.animate!=='function')return;
+  try{await element.animate(keyframes,{duration,easing:SETTINGS_MOTION.ease,fill:'both'}).finished}catch(_){}
+}
+async function openSettingsDialog(dialog){
+  if(!dialog||dialog.open)return;
+  dialog.showModal();
+  await animateSettingsDialog(dialog,[{opacity:.02,transform:'translateY(18px) scale(.985)'},{opacity:1,transform:'translateY(0) scale(1)'}],SETTINGS_MOTION.in);
+}
+async function closeSettingsDialog(dialog){
+  if(!dialog?.open)return;
+  await animateSettingsDialog(dialog,[{opacity:1,transform:'translateY(0) scale(1)'},{opacity:.02,transform:'translateY(10px) scale(.992)'}],SETTINGS_MOTION.out);
+  if(dialog.open)dialog.close();
 }
 async function copyText(value){
   try{await navigator.clipboard.writeText(value);return true}catch(_){}
@@ -109,21 +125,22 @@ export async function mountSettingsBusinessCard(root,{preload=null}={}){
     section.querySelector('[data-bc-settings-host]')?.remove();
     const markup=actionsMarkup();if(markup)facts.insertAdjacentHTML('afterend',markup);
   }
+  function ensureInjected(){if(!route.querySelector('[data-bc-settings-host]'))inject()}
   function mountPresentClose(){
     const doc=presentFrame?.contentDocument,panel=doc?.querySelector('.public-card-panel');
     if(!panel||panel.querySelector('[data-bc-present-close]'))return;
     const button=doc.createElement('button');
     button.className='public-card-present-close';button.type='button';button.dataset.bcPresentClose='';button.setAttribute('aria-label','Close');button.textContent='×';
-    button.addEventListener('click',closePresent);
+    button.addEventListener('click',()=>{void closePresent()});
     panel.prepend(button);
   }
-  function openPresent(){
+  async function openPresent(){
     if(!data?.card?.published)return;
     const url=businessCardUrl(location.origin,data.card.publicSlug);
     if(presentFrame.src!==url)presentFrame.src=url;else mountPresentClose();
-    if(!presentDialog.open)presentDialog.showModal();
+    await openSettingsDialog(presentDialog);
   }
-  function closePresent(){if(presentDialog.open)presentDialog.close()}
+  async function closePresent(){await closeSettingsDialog(presentDialog)}
   function fillEdit(){
     if(!data?.card)return;
     const card=data.card,hotel=data.hotel,vis=card.fieldVisibility||{},lock=!canManage;
@@ -176,12 +193,18 @@ export async function mountSettingsBusinessCard(root,{preload=null}={}){
   }
 
   const clickHandler=event=>{
-    if(event.target.closest('[data-bc-present]')){openPresent();return}
+    if(event.target.closest('[data-bc-present]')){void openPresent();return}
     if(event.target.closest('[data-bc-share]')){void share();return}
     if(event.target.closest('[data-bc-edit]')){openEdit();return}
     if(event.target.closest('[data-bc-edit-close],[data-bc-edit-cancel]'))closeEdit();
   };
-  const sectionChanged=event=>{if(event?.detail?.section==='account')inject()};
+  const accountBeforePaint=event=>{
+    const button=event.target.closest('[data-section="account"]');
+    if(!button||!route.contains(button))return;
+    queueMicrotask(()=>{if(!disposed)ensureInjected()});
+  };
+  const sectionChanged=event=>{if(event?.detail?.section==='account')ensureInjected()};
+  on(route,'click',accountBeforePaint,true);
   on(route,'click',clickHandler);
   on(editDialog.querySelector('[data-bc-edit-form]'),'submit',saveEdit);
   on(document,'sindhorn:settings-section-changed',sectionChanged);
@@ -195,7 +218,7 @@ export async function mountSettingsBusinessCard(root,{preload=null}={}){
 
   return()=>{
     disposed=true;clearTimeout(statusTimer);cleanup.splice(0).forEach(fn=>fn());
-    closePresent();closeEdit();presentDialog.remove();editDialog.remove();
+    void closePresent();closeEdit();presentDialog.remove();editDialog.remove();
     route.querySelector('[data-bc-settings-host]')?.remove();
   };
 }
