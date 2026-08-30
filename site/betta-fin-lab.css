@@ -26,7 +26,21 @@ h1{margin:0;font-size:clamp(27px,5vw,42px);line-height:.98;font-weight:100}
 .glass-button{min-height:36px;padding:0 13px;border-radius:9px;font-size:12px;cursor:pointer}
 .glass-button.primary{background:rgba(246,242,245,.92);color:#17111c;border-color:transparent}
 .glass-button:active,.preset-button:active{transform:scale(.97)}
-.ui-specimen{position:absolute;z-index:3;left:clamp(18px,7vw,100px);top:50%;transform:translateY(-50%);width:min(310px,70vw);pointer-events:none}
+.satellite-panel{position:absolute;z-index:4;left:max(18px,env(safe-area-inset-left));top:128px;width:min(360px,calc(100% - 36px));padding:12px 13px 10px;border:1px solid rgba(255,255,255,.11);border-radius:11px;background:rgba(12,8,16,.32);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);pointer-events:none;transition:border-color .3s ease,background .3s ease}
+.satellite-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.satellite-status{margin:0;font-size:9px;line-height:1.2;font-weight:700;color:rgba(255,255,255,.68)}
+.satellite-observed{margin:4px 0 0;font-size:9px;line-height:1.25;color:rgba(255,255,255,.42)}
+.satellite-dot{width:7px;height:7px;margin-top:1px;border-radius:50%;background:rgba(255,255,255,.25);box-shadow:0 0 0 0 rgba(255,255,255,0)}
+.satellite-panel.is-live{border-color:rgba(255,255,255,.17);background:rgba(12,8,16,.42)}
+.satellite-panel.is-live .satellite-dot{background:rgba(255,255,255,.88);animation:satellite-pulse 2.4s ease-out infinite}
+.satellite-panel.is-error .satellite-dot{background:rgba(255,255,255,.42)}
+.satellite-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 10px;margin-top:11px;padding-top:9px;border-top:1px solid rgba(255,255,255,.08)}
+.satellite-grid div{min-width:0}
+.satellite-grid span{display:block;font-size:8px;color:rgba(255,255,255,.36)}
+.satellite-grid strong{display:block;margin-top:2px;overflow:hidden;text-overflow:ellipsis;font-size:10px;line-height:1.2;font-weight:400;color:rgba(255,255,255,.74);font-variant-numeric:tabular-nums}
+.satellite-credit{margin:9px 0 0;font-size:7px;color:rgba(255,255,255,.28)}
+@keyframes satellite-pulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.26)}70%{box-shadow:0 0 0 7px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+.ui-specimen{position:absolute;z-index:3;left:clamp(18px,7vw,100px);top:58%;transform:translateY(-50%);width:min(310px,70vw);pointer-events:none}
 .specimen-kicker{margin:0 0 12px;font-size:9px;font-weight:700;color:rgba(255,255,255,.55)}
 .specimen-time{margin:0;font-size:clamp(62px,16vw,116px);line-height:.78;font-weight:100}
 .specimen-date{margin:13px 0 22px;font-size:13px;color:rgba(255,255,255,.7)}
@@ -59,6 +73,8 @@ h1{margin:0;font-size:clamp(27px,5vw,42px);line-height:.98;font-weight:100}
   .preset-description{max-width:265px}
   .header-actions{position:absolute;top:0;right:0}
   .header-actions .glass-button:not(.primary){display:none}
+  .satellite-panel{left:14px;top:112px;width:min(330px,calc(100% - 28px));padding:10px 11px 9px}
+  .satellite-grid{gap:7px 8px;margin-top:9px;padding-top:8px}
   .preset-rail{grid-template-columns:repeat(2,1fr);bottom:max(12px,env(safe-area-inset-bottom));gap:6px}
   .preset-button{min-height:46px;padding:7px 9px}
   .diagnostics{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 108px)}
@@ -72,11 +88,14 @@ h1{margin:0;font-size:clamp(27px,5vw,42px);line-height:.98;font-weight:100}
   h1{font-size:29px}
   .lab-header{left:14px;right:14px;top:max(14px,env(safe-area-inset-top))}
   .preset-description{font-size:11px;max-width:225px}
+  .satellite-panel{top:108px}
+  .satellite-observed{max-width:235px}
   .preset-rail{width:calc(100% - 28px)}
   .preset-button strong{font-size:11px}
   .ui-specimen{left:18px;width:64vw}
   .control-grid{grid-template-columns:1fr 1fr;gap:13px 12px}
 }
 @media(prefers-reduced-motion:reduce){
-  .tune-sheet,.preset-button,.glass-button{transition:none}
+  .tune-sheet,.preset-button,.glass-button,.satellite-panel{transition:none}
+  .satellite-panel.is-live .satellite-dot{animation:none}
 }
