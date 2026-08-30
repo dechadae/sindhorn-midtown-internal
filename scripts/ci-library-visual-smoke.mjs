@@ -23,7 +23,7 @@ try{
   await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false');
   await page.waitForSelector('[data-system-ui-library]');await page.waitForTimeout(220);
   await page.screenshot({path:path.join(OUT_DIR,'developer-system-ui-library-390x844.png'),fullPage:false});
-  await page.locator('[data-system-ui-library]').click();await page.waitForURL(url=>url.pathname==='/ci');await page.waitForFunction(()=>window.SindhornUiLibrary?.version);await page.waitForTimeout(220);
+  await page.locator('[data-system-ui-library]').click();await page.waitForURL(url=>url.pathname==='/ci');await page.waitForSelector('.ci-route');await page.waitForFunction(()=>window.SindhornUiLibrary?.version);await page.waitForFunction(()=>document.querySelector('.ci-route .app-route-title')?.textContent.trim()==='Sindhorn Midtown UI Library');await page.waitForTimeout(220);
   await page.evaluate(()=>scrollTo({top:0,behavior:'auto'}));await page.waitForTimeout(80);
   const top=await page.evaluate(()=>({scrollY,heroTop:document.querySelector('.ci-route .app-route-hero')?.getBoundingClientRect().top||0,title:document.querySelector('.ci-route .app-route-title')?.textContent.trim()}));
   assert(top.scrollY===0&&top.title==='Sindhorn Midtown UI Library',`CI top framing failed ${JSON.stringify(top)}`);
