@@ -9,6 +9,9 @@ on:
       - "site/betta-fin-lab.js"
       - "site/betta-fin-shader.js"
       - "site/betta-fin-presets.js"
+      - "site/betta-satellite.js"
+      - "site/_worker.js"
+      - "site/_routes.json"
       - "scripts/betta-fin-contract-test.mjs"
       - "scripts/betta-fin-browser-smoke.mjs"
       - "docs/BETTA-FIN-LAB-ARCHITECTURE-20260830.md"
@@ -36,7 +39,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/betta-fin-lab.js site/betta-fin-shader.js site/betta-fin-presets.js scripts/betta-fin-contract-test.mjs scripts/betta-fin-browser-smoke.mjs; do
+          for file in \
+            site/betta-fin-lab.js site/betta-fin-shader.js site/betta-fin-presets.js site/betta-satellite.js site/_worker.js \
+            scripts/betta-fin-contract-test.mjs scripts/betta-fin-browser-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
           node scripts/betta-fin-contract-test.mjs
@@ -70,10 +75,20 @@ jobs:
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in /betta-fin-lab.html /betta-fin-lab.css /betta-fin-lab.js /betta-fin-shader.js /betta-fin-presets.js /vendor/three.module.js /fonts.css; do
+          for path in \
+            /betta-fin-lab.html /betta-fin-lab.css /betta-fin-lab.js /betta-fin-shader.js /betta-fin-presets.js /betta-satellite.js \
+            /vendor/three.module.js /fonts.css; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 \
+            "${BASE_URL}/api/betta-satellite?kind=latest" -o /tmp/satellite.json
+          node - <<'NODE'
+          const fs=require('fs');
+          const data=JSON.parse(fs.readFileSync('/tmp/satellite.json','utf8'));
+          if(!data.ok||data.satellite!=='Himawari-9'||!data.date)throw new Error(`invalid satellite metadata: ${JSON.stringify(data)}`);
+          console.log(JSON.stringify({satellite:data.satellite,date:data.date,provider:data.provider}));
+          NODE
 
       - name: Install Chromium
         shell: bash
