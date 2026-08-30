@@ -6,10 +6,10 @@
   <meta name="theme-color" content="#0b0710">
   <title>Betta Fin Lab · Sindhorn Midtown</title>
   <link rel="stylesheet" href="/fonts.css">
-  <link rel="stylesheet" href="/betta-fin-lab.css?v=1">
+  <link rel="stylesheet" href="/betta-fin-lab.css?v=3">
 </head>
 <body>
-  <main class="betta-lab" aria-label="Procedural betta fin visual experiment">
+  <main class="betta-lab" aria-label="Satellite-driven procedural betta fin visual experiment">
     <canvas id="bettaCanvas" aria-hidden="true"></canvas>
     <div class="vignette" aria-hidden="true"></div>
 
@@ -17,23 +17,41 @@
       <div>
         <p class="eyebrow">SINDHORN MIDTOWN · VISUAL R&amp;D</p>
         <h1>Betta Fin Lab</h1>
-        <p id="presetDescription" class="preset-description">A living procedural membrane study.</p>
+        <p id="presetDescription" class="preset-description">A living procedural membrane driven by the current Bangkok satellite field.</p>
       </div>
       <div class="header-actions">
         <button class="glass-button" id="uiToggle" type="button" aria-pressed="false">UI test</button>
-        <button class="glass-button" id="tiltButton" type="button" aria-pressed="false">Tilt</button>
         <button class="glass-button primary" id="tuneButton" type="button" aria-expanded="false">Tune</button>
       </div>
     </header>
 
+    <section class="satellite-panel" id="satellitePanel" aria-live="polite">
+      <div class="satellite-head">
+        <div>
+          <p class="satellite-status" id="satelliteStatus">HIMAWARI-9 · CONNECTING</p>
+          <p class="satellite-observed" id="satelliteObserved">Reading current Bangkok satellite field…</p>
+        </div>
+        <span class="satellite-dot" aria-hidden="true"></span>
+      </div>
+      <div class="satellite-grid">
+        <div><span>Cloud</span><strong data-satellite="cloud">—</strong></div>
+        <div><span>Motion</span><strong data-satellite="motion">—</strong></div>
+        <div><span>Cold IR</span><strong data-satellite="cold">—</strong></div>
+        <div><span>Vapour</span><strong data-satellite="vapor">—</strong></div>
+        <div><span>Energy</span><strong data-satellite="energy">—</strong></div>
+        <div><span>Frame</span><strong data-satellite="fingerprint">—</strong></div>
+      </div>
+      <p class="satellite-credit">Satellite imagery: NICT / JMA · Himawari-9</p>
+    </section>
+
     <section class="ui-specimen" id="uiSpecimen" hidden aria-label="Interface legibility specimen">
       <p class="specimen-kicker">LEGIBILITY SPECIMEN</p>
       <p class="specimen-time">20:29</p>
-      <p class="specimen-date">Sunday · Bangkok</p>
+      <p class="specimen-date">Bangkok · sample interface</p>
       <div class="specimen-card">
         <p>Sample information</p>
-        <strong>31°</strong>
-        <span>Cloudy · Air quality good</span>
+        <strong>Live</strong>
+        <span>Satellite-linked atmosphere</span>
       </div>
     </section>
 
@@ -58,7 +76,7 @@
       <div class="sheet-grab" aria-hidden="true"></div>
       <div class="sheet-head">
         <div>
-          <p class="eyebrow">LIVE PARAMETERS</p>
+          <p class="eyebrow">BASE ART PARAMETERS</p>
           <h2 id="sheetPresetName">Cobalt Veil</h2>
         </div>
         <button class="close-button" id="closeTune" type="button" aria-label="Close tuning controls">×</button>
@@ -77,10 +95,10 @@
           </div>
         </section>
         <section class="control-group" data-group="motion">
-          <h3>Motion</h3>
+          <h3>Motion response</h3>
           <div class="control-grid">
-            <label>Current <output data-output="currentStrength"></output><input data-param="currentStrength" type="range" min="0" max="1.4" step="0.01"></label>
-            <label>Motion speed <output data-output="motionSpeed"></output><input data-param="motionSpeed" type="range" min="0.05" max="0.8" step="0.01"></label>
+            <label>Current response <output data-output="currentStrength"></output><input data-param="currentStrength" type="range" min="0" max="1.4" step="0.01"></label>
+            <label>Motion speed <output data-output="motionSpeed"></output><input data-param="motionSpeed" type="range" min="0.05" max="1.2" step="0.01"></label>
             <label>Turbulence <output data-output="turbulence"></output><input data-param="turbulence" type="range" min="0" max="1.5" step="0.01"></label>
             <label>Amplitude <output data-output="motionAmplitude"></output><input data-param="motionAmplitude" type="range" min="0" max="1.5" step="0.01"></label>
           </div>
@@ -97,7 +115,7 @@
           </div>
         </section>
         <section class="control-group" data-group="colour">
-          <h3>Colour</h3>
+          <h3>Colour response</h3>
           <div class="control-grid">
             <label>Saturation <output data-output="saturation"></output><input data-param="saturation" type="range" min="0.45" max="1.5" step="0.01"></label>
             <label>Brightness <output data-output="brightness"></output><input data-param="brightness" type="range" min="0.35" max="1.6" step="0.01"></label>
@@ -117,6 +135,6 @@
       </div>
     </aside>
   </main>
-  <script type="module" src="/betta-fin-lab.js?v=2"></script>
+  <script type="module" src="/betta-fin-lab.js?v=3"></script>
 </body>
 </html>
