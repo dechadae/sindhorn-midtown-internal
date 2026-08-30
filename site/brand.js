@@ -34,18 +34,22 @@ export async function mountBrandRoute(host){
       </div>
     </header>
     <div class="brand-card-list">
-      <a class="brand-card app-action-card app-action-card-control" href="/ihg-history" data-app-route="ihgHistory" aria-label="Open Our History">
-        <span class="brand-card-index">01 · IHG Hotels &amp; Resorts</span>
-        <h2 class="app-action-card-title">Our History</h2>
-        <p class="app-action-card-meta">From the origins of Bass in 1777 to today’s global IHG portfolio.</p>
-        <div class="brand-card-foot app-action-card-foot"><span>${milestones} milestones</span><span class="brand-arrow app-action-card-chevron">${arrow}</span></div>
-      </a>
-      <a class="brand-card app-action-card app-action-card-control" href="/hotel-factsheet" data-app-route="hotelFactsheet" aria-label="Open Sindhorn Midtown Factsheet">
-        <span class="brand-card-index">02 · Sindhorn Midtown</span>
-        <h2 class="app-action-card-title">Hotel Factsheet</h2>
-        <p class="app-action-card-meta">The essential employee reference for rooms, dining, facilities, meetings and location.</p>
-        <div class="brand-card-foot app-action-card-foot"><span>${HOTEL_FACTSHEET.hotel.roomsAndSuites} rooms &amp; suites</span><span class="brand-arrow app-action-card-chevron">${arrow}</span></div>
-      </a>
+      <article class="brand-card app-action-card">
+        <a class="brand-card-link app-action-card-control" href="/ihg-history" data-app-route="ihgHistory" aria-label="Open Our History">
+          <span class="brand-card-index">01 · IHG Hotels &amp; Resorts</span>
+          <h2 class="app-action-card-title">Our History</h2>
+          <p class="app-action-card-meta">From the origins of Bass in 1777 to today’s global IHG portfolio.</p>
+          <div class="brand-card-foot app-action-card-foot"><span>${milestones} milestones</span><span class="brand-arrow app-action-card-chevron">${arrow}</span></div>
+        </a>
+      </article>
+      <article class="brand-card app-action-card">
+        <a class="brand-card-link app-action-card-control" href="/hotel-factsheet" data-app-route="hotelFactsheet" aria-label="Open Sindhorn Midtown Factsheet">
+          <span class="brand-card-index">02 · Sindhorn Midtown</span>
+          <h2 class="app-action-card-title">Hotel Factsheet</h2>
+          <p class="app-action-card-meta">The essential employee reference for rooms, dining, facilities, meetings and location.</p>
+          <div class="brand-card-foot app-action-card-foot"><span>${HOTEL_FACTSHEET.hotel.roomsAndSuites} rooms &amp; suites</span><span class="brand-arrow app-action-card-chevron">${arrow}</span></div>
+        </a>
+      </article>
     </div>
   `;
   host.appendChild(route);
