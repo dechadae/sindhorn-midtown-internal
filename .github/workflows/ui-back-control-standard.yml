@@ -1,0 +1,95 @@
+name: App Back Control Standard
+
+on:
+  push:
+    branches: [ui-back-control-standard]
+    paths:
+      - "site/index.html"
+      - "site/app-controls.css"
+      - "site/brand-route-controls.js"
+      - "scripts/app-control-standard-smoke.mjs"
+      - ".github/workflows/ui-back-control-standard.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: app-back-control-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate centralized control contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < site/brand-route-controls.js
+          node --input-type=module --check < scripts/app-control-standard-smoke.mjs
+          grep -q -- '--app-back-radius:12px' site/app-controls.css
+          grep -q '.fnb-back,' site/app-controls.css
+          grep -q '.app-back-control' site/app-controls.css
+          grep -q '/app-controls.css?v=1' site/index.html
+          grep -q '/brand-route-controls.js?v=1' site/index.html
+          grep -q "link.className='app-back-control'" site/brand-route-controls.js
+          grep -q "button.className='app-quiet-action'" site/brand-route-controls.js
+
+      - name: Verify scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="$(git merge-base origin/main HEAD)"
+          changed="$(git diff --name-only "$base" HEAD)"
+          printf '%s\n' "$changed"
+          while IFS= read -r file; do
+            case "$file" in
+              site/index.html|site/app-controls.css|site/brand-route-controls.js|scripts/app-control-standard-smoke.mjs|.github/workflows/ui-back-control-standard.yml) ;;
+              *) echo "Unexpected changed file: $file" >&2; exit 1;;
+            esac
+          done <<< "$changed"
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Raw asset smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in /fnb /ihg-history /hotel-factsheet /brand /app-controls.css /brand-route-controls.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
+            test -s /tmp/response
+          done
+
+      - name: Mobile browser smoke
+        shell: bash
+        env:
+          BASE_URL: https://${{ github.ref_name }}.sindhorn-midtown-internal.pages.dev
+          SCREENSHOT_DIR: /tmp/app-control-standard
+        run: |
+          set -euo pipefail
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install chromium >/dev/null 2>&1
+          node scripts/app-control-standard-smoke.mjs | tee /tmp/app-control-standard-report.json
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: app-back-control-standard
+          path: |
+            /tmp/app-control-standard
+            /tmp/app-control-standard-report.json
+          if-no-files-found: warn
+          retention-days: 14
