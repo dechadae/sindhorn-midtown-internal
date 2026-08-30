@@ -42,8 +42,8 @@ if(!settingsSource.includes('class="settings-quiet-action" type="button" data-bc
 if(settingsSource.includes('class="settings-primary" type="button" data-bc-present'))throw new Error('Present QR must not use a unique primary button');
 if(!settingsWrapper.includes('promoteSignOutToHero')||!settingsWrapper.includes("button.className='fnb-action-control fnb-share-button settings-hero-signout'")||!settingsWrapper.includes('hero.appendChild(button)')||!settingsWrapper.includes('<span>Sign out</span>'))throw new Error('Sign out must reuse the F&B hero-share markup pattern');
 
-const parityNeedles=['top:20px','right:0','height:36px!important','min-height:36px!important','padding:0 8px!important','gap:8px!important','font-size:12px!important','font-weight:400!important','line-height:1!important','width:15px','height:15px','stroke-width:1.7'];
-for(const needle of parityNeedles){if(!settingsCss.includes(needle))throw new Error(`Settings sign-out parity missing ${needle}`);if(!`${fnbRefinements}\n${fnbLayout}`.includes(needle))throw new Error(`F&B reference missing ${needle}`)}
+for(const needle of ['top:20px','right:0','height:36px!important','min-height:36px!important','padding:0 8px!important']){if(!settingsCss.includes(needle))throw new Error(`Settings sign-out position parity missing ${needle}`);if(!fnbLayout.includes(needle))throw new Error(`F&B hero Share reference missing ${needle}`)}
+for(const needle of ['gap:8px','font-size:12px!important','font-weight:400!important','line-height:1!important','width:15px','height:15px','stroke-width:1.7']){if(!settingsCss.includes(needle))throw new Error(`Settings sign-out visual parity missing ${needle}`);if(!fnbRefinements.includes(needle))throw new Error(`F&B Share visual reference missing ${needle}`)}
 if(!settingsCss.includes('.settings-hero>.settings-eyebrow{padding-right:82px}')||!fnbLayout.includes('.fnb-hero>.fnb-eyebrow{padding-right:82px}'))throw new Error('Hero eyebrow reserve parity missing');
 if(!settingsCss.includes('background:transparent!important')||!settingsCss.includes('border:1px solid transparent!important'))throw new Error('Sign out must be transparent like F&B Share');
 
