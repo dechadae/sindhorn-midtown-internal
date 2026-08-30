@@ -33,7 +33,6 @@ try{
   report.fnbChip=exact(await style(page,'.fnb-chip'),'F&B source chip',9);
   await page.locator('.fnb-card-button').first().click();await page.waitForSelector('.fnb-back',{state:'visible'});
   report.fnbBack=exact(await style(page,'.fnb-back',{visible:true}),'F&B back',12);
-  await page.goBack({waitUntil:'domcontentloaded'}).catch(()=>{});
 
   await page.goto(`${BASE_URL}/hotel-factsheet`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.factsheet-route');
   report.nearby=exact(await style(page,'.factsheet-nearby span'),'Factsheet metadata',9);
@@ -45,7 +44,7 @@ try{
   report.ciStatus=exact(await style(page,'.ci-status-dot',{visible:true}),'CI status indicator',2);
   report.ciChip=exact(await style(page,'.ci-chip-row .fnb-chip'),'CI chip specimen',9);
 
-  const central=await (await page.request.get(`${BASE_URL}/app-shapes.css?v=1`)).text();
+  const central=await (await context.request.get(`${BASE_URL}/app-shapes.css?v=1`)).text();
   assert(central.includes('--app-radius-avatar:12px')&&central.includes('--app-radius-chip:9px'),'Shape tokens missing from central authority');
   assert(!/border-radius\s*:\s*(50%|999(?:9)?px)/i.test(central),'Central shape authority reintroduced a circle/pill');
   Object.entries(report).forEach(([label,item])=>rounded(item,label,.49));
