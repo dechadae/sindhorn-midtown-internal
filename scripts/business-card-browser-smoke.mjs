@@ -28,10 +28,11 @@ try{
   if(!hotelHtml.includes('<br>'))throw new Error(`Hotel name line break missing: ${hotelHtml}`);
   report.checks.identity={name,title,hotel,lineBreakAfterComma:true};
 
-  const logo=page.locator('.public-card-qr-logo img');
+  const logo=page.locator('.public-card-logo');
   await logo.waitFor({state:'visible'});
-  const logoState=await logo.evaluate(img=>({src:img.getAttribute('src'),width:img.naturalWidth,height:img.naturalHeight,renderedWidth:img.getBoundingClientRect().width}));
-  if(!logoState.src?.includes('sindhorn-midtown-vignette-black.png')||logoState.width<1||logoState.height<1||logoState.renderedWidth<1)throw new Error(`Centered QR logo failed: ${JSON.stringify(logoState)}`);
+  const logoState=await logo.evaluate(img=>({src:img.getAttribute('src'),width:img.naturalWidth,height:img.naturalHeight,renderedWidth:img.getBoundingClientRect().width,insideQr:Boolean(img.closest('[data-card-qr]'))}));
+  if(!logoState.src?.includes('sindhorn-midtown-vignette-white.png')||logoState.width<1||logoState.height<1||logoState.insideQr)throw new Error(`Hotel logo placement failed: ${JSON.stringify(logoState)}`);
+  if(logoState.renderedWidth<119||logoState.renderedWidth>121)throw new Error(`Hotel logo is not 1.2x original mobile size: ${JSON.stringify(logoState)}`);
   report.checks.logo=logoState;
 
   const qr=page.locator('[data-card-qr] svg');
@@ -42,14 +43,7 @@ try{
 
   const centeredSelectors=['.public-card-kicker','#publicCardName','.public-card-title','.public-card-hotel','.public-card-detail span','.public-card-detail b'];
   const centered={};
-  for(const selector of centeredSelectors){
-    const locator=page.locator(selector).first();
-    if(await locator.count()){
-      const align=await locator.evaluate(node=>getComputedStyle(node).textAlign);
-      centered[selector]=align;
-      if(align!=='center')throw new Error(`${selector} is not centered: ${align}`);
-    }
-  }
+  for(const selector of centeredSelectors){const locator=page.locator(selector).first();if(await locator.count()){const align=await locator.evaluate(node=>getComputedStyle(node).textAlign);centered[selector]=align;if(align!=='center')throw new Error(`${selector} is not centered: ${align}`)}}
   report.checks.centered=centered;
 
   const website=page.locator('.public-card-detail').filter({hasText:'Hotel website'}).locator('a');
@@ -93,6 +87,4 @@ try{
 
   await page.screenshot({path:path.join(out,'dechak-mobile.png'),fullPage:true});
   console.log(JSON.stringify(report,null,2));
-}finally{
-  await browser.close();
-}
+}finally{await browser.close()}
