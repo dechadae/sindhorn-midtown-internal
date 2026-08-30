@@ -52,7 +52,10 @@ jobs:
           grep -q 'sindhorn-midtown-vignette-white.png' site/business-card-public.js site/business-card-settings.js supabase/migrations/20260829195459_sindhorn_business_card_shortlink_v2.sql
           grep -q 'business_card.read' site/business-card-settings.js supabase/migrations/20260829191503_sindhorn_digital_business_cards.sql
           grep -q 'business_card.manage_self' site/business-card-settings.js supabase/migrations/20260829191503_sindhorn_digital_business_cards.sql
-          grep -q 'settings-route-v3.js?v=6' site/route-registry.js
+          grep -q 'settings-route-v3.js?v=7' site/route-registry.js
+          grep -q 'preloadSettingsBusinessCard' site/settings-route-v3.js site/business-card-settings.js
+          grep -q "root.style.visibility='hidden'" site/settings-route-v3.js
+          ! grep -q 'business-card-settings-actions is-loading' site/business-card-settings.js
           grep -q 'qrStyledSvg' site/qr-v6.js site/business-card-public.js
           grep -q 'visualViewport' site/settings-route-v3.js
           grep -q -- '--settings-scroll-clearance' site/settings-route-v3.js site/business-card-settings.css
@@ -103,7 +106,7 @@ jobs:
         run: |
           set -euo pipefail
           sleep 8
-          for path in /dechak /settings /account /admin /fnb /ihg-history /messages /route-registry.js /business-card-public.js /business-card-settings.js /qr-v6.js /assets/brand/sindhorn-midtown-vignette-white.png; do
+          for path in /dechak /settings /account /admin /fnb /ihg-history /messages /route-registry.js /business-card-public.js /business-card-settings.js /settings-route-v3.js /qr-v6.js /assets/brand/sindhorn-midtown-vignette-white.png; do
             code="$(curl --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 -o /tmp/response -w '%{http_code}' "${PREVIEW_BASE_URL}${path}")"
             echo "route ${path} -> ${code} ($(wc -c </tmp/response) bytes)"
             test "$code" = '200'
@@ -143,7 +146,10 @@ jobs:
 
           curl --fail --silent --show-error "${PREVIEW_BASE_URL}/route-registry.js" -o /tmp/routes.js
           grep -q "path:'/settings'" /tmp/routes.js
-          grep -q 'settings-route-v3.js?v=6' /tmp/routes.js
+          grep -q 'settings-route-v3.js?v=7' /tmp/routes.js
+          curl --fail --silent --show-error "${PREVIEW_BASE_URL}/settings-route-v3.js" -o /tmp/settings-route-v3.js
+          grep -q 'preloadSettingsBusinessCard' /tmp/settings-route-v3.js
+          grep -q "root.style.visibility='hidden'" /tmp/settings-route-v3.js
           curl --fail --silent --show-error "${PREVIEW_BASE_URL}/qr-v6.js" -o /tmp/qr-v6.js
           grep -q 'qrStyledSvg' /tmp/qr-v6.js
           echo 'raw route smoke passed'
