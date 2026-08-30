@@ -1,7 +1,7 @@
 body[data-route="settings"] .business-card-settings-actions{margin:24px 0 0;padding-top:20px;border-top:1px solid var(--settings-line)}
 body[data-route="settings"] .business-card-settings-actions>p{margin:0 0 10px;color:var(--settings-accent);font-size:9px;text-transform:uppercase}
-body[data-route="settings"] .business-card-settings-actions>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-body[data-route="settings"] .business-card-settings-actions .settings-quiet-action{width:auto!important}
+body[data-route="settings"] .business-card-settings-actions>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+body[data-route="settings"] .business-card-settings-actions .settings-quiet-action{width:100%!important;min-width:0!important}
 body[data-route="settings"] .business-card-settings-actions button:disabled{opacity:.34!important;cursor:default!important;transform:none!important}
 body[data-route="settings"] .business-card-inline-status{display:block;min-height:16px;margin:9px 0 -2px;color:var(--settings-accent);font-size:10px;opacity:0}
 body[data-route="settings"] .business-card-inline-status[data-show="true"]{opacity:1}
