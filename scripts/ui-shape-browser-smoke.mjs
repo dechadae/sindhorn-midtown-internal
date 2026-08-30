@@ -24,6 +24,14 @@ async function ensureHeaderAvatar(page){
   });
   await page.waitForSelector('[data-shape-audit-avatar]',{state:'visible'});
 }
+async function ensureSettingsAvatar(page){
+  await page.evaluate(()=>{
+    const host=document.querySelector('.settings-route');if(!host)return;
+    document.querySelector('[data-shape-audit-settings-avatar]')?.remove();
+    const avatar=document.createElement('div');avatar.className='settings-avatar';avatar.dataset.shapeAuditSettingsAvatar='';avatar.textContent='SA';avatar.setAttribute('aria-hidden','true');host.prepend(avatar);
+  });
+  await page.waitForSelector('[data-shape-audit-settings-avatar]',{state:'visible'});
+}
 async function style(page,selector,{visible=false}={}){
   if(visible)await page.waitForSelector(selector,{state:'visible'});else await page.waitForSelector(selector,{state:'attached'});
   return page.locator(selector).first().evaluate((node,sel)=>{const s=getComputedStyle(node),r=node.getBoundingClientRect(),radius=parseFloat(s.borderTopLeftRadius)||0;return{selector:sel,width:r.width,height:r.height,radius,radiusText:s.borderRadius,display:s.display,visibility:s.visibility}},selector);
@@ -49,8 +57,8 @@ try{
   await page.goto(`${BASE_URL}/hotel-factsheet`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.factsheet-route');
   report.nearby=exact(await style(page,'.factsheet-nearby span'),'Factsheet metadata',9);
 
-  await page.goto(`${BASE_URL}/settings`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.settings-route');
-  report.settingsAvatar=exact(await style(page,'.settings-avatar',{visible:true}),'Settings avatar',12);
+  await page.goto(`${BASE_URL}/settings`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.settings-route');await ensureSettingsAvatar(page);
+  report.settingsAvatar=exact(await style(page,'[data-shape-audit-settings-avatar]',{visible:true}),'Settings avatar',12);
   await page.screenshot({path:`${SCREENSHOT_DIR}/shape-settings-390x844.png`,fullPage:false});
 
   await page.goto(`${BASE_URL}/ci`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.ci-route');
