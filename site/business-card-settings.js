@@ -47,7 +47,7 @@ export function preloadSettingsBusinessCard(){
 }
 
 export async function mountSettingsBusinessCard(root,{preload=null}={}){
-  let disposed=false,data=null,statusTimer=0,panelObserver=null;
+  let disposed=false,data=null,statusTimer=0;
   const cleanup=[];
   const authority=await loadSettingsAuthority();
   const capabilities=new Set(authority?.capabilities||[]);
@@ -191,14 +191,10 @@ export async function mountSettingsBusinessCard(root,{preload=null}={}){
     data=primed?.ok?primed.data:await readSelfCard();
     if(!data?.card?.publicSlug)throw new Error('business_card_unavailable');
   }catch(_){data=null}
-  if(!disposed){
-    inject();
-    const panel=route.querySelector('[data-settings-panel]');
-    if(panel){panelObserver=new MutationObserver(()=>inject());panelObserver.observe(panel,{childList:true,subtree:true})}
-  }
+  if(!disposed)inject();
 
   return()=>{
-    disposed=true;clearTimeout(statusTimer);panelObserver?.disconnect();cleanup.splice(0).forEach(fn=>fn());
+    disposed=true;clearTimeout(statusTimer);cleanup.splice(0).forEach(fn=>fn());
     closePresent();closeEdit();presentDialog.remove();editDialog.remove();
     route.querySelector('[data-bc-settings-host]')?.remove();
   };
