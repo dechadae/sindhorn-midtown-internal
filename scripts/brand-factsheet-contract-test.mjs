@@ -50,7 +50,7 @@ assert(heroCss.includes('.ihg-history-hero h1{text-transform:capitalize!importan
 assert(heroCss.includes('.factsheet-section-head h2')&&heroCss.includes('font-weight:400!important'),'Regular-weight Brand/Factsheet title standard missing');
 assert(brandText.includes('<h1>Know Our Hotel</h1>'),'Brand title case mismatch');
 assert(brandText.includes('<h2>Our History</h2>')&&brandText.includes('<h2>Hotel Factsheet</h2>'),'Brand card title case mismatch');
-assert(brandCss.includes('background:var(--brand-glass);backdrop-filter:none;-webkit-backdrop-filter:none'),'Brand card final F&B surface recipe missing');
+assert(brandCss.includes('background:var(--brand-glass);backdrop-filter:blur(18px) saturate(1.18);-webkit-backdrop-filter:blur(18px) saturate(1.18)'),'Brand card final F&B glass recipe missing');
 assert(brandCss.includes('padding:16px 17px')&&brandCss.includes('border-radius:14px'),'Brand card F&B geometry missing');
 assert(brandCss.includes('font-size:clamp(16px,3.6vw,19px);font-weight:400;line-height:1.25'),'Brand card F&B title recipe missing');
 assert(factsheetText.includes('<h1>Hotel Factsheet</h1>'),'Factsheet title case mismatch');
