@@ -36,8 +36,17 @@ async function copyText(value){
   try{ok=document.execCommand('copy')}catch(_){}
   area.remove();return ok;
 }
+async function readSelfCard(){
+  const token=getAccessToken();if(!token)throw new Error('authentication_required');
+  const result=await supabaseRpc('sindhorn_business_card_self',{}, {accessToken:token});
+  if(!result?.card?.publicSlug)throw new Error('business_card_unavailable');
+  return result;
+}
+export function preloadSettingsBusinessCard(){
+  return readSelfCard().then(data=>({ok:true,data}),error=>({ok:false,error}));
+}
 
-export async function mountSettingsBusinessCard(root){
+export async function mountSettingsBusinessCard(root,{preload=null}={}){
   let disposed=false,data=null,statusTimer=0;
   const cleanup=[];
   const authority=await loadSettingsAuthority();
@@ -88,7 +97,7 @@ export async function mountSettingsBusinessCard(root){
     node.textContent=message||'';node.dataset.show=String(Boolean(message));node.dataset.tone=tone;
   }
   function actionsMarkup(){
-    if(!data?.card)return'<div class="business-card-settings-actions is-loading" data-bc-settings-host></div>';
+    if(!data?.card)return'';
     const published=data.card.published===true;
     return`<div class="business-card-settings-actions" data-bc-settings-host><p>Business card</p><div><button class="settings-quiet-action" type="button" data-bc-present${disabled(!published)}>Present QR</button><button class="settings-quiet-action" type="button" data-bc-share${disabled(!published)}>Share</button>${canManage?'<button class="settings-quiet-action" type="button" data-bc-edit>Edit card</button>':''}</div><span class="business-card-inline-status" data-bc-inline-status role="status" aria-live="polite"></span></div>`;
   }
@@ -96,7 +105,7 @@ export async function mountSettingsBusinessCard(root){
     const section=route.querySelector('.settings-account-section'),accountActions=section?.querySelector('.settings-account-actions');
     if(!section||!accountActions)return;
     section.querySelector('[data-bc-settings-host]')?.remove();
-    accountActions.insertAdjacentHTML('beforebegin',actionsMarkup());
+    const markup=actionsMarkup();if(markup)accountActions.insertAdjacentHTML('beforebegin',markup);
   }
   function openPresent(){
     if(!data?.card?.published)return;
@@ -163,15 +172,14 @@ export async function mountSettingsBusinessCard(root){
     if(event.target.closest('[data-bc-present-close]')){closePresent();return}
     if(event.target.closest('[data-bc-edit-close],[data-bc-edit-cancel]'))closeEdit();
   };
-  const sectionChanged=event=>{if(event?.detail?.section==='account')requestAnimationFrame(inject)};
+  const sectionChanged=event=>{if(event?.detail?.section==='account')inject()};
   on(route,'click',clickHandler);
   on(editDialog.querySelector('[data-bc-edit-form]'),'submit',saveEdit);
   on(document,'sindhorn:settings-section-changed',sectionChanged);
 
-  inject();
   try{
-    const token=getAccessToken();if(!token)throw new Error('authentication_required');
-    data=await supabaseRpc('sindhorn_business_card_self',{}, {accessToken:token});
+    const primed=preload?await Promise.resolve(preload):null;
+    data=primed?.ok?primed.data:await readSelfCard();
     if(!data?.card?.publicSlug)throw new Error('business_card_unavailable');
   }catch(_){data=null}
   if(!disposed)inject();
