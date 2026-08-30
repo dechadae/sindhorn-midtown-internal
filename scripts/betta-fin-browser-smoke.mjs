@@ -16,22 +16,45 @@ const browser=await chromium.launch({
 });
 const errors=[];
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
+function observedAgeMinutes(value){
+  const date=new Date(String(value).replace(' ','T')+'Z');
+  return (Date.now()-date.getTime())/60000;
+}
+function finite01(value,name){
+  if(!Number.isFinite(value)||value<0||value>1)throw new Error(`${name} outside 0..1: ${value}`);
+}
 async function inspect(viewport,name,preset){
   const context=await browser.newContext({viewport,screen:viewport,deviceScaleFactor:1,serviceWorkers:'block'});
   const page=await context.newPage();
   page.on('pageerror',error=>errors.push(`${name}: ${error.message}`));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(`${name} console: ${msg.text()}`)});
-  await page.goto(`${base}/betta-fin-lab.html?motion-smoke=2`,{waitUntil:'networkidle',timeout:45000});
+  await page.goto(`${base}/betta-fin-lab.html?satellite-smoke=3`,{waitUntil:'networkidle',timeout:60000});
   await page.waitForFunction(()=>window.SindhornBettaLab?.getDiagnostics?.().triangles>0,null,{timeout:20000});
+  await page.waitForFunction(()=>window.SindhornBettaLab?.getSatelliteState?.().status==='live',null,{timeout:60000});
   await page.evaluate(key=>window.SindhornBettaLab.setPreset(key),preset);
-  await page.waitForTimeout(900);
+  await page.waitForTimeout(1000);
   const before=await page.evaluate(()=>window.SindhornBettaLab.getDiagnostics());
+  const satellite=await page.evaluate(()=>window.SindhornBettaLab.getSatelliteState());
+  if(before.inputMode!=='satellite-only'||satellite.inputMode!=='satellite-only')throw new Error(`${name}: satellite-only runtime contract missing`);
+  if(satellite.satellite!=='Himawari-9')throw new Error(`${name}: unexpected satellite ${satellite.satellite}`);
+  const age=observedAgeMinutes(satellite.observedAt);
+  if(!Number.isFinite(age)||age<0||age>90)throw new Error(`${name}: Himawari observation is not fresh enough (${age.toFixed(1)} min)`);
+  for(const [key,value] of Object.entries({
+    cloud:satellite.metrics.cloudAmount,
+    cold:satellite.metrics.coldCloud,
+    texture:satellite.metrics.cloudTexture,
+    vapor:satellite.metrics.waterVapor,
+    confidence:satellite.metrics.motionConfidence,
+    visible:satellite.metrics.visibleConfidence,
+    energy:satellite.metrics.energy
+  }))finite01(value,`${name} satellite ${key}`);
+  if(!/^[0-9a-f]{8}$/i.test(satellite.metrics.fingerprint))throw new Error(`${name}: satellite fingerprint invalid`);
   const canvas=page.locator('#bettaCanvas');
   const motionA=await canvas.screenshot();
-  await page.waitForTimeout(1800);
+  await page.waitForTimeout(1200);
   const motionB=await canvas.screenshot();
   const motionHashA=hash(motionA),motionHashB=hash(motionB);
-  if(motionHashA===motionHashB)throw new Error(`${name}: WebGL canvas did not visibly change across motion probe`);
+  if(motionHashA===motionHashB)throw new Error(`${name}: WebGL canvas did not visibly change across satellite motion probe`);
   const frames=await page.evaluate(()=>new Promise(resolve=>{
     const times=[];let last=performance.now();
     function tick(now){
@@ -51,8 +74,18 @@ async function inspect(viewport,name,preset){
   if(before.preserveDrawingBuffer!==false)throw new Error(`${name}: preserveDrawingBuffer must remain false`);
   if(before.drawCalls<1||before.drawCalls>3)throw new Error(`${name}: draw calls outside 1-3: ${before.drawCalls}`);
   if(before.triangles<4000||before.triangles>25000)throw new Error(`${name}: triangle count unexpected: ${before.triangles}`);
-  if(before.textures!==0)throw new Error(`${name}: procedural lab should use zero textures, got ${before.textures}`);
-  return{...before,motionProbe:{intervalMs:1800,changed:true,hashA:motionHashA.slice(0,12),hashB:motionHashB.slice(0,12)},frameAverageMs:+avg.toFixed(2),frameP95Ms:+p95.toFixed(2),frameSamples:frames.length};
+  if(before.textures!==0)throw new Error(`${name}: procedural lab should use zero WebGL textures, got ${before.textures}`);
+  return{
+    ...before,
+    satellite:{
+      observedAt:satellite.observedAt,
+      observationAgeMinutes:+age.toFixed(1),
+      zoom:satellite.zoom,
+      metrics:satellite.metrics
+    },
+    motionProbe:{intervalMs:1200,changed:true,hashA:motionHashA.slice(0,12),hashB:motionHashB.slice(0,12)},
+    frameAverageMs:+avg.toFixed(2),frameP95Ms:+p95.toFixed(2),frameSamples:frames.length
+  };
 }
 let mobile,desktop,fatal;
 try{
@@ -60,7 +93,11 @@ try{
   desktop=await inspect({width:1440,height:1000},'desktop-crimson','crimsonSilk');
 }catch(error){fatal=error;errors.push(`fatal: ${error.message}`)}
 await browser.close();
-const report={benchmark:'CPU-only SwANGLE diagnostic; physical Android GPU remains the visual/performance acceptance target',mobile,desktop,errors};
+const report={
+  benchmark:'CPU-only SwANGLE diagnostic; physical Android GPU remains the visual/performance acceptance target',
+  realtimeInput:'Himawari-9 satellite imagery only',
+  mobile,desktop,errors
+};
 fs.writeFileSync(`${dir}/metrics.json`,JSON.stringify(report,null,2));
 console.log(JSON.stringify(report,null,2));
 if(fatal)throw fatal;
