@@ -1,4 +1,4 @@
-const FOOTER_VERSION='sindhorn-footer-v12-brand-factsheet';
+const FOOTER_VERSION='sindhorn-footer-v13-brand-factsheet-single-footer';
 const FNB_MODULE_URL='/fnb.js?v=7';
 const NAV_ITEMS=[
   {route:'today',label:'Today',href:'/'},
@@ -52,7 +52,7 @@ const CONTEXTS={
   },
   factsheet:{
     source:()=>document.querySelector('#route-view .factsheet-route > .factsheet-section-rail'),
-    show:source=>document.body.dataset.route==='hotelFactsheet'&&Boolean(source),
+    show:()=>false,
     shellSelector:'[data-shell-context="factsheet"]',className:'factsheet-section-rail shell-footer-rail',label:'Factsheet sections',
     sourceButtons:source=>[...source.querySelectorAll('[data-factsheet-section]')],section:button=>button.dataset.factsheetSection,
     shellDataset:'factsheetSectionNav',controlSelector:'[data-factsheet-section-nav]'
@@ -86,7 +86,6 @@ function syncContextState(type){
     const id=control.dataset[config.shellDataset],sourceControl=config.sourceButtons(source).find(button=>config.section(button)===id);
     const active=Boolean(sourceControl&&(sourceControl.classList.contains('is-active')||sourceControl.getAttribute('aria-current')==='page'||sourceControl.hasAttribute('aria-current')&&sourceControl.getAttribute('aria-current')!=='false'));
     control.toggleAttribute('aria-current',active);
-    if(active&&type==='factsheet')control.scrollIntoView({block:'nearest',inline:'nearest',behavior:'auto'});
   });
 }
 function syncContextFooter(type){
@@ -114,7 +113,7 @@ function normalizeFooter(){
   if(current){current.querySelectorAll('[data-app-route="fnb"]').forEach(node=>node.remove());updateCurrent();syncAllContexts();return}
   const nav=document.createElement('nav');
   nav.className='app-tabbar bottom-nav shell-footer-rail';nav.dataset.shellFooter=FOOTER_VERSION;nav.setAttribute('aria-label','App navigation');
-  NAV_ITEMS.forEach(item=>nav.appendChild(buildControl(item)));
+  NAV_ITEMS.forEach(item=>nav.appendChild(buildControl(item));
   host.replaceChildren(nav);updateCurrent();syncAllContexts();queueMicrotask(()=>window.SindhornNotificationInbox?.refresh?.().catch?.(()=>{}));
 }
 
