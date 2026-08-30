@@ -125,7 +125,7 @@ function makeMaterial(layer,preset){
       uOpacity:{value:p.opacity},uTransmission:{value:p.transmission},uRimStrength:{value:p.rimStrength},
       uFoldHighlight:{value:p.foldHighlight},uIridescence:{value:p.iridescence},uBloom:{value:p.bloom},
       uSaturation:{value:p.saturation},uBrightness:{value:p.brightness},uGradientPosition:{value:p.gradientPosition},
-      uLayerAlpha:{value:layer.alpha??1},
+      uLayerAlpha:{value:layer.alpha??1},uMorphMode:{value:preset.morphMode||0},
       uColor0:{value:color(preset.palette[0])},uColor1:{value:color(preset.palette[1])},
       uColor2:{value:color(preset.palette[2])},uColor3:{value:color(preset.palette[3])},
       uSatelliteEnergy:{value:s.energy},uSatelliteCloud:{value:s.cloud},uSatelliteCold:{value:s.cold},
