@@ -3,12 +3,12 @@ export const BETTA_PRESETS={
     number:'01',name:'Royal Blue Halfmoon',morphMode:0,
     description:'Real-betta baseline: deep navy body colour opening into saturated royal and electric blue Halfmoon fin tones.',
     background:'#05070d',
-    palette:['#020817','#09245f','#1256c7','#58a9ff'],
+    palette:['#06142d','#113d87','#1b67c8','#72b7ee'],
     params:{
       spread:3.48,rayCount:56,foldDensity:5.9,curl:.6,twist:-.33,edgeFlutter:.22,depth:.64,
       currentStrength:.52,motionSpeed:.74,turbulence:.52,motionAmplitude:.8,
-      opacity:.47,transmission:.68,rimStrength:.78,foldHighlight:.92,iridescence:.3,bloom:.34,
-      saturation:1.08,brightness:.94,gradientPosition:.03,
+      opacity:.5,transmission:.66,rimStrength:.9,foldHighlight:1.0,iridescence:.3,bloom:.36,
+      saturation:1.07,brightness:1.02,gradientPosition:.03,
       scale:1.12,rotation:-.46,cameraDepth:.15,offsetX:.48,offsetY:-.58
     },
     layers:[
