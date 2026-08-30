@@ -2,6 +2,7 @@ import {mountSettingsRoute as mountBaseSettingsRoute} from './settings.js?v=3&r=
 import {mountSettingsBusinessCard,preloadSettingsBusinessCard} from './business-card-settings.js?v=10&r=modal-shell-2';
 // Cache lineage: business-card-settings.js?v=9 -> v10 for the fixed-shell renderer.
 // Cache lineage: /settings-dialog-standard.css?v=1&r=4 -> r=5 for the centralized modal shell.
+// Validation lineage: all Settings popups now resolve through settings-dialog-standard.js.
 function ensureStyle(selector,href,attribute){const existing=document.querySelector(selector);if(existing)return existing.sheet?Promise.resolve():new Promise(resolve=>{existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',resolve,{once:true})});return new Promise(resolve=>{const link=document.createElement('link');link.rel='stylesheet';link.href=href;link.setAttribute(attribute,'true');link.addEventListener('load',resolve,{once:true});link.addEventListener('error',resolve,{once:true});document.head.appendChild(link)})}
 function promoteSignOutToHero(root){
   const hero=root.querySelector('.settings-hero');if(!hero)return;
