@@ -39,7 +39,24 @@ try{
   await qr.waitFor({state:'visible'});
   const qrState=await page.locator('[data-card-qr]').evaluate(node=>{const rect=node.getBoundingClientRect();return{width:rect.width,height:rect.height}});
   if(qrState.width>313||Math.abs(qrState.width-qrState.height)>1)throw new Error(`QR geometry mismatch: ${JSON.stringify(qrState)}`);
-  report.checks.qr=qrState;
+  const qrVisual=await qr.evaluate(svg=>{
+    const rects=[...svg.querySelectorAll('rect')];
+    return{
+      viewBox:svg.getAttribute('viewBox'),
+      shapeRendering:svg.getAttribute('shape-rendering'),
+      circleCount:svg.querySelectorAll('circle').length,
+      background:{width:rects[0]?.getAttribute('width'),height:rects[0]?.getAttribute('height'),rx:rects[0]?.getAttribute('rx'),fill:rects[0]?.getAttribute('fill')},
+      finderFrames:rects.filter(node=>node.getAttribute('width')==='7'&&node.getAttribute('height')==='7'&&node.getAttribute('rx')==='2.1').length,
+      finderCenters:rects.filter(node=>node.getAttribute('width')==='3'&&node.getAttribute('height')==='3'&&node.getAttribute('rx')==='1').length,
+      dotRadius:svg.querySelector('circle')?.getAttribute('r'),
+      hasEmbeddedImage:Boolean(svg.querySelector('image')),
+      logoInside:Boolean(svg.closest('[data-card-qr]')?.querySelector('.public-card-logo'))
+    };
+  });
+  if(qrVisual.viewBox!=='0 0 47 47'||qrVisual.shapeRendering!=='geometricPrecision'||qrVisual.circleCount<100||qrVisual.dotRadius!=='0.46')throw new Error(`Flipgazine QR dot contract failed: ${JSON.stringify(qrVisual)}`);
+  if(qrVisual.background.width!=='47'||qrVisual.background.height!=='47'||qrVisual.background.rx!=='2.82'||qrVisual.background.fill?.toUpperCase()!=='#F4F1EB')throw new Error(`Flipgazine QR paper contract failed: ${JSON.stringify(qrVisual)}`);
+  if(qrVisual.finderFrames!==3||qrVisual.finderCenters!==3||qrVisual.hasEmbeddedImage||qrVisual.logoInside)throw new Error(`Flipgazine QR finder/logo contract failed: ${JSON.stringify(qrVisual)}`);
+  report.checks.qr={...qrState,...qrVisual};
 
   const centeredSelectors=['.public-card-kicker','#publicCardName','.public-card-title','.public-card-hotel','.public-card-detail span','.public-card-detail b'];
   const centered={};
