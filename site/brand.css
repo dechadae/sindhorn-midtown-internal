@@ -1,0 +1,27 @@
+/* Brand landing — uses the final rendered F&B promotion-card recipe over the persistent atmosphere. */
+body[data-route="brand"] #route-view{background:transparent;padding-bottom:96px}
+.brand-route{--brand-muted:rgba(250,247,245,.55);--brand-accent:#E5ECBE;--brand-accent-rgb:229,236,190;--brand-line:rgba(250,247,245,.09);--brand-glass:rgba(46,39,59,.48);--brand-border:rgba(250,247,245,.14);--brand-motion-fast:160ms;--brand-motion-base:260ms;--brand-ease:cubic-bezier(.22,1,.36,1);position:relative;min-height:calc(100dvh - 120px);color:var(--sm-text);isolation:auto;font:400 15px/1.65 var(--font-ui)}
+.brand-route::before{content:none}
+.brand-route,.brand-route *,.brand-route *::before,.brand-route *::after{box-sizing:border-box;letter-spacing:0!important}
+.brand-hero{padding:22px 0 20px;border-bottom:1px solid var(--brand-line)}
+.brand-eyebrow{margin:0 0 12px;color:var(--brand-accent);font-size:9px;font-weight:400;line-height:1.3;text-transform:uppercase}
+.brand-hero h1{margin:0;color:var(--sm-text);font-family:var(--font-ui);font-size:clamp(30px,8.5vw,44px);font-weight:400;line-height:1.05}
+.brand-intro{max-width:34rem;margin:8px 0 0;color:rgba(250,247,245,.66);font-size:13px;font-weight:400;line-height:1.55}
+.brand-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 20px;margin-top:18px;border-top:1px solid var(--brand-line)}
+.brand-stat{min-width:0;padding:12px 0;border-bottom:1px solid var(--brand-line)}
+.brand-stat span{display:block;margin:0 0 5px;color:var(--brand-muted);font-size:9px;font-weight:400;text-transform:uppercase}
+.brand-stat b{display:block;font-size:13.5px;font-weight:400;line-height:1.35}
+.brand-card-list{display:grid;gap:9px;padding:18px 0 0}
+.brand-card{display:block;padding:16px 17px;border:1px solid var(--brand-border);border-radius:14px;background:var(--brand-glass);backdrop-filter:none;-webkit-backdrop-filter:none;color:inherit;text-decoration:none;box-shadow:none;transition:transform var(--brand-motion-base) var(--brand-ease),border-color var(--brand-motion-base) ease,background var(--brand-motion-base) ease,box-shadow var(--brand-motion-base) var(--brand-ease),opacity var(--brand-motion-fast) ease}
+.brand-card:focus-visible{outline:2px solid rgba(var(--brand-accent-rgb),.72);outline-offset:3px}
+.brand-card:focus-within{border-color:rgba(var(--brand-accent-rgb),.32);box-shadow:0 14px 34px rgba(12,9,18,.14)}
+.brand-card:active{transform:scale(.992);opacity:.88}
+.brand-card-index{display:block;margin:0 0 9px;color:var(--brand-accent);font-size:9px;font-weight:400;line-height:1.3;text-transform:uppercase}
+.brand-card h2{margin:0;color:var(--sm-text);font-size:clamp(16px,3.6vw,19px);font-weight:400;line-height:1.25}
+.brand-card p{max-width:600px;margin:6px 0 0;color:var(--brand-muted);font-size:12.5px;font-weight:400;line-height:1.5}
+.brand-card-foot{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin-top:12px;padding-top:11px;border-top:1px solid var(--brand-line);color:var(--brand-muted);font-size:12.5px;font-weight:400;line-height:1.5}
+.brand-arrow{display:grid;place-items:center;width:20px;height:20px;color:var(--sm-text)}
+.brand-arrow svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+@media(hover:hover){.brand-card:hover{transform:translateY(-2px);border-color:rgba(var(--brand-accent-rgb),.25)}}
+@media(min-width:720px){.brand-card-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.brand-card{transition:none!important}}

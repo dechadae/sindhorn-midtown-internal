@@ -1,7 +1,9 @@
 export const ROUTES=Object.freeze({
   today:Object.freeze({path:'/',title:'Live Air Quality | Sindhorn Midtown Hotel Bangkok',kind:'pack',resources:Object.freeze(['today.html','guidance.html','details.html'])}),
   fnb:Object.freeze({path:'/fnb',title:'F&B | Sindhorn Midtown Internal',kind:'local',module:'./fnb.js',mount:'mountFnbRoute'}),
-  ihgHistory:Object.freeze({path:'/ihg-history',title:'Brand | Sindhorn Midtown Internal',kind:'local',module:'./ihg-history.js',mount:'mountIhgHistoryRoute'}),
+  brand:Object.freeze({path:'/brand',title:'Brand | Sindhorn Midtown Internal',kind:'local',module:'./brand.js?v=3',mount:'mountBrandRoute'}),
+  ihgHistory:Object.freeze({path:'/ihg-history',title:'Our History | Sindhorn Midtown Internal',kind:'local',module:'./ihg-history.js',mount:'mountIhgHistoryRoute'}),
+  hotelFactsheet:Object.freeze({path:'/hotel-factsheet',title:'Hotel Factsheet | Sindhorn Midtown Internal',kind:'local',module:'./hotel-factsheet-route.js?v=2',mount:'mountHotelFactsheetRoute'}),
   messages:Object.freeze({path:'/messages',title:'Environmental Messages | Sindhorn Midtown Hotel Bangkok',kind:'pack',resource:'messages.html'}),
   settings:Object.freeze({path:'/settings',title:'Settings | Sindhorn Midtown Internal',kind:'local',module:'./settings-route-v3.js?v=9&r=5',mount:'mountSettingsRoute'})
 });
