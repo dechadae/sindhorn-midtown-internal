@@ -39,6 +39,7 @@ jobs:
         run: |
           set -euo pipefail
           alias="${GITHUB_REF_NAME:0:28}"
+          alias="${alias%-}"
           echo "PREVIEW_BASE_URL=https://${alias}.sindhorn-midtown-internal.pages.dev" >> "$GITHUB_ENV"
 
       - name: Validate business card contracts
