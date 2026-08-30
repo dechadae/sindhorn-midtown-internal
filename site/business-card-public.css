@@ -10,15 +10,16 @@ a{color:inherit;text-decoration:none}
 .public-card-head h1{margin:0;font-size:clamp(30px,9vw,48px);font-weight:100;line-height:.98;text-align:center;overflow-wrap:anywhere}
 .public-card-title{margin:13px 0 0;font-size:14px;text-align:center}
 .public-card-hotel{max-width:390px;margin:11px auto 0;color:var(--bc-muted);font-size:12.5px;line-height:1.5;text-align:center}
-.public-card-qr{width:min(100%,390px);aspect-ratio:1;margin:28px auto 0;padding:14px;border-radius:22px;background:#fff;box-shadow:0 20px 48px rgba(10,8,15,.22)}
+.public-card-qr{width:min(80%,312px);aspect-ratio:1;margin:28px auto 0;padding:0;border-radius:20px;background:#F4F1EB;box-shadow:0 20px 48px rgba(10,8,15,.22);overflow:hidden}
 .public-card-qr svg{display:block;width:100%;height:100%}
-.public-card-qr-error{display:grid;place-items:center;height:100%;color:#17131F;font-size:12px}
+.public-card-qr-error{display:grid;place-items:center;height:100%;color:#0D1110;font-size:12px}
 .public-card-logo-wrap{display:flex;justify-content:center;margin:18px 0 2px}
-.public-card-logo{display:block;width:min(108px,29vw);height:auto}
+.public-card-logo{display:block;width:min(129.6px,34.8vw);height:auto}
 .public-card-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px;margin-top:24px;border-top:1px solid var(--bc-line)}
 .public-card-detail{min-width:0;padding:13px 0;border-bottom:1px solid var(--bc-line);text-align:center}
 .public-card-detail span{display:block;margin-bottom:5px;color:var(--bc-muted);font-size:9px;text-transform:uppercase;text-align:center}
 .public-card-detail b,.public-card-detail a{display:block;margin-inline:auto;font-size:13px;font-weight:400;line-height:1.4;text-align:center;overflow-wrap:anywhere}
+.public-card-detail a{color:var(--bc-accent)}
 .public-card-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:22px}
 .public-card-action{min-height:46px;display:flex;align-items:center;justify-content:center;padding:0 13px;border:1px solid var(--bc-line);border-radius:13px;background:var(--bc-glass);color:var(--bc-text);font:400 11.5px/1 var(--font-ui);text-transform:uppercase;cursor:pointer;transition:transform .16s var(--bc-ease),opacity .16s ease,border-color .22s ease,background .22s ease}
 .public-card-action:active{transform:scale(.975);opacity:.82}
@@ -26,6 +27,7 @@ a{color:inherit;text-decoration:none}
 .public-card-status{min-height:18px;margin:12px 0 0;color:var(--bc-accent);font-size:10px;text-align:center;opacity:0}
 .public-card-status[data-show="true"]{opacity:1}
 .public-card-panel footer{margin-top:8px;padding-top:14px;border-top:1px solid var(--bc-line);color:rgba(250,247,245,.38);font-size:9.5px;text-align:center;overflow-wrap:anywhere}
+.public-card-panel footer a{color:rgba(250,247,245,.58)}
 .public-card-loading{display:grid;grid-template-columns:repeat(3,7px);gap:6px;place-items:center;color:var(--bc-muted)}
 .public-card-loading span{width:7px;height:7px;border-radius:50%;background:var(--bc-accent)}
 .public-card-loading p{grid-column:1/-1;margin:12px 0 0;font-size:11px}
@@ -33,5 +35,5 @@ a{color:inherit;text-decoration:none}
 .public-card-unavailable h1{margin:0;font-size:34px;font-weight:100}
 .public-card-unavailable>p:not(.public-card-kicker){color:var(--bc-muted);font-size:13px}
 .public-card-unavailable span{display:block;margin-top:20px;padding-top:14px;border-top:1px solid var(--bc-line);color:var(--bc-muted);font-size:11px}
-@media(max-width:420px){.public-business-card{padding-left:10px;padding-right:10px}.public-card-panel{padding:24px 18px 18px;border-radius:23px}.public-card-details{grid-template-columns:1fr}.public-card-actions{grid-template-columns:1fr 1fr}.public-card-head h1{font-size:clamp(29px,10vw,42px)}.public-card-qr{width:100%;padding:12px;border-radius:20px}.public-card-logo{width:min(100px,28vw)}}
+@media(max-width:420px){.public-business-card{padding-left:10px;padding-right:10px}.public-card-panel{padding:24px 18px 18px;border-radius:23px}.public-card-details{grid-template-columns:1fr}.public-card-actions{grid-template-columns:1fr 1fr}.public-card-head h1{font-size:clamp(29px,10vw,42px)}.public-card-qr{width:min(80%,312px);padding:0;border-radius:18px}.public-card-logo{width:min(120px,33.6vw)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important}}

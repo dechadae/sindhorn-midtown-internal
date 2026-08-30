@@ -19,42 +19,63 @@ try{
   await page.locator('#publicCardName').waitFor({state:'visible'});
 
   const name=(await page.locator('#publicCardName').textContent())?.trim();
-  const hotel=(await page.locator('.public-card-hotel').textContent())?.trim();
+  const hotel=(await page.locator('.public-card-hotel').innerText()).replace(/\s+/g,' ').trim();
+  const hotelHtml=await page.locator('.public-card-hotel').innerHTML();
   const title=(await page.locator('.public-card-title').textContent())?.trim();
   if(name!=='DECHA KOKAEW')throw new Error(`Name mismatch: ${name}`);
   if(title!=='Senior Graphic Designer')throw new Error(`Title mismatch: ${title}`);
   if(hotel!==HOTEL)throw new Error(`Hotel mismatch: ${hotel}`);
-  report.checks.identity={name,title,hotel};
+  if(!hotelHtml.includes('<br>'))throw new Error(`Hotel name line break missing: ${hotelHtml}`);
+  report.checks.identity={name,title,hotel,lineBreakAfterComma:true};
 
   const logo=page.locator('.public-card-logo');
   await logo.waitFor({state:'visible'});
-  const logoState=await logo.evaluate(img=>({src:img.getAttribute('src'),width:img.naturalWidth,height:img.naturalHeight}));
-  if(!logoState.src?.includes('sindhorn-midtown-vignette-white.png')||logoState.width<1||logoState.height<1)throw new Error(`Hotel logo failed: ${JSON.stringify(logoState)}`);
+  const logoState=await logo.evaluate(img=>({src:img.getAttribute('src'),width:img.naturalWidth,height:img.naturalHeight,renderedWidth:img.getBoundingClientRect().width,insideQr:Boolean(img.closest('[data-card-qr]'))}));
+  if(!logoState.src?.includes('sindhorn-midtown-vignette-white.png')||logoState.width<1||logoState.height<1||logoState.insideQr)throw new Error(`Hotel logo placement failed: ${JSON.stringify(logoState)}`);
+  if(logoState.renderedWidth<119||logoState.renderedWidth>121)throw new Error(`Hotel logo is not 1.2x original mobile size: ${JSON.stringify(logoState)}`);
   report.checks.logo=logoState;
 
   const qr=page.locator('[data-card-qr] svg');
   await qr.waitFor({state:'visible'});
-  report.checks.qr=true;
+  const qrState=await page.locator('[data-card-qr]').evaluate(node=>{const rect=node.getBoundingClientRect();return{width:rect.width,height:rect.height}});
+  if(qrState.width>313||Math.abs(qrState.width-qrState.height)>1)throw new Error(`QR geometry mismatch: ${JSON.stringify(qrState)}`);
+  const qrVisual=await qr.evaluate(svg=>{
+    const rects=[...svg.querySelectorAll('rect')];
+    return{
+      viewBox:svg.getAttribute('viewBox'),
+      shapeRendering:svg.getAttribute('shape-rendering'),
+      circleCount:svg.querySelectorAll('circle').length,
+      background:{width:rects[0]?.getAttribute('width'),height:rects[0]?.getAttribute('height'),rx:rects[0]?.getAttribute('rx'),fill:rects[0]?.getAttribute('fill')},
+      finderFrames:rects.filter(node=>node.getAttribute('width')==='7'&&node.getAttribute('height')==='7'&&node.getAttribute('rx')==='2.1').length,
+      finderCenters:rects.filter(node=>node.getAttribute('width')==='3'&&node.getAttribute('height')==='3'&&node.getAttribute('rx')==='1').length,
+      dotRadius:svg.querySelector('circle')?.getAttribute('r'),
+      hasEmbeddedImage:Boolean(svg.querySelector('image')),
+      logoInside:Boolean(svg.closest('[data-card-qr]')?.querySelector('.public-card-logo'))
+    };
+  });
+  if(qrVisual.viewBox!=='0 0 47 47'||qrVisual.shapeRendering!=='geometricPrecision'||qrVisual.circleCount<100||qrVisual.dotRadius!=='0.46')throw new Error(`Flipgazine QR dot contract failed: ${JSON.stringify(qrVisual)}`);
+  if(qrVisual.background.width!=='47'||qrVisual.background.height!=='47'||qrVisual.background.rx!=='2.82'||qrVisual.background.fill?.toUpperCase()!=='#F4F1EB')throw new Error(`Flipgazine QR paper contract failed: ${JSON.stringify(qrVisual)}`);
+  if(qrVisual.finderFrames!==3||qrVisual.finderCenters!==3||qrVisual.hasEmbeddedImage||qrVisual.logoInside)throw new Error(`Flipgazine QR finder/logo contract failed: ${JSON.stringify(qrVisual)}`);
+  report.checks.qr={...qrState,...qrVisual};
 
   const centeredSelectors=['.public-card-kicker','#publicCardName','.public-card-title','.public-card-hotel','.public-card-detail span','.public-card-detail b'];
   const centered={};
-  for(const selector of centeredSelectors){
-    const locator=page.locator(selector).first();
-    if(await locator.count()){
-      const align=await locator.evaluate(node=>getComputedStyle(node).textAlign);
-      centered[selector]=align;
-      if(align!=='center')throw new Error(`${selector} is not centered: ${align}`);
-    }
-  }
+  for(const selector of centeredSelectors){const locator=page.locator(selector).first();if(await locator.count()){const align=await locator.evaluate(node=>getComputedStyle(node).textAlign);centered[selector]=align;if(align!=='center')throw new Error(`${selector} is not centered: ${align}`)}}
   report.checks.centered=centered;
+
+  const website=page.locator('.public-card-detail').filter({hasText:'Hotel website'}).locator('a');
+  if((await website.textContent())?.trim()!=='ihg.com')throw new Error(`Hotel website label is not short: ${(await website.textContent())?.trim()}`);
+  const websiteHref=await website.getAttribute('href');
+  if(!websiteHref?.startsWith('https://www.ihg.com/'))throw new Error(`Hotel website href changed: ${websiteHref}`);
+  const cardLink=page.locator('.public-card-panel footer a');
+  if((await cardLink.textContent())?.trim()!=='dechak')throw new Error('Business card footer link is not short');
+  if((await cardLink.getAttribute('href'))!==`${base}/dechak`)throw new Error(`Business card footer href mismatch: ${await cardLink.getAttribute('href')}`);
+  report.checks.shortLinks={hotel:'ihg.com',businessCard:'dechak'};
 
   const actions=page.locator('.public-card-actions .public-card-action');
   const actionText=(await actions.allTextContents()).map(value=>value.trim());
   for(const expected of ['Add to contacts','Call','Email','Share'])if(!actionText.some(value=>value.toLowerCase()===expected.toLowerCase()))throw new Error(`Missing ${expected} action`);
-  const styles=await actions.evaluateAll(nodes=>nodes.map(node=>{
-    const style=getComputedStyle(node);
-    return {backgroundColor:style.backgroundColor,borderColor:style.borderColor,borderRadius:style.borderRadius,color:style.color,fontSize:style.fontSize,minHeight:style.minHeight};
-  }));
+  const styles=await actions.evaluateAll(nodes=>nodes.map(node=>{const style=getComputedStyle(node);return{backgroundColor:style.backgroundColor,borderColor:style.borderColor,borderRadius:style.borderRadius,color:style.color,fontSize:style.fontSize,minHeight:style.minHeight}}));
   const styleSignature=JSON.stringify(styles[0]);
   if(styles.some(style=>JSON.stringify(style)!==styleSignature))throw new Error(`Public action styles diverged: ${JSON.stringify(styles)}`);
   report.checks.actions={labels:actionText,uniformStyle:styles[0]};
@@ -83,6 +104,4 @@ try{
 
   await page.screenshot({path:path.join(out,'dechak-mobile.png'),fullPage:true});
   console.log(JSON.stringify(report,null,2));
-}finally{
-  await browser.close();
-}
+}finally{await browser.close()}
