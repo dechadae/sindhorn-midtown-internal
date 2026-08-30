@@ -99,9 +99,11 @@ try{
   const dialogHarness=await page.evaluate(async()=>{
     document.body.dataset.route='settings';
     document.documentElement.style.setProperty('--settings-viewport-height','844px');
-    const loadCss=href=>new Promise(resolve=>{const link=document.createElement('link');link.rel='stylesheet';link.href=href;link.onload=resolve;link.onerror=resolve;document.head.append(link)});
-    await Promise.all([loadCss('/settings.css?v=2'),loadCss('/settings-dialog-standard.css?v=1&r=5')]);
+    const loadCss=href=>new Promise(resolve=>{const link=document.createElement('link');link.rel='stylesheet';link.href=href;link.onload=resolve;link.onerror=resolve;document.head.appendChild(link)});
+    await Promise.all([loadCss('/settings.css?v=2'),loadCss('/settings-dialog-standard.css?v=1&r=6')]);
     const controller=await import('/settings-dialog-standard.js?v=1');
+    const metrics=(surface,scroll)=>{const s=surface.getBoundingClientRect(),r=scroll.getBoundingClientRect();return{surfaceWidth:s.width,scrollWidth:r.width,rightEdgeGap:Math.abs(s.right-r.right),leftEdgeGap:Math.abs(s.left-r.left)}};
+    const buttonMetrics=nodes=>[...nodes].filter(node=>!node.hidden).map(node=>{const r=node.getBoundingClientRect();return{label:node.textContent.trim(),width:r.width,height:r.height}});
 
     const card=document.querySelector('.public-card-panel').cloneNode(true);
     card.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
@@ -110,19 +112,24 @@ try{
     await controller.openSettingsDialog(cardDialog);
     const cardScroll=cardDialog.querySelector('.settings-modal-scroll');
     const cardRootStyle=getComputedStyle(cardDialog),cardSurfaceStyle=getComputedStyle(card),cardScrollStyle=getComputedStyle(cardScroll),closeStyle=getComputedStyle(close);
-    const cardRect=card.getBoundingClientRect();
-    const cardState={open:cardDialog.open,rootClass:cardDialog.classList.contains('settings-modal-root'),surfaceClass:card.classList.contains('settings-modal-surface'),scrollClass:Boolean(cardScroll?.classList.contains('settings-modal-scroll')),outer:{backgroundColor:cardRootStyle.backgroundColor,overflowY:cardRootStyle.overflowY,paddingRight:cardRootStyle.paddingRight},surface:{backgroundColor:cardSurfaceStyle.backgroundColor,borderRadius:cardSurfaceStyle.borderRadius,width:cardRect.width},scroll:{overflowY:cardScrollStyle.overflowY},close:{width:closeStyle.width,height:closeStyle.height,tapHighlight:closeStyle.webkitTapHighlightColor||''}};
+    const cardState={open:cardDialog.open,rootClass:cardDialog.classList.contains('settings-modal-root'),surfaceClass:card.classList.contains('settings-modal-surface'),scrollClass:Boolean(cardScroll?.classList.contains('settings-modal-scroll')),outer:{backgroundColor:cardRootStyle.backgroundColor,overflowY:cardRootStyle.overflowY,paddingRight:cardRootStyle.paddingRight},surface:{backgroundColor:cardSurfaceStyle.backgroundColor,borderRadius:cardSurfaceStyle.borderRadius,width:card.getBoundingClientRect().width},scroll:{overflowY:cardScrollStyle.overflowY,...metrics(card,cardScroll)},close:{width:closeStyle.width,height:closeStyle.height,tapHighlight:closeStyle.webkitTapHighlightColor||''}};
     await controller.closeSettingsDialog(cardDialog);
 
-    const editor=document.createElement('dialog');editor.className='settings-dialog';editor.innerHTML='<form class="settings-dialog-body"><div class="settings-dialog-head"><div><p class="settings-dialog-kicker">People</p><h2>Edit employee</h2></div><button class="settings-close" type="button">×</button></div><div style="height:1200px">Editor content</div></form>';document.body.append(editor);
+    const editor=document.createElement('dialog');editor.className='settings-dialog';editor.innerHTML='<form class="settings-dialog-body"><div class="settings-dialog-head"><div><p class="settings-dialog-kicker">People</p><h2>Edit employee</h2></div><button class="settings-close" type="button">×</button></div><div style="height:1000px">Editor content</div><div class="settings-dialog-actions settings-dialog-actions-split"><div></div><div class="settings-action-group"><button type="button">Issue recovery code</button><button type="button">Cancel</button><button type="button">Save</button></div></div></form>';document.body.append(editor);
     await controller.openSettingsDialog(editor);
-    const editorSurface=editor.querySelector('.settings-modal-surface'),editorScroll=editor.querySelector('.settings-modal-scroll');
+    const editorSurface=editor.querySelector('.settings-modal-surface'),editorScroll=editor.querySelector('.settings-modal-scroll'),editorButtons=editor.querySelectorAll('.settings-action-group>button');
     const editorRootStyle=getComputedStyle(editor),editorSurfaceStyle=getComputedStyle(editorSurface),editorScrollStyle=getComputedStyle(editorScroll),editorRect=editorSurface.getBoundingClientRect();
-    const editorState={open:editor.open,rootClass:editor.classList.contains('settings-modal-root'),surfaceClass:Boolean(editorSurface?.classList.contains('settings-modal-surface')),scrollClass:Boolean(editorScroll?.classList.contains('settings-modal-scroll')),outer:{backgroundColor:editorRootStyle.backgroundColor,overflowY:editorRootStyle.overflowY,paddingRight:editorRootStyle.paddingRight},surface:{backgroundColor:editorSurfaceStyle.backgroundColor,borderRadius:editorSurfaceStyle.borderRadius,width:editorRect.width},scroll:{overflowY:editorScrollStyle.overflowY,scrollHeight:editorScroll.scrollHeight,clientHeight:editorScroll.clientHeight}};
+    const editorState={open:editor.open,rootClass:editor.classList.contains('settings-modal-root'),surfaceClass:Boolean(editorSurface?.classList.contains('settings-modal-surface')),scrollClass:Boolean(editorScroll?.classList.contains('settings-modal-scroll')),outer:{backgroundColor:editorRootStyle.backgroundColor,overflowY:editorRootStyle.overflowY,paddingRight:editorRootStyle.paddingRight},surface:{backgroundColor:editorSurfaceStyle.backgroundColor,borderRadius:editorSurfaceStyle.borderRadius,width:editorRect.width},scroll:{overflowY:editorScrollStyle.overflowY,scrollHeight:editorScroll.scrollHeight,clientHeight:editorScroll.clientHeight,...metrics(editorSurface,editorScroll)},buttons:buttonMetrics(editorButtons)};
     await controller.closeSettingsDialog(editor);
 
-    editor.remove();cardDialog.remove();delete document.body.dataset.route;document.documentElement.style.removeProperty('--settings-viewport-height');
-    return{card:cardState,editor:editorState};
+    const editCard=document.createElement('dialog');editCard.className='settings-dialog';editCard.innerHTML='<form class="settings-dialog-body"><div class="settings-dialog-head"><div><p class="settings-dialog-kicker">My business card</p><h2>Edit card</h2></div><button class="settings-close" type="button">×</button></div><div style="height:820px">Card fields</div><div class="settings-dialog-actions"><button type="button">Cancel</button><button type="button">Save</button></div></form>';document.body.append(editCard);
+    await controller.openSettingsDialog(editCard);
+    const editCardSurface=editCard.querySelector('.settings-modal-surface'),editCardScroll=editCard.querySelector('.settings-modal-scroll'),editCardButtons=editCard.querySelectorAll('.settings-dialog-actions>button');
+    const editCardState={scroll:{...metrics(editCardSurface,editCardScroll)},buttons:buttonMetrics(editCardButtons)};
+    await controller.closeSettingsDialog(editCard);
+
+    editCard.remove();editor.remove();cardDialog.remove();delete document.body.dataset.route;document.documentElement.style.removeProperty('--settings-viewport-height');
+    return{card:cardState,editor:editorState,editCard:editCardState};
   });
   for(const state of [dialogHarness.card,dialogHarness.editor]){
     if(!state.open||!state.rootClass||!state.surfaceClass||!state.scrollClass)throw new Error(`Central modal structure missing: ${JSON.stringify(dialogHarness)}`);
@@ -131,6 +138,10 @@ try{
   }
   if(dialogHarness.card.surface.backgroundColor!==dialogHarness.editor.surface.backgroundColor||dialogHarness.card.surface.borderRadius!==dialogHarness.editor.surface.borderRadius||Math.abs(dialogHarness.card.surface.width-dialogHarness.editor.surface.width)>1)throw new Error(`Card/Edit Employee modal shells diverged: ${JSON.stringify(dialogHarness)}`);
   if(dialogHarness.editor.scroll.scrollHeight<=dialogHarness.editor.scroll.clientHeight)throw new Error(`Editor inner scroller is not actually scrollable: ${JSON.stringify(dialogHarness)}`);
+  for(const [name,state] of Object.entries({businessCard:dialogHarness.card,editEmployee:dialogHarness.editor,editCard:dialogHarness.editCard}))if(state.scroll.rightEdgeGap>1.1)throw new Error(`${name} scrollbar is inset from the card edge: ${JSON.stringify(dialogHarness)}`);
+  const equalButtons=(name,buttons)=>{if(buttons.length<2)throw new Error(`${name} footer buttons missing: ${JSON.stringify(dialogHarness)}`);const widths=buttons.map(item=>item.width),heights=buttons.map(item=>item.height);if(Math.max(...widths)-Math.min(...widths)>1||Math.max(...heights)-Math.min(...heights)>1)throw new Error(`${name} footer buttons are not equal size: ${JSON.stringify(dialogHarness)}`)};
+  equalButtons('Edit Employee',dialogHarness.editor.buttons);
+  equalButtons('Edit Card',dialogHarness.editCard.buttons);
   if(dialogHarness.card.close.width!=='36px'||dialogHarness.card.close.height!=='36px')throw new Error(`Standard close control geometry changed: ${JSON.stringify(dialogHarness)}`);
   report.checks.dialogStandard=dialogHarness;
 

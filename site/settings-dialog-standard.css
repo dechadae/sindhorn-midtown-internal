@@ -62,10 +62,16 @@ body[data-route="settings"] .settings-modal-surface{
   transform-origin:center bottom;
 }
 
+/* Form-style Settings popups use the Business Card's edge-aligned scroll viewport.
+   The surface itself has no inset; header and scroll content carry the visual padding. */
+body[data-route="settings"] .settings-modal-surface:not(.public-card-panel){
+  padding:0!important;
+}
 body[data-route="settings"] .settings-modal-surface>.settings-dialog-head{
   flex:0 0 auto;
   position:relative;
   z-index:2;
+  padding:22px 22px 0;
 }
 body[data-route="settings"] .settings-modal-scroll{
   min-height:0;
@@ -78,9 +84,31 @@ body[data-route="settings"] .settings-modal-scroll{
   scrollbar-color:rgba(250,247,245,.28) transparent;
   -webkit-overflow-scrolling:touch;
 }
+body[data-route="settings"] .settings-modal-surface:not(.public-card-panel)>.settings-modal-scroll{
+  padding:0 22px 22px;
+}
 body[data-route="settings"] .settings-modal-scroll::-webkit-scrollbar{width:5px}
 body[data-route="settings"] .settings-modal-scroll::-webkit-scrollbar-track{background:transparent}
 body[data-route="settings"] .settings-modal-scroll::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(250,247,245,.28)}
+
+/* Standardize bottom action rows without popup-specific selectors. */
+body[data-route="settings"] .settings-modal-scroll .settings-dialog-actions:not(.settings-dialog-actions-split):has(>button+button){
+  align-items:stretch!important;
+}
+body[data-route="settings"] .settings-modal-scroll .settings-dialog-actions:not(.settings-dialog-actions-split):has(>button+button)>button,
+body[data-route="settings"] .settings-modal-scroll .settings-action-group:has(>button:not([hidden])+button:not([hidden]))>button:not([hidden]){
+  flex:1 1 0!important;
+  min-width:0!important;
+  min-height:44px!important;
+  padding:0 8px!important;
+  line-height:1.2!important;
+  white-space:normal;
+}
+body[data-route="settings"] .settings-modal-scroll .settings-action-group:has(>button:not([hidden])+button:not([hidden])){
+  width:100%!important;
+  flex-wrap:nowrap!important;
+  align-items:stretch!important;
+}
 
 /* The business-card renderer owns its visual content, but not modal geometry. */
 body[data-route="settings"] .settings-modal-surface.public-card-panel{
@@ -97,6 +125,12 @@ body[data-route="settings"] .settings-modal-surface.public-card-panel{
   body[data-route="settings"] .settings-modal-surface{
     max-height:calc(var(--settings-viewport-height,100dvh) - 32px)!important;
     border-radius:22px!important;
+  }
+  body[data-route="settings"] .settings-modal-surface>.settings-dialog-head{
+    padding:18px 18px 0;
+  }
+  body[data-route="settings"] .settings-modal-surface:not(.public-card-panel)>.settings-modal-scroll{
+    padding:0 18px 18px;
   }
   body[data-route="settings"] .settings-modal-surface.public-card-panel{
     height:calc(var(--settings-viewport-height,100dvh) - 32px)!important;
