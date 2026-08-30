@@ -17,6 +17,9 @@ try{
   report.checks.status=response?.status();
   if(response?.status()!==200)throw new Error(`Expected /dechak HTTP 200, got ${response?.status()}`);
   await page.locator('#publicCardName').waitFor({state:'visible'});
+  const canvasCount=await page.locator('canvas').count();
+  if(canvasCount!==0)throw new Error(`Public card must be WebGL/canvas-free, found ${canvasCount} canvas element(s)`);
+  report.checks.publicShell={canvasCount,webgl:false};
 
   const name=(await page.locator('#publicCardName').textContent())?.trim();
   const hotel=(await page.locator('.public-card-hotel').innerText()).replace(/\s+/g,' ').trim();
@@ -41,17 +44,7 @@ try{
   if(qrState.width>313||Math.abs(qrState.width-qrState.height)>1)throw new Error(`QR geometry mismatch: ${JSON.stringify(qrState)}`);
   const qrVisual=await qr.evaluate(svg=>{
     const rects=[...svg.querySelectorAll('rect')];
-    return{
-      viewBox:svg.getAttribute('viewBox'),
-      shapeRendering:svg.getAttribute('shape-rendering'),
-      circleCount:svg.querySelectorAll('circle').length,
-      background:{width:rects[0]?.getAttribute('width'),height:rects[0]?.getAttribute('height'),rx:rects[0]?.getAttribute('rx'),fill:rects[0]?.getAttribute('fill')},
-      finderFrames:rects.filter(node=>node.getAttribute('width')==='7'&&node.getAttribute('height')==='7'&&node.getAttribute('rx')==='2.1').length,
-      finderCenters:rects.filter(node=>node.getAttribute('width')==='3'&&node.getAttribute('height')==='3'&&node.getAttribute('rx')==='1').length,
-      dotRadius:svg.querySelector('circle')?.getAttribute('r'),
-      hasEmbeddedImage:Boolean(svg.querySelector('image')),
-      logoInside:Boolean(svg.closest('[data-card-qr]')?.querySelector('.public-card-logo'))
-    };
+    return{viewBox:svg.getAttribute('viewBox'),shapeRendering:svg.getAttribute('shape-rendering'),circleCount:svg.querySelectorAll('circle').length,background:{width:rects[0]?.getAttribute('width'),height:rects[0]?.getAttribute('height'),rx:rects[0]?.getAttribute('rx'),fill:rects[0]?.getAttribute('fill')},finderFrames:rects.filter(node=>node.getAttribute('width')==='7'&&node.getAttribute('height')==='7'&&node.getAttribute('rx')==='2.1').length,finderCenters:rects.filter(node=>node.getAttribute('width')==='3'&&node.getAttribute('height')==='3'&&node.getAttribute('rx')==='1').length,dotRadius:svg.querySelector('circle')?.getAttribute('r'),hasEmbeddedImage:Boolean(svg.querySelector('image')),logoInside:Boolean(svg.closest('[data-card-qr]')?.querySelector('.public-card-logo'))};
   });
   if(qrVisual.viewBox!=='0 0 47 47'||qrVisual.shapeRendering!=='geometricPrecision'||qrVisual.circleCount<100||qrVisual.dotRadius!=='0.46')throw new Error(`Flipgazine QR dot contract failed: ${JSON.stringify(qrVisual)}`);
   if(qrVisual.background.width!=='47'||qrVisual.background.height!=='47'||qrVisual.background.rx!=='2.82'||qrVisual.background.fill?.toUpperCase()!=='#F4F1EB')throw new Error(`Flipgazine QR paper contract failed: ${JSON.stringify(qrVisual)}`);
@@ -101,6 +94,29 @@ try{
   const html=await page.content();
   for(const forbidden of ['10639','super_admin','developer','employee_id','auth_user_id','personal_email'])if(html.toLowerCase().includes(forbidden.toLowerCase()))throw new Error(`Public HTML leaked forbidden token ${forbidden}`);
   report.checks.noPrivateLeak=true;
+
+  // Auth-free harness for the centralized Settings dialog treatment.
+  const dialogHarness=await page.evaluate(async()=>{
+    document.body.dataset.route='settings';
+    const loadCss=href=>new Promise(resolve=>{const link=document.createElement('link');link.rel='stylesheet';link.href=href;link.onload=resolve;link.onerror=resolve;document.head.append(link)});
+    await Promise.all([loadCss('/settings.css?v=2'),loadCss('/settings-dialog-standard.css?v=1')]);
+    const card=document.querySelector('.public-card-panel').cloneNode(true);
+    card.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
+    const close=document.createElement('button');close.className='settings-close';close.type='button';close.textContent='×';card.prepend(close);
+    const dialog=document.createElement('dialog');dialog.className='settings-dialog business-card-present-dialog';dialog.append(card);document.body.append(dialog);
+    const editor=document.createElement('dialog');editor.className='settings-dialog';editor.innerHTML='<div class="settings-dialog-body">Editor surface</div>';document.body.append(editor);
+    const controller=await import('/settings-dialog-standard.js?v=1');
+    await controller.openSettingsDialog(dialog);
+    const outer=getComputedStyle(dialog),cardStyle=getComputedStyle(card),closeStyle=getComputedStyle(close),editorSurface=getComputedStyle(editor.firstElementChild);
+    const result={open:dialog.open,outer:{backgroundColor:outer.backgroundColor,overflowY:outer.overflowY,paddingRight:outer.paddingRight},card:{backgroundColor:cardStyle.backgroundColor,borderRadius:cardStyle.borderRadius},editor:{backgroundColor:editorSurface.backgroundColor,borderRadius:editorSurface.borderRadius},close:{width:closeStyle.width,height:closeStyle.height,tapHighlight:closeStyle.webkitTapHighlightColor||''}};
+    await controller.closeSettingsDialog(dialog);editor.remove();dialog.remove();delete document.body.dataset.route;
+    return result;
+  });
+  if(!dialogHarness.open||dialogHarness.outer.overflowY!=='auto')throw new Error(`Standard dialog outer scroll failed: ${JSON.stringify(dialogHarness)}`);
+  if(!['rgba(0, 0, 0, 0)','transparent'].includes(dialogHarness.outer.backgroundColor))throw new Error(`Standard dialog outer must be transparent: ${JSON.stringify(dialogHarness)}`);
+  if(dialogHarness.card.backgroundColor!==dialogHarness.editor.backgroundColor||dialogHarness.card.borderRadius!==dialogHarness.editor.borderRadius)throw new Error(`Present QR/Edit Employee surfaces diverged: ${JSON.stringify(dialogHarness)}`);
+  if(dialogHarness.close.width!=='36px'||dialogHarness.close.height!=='36px')throw new Error(`Standard close control geometry changed: ${JSON.stringify(dialogHarness)}`);
+  report.checks.dialogStandard=dialogHarness;
 
   await page.screenshot({path:path.join(out,'dechak-mobile.png'),fullPage:true});
   console.log(JSON.stringify(report,null,2));
