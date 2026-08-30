@@ -9,7 +9,7 @@ export const BETTA_PRESETS={
       currentStrength:.5,motionSpeed:.72,turbulence:.5,motionAmplitude:.78,
       opacity:.46,transmission:.68,rimStrength:.72,foldHighlight:.88,iridescence:.24,bloom:.36,
       saturation:1.04,brightness:.92,gradientPosition:.05,
-      scale:1.42,rotation:-.54,cameraDepth:.15,offsetX:1.26,offsetY:-1.08
+      scale:1.1,rotation:-.46,cameraDepth:.15,offsetX:.55,offsetY:-.65
     },
     layers:[
       {seed:1.17,scale:1,rotation:0,offset:[0,0,0],alpha:1,phase:0},
