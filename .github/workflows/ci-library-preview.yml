@@ -5,6 +5,9 @@ on:
     branches: [preview-ci-library]
     paths:
       - "site/index.html"
+      - "site/login.html"
+      - "site/account.html"
+      - "site/admin.html"
       - "site/route-registry.js"
       - "site/_redirects"
       - "site/footer-route-guard.js"
@@ -57,6 +60,9 @@ jobs:
           grep -q -- '--app-radius-avatar:12px' site/app-shapes.css
           grep -q -- '--app-radius-chip:9px' site/app-shapes.css
           grep -q "developer.ui_library" site/settings-system-library.js site/ui-system-registry.js
+          for file in site/index.html site/login.html site/account.html site/admin.html; do
+            grep -q '/app-shapes.css?v=1' "$file"
+          done
           python - <<'PY'
           from pathlib import Path
           files = [
@@ -106,7 +112,7 @@ jobs:
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
           for path in \
-            /ci /settings \
+            /ci /settings /login.html /account.html /admin.html \
             /ci.js /ci.css /ci-specimen-fixes.css /app-shapes.css /ui-system-registry.js /settings-system-library.js /settings-system-library.css \
             /route-registry.js /route-hero-standard.css /footer-route-guard.js /settings-route-v3.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
