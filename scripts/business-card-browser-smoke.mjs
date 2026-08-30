@@ -95,27 +95,43 @@ try{
   for(const forbidden of ['10639','super_admin','developer','employee_id','auth_user_id','personal_email'])if(html.toLowerCase().includes(forbidden.toLowerCase()))throw new Error(`Public HTML leaked forbidden token ${forbidden}`);
   report.checks.noPrivateLeak=true;
 
-  // Auth-free harness for the centralized Settings dialog treatment.
+  // Auth-free harness for the one centralized Settings modal shell.
   const dialogHarness=await page.evaluate(async()=>{
     document.body.dataset.route='settings';
+    document.documentElement.style.setProperty('--settings-viewport-height','844px');
     const loadCss=href=>new Promise(resolve=>{const link=document.createElement('link');link.rel='stylesheet';link.href=href;link.onload=resolve;link.onerror=resolve;document.head.append(link)});
-    await Promise.all([loadCss('/settings.css?v=2'),loadCss('/settings-dialog-standard.css?v=1')]);
+    await Promise.all([loadCss('/settings.css?v=2'),loadCss('/settings-dialog-standard.css?v=1&r=5')]);
+    const controller=await import('/settings-dialog-standard.js?v=1');
+
     const card=document.querySelector('.public-card-panel').cloneNode(true);
     card.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
     const close=document.createElement('button');close.className='settings-close';close.type='button';close.textContent='×';card.prepend(close);
-    const dialog=document.createElement('dialog');dialog.className='settings-dialog business-card-present-dialog';dialog.append(card);document.body.append(dialog);
-    const editor=document.createElement('dialog');editor.className='settings-dialog';editor.innerHTML='<div class="settings-dialog-body">Editor surface</div>';document.body.append(editor);
-    const controller=await import('/settings-dialog-standard.js?v=1');
-    await controller.openSettingsDialog(dialog);
-    const outer=getComputedStyle(dialog),cardStyle=getComputedStyle(card),closeStyle=getComputedStyle(close),editorSurface=getComputedStyle(editor.firstElementChild);
-    const result={open:dialog.open,outer:{backgroundColor:outer.backgroundColor,overflowY:outer.overflowY,paddingRight:outer.paddingRight},card:{backgroundColor:cardStyle.backgroundColor,borderRadius:cardStyle.borderRadius},editor:{backgroundColor:editorSurface.backgroundColor,borderRadius:editorSurface.borderRadius},close:{width:closeStyle.width,height:closeStyle.height,tapHighlight:closeStyle.webkitTapHighlightColor||''}};
-    await controller.closeSettingsDialog(dialog);editor.remove();dialog.remove();delete document.body.dataset.route;
-    return result;
+    const cardDialog=document.createElement('dialog');cardDialog.className='settings-dialog business-card-present-dialog';cardDialog.append(card);document.body.append(cardDialog);
+    await controller.openSettingsDialog(cardDialog);
+    const cardScroll=cardDialog.querySelector('.settings-modal-scroll');
+    const cardRootStyle=getComputedStyle(cardDialog),cardSurfaceStyle=getComputedStyle(card),cardScrollStyle=getComputedStyle(cardScroll),closeStyle=getComputedStyle(close);
+    const cardRect=card.getBoundingClientRect();
+    const cardState={open:cardDialog.open,rootClass:cardDialog.classList.contains('settings-modal-root'),surfaceClass:card.classList.contains('settings-modal-surface'),scrollClass:Boolean(cardScroll?.classList.contains('settings-modal-scroll')),outer:{backgroundColor:cardRootStyle.backgroundColor,overflowY:cardRootStyle.overflowY,paddingRight:cardRootStyle.paddingRight},surface:{backgroundColor:cardSurfaceStyle.backgroundColor,borderRadius:cardSurfaceStyle.borderRadius,width:cardRect.width},scroll:{overflowY:cardScrollStyle.overflowY},close:{width:closeStyle.width,height:closeStyle.height,tapHighlight:closeStyle.webkitTapHighlightColor||''}};
+    await controller.closeSettingsDialog(cardDialog);
+
+    const editor=document.createElement('dialog');editor.className='settings-dialog';editor.innerHTML='<form class="settings-dialog-body"><div class="settings-dialog-head"><div><p class="settings-dialog-kicker">People</p><h2>Edit employee</h2></div><button class="settings-close" type="button">×</button></div><div style="height:1200px">Editor content</div></form>';document.body.append(editor);
+    await controller.openSettingsDialog(editor);
+    const editorSurface=editor.querySelector('.settings-modal-surface'),editorScroll=editor.querySelector('.settings-modal-scroll');
+    const editorRootStyle=getComputedStyle(editor),editorSurfaceStyle=getComputedStyle(editorSurface),editorScrollStyle=getComputedStyle(editorScroll),editorRect=editorSurface.getBoundingClientRect();
+    const editorState={open:editor.open,rootClass:editor.classList.contains('settings-modal-root'),surfaceClass:Boolean(editorSurface?.classList.contains('settings-modal-surface')),scrollClass:Boolean(editorScroll?.classList.contains('settings-modal-scroll')),outer:{backgroundColor:editorRootStyle.backgroundColor,overflowY:editorRootStyle.overflowY,paddingRight:editorRootStyle.paddingRight},surface:{backgroundColor:editorSurfaceStyle.backgroundColor,borderRadius:editorSurfaceStyle.borderRadius,width:editorRect.width},scroll:{overflowY:editorScrollStyle.overflowY,scrollHeight:editorScroll.scrollHeight,clientHeight:editorScroll.clientHeight}};
+    await controller.closeSettingsDialog(editor);
+
+    editor.remove();cardDialog.remove();delete document.body.dataset.route;document.documentElement.style.removeProperty('--settings-viewport-height');
+    return{card:cardState,editor:editorState};
   });
-  if(!dialogHarness.open||dialogHarness.outer.overflowY!=='auto')throw new Error(`Standard dialog outer scroll failed: ${JSON.stringify(dialogHarness)}`);
-  if(!['rgba(0, 0, 0, 0)','transparent'].includes(dialogHarness.outer.backgroundColor))throw new Error(`Standard dialog outer must be transparent: ${JSON.stringify(dialogHarness)}`);
-  if(dialogHarness.card.backgroundColor!==dialogHarness.editor.backgroundColor||dialogHarness.card.borderRadius!==dialogHarness.editor.borderRadius)throw new Error(`Present QR/Edit Employee surfaces diverged: ${JSON.stringify(dialogHarness)}`);
-  if(dialogHarness.close.width!=='36px'||dialogHarness.close.height!=='36px')throw new Error(`Standard close control geometry changed: ${JSON.stringify(dialogHarness)}`);
+  for(const state of [dialogHarness.card,dialogHarness.editor]){
+    if(!state.open||!state.rootClass||!state.surfaceClass||!state.scrollClass)throw new Error(`Central modal structure missing: ${JSON.stringify(dialogHarness)}`);
+    if(state.outer.overflowY!=='visible'||!['rgba(0, 0, 0, 0)','transparent'].includes(state.outer.backgroundColor)||state.outer.paddingRight!=='0px')throw new Error(`Outer modal must be footprint-free: ${JSON.stringify(dialogHarness)}`);
+    if(state.scroll.overflowY!=='auto')throw new Error(`Only inner modal content may scroll: ${JSON.stringify(dialogHarness)}`);
+  }
+  if(dialogHarness.card.surface.backgroundColor!==dialogHarness.editor.surface.backgroundColor||dialogHarness.card.surface.borderRadius!==dialogHarness.editor.surface.borderRadius||Math.abs(dialogHarness.card.surface.width-dialogHarness.editor.surface.width)>1)throw new Error(`Card/Edit Employee modal shells diverged: ${JSON.stringify(dialogHarness)}`);
+  if(dialogHarness.editor.scroll.scrollHeight<=dialogHarness.editor.scroll.clientHeight)throw new Error(`Editor inner scroller is not actually scrollable: ${JSON.stringify(dialogHarness)}`);
+  if(dialogHarness.card.close.width!=='36px'||dialogHarness.card.close.height!=='36px')throw new Error(`Standard close control geometry changed: ${JSON.stringify(dialogHarness)}`);
   report.checks.dialogStandard=dialogHarness;
 
   await page.screenshot({path:path.join(out,'dechak-mobile.png'),fullPage:true});
