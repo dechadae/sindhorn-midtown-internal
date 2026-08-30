@@ -38,7 +38,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard.js site/app.js site/sw.js scripts/business-dashboard-browser-smoke.mjs; do
+          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard.js site/app.js site/sw.js scripts/business-dashboard-browser-smoke.mjs scripts/business-dashboard-pwa-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
           grep -q "today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local'" site/route-registry.js
@@ -85,7 +85,7 @@ jobs:
           curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/sw.js
           grep -q "business-dashboard-data.js" /tmp/sw.js
 
-      - name: Mobile dashboard browser smoke
+      - name: Mobile dashboard and installed-PWA smoke
         shell: bash
         env:
           BASE_URL: https://daily-business-dashboard-pre.sindhorn-midtown-internal.pages.dev
@@ -95,6 +95,7 @@ jobs:
           npm install --no-save playwright@1.55.0 >/dev/null 2>&1
           npx playwright install chromium >/dev/null 2>&1
           node scripts/business-dashboard-browser-smoke.mjs | tee /tmp/business-dashboard-browser-report.json
+          node scripts/business-dashboard-pwa-smoke.mjs | tee /tmp/business-dashboard-pwa-report.json
 
       - name: Upload screenshots and report
         if: always()
@@ -104,5 +105,6 @@ jobs:
           path: |
             /tmp/business-dashboard-preview
             /tmp/business-dashboard-browser-report.json
+            /tmp/business-dashboard-pwa-report.json
           if-no-files-found: warn
           retention-days: 14
