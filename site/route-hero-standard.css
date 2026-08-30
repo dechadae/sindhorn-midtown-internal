@@ -11,10 +11,12 @@
 }
 
 /* One atmosphere: routed pages do not paint a page-wide black/dark veil over WebGL. */
-.settings-route,.ihg-history-route,.brand-route,.factsheet-route{isolation:auto!important}
-.settings-route::before,.ihg-history-route::before,.brand-route::before,.factsheet-route::before{content:none!important;background:none!important}
+.settings-route,.ihg-history-route,.brand-route,.factsheet-route,.ci-route{isolation:auto!important}
+.settings-route::before,.ihg-history-route::before,.brand-route::before,.factsheet-route::before,.ci-route::before{content:none!important;background:none!important}
 
-/* Common hero geometry. */
+/* Common hero geometry. `app-route-*` is the semantic API for new pages;
+   legacy route selectors remain aliases until those pages are migrated. */
+.app-route-hero,
 .fnb-hero,
 .settings-hero,
 .ihg-history-hero,
@@ -25,6 +27,7 @@ body[data-route="messages"] .route-hero{
   border-bottom:1px solid var(--route-hero-line)!important;
 }
 
+.app-route-eyebrow,
 .fnb-eyebrow,
 .settings-eyebrow,
 .ihg-history-eyebrow,
@@ -42,6 +45,8 @@ body[data-route="messages"] .route-kicker{
 }
 body[data-route="messages"] .route-kicker::after{content:none!important;display:none!important}
 
+.app-route-title,
+.app-route-hero h1,
 .fnb-hero h1,
 .settings-hero h1,
 .ihg-history-hero h1,
@@ -67,6 +72,7 @@ body[data-route="messages"] .route-hero h1{
 .factsheet-room-card-copy strong,
 .factsheet-disclosure summary strong{font-weight:400!important}
 
+.app-route-copy,
 .fnb-period,
 .settings-name,
 .ihg-history-intro,

@@ -1,0 +1,157 @@
+name: Developer UI Library Preview
+
+on:
+  push:
+    branches: [preview-ci-library]
+    paths:
+      - "site/index.html"
+      - "site/login.html"
+      - "site/account.html"
+      - "site/admin.html"
+      - "site/business-card.html"
+      - "site/route-registry.js"
+      - "site/_redirects"
+      - "site/footer-route-guard.js"
+      - "site/route-hero-standard.css"
+      - "site/app-shapes.css"
+      - "site/settings-route-v3.js"
+      - "site/settings-system-library.js"
+      - "site/settings-system-library.css"
+      - "site/ui-system-registry.js"
+      - "site/ci.js"
+      - "site/ci.css"
+      - "site/ci-specimen-fixes.css"
+      - "scripts/ci-library-contract-test.mjs"
+      - "scripts/ci-library-browser-smoke.mjs"
+      - "scripts/ci-library-visual-smoke.mjs"
+      - "scripts/ui-shape-browser-smoke.mjs"
+      - "scripts/ui-shape-source-audit.mjs"
+      - "docs/SETTINGS-FIXED-RAIL-AND-DEVELOPER-CI-OVERRIDE-20260830.md"
+      - ".github/workflows/ci-library-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: ci-library-preview-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate UI Library contract and syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in \
+            site/route-registry.js site/footer-route-guard.js site/settings-route-v3.js \
+            site/settings-system-library.js site/ui-system-registry.js site/ci.js \
+            scripts/ci-library-contract-test.mjs scripts/ci-library-browser-smoke.mjs scripts/ci-library-visual-smoke.mjs \
+            scripts/ui-shape-browser-smoke.mjs scripts/ui-shape-source-audit.mjs; do
+            node --input-type=module --check < "$file"
+          done
+          node scripts/ci-library-contract-test.mjs
+          node scripts/ui-shape-source-audit.mjs | tee /tmp/ui-shape-source-audit.json
+          grep -q 'LINE Seed Sans TH' site/fonts.css
+          grep -q '.app-route-hero' site/route-hero-standard.css
+          grep -q -- '--app-radius-avatar:12px' site/app-shapes.css
+          grep -q -- '--app-radius-chip:9px' site/app-shapes.css
+          grep -q "developer.ui_library" site/settings-system-library.js site/ui-system-registry.js
+          for file in site/index.html site/login.html site/account.html site/admin.html site/business-card.html; do
+            grep -q '/app-shapes.css?v=1' "$file"
+          done
+          python - <<'PY'
+          from pathlib import Path
+          files = [
+              'site/ci.js','site/ci.css','site/ci-specimen-fixes.css','site/ui-system-registry.js',
+              'site/settings-system-library.js','site/settings-system-library.css','site/app-shapes.css'
+          ]
+          for name in files:
+              text = Path(name).read_text(encoding='utf-8')
+              if any('\u0e00' <= ch <= '\u0e7f' for ch in text):
+                  raise SystemExit(f'Thai UI chrome detected in {name}')
+          shape = Path('site/app-shapes.css').read_text(encoding='utf-8').lower().replace(' ', '')
+          if 'border-radius:50%' in shape or 'border-radius:999px' in shape or 'border-radius:9999px' in shape:
+              raise SystemExit('central shape authority contains a circular/capsule radius')
+          PY
+
+      - name: Verify unrelated protected systems unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="$(git merge-base origin/main HEAD)"
+          test -n "$base"
+          for file in \
+            site/fnb.js site/fnb.css site/fnb-data.js site/fnb-approved-polish.css site/fnb-refinements.css \
+            site/ihg-history.js site/ihg-history.css site/ihg-history-data.js \
+            site/hotel-factsheet-route.js site/hotel-factsheet.js site/hotel-factsheet.css site/hotel-factsheet-data.js \
+            site/brand.js site/brand.css \
+            site/app.js site/bootstrap.js site/app-transitions.js site/app-transitions.css \
+            site/auth-shell.js site/auth-client.js site/capabilities.js \
+            site/settings.js site/settings.css site/settings-refinements.css \
+            site/business-card-settings.js site/business-card-component.css site/business-card-component.js \
+            site/app-controls.css site/settings-dialog-standard.js site/settings-dialog-standard.css \
+            site/environment.js site/atmosphere-shader.js site/rain-now.js site/rain-layer.js \
+            site/seasonal-sky.js site/weather-authority.js site/sw.js; do
+            git diff --exit-code "$base" HEAD -- "$file"
+          done
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Raw route and module smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in \
+            /ci /settings /login.html /account.html /admin.html /business-card.html \
+            /ci.js /ci.css /ci-specimen-fixes.css /app-shapes.css /ui-system-registry.js /settings-system-library.js /settings-system-library.css \
+            /route-registry.js /route-hero-standard.css /footer-route-guard.js /settings-route-v3.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
+            test -s /tmp/response
+          done
+          curl --fail --silent --show-error "${BASE_URL}/route-registry.js" -o /tmp/routes.js
+          grep -q "path:'/ci'" /tmp/routes.js
+          grep -q "settings-route-v3.js?v=11&r=ci-1" /tmp/routes.js
+          curl --fail --silent --show-error "${BASE_URL}/ui-system-registry.js" -o /tmp/registry.js
+          grep -q "developer.ui_library" /tmp/registry.js
+          grep -q "UI_SYSTEM_SECTIONS" /tmp/registry.js
+
+      - name: Developer, employee and shape mobile browser smoke
+        shell: bash
+        env:
+          BASE_URL: https://${{ github.ref_name }}.sindhorn-midtown-internal.pages.dev
+          SCREENSHOT_DIR: /tmp/ci-library-preview
+        run: |
+          set -euo pipefail
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install chromium >/dev/null 2>&1
+          node scripts/ci-library-browser-smoke.mjs | tee /tmp/ci-library-browser-report.json
+          node scripts/ci-library-visual-smoke.mjs | tee /tmp/ci-library-visual-report.json
+          node scripts/ui-shape-browser-smoke.mjs | tee /tmp/ui-shape-browser-report.json
+
+      - name: Upload screenshots and report
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: ci-library-preview
+          path: |
+            /tmp/ci-library-preview
+            /tmp/ci-library-browser-report.json
+            /tmp/ci-library-visual-report.json
+            /tmp/ui-shape-browser-report.json
+            /tmp/ui-shape-source-audit.json
+          if-no-files-found: warn
+          retention-days: 14

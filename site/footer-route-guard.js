@@ -20,7 +20,7 @@ function routeFromPath(){
   if(path==='/fnb')return'fnb';
   if(path==='/messages')return'messages';
   if(path==='/brand'||path==='/ihg-history'||path==='/hotel-factsheet')return'brand';
-  if(path==='/settings'||path==='/account'||path==='/account.html'||path==='/admin'||path==='/admin.html')return'settings';
+  if(path==='/settings'||path==='/account'||path==='/account.html'||path==='/admin'||path==='/admin.html'||path==='/ci')return'settings';
   return'today';
 }
 

@@ -1,0 +1,65 @@
+/* Sindhorn Midtown Internal — canonical UI shape authority.
+   Product rule: interface chrome uses rounded rectangles / rounded squares, never circles or capsules.
+   Natural scene content (sun, moon, weather rendering) is intentionally outside this contract. */
+:root{
+  --app-radius-control:12px;
+  --app-radius-footer:13px;
+  --app-radius-avatar:12px;
+  --app-radius-chip:9px;
+  --app-radius-badge:5px;
+  --app-radius-indicator:2px;
+  --app-radius-icon:8px;
+}
+
+/* Identity / people */
+.masthead-user-avatar,
+.settings-avatar,
+.account-avatar{border-radius:var(--app-radius-avatar)!important}
+
+/* Compact icon controls */
+.settings-close,
+.account-close,
+.fnb-back,
+.fnb-sheet-close,
+.fullscreen-toggle,
+.app-back-control{border-radius:var(--app-radius-control)!important}
+
+/* Chips, tags and finite metadata. */
+.fnb-chip,
+.settings-user-meta span,
+.factsheet-hours span,
+.factsheet-nearby span,
+.chip-btn,
+.pill,
+.lang-toggle,
+.lang-toggle button{border-radius:var(--app-radius-chip)!important}
+
+/* Navigation/actions keep corners, never capsule ends. */
+.nav-chip,
+.action,
+.fnb-action,
+.message-open,
+.pull-refresh,
+.admin-nav,
+.admin-nav button{border-radius:var(--app-radius-control)!important}
+#app-footer .shell-footer-rail .nav-chip{border-radius:var(--app-radius-footer)!important}
+
+/* Tiny state marks remain legible but use softened corners instead of circles. */
+.connection-dot,
+.fnb-select-option i,
+.ci-status-dot,
+.public-card-loading span{border-radius:var(--app-radius-indicator)!important}
+.message-badge{border-radius:var(--app-radius-badge)!important}
+.message-card[data-read="false"]::before{border-radius:1px!important}
+.scale-marker{border-radius:3px!important}
+.pull-refresh-icon{border-radius:6px!important}
+.advice-icon{border-radius:10px!important}
+
+/* Transient feedback follows the same geometry. */
+.fnb-toast{border-radius:var(--app-radius-control)!important}
+
+/* Even custom scroll thumbs avoid capsule geometry. */
+.public-card-scroll::-webkit-scrollbar-thumb,
+.settings-modal-scroll::-webkit-scrollbar-thumb{border-radius:2px!important}
+
+/* Shape invariant: no component listed above may reintroduce 50%/999px locally. */

@@ -1,0 +1,21 @@
+/* Documentation-host fixes only. Product component styles remain owned by their production modules. */
+.ci-specimen:has(.ci-select-demo .fnb-select.is-open){position:relative;z-index:160}
+.ci-select-demo{position:relative}
+.ci-select-demo .fnb-select{position:relative;z-index:1}
+.ci-select-demo .fnb-select-menu{z-index:2}
+.ci-section{scroll-margin-top:92px}
+
+/* F&B resets are normally scoped by .fnb-route. Reapply only the reset needed by the living card specimen. */
+#ci-surfaces .fnb-card-button{border:0}
+
+/* Match the compact F&B chip scale instead of inheriting the CI document's 15px button font. */
+#ci-selectors .ci-chip-row .fnb-chip{
+  height:30px;
+  min-height:30px;
+  padding:0 13px;
+  font-family:var(--font-ui);
+  font-size:10px;
+  font-weight:400;
+  line-height:1;
+  letter-spacing:0!important;
+}
