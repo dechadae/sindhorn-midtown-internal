@@ -50,7 +50,7 @@ jobs:
           grep -q "SindhornBusinessDashboard.*refresh" site/app.js
           grep -q "business-dashboard.js" site/sw.js
           grep -q "hotel-factsheet.css" site/sw.js
-          grep -q "pwa-v33-business-dashboard-ci-r1" site/sw.js
+          grep -q "pwa-v31-line-seed-sans-th-v33-business-dashboard-ci-r1" site/sw.js
           grep -q "<title>Today | Sindhorn Midtown Internal</title>" site/index.html
           if grep -Eqi 'border-radius:[[:space:]]*(50%|999px|9999px)' site/business-dashboard.css; then
             echo 'Circular/capsule dashboard UI is not allowed'; exit 1
