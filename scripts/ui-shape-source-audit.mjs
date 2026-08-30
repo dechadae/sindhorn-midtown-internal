@@ -4,7 +4,7 @@ import {join,relative} from 'node:path';
 const ROOT=new URL('../site/',import.meta.url);
 const coveredPatterns=[
   'masthead-user-avatar','settings-avatar','account-avatar','settings-close','account-close','fnb-back','fnb-sheet-close','fullscreen-toggle','app-back-control',
-  'fnb-chip','settings-user-meta','factsheet-hours','factsheet-nearby','chip-btn','.pill','lang-toggle','nav-chip','.action','message-open','pull-refresh','.admin-nav',
+  'fnb-chip','settings-user-meta','factsheet-hours','factsheet-nearby','chip-btn','.pill','lang-toggle','nav-chip','.action','fnb-action','message-open','pull-refresh','.admin-nav',
   'connection-dot','fnb-select-option','ci-status-dot','public-card-loading','message-badge','message-card','scale-marker','pull-refresh-icon','advice-icon','fnb-toast',
   'public-card-scroll::-webkit-scrollbar-thumb','settings-modal-scroll::-webkit-scrollbar-thumb'
 ];
