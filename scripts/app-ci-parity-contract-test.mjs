@@ -14,7 +14,8 @@ assert(actionCard.includes('160ms')&&actionCard.includes('260ms')&&actionCard.in
 assert(actionCard.includes('scale(.992)')&&actionCard.includes('prefers-reduced-motion:reduce'),'Action-card press/reduced-motion contract missing');
 assert(!/border-radius\s*:\s*(50%|999(?:9)?px)/i.test(actionCard),'Action-card authority contains circular/capsule geometry');
 
-assert((brandJs.match(/app-action-card app-action-card-control/g)||[]).length===2,'Both Brand navigation cards must consume the shared primitive');
+assert((brandJs.match(/brand-card app-action-card/g)||[]).length===2,'Both Brand card containers must consume the shared primitive');
+assert((brandJs.match(/brand-card-link app-action-card-control/g)||[]).length===2,'Both Brand whole-surface links must consume the shared control primitive');
 assert((brandJs.match(/app-action-card-title/g)||[]).length===2,'Brand titles must use the semantic card title hook');
 assert(brandJs.includes("link.href='/brand.css?v=4'"),'Brand route cache lineage was not advanced');
 for(const duplicate of ['transition:transform','focus-within','scale(.992)','translateY(-2px)','border-radius:14px']){
