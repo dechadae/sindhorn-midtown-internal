@@ -1,5 +1,5 @@
 import {businessCardUrl,businessCardVcfUrl,isBusinessCardSlug,primaryPhone} from './business-card-core.js';
-import {qrSvg} from './qr-v6.js';
+import {qrStyledSvg} from './qr-v6.js?v=2';
 
 const SUPABASE_URL='https://sjpvhgxacsiorrtijqua.supabase.co';
 const SUPABASE_KEY='sb_publishable_NcIExScIXkqsK1ZNNu5a-Q_zZ4afIHz';
@@ -26,7 +26,7 @@ function render(){
   if(!root||!card){unavailable();return}
   const phone=primaryPhone(card),call=telHref(phone),email=emailHref(card.workEmail),url=businessCardUrl(location.origin,card.slug),vcfUrl=businessCardVcfUrl(location.origin,card.slug),hotelName=card.hotelName||HOTEL_NAME,logo=safeLogoPath(card.hotelLogoPath);
   let qr='';
-  try{qr=qrSvg(url,{foreground:'#17131F',background:'#FFFFFF',quiet:4}).replace('One-time sign-in QR code','Business card QR code')}catch(_){qr='<span class="public-card-qr-error">QR unavailable</span>'}
+  try{qr=qrStyledSvg(url)}catch(_){qr='<span class="public-card-qr-error">QR unavailable</span>'}
   root.innerHTML=`<section class="public-card-panel" aria-labelledby="publicCardName">
     <header class="public-card-head">
       <p class="public-card-kicker">Digital business card</p>
