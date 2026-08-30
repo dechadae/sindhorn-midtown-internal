@@ -1,10 +1,11 @@
 import fs from 'node:fs/promises';
 
-const [registry,routeRegistry,dashboardJs,dashboardCss]=await Promise.all([
+const [registry,routeRegistry,dashboardJs,dashboardCss,ciSpecimenFixes]=await Promise.all([
   fs.readFile('site/ui-system-registry.js','utf8'),
   fs.readFile('site/route-registry.js','utf8'),
   fs.readFile('site/business-dashboard.js','utf8'),
-  fs.readFile('site/business-dashboard.css','utf8')
+  fs.readFile('site/business-dashboard.css','utf8'),
+  fs.readFile('site/ci-specimen-fixes.css','utf8')
 ]);
 
 const checks=[];
@@ -36,7 +37,8 @@ assert(dashboardCss.includes('letter-spacing:0!important'),'tracking','Dashboard
 assert(!/border-radius\s*:\s*(?:50%|999px|9999px)/i.test(dashboardCss),'shape-language','Dashboard adds no circular or capsule UI chrome.');
 assert(dashboardCss.includes('content:none!important')&&dashboardCss.includes('background:none!important'),'atmosphere','Dashboard paints no route-wide veil over the persistent WebGL atmosphere.');
 assert(dashboardCss.includes('--bd-glass:rgba(46,39,59,.48)')&&dashboardCss.includes('var(--app-control-border')&&dashboardCss.includes('var(--route-hero-accent')&&dashboardCss.includes('var(--app-control-motion-base'),'semantic-tokens','Information surfaces match the CI material while border, accent and motion remain tied to central UI authorities.');
-assert(dashboardCss.includes('--fs-disclosure:420ms'),'disclosure-motion','Shared disclosure keeps the established 420ms rhythm.');
+assert(dashboardCss.includes('--fs-disclosure:420ms'),'disclosure-motion','Dashboard shared disclosures keep the established 420ms rhythm.');
+assert(ciSpecimenFixes.includes('--fs-ease:cubic-bezier(.22,1,.36,1)')&&ciSpecimenFixes.includes('--fs-disclosure:420ms')&&ciSpecimenFixes.includes('--fs-border:var(--ci-border)'),'ci-specimen-token-bridge','The UI Library host supplies canonical Factsheet tokens so its living disclosure specimen renders the real production interaction.');
 assert(/@media\(prefers-reduced-motion:reduce\)/.test(dashboardCss),'reduced-motion','Dashboard suppresses transitions when reduced motion is requested.');
 assert(/@media\(min-width:700px\)/.test(dashboardCss)&&/@media\(max-width:359px\)/.test(dashboardCss),'responsive-contract','Dashboard includes explicit compact and wide responsive behavior for the 360/390/768 validation matrix.');
 
