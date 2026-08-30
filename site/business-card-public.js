@@ -5,7 +5,6 @@ const SUPABASE_URL='https://sjpvhgxacsiorrtijqua.supabase.co';
 const SUPABASE_KEY='sb_publishable_NcIExScIXkqsK1ZNNu5a-Q_zZ4afIHz';
 const HOTEL_NAME='Sindhorn Midtown Hotel Bangkok, Vignette Collection by IHG';
 const HOTEL_LOGO='/assets/brand/sindhorn-midtown-vignette-white.png';
-const QR_HOTEL_LOGO='/assets/brand/sindhorn-midtown-vignette-black.png';
 const root=document.querySelector('[data-business-card-root]');
 const slug=location.pathname.replace(/^\/+|\/+$/g,'').replace(/\.vcf$/,'').toLowerCase();
 let card=null,statusTimer=0;
@@ -13,6 +12,7 @@ let card=null,statusTimer=0;
 function esc(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
 function telHref(value){const raw=String(value||'').trim();if(!raw)return'';const prefix=raw.startsWith('+')?'+':'';return`tel:${prefix}${raw.replace(/\D/g,'')}`}
 function emailHref(value){return value?`mailto:${encodeURIComponent(String(value).trim())}`:''}
+function safeLogoPath(value){const path=String(value||'');return /^\/assets\/brand\/[a-z0-9._-]+$/i.test(path)?path:HOTEL_LOGO}
 function bootstrapCard(){const node=document.getElementById('businessCardBootstrap');if(!node)return null;try{return JSON.parse(node.textContent||'null')}catch(_){return null}}
 async function fetchPublicCard(){try{const response=await fetch(`${SUPABASE_URL}/rest/v1/rpc/sindhorn_public_business_card`,{method:'POST',headers:{apikey:SUPABASE_KEY,'content-type':'application/json'},body:JSON.stringify({p_slug:slug}),cache:'no-store'});if(!response.ok)return null;return await response.json()}catch(_){return null}}
 async function copyText(value){try{await navigator.clipboard.writeText(value);return true}catch(_){}const area=document.createElement('textarea');area.value=value;area.readOnly=true;area.style.position='fixed';area.style.opacity='0';document.body.append(area);area.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}area.remove();return ok}
@@ -24,7 +24,7 @@ function detail(label,value,href='',displayValue=value){if(!value)return'';const
 
 function render(){
   if(!root||!card){unavailable();return}
-  const phone=primaryPhone(card),call=telHref(phone),email=emailHref(card.workEmail),url=businessCardUrl(location.origin,card.slug),vcfUrl=businessCardVcfUrl(location.origin,card.slug),hotelName=card.hotelName||HOTEL_NAME;
+  const phone=primaryPhone(card),call=telHref(phone),email=emailHref(card.workEmail),url=businessCardUrl(location.origin,card.slug),vcfUrl=businessCardVcfUrl(location.origin,card.slug),hotelName=card.hotelName||HOTEL_NAME,logo=safeLogoPath(card.hotelLogoPath);
   let qr='';
   try{qr=qrSvg(url,{foreground:'#17131F',background:'#FFFFFF',quiet:4}).replace('One-time sign-in QR code','Business card QR code')}catch(_){qr='<span class="public-card-qr-error">QR unavailable</span>'}
   root.innerHTML=`<section class="public-card-panel" aria-labelledby="publicCardName">
@@ -34,10 +34,8 @@ function render(){
       ${card.positionTitle?`<p class="public-card-title">${esc(card.positionTitle)}</p>`:''}
       <p class="public-card-hotel">${hotelNameHtml(hotelName)}</p>
     </header>
-    <div class="public-card-qr" data-card-qr>
-      ${qr}
-      <span class="public-card-qr-logo" aria-hidden="true"><img src="${esc(QR_HOTEL_LOGO)}" alt=""></span>
-    </div>
+    <div class="public-card-qr" data-card-qr>${qr}</div>
+    <div class="public-card-logo-wrap"><img class="public-card-logo" src="${esc(logo)}" alt="${esc(hotelName)}"></div>
     <div class="public-card-details">
       ${detail('Work email',card.workEmail,email)}
       ${detail('Business mobile',card.businessMobile,telHref(card.businessMobile))}
