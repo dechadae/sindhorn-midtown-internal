@@ -15,8 +15,10 @@ on:
       - "site/ui-system-registry.js"
       - "site/ci.js"
       - "site/ci.css"
+      - "site/ci-specimen-fixes.css"
       - "scripts/ci-library-contract-test.mjs"
       - "scripts/ci-library-browser-smoke.mjs"
+      - "scripts/ci-library-visual-smoke.mjs"
       - "docs/SETTINGS-FIXED-RAIL-AND-DEVELOPER-CI-OVERRIDE-20260830.md"
       - ".github/workflows/ci-library-preview.yml"
   workflow_dispatch:
@@ -44,7 +46,7 @@ jobs:
           for file in \
             site/route-registry.js site/footer-route-guard.js site/settings-route-v3.js \
             site/settings-system-library.js site/ui-system-registry.js site/ci.js \
-            scripts/ci-library-contract-test.mjs scripts/ci-library-browser-smoke.mjs; do
+            scripts/ci-library-contract-test.mjs scripts/ci-library-browser-smoke.mjs scripts/ci-library-visual-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
           node scripts/ci-library-contract-test.mjs
@@ -54,7 +56,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           files = [
-              'site/ci.js','site/ci.css','site/ui-system-registry.js',
+              'site/ci.js','site/ci.css','site/ci-specimen-fixes.css','site/ui-system-registry.js',
               'site/settings-system-library.js','site/settings-system-library.css'
           ]
           for name in files:
@@ -98,7 +100,7 @@ jobs:
           sleep 8
           for path in \
             /ci /settings \
-            /ci.js /ci.css /ui-system-registry.js /settings-system-library.js /settings-system-library.css \
+            /ci.js /ci.css /ci-specimen-fixes.css /ui-system-registry.js /settings-system-library.js /settings-system-library.css \
             /route-registry.js /route-hero-standard.css /footer-route-guard.js /settings-route-v3.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
@@ -120,6 +122,7 @@ jobs:
           npm install --no-save playwright@1.55.0 >/dev/null 2>&1
           npx playwright install chromium >/dev/null 2>&1
           node scripts/ci-library-browser-smoke.mjs | tee /tmp/ci-library-browser-report.json
+          node scripts/ci-library-visual-smoke.mjs | tee /tmp/ci-library-visual-report.json
 
       - name: Upload screenshots and report
         if: always()
@@ -129,5 +132,6 @@ jobs:
           path: |
             /tmp/ci-library-preview
             /tmp/ci-library-browser-report.json
+            /tmp/ci-library-visual-report.json
           if-no-files-found: warn
           retention-days: 14
