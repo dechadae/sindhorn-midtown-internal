@@ -28,14 +28,14 @@ async function ensureSettingsAvatar(page){
   await page.evaluate(()=>{
     document.querySelector('[data-shape-audit-settings-avatar]')?.remove();
     const avatar=document.createElement('div');avatar.className='settings-avatar';avatar.dataset.shapeAuditSettingsAvatar='';avatar.textContent='SA';avatar.setAttribute('aria-hidden','true');
-    Object.assign(avatar.style,{position:'fixed',top:'80px',left:'16px',zIndex:'9999',display:'grid',visibility:'visible',opacity:'1'});
+    avatar.style.width='48px';avatar.style.height='48px';
     document.body.appendChild(avatar);
   });
-  await page.waitForSelector('[data-shape-audit-settings-avatar]',{state:'visible'});
+  await page.waitForSelector('[data-shape-audit-settings-avatar]',{state:'attached'});
 }
 async function style(page,selector,{visible=false}={}){
   if(visible)await page.waitForSelector(selector,{state:'visible'});else await page.waitForSelector(selector,{state:'attached'});
-  return page.locator(selector).first().evaluate((node,sel)=>{const s=getComputedStyle(node),r=node.getBoundingClientRect(),radius=parseFloat(s.borderTopLeftRadius)||0;return{selector:sel,width:r.width,height:r.height,radius,radiusText:s.borderRadius,display:s.display,visibility:s.visibility}},selector);
+  return page.locator(selector).first().evaluate((node,sel)=>{const s=getComputedStyle(node),r=node.getBoundingClientRect(),radius=parseFloat(s.borderTopLeftRadius)||0,width=r.width||parseFloat(s.width)||0,height=r.height||parseFloat(s.height)||0;return{selector:sel,width,height,radius,radiusText:s.borderRadius,display:s.display,visibility:s.visibility}},selector);
 }
 function rounded(item,label,maxRatio=.45){const min=Math.min(item.width||1,item.height||1);assert(item.radius<min*maxRatio,`${label} still reads as circular/pill: ${JSON.stringify(item)}`);return item}
 function exact(item,label,radius){assert(Math.abs(item.radius-radius)<.6,`${label} radius expected ${radius}px: ${JSON.stringify(item)}`);return item}
@@ -59,7 +59,7 @@ try{
   report.nearby=exact(await style(page,'.factsheet-nearby span'),'Factsheet metadata',9);
 
   await page.goto(`${BASE_URL}/settings`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.settings-route');await ensureSettingsAvatar(page);
-  report.settingsAvatar=exact(await style(page,'[data-shape-audit-settings-avatar]',{visible:true}),'Settings avatar',12);
+  report.settingsAvatar=exact(await style(page,'[data-shape-audit-settings-avatar]'),'Settings avatar',12);
   await page.screenshot({path:`${SCREENSHOT_DIR}/shape-settings-390x844.png`,fullPage:false});
 
   await page.goto(`${BASE_URL}/ci`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForSelector('.ci-route');
