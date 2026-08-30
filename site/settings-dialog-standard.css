@@ -1,4 +1,24 @@
 /* Canonical Settings modal treatment. Edit Employee is the visual authority. */
+.settings-close{
+  width:36px;
+  height:36px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  padding:0;
+  border:1px solid var(--settings-glass-brd,rgba(250,247,245,.14));
+  border-radius:50%;
+  background:rgba(250,247,245,.035);
+  color:inherit;
+  font:100 22px/1 var(--font-ui);
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  outline:none;
+  transition:background var(--settings-motion-base,260ms) ease,border-color var(--settings-motion-base,260ms) ease,color var(--settings-motion-base,260ms) ease,transform var(--settings-motion-fast,160ms) cubic-bezier(.22,1,.36,1),opacity var(--settings-motion-fast,160ms) ease;
+}
+.settings-close:active{transform:scale(.975);opacity:.84}
+.settings-close:focus:not(:focus-visible){outline:none;box-shadow:none}
+.settings-close:focus-visible{outline:2px solid var(--settings-accent,#E5ECBE);outline-offset:3px}
 body[data-route="settings"] .settings-dialog{
   width:min(94vw,634px)!important;
   max-height:min(88dvh,760px)!important;
@@ -32,11 +52,6 @@ body[data-route="settings"] .settings-dialog>.public-card-panel{
   backdrop-filter:blur(28px) saturate(1.2);
   -webkit-backdrop-filter:blur(28px) saturate(1.2);
 }
-body[data-route="settings"] .settings-close{
-  -webkit-tap-highlight-color:transparent;
-  outline:none;
-}
-body[data-route="settings"] .settings-close:focus:not(:focus-visible){outline:none;box-shadow:none}
 @media(max-width:620px){
   body[data-route="settings"] .settings-dialog{
     width:calc(100vw - 16px)!important;
