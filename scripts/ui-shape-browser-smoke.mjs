@@ -34,9 +34,19 @@ async function ensureSettingsAvatar(page){
   await page.waitForSelector('[data-shape-audit-settings-avatar]',{state:'attached'});
 }
 async function style(page,selector,{visible=false}={}){
-  const resolvedSelector=visible?`${selector}:visible`:selector;
-  if(visible)await page.waitForSelector(resolvedSelector,{state:'visible'});else await page.waitForSelector(resolvedSelector,{state:'attached'});
-  return page.locator(resolvedSelector).first().evaluate((node,sel)=>{const s=getComputedStyle(node),r=node.getBoundingClientRect(),radius=parseFloat(s.borderTopLeftRadius)||0,width=r.width||parseFloat(s.width)||0,height=r.height||parseFloat(s.height)||0;return{selector:sel,width,height,radius,radiusText:s.borderRadius,display:s.display,visibility:s.visibility}},selector);
+  if(!visible){
+    await page.waitForSelector(selector,{state:'attached'});
+    return page.locator(selector).first().evaluate((node,sel)=>{const s=getComputedStyle(node),r=node.getBoundingClientRect(),radius=parseFloat(s.borderTopLeftRadius)||0,width=r.width||parseFloat(s.width)||0,height=r.height||parseFloat(s.height)||0;return{selector:sel,width,height,radius,radiusText:s.borderRadius,display:s.display,visibility:s.visibility}},selector);
+  }
+  await page.waitForFunction(sel=>[...document.querySelectorAll(sel)].some(node=>{const s=getComputedStyle(node),r=node.getBoundingClientRect();return r.width>0&&r.height>0&&s.display!=='none'&&s.visibility!=='hidden'&&s.opacity!=='0'}),selector,{timeout:25000});
+  const measured=await page.evaluate(sel=>{
+    const node=[...document.querySelectorAll(sel)].find(candidate=>{const s=getComputedStyle(candidate),r=candidate.getBoundingClientRect();return r.width>0&&r.height>0&&s.display!=='none'&&s.visibility!=='hidden'&&s.opacity!=='0'});
+    if(!node)return null;
+    const s=getComputedStyle(node),r=node.getBoundingClientRect(),radius=parseFloat(s.borderTopLeftRadius)||0;
+    return{selector:sel,width:r.width,height:r.height,radius,radiusText:s.borderRadius,display:s.display,visibility:s.visibility};
+  },selector);
+  assert(measured,`No rendered geometry for ${selector}`);
+  return measured;
 }
 function rounded(item,label,maxRatio=.45){const min=Math.min(item.width||1,item.height||1);assert(item.radius<min*maxRatio,`${label} still reads as circular/pill: ${JSON.stringify(item)}`);return item}
 function exact(item,label,radius){assert(Math.abs(item.radius-radius)<.6,`${label} radius expected ${radius}px: ${JSON.stringify(item)}`);return item}
