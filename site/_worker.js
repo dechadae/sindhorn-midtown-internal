@@ -16,6 +16,9 @@ function json(body,status=200,cache='no-store'){
   });
 }
 function pad(value){return String(value).padStart(2,'0')}
+function utcStamp(date){
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth()+1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
+}
 function slotFor(date){return `${pad(date.getUTCHours())}${pad(Math.floor(date.getUTCMinutes()/10)*10)}`}
 function roundedSlot(date){
   const value=new Date(date);
@@ -65,6 +68,7 @@ async function latest(){
     }
     const modified=parseModified(response);
     try{await response.body?.cancel()}catch{}
+    const observedAt=utcStamp(candidate);
     return json({
       ok:true,
       satellite:'Himawari-9',
@@ -72,9 +76,9 @@ async function latest(){
       source:SOURCE,
       sector:SECTOR,
       bounds:BOUNDS,
-      observedAt:candidate.toISOString(),
-      date:candidate.toISOString(),
-      sourceLastModified:modified?.toISOString()||null,
+      observedAt,
+      date:observedAt,
+      sourceLastModified:modified?utcStamp(modified):null,
       slot,
       cadenceMinutes:10
     },200,'public, max-age=35, s-maxage=35, stale-while-revalidate=30');
