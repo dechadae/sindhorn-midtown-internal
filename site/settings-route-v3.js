@@ -1,5 +1,5 @@
 import {mountSettingsRoute as mountBaseSettingsRoute} from './settings.js?v=2';
-import {mountSettingsBusinessCard,preloadSettingsBusinessCard} from './business-card-settings.js?v=5';
+import {mountSettingsBusinessCard,preloadSettingsBusinessCard} from './business-card-settings.js?v=6';
 function ensureStyle(selector,href,attribute){const existing=document.querySelector(selector);if(existing)return existing.sheet?Promise.resolve():new Promise(resolve=>{existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',resolve,{once:true})});return new Promise(resolve=>{const link=document.createElement('link');link.rel='stylesheet';link.href=href;link.setAttribute(attribute,'true');link.addEventListener('load',resolve,{once:true});link.addEventListener('error',resolve,{once:true});document.head.appendChild(link)})}
 function promoteSignOutToHero(root){
   const hero=root.querySelector('.settings-hero');if(!hero)return;
@@ -62,7 +62,7 @@ export async function mountSettingsRoute(root){
     await Promise.all([
       ensureStyle('link[data-settings-style]','/settings.css?v=2','data-settings-style'),
       ensureStyle('link[data-settings-refinements]','/settings-refinements.css?v=2','data-settings-refinements'),
-      ensureStyle('link[data-business-card-settings-style]','/business-card-settings.css?v=8','data-business-card-settings-style')
+      ensureStyle('link[data-business-card-settings-style]','/business-card-settings.css?v=9','data-business-card-settings-style')
     ]);
     baseCleanup=await mountBaseSettingsRoute(root);
     signOutCleanup=installHeroSignOut(root);

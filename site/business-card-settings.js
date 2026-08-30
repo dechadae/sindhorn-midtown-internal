@@ -59,8 +59,10 @@ export async function mountSettingsBusinessCard(root,{preload=null}={}){
 
   const presentDialog=document.createElement('dialog');
   presentDialog.className='business-card-present-dialog';
-  presentDialog.innerHTML=`<button class="business-card-present-close" type="button" data-bc-present-close aria-label="Close">×</button><iframe class="business-card-present-frame" data-bc-present-frame title="Business card"></iframe>`;
+  presentDialog.innerHTML=`<iframe class="business-card-present-frame" data-bc-present-frame title="Business card"></iframe>`;
   route.append(presentDialog);
+  const presentFrame=presentDialog.querySelector('[data-bc-present-frame]');
+  on(presentFrame,'load',mountPresentClose);
 
   const visibilityOptions=[{value:'true',label:'Shown'},{value:'false',label:'Hidden'}];
   const editDialog=document.createElement('dialog');
@@ -107,10 +109,18 @@ export async function mountSettingsBusinessCard(root,{preload=null}={}){
     section.querySelector('[data-bc-settings-host]')?.remove();
     const markup=actionsMarkup();if(markup)facts.insertAdjacentHTML('afterend',markup);
   }
+  function mountPresentClose(){
+    const doc=presentFrame?.contentDocument,panel=doc?.querySelector('.public-card-panel');
+    if(!panel||panel.querySelector('[data-bc-present-close]'))return;
+    const button=doc.createElement('button');
+    button.className='public-card-present-close';button.type='button';button.dataset.bcPresentClose='';button.setAttribute('aria-label','Close');button.textContent='×';
+    button.addEventListener('click',closePresent);
+    panel.prepend(button);
+  }
   function openPresent(){
     if(!data?.card?.published)return;
-    const url=businessCardUrl(location.origin,data.card.publicSlug),frame=presentDialog.querySelector('[data-bc-present-frame]');
-    if(frame.src!==url)frame.src=url;
+    const url=businessCardUrl(location.origin,data.card.publicSlug);
+    if(presentFrame.src!==url)presentFrame.src=url;else mountPresentClose();
     if(!presentDialog.open)presentDialog.showModal();
   }
   function closePresent(){if(presentDialog.open)presentDialog.close()}
@@ -169,7 +179,6 @@ export async function mountSettingsBusinessCard(root,{preload=null}={}){
     if(event.target.closest('[data-bc-present]')){openPresent();return}
     if(event.target.closest('[data-bc-share]')){void share();return}
     if(event.target.closest('[data-bc-edit]')){openEdit();return}
-    if(event.target.closest('[data-bc-present-close]')){closePresent();return}
     if(event.target.closest('[data-bc-edit-close],[data-bc-edit-cancel]'))closeEdit();
   };
   const sectionChanged=event=>{if(event?.detail?.section==='account')inject()};
