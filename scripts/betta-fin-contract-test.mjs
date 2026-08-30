@@ -13,15 +13,24 @@ const worker=read('site/_worker.js');
 const routes=read('site/_routes.json');
 const workflow=read('.github/workflows/betta-fin-lab-preview.yml');
 
-for(const name of ['Cobalt Veil','Crimson Silk','Turquoise Drift','Midnight Plum']){
-  if(!presets.includes(name))throw new Error(`missing preset ${name}`);
+const baselineNames=[
+  'Royal Blue Halfmoon','Super Red Halfmoon','Mustard Gas','Black Orchid',
+  'Copper Metallic','Turquoise Metallic','Nemo Galaxy Koi','Red Snow Dragon'
+];
+for(const name of baselineNames){
+  if(!presets.includes(name))throw new Error(`missing real-betta baseline ${name}`);
 }
+if((html.match(/data-preset=/g)||[]).length!==8)throw new Error('lab must expose exactly eight real-betta baseline buttons');
+if(!presets.includes("DEFAULT_PRESET='royalBlueHalfmoon'"))throw new Error('Royal Blue Halfmoon must be the default biological baseline');
+if(!presets.includes('morphMode:1')||!presets.includes('morphMode:2')||!presets.includes('morphMode:3')||!presets.includes('morphMode:4')||!presets.includes('morphMode:5'))throw new Error('patterned biological morph modes missing');
 if(!js.includes("from './vendor/three.module.js'"))throw new Error('lab must reuse vendored Three.js');
 if(js.includes('environment.js')||html.includes('environment.js'))throw new Error('lab must not import production environment');
 if(/supabase/i.test(js+shader+presets+satellite+worker))throw new Error('lab must not access Supabase');
 if(!js.includes('const DPR=2'))throw new Error('lab must preserve fixed DPR 2 hypothesis');
 if(!js.includes("document.addEventListener('visibilitychange'"))throw new Error('visibility pause/resume missing');
 if(!js.includes("inputMode:'satellite-only'"))throw new Error('runtime satellite-only declaration missing');
+if(!js.includes('uMorphMode'))throw new Error('preset morph mode must reach shader');
+if(!shader.includes('uniform float uMorphMode')||!shader.includes('valueNoise'))throw new Error('biological colour-pattern shader missing');
 if(!satellite.includes("inputMode:'satellite-only'"))throw new Error('satellite analyzer must emit satellite-only state');
 if(!satellite.includes("imageData('b13'")||!satellite.includes("imageData('b08'")||!satellite.includes("imageData('b03'"))throw new Error('required Himawari HA1 image channels missing');
 if(!satellite.includes('motionMetrics')||!satellite.includes('fingerprint'))throw new Error('satellite motion/fingerprint analysis missing');
@@ -42,8 +51,9 @@ if(!parsedRoutes.include?.some(value=>value.includes('/api/betta-satellite')))th
 if(!workflow.includes('git diff --exit-code "$base" HEAD -- "$file"'))throw new Error('protected-system diff gate missing');
 console.log(JSON.stringify({
   ok:true,
-  presets:4,
-  architecture:'hybrid indexed radial membrane + GPU deformation + Himawari-9 HA1 pixel analysis',
+  presets:8,
+  baselines:baselineNames,
+  architecture:'hybrid indexed radial membrane + GPU deformation + biological Betta colour morphs + Himawari-9 HA1 pixel analysis',
   realtimeInput:'satellite-only',
   satellite:'Himawari-9 via JMA High-Resolution Asia 1',
   bands:['B13 infrared','B08 water vapor','B03 visible'],
