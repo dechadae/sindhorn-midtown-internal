@@ -1,0 +1,16 @@
+body[data-route="settings"] .business-card-settings-actions{margin:24px 0 0;padding-top:20px;border-top:1px solid var(--settings-line)}
+body[data-route="settings"] .business-card-settings-actions>p{margin:0 0 10px;color:var(--settings-accent);font-size:9px;text-transform:uppercase}
+body[data-route="settings"] .business-card-settings-actions>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+body[data-route="settings"] .business-card-settings-actions .settings-quiet-action{width:100%!important;min-width:0!important}
+body[data-route="settings"] .business-card-settings-actions button:disabled{opacity:.34!important;cursor:default!important;transform:none!important}
+body[data-route="settings"] .business-card-inline-status{display:block;min-height:16px;margin:9px 0 -2px;color:var(--settings-accent);font-size:10px;opacity:0}
+body[data-route="settings"] .business-card-inline-status[data-show="true"]{opacity:1}
+body[data-route="settings"] .business-card-present-dialog{width:min(96vw,560px);height:min(94dvh,920px);max-width:none;max-height:none;margin:auto;padding:0;border:0;border-radius:26px;background:#2E273B;box-shadow:0 28px 90px rgba(8,6,12,.48);overflow:hidden}
+body[data-route="settings"] .business-card-present-dialog::backdrop{background:rgba(10,8,15,.76);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+body[data-route="settings"] .business-card-present-frame{display:block;width:100%;height:100%;border:0;background:#2E273B}
+body[data-route="settings"] .business-card-present-close{position:absolute;z-index:3;top:14px;right:14px;width:44px;height:44px;display:grid;place-items:center;border:1px solid rgba(250,247,245,.14)!important;border-radius:50%;background:rgba(31,25,41,.82)!important;color:#FAF7F5;font:300 27px/1 var(--font-ui);transition:transform var(--settings-motion-fast) var(--settings-ease),opacity var(--settings-motion-fast) ease}
+body[data-route="settings"] .business-card-present-close:active{transform:scale(.975);opacity:.84}
+body[data-route="settings"] .business-card-edit-dialog .settings-form-grid{margin-top:20px}
+body[data-route="settings"] .business-card-edit-dialog .settings-dialog-actions{margin-top:20px}
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important}
+@media(max-width:620px){body[data-route="settings"] .business-card-present-dialog{width:100vw;height:100dvh;border-radius:0}}
