@@ -1,6 +1,7 @@
 import {getAccessToken,signOut,supabaseRpc} from './auth-client.js';
 import {loadSettingsAuthority} from './capabilities.js';
 import {qrSvg} from './qr-v6.js';
+import {closeSettingsDialog,openSettingsDialog} from './settings-dialog-standard.js?v=1';
 
 const MOTION={fast:160,base:260,in:300,out:180,ease:'cubic-bezier(.22,1,.36,1)'};
 
@@ -89,17 +90,8 @@ export async function mountSettingsRoute(root){
     if(reducedMotion())return;
     $$('.settings-user-card').forEach((card,index)=>{try{card.animate([{opacity:.01,transform:'translateY(10px)'},{opacity:1,transform:'translateY(0)'}],{duration:MOTION.in,delay:Math.min(index,6)*34,easing:MOTION.ease,fill:'both'})}catch(_){}})
   }
-  async function openDialog(dialog){
-    if(!dialog||dialog.open)return;
-    dialog.showModal();
-    await animateElement(dialog,[{opacity:.02,transform:'translateY(18px) scale(.985)'},{opacity:1,transform:'translateY(0) scale(1)'}],MOTION.in);
-  }
-  async function closeDialog(dialog){
-    if(!dialog?.open)return;
-    closeSettingsSelects();
-    await animateElement(dialog,[{opacity:1,transform:'translateY(0) scale(1)'},{opacity:.02,transform:'translateY(10px) scale(.992)'}],MOTION.out);
-    if(dialog.open)dialog.close();
-  }
+  async function openDialog(dialog){await openSettingsDialog(dialog)}
+  async function closeDialog(dialog){await closeSettingsDialog(dialog,{beforeClose:closeSettingsSelects})}
 
   async function rpc(name,params={}){const token=getAccessToken();if(!token)throw Object.assign(new Error('authentication_required'),{code:'authentication_required'});try{return await supabaseRpc(name,params,{accessToken:token})}catch(error){const message=String(error?.message||'').toLowerCase(),providerCode=String(error?.payload?.code||'');if(message.includes('admin access required'))error.code='admin_access_required';else if(message.includes('insufficient role'))error.code='insufficient_role';else if(message.includes('cannot remove own admin access'))error.code='cannot_remove_own_admin_access';else if(providerCode==='23505'||message.includes('duplicate key'))error.code='employee_already_exists';else if(message.includes('invalid employee input'))error.code='invalid_employee_input';else if(message.includes('invalid department'))error.code='invalid_department';else if(message.includes('invalid personal email'))error.code='invalid_personal_email';else if(message.includes('invalid mobile'))error.code='invalid_mobile';else error.code=error.code||'request_failed';throw error}}
   function writeError(error){if(error?.code==='admin_access_required'||error?.code==='authentication_required')return'Your account does not have permission for this action.';if(error?.code==='insufficient_role')return'Your capabilities do not allow this access change.';if(error?.code==='cannot_remove_own_admin_access')return'You cannot remove your own privileged access.';if(error?.code==='employee_already_exists')return'That Employee ID or hotel email is already assigned.';if(error?.code==='invalid_employee_input')return'Check the employee details and try again.';if(error?.code==='invalid_department')return'Choose an active department or leave it unassigned.';if(error?.code==='invalid personal email')return'Check the personal email address.';if(error?.code==='invalid_mobile')return'Use an international mobile number such as +66…';return'The change could not be saved. Please try again.'}
