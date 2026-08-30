@@ -1,5 +1,5 @@
 .business-dashboard-route{
-  --bd-glass:var(--app-control-glass,rgba(46,39,59,.55));
+  --bd-glass:rgba(46,39,59,.48);
   --bd-border:var(--app-control-border,rgba(250,247,245,.14));
   --bd-line:rgba(250,247,245,.10);
   --bd-muted:var(--app-control-muted,rgba(250,247,245,.55));
