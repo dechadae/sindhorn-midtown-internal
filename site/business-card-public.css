@@ -7,7 +7,7 @@ a{color:inherit;text-decoration:none}
 .public-card-panel{width:min(100%,520px);padding:28px 22px 22px;border:1px solid var(--bc-line);border-radius:26px;background:rgba(46,39,59,.58);box-shadow:0 26px 80px rgba(12,9,18,.26);backdrop-filter:blur(24px) saturate(1.12);-webkit-backdrop-filter:blur(24px) saturate(1.12);text-align:center}
 .public-card-kicker{margin:0 0 18px;color:var(--bc-accent);font-size:9px;text-transform:uppercase;text-align:center}
 .public-card-head{text-align:center}
-.public-card-head h1{margin:0;font-size:clamp(30px,9vw,48px);font-weight:100;line-height:.98;text-align:center;overflow-wrap:anywhere}
+.public-card-head h1{max-width:100%;margin:0 auto;font-size:clamp(30px,9vw,48px);font-weight:100;line-height:.98;text-align:center;text-wrap:balance;overflow-wrap:normal;word-break:normal}
 .public-card-title{margin:13px 0 0;font-size:14px;text-align:center}
 .public-card-hotel{max-width:390px;margin:11px auto 0;color:var(--bc-muted);font-size:12.5px;line-height:1.5;text-align:center}
 .public-card-qr{width:min(80%,312px);aspect-ratio:1;margin:28px auto 0;padding:0;border-radius:20px;background:#F4F1EB;box-shadow:0 20px 48px rgba(10,8,15,.22);overflow:hidden}

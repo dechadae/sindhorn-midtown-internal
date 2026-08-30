@@ -20,6 +20,16 @@ function showStatus(message){const node=root?.querySelector('[data-card-status]'
 function unavailable(){if(!root)return;root.innerHTML=`<section class="public-card-unavailable"><p class="public-card-kicker">Business card</p><h1>Card unavailable</h1><p>This business card is not published or is no longer active.</p><span>${esc(HOTEL_NAME)}</span></section>`}
 function hotelNameHtml(value){const name=String(value||HOTEL_NAME).trim(),comma=name.indexOf(',');return comma<0?esc(name):`${esc(name.slice(0,comma+1))}<br>${esc(name.slice(comma+1).trim())}`}
 function websiteLabel(value){try{return new URL(value).hostname.replace(/^www\./,'')||'Hotel website'}catch(_){return'Hotel website'}}
+function balancedNameHtml(value){
+  const name=String(value||'').trim().toUpperCase(),words=name.split(/\s+/).filter(Boolean);
+  if(words.length<2||name.length<=18)return esc(name);
+  let split=1,best=Infinity;
+  for(let index=1;index<words.length;index+=1){
+    const left=words.slice(0,index).join(' '),right=words.slice(index).join(' '),delta=Math.abs(left.length-right.length);
+    if(delta<best){best=delta;split=index}
+  }
+  return`${esc(words.slice(0,split).join(' '))}<br>${esc(words.slice(split).join(' '))}`;
+}
 function detail(label,value,href='',displayValue=value){if(!value)return'';const body=href?`<a href="${esc(href)}">${esc(displayValue)}</a>`:`<b>${esc(displayValue)}</b>`;return`<div class="public-card-detail"><span>${esc(label)}</span>${body}</div>`}
 
 function render(){
@@ -30,7 +40,7 @@ function render(){
   root.innerHTML=`<section class="public-card-panel" aria-labelledby="publicCardName">
     <header class="public-card-head">
       <p class="public-card-kicker">Digital business card</p>
-      <h1 id="publicCardName">${esc(card.displayName).toUpperCase()}</h1>
+      <h1 id="publicCardName">${balancedNameHtml(card.displayName)}</h1>
       ${card.positionTitle?`<p class="public-card-title">${esc(card.positionTitle)}</p>`:''}
       <p class="public-card-hotel">${hotelNameHtml(hotelName)}</p>
     </header>
