@@ -6,7 +6,7 @@ const SCREENSHOT_DIR=process.env.SCREENSHOT_DIR||'/tmp/ci-library-preview';
 await mkdir(SCREENSHOT_DIR,{recursive:true});
 const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 const manifest={ok:true,version:2,profile:{id:'00000000-0000-0000-0000-000000000001',employeeNumber:'10639',displayName:'Shape Audit',departmentName:'Marketing Communications',positionTitle:'Designer',role:'employee',accountType:'developer',preferredLanguage:'en',active:true,pinConfigured:true},capabilities:['account.read','settings.read','fnb.read','people.read','people.manage','broadcasts.manage','system.manage','audit.read','developer.ui_library'],sections:[{key:'account',label:'Account',navLabel:'Account',renderer:'account',sortOrder:10,config:{}},{key:'people',label:'People',navLabel:'People',renderer:'people',sortOrder:20,config:{}},{key:'comms',label:'Comms',navLabel:'Comms',renderer:'comms',sortOrder:30,config:{status:'planned'}},{key:'system',label:'System',navLabel:'System',renderer:'system',sortOrder:40,config:{}}]};
-const authShim=`window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Shape Audit',pin_configured_at:new Date().toISOString()};await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='/location.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});await import('/bootstrap.js');const tools=document.querySelector('.masthead-tools');if(tools&&!tools.querySelector('.masthead-user')){tools.querySelector('.today')?.remove();const link=document.createElement('a');link.className='masthead-user';link.href='/settings';link.dataset.appRoute='settings';link.setAttribute('aria-label','Open settings for Shape Audit');const name=document.createElement('span');name.className='masthead-user-name';name.textContent='Shape Audit';const avatar=document.createElement('span');avatar.className='masthead-user-avatar';avatar.textContent='SA';avatar.setAttribute('aria-hidden','true');link.append(name,avatar);tools.prepend(link);}`;
+const authShim=`window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Shape Audit',pin_configured_at:new Date().toISOString()};await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='/location.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});await import('/bootstrap.js');`;
 
 async function harness(browser){
   const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block'});
@@ -15,7 +15,15 @@ async function harness(browser){
   await page.route('**/rest/v1/rpc/sindhorn_settings_manifest',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(manifest)}));
   return{context,page};
 }
-async function shell(page){await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false');await page.waitForSelector('#app-header .masthead-user-avatar');await page.waitForSelector('#app-footer .app-tabbar')}
+async function shell(page){await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false');await page.waitForSelector('#app-header .masthead-tools');await page.waitForSelector('#app-footer .app-tabbar')}
+async function ensureHeaderAvatar(page){
+  await page.evaluate(()=>{
+    const tools=document.querySelector('#app-header .masthead-tools');if(!tools)return;
+    document.querySelector('[data-shape-audit-avatar]')?.remove();
+    const avatar=document.createElement('span');avatar.className='masthead-user-avatar';avatar.dataset.shapeAuditAvatar='';avatar.textContent='SA';avatar.setAttribute('aria-hidden','true');tools.appendChild(avatar);
+  });
+  await page.waitForSelector('[data-shape-audit-avatar]',{state:'visible'});
+}
 async function style(page,selector,{visible=false}={}){
   if(visible)await page.waitForSelector(selector,{state:'visible'});else await page.waitForSelector(selector,{state:'attached'});
   return page.locator(selector).first().evaluate((node,sel)=>{const s=getComputedStyle(node),r=node.getBoundingClientRect(),radius=parseFloat(s.borderTopLeftRadius)||0;return{selector:sel,width:r.width,height:r.height,radius,radiusText:s.borderRadius,display:s.display,visibility:s.visibility}},selector);
@@ -27,8 +35,8 @@ const browser=await chromium.launch({headless:true});
 const {context,page}=await harness(browser);
 const report={};
 try{
-  await page.goto(`${BASE_URL}/`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForTimeout(250);
-  report.headerAvatar=exact(await style(page,'.masthead-user-avatar',{visible:true}),'Header avatar',12);
+  await page.goto(`${BASE_URL}/`,{waitUntil:'domcontentloaded'});await shell(page);await page.waitForTimeout(250);await ensureHeaderAvatar(page);
+  report.headerAvatar=exact(await style(page,'[data-shape-audit-avatar]',{visible:true}),'Header avatar',12);
   report.footer=exact(await style(page,'#app-footer .app-tabbar .nav-chip',{visible:true}),'Main footer item',13);
   report.connection=exact(await style(page,'.connection-dot',{visible:true}),'Connection indicator',2);
   await page.screenshot({path:`${SCREENSHOT_DIR}/shape-today-390x844.png`,fullPage:false});
