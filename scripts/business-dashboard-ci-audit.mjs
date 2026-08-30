@@ -30,7 +30,7 @@ assert(/today:Object\.freeze\(\{path:'\/',title:'Today \| Sindhorn Midtown Inter
 assert(dashboardJs.includes('app-route-hero')&&dashboardJs.includes('app-route-eyebrow')&&dashboardJs.includes('app-route-title')&&dashboardJs.includes('app-route-copy'),'shared-hero','Dashboard consumes the semantic route-hero API.');
 assert(dashboardJs.includes('app-quiet-action'),'shared-control','Retry uses the centralized quiet-action control.');
 assert(dashboardJs.includes('factsheet-room-card')&&dashboardJs.includes('factsheet-room-card-button')&&dashboardJs.includes('factsheet-room-panel'),'shared-disclosure','Expandable dashboard data reuses the CI-listed Factsheet disclosure component.');
-assert(dashboardJs.includes('aria-expanded="false"')&&dashboardJs.includes('data-bd-disclosure-button'),'disclosure-a11y','Disclosure buttons expose explicit expanded state.');
+assert(dashboardJs.includes('aria-expanded="${String(open)}"')&&dashboardJs.includes('data-bd-disclosure-button')&&dashboardJs.includes('openDisclosureKeys'),'disclosure-a11y','Disclosure buttons expose explicit expanded state and preserve it across shell remounts.');
 assert(!dashboardJs.includes('<details'),'no-parallel-disclosure','Dashboard does not introduce a second native-details disclosure language.');
 assert(dashboardCss.includes('font:400 14px/1.55 var(--font-ui)'),'font-authority','Dashboard inherits the app LINE Seed Sans TH font token.');
 assert(dashboardCss.includes('letter-spacing:0!important'),'tracking','Dashboard enforces zero character tracking.');
