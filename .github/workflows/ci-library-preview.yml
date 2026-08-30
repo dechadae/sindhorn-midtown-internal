@@ -2,7 +2,7 @@ name: Developer UI Library Preview
 
 on:
   push:
-    branches: [preview-ci-library]
+    branches: [preview-ci-library, app-ci-parity-preview]
     paths:
       - "site/index.html"
       - "site/login.html"
@@ -13,7 +13,11 @@ on:
       - "site/_redirects"
       - "site/footer-route-guard.js"
       - "site/route-hero-standard.css"
+      - "site/app-controls.css"
+      - "site/app-action-card.css"
       - "site/app-shapes.css"
+      - "site/brand.js"
+      - "site/brand.css"
       - "site/settings-route-v3.js"
       - "site/settings-system-library.js"
       - "site/settings-system-library.css"
@@ -21,11 +25,14 @@ on:
       - "site/ci.js"
       - "site/ci.css"
       - "site/ci-specimen-fixes.css"
+      - "scripts/app-ci-parity-contract-test.mjs"
+      - "scripts/app-ci-parity-browser-smoke.mjs"
       - "scripts/ci-library-contract-test.mjs"
       - "scripts/ci-library-browser-smoke.mjs"
       - "scripts/ci-library-visual-smoke.mjs"
       - "scripts/ui-shape-browser-smoke.mjs"
       - "scripts/ui-shape-source-audit.mjs"
+      - "docs/APP-CI-PARITY-AUDIT-20260830.md"
       - "docs/SETTINGS-FIXED-RAIL-AND-DEVELOPER-CI-OVERRIDE-20260830.md"
       - ".github/workflows/ci-library-preview.yml"
   workflow_dispatch:
@@ -81,6 +88,11 @@ jobs:
           if 'border-radius:50%' in shape or 'border-radius:999px' in shape or 'border-radius:9999px' in shape:
               raise SystemExit('central shape authority contains a circular/capsule radius')
           PY
+          if [ "${GITHUB_REF_NAME}" = "app-ci-parity-preview" ]; then
+            node --input-type=module --check < scripts/app-ci-parity-contract-test.mjs
+            node --input-type=module --check < scripts/app-ci-parity-browser-smoke.mjs
+            node scripts/app-ci-parity-contract-test.mjs
+          fi
 
       - name: Verify unrelated protected systems unchanged
         shell: bash
@@ -88,20 +100,24 @@ jobs:
           set -euo pipefail
           base="$(git merge-base origin/main HEAD)"
           test -n "$base"
-          for file in \
-            site/fnb.js site/fnb.css site/fnb-data.js site/fnb-approved-polish.css site/fnb-refinements.css \
-            site/ihg-history.js site/ihg-history.css site/ihg-history-data.js \
-            site/hotel-factsheet-route.js site/hotel-factsheet.js site/hotel-factsheet.css site/hotel-factsheet-data.js \
-            site/brand.js site/brand.css \
-            site/app.js site/bootstrap.js site/app-transitions.js site/app-transitions.css \
-            site/auth-shell.js site/auth-client.js site/capabilities.js \
-            site/settings.js site/settings.css site/settings-refinements.css \
-            site/business-card-settings.js site/business-card-component.css site/business-card-component.js \
-            site/app-controls.css site/settings-dialog-standard.js site/settings-dialog-standard.css \
-            site/environment.js site/atmosphere-shader.js site/rain-now.js site/rain-layer.js \
-            site/seasonal-sky.js site/weather-authority.js site/sw.js; do
-            git diff --exit-code "$base" HEAD -- "$file"
-          done
+          protected=(
+            site/app.js site/bootstrap.js site/app-transitions.js site/app-transitions.css
+            site/auth-shell.js site/auth-client.js site/capabilities.js
+            site/environment.js site/atmosphere-shader.js site/rain-now.js site/rain-layer.js
+            site/seasonal-sky.js site/weather-authority.js site/sw.js site/push-client.js
+            site/fnb.js site/fnb-data.js
+            site/business-card-settings.js site/business-card-component.js site/business-card-component.css
+          )
+          if [ "${GITHUB_REF_NAME}" = "preview-ci-library" ]; then
+            protected+=(
+              site/fnb.css site/fnb-approved-polish.css site/fnb-refinements.css
+              site/ihg-history.js site/ihg-history.css site/ihg-history-data.js
+              site/hotel-factsheet-route.js site/hotel-factsheet.js site/hotel-factsheet.css site/hotel-factsheet-data.js
+              site/brand.js site/brand.css site/settings.js site/settings.css site/settings-refinements.css
+              site/app-controls.css site/settings-dialog-standard.js site/settings-dialog-standard.css
+            )
+          fi
+          for file in "${protected[@]}"; do git diff --exit-code "$base" HEAD -- "$file"; done
 
       - name: Deploy Cloudflare branch preview
         env:
@@ -128,6 +144,15 @@ jobs:
           curl --fail --silent --show-error "${BASE_URL}/ui-system-registry.js" -o /tmp/registry.js
           grep -q "developer.ui_library" /tmp/registry.js
           grep -q "UI_SYSTEM_SECTIONS" /tmp/registry.js
+          if [ "${GITHUB_REF_NAME}" = "app-ci-parity-preview" ]; then
+            for path in /brand /fnb /messages /ihg-history /hotel-factsheet /app-action-card.css /brand.js /brand.css; do
+              curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/parity-response
+              test -s /tmp/parity-response
+            done
+            grep -q "UI_SYSTEM_VERSION='1.3.0-preview'" /tmp/registry.js
+            curl --fail --silent --show-error "${BASE_URL}/brand.js" -o /tmp/brand.js
+            grep -q 'app-action-card-control' /tmp/brand.js
+          fi
 
       - name: Developer, employee and shape mobile browser smoke
         shell: bash
@@ -141,6 +166,9 @@ jobs:
           node scripts/ci-library-browser-smoke.mjs | tee /tmp/ci-library-browser-report.json
           node scripts/ci-library-visual-smoke.mjs | tee /tmp/ci-library-visual-report.json
           node scripts/ui-shape-browser-smoke.mjs | tee /tmp/ui-shape-browser-report.json
+          if [ "${GITHUB_REF_NAME}" = "app-ci-parity-preview" ]; then
+            SCREENSHOT_DIR=/tmp/app-ci-parity node scripts/app-ci-parity-browser-smoke.mjs | tee /tmp/app-ci-parity-browser-report.json
+          fi
 
       - name: Upload screenshots and report
         if: always()
@@ -149,9 +177,11 @@ jobs:
           name: ci-library-preview
           path: |
             /tmp/ci-library-preview
+            /tmp/app-ci-parity
             /tmp/ci-library-browser-report.json
             /tmp/ci-library-visual-report.json
             /tmp/ui-shape-browser-report.json
+            /tmp/app-ci-parity-browser-report.json
             /tmp/ui-shape-source-audit.json
           if-no-files-found: warn
           retention-days: 14
