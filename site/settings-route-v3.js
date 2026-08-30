@@ -1,7 +1,23 @@
 import {mountSettingsRoute as mountBaseSettingsRoute} from './settings.js?v=2';
-import {mountSettingsBusinessCard} from './business-card-settings.js?v=3';
+import {mountSettingsBusinessCard,preloadSettingsBusinessCard} from './business-card-settings.js?v=4';
 function ensureStyle(selector,href,attribute){const existing=document.querySelector(selector);if(existing)return existing.sheet?Promise.resolve():new Promise(resolve=>{existing.addEventListener('load',resolve,{once:true});existing.addEventListener('error',resolve,{once:true})});return new Promise(resolve=>{const link=document.createElement('link');link.rel='stylesheet';link.href=href;link.setAttribute(attribute,'true');link.addEventListener('load',resolve,{once:true});link.addEventListener('error',resolve,{once:true});document.head.appendChild(link)})}
-function promoteSignOutToHero(root){const hero=root.querySelector('.settings-hero'),button=root.querySelector('[data-sign-out]');if(!hero||!button)return;const oldHost=button.closest('.settings-account-actions');button.className='fnb-action-control fnb-share-button settings-hero-signout';button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5v16h5M14 8l4 4-4 4M9 12h9"/></svg><span>Sign out</span>';hero.appendChild(button);if(oldHost&&!oldHost.children.length)oldHost.remove()}
+function promoteSignOutToHero(root){
+  const hero=root.querySelector('.settings-hero');if(!hero)return;
+  const buttons=[...root.querySelectorAll('[data-sign-out]')];if(!buttons.length)return;
+  const fresh=buttons.find(button=>!hero.contains(button))||buttons.find(button=>hero.contains(button));if(!fresh)return;
+  buttons.forEach(button=>{if(button!==fresh)button.remove()});
+  const oldHost=fresh.closest('.settings-account-actions');
+  fresh.className='fnb-action-control fnb-share-button settings-hero-signout';
+  fresh.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5v16h5M14 8l4 4-4 4M9 12h9"/></svg><span>Sign out</span>';
+  hero.appendChild(fresh);
+  if(oldHost&&!oldHost.children.length)oldHost.remove();
+}
+function installHeroSignOut(root){
+  const sync=event=>{if(!event?.detail?.section||event.detail.section==='account')promoteSignOutToHero(root)};
+  document.addEventListener('sindhorn:settings-section-changed',sync);
+  promoteSignOutToHero(root);
+  return()=>document.removeEventListener('sindhorn:settings-section-changed',sync);
+}
 function documentOffsetTop(node){let top=0,current=node;while(current){top+=Number(current.offsetTop||0);current=current.offsetParent}return top}
 function installSettingsViewport(root){
   const doc=document.documentElement,footer=document.getElementById('app-footer'),viewport=window.visualViewport,previousScrollPadding=doc.style.scrollPaddingBottom;
@@ -37,4 +53,23 @@ function installSettingsViewport(root){
     doc.style.scrollPaddingBottom=previousScrollPadding;
   };
 }
-export async function mountSettingsRoute(root){await ensureStyle('link[data-settings-style]','/settings.css?v=2','data-settings-style');await ensureStyle('link[data-settings-refinements]','/settings-refinements.css?v=2','data-settings-refinements');await ensureStyle('link[data-business-card-settings-style]','/business-card-settings.css?v=6','data-business-card-settings-style');const baseCleanup=await mountBaseSettingsRoute(root);promoteSignOutToHero(root);const cardCleanup=await mountSettingsBusinessCard(root);const viewportCleanup=installSettingsViewport(root);return()=>{try{viewportCleanup?.()}finally{try{cardCleanup?.()}finally{baseCleanup?.()}}}}
+export async function mountSettingsRoute(root){
+  const previousVisibility=root.style.visibility;
+  root.style.visibility='hidden';
+  const cardPreload=preloadSettingsBusinessCard();
+  let baseCleanup=null,signOutCleanup=null,cardCleanup=null,viewportCleanup=null;
+  try{
+    await Promise.all([
+      ensureStyle('link[data-settings-style]','/settings.css?v=2','data-settings-style'),
+      ensureStyle('link[data-settings-refinements]','/settings-refinements.css?v=2','data-settings-refinements'),
+      ensureStyle('link[data-business-card-settings-style]','/business-card-settings.css?v=6','data-business-card-settings-style')
+    ]);
+    baseCleanup=await mountBaseSettingsRoute(root);
+    signOutCleanup=installHeroSignOut(root);
+    cardCleanup=await mountSettingsBusinessCard(root,{preload:cardPreload});
+    viewportCleanup=installSettingsViewport(root);
+  }finally{
+    root.style.visibility=previousVisibility;
+  }
+  return()=>{try{viewportCleanup?.()}finally{try{cardCleanup?.()}finally{try{signOutCleanup?.()}finally{baseCleanup?.()}}}};
+}
