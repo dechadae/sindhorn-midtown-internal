@@ -24,9 +24,12 @@ try{
   await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false');
   await page.waitForSelector('.ci-route');
   await page.waitForSelector('[data-ci-disclosure]');
+  await page.waitForSelector('.ci-specimen .fnb-text-card');
   const ci=await page.evaluate(()=>{
     const title=document.querySelector('.ci-route>.app-route-hero .app-route-title');
-    const card=document.querySelector('.ci-specimen .fnb-card');
+    // Dashboard KPI tiles are information surfaces, so compare them with the
+    // CI information-surface specimen rather than the actionable F&B card.
+    const card=document.querySelector('.ci-specimen .fnb-text-card');
     const disclosure=document.querySelector('[data-ci-disclosure]');
     const button=disclosure?.querySelector('.factsheet-room-card-button');
     const panel=disclosure?.querySelector('.factsheet-room-panel');
@@ -47,7 +50,7 @@ try{
 
   assert(dashboardState.hero.font===ci.hero.font&&dashboardState.hero.weight===ci.hero.weight&&dashboardState.hero.size===ci.hero.size&&dashboardState.hero.lineHeight===ci.hero.lineHeight,`Hero parity failed ${JSON.stringify({ci:ci.hero,dashboard:dashboardState.hero})}`);
   assert((dashboardState.hero.tracking==='0px'||dashboardState.hero.tracking==='normal')&&(ci.hero.tracking==='0px'||ci.hero.tracking==='normal'),`Hero tracking failed ${JSON.stringify({ci:ci.hero.tracking,dashboard:dashboardState.hero.tracking})}`);
-  assert(dashboardState.card.radius===ci.card.radius&&dashboardState.card.border===ci.card.border&&dashboardState.card.background===ci.card.background,`Glass card parity failed ${JSON.stringify({ci:ci.card,dashboard:dashboardState.card})}`);
+  assert(dashboardState.card.radius===ci.card.radius&&dashboardState.card.border===ci.card.border&&dashboardState.card.background===ci.card.background,`Information-surface parity failed ${JSON.stringify({ci:ci.card,dashboard:dashboardState.card})}`);
   assert(dashboardState.disclosure.sharedClasses&&dashboardState.disclosure.expanded==='false'&&dashboardState.disclosure.radius===ci.disclosure.radius&&dashboardState.disclosure.panelTransition===ci.disclosure.panelTransition,`Disclosure parity failed ${JSON.stringify({ci:ci.disclosure,dashboard:dashboardState.disclosure})}`);
   assert(dashboardState.accent===ci.accent,`Accent token parity failed ${JSON.stringify({ci:ci.accent,dashboard:dashboardState.accent})}`);
   assert(dashboardState.routeBefore==='none'&&dashboardState.width<=dashboardState.client+1,`Atmosphere/overflow parity failed ${JSON.stringify(dashboardState)}`);
