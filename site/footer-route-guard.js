@@ -113,7 +113,7 @@ function normalizeFooter(){
   if(current){current.querySelectorAll('[data-app-route="fnb"]').forEach(node=>node.remove());updateCurrent();syncAllContexts();return}
   const nav=document.createElement('nav');
   nav.className='app-tabbar bottom-nav shell-footer-rail';nav.dataset.shellFooter=FOOTER_VERSION;nav.setAttribute('aria-label','App navigation');
-  NAV_ITEMS.forEach(item=>nav.appendChild(buildControl(item));
+  NAV_ITEMS.forEach(item=>nav.appendChild(buildControl(item)));
   host.replaceChildren(nav);updateCurrent();syncAllContexts();queueMicrotask(()=>window.SindhornNotificationInbox?.refresh?.().catch?.(()=>{}));
 }
 
