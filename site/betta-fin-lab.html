@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b0710">
+  <title>Betta Fin Lab · Sindhorn Midtown</title>
+  <link rel="stylesheet" href="/fonts.css">
+  <link rel="stylesheet" href="/betta-fin-lab.css?v=1">
+</head>
+<body>
+  <main class="betta-lab" aria-label="Procedural betta fin visual experiment">
+    <canvas id="bettaCanvas" aria-hidden="true"></canvas>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <header class="lab-header">
+      <div>
+        <p class="eyebrow">SINDHORN MIDTOWN · VISUAL R&amp;D</p>
+        <h1>Betta Fin Lab</h1>
+        <p id="presetDescription" class="preset-description">A living procedural membrane study.</p>
+      </div>
+      <div class="header-actions">
+        <button class="glass-button" id="uiToggle" type="button" aria-pressed="false">UI test</button>
+        <button class="glass-button" id="tiltButton" type="button" aria-pressed="false">Tilt</button>
+        <button class="glass-button primary" id="tuneButton" type="button" aria-expanded="false">Tune</button>
+      </div>
+    </header>
+
+    <section class="ui-specimen" id="uiSpecimen" hidden aria-label="Interface legibility specimen">
+      <p class="specimen-kicker">LEGIBILITY SPECIMEN</p>
+      <p class="specimen-time">20:29</p>
+      <p class="specimen-date">Sunday · Bangkok</p>
+      <div class="specimen-card">
+        <p>Sample information</p>
+        <strong>31°</strong>
+        <span>Cloudy · Air quality good</span>
+      </div>
+    </section>
+
+    <div class="diagnostics" id="diagnostics" aria-live="polite">Starting renderer…</div>
+
+    <nav class="preset-rail" aria-label="Betta fin presets">
+      <button class="preset-button is-active" type="button" data-preset="cobaltVeil">
+        <span>01</span><strong>Cobalt Veil</strong>
+      </button>
+      <button class="preset-button" type="button" data-preset="crimsonSilk">
+        <span>02</span><strong>Crimson Silk</strong>
+      </button>
+      <button class="preset-button" type="button" data-preset="turquoiseDrift">
+        <span>03</span><strong>Turquoise Drift</strong>
+      </button>
+      <button class="preset-button" type="button" data-preset="midnightPlum">
+        <span>04</span><strong>Midnight Plum</strong>
+      </button>
+    </nav>
+
+    <aside class="tune-sheet" id="tuneSheet" aria-hidden="true">
+      <div class="sheet-grab" aria-hidden="true"></div>
+      <div class="sheet-head">
+        <div>
+          <p class="eyebrow">LIVE PARAMETERS</p>
+          <h2 id="sheetPresetName">Cobalt Veil</h2>
+        </div>
+        <button class="close-button" id="closeTune" type="button" aria-label="Close tuning controls">×</button>
+      </div>
+      <div class="control-scroll">
+        <section class="control-group" data-group="geometry">
+          <h3>Geometry</h3>
+          <div class="control-grid">
+            <label>Fin spread <output data-output="spread"></output><input data-param="spread" type="range" min="1.4" max="4.9" step="0.01"></label>
+            <label>Ray count <output data-output="rayCount"></output><input data-param="rayCount" type="range" min="32" max="80" step="4"></label>
+            <label>Fold density <output data-output="foldDensity"></output><input data-param="foldDensity" type="range" min="2" max="12" step="0.1"></label>
+            <label>Curl <output data-output="curl"></output><input data-param="curl" type="range" min="0" max="1.8" step="0.01"></label>
+            <label>Twist <output data-output="twist"></output><input data-param="twist" type="range" min="-1.5" max="1.5" step="0.01"></label>
+            <label>Edge flutter <output data-output="edgeFlutter"></output><input data-param="edgeFlutter" type="range" min="0" max="1" step="0.01"></label>
+            <label>Depth <output data-output="depth"></output><input data-param="depth" type="range" min="0" max="1.6" step="0.01"></label>
+          </div>
+        </section>
+        <section class="control-group" data-group="motion">
+          <h3>Motion</h3>
+          <div class="control-grid">
+            <label>Current <output data-output="currentStrength"></output><input data-param="currentStrength" type="range" min="0" max="1.4" step="0.01"></label>
+            <label>Motion speed <output data-output="motionSpeed"></output><input data-param="motionSpeed" type="range" min="0.05" max="0.8" step="0.01"></label>
+            <label>Turbulence <output data-output="turbulence"></output><input data-param="turbulence" type="range" min="0" max="1.5" step="0.01"></label>
+            <label>Amplitude <output data-output="motionAmplitude"></output><input data-param="motionAmplitude" type="range" min="0" max="1.5" step="0.01"></label>
+          </div>
+        </section>
+        <section class="control-group" data-group="material">
+          <h3>Membrane</h3>
+          <div class="control-grid">
+            <label>Transparency <output data-output="opacity"></output><input data-param="opacity" type="range" min="0.12" max="0.82" step="0.01"></label>
+            <label>Transmission <output data-output="transmission"></output><input data-param="transmission" type="range" min="0" max="1" step="0.01"></label>
+            <label>Rim light <output data-output="rimStrength"></output><input data-param="rimStrength" type="range" min="0" max="2.2" step="0.01"></label>
+            <label>Fold highlight <output data-output="foldHighlight"></output><input data-param="foldHighlight" type="range" min="0" max="2" step="0.01"></label>
+            <label>Iridescence <output data-output="iridescence"></output><input data-param="iridescence" type="range" min="0" max="1" step="0.01"></label>
+            <label>Optical glow <output data-output="bloom"></output><input data-param="bloom" type="range" min="0" max="1.4" step="0.01"></label>
+          </div>
+        </section>
+        <section class="control-group" data-group="colour">
+          <h3>Colour</h3>
+          <div class="control-grid">
+            <label>Saturation <output data-output="saturation"></output><input data-param="saturation" type="range" min="0.45" max="1.5" step="0.01"></label>
+            <label>Brightness <output data-output="brightness"></output><input data-param="brightness" type="range" min="0.35" max="1.6" step="0.01"></label>
+            <label>Gradient position <output data-output="gradientPosition"></output><input data-param="gradientPosition" type="range" min="-0.4" max="0.4" step="0.01"></label>
+          </div>
+        </section>
+        <section class="control-group" data-group="camera">
+          <h3>Composition</h3>
+          <div class="control-grid">
+            <label>Scale <output data-output="scale"></output><input data-param="scale" type="range" min="0.55" max="2.1" step="0.01"></label>
+            <label>Rotation <output data-output="rotation"></output><input data-param="rotation" type="range" min="-3.14" max="3.14" step="0.01"></label>
+            <label>Depth <output data-output="cameraDepth"></output><input data-param="cameraDepth" type="range" min="-2" max="2" step="0.01"></label>
+            <label>Horizontal <output data-output="offsetX"></output><input data-param="offsetX" type="range" min="-3.5" max="3.5" step="0.01"></label>
+            <label>Vertical <output data-output="offsetY"></output><input data-param="offsetY" type="range" min="-3.5" max="3.5" step="0.01"></label>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </main>
+  <script type="module" src="/betta-fin-lab.js?v=1"></script>
+</body>
+</html>

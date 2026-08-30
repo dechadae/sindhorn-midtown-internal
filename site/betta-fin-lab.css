@@ -1,0 +1,82 @@
+:root{
+  color-scheme:dark;
+  --bg:#0b0710;
+  --glass:rgba(19,14,25,.42);
+  --glass-strong:rgba(18,13,24,.76);
+  --hairline:rgba(255,255,255,.14);
+  --text:#f6f2f5;
+  --muted:rgba(246,242,245,.62);
+  --radius:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text)}
+body{font-family:"LINE Seed Sans TH",system-ui,sans-serif;font-weight:400}
+button,input{font:inherit}
+button{color:inherit}
+.betta-lab{position:fixed;inset:0;isolation:isolate;background:radial-gradient(circle at 70% 34%,#17101d 0,#0b0710 46%,#07050a 100%)}
+#bettaCanvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 42%,rgba(3,2,5,.36) 78%,rgba(2,1,3,.7) 100%);z-index:1}
+.lab-header{position:absolute;z-index:4;left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));top:max(18px,env(safe-area-inset-top));display:flex;justify-content:space-between;gap:18px;align-items:flex-start;pointer-events:none}
+.lab-header>div,.header-actions{pointer-events:auto}
+.eyebrow{margin:0 0 5px;font-size:10px;line-height:1.2;color:var(--muted);font-weight:700}
+h1{margin:0;font-size:clamp(27px,5vw,42px);line-height:.98;font-weight:100}
+.preset-description{margin:8px 0 0;max-width:440px;font-size:12px;line-height:1.45;color:var(--muted)}
+.header-actions{display:flex;gap:7px}
+.glass-button,.close-button,.preset-button{border:1px solid var(--hairline);background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:none}
+.glass-button{min-height:36px;padding:0 13px;border-radius:9px;font-size:12px;cursor:pointer}
+.glass-button.primary{background:rgba(246,242,245,.92);color:#17111c;border-color:transparent}
+.glass-button:active,.preset-button:active{transform:scale(.97)}
+.ui-specimen{position:absolute;z-index:3;left:clamp(18px,7vw,100px);top:50%;transform:translateY(-50%);width:min(310px,70vw);pointer-events:none}
+.specimen-kicker{margin:0 0 12px;font-size:9px;font-weight:700;color:rgba(255,255,255,.55)}
+.specimen-time{margin:0;font-size:clamp(62px,16vw,116px);line-height:.78;font-weight:100}
+.specimen-date{margin:13px 0 22px;font-size:13px;color:rgba(255,255,255,.7)}
+.specimen-card{width:100%;padding:16px;border:1px solid rgba(255,255,255,.16);border-radius:var(--radius);background:rgba(20,15,26,.24);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.specimen-card p,.specimen-card span{margin:0;color:rgba(255,255,255,.66);font-size:11px}
+.specimen-card strong{display:block;margin:3px 0 2px;font-size:42px;line-height:1;font-weight:100}
+.diagnostics{position:absolute;z-index:4;right:max(18px,env(safe-area-inset-right));bottom:calc(max(18px,env(safe-area-inset-bottom)) + 77px);font-size:9px;color:rgba(255,255,255,.42);pointer-events:none;text-align:right}
+.preset-rail{position:absolute;z-index:4;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(860px,calc(100% - 36px));display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.preset-button{min-height:54px;border-radius:10px;padding:9px 12px;text-align:left;cursor:pointer;transition:background .2s ease,border-color .2s ease,transform .15s ease}
+.preset-button span{display:block;font-size:9px;color:var(--muted)}
+.preset-button strong{display:block;margin-top:2px;font-size:12px;font-weight:400}
+.preset-button.is-active{background:rgba(246,242,245,.9);border-color:transparent;color:#17111c}
+.preset-button.is-active span{color:rgba(23,17,28,.56)}
+.tune-sheet{position:absolute;z-index:7;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));bottom:max(16px,env(safe-area-inset-bottom));width:min(430px,calc(100% - 32px));display:flex;flex-direction:column;border:1px solid var(--hairline);border-radius:14px;background:var(--glass-strong);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transform:translateX(calc(100% + 28px));opacity:0;pointer-events:none;transition:transform .36s cubic-bezier(.2,.8,.2,1),opacity .25s ease}
+.tune-sheet.is-open{transform:none;opacity:1;pointer-events:auto}
+.sheet-grab{display:none}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:18px 18px 13px;border-bottom:1px solid rgba(255,255,255,.09)}
+.sheet-head h2{margin:0;font-size:22px;font-weight:100}
+.close-button{width:34px;height:34px;border-radius:9px;font-size:23px;line-height:1;cursor:pointer}
+.control-scroll{overflow:auto;padding:0 18px 18px;overscroll-behavior:contain}
+.control-group{padding:15px 0 2px;border-bottom:1px solid rgba(255,255,255,.08)}
+.control-group:last-child{border:0}
+.control-group h3{margin:0 0 12px;font-size:11px;font-weight:700;color:rgba(255,255,255,.72)}
+.control-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+.control-grid label{display:grid;grid-template-columns:1fr auto;gap:5px 8px;font-size:10px;color:rgba(255,255,255,.68)}
+.control-grid output{font-variant-numeric:tabular-nums;color:rgba(255,255,255,.42)}
+.control-grid input{grid-column:1/-1;width:100%;height:14px;margin:0;accent-color:#f2edf2}
+@media(max-width:720px){
+  .lab-header{display:block}
+  .preset-description{max-width:265px}
+  .header-actions{position:absolute;top:0;right:0}
+  .header-actions .glass-button:not(.primary){display:none}
+  .preset-rail{grid-template-columns:repeat(2,1fr);bottom:max(12px,env(safe-area-inset-bottom));gap:6px}
+  .preset-button{min-height:46px;padding:7px 9px}
+  .diagnostics{bottom:calc(max(12px,env(safe-area-inset-bottom)) + 108px)}
+  .tune-sheet{top:auto;right:12px;left:12px;bottom:12px;width:auto;height:min(75vh,680px);transform:translateY(calc(100% + 24px));border-radius:14px}
+  .tune-sheet.is-open{transform:none}
+  .sheet-grab{display:block;width:34px;height:3px;border-radius:3px;background:rgba(255,255,255,.3);margin:9px auto 0}
+  .sheet-head{padding-top:11px}
+  .control-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:430px){
+  h1{font-size:29px}
+  .lab-header{left:14px;right:14px;top:max(14px,env(safe-area-inset-top))}
+  .preset-description{font-size:11px;max-width:225px}
+  .preset-rail{width:calc(100% - 28px)}
+  .preset-button strong{font-size:11px}
+  .ui-specimen{left:18px;width:64vw}
+  .control-grid{grid-template-columns:1fr 1fr;gap:13px 12px}
+}
+@media(prefers-reduced-motion:reduce){
+  .tune-sheet,.preset-button,.glass-button{transition:none}
+}
