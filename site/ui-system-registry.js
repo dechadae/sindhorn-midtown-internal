@@ -1,4 +1,4 @@
-export const UI_SYSTEM_VERSION='1.1.0-preview';
+export const UI_SYSTEM_VERSION='1.2.0-preview';
 export const UI_SYSTEM_CAPABILITY='developer.ui_library';
 
 export const UI_SYSTEM_SECTIONS=Object.freeze([
@@ -22,6 +22,9 @@ export const UI_SYSTEM_TOKENS=Object.freeze([
   {name:'--app-transition-ms',label:'Route transition',kind:'motion',fallback:'280ms'},
   {name:'--app-back-size',label:'Back control size',kind:'size',fallback:'36px'},
   {name:'--app-back-radius',label:'Back control radius',kind:'size',fallback:'12px'},
+  {name:'--app-radius-avatar',label:'Avatar radius',kind:'size',fallback:'12px'},
+  {name:'--app-radius-chip',label:'Compact tag radius',kind:'size',fallback:'9px'},
+  {name:'--app-radius-indicator',label:'Status mark radius',kind:'size',fallback:'2px'},
   {name:'--sm-footer-height',label:'Footer rail height',kind:'size',fallback:'54px'},
   {name:'--sm-footer-item-radius',label:'Footer item radius',kind:'size',fallback:'13px'}
 ]);
@@ -42,6 +45,7 @@ export const UI_SYSTEM_COMPONENTS=Object.freeze([
 export const UI_SYSTEM_RULES=Object.freeze([
   ['Use LINE Seed Sans TH only.','Production ships real weights 100 / 400 / 700; never introduce another UI font.'],
   ['Use zero character tracking.','letter-spacing stays 0 across headings, body, labels and controls.'],
+  ['Use rounded corners, never circular UI chrome.','Avatars, chips, badges, status marks and icon controls use app-shapes.css. Do not introduce 50% / 999px capsule geometry for interface elements. Natural sun/moon/weather rendering is exempt.'],
   ['Keep one persistent authenticated shell.','Authenticated routes replace only #route-view; header, footer, auth and atmosphere stay mounted.'],
   ['Do not paint a route-wide dark overlay.','The Bangkok atmosphere is the visual ground; use translucent structural surfaces above it.'],
   ['Use the shared hero authority.','New pages use app-route-hero / app-route-eyebrow / app-route-title / app-route-copy.'],
@@ -58,6 +62,7 @@ export const UI_SYSTEM_OWNERSHIP=Object.freeze([
   ['Typography','site/fonts.css'],['Persistent shell','site/shell.css + site/bootstrap.js'],
   ['Route registry','site/route-registry.js'],['Route transition','site/app-transitions.js + site/app-transitions.css'],
   ['Route hero','site/route-hero-standard.css'],['Back / quiet controls','site/app-controls.css'],
+  ['UI shape language','site/app-shapes.css'],
   ['Main + contextual footer','site/footer-route-guard.js + site/footer-route-guard.css'],
   ['F&B cards / selectors','site/fnb.css + site/fnb-approved-polish.css + site/fnb-refinements.css'],
   ['Settings renderer','site/settings.js + site/settings-route-v3.js'],['Settings dialogs','site/settings-dialog-standard.js + site/settings-dialog-standard.css'],
