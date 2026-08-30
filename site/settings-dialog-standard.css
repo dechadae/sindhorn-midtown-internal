@@ -62,13 +62,14 @@ body[data-route="settings"] .settings-dialog>.public-card-panel{
   body[data-route="settings"] .settings-dialog>.public-card-panel{border-radius:22px}
 }
 
-/* Present QR keeps the card shell fixed; only .public-card-scroll moves. */
+/* Present QR keeps the card shell fixed; only .public-card-scroll has real overflow. */
 body[data-route="settings"] .settings-dialog.business-card-present-dialog{
   width:min(calc(100vw - 32px),520px)!important;
   height:min(calc(var(--settings-viewport-height,100dvh) - 32px),760px)!important;
   max-height:min(calc(var(--settings-viewport-height,100dvh) - 32px),760px)!important;
   padding:0!important;
-  overflow:hidden!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
   scrollbar-gutter:auto!important;
 }
 body[data-route="settings"] .settings-dialog.business-card-present-dialog>.public-card-panel{
