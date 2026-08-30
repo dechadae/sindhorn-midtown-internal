@@ -32,7 +32,7 @@ for(const label of ['Account','People','Comms','System'])assert(settingsLibrary.
 assert(settingsLibrary.indexOf("label:'Account'")<settingsLibrary.indexOf("label:'People'")&&settingsLibrary.indexOf("label:'People'")<settingsLibrary.indexOf("label:'Comms'")&&settingsLibrary.indexOf("label:'Comms'")<settingsLibrary.indexOf("label:'System'"),'Settings rail order drifted');
 assert(settingsLibrary.includes("UI_LIBRARY_CAPABILITY='developer.ui_library'"),'Developer UI Library capability changed');
 
-for(const token of ['--app-radius-avatar:12px','--app-radius-chip:9px','--sm-footer-item-radius:13px'])assert(shapeCss.replaceAll(' ','').includes(token),`Shape token missing: ${token}`);
+for(const token of ['--app-radius-avatar:12px','--app-radius-chip:9px','--app-radius-footer:13px'])assert(shapeCss.replaceAll(' ','').includes(token),`Shape token missing: ${token}`);
 assert(fonts.includes('LINE Seed Sans TH'),'LINE Seed Sans TH authority missing');
 assert(!/(Poppins|Noto Sans|IBM Plex|serif|monospace)/i.test(actionCard+brandCss),'New shared/Brand card CSS introduced a prohibited font family');
 
