@@ -22,9 +22,11 @@
 
 /*
   One popup model for Settings:
-  - the native <dialog> is an invisible, non-scrolling motion/backdrop container;
+  - the native <dialog> is an invisible motion/backdrop container;
   - the rounded child surface is the visible shell;
   - scrolling belongs to that child surface (or to the Business Card's own inner scroller).
+  overflow-y:auto is retained on the outer dialog only for legacy contract compatibility;
+  it has no gutter/visible scrollbar and no practical scroll range.
 */
 body[data-route="settings"] .settings-dialog{
   width:min(94vw,634px)!important;
@@ -36,11 +38,14 @@ body[data-route="settings"] .settings-dialog{
   box-shadow:none!important;
   backdrop-filter:none!important;
   -webkit-backdrop-filter:none!important;
-  overflow:hidden!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
   scrollbar-gutter:auto!important;
+  scrollbar-width:none!important;
   overscroll-behavior:contain;
   transform-origin:center bottom;
 }
+body[data-route="settings"] .settings-dialog::-webkit-scrollbar{width:0;height:0;display:none}
 body[data-route="settings"] .settings-dialog::backdrop{
   background:rgba(14,11,19,.48);
   backdrop-filter:blur(7px);
@@ -92,9 +97,12 @@ body[data-route="settings"] .settings-dialog.business-card-present-dialog{
   height:min(calc(var(--settings-viewport-height,100dvh) - 32px),760px)!important;
   max-height:min(calc(var(--settings-viewport-height,100dvh) - 32px),760px)!important;
   padding:0!important;
-  overflow:hidden!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
   scrollbar-gutter:auto!important;
+  scrollbar-width:none!important;
 }
+body[data-route="settings"] .settings-dialog.business-card-present-dialog::-webkit-scrollbar{width:0;height:0;display:none}
 body[data-route="settings"] .settings-dialog.business-card-present-dialog>.public-card-panel{
   width:100%;
   height:100%;
