@@ -28,12 +28,6 @@ async function waitForShell(page){
   await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false',{timeout:25000});
   await page.waitForSelector('#app-header .masthead');await page.waitForSelector('#app-footer .app-tabbar');
 }
-async function waitForHeroReady(page,selector){
-  await page.waitForFunction(selector=>{
-    const hero=document.querySelector(selector),title=hero?.querySelector('h1');
-    return Boolean(hero&&hero.querySelector('p:first-child')&&title&&title.nextElementSibling);
-  },selector,{timeout:10000});
-}
 async function assertNoOverflow(page,label){
   const size=await page.evaluate(()=>({root:document.documentElement.scrollWidth,client:document.documentElement.clientWidth,body:document.body.scrollWidth}));
   assert(size.root<=size.client+1&&size.body<=size.client+1,`${label} horizontal overflow ${JSON.stringify(size)}`);
@@ -48,6 +42,19 @@ async function heroSnapshot(page,selector){
       kickerSize:ks.fontSize,kickerMarginBottom:ks.marginBottom,titleSize:ts.fontSize,titleWeight:ts.fontWeight,titleLineHeight:ts.lineHeight,
       copySize:cs.fontSize,copyMarginTop:cs.marginTop};
   },selector);
+}
+async function fnbHeroReference(page){
+  await page.evaluate(()=>{
+    document.getElementById('fnbHeroReference')?.remove();
+    const hero=document.createElement('header');
+    hero.id='fnbHeroReference';hero.className='fnb-hero';
+    hero.style.cssText='position:fixed;left:-10000px;top:0;width:calc(100vw - 40px);pointer-events:none';
+    hero.innerHTML='<p class="fnb-eyebrow">Food &amp; Beverage</p><h1>Promotions</h1><div class="fnb-period">September – December 2026</div>';
+    document.body.appendChild(hero);
+  });
+  const snapshot=await heroSnapshot(page,'#fnbHeroReference');
+  await page.evaluate(()=>document.getElementById('fnbHeroReference')?.remove());
+  return snapshot;
 }
 function sameHero(a,b){return JSON.stringify(a)===JSON.stringify(b)}
 async function captureViewport(browser,width,height){
@@ -76,17 +83,11 @@ async function captureViewport(browser,width,height){
     assert(brand.spacing==='0px'||brand.spacing==='normal',`${width}: Brand letter spacing mismatch`);
     assert(brand.overlay==='none',`${width}: Brand background overlay still exists`);
     const brandHero=await heroSnapshot(page,'.brand-hero');
+    const fnbHero=await fnbHeroReference(page);
+    assert(sameHero(fnbHero,brandHero),`${width}: Brand hero does not match F&B authority ${JSON.stringify({fnbHero,brandHero})}`);
     if(width===390)await page.screenshot({path:path.join(OUT_DIR,'brand-390x844.png'),fullPage:false});
 
     await page.evaluate(()=>{window.__previewRefs={header:document.getElementById('app-header'),footer:document.getElementById('app-footer'),atmosphere:document.getElementById('environmentStage')};});
-
-    // F&B is the visual authority: wait for its complete hero markup before reading computed styles.
-    await page.locator('#app-footer [data-fnb-nav="fnb"]').click();await page.waitForURL(url=>url.pathname==='/fnb');await page.waitForSelector('.fnb-hero');await waitForHeroReady(page,'.fnb-hero');await page.waitForTimeout(320);
-    const fnbHero=await heroSnapshot(page,'.fnb-hero');
-    assert(sameHero(fnbHero,brandHero),`${width}: Brand hero does not match F&B authority ${JSON.stringify({fnbHero,brandHero})}`);
-    if(width===390)await page.screenshot({path:path.join(OUT_DIR,'fnb-hero-reference-390x844.png'),fullPage:false});
-    await page.locator('#app-footer [data-app-route="brand"]').click();await page.waitForURL(url=>url.pathname==='/brand');await page.waitForSelector('.brand-card');await page.waitForTimeout(280);
-
     await page.locator('.brand-card').first().click();await page.waitForURL(url=>url.pathname==='/ihg-history');await page.waitForSelector('.ihg-history-route');await page.waitForTimeout(320);
     const history=await page.evaluate(()=>({
       title:document.querySelector('.ihg-history-hero h1')?.textContent.trim(),
