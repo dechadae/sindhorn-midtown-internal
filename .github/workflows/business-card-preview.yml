@@ -5,10 +5,13 @@ on:
     branches:
       - preview-digital-business-card
       - hotfix-business-card-*
+      - hotfix-settings-*
     paths:
       - "functions/**"
       - "site/business-card*"
       - "site/qr-v6.js"
+      - "site/settings.js"
+      - "site/settings-dialog-standard.*"
       - "site/settings-route-v3.js"
       - "site/route-registry.js"
       - "scripts/business-card-*"
@@ -46,32 +49,38 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --input-type=module --check < site/business-card-core.js
-          node --input-type=module --check < site/qr-v6.js
-          node --input-type=module --check < site/business-card-public.js
-          node --input-type=module --check < site/business-card-settings.js
-          node --input-type=module --check < site/settings-route-v3.js
-          node --input-type=module --check < site/route-registry.js
-          node --input-type=module --check < 'functions/[slug].js'
-          node --input-type=module --check < scripts/business-card-contract-test.mjs
-          node --input-type=module --check < scripts/business-card-browser-smoke.mjs
+          for file in \
+            site/business-card-core.js site/qr-v6.js site/business-card-renderer.js \
+            site/business-card-public.js site/business-card-settings.js site/settings-dialog-standard.js \
+            site/settings.js site/settings-route-v3.js site/route-registry.js 'functions/[slug].js' \
+            scripts/business-card-contract-test.mjs scripts/business-card-browser-smoke.mjs; do
+            node --input-type=module --check < "$file"
+          done
           node --experimental-default-type=module scripts/business-card-contract-test.mjs | tee /tmp/business-card-contract.json
-          grep -q 'Sindhorn Midtown Hotel Bangkok, Vignette Collection by IHG' site/business-card.html site/business-card-settings.js supabase/migrations/20260829195459_sindhorn_business_card_shortlink_v2.sql
-          grep -q 'sindhorn-midtown-vignette-white.png' site/business-card-public.js site/business-card-settings.js supabase/migrations/20260829195459_sindhorn_business_card_shortlink_v2.sql
+          grep -q 'Sindhorn Midtown Hotel Bangkok, Vignette Collection by IHG' site/business-card.html site/business-card-renderer.js supabase/migrations/20260829195459_sindhorn_business_card_shortlink_v2.sql
+          grep -q 'sindhorn-midtown-vignette-white.png' site/business-card-renderer.js supabase/migrations/20260829195459_sindhorn_business_card_shortlink_v2.sql
           grep -q 'business_card.read' site/business-card-settings.js supabase/migrations/20260829191503_sindhorn_digital_business_cards.sql
           grep -q 'business_card.manage_self' site/business-card-settings.js supabase/migrations/20260829191503_sindhorn_digital_business_cards.sql
-          grep -q 'settings-route-v3.js?v=9' site/route-registry.js
+          grep -q 'settings-route-v3.js?v=10' site/route-registry.js
+          grep -q 'settings.js?v=3' site/settings-route-v3.js
+          grep -q 'business-card-settings.js?v=9' site/settings-route-v3.js
+          grep -q 'settings-dialog-standard.css?v=1' site/settings-route-v3.js
+          grep -q 'business-card-component.css?v=1' site/settings-route-v3.js site/business-card.html
           grep -q 'preloadSettingsBusinessCard' site/settings-route-v3.js site/business-card-settings.js
           grep -q "root.style.visibility='hidden'" site/settings-route-v3.js
           ! grep -q 'business-card-settings-actions is-loading' site/business-card-settings.js
-          grep -q 'qrStyledSvg' site/qr-v6.js site/business-card-public.js
+          ! grep -q 'business-card-present-frame\|<iframe\|presentFrame.src' site/business-card-settings.js
+          grep -q 'renderBusinessCardMarkup' site/business-card-settings.js site/business-card-public.js site/business-card-renderer.js
+          grep -q 'qrStyledSvg' site/qr-v6.js site/business-card-renderer.js
+          grep -q 'openSettingsDialog' site/settings.js site/business-card-settings.js site/settings-dialog-standard.js
           grep -q 'visualViewport' site/settings-route-v3.js
           grep -q -- '--settings-scroll-clearance' site/settings-route-v3.js site/business-card-settings.css
+          grep -q 'overflow-y:auto!important' site/settings-dialog-standard.css
           grep -q 'destination_type' supabase/migrations/20260829195459_sindhorn_business_card_shortlink_v2.sql
           grep -q "business_card:" supabase/migrations/20260829195459_sindhorn_business_card_shortlink_v2.sql
           grep -q '\\.vcf' 'functions/[slug].js'
           grep -Fq "business_mobile_e164 ~ '^[+][1-9][0-9]{7,14}$'" supabase/migrations/20260829192257_sindhorn_business_card_e164_regex_fix.sql
-          ! grep -qiE 'personal_email|sindhorn_private_contacts|auth_user_id|employee_number' site/business-card.html site/business-card-public.js site/business-card-core.js 'functions/[slug].js'
+          ! grep -qiE 'personal_email|sindhorn_private_contacts|auth_user_id|employee_number' site/business-card.html site/business-card-public.js site/business-card-renderer.js site/business-card-core.js 'functions/[slug].js'
           npx --yes wrangler@4.125.0 pages functions build functions --outfile /tmp/business-card-functions.js >/tmp/functions-build.log
           test -s /tmp/business-card-functions.js
 
@@ -94,7 +103,7 @@ jobs:
           base="$(git merge-base origin/main HEAD)"
           test -n "$base"
           for file in \
-            site/settings.js site/settings.css site/settings-refinements.css site/capabilities.js site/auth-client.js \
+            site/settings.css site/settings-refinements.css site/capabilities.js site/auth-client.js \
             site/footer-route-guard.js site/footer-route-guard.css \
             site/fnb.js site/fnb.css site/fnb-data.js site/fnb-approved-polish.css \
             site/ihg-history.js site/ihg-history.css site/app.js site/bootstrap.js site/auth-shell.js \
@@ -102,6 +111,9 @@ jobs:
             site/seasonal-sky.js site/weather-authority.js site/sw.js; do
             git diff --exit-code "$base" HEAD -- "$file"
           done
+          git diff --unified=0 "$base" HEAD -- site/settings.js | grep -q 'settings-dialog-standard.js'
+          git diff --unified=0 "$base" HEAD -- site/settings.js | grep -q 'openSettingsDialog'
+          git diff --unified=0 "$base" HEAD -- site/settings.js | grep -q 'closeSettingsDialog'
 
       - name: Deploy Cloudflare branch preview
         env:
@@ -114,7 +126,7 @@ jobs:
         run: |
           set -euo pipefail
           sleep 8
-          for path in /dechak /settings /account /admin /fnb /ihg-history /messages /route-registry.js /business-card-public.js /business-card-settings.js /settings-route-v3.js /qr-v6.js /assets/brand/sindhorn-midtown-vignette-white.png; do
+          for path in /dechak /settings /account /admin /fnb /ihg-history /messages /route-registry.js /business-card-renderer.js /business-card-component.css /business-card-public.js /business-card-settings.js /settings-dialog-standard.js /settings-dialog-standard.css /settings-route-v3.js /qr-v6.js /assets/brand/sindhorn-midtown-vignette-white.png; do
             code="$(curl --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 -o /tmp/response -w '%{http_code}' "${PREVIEW_BASE_URL}${path}")"
             echo "route ${path} -> ${code} ($(wc -c </tmp/response) bytes)"
             test "$code" = '200'
@@ -126,6 +138,7 @@ jobs:
           grep -q 'Sindhorn Midtown Hotel Bangkok, Vignette Collection by IHG' /tmp/dechak.html
           grep -q 'sindhorn-midtown-vignette-white.png' /tmp/dechak.html
           grep -q 'businessCardBootstrap' /tmp/dechak.html
+          grep -q 'business-card-component.css?v=1' /tmp/dechak.html
           ! grep -qiE '10639|super_admin|developer|personal_email|auth_user_id|employee_id' /tmp/dechak.html
 
           curl --fail --silent --show-error -D /tmp/vcf-head "${PREVIEW_BASE_URL}/dechak.vcf" -o /tmp/dechak.vcf
@@ -154,10 +167,12 @@ jobs:
 
           curl --fail --silent --show-error "${PREVIEW_BASE_URL}/route-registry.js" -o /tmp/routes.js
           grep -q "path:'/settings'" /tmp/routes.js
-          grep -q 'settings-route-v3.js?v=9' /tmp/routes.js
+          grep -q 'settings-route-v3.js?v=10' /tmp/routes.js
           curl --fail --silent --show-error "${PREVIEW_BASE_URL}/settings-route-v3.js" -o /tmp/settings-route-v3.js
-          grep -q 'preloadSettingsBusinessCard' /tmp/settings-route-v3.js
-          grep -q "root.style.visibility='hidden'" /tmp/settings-route-v3.js
+          grep -q 'settings.js?v=3' /tmp/settings-route-v3.js
+          grep -q 'business-card-settings.js?v=9' /tmp/settings-route-v3.js
+          grep -q 'settings-dialog-standard.css?v=1' /tmp/settings-route-v3.js
+          grep -q 'business-card-component.css?v=1' /tmp/settings-route-v3.js
           curl --fail --silent --show-error "${PREVIEW_BASE_URL}/qr-v6.js" -o /tmp/qr-v6.js
           grep -q 'qrStyledSvg' /tmp/qr-v6.js
           echo 'raw route smoke passed'
