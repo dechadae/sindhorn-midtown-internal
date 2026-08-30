@@ -16,9 +16,10 @@
   --sm-footer-active-shadow:inset 0 0 0 1px rgba(229,236,190,.14),0 6px 18px rgba(10,8,14,.10);
 }
 
-/* Route-owned context rails remain behavior/source controllers only. They never paint. */
+/* Route-owned rails are behavior/source controllers only. They never paint. */
 #route-view .fnb-route > .fnb-section-rail,
-#route-view .settings-route > .settings-section-rail{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+#route-view .settings-route > .settings-section-rail,
+#route-view .factsheet-route > .factsheet-section-rail{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
 
 /* ONE shell footer component. Visible rails are siblings in #app-footer and share one compositing context. */
 #app-footer .shell-footer-rail{
@@ -32,7 +33,7 @@
 }
 #app-footer .app-tabbar{bottom:0!important;height:calc(var(--sm-footer-height) + env(safe-area-inset-bottom))!important;min-height:calc(var(--sm-footer-height) + env(safe-area-inset-bottom))!important;padding-bottom:calc(6px + env(safe-area-inset-bottom))!important}
 
-/* Exact clone of the main footer. Context rails change only to the approved Sorbet secondary palette. */
+/* Context rail: exact second-footer component, in the approved Sorbet secondary palette. */
 #app-footer .fnb-section-rail,
 #app-footer .settings-section-rail{
   --sm-footer-surface-rgb:229,236,190;
@@ -59,10 +60,21 @@
 #app-footer .shell-footer-rail .nav-chip[aria-current]{color:var(--sm-footer-active)!important;background:var(--sm-footer-active-bg)!important;box-shadow:var(--sm-footer-active-shadow)!important}
 #app-footer .message-badge{position:absolute!important;top:6px!important;right:20%!important}
 
-/* Reserve the fixed-footer stack so content scrolls fully clear. */
+/* Reserve only the footer stack that is actually visible. */
 body{padding-bottom:calc(62px + env(safe-area-inset-bottom))!important}
 body[data-route="fnb"][data-fnb-detail="true"] #route-view,
 body[data-route="settings"][data-settings-context="true"] #route-view{padding-bottom:calc((var(--sm-footer-height) * 2) + var(--sm-footer-gap) + 28px + env(safe-area-inset-bottom))!important}
+body[data-route="hotelFactsheet"] #route-view{padding-bottom:28px!important}
+
+/* Access/contact rows share one label column and one aligned value column. */
+body[data-route="hotelFactsheet"] .factsheet-contacts a{
+  grid-template-columns:88px minmax(0,1fr)!important;
+  gap:12px!important;
+  align-items:baseline!important;
+}
+body[data-route="hotelFactsheet"] .factsheet-contacts span{line-height:1.35!important}
+body[data-route="hotelFactsheet"] .factsheet-contacts b{line-height:1.45!important}
+body[data-route="hotelFactsheet"] [data-factsheet-section-target="access"]>.factsheet-inline-source{padding-left:100px!important}
 
 /* Shared premium control geometry + motion. */
 :root{--sm-control-radius:12px;--sm-motion-fast:160ms;--sm-motion-base:260ms;--sm-motion-ease:cubic-bezier(.22,1,.36,1)}
@@ -74,5 +86,10 @@ body[data-route="fnb"] .fnb-action{border-radius:14px!important}
 body[data-route="fnb"] .fnb-select select{border-radius:12px!important}
 body[data-route="fnb"] .fnb-link-field input{border-radius:12px!important}
 
-@media(max-width:360px){:root{--sm-footer-item-size:.65rem}#app-footer .shell-footer-rail .nav-chip{padding-inline:5px!important}}
+@media(max-width:360px){
+  :root{--sm-footer-item-size:.65rem}
+  #app-footer .shell-footer-rail .nav-chip{padding-inline:5px!important}
+  body[data-route="hotelFactsheet"] .factsheet-contacts a{grid-template-columns:84px minmax(0,1fr)!important;gap:10px!important}
+  body[data-route="hotelFactsheet"] [data-factsheet-section-target="access"]>.factsheet-inline-source{padding-left:94px!important}
+}
 @media(prefers-reduced-motion:reduce){.action,.message-clear,.message-open,.fullscreen-toggle,#app-footer .shell-footer-rail .nav-chip{transition:none!important}}

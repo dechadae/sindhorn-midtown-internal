@@ -1,5 +1,4 @@
-/* Shared routed-page hero standard. F&B is the visual authority.
-   The public F&B renderer reuses the same F&B hero CSS and is parity-tested against these tokens. */
+/* Shared routed-page hero and heading standard. F&B is the visual authority. */
 :root{
   --route-hero-pad-top:22px;
   --route-hero-pad-bottom:20px;
@@ -11,14 +10,16 @@
   --route-hero-accent:#E5ECBE;
 }
 
-/* One atmosphere: Settings and Brand History must not add their own page-wide dimmer. */
-.settings-route,.ihg-history-route{isolation:auto!important}
-.settings-route::before,.ihg-history-route::before{content:none!important;background:none!important}
+/* One atmosphere: routed pages do not paint a page-wide black/dark veil over WebGL. */
+.settings-route,.ihg-history-route,.brand-route,.factsheet-route{isolation:auto!important}
+.settings-route::before,.ihg-history-route::before,.brand-route::before,.factsheet-route::before{content:none!important;background:none!important}
 
 /* Common hero geometry. */
 .fnb-hero,
 .settings-hero,
 .ihg-history-hero,
+.brand-hero,
+.factsheet-hero,
 body[data-route="messages"] .route-hero{
   padding:var(--route-hero-pad-top) 0 var(--route-hero-pad-bottom)!important;
   border-bottom:1px solid var(--route-hero-line)!important;
@@ -27,6 +28,8 @@ body[data-route="messages"] .route-hero{
 .fnb-eyebrow,
 .settings-eyebrow,
 .ihg-history-eyebrow,
+.brand-eyebrow,
+.factsheet-eyebrow,
 body[data-route="messages"] .route-kicker{
   margin:0 0 12px!important;
   color:var(--route-hero-accent)!important;
@@ -42,6 +45,8 @@ body[data-route="messages"] .route-kicker::after{content:none!important;display:
 .fnb-hero h1,
 .settings-hero h1,
 .ihg-history-hero h1,
+.brand-hero h1,
+.factsheet-hero h1,
 body[data-route="messages"] .route-hero h1{
   max-width:100%!important;
   margin:0!important;
@@ -54,9 +59,19 @@ body[data-route="messages"] .route-hero h1{
   text-transform:none!important;
 }
 
+/* Brand-area titles use regular weight throughout; History's legacy sentence-case H1 is presented in Title Case. */
+.ihg-history-hero h1{text-transform:capitalize!important}
+.brand-card h2,
+.factsheet-section-head h2,
+.factsheet-card h3,
+.factsheet-room-card-copy strong,
+.factsheet-disclosure summary strong{font-weight:400!important}
+
 .fnb-period,
 .settings-name,
 .ihg-history-intro,
+.brand-intro,
+.factsheet-intro,
 body[data-route="messages"] .route-hero>p:last-child{
   max-width:34rem!important;
   margin:8px 0 0!important;
@@ -73,6 +88,4 @@ body[data-route="messages"] .route-hero>p:last-child{
 .settings-avatar{display:none!important}
 .settings-identity-row>div:last-child{min-width:0!important}
 
-@media(max-width:355px){
-  :root{--route-hero-title-size:30px}
-}
+@media(max-width:355px){:root{--route-hero-title-size:30px}}
