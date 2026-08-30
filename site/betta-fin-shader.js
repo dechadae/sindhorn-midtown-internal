@@ -219,14 +219,15 @@ void main(){
   vec3 base=palette(gradient);
 
   if(uMorphMode>.5&&uMorphMode<1.5){
-    vec3 koi=uColor1;
-    koi=mix(koi,uColor2,smoothstep(.3,.58,patchA));
-    koi=mix(koi,uColor3,smoothstep(.63,.84,patchA));
-    float darkPatch=smoothstep(.7,.9,patchB);
-    koi=mix(koi,vec3(.008,.008,.012),darkPatch*.78);
-    float galaxyCell=hash21(floor(vFinUv*vec2(34.0,56.0)+uSeed*5.0));
-    float galaxyMask=smoothstep(.965,1.0,galaxyCell)*(1.0-darkPatch);
-    koi=mix(koi,uColor0*1.35,galaxyMask*.86);
+    float warmField=clamp(patchA*.74+patchB*.26,0.0,1.0);
+    vec3 koi=mix(uColor1,uColor2,smoothstep(.3,.62,warmField));
+    koi=mix(koi,uColor3,smoothstep(.67,.86,warmField));
+    float darkField=valueNoise(vFinUv*vec2(5.7,8.6)+vec2(uSeed*.21,-uSeed*.11));
+    float darkPatch=smoothstep(.72,.9,darkField);
+    koi=mix(koi,vec3(.008,.008,.012),darkPatch*.7);
+    float galaxyField=valueNoise(vFinUv*vec2(44.0,67.0)+vec2(uSeed*1.7,uSeed*.83));
+    float galaxyMask=smoothstep(.81,.94,galaxyField)*(1.0-darkPatch)*(.55+.45*rayRidge);
+    koi=mix(koi,uColor0*1.45,galaxyMask*.7);
     base=koi;
   }else if(uMorphMode>1.5&&uMorphMode<2.5){
     float boundary=.59+(patchA-.5)*.2+(patchB-.5)*.08;
