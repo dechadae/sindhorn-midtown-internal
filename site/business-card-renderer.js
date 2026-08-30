@@ -43,30 +43,32 @@ export function renderBusinessCardMarkup(card,{origin=location.origin,closeMarku
   let qr='';try{qr=qrStyledSvg(url)}catch(_){qr='<span class="public-card-qr-error">QR unavailable</span>'}
   return`<section class="public-card-panel" aria-labelledby="publicCardName">
     ${closeMarkup}
-    <header class="public-card-head">
-      <p class="public-card-kicker">Digital business card</p>
-      <h1 id="publicCardName">${balancedNameHtml(card.displayName)}</h1>
-      ${card.positionTitle?`<p class="public-card-title">${esc(card.positionTitle)}</p>`:''}
-      <p class="public-card-hotel">${hotelNameHtml(hotelName)}</p>
-    </header>
-    <div class="public-card-qr" data-card-qr>${qr}</div>
-    <div class="public-card-logo-wrap"><img class="public-card-logo" src="${esc(logo)}" alt="${esc(hotelName)}"></div>
-    <div class="public-card-details">
-      ${detail('Work email',card.workEmail,email)}
-      ${detail('Business mobile',card.businessMobile,telHref(card.businessMobile))}
-      ${detail('Direct phone',card.directPhone,telHref(card.directPhone))}
-      ${detail('Hotel telephone',card.hotelMainPhone,telHref(card.hotelMainPhone))}
-      ${detailHtml('Hotel address',card.hotelAddress,hotelAddressHtml(card.hotelAddress))}
-      ${detail('Hotel website',card.hotelWebsite,card.hotelWebsite,websiteLabel(card.hotelWebsite))}
+    <div class="public-card-scroll" data-card-scroll>
+      <header class="public-card-head">
+        <p class="public-card-kicker">Digital business card</p>
+        <h1 id="publicCardName">${balancedNameHtml(card.displayName)}</h1>
+        ${card.positionTitle?`<p class="public-card-title">${esc(card.positionTitle)}</p>`:''}
+        <p class="public-card-hotel">${hotelNameHtml(hotelName)}</p>
+      </header>
+      <div class="public-card-qr" data-card-qr>${qr}</div>
+      <div class="public-card-logo-wrap"><img class="public-card-logo" src="${esc(logo)}" alt="${esc(hotelName)}"></div>
+      <div class="public-card-details">
+        ${detail('Work email',card.workEmail,email)}
+        ${detail('Business mobile',card.businessMobile,telHref(card.businessMobile))}
+        ${detail('Direct phone',card.directPhone,telHref(card.directPhone))}
+        ${detail('Hotel telephone',card.hotelMainPhone,telHref(card.hotelMainPhone))}
+        ${detailHtml('Hotel address',card.hotelAddress,hotelAddressHtml(card.hotelAddress))}
+        ${detail('Hotel website',card.hotelWebsite,card.hotelWebsite,websiteLabel(card.hotelWebsite))}
+      </div>
+      <div class="public-card-actions">
+        <a class="public-card-action" href="${esc(vcfUrl)}" data-add-contact>Add to contacts</a>
+        ${call?`<a class="public-card-action" href="${esc(call)}" data-call>Call</a>`:''}
+        ${email?`<a class="public-card-action" href="${esc(email)}" data-email>Email</a>`:''}
+        <button class="public-card-action" type="button" data-share-card>Share</button>
+      </div>
+      <p class="public-card-status" data-card-status role="status" aria-live="polite"></p>
+      <footer><span>Business card · </span><a href="${esc(url)}">${esc(card.slug)}</a></footer>
     </div>
-    <div class="public-card-actions">
-      <a class="public-card-action" href="${esc(vcfUrl)}" data-add-contact>Add to contacts</a>
-      ${call?`<a class="public-card-action" href="${esc(call)}" data-call>Call</a>`:''}
-      ${email?`<a class="public-card-action" href="${esc(email)}" data-email>Email</a>`:''}
-      <button class="public-card-action" type="button" data-share-card>Share</button>
-    </div>
-    <p class="public-card-status" data-card-status role="status" aria-live="polite"></p>
-    <footer><span>Business card · </span><a href="${esc(url)}">${esc(card.slug)}</a></footer>
   </section>`;
 }
 

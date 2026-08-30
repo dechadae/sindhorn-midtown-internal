@@ -1,7 +1,7 @@
 import {getAccessToken,supabaseRpc} from './auth-client.js';
 import {loadSettingsAuthority} from './capabilities.js';
 import {businessCardUrl} from './business-card-core.js';
-import {BUSINESS_CARD_HOTEL_NAME,businessCardSharePayload,normalizeSelfBusinessCard,renderBusinessCardMarkup} from './business-card-renderer.js?v=1';
+import {BUSINESS_CARD_HOTEL_NAME,businessCardSharePayload,normalizeSelfBusinessCard,renderBusinessCardMarkup} from './business-card-renderer.js?v=2';
 import {closeSettingsDialog,openSettingsDialog,standardCloseButton} from './settings-dialog-standard.js?v=1';
 
 function esc(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
