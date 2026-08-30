@@ -35,7 +35,7 @@ assert(dashboardCss.includes('font:400 14px/1.55 var(--font-ui)'),'font-authorit
 assert(dashboardCss.includes('letter-spacing:0!important'),'tracking','Dashboard enforces zero character tracking.');
 assert(!/border-radius\s*:\s*(?:50%|999px|9999px)/i.test(dashboardCss),'shape-language','Dashboard adds no circular or capsule UI chrome.');
 assert(dashboardCss.includes('content:none!important')&&dashboardCss.includes('background:none!important'),'atmosphere','Dashboard paints no route-wide veil over the persistent WebGL atmosphere.');
-assert(dashboardCss.includes('var(--app-control-glass')&&dashboardCss.includes('var(--app-control-border')&&dashboardCss.includes('var(--route-hero-accent'),'semantic-tokens','Glass, border and accent values alias central UI tokens.');
+assert(dashboardCss.includes('--bd-glass:rgba(46,39,59,.48)')&&dashboardCss.includes('var(--app-control-border')&&dashboardCss.includes('var(--route-hero-accent')&&dashboardCss.includes('var(--app-control-motion-base'),'semantic-tokens','Information surfaces match the CI material while border, accent and motion remain tied to central UI authorities.');
 assert(dashboardCss.includes('--fs-disclosure:420ms'),'disclosure-motion','Shared disclosure keeps the established 420ms rhythm.');
 assert(/@media\(prefers-reduced-motion:reduce\)/.test(dashboardCss),'reduced-motion','Dashboard suppresses transitions when reduced motion is requested.');
 assert(/@media\(min-width:700px\)/.test(dashboardCss)&&/@media\(max-width:359px\)/.test(dashboardCss),'responsive-contract','Dashboard includes explicit compact and wide responsive behavior for the 360/390/768 validation matrix.');
