@@ -23,9 +23,9 @@ try{
     await new Promise(resolve=>setTimeout(resolve,500));
     const manifest=await fetch('/manifest.webmanifest',{cache:'no-store'}).then(r=>r.json());
     const keys=await caches.keys();
-    const key=keys.find(value=>value.includes('pwa-v31-line-seed-sans-th-v33-business-dashboard-ci-r1'));
+    const key=keys.find(value=>value.includes('pwa-v34-betta-dashboard-r1'));
     const cache=key?await caches.open(key):null;
-    const expected=['/index.html','/route-registry.js','/business-dashboard.js','/business-dashboard-data.js','/business-dashboard.css','/hotel-factsheet.css','/app.js'];
+    const expected=['/index.html','/route-registry.js','/business-dashboard.js','/business-dashboard-data.js','/business-dashboard.css','/hotel-factsheet.css','/betta-environment.js','/betta-fin-presets.js','/betta-fin-shader.js','/betta-satellite.js','/rain-layer.js','/rain-layer-legacy-weather.js','/app.js'];
     const cached={};
     for(const path of expected)cached[path]=Boolean(cache&&await cache.match(path));
     return{scriptURL:registration.active?.scriptURL||'',controller:Boolean(navigator.serviceWorker.controller),manifest:{id:manifest.id,start_url:manifest.start_url,scope:manifest.scope,display:manifest.display},cacheKey:key||null,cached};
@@ -33,6 +33,6 @@ try{
   assert(result.scriptURL.endsWith('/sw.js'),`Unexpected service worker ${JSON.stringify(result)}`);
   assert(result.controller,`Page not controlled by active service worker ${JSON.stringify(result)}`);
   assert(result.manifest.id==='/'&&result.manifest.start_url==='/'&&result.manifest.scope==='/'&&result.manifest.display==='standalone',`PWA identity changed ${JSON.stringify(result.manifest)}`);
-  assert(result.cacheKey&&Object.values(result.cached).every(Boolean),`Dashboard shell not fully precached ${JSON.stringify(result)}`);
+  assert(result.cacheKey&&Object.values(result.cached).every(Boolean),`Dashboard/Betta shell not fully precached ${JSON.stringify(result)}`);
   console.log(JSON.stringify({ok:true,baseUrl:BASE_URL,result}));
 }finally{await context.close();await browser.close()}

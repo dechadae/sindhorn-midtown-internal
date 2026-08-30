@@ -3,10 +3,6 @@ import { chromium } from 'playwright';
 
 const base=process.env.PHASE82_BASE_URL;
 if(!base)throw new Error('PHASE82_BASE_URL required');
-// Every authenticated route redirects to /login.html when there is no session,
-// so the renderer cannot be reached at all without signing in first. These come
-// from the CI_SMOKE_* Actions secrets and belong to a dedicated non-admin
-// service employee (role "employee", account_type "service"), never a real person.
 const smokeEmployeeNumber=process.env.CI_SMOKE_EMPLOYEE_NUMBER;
 const smokePin=process.env.CI_SMOKE_PIN;
 if(!smokeEmployeeNumber||!smokePin)throw new Error('CI_SMOKE_EMPLOYEE_NUMBER and CI_SMOKE_PIN required');
@@ -49,43 +45,46 @@ async function sampleFrames(page,label,count=30,timeoutMs=15000){
   return{frameAverageMs:+avg.toFixed(2),frameP95Ms:+p95.toFixed(2),frameSamples:samples.length,timedOut:result.timedOut,label};
 }
 
-// Signs in through the real PIN form rather than injecting a session, so the
-// authenticated boot path itself stays covered by this gate.
-async function signIn(page){
+async function signIn(page,name){
   await page.goto(`${base}/login.html`,{waitUntil:'domcontentloaded',timeout:45000});
+  await page.waitForFunction(()=>Boolean(window.SindhornEmployeeAuth?.getState),null,{timeout:20000});
   await page.fill('#employeeNumber',smokeEmployeeNumber);
   for(let i=0;i<6;i++)await page.fill(`[data-pin-login-digit="${i}"]`,smokePin[i]);
-  await page.click('#pinLoginButton');
-  // waitUntil:'commit' only — the destination boots the full WebGL atmosphere,
-  // which can take longer than this timeout to fire the 'load' event that
-  // waitForURL waits for by default. The URL changing is all that's needed
-  // here; environment-ready is checked separately below.
-  await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:20000,waitUntil:'commit'});
+  /* CI_SMOKE_EMPLOYEE_NUMBER is a non-production synthetic identifier and may
+     intentionally not match the human-facing numeric Employee ID HTML pattern.
+     Dispatch the form submit event directly so this smoke exercises the same
+     login.js controller + Supabase RPC without weakening employee form rules. */
+  await page.evaluate(()=>document.querySelector('#employeeForm')?.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
+  try{
+    await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:45000,waitUntil:'commit'});
+  }catch(error){
+    const status=(await page.locator('#status').textContent().catch(()=>''))?.trim()||'';
+    const tone=await page.locator('#status').getAttribute('data-tone').catch(()=>null);
+    const signed=await page.locator('#signedCard').getAttribute('data-show').catch(()=>null);
+    await page.screenshot({path:`phase82-artifacts/${name}-login-failure.png`,fullPage:true}).catch(()=>{});
+    throw new Error(`${name}: CI service-employee sign-in did not reach the app${status?` · ${tone||'status'}: ${status}`:''}${signed==='true'?' · signed card was visible before redirect':''}`);
+  }
 }
 
-// Verifies the deployed production/preview candidate directly at "/", using
-// live astronomy/weather/AirBKK state rather than a forced sun angle. There is
-// no standalone atmosphere tester page anymore (removed 2026-08-28): all
-// release verification runs against the live route only.
 async function inspectLive(viewport,name){
-  // This is a renderer/frame-pacing gate, not a service-worker lifecycle gate.
-  // SW architecture and production shell assets are checked separately in the
-  // workflow. Blocking SW here prevents the intentional one-time PWA release
-  // refresh from destroying the WebGL evaluation context mid-measurement.
   const context=await browser.newContext({viewport,screen:viewport,serviceWorkers:'block'});
   const page=await context.newPage();
   page.on('pageerror',err=>errors.push(`${name}: ${err.message}`));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(`${name} console: ${msg.text()}`)});
-  await signIn(page);
-  // Stay on the page the sign-in redirect already landed on rather than
-  // navigating again: a second full navigation right after login intermittently
-  // bounces back to /login, seemingly a session-hydration race on reload.
+  await signIn(page,name);
   await page.waitForFunction(()=>document.body.classList.contains('environment-ready'),null,{timeout:30000});
+  await page.waitForFunction(()=>window.SindhornEnvironment?.getState?.().renderer==='sindhorn-betta-satellite-v1',null,{timeout:30000});
+  await page.waitForFunction(()=>window.SindhornEnvironment?.getState?.().betta?.satelliteStatus==='live',null,{timeout:60000});
   await page.waitForFunction(()=>{
     const state=window.SindhornLiveData?.getState?.();
     return state?.delivery==='live'&&Number.isFinite(Number(state?.air?.pm))&&Number.isFinite(Number(state?.air?.aqi));
   },null,{timeout:20000});
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(800);
+  const canvas=page.locator('#environmentCanvas');
+  const motionA=await canvas.screenshot();
+  await page.waitForTimeout(1200);
+  const motionB=await canvas.screenshot();
+  if(Buffer.compare(motionA,motionB)===0)throw new Error(`${name}: Betta canvas did not visibly change`);
   const state=await page.evaluate(()=>{
     const env=window.SindhornEnvironment?.getState?.()||{};
     const live=window.SindhornLiveData?.getState?.()||{};
@@ -97,13 +96,21 @@ async function inspectLive(viewport,name){
       canvasWidth:canvas?.width||0,canvasHeight:canvas?.height||0,
       dprX:canvas?.width?canvas.width/innerWidth:0,dprY:canvas?.height?canvas.height/innerHeight:0,
       antialias:attrs.antialias,preserveDrawingBuffer:attrs.preserveDrawingBuffer,
-      renderer:env.renderer||null,quality:env.quality||null,
+      renderer:env.renderer||null,quality:env.quality||null,inputMode:env.inputMode||null,
+      baseline:env.betta?.baseline||null,availableBaselines:env.betta?.availableBaselines||[],
+      satelliteStatus:env.betta?.satelliteStatus||null,satelliteSource:env.betta?.satelliteSource||null,
+      satelliteObservedAt:env.betta?.observedAt||null,satelliteMetrics:env.betta?.metrics||null,
       airDelivery:live.delivery||null,airStationId:String(live.air?.stationId||''),
       pm:Number(live.air?.pm),aqi:Number(live.air?.aqi)
     };
   });
   if(state.width!==viewport.width||state.height!==viewport.height)throw new Error(`${name}: viewport mismatch ${state.width}x${state.height}`);
-  if(state.renderer!=='bangkok-seasonal-clouds-v2')throw new Error(`${name}: renderer mismatch ${state.renderer}`);
+  if(state.renderer!=='sindhorn-betta-satellite-v1')throw new Error(`${name}: renderer mismatch ${state.renderer}`);
+  if(state.inputMode!=='satellite-only')throw new Error(`${name}: renderer is not satellite-only`);
+  if(state.baseline!=='royalBlueHalfmoon')throw new Error(`${name}: unexpected default Betta baseline ${state.baseline}`);
+  if(state.availableBaselines.length!==8)throw new Error(`${name}: expected eight Betta baselines, got ${state.availableBaselines.length}`);
+  if(state.satelliteStatus!=='live'||!String(state.satelliteSource).includes('Himawari-9'))throw new Error(`${name}: satellite feed not live`);
+  if(!state.satelliteMetrics||!Number.isFinite(Number(state.satelliteMetrics.energy)))throw new Error(`${name}: satellite metrics missing`);
   if(Math.abs(state.dprX-2)>.05||Math.abs(state.dprY-2)>.05)throw new Error(`${name}: DPR not fixed at 2: ${state.dprX}x${state.dprY}`);
   if(state.antialias!==false)throw new Error(`${name}: WebGL antialias should be false`);
   if(state.preserveDrawingBuffer!==false)throw new Error(`${name}: live preserveDrawingBuffer should be false`);
@@ -114,7 +121,7 @@ async function inspectLive(viewport,name){
   await page.screenshot({path:`phase82-artifacts/${name}.png`,fullPage:true});
   const pacing=await sampleFrames(page,name);
   await context.close();
-  return {...state,...pacing};
+  return {...state,motionChanged:true,...pacing};
 }
 
 let desktop=null,mobile=null,fatal=null;
@@ -123,14 +130,11 @@ try{
   mobile=await inspectLive({width:390,height:844},'app-mobile');
 }catch(error){fatal=error;errors.push(`fatal: ${error.message}`)}finally{
   await browser.close();
-  const metrics={benchmark:'CPU-only SwANGLE diagnostic; physical GPU acceptance remains separate',desktop,mobile,errors};
+  const metrics={benchmark:'CPU-only SwANGLE diagnostic; physical GPU acceptance remains separate',renderer:'sindhorn-betta-satellite-v1',realtimeVisualInput:'JMA Himawari-9 satellite only',desktop,mobile,errors};
   fs.writeFileSync('phase82-artifacts/metrics.json',JSON.stringify(metrics,null,2));console.log(JSON.stringify(metrics,null,2));
 }
 if(fatal)throw fatal;
 if(errors.length)throw new Error(errors.join('\n'));
-// CPU-only SwANGLE timing is evidence only. Release correctness requires each
-// viewport to produce at least one rAF sample in addition to the successful
-// WebGL context, DPR, shared-renderer and live-data checks above.
 for(const [name,m] of Object.entries({desktop,mobile})){
   if(!m||m.frameSamples<1)throw new Error(`${name}: renderer produced no diagnostic frames`);
 }

@@ -161,8 +161,8 @@ window.SindhornAppPack={shellVersion:SHELL_VERSION,mountRoute,refresh:refreshPac
 document.documentElement.dataset.shellLoading='true';
 const initial=(await readCachedPack())||(await fallbackPack());await applyPack(initial,{mount:true});
 const live=await import('./live-data.js');await live.initLiveData();
-const environment=await import('./environment.js');await environment.initEnvironment();
-/* initEnvironment schedules its first WebGL render on requestAnimationFrame.
+const environment=await import('./betta-environment.js');await environment.initEnvironment();
+/* The Betta environment schedules its first WebGL render on requestAnimationFrame.
    Keep the persistent shell hidden for two paint opportunities so the GPU
    canvas is already populated before the header/route/footer are released. */
 await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
