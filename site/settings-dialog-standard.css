@@ -1,4 +1,4 @@
-/* Canonical Settings modal treatment. Edit Employee is the visual authority. */
+/* Canonical Settings modal shell. Every Settings popup uses this exact structure. */
 .settings-close{
   width:36px;
   height:36px;
@@ -20,101 +20,86 @@
 .settings-close:focus:not(:focus-visible){outline:none;box-shadow:none}
 .settings-close:focus-visible{outline:2px solid var(--settings-accent,#E5ECBE);outline-offset:3px}
 
-/*
-  One popup model for Settings:
-  - the native <dialog> is an invisible motion/backdrop container;
-  - the rounded child surface is the visible shell;
-  - scrolling belongs to that child surface (or to the Business Card's own inner scroller).
-  overflow-y:auto is retained on the outer dialog only for legacy contract compatibility;
-  it has no gutter/visible scrollbar and no practical scroll range.
-*/
-body[data-route="settings"] .settings-dialog{
-  width:min(94vw,634px)!important;
-  max-height:min(88dvh,760px)!important;
+body[data-route="settings"] .settings-dialog.settings-modal-root{
+  width:min(calc(100vw - 32px),634px)!important;
+  max-width:634px!important;
+  max-height:none!important;
+  margin:auto!important;
   padding:0!important;
   border:0!important;
   border-radius:0!important;
+  outline:0!important;
   background:transparent!important;
   box-shadow:none!important;
   backdrop-filter:none!important;
   -webkit-backdrop-filter:none!important;
-  overflow-x:hidden!important;
-  overflow-y:auto!important;
-  scrollbar-gutter:auto!important;
+  overflow:visible!important;
   scrollbar-width:none!important;
-  overscroll-behavior:contain;
-  transform-origin:center bottom;
 }
-body[data-route="settings"] .settings-dialog::-webkit-scrollbar{width:0;height:0;display:none}
-body[data-route="settings"] .settings-dialog::backdrop{
+body[data-route="settings"] .settings-dialog.settings-modal-root::backdrop{
   background:rgba(14,11,19,.48);
   backdrop-filter:blur(7px);
   -webkit-backdrop-filter:blur(7px);
 }
-body[data-route="settings"] .settings-dialog>.settings-dialog-body,
-body[data-route="settings"] .settings-dialog>.public-card-panel{
-  width:100%;
+
+body[data-route="settings"] .settings-modal-surface{
+  width:100%!important;
+  max-width:100%!important;
+  max-height:min(calc(var(--settings-viewport-height,100dvh) - 32px),760px)!important;
   min-width:0;
-  border:1px solid rgba(250,247,245,.15);
-  border-radius:24px;
-  background:rgba(38,32,49,.92);
+  margin:0!important;
+  border:1px solid rgba(250,247,245,.15)!important;
+  border-radius:24px!important;
+  background:rgba(38,32,49,.92)!important;
   color:var(--sm-text);
-  box-shadow:0 28px 90px rgba(8,6,12,.42);
-  backdrop-filter:blur(28px) saturate(1.2);
-  -webkit-backdrop-filter:blur(28px) saturate(1.2);
+  box-shadow:0 28px 90px rgba(8,6,12,.42)!important;
+  backdrop-filter:blur(28px) saturate(1.2)!important;
+  -webkit-backdrop-filter:blur(28px) saturate(1.2)!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  box-sizing:border-box;
+  transform-origin:center bottom;
 }
 
-/* Edit Employee / Edit Card: fixed rounded shell, scrollbar inside the shell. */
-body[data-route="settings"] .settings-dialog>.settings-dialog-body{
-  max-height:min(88dvh,760px);
-  overflow-x:hidden;
-  overflow-y:auto;
+body[data-route="settings"] .settings-modal-surface>.settings-dialog-head{
+  flex:0 0 auto;
+  position:relative;
+  z-index:2;
+}
+body[data-route="settings"] .settings-modal-scroll{
+  min-height:0;
+  flex:1 1 auto;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
   overscroll-behavior:contain;
   scrollbar-gutter:stable;
   scrollbar-width:thin;
   scrollbar-color:rgba(250,247,245,.28) transparent;
+  -webkit-overflow-scrolling:touch;
 }
-body[data-route="settings"] .settings-dialog>.settings-dialog-body::-webkit-scrollbar{width:5px}
-body[data-route="settings"] .settings-dialog>.settings-dialog-body::-webkit-scrollbar-track{background:transparent}
-body[data-route="settings"] .settings-dialog>.settings-dialog-body::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(250,247,245,.28)}
+body[data-route="settings"] .settings-modal-scroll::-webkit-scrollbar{width:5px}
+body[data-route="settings"] .settings-modal-scroll::-webkit-scrollbar-track{background:transparent}
+body[data-route="settings"] .settings-modal-scroll::-webkit-scrollbar-thumb{border-radius:999px;background:rgba(250,247,245,.28)}
 
-@media(max-width:620px){
-  body[data-route="settings"] .settings-dialog{
-    width:calc(100vw - 16px)!important;
-    max-height:calc(var(--settings-viewport-height,100dvh) - 28px)!important;
-    padding:0!important;
-  }
-  body[data-route="settings"] .settings-dialog>.settings-dialog-body,
-  body[data-route="settings"] .settings-dialog>.public-card-panel{border-radius:22px}
-  body[data-route="settings"] .settings-dialog>.settings-dialog-body{
-    max-height:calc(var(--settings-viewport-height,100dvh) - 28px);
-  }
-}
-
-/* Present QR: same fixed-shell model; only .public-card-scroll has real overflow. */
-body[data-route="settings"] .settings-dialog.business-card-present-dialog{
-  width:min(calc(100vw - 32px),520px)!important;
+/* The business-card renderer owns its visual content, but not modal geometry. */
+body[data-route="settings"] .settings-modal-surface.public-card-panel{
+  width:100%!important;
   height:min(calc(var(--settings-viewport-height,100dvh) - 32px),760px)!important;
   max-height:min(calc(var(--settings-viewport-height,100dvh) - 32px),760px)!important;
-  padding:0!important;
-  overflow-x:hidden!important;
-  overflow-y:auto!important;
-  scrollbar-gutter:auto!important;
-  scrollbar-width:none!important;
 }
-body[data-route="settings"] .settings-dialog.business-card-present-dialog::-webkit-scrollbar{width:0;height:0;display:none}
-body[data-route="settings"] .settings-dialog.business-card-present-dialog>.public-card-panel{
-  width:100%;
-  height:100%;
-  max-height:100%;
-  border-radius:24px;
-}
+
 @media(max-width:620px){
-  body[data-route="settings"] .settings-dialog.business-card-present-dialog{
+  body[data-route="settings"] .settings-dialog.settings-modal-root{
     width:calc(100vw - 32px)!important;
+    max-width:calc(100vw - 32px)!important;
+  }
+  body[data-route="settings"] .settings-modal-surface{
+    max-height:calc(var(--settings-viewport-height,100dvh) - 32px)!important;
+    border-radius:22px!important;
+  }
+  body[data-route="settings"] .settings-modal-surface.public-card-panel{
     height:calc(var(--settings-viewport-height,100dvh) - 32px)!important;
     max-height:calc(var(--settings-viewport-height,100dvh) - 32px)!important;
-    padding:0!important;
   }
-  body[data-route="settings"] .settings-dialog.business-card-present-dialog>.public-card-panel{border-radius:22px}
 }
