@@ -4,11 +4,17 @@ on:
   push:
     branches: [daily-business-dashboard-preview]
     paths:
+      - "site/index.html"
+      - "site/app.js"
+      - "site/sw.js"
       - "site/business-dashboard.js"
       - "site/business-dashboard-data.js"
       - "site/business-dashboard.css"
       - "site/route-registry.js"
+      - "site/ui-system-registry.js"
+      - "supabase/migrations/*daily_business_dashboard*.sql"
       - "scripts/business-dashboard-browser-smoke.mjs"
+      - "scripts/business-dashboard-pwa-smoke.mjs"
       - ".github/workflows/business-dashboard-preview.yml"
   workflow_dispatch:
 
@@ -28,16 +34,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate route and module syntax
+      - name: Validate route, shell and module syntax
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard.js scripts/business-dashboard-browser-smoke.mjs; do
+          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard.js site/app.js site/sw.js scripts/business-dashboard-browser-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
           grep -q "today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local'" site/route-registry.js
           grep -q "sindhorn_business_dashboard_read_model" site/business-dashboard-data.js
           grep -q "business-dashboard-route" site/business-dashboard.js site/business-dashboard.css
+          grep -q "SindhornBusinessDashboard.*refresh" site/app.js
+          grep -q "business-dashboard.js" site/sw.js
+          grep -q "pwa-v32-business-dashboard-r1" site/sw.js
+          grep -q "<title>Today | Sindhorn Midtown Internal</title>" site/index.html
           if grep -Eqi 'border-radius:[[:space:]]*(50%|999px|9999px)' site/business-dashboard.css; then
             echo 'Circular/capsule dashboard UI is not allowed'; exit 1
           fi
@@ -66,12 +76,14 @@ jobs:
           set -euo pipefail
           BASE_URL="https://daily-business-dashboard-pre.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css; do
+          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /app.js /sw.js /manifest.webmanifest; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
           curl --fail --silent --show-error "${BASE_URL}/route-registry.js" -o /tmp/routes.js
           grep -q "kind:'local',module:'./business-dashboard.js?v=1'" /tmp/routes.js
+          curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/sw.js
+          grep -q "business-dashboard-data.js" /tmp/sw.js
 
       - name: Mobile dashboard browser smoke
         shell: bash
