@@ -1,0 +1,110 @@
+name: Betta Production Integration
+
+on:
+  push:
+    branches:
+      - betta-production-integration
+    paths:
+      - "site/**"
+      - "docs/BETTA-PRODUCTION-ATMOSPHERE-20260831.md"
+      - ".github/workflows/betta-production-integration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: betta-production-integration
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy-profile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate production Betta contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in site/bootstrap.js site/betta-environment.js site/betta-fin-presets.js site/betta-fin-shader.js site/betta-satellite.js site/_worker.js site/rain-layer.js site/rain-layer-legacy-weather.js site/environment.js site/phase8-2-browser-smoke.mjs; do
+            node --input-type=module --check < "$file"
+          done
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+          root=Path('site')
+          bootstrap=(root/'bootstrap.js').read_text()
+          active=(root/'betta-environment.js').read_text()
+          presets=(root/'betta-fin-presets.js').read_text()
+          legacy=(root/'environment.js').read_text()
+          rain=(root/'rain-layer.js').read_text()
+          rain_legacy=(root/'rain-layer-legacy-weather.js').read_text()
+          worker=(root/'_worker.js').read_text()
+          routes=json.loads((root/'_routes.json').read_text())
+          assert "await import('./betta-environment.js')" in bootstrap
+          assert "await import('./environment.js')" not in bootstrap
+          assert "renderer:'sindhorn-betta-satellite-v1'" in active
+          assert "inputMode:'satellite-only'" in active
+          assert 'const DPR=2' in active and 'antialias:false' in active and 'preserveDrawingBuffer:false' in active
+          assert "DEFAULT_PRESET='royalBlueHalfmoon'" in presets
+          assert presets.count("number:'0")==8
+          for name in ('Royal Blue Halfmoon','Super Red Halfmoon','Mustard Gas','Black Orchid','Copper Metallic','Turquoise Metallic','Nemo Galaxy Koi','Red Snow Dragon'):
+              assert name in presets,name
+          assert "renderer:'bangkok-seasonal-clouds-v2'" in legacy
+          assert rain_legacy==Path('site/rain-layer-legacy-weather.js').read_text()
+          assert 'compatibility no-op' in rain and 'rain-layer-legacy-weather.js' in rain
+          assert 'www.data.jma.go.jp/mscweb/data/himawari' in worker
+          assert any('/api/betta-satellite' in item for item in routes.get('include',[]))
+          for forbidden in ('open-meteo','api.met.no','airbkk','deviceorientation','geolocation'):
+              assert forbidden not in (root/'betta-satellite.js').read_text().lower(),forbidden
+          PY
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=betta-production-integration
+
+      - name: Smoke preview and live satellite endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://betta-production-integratio.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /bootstrap.js /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /environment.js /rain-layer.js /rain-layer-legacy-weather.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
+            test -s /tmp/smoke
+          done
+          curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/api/betta-satellite?kind=latest" -o /tmp/satellite.json
+          python3 - <<'PY'
+          import json
+          data=json.load(open('/tmp/satellite.json'))
+          assert data.get('ok') is True,data
+          assert data.get('satellite')=='Himawari-9',data
+          assert data.get('provider')=='JMA',data
+          assert data.get('sector')=='High-Resolution Asia 1',data
+          PY
+
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Validate authenticated shell rendering
+        env:
+          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
+          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
+          PHASE82_BASE_URL: https://betta-production-integratio.sindhorn-midtown-internal.pages.dev
+        run: node site/phase8-2-browser-smoke.mjs
+
+      - name: Upload production visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: betta-production-integration-evidence
+          path: phase82-artifacts
+          if-no-files-found: warn
+          retention-days: 14
