@@ -19,22 +19,26 @@ try{
   await page.locator('#publicCardName').waitFor({state:'visible'});
 
   const name=(await page.locator('#publicCardName').textContent())?.trim();
-  const hotel=(await page.locator('.public-card-hotel').textContent())?.trim();
+  const hotel=(await page.locator('.public-card-hotel').innerText()).replace(/\s+/g,' ').trim();
+  const hotelHtml=await page.locator('.public-card-hotel').innerHTML();
   const title=(await page.locator('.public-card-title').textContent())?.trim();
   if(name!=='DECHA KOKAEW')throw new Error(`Name mismatch: ${name}`);
   if(title!=='Senior Graphic Designer')throw new Error(`Title mismatch: ${title}`);
   if(hotel!==HOTEL)throw new Error(`Hotel mismatch: ${hotel}`);
-  report.checks.identity={name,title,hotel};
+  if(!hotelHtml.includes('<br>'))throw new Error(`Hotel name line break missing: ${hotelHtml}`);
+  report.checks.identity={name,title,hotel,lineBreakAfterComma:true};
 
-  const logo=page.locator('.public-card-logo');
+  const logo=page.locator('.public-card-qr-logo img');
   await logo.waitFor({state:'visible'});
-  const logoState=await logo.evaluate(img=>({src:img.getAttribute('src'),width:img.naturalWidth,height:img.naturalHeight}));
-  if(!logoState.src?.includes('sindhorn-midtown-vignette-white.png')||logoState.width<1||logoState.height<1)throw new Error(`Hotel logo failed: ${JSON.stringify(logoState)}`);
+  const logoState=await logo.evaluate(img=>({src:img.getAttribute('src'),width:img.naturalWidth,height:img.naturalHeight,renderedWidth:img.getBoundingClientRect().width}));
+  if(!logoState.src?.includes('sindhorn-midtown-vignette-black.png')||logoState.width<1||logoState.height<1||logoState.renderedWidth<1)throw new Error(`Centered QR logo failed: ${JSON.stringify(logoState)}`);
   report.checks.logo=logoState;
 
   const qr=page.locator('[data-card-qr] svg');
   await qr.waitFor({state:'visible'});
-  report.checks.qr=true;
+  const qrState=await page.locator('[data-card-qr]').evaluate(node=>{const rect=node.getBoundingClientRect();return{width:rect.width,height:rect.height}});
+  if(qrState.width>313||Math.abs(qrState.width-qrState.height)>1)throw new Error(`QR geometry mismatch: ${JSON.stringify(qrState)}`);
+  report.checks.qr=qrState;
 
   const centeredSelectors=['.public-card-kicker','#publicCardName','.public-card-title','.public-card-hotel','.public-card-detail span','.public-card-detail b'];
   const centered={};
@@ -48,13 +52,19 @@ try{
   }
   report.checks.centered=centered;
 
+  const website=page.locator('.public-card-detail').filter({hasText:'Hotel website'}).locator('a');
+  if((await website.textContent())?.trim()!=='ihg.com')throw new Error(`Hotel website label is not short: ${(await website.textContent())?.trim()}`);
+  const websiteHref=await website.getAttribute('href');
+  if(!websiteHref?.startsWith('https://www.ihg.com/'))throw new Error(`Hotel website href changed: ${websiteHref}`);
+  const cardLink=page.locator('.public-card-panel footer a');
+  if((await cardLink.textContent())?.trim()!=='dechak')throw new Error('Business card footer link is not short');
+  if((await cardLink.getAttribute('href'))!==`${base}/dechak`)throw new Error(`Business card footer href mismatch: ${await cardLink.getAttribute('href')}`);
+  report.checks.shortLinks={hotel:'ihg.com',businessCard:'dechak'};
+
   const actions=page.locator('.public-card-actions .public-card-action');
   const actionText=(await actions.allTextContents()).map(value=>value.trim());
   for(const expected of ['Add to contacts','Call','Email','Share'])if(!actionText.some(value=>value.toLowerCase()===expected.toLowerCase()))throw new Error(`Missing ${expected} action`);
-  const styles=await actions.evaluateAll(nodes=>nodes.map(node=>{
-    const style=getComputedStyle(node);
-    return {backgroundColor:style.backgroundColor,borderColor:style.borderColor,borderRadius:style.borderRadius,color:style.color,fontSize:style.fontSize,minHeight:style.minHeight};
-  }));
+  const styles=await actions.evaluateAll(nodes=>nodes.map(node=>{const style=getComputedStyle(node);return{backgroundColor:style.backgroundColor,borderColor:style.borderColor,borderRadius:style.borderRadius,color:style.color,fontSize:style.fontSize,minHeight:style.minHeight}}));
   const styleSignature=JSON.stringify(styles[0]);
   if(styles.some(style=>JSON.stringify(style)!==styleSignature))throw new Error(`Public action styles diverged: ${JSON.stringify(styles)}`);
   report.checks.actions={labels:actionText,uniformStyle:styles[0]};
