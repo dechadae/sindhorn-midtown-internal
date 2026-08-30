@@ -1,0 +1,79 @@
+/* Canonical app control standard.
+   Back/navigation controls use one rounded-square geometry across authenticated routes.
+   Route-specific styles may define layout context, but not the control shape. */
+:root{
+  --app-back-size:36px;
+  --app-back-radius:12px;
+  --app-control-border:rgba(250,247,245,.14);
+  --app-control-glass:rgba(46,39,59,.55);
+  --app-control-muted:rgba(250,247,245,.55);
+  --app-control-accent:#E5ECBE;
+  --app-control-motion-fast:160ms;
+  --app-control-motion-base:260ms;
+  --app-control-motion-ease:cubic-bezier(.22,1,.36,1);
+}
+
+/* F&B, Brand History and Hotel Factsheet all consume this same back-control recipe. */
+.fnb-back,
+.app-back-control{
+  width:var(--app-back-size)!important;
+  height:var(--app-back-size)!important;
+  min-width:var(--app-back-size)!important;
+  min-height:var(--app-back-size)!important;
+  margin:0 0 16px!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  box-sizing:border-box!important;
+  border:1px solid var(--app-control-border)!important;
+  border-radius:var(--app-back-radius)!important;
+  background:var(--app-control-glass)!important;
+  color:var(--sm-text)!important;
+  text-decoration:none!important;
+  cursor:pointer;
+  transition:background var(--app-control-motion-base) ease,border-color var(--app-control-motion-base) ease,color var(--app-control-motion-base) ease,box-shadow var(--app-control-motion-base) var(--app-control-motion-ease),transform var(--app-control-motion-fast) var(--app-control-motion-ease),opacity var(--app-control-motion-fast) ease!important;
+}
+.fnb-back svg,
+.app-back-control svg{
+  width:16px!important;
+  height:16px!important;
+  fill:none!important;
+  stroke:currentColor!important;
+  stroke-width:1.8!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+}
+.fnb-back:active,
+.app-back-control:active{transform:scale(.975)!important;opacity:.84!important}
+.fnb-back:focus-visible,
+.app-back-control:focus-visible{outline:2px solid var(--app-control-accent);outline-offset:2px;box-shadow:0 0 0 4px rgba(229,236,190,.08)}
+
+/* Shared quiet text action used for the Brand child "Back to top" control. */
+.app-end-actions{display:flex;align-items:center;justify-content:flex-end;padding:14px 0 4px}
+.app-quiet-action{
+  height:36px!important;
+  min-height:36px!important;
+  padding:0 8px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  box-sizing:border-box!important;
+  border:1px solid transparent!important;
+  border-radius:11px!important;
+  background:transparent!important;
+  color:var(--app-control-muted)!important;
+  font-family:var(--font-ui)!important;
+  font-size:12px!important;
+  font-weight:400!important;
+  line-height:1!important;
+  letter-spacing:0!important;
+  text-transform:none!important;
+  cursor:pointer;
+  transition:background var(--app-control-motion-base) ease,border-color var(--app-control-motion-base) ease,color var(--app-control-motion-base) ease,box-shadow var(--app-control-motion-base) var(--app-control-motion-ease),transform var(--app-control-motion-fast) var(--app-control-motion-ease),opacity var(--app-control-motion-fast) ease!important;
+}
+.app-quiet-action svg{width:15px!important;height:15px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.7!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+.app-quiet-action:active{transform:scale(.975)!important;opacity:.82!important}
+.app-quiet-action:focus-visible{outline:2px solid var(--app-control-accent);outline-offset:2px;border-color:var(--app-control-border)!important;box-shadow:0 0 0 4px rgba(229,236,190,.08)}
+
+@media(prefers-reduced-motion:reduce){.fnb-back,.app-back-control,.app-quiet-action{transition:none!important}}
