@@ -9,6 +9,7 @@ on:
       - "site/_redirects"
       - "site/footer-route-guard.js"
       - "site/route-hero-standard.css"
+      - "site/app-shapes.css"
       - "site/settings-route-v3.js"
       - "site/settings-system-library.js"
       - "site/settings-system-library.css"
@@ -19,6 +20,7 @@ on:
       - "scripts/ci-library-contract-test.mjs"
       - "scripts/ci-library-browser-smoke.mjs"
       - "scripts/ci-library-visual-smoke.mjs"
+      - "scripts/ui-shape-browser-smoke.mjs"
       - "docs/SETTINGS-FIXED-RAIL-AND-DEVELOPER-CI-OVERRIDE-20260830.md"
       - ".github/workflows/ci-library-preview.yml"
   workflow_dispatch:
@@ -46,23 +48,28 @@ jobs:
           for file in \
             site/route-registry.js site/footer-route-guard.js site/settings-route-v3.js \
             site/settings-system-library.js site/ui-system-registry.js site/ci.js \
-            scripts/ci-library-contract-test.mjs scripts/ci-library-browser-smoke.mjs scripts/ci-library-visual-smoke.mjs; do
+            scripts/ci-library-contract-test.mjs scripts/ci-library-browser-smoke.mjs scripts/ci-library-visual-smoke.mjs scripts/ui-shape-browser-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
           node scripts/ci-library-contract-test.mjs
           grep -q 'LINE Seed Sans TH' site/fonts.css
           grep -q '.app-route-hero' site/route-hero-standard.css
+          grep -q -- '--app-radius-avatar:12px' site/app-shapes.css
+          grep -q -- '--app-radius-chip:9px' site/app-shapes.css
           grep -q "developer.ui_library" site/settings-system-library.js site/ui-system-registry.js
           python - <<'PY'
           from pathlib import Path
           files = [
               'site/ci.js','site/ci.css','site/ci-specimen-fixes.css','site/ui-system-registry.js',
-              'site/settings-system-library.js','site/settings-system-library.css'
+              'site/settings-system-library.js','site/settings-system-library.css','site/app-shapes.css'
           ]
           for name in files:
               text = Path(name).read_text(encoding='utf-8')
               if any('\u0e00' <= ch <= '\u0e7f' for ch in text):
                   raise SystemExit(f'Thai UI chrome detected in {name}')
+          shape = Path('site/app-shapes.css').read_text(encoding='utf-8').lower().replace(' ', '')
+          if 'border-radius:50%' in shape or 'border-radius:999px' in shape or 'border-radius:9999px' in shape:
+              raise SystemExit('central shape authority contains a circular/capsule radius')
           PY
 
       - name: Verify unrelated protected systems unchanged
@@ -100,7 +107,7 @@ jobs:
           sleep 8
           for path in \
             /ci /settings \
-            /ci.js /ci.css /ci-specimen-fixes.css /ui-system-registry.js /settings-system-library.js /settings-system-library.css \
+            /ci.js /ci.css /ci-specimen-fixes.css /app-shapes.css /ui-system-registry.js /settings-system-library.js /settings-system-library.css \
             /route-registry.js /route-hero-standard.css /footer-route-guard.js /settings-route-v3.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
@@ -112,7 +119,7 @@ jobs:
           grep -q "developer.ui_library" /tmp/registry.js
           grep -q "UI_SYSTEM_SECTIONS" /tmp/registry.js
 
-      - name: Developer and employee mobile browser smoke
+      - name: Developer, employee and shape mobile browser smoke
         shell: bash
         env:
           BASE_URL: https://${{ github.ref_name }}.sindhorn-midtown-internal.pages.dev
@@ -123,6 +130,7 @@ jobs:
           npx playwright install chromium >/dev/null 2>&1
           node scripts/ci-library-browser-smoke.mjs | tee /tmp/ci-library-browser-report.json
           node scripts/ci-library-visual-smoke.mjs | tee /tmp/ci-library-visual-report.json
+          node scripts/ui-shape-browser-smoke.mjs | tee /tmp/ui-shape-browser-report.json
 
       - name: Upload screenshots and report
         if: always()
@@ -133,5 +141,6 @@ jobs:
             /tmp/ci-library-preview
             /tmp/ci-library-browser-report.json
             /tmp/ci-library-visual-report.json
+            /tmp/ui-shape-browser-report.json
           if-no-files-found: warn
           retention-days: 14
