@@ -27,11 +27,18 @@ async function createHarness(browser,width,height,manifest){
 async function waitForShell(page){await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false',{timeout:25000});await page.waitForSelector('#app-header .masthead');await page.waitForSelector('#app-footer .app-tabbar')}
 async function noOverflow(page,label){const size=await page.evaluate(()=>({root:document.documentElement.scrollWidth,client:document.documentElement.clientWidth,body:document.body.scrollWidth}));assert(size.root<=size.client+1&&size.body<=size.client+1,`${label} horizontal overflow ${JSON.stringify(size)}`)}
 async function footerState(page){return page.evaluate(()=>({main:[...document.querySelectorAll('#app-footer .app-tabbar .nav-chip span')].map(node=>node.textContent.trim()),settings:[...document.querySelectorAll('#app-footer [data-shell-context="settings"] .nav-chip span')].map(node=>node.textContent.trim()),settingsCurrent:document.querySelector('#app-footer [data-settings-section-nav][aria-current]')?.dataset.settingsSectionNav||null,mainCurrent:document.querySelector('#app-footer .app-tabbar .nav-chip[aria-current]')?.textContent.trim()||null}))}
+async function waitForSettingsRail(page){
+  await page.waitForFunction(()=>{
+    const labels=[...document.querySelectorAll('#app-footer [data-shell-context="settings"] .nav-chip span')].map(node=>node.textContent.trim());
+    const current=document.querySelector('#app-footer [data-settings-section-nav][aria-current]')?.dataset.settingsSectionNav||null;
+    return labels.join('|')==='Account|People|Comms|System'&&current==='system';
+  },{timeout:25000});
+}
 
 async function developerViewport(browser,width,height){
   const {context,page,errors}=await createHarness(browser,width,height,developerManifest);
   try{
-    await page.goto(`${BASE_URL}/settings?section=system`,{waitUntil:'domcontentloaded'});await waitForShell(page);await page.waitForSelector('.settings-route');await page.waitForSelector('[data-system-ui-library]');await page.waitForTimeout(250);
+    await page.goto(`${BASE_URL}/settings?section=system`,{waitUntil:'domcontentloaded'});await waitForShell(page);await page.waitForSelector('.settings-route');await page.waitForSelector('[data-system-ui-library]');await waitForSettingsRail(page);
     const settingsFooter=await footerState(page);assert(settingsFooter.main.join('|')==='Today|F&B|Messages|Brand',`${width}: main footer mismatch ${JSON.stringify(settingsFooter)}`);assert(settingsFooter.settings.join('|')==='Account|People|Comms|System',`${width}: fixed Settings rail mismatch ${JSON.stringify(settingsFooter)}`);assert(settingsFooter.settingsCurrent==='system',`${width}: System not current`);
     await noOverflow(page,`Developer Settings ${width}`);
     await page.evaluate(()=>{window.__ciShellRefs={header:document.getElementById('app-header'),footer:document.getElementById('app-footer'),atmosphere:document.getElementById('environmentStage')};});
@@ -53,7 +60,7 @@ async function developerViewport(browser,width,height){
       await page.locator('#ci-blueprint').scrollIntoViewIfNeeded();await page.waitForTimeout(120);await page.screenshot({path:path.join(OUT_DIR,'ci-blueprint-390x844.png'),fullPage:false});
     }
 
-    await page.locator('[data-ci-back]').click();await page.waitForURL(url=>url.pathname==='/settings'&&url.searchParams.get('section')==='system');await page.waitForSelector('.settings-route');await page.waitForSelector('[data-system-ui-library]');await page.waitForTimeout(220);
+    await page.locator('[data-ci-back]').click();await page.waitForURL(url=>url.pathname==='/settings'&&url.searchParams.get('section')==='system');await page.waitForSelector('.settings-route');await page.waitForSelector('[data-system-ui-library]');await waitForSettingsRail(page);
     const returned=await page.evaluate(()=>({stable:window.__ciShellRefs.header===document.getElementById('app-header')&&window.__ciShellRefs.footer===document.getElementById('app-footer')&&window.__ciShellRefs.atmosphere===document.getElementById('environmentStage'),rail:[...document.querySelectorAll('#app-footer [data-shell-context="settings"] .nav-chip span')].map(node=>node.textContent.trim()),current:document.querySelector('#app-footer [data-settings-section-nav][aria-current]')?.dataset.settingsSectionNav||null}));assert(returned.stable&&returned.rail.join('|')==='Account|People|Comms|System'&&returned.current==='system',`${width}: CI back did not preserve shell/System ${JSON.stringify(returned)}`);
 
     const relevant=errors.filter(error=>/ci|settings|route|footer|dialog/i.test(error.url||'')||/ci|settings|route|footer|dialog/i.test(error.text||''));assert(relevant.length===0,`${width}: browser error ${JSON.stringify(relevant[0])}`);
@@ -64,12 +71,12 @@ async function developerViewport(browser,width,height){
 async function employeeGate(browser){
   const {context,page,errors}=await createHarness(browser,390,844,employeeManifest);
   try{
-    await page.goto(`${BASE_URL}/settings?section=system`,{waitUntil:'domcontentloaded'});await waitForShell(page);await page.waitForSelector('.settings-route');await page.waitForTimeout(250);
+    await page.goto(`${BASE_URL}/settings?section=system`,{waitUntil:'domcontentloaded'});await waitForShell(page);await page.waitForSelector('.settings-route');await waitForSettingsRail(page);
     const settings=await page.evaluate(()=>({rail:[...document.querySelectorAll('#app-footer [data-shell-context="settings"] .nav-chip span')].map(node=>node.textContent.trim()),current:document.querySelector('#app-footer [data-settings-section-nav][aria-current]')?.dataset.settingsSectionNav||null,panelChildren:document.querySelector('[data-settings-panel]')?.children.length||0,library:document.querySelectorAll('[data-system-ui-library]').length}));assert(settings.rail.join('|')==='Account|People|Comms|System'&&settings.current==='system',`Employee fixed rail mismatch ${JSON.stringify(settings)}`);assert(settings.panelChildren===0&&settings.library===0,`Unauthorized System must be blank ${JSON.stringify(settings)}`);
     await page.locator('#app-footer [data-settings-section-nav="account"]').click();await page.waitForSelector('.settings-account-section');
     const accountRestored=await page.locator('.settings-account-section').count();assert(accountRestored===1,'Account did not restore after blank System');
 
-    await page.goto(`${BASE_URL}/ci`,{waitUntil:'domcontentloaded'});await waitForShell(page);await page.waitForURL(url=>url.pathname==='/settings'&&url.searchParams.get('section')==='system',{timeout:25000});await page.waitForSelector('.settings-route');await page.waitForTimeout(240);
+    await page.goto(`${BASE_URL}/ci`,{waitUntil:'domcontentloaded'});await waitForShell(page);await page.waitForURL(url=>url.pathname==='/settings'&&url.searchParams.get('section')==='system',{timeout:25000});await page.waitForSelector('.settings-route');await waitForSettingsRail(page);
     const direct=await page.evaluate(()=>({ci:document.querySelectorAll('.ci-route').length,library:document.querySelectorAll('[data-system-ui-library]').length,panelChildren:document.querySelector('[data-settings-panel]')?.children.length||0,rail:[...document.querySelectorAll('#app-footer [data-shell-context="settings"] .nav-chip span')].map(node=>node.textContent.trim()),current:document.querySelector('#app-footer [data-settings-section-nav][aria-current]')?.dataset.settingsSectionNav||null}));assert(direct.ci===0&&direct.library===0&&direct.panelChildren===0,`Direct unauthorized /ci rendered privileged UI ${JSON.stringify(direct)}`);assert(direct.rail.join('|')==='Account|People|Comms|System'&&direct.current==='system',`Unauthorized /ci fallback rail mismatch ${JSON.stringify(direct)}`);
     const relevant=errors.filter(error=>/ci|settings|route|footer/i.test(error.url||'')||/ci|settings|route|footer/i.test(error.text||''));assert(relevant.length===0,`Employee browser error ${JSON.stringify(relevant[0])}`);
     if(await page.locator('.settings-route').count())await page.screenshot({path:path.join(OUT_DIR,'employee-system-blank-390x844.png'),fullPage:false});
