@@ -47,7 +47,7 @@ export function preloadSettingsBusinessCard(){
 }
 
 export async function mountSettingsBusinessCard(root,{preload=null}={}){
-  let disposed=false,data=null,statusTimer=0;
+  let disposed=false,data=null,statusTimer=0,panelObserver=null;
   const cleanup=[];
   const authority=await loadSettingsAuthority();
   const capabilities=new Set(authority?.capabilities||[]);
@@ -102,10 +102,10 @@ export async function mountSettingsBusinessCard(root,{preload=null}={}){
     return`<div class="business-card-settings-actions" data-bc-settings-host><p>Business card</p><div><button class="settings-quiet-action" type="button" data-bc-present${disabled(!published)}>Present QR</button><button class="settings-quiet-action" type="button" data-bc-share${disabled(!published)}>Share</button>${canManage?'<button class="settings-quiet-action" type="button" data-bc-edit>Edit card</button>':''}</div><span class="business-card-inline-status" data-bc-inline-status role="status" aria-live="polite"></span></div>`;
   }
   function inject(){
-    const section=route.querySelector('.settings-account-section'),accountActions=section?.querySelector('.settings-account-actions');
-    if(!section||!accountActions)return;
+    const section=route.querySelector('.settings-account-section'),facts=section?.querySelector('.settings-facts');
+    if(!section||!facts)return;
     section.querySelector('[data-bc-settings-host]')?.remove();
-    const markup=actionsMarkup();if(markup)accountActions.insertAdjacentHTML('beforebegin',markup);
+    const markup=actionsMarkup();if(markup)facts.insertAdjacentHTML('afterend',markup);
   }
   function openPresent(){
     if(!data?.card?.published)return;
@@ -182,10 +182,14 @@ export async function mountSettingsBusinessCard(root,{preload=null}={}){
     data=primed?.ok?primed.data:await readSelfCard();
     if(!data?.card?.publicSlug)throw new Error('business_card_unavailable');
   }catch(_){data=null}
-  if(!disposed)inject();
+  if(!disposed){
+    inject();
+    const panel=route.querySelector('[data-settings-panel]');
+    if(panel){panelObserver=new MutationObserver(()=>inject());panelObserver.observe(panel,{childList:true,subtree:true})}
+  }
 
   return()=>{
-    disposed=true;clearTimeout(statusTimer);cleanup.splice(0).forEach(fn=>fn());
+    disposed=true;clearTimeout(statusTimer);panelObserver?.disconnect();cleanup.splice(0).forEach(fn=>fn());
     closePresent();closeEdit();presentDialog.remove();editDialog.remove();
     route.querySelector('[data-bc-settings-host]')?.remove();
   };
