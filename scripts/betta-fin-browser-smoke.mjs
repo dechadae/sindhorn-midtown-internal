@@ -33,16 +33,18 @@ async function inspect(viewport,name,preset){
   const page=await context.newPage();
   page.on('pageerror',error=>errors.push(`${name}: ${error.message}`));
   page.on('console',msg=>{if(msg.type()==='error')errors.push(`${name} console: ${msg.text()}`)});
-  await page.goto(`${base}/betta-fin-lab.html?real-betta-smoke=1`,{waitUntil:'networkidle',timeout:60000});
+  await page.goto(`${base}/betta-fin-lab.html?real-betta-smoke=2`,{waitUntil:'networkidle',timeout:60000});
   await page.waitForFunction(()=>window.SindhornBettaLab?.getDiagnostics?.().triangles>0,null,{timeout:20000});
   await page.waitForFunction(()=>window.SindhornBettaLab?.getSatelliteState?.().status==='live',null,{timeout:60000});
+  const canvas=page.locator('#bettaCanvas');
   for(const key of baselineKeys){
     await page.evaluate(value=>window.SindhornBettaLab.setPreset(value),key);
-    await page.waitForTimeout(90);
+    await page.waitForTimeout(180);
     const probe=await page.evaluate(()=>({d:window.SindhornBettaLab.getDiagnostics(),p:window.SindhornBettaLab.getPreset()}));
     if(probe.d.preset!==key)throw new Error(`${name}: failed to activate baseline ${key}`);
     if(probe.d.triangles<4000||probe.d.triangles>25000)throw new Error(`${name}: baseline ${key} triangles unexpected: ${probe.d.triangles}`);
     if(!Number.isFinite(probe.p.morphMode))throw new Error(`${name}: baseline ${key} morph mode missing`);
+    if(name.startsWith('mobile-'))await canvas.screenshot({path:`${dir}/baseline-${key}.png`});
   }
   await page.evaluate(key=>window.SindhornBettaLab.setPreset(key),preset);
   await page.waitForTimeout(1000);
@@ -69,7 +71,6 @@ async function inspect(viewport,name,preset){
   if(!Number.isFinite(satellite.metrics.vaporVariation)||satellite.metrics.vaporVariation<.004)throw new Error(`${name}: water-vapor Bangkok patch degenerate (${satellite.metrics.vaporVariation})`);
   if(!/^[0-9a-f]{8}$/i.test(satellite.metrics.fingerprint))throw new Error(`${name}: satellite fingerprint invalid`);
   if(!(satellite.bangkok?.imageWidth>100&&satellite.bangkok?.imageHeight>100))throw new Error(`${name}: JMA source image dimensions invalid`);
-  const canvas=page.locator('#bettaCanvas');
   const motionA=await canvas.screenshot();
   await page.waitForTimeout(1200);
   const motionB=await canvas.screenshot();
