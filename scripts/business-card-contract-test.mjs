@@ -45,40 +45,35 @@ const joined=[settingsSource,settingsWrapper,renderer,publicSource,publicHtml,fu
 for(const needle of [HOTEL,LOGO,'business_card:','destination_type','.vcf'])if(!joined.includes(needle))throw new Error(`Source contract missing ${needle}`);
 for(const forbidden of ['/c/dechak','/c/'])if(joined.includes(forbidden))throw new Error(`Forbidden URL namespace ${forbidden}`);
 
-// One canonical Settings dialog controller: Edit Employee, Edit Card and Present QR all delegate here.
 for(const required of ["in:300","out:180","ease:'cubic-bezier(.22,1,.36,1)'","dialog.showModal()","translateY(18px) scale(.985)","translateY(10px) scale(.992)"])if(!dialogController.includes(required))throw new Error(`Central dialog motion contract missing ${required}`);
 for(const required of ["from './settings-dialog-standard.js?v=1'","await openSettingsDialog(dialog)","await closeSettingsDialog(dialog,{beforeClose:closeSettingsSelects})"])if(!settingsBase.includes(required))throw new Error(`Edit Employee does not delegate to dialog standard: ${required}`);
 for(const required of ["from './settings-dialog-standard.js?v=1'","openSettingsDialog(presentDialog)","closeSettingsDialog(presentDialog)","openSettingsDialog(editDialog)","closeSettingsDialog(editDialog)"])if(!settingsSource.includes(required))throw new Error(`Business card dialog does not use standard controller: ${required}`);
 if(settingsSource.includes('.showModal()')||settingsSource.includes('SETTINGS_MOTION='))throw new Error('Business card must not own a duplicate dialog motion implementation');
 
-// Present QR is a normal Settings dialog, never a second page/iframe.
 for(const required of ["presentDialog.className='settings-dialog business-card-present-dialog'","renderBusinessCardMarkup(card","standardCloseButton('data-bc-present-close')","presentDialog.innerHTML=renderBusinessCardMarkup"])if(!settingsSource.includes(required))throw new Error(`Direct Present QR dialog contract missing ${required}`);
 for(const forbidden of ['business-card-present-frame','<iframe','contentDocument','presentFrame.src'])if(settingsSource.includes(forbidden))throw new Error(`Present QR must not load another page: ${forbidden}`);
 
-// Public and Present QR use the exact same card renderer/component CSS.
 if(!publicSource.includes('renderBusinessCardMarkup(card')||!settingsSource.includes('renderBusinessCardMarkup(card'))throw new Error('Public and Present QR must share the renderer');
-for(const required of ['public-card-panel','public-card-head','public-card-qr','public-card-logo-wrap','public-card-details','public-card-actions','Business card · '])if(!renderer.includes(required))throw new Error(`Shared card renderer missing ${required}`);
-if(!publicHtml.includes('/business-card-component.css?v=1')||!settingsWrapper.includes('/business-card-component.css?v=1'))throw new Error('Public and Settings must load the same card component stylesheet');
-for(const required of ['background:rgba(38,32,49,.92)','border-radius:24px','box-shadow:0 28px 90px','text-align:center','width:min(80%,312px)','width:min(129.6px,34.8vw)'])if(!componentCss.includes(required))throw new Error(`Shared card component visual contract missing ${required}`);
+for(const required of ['public-card-panel','public-card-scroll','data-card-scroll','public-card-head','public-card-qr','public-card-logo-wrap','public-card-details','public-card-actions','Business card · '])if(!renderer.includes(required))throw new Error(`Shared card renderer missing ${required}`);
+if(!publicHtml.includes('/business-card-component.css?v=1&r=3')||!settingsWrapper.includes('/business-card-component.css?v=1&r=3'))throw new Error('Public and Settings must load the same revised card component stylesheet');
+for(const required of ['background:rgba(38,32,49,.92)','border-radius:24px','box-shadow:0 28px 90px','text-align:center','width:min(80%,312px)','width:min(129.6px,34.8vw)','overflow:hidden','.public-card-scroll','overflow-y:auto','scrollbar-gutter:stable'])if(!componentCss.includes(required))throw new Error(`Shared card component visual/scroll contract missing ${required}`);
 if(!renderer.includes('balancedNameHtml')||!renderer.includes("name.length<=18")||!renderer.includes('<br>'))throw new Error('Balanced two-line employee name renderer missing');
-if(!renderer.includes('hotelNameHtml')||!renderer.includes('websiteLabel'))throw new Error('Shared hotel formatting helpers missing');
+if(!renderer.includes('hotelNameHtml')||!renderer.includes('websiteLabel')||!renderer.includes('hotelAddressHtml'))throw new Error('Shared hotel formatting helpers missing');
 
-// Public page is the same card component, but remains a lightweight static/WebGL-free shell.
 for(const forbidden of ['canvas','three.js','THREE','atmosphere','environment.js','WebGL'])if(publicHtml.includes(forbidden)||publicSource.includes(forbidden))throw new Error(`Public card acquired a WebGL dependency: ${forbidden}`);
 if(!publicCss.includes('linear-gradient(180deg')||publicCss.includes('canvas'))throw new Error('Public card shell must stay static and WebGL-free');
+if(!publicCss.includes('height:100dvh')||!publicCss.includes('.public-business-card>.public-card-panel{height:100%;max-height:760px}'))throw new Error('Public fixed card shell contract missing');
 
-// Scroll belongs to transparent dialog viewport, outside the rounded card surface.
-for(const required of ['background:transparent!important','overflow-y:auto!important','padding:0 7px 0 0!important','scrollbar-gutter:stable','.settings-dialog>.settings-dialog-body','.settings-dialog>.public-card-panel'])if(!dialogCss.includes(required))throw new Error(`Outside-card scrollbar contract missing ${required}`);
+for(const required of ['background:transparent!important','overflow-y:auto!important','.settings-dialog>.settings-dialog-body','.settings-dialog>.public-card-panel','business-card-present-dialog','width:min(calc(100vw - 32px),520px)!important','padding:0!important'])if(!dialogCss.includes(required))throw new Error(`Settings dialog/fixed Present QR contract missing ${required}`);
 if(!dialogCss.includes('-webkit-tap-highlight-color:transparent')||!componentCss.includes('-webkit-tap-highlight-color:transparent'))throw new Error('Close/action tap highlight suppression missing');
 if(componentCss.includes('.public-card-present-close'))throw new Error('Business card must not own a custom close-button component');
 if(!renderer.includes('closeMarkup'))throw new Error('Contextual close control slot missing from shared card renderer');
 
-// Account composition, viewport and sign-out behavior remain intact.
 for(const required of ['preloadSettingsBusinessCard','readSelfCard','preload?await Promise.resolve(preload)','queueMicrotask(()=>{if(!disposed)ensureInjected()})'])if(!settingsSource.includes(required))throw new Error(`Atomic Account composition contract missing ${required}`);
 if(settingsSource.includes('new MutationObserver(()=>inject())'))throw new Error('Business card must not observe and mutate Settings panel recursively');
 for(const required of ['installHeroSignOut','hero.appendChild(fresh)','visualViewport','--settings-scroll-clearance'])if(!settingsWrapper.includes(required))throw new Error(`Settings wrapper regression: ${required}`);
-if(!settingsWrapper.includes("settings.js?v=3")||!settingsWrapper.includes("business-card-settings.js?v=9"))throw new Error('Settings module cache versions missing');
-if(!settingsWrapper.includes('/settings-dialog-standard.css?v=1')||!settingsWrapper.includes('/business-card-component.css?v=1'))throw new Error('Central Settings dialog/card styles not loaded');
-if(!routeRegistry.includes('settings-route-v3.js?v=10&r=6'))throw new Error('Settings route cache version missing');
+if(!settingsWrapper.includes("settings.js?v=3")||!settingsWrapper.includes("business-card-settings.js?v=10"))throw new Error('Settings module cache versions missing');
+if(!settingsWrapper.includes('/settings-dialog-standard.css?v=1&r=3')||!settingsWrapper.includes('/business-card-component.css?v=1&r=3'))throw new Error('Central Settings dialog/card revised styles not loaded');
+if(!routeRegistry.includes('settings-route-v3.js?v=10&r=6&d=3'))throw new Error('Settings route cache version missing');
 
-console.log(JSON.stringify({slug:'dechak',url:`${ORIGIN}/dechak`,vcardUrl:`${ORIGIN}/dechak.vcf`,hotel:HOTEL,dialogStandard:{controller:'settings-dialog-standard.js',surface:'settings-dialog-standard.css',open:300,close:180,scrollbar:'outer-dialog'},cardStandard:{renderer:'business-card-renderer.js',component:'business-card-component.css',publicWebGL:false,presentIframe:false},ui:{editEmployee:'standard-dialog',editCard:'standard-dialog',presentQr:'standard-dialog',publicCard:'same-card-static-shell'}},null,2));
+console.log(JSON.stringify({slug:'dechak',url:`${ORIGIN}/dechak`,vcardUrl:`${ORIGIN}/dechak.vcf`,hotel:HOTEL,dialogStandard:{controller:'settings-dialog-standard.js',surface:'settings-dialog-standard.css',open:300,close:180,scrollbar:'inner-card'},cardStandard:{renderer:'business-card-renderer.js',component:'business-card-component.css',publicWebGL:false,presentIframe:false,fixedShell:true},ui:{editEmployee:'standard-dialog',editCard:'standard-dialog',presentQr:'fixed-shell-inner-scroll',publicCard:'same-card-static-shell'}},null,2));
