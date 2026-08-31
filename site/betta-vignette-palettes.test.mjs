@@ -22,16 +22,17 @@ for(const key of keys){
 }
 assert.deepEqual(BETTA_DAY_PERIODS.map(p=>p.referenceId),[1,2,3,4,5,6,7,8]);
 assert.deepEqual(BETTA_DAY_PERIODS.map(p=>p.baseline),['reference1','reference2','reference3','reference4','reference5','reference6','reference7','reference8']);
-assert.ok(BETTA_PRESETS.reference1.params.offsetX>-.2,'Midnight deliberately leaves a large negative-space side');
-assert.ok(BETTA_PRESETS.reference2.params.offsetX<-1.5&&BETTA_PRESETS.reference2.params.offsetY<-1,'Before Dawn is an aggressive corner crop');
-assert.ok(BETTA_PRESETS.reference3.params.offsetX>.3,'First Light deliberately enters from the opposite side');
-assert.ok(BETTA_PRESETS.reference5.params.scale>1,'Midday is the intentional macro texture crop');
-assert.ok(BETTA_PRESETS.reference6.params.offsetX>0,'Afternoon occupies one side of the wallpaper');
-assert.ok(BETTA_PRESETS.reference7.params.offsetY>.85,'Golden Hour is pushed into an upper-corner composition');
+assert.ok(BETTA_PRESETS.reference1.params.offsetX>.3&&BETTA_PRESETS.reference1.params.offsetY<-1,'Midnight drops into the lower-right and leaves a quiet upper-left field');
+assert.ok(BETTA_PRESETS.reference2.params.offsetX<-1.5&&BETTA_PRESETS.reference2.params.offsetY<-1,'Before Dawn approved aggressive corner crop remains unchanged');
+assert.ok(BETTA_PRESETS.reference3.params.offsetX<-1.6&&BETTA_PRESETS.reference3.params.offsetY>.4,'First Light now enters from the left edge');
+assert.ok(BETTA_PRESETS.reference4.params.offsetX>.3,'Bright Morning is reduced to a right-edge slice');
+assert.ok(BETTA_PRESETS.reference5.params.scale>1,'Midday approved macro texture crop remains unchanged');
+assert.ok(BETTA_PRESETS.reference6.params.offsetX<-1.6&&BETTA_PRESETS.reference6.params.offsetY>.7,'Afternoon sweeps from the upper-left');
+assert.ok(BETTA_PRESETS.reference7.params.offsetX>.3&&BETTA_PRESETS.reference7.params.offsetY<-.5,'Golden Hour is a lower-right rosetail crescent');
 assert.equal(BETTA_PRESETS.reference8.params.scale,.84,'Blue Hour approved crop scale remains unchanged');
 assert.equal(BETTA_PRESETS.reference8.params.offsetX,-1.06,'Blue Hour approved horizontal crop remains unchanged');
 assert.equal(BETTA_PRESETS.reference8.params.offsetY,-.20,'Blue Hour approved vertical crop remains unchanged');
 assert.equal(BETTA_PRESETS.reference5.morphMode,1,'Fish #5 keeps multicolor koi patch mode');
 assert.equal(BETTA_PRESETS.reference6.morphMode,4,'Fish #6 exposes pale ray ridges');
 assert.equal(BETTA_PRESETS.reference8.morphMode,4,'Fish #8 exposes electric blue ray ridges');
-console.log('Final Betta editorial live-wallpaper composition contract PASS');
+console.log('Final Betta revised editorial crop contract PASS');
