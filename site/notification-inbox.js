@@ -63,6 +63,15 @@ function routeName(route){
   return'today';
 }
 
+function messageKindLabel(kind){
+  const value=String(kind||'');
+  if(value==='business-dashboard-update')return'Hotel update';
+  if(value==='severe-weather')return'Weather alert';
+  if(value.startsWith('air-quality'))return'Air quality';
+  if(value==='air-data-delay')return'Data notice';
+  return'Environmental alert';
+}
+
 function stamp(value,locale){
   const time=Number(value),date=Number.isFinite(time)?new Date(time):new Date();
   try{return new Intl.DateTimeFormat(locale,{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Bangkok'}).format(date)}catch(_){return date.toLocaleString(locale)}
@@ -71,7 +80,7 @@ function stamp(value,locale){
 function messageCard(row){
   const article=document.createElement('article');article.className='message-card';article.dataset.read=row.read?'true':'false';
   const meta=document.createElement('div');meta.className='message-meta';
-  const kind=document.createElement('span');kind.className='message-kind';kind.textContent=row.kind==='severe-weather'?'Weather alert':row.kind?.startsWith('air-quality')?'Air quality':row.kind==='air-data-delay'?'Data notice':'Environmental alert';
+  const kind=document.createElement('span');kind.className='message-kind';kind.textContent=messageKindLabel(row.kind);
   const time=document.createElement('time');time.dateTime=new Date(Number(row.receivedAt)||Date.now()).toISOString();time.textContent=stamp(row.receivedAt,'en-GB');
   meta.append(kind,time);
   const title=document.createElement('h2');title.className='message-title';title.textContent=String(row.titleEn||'SINDHORN MIDTOWN UPDATE');
