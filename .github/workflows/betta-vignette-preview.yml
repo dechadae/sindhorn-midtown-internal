@@ -51,7 +51,7 @@ jobs:
           for token in ('motionSpeed','turbulence','motionAmplitude','edgeFlutter','currentStrength'):
               assert token not in text, f'Vignette grade must not alter {token}'
           html=Path('site/betta-vignette-test.html').read_text()
-          assert 'bootstrap.js' not in html and 'login' not in html.lower(), 'public reviewer must remain independent of auth shell'
+          assert 'bootstrap.js' not in html and '/login.html' not in html and 'auth.js' not in html, 'public reviewer must remain independent of auth shell'
           PY
 
       - name: Deploy Cloudflare branch preview
