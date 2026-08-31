@@ -74,7 +74,7 @@ export const BETTA_PRESETS={
       currentStrength:.17,motionSpeed:.30,turbulence:.16,motionAmplitude:.34,
       opacity:.50,transmission:.91,rimStrength:1.08,foldHighlight:1.08,iridescence:.16,bloom:.34,
       saturation:1.24,brightness:1.84,gradientPosition:.035,
-      scale:.86,rotation:-.44,rotationX:.32,rotationY:.56,tiltStrength:.17,cameraDepth:.12,offsetX:.34,offsetY:.18
+      scale:.94,rotation:.44,rotationX:.32,rotationY:-.56,tiltStrength:.17,cameraDepth:.12,offsetX:-1.34,offsetY:.18
     },
     layers:[
       {seed:104.4,scale:1.00,rotation:-.03,offset:[-.02,-.04,.11],alpha:.89,phase:12.1},
@@ -128,7 +128,7 @@ export const BETTA_PRESETS={
       currentStrength:.19,motionSpeed:.29,turbulence:.27,motionAmplitude:.41,
       opacity:.58,transmission:.79,rimStrength:1.22,foldHighlight:1.30,iridescence:.30,bloom:.40,
       saturation:1.22,brightness:1.68,gradientPosition:.02,
-      scale:.86,rotation:-.28,rotationX:-.34,rotationY:.58,tiltStrength:.22,cameraDepth:.11,offsetX:.36,offsetY:-.62
+      scale:1.00,rotation:-.28,rotationX:-.34,rotationY:.58,tiltStrength:.22,cameraDepth:.11,offsetX:.36,offsetY:-.62
     },
     layers:[
       {seed:141.5,scale:1.00,rotation:-.02,offset:[-.03,0,.11],alpha:.93,phase:23.6},
