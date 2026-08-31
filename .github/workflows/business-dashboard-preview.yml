@@ -7,6 +7,7 @@ on:
       - "site/index.html"
       - "site/app.js"
       - "site/sw.js"
+      - "site/notification-inbox.js"
       - "site/business-dashboard.js"
       - "site/business-dashboard-data.js"
       - "site/business-dashboard.css"
@@ -15,6 +16,9 @@ on:
       - "site/route-registry.js"
       - "site/ui-system-registry.js"
       - "site/ci-specimen-fixes.css"
+      - "worker/src/business-dashboard-alerts.js"
+      - "worker/src/push-audience.js"
+      - "test/business-dashboard-alerts.test.mjs"
       - "scripts/business-dashboard-browser-smoke.mjs"
       - "scripts/business-dashboard-motion-smoke.mjs"
       - "scripts/business-dashboard-pwa-smoke.mjs"
@@ -43,7 +47,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard-motion.js site/business-dashboard.js site/app.js site/sw.js scripts/business-dashboard-browser-smoke.mjs scripts/business-dashboard-motion-smoke.mjs scripts/business-dashboard-pwa-smoke.mjs scripts/business-dashboard-ci-audit.mjs scripts/business-dashboard-ci-parity-smoke.mjs; do
+          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard-motion.js site/business-dashboard.js site/app.js site/sw.js site/notification-inbox.js worker/src/business-dashboard-alerts.js worker/src/push-audience.js test/business-dashboard-alerts.test.mjs scripts/business-dashboard-browser-smoke.mjs scripts/business-dashboard-motion-smoke.mjs scripts/business-dashboard-pwa-smoke.mjs scripts/business-dashboard-ci-audit.mjs scripts/business-dashboard-ci-parity-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
           grep -q "today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local'" site/route-registry.js
@@ -62,6 +66,11 @@ jobs:
           grep -q "pwa-v34-betta-dashboard-r1" site/sw.js
           grep -q "self.addEventListener('push'" site/sw.js
           grep -q "NOTIFICATION_DB='sindhorn-midtown-notification-inbox'" site/sw.js
+          grep -q "business-dashboard-update.*Hotel update" site/notification-inbox.js
+          grep -q "businessAlertPayloadIsLockScreenSafe" worker/src/business-dashboard-alerts.js
+          grep -q "audienceTopic:'business-dashboard'" worker/src/business-dashboard-alerts.js
+          grep -q "Existing subscriptions predate topics" worker/src/push-audience.js
+          grep -q "businessDashboardTopicCanBeAdded" worker/src/push-audience.js
           grep -q "<title>Today | Sindhorn Midtown Internal</title>" site/index.html
           if grep -Eqi 'border-radius:[[:space:]]*(50%|999px|9999px)' site/business-dashboard.css site/business-dashboard-motion.css; then
             echo 'Circular/capsule dashboard UI is not allowed'; exit 1
@@ -69,6 +78,10 @@ jobs:
           if grep -Eq 'letter-spacing:[[:space:]]*[^0!]' site/business-dashboard.css site/business-dashboard-motion.css; then
             echo 'Non-zero dashboard letter spacing detected'; exit 1
           fi
+
+      - name: Validate privacy-safe business notification candidates
+        shell: bash
+        run: node test/business-dashboard-alerts.test.mjs | tee /tmp/business-dashboard-alerts-report.json
 
       - name: Audit Today against UI Library source
         shell: bash
@@ -79,7 +92,7 @@ jobs:
         run: |
           set -euo pipefail
           base="$(git merge-base origin/main HEAD)"
-          for file in site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/weather-authority.js site/rain-now.js site/auth-shell.js site/auth-client.js site/capabilities.js site/fnb.js site/fnb-data.js site/brand.js site/ihg-history.js site/hotel-factsheet-route.js; do
+          for file in site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/weather-authority.js site/rain-now.js site/auth-shell.js site/auth-client.js site/capabilities.js site/push-client.js site/fnb.js site/fnb-data.js site/brand.js site/ihg-history.js site/hotel-factsheet-route.js worker/src/index.js worker/wrangler.jsonc; do
             git diff --exit-code "$base" HEAD -- "$file"
           done
           grep -q "await import('./betta-environment.js')" site/bootstrap.js
@@ -87,6 +100,8 @@ jobs:
           grep -q "rain-layer-legacy-weather.js" site/sw.js
           grep -q "betta-environment.js" site/sw.js
           grep -q "url.pathname==='/api/betta-satellite'" site/sw.js
+          ! grep -q "business-dashboard-alerts" worker/src/index.js
+          ! grep -q "push-audience" worker/src/index.js
 
       - name: Deploy Cloudflare branch preview
         env:
@@ -100,7 +115,7 @@ jobs:
           set -euo pipefail
           BASE_URL="https://today-v4-motion-phase-a.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /business-dashboard-motion.js /business-dashboard-motion.css /hotel-factsheet.css /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /rain-layer.js /rain-layer-legacy-weather.js /app.js /sw.js /manifest.webmanifest; do
+          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /business-dashboard-motion.js /business-dashboard-motion.css /notification-inbox.js /hotel-factsheet.css /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /rain-layer.js /rain-layer-legacy-weather.js /app.js /sw.js /manifest.webmanifest; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
@@ -109,6 +124,8 @@ jobs:
           curl --fail --silent --show-error "${BASE_URL}/business-dashboard.js" -o /tmp/dashboard.js
           grep -q "business-dashboard-motion.js" /tmp/dashboard.js
           grep -q "business-dashboard-motion.css" /tmp/dashboard.js
+          curl --fail --silent --show-error "${BASE_URL}/notification-inbox.js" -o /tmp/inbox.js
+          grep -q "business-dashboard-update.*Hotel update" /tmp/inbox.js
           curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/sw.js
           grep -q "sindhorn-midtown-internal-pwa-v38-today-motion-r1" /tmp/sw.js
           grep -q "business-dashboard-data.js" /tmp/sw.js
@@ -140,6 +157,7 @@ jobs:
           name: business-dashboard-motion-preview
           path: |
             /tmp/business-dashboard-preview
+            /tmp/business-dashboard-alerts-report.json
             /tmp/business-dashboard-browser-report.json
             /tmp/business-dashboard-motion-report.json
             /tmp/business-dashboard-ci-audit.json
