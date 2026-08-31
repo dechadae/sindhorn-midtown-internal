@@ -28,14 +28,14 @@ export const BETTA_PRESETS={
   }),
   reference2:preset({
     referenceId:2,number:'02',name:'Fish #2 · Super Red Halfmoon',morphMode:0,
-    description:'Rounded saturated scarlet Halfmoon with a compact circular fan, deep red root and brighter scarlet-vermilion outer fin.',
+    description:'Rounded saturated scarlet Halfmoon with a near-black inner root, deep crimson transition and vivid scarlet-vermilion outer fin.',
     background:'#050101',
-    palette:['#760204','#c90a08','#ff2a12','#ff6b2b'],
+    palette:['#090103','#5e0506','#e6180e','#ff5a20'],
     params:{
       spread:3.22,rayCount:80,foldDensity:10.4,curl:.25,twist:.035,edgeFlutter:.050,depth:.56,
       currentStrength:.18,motionSpeed:.32,turbulence:.13,motionAmplitude:.34,
       opacity:.66,transmission:.66,rimStrength:1.10,foldHighlight:1.22,iridescence:.08,bloom:.35,
-      saturation:1.38,brightness:1.76,gradientPosition:-.015,
+      saturation:1.42,brightness:1.76,gradientPosition:-.08,
       scale:.64,rotation:.02,cameraDepth:.08,offsetX:-.64,offsetY:.00
     },
     layers:[
@@ -62,14 +62,14 @@ export const BETTA_PRESETS={
   }),
   reference4:preset({
     referenceId:4,number:'04',name:'Fish #4 · Pearl Blush Veiltail',morphMode:2,
-    description:'Pale pearl and icy-blue translucent fan with cool white/cyan body color and restrained blush-red outer streaks.',
+    description:'Pale pearl and icy-blue translucent fan with a clearly visible vivid coral-red outer mix and warm coral streak character.',
     background:'#05070b',
-    palette:['#fbfdff','#c9ecf8','#8fcde3','#ef8f8b'],
+    palette:['#fbfdff','#9fdaf0','#ff4d3f','#ff9a82'],
     params:{
       spread:2.68,rayCount:72,foldDensity:8.7,curl:.94,twist:-.46,edgeFlutter:.105,depth:.52,
       currentStrength:.17,motionSpeed:.30,turbulence:.16,motionAmplitude:.34,
-      opacity:.49,transmission:.93,rimStrength:1.06,foldHighlight:1.06,iridescence:.16,bloom:.33,
-      saturation:1.14,brightness:1.82,gradientPosition:.035,
+      opacity:.50,transmission:.91,rimStrength:1.08,foldHighlight:1.08,iridescence:.16,bloom:.34,
+      saturation:1.24,brightness:1.84,gradientPosition:.035,
       scale:.69,rotation:-.28,cameraDepth:.12,offsetX:-.59,offsetY:.12
     },
     layers:[
