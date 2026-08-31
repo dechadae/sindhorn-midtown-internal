@@ -1,0 +1,22 @@
+name: Apply Betta Gradient Background
+on:
+  push:
+    branches: [betta-reference-rebuild]
+    paths: ['.github/workflows/betta-gradient-background-apply.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: betta-reference-rebuild
+      - run: python3 scripts/patch-betta-gradient.py
+      - run: node --input-type=module --check < site/betta-environment.js
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Add synchronized Betta gradient backgrounds"
+          git push origin HEAD:betta-reference-rebuild
