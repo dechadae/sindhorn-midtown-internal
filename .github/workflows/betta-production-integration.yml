@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/bootstrap.js site/betta-environment.js site/betta-fin-presets.js site/betta-fin-shader.js site/betta-satellite.js site/betta-day-periods.js site/betta-day-periods.test.mjs site/_worker.js site/rain-layer.js site/rain-layer-legacy-weather.js site/environment.js site/phase8-2-browser-smoke.mjs; do
+          for file in site/bootstrap.js site/route-registry.js site/betta-environment.js site/betta-fin-presets.js site/betta-fin-shader.js site/betta-satellite.js site/betta-day-periods.js site/betta-day-periods.test.mjs site/ci-betta-day-cycle.js site/ci-day-cycle-route.js site/_worker.js site/rain-layer.js site/rain-layer-legacy-weather.js site/environment.js site/phase8-2-browser-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
           node site/betta-day-periods.test.mjs
@@ -38,25 +38,24 @@ jobs:
           from pathlib import Path
           import json
           root=Path('site')
-          bootstrap=(root/'bootstrap.js').read_text();active=(root/'betta-environment.js').read_text();presets=(root/'betta-fin-presets.js').read_text();shader=(root/'betta-fin-shader.js').read_text();periods=(root/'betta-day-periods.js').read_text();legacy=(root/'environment.js').read_text();rain=(root/'rain-layer.js').read_text();worker=(root/'_worker.js').read_text();routes=json.loads((root/'_routes.json').read_text())
-          assert "await import('./betta-environment.js')" in bootstrap
-          assert "await import('./environment.js')" not in bootstrap
-          assert "renderer:'sindhorn-betta-satellite-v1'" in active
-          assert "inputMode:'satellite-only'" in active
-          assert "baselineAuthority:'bangkok-day-cycle'" in active
+          bootstrap=(root/'bootstrap.js').read_text();registry=(root/'route-registry.js').read_text();active=(root/'betta-environment.js').read_text();presets=(root/'betta-fin-presets.js').read_text();shader=(root/'betta-fin-shader.js').read_text();periods=(root/'betta-day-periods.js').read_text();controls=(root/'ci-betta-day-cycle.js').read_text();wrapper=(root/'ci-day-cycle-route.js').read_text();legacy=(root/'environment.js').read_text();rain=(root/'rain-layer.js').read_text();worker=(root/'_worker.js').read_text();routes=json.loads((root/'_routes.json').read_text())
+          assert "await import('./betta-environment.js')" in bootstrap and "await import('./environment.js')" not in bootstrap
+          assert "renderer:'sindhorn-betta-satellite-v1'" in active and "inputMode:'satellite-only'" in active and "baselineAuthority:'bangkok-day-cycle'" in active
           assert "BANGKOK_TIME_ZONE='Asia/Bangkok'" in periods
           assert 'DAY_CYCLE_ROLLOVER_MS=60000' in periods and 'DAY_CYCLE_CORRECTION_MS=900' in periods and 'DAY_CYCLE_CHECK_MS=30000' in periods
           for token in ('uMorphModeFrom','uMorphModeTo','uMorphTransition','baseFrom','baseTo'):
               assert token in shader,token
+          for token in ('setBettaPeriod','useLiveBettaDayCycle','previewBettaDayCycle'):
+              assert token in active and token in controls,token
+          assert "module:'./ci-day-cycle-route.js?v=1'" in registry
+          assert 'mountCanonicalCiRoute' in wrapper and 'mountBettaDayCycleControls' in wrapper
           assert 'const DPR=2' in active and 'antialias:false' in active and 'preserveDrawingBuffer:false' in active
           assert "DEFAULT_PRESET='royalBlueHalfmoon'" in presets and presets.count("number:'0")==8
           for name in ('Royal Blue Halfmoon','Super Red Halfmoon','Mustard Gas','Black Orchid','Copper Metallic','Turquoise Metallic','Nemo Galaxy Koi','Red Snow Dragon'):
               assert name in presets,name
           assert "renderer:'bangkok-seasonal-clouds-v2'" in legacy
-          assert Path('site/rain-layer-legacy-weather.js').exists()
-          assert 'compatibility no-op' in rain and 'rain-layer-legacy-weather.js' in rain
-          assert 'www.data.jma.go.jp/mscweb/data/himawari' in worker
-          assert any('/api/betta-satellite' in item for item in routes.get('include',[]))
+          assert Path('site/rain-layer-legacy-weather.js').exists() and 'compatibility no-op' in rain and 'rain-layer-legacy-weather.js' in rain
+          assert 'www.data.jma.go.jp/mscweb/data/himawari' in worker and any('/api/betta-satellite' in item for item in routes.get('include',[]))
           for forbidden in ('open-meteo','api.met.no','airbkk','deviceorientation','geolocation'):
               assert forbidden not in (root/'betta-satellite.js').read_text().lower(),forbidden
           PY
@@ -66,21 +65,18 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          PREVIEW_BRANCH="${GITHUB_REF_NAME:0:28}"
-          PREVIEW_BRANCH="${PREVIEW_BRANCH%-}"
+          PREVIEW_BRANCH="${GITHUB_REF_NAME:0:28}"; PREVIEW_BRANCH="${PREVIEW_BRANCH%-}"
           npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="$PREVIEW_BRANCH"
 
       - name: Smoke preview and live satellite endpoint
         shell: bash
         run: |
           set -euo pipefail
-          PREVIEW_BRANCH="${GITHUB_REF_NAME:0:28}"
-          PREVIEW_BRANCH="${PREVIEW_BRANCH%-}"
+          PREVIEW_BRANCH="${GITHUB_REF_NAME:0:28}"; PREVIEW_BRANCH="${PREVIEW_BRANCH%-}"
           BASE_URL="https://${PREVIEW_BRANCH}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /bootstrap.js /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /betta-day-periods.js /environment.js /rain-layer.js /rain-layer-legacy-weather.js; do
-            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
-            test -s /tmp/smoke
+          for path in / /bootstrap.js /route-registry.js /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /betta-day-periods.js /ci-betta-day-cycle.js /ci-day-cycle-route.js /environment.js /rain-layer.js /rain-layer-legacy-weather.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke; test -s /tmp/smoke
           done
           curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/api/betta-satellite?kind=latest" -o /tmp/satellite.json
           python3 - <<'PY'
@@ -97,10 +93,8 @@ jobs:
         env:
           CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
           CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
-          PHASE82_BASE_URL: https://${{ github.ref_name }}.sindhorn-midtown-internal.pages.dev
         run: |
-          PREVIEW_BRANCH="${GITHUB_REF_NAME:0:28}"
-          PREVIEW_BRANCH="${PREVIEW_BRANCH%-}"
+          PREVIEW_BRANCH="${GITHUB_REF_NAME:0:28}"; PREVIEW_BRANCH="${PREVIEW_BRANCH%-}"
           export PHASE82_BASE_URL="https://${PREVIEW_BRANCH}.sindhorn-midtown-internal.pages.dev"
           node site/phase8-2-browser-smoke.mjs
 
