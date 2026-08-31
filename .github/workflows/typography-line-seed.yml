@@ -114,7 +114,7 @@ jobs:
           curl --fail --silent --show-error --location "${BASE_URL}/fonts.css" -o /tmp/fonts.css
           grep -q 'LINE Seed Sans TH' /tmp/fonts.css
           curl --fail --silent --show-error --location "${BASE_URL}/share/fnb-public-data.js" -o /tmp/fnb-public-data.js
-          grep -q 'FNB_PUBLIC_PROMOTIONS' /tmp/fnb-public-data.js
+          grep -q 'FNB_PROMOTIONS' /tmp/fnb-public-data.js
           curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js
           grep -q 'pwa-v31-line-seed-sans-th' /tmp/sw.js
           for font in thin regular bold; do
