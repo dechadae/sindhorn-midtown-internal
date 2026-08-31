@@ -113,9 +113,9 @@ export const BETTA_PRESETS={
   }),
   reference7:preset({
     referenceId:7,number:'07',name:'Fish #7 · Steel Blue Rosetail',morphMode:4,
-    description:'Smoky steel blue-green rosetail with a darker teal root, brighter silver-blue rays and the approved layered ruffled form.',
+    description:'Smoky steel blue-green rosetail with a darker teal root, silver-blue midtones and restrained rose-gold ray and tip highlights on the approved layered ruffled form.',
     background:'#020507',
-    palette:['#061820','#17495b','#4e91a5','#d4e4e7'],
+    palette:['#061820','#17495b','#4e91a5','#d7a49a'],
     params:{
       spread:3.42,rayCount:80,foldDensity:11.6,curl:1.02,twist:.43,edgeFlutter:.165,depth:.78,
       currentStrength:.19,motionSpeed:.29,turbulence:.27,motionAmplitude:.41,
