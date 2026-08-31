@@ -24,9 +24,13 @@ on:
       - "scripts/business-dashboard-pwa-smoke.mjs"
       - "scripts/business-dashboard-ci-audit.mjs"
       - "scripts/business-dashboard-ci-parity-smoke.mjs"
+      - "scripts/business-dashboard-schema-smoke.mjs"
       - "scripts/business-notification-messages-smoke.mjs"
       - "scripts/business-notification-push-smoke.mjs"
       - "scripts/business-notification-bridge-smoke.mjs"
+      - "supabase/migrations/20260830151557_daily_business_dashboard_foundation.sql"
+      - "supabase/migrations/20260830151616_daily_business_dashboard_flag_builder.sql"
+      - "supabase/migrations/20260830151646_daily_business_dashboard_read_model.sql"
       - "supabase/migrations/20260831045500_daily_business_dashboard_notification_bridge.sql"
       - ".github/workflows/business-dashboard-preview.yml"
   workflow_dispatch:
@@ -51,10 +55,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard-motion.js site/business-dashboard.js site/app.js site/sw.js site/push-client.js site/notification-inbox.js scripts/business-dashboard-browser-smoke.mjs scripts/business-dashboard-motion-smoke.mjs scripts/business-dashboard-pwa-smoke.mjs scripts/business-dashboard-ci-audit.mjs scripts/business-dashboard-ci-parity-smoke.mjs; do
+          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard-motion.js site/business-dashboard.js site/app.js site/sw.js site/push-client.js site/notification-inbox.js scripts/business-dashboard-browser-smoke.mjs scripts/business-dashboard-motion-smoke.mjs scripts/business-dashboard-pwa-smoke.mjs scripts/business-dashboard-ci-audit.mjs scripts/business-dashboard-ci-parity-smoke.mjs scripts/business-dashboard-schema-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
           for file in scripts/business-notification-messages-smoke.mjs scripts/business-notification-push-smoke.mjs scripts/business-notification-bridge-smoke.mjs; do if [ -f "$file" ]; then node --input-type=module --check < "$file"; fi; done
+          node scripts/business-dashboard-schema-smoke.mjs
           grep -q "today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local'" site/route-registry.js
           grep -q "module:'./business-dashboard.js?v=4'" site/route-registry.js
           grep -q "sindhorn_business_dashboard_read_model" site/business-dashboard-data.js
