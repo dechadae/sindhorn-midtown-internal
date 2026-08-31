@@ -1,0 +1,152 @@
+name: Settings Select Hotfix Preview
+
+on:
+  push:
+    branches:
+      - hotfix-settings-*
+    paths:
+      - "site/settings-route-v3.js"
+      - "site/settings.js"
+      - "site/settings.css"
+      - "site/fnb.css"
+      - "site/fnb-approved-polish.css"
+      - ".github/workflows/settings-select-hotfix-preview.yml"
+  pull_request:
+    paths:
+      - "site/settings-route-v3.js"
+      - "site/settings.js"
+      - "site/settings.css"
+      - "site/fnb.css"
+      - "site/fnb-approved-polish.css"
+      - ".github/workflows/settings-select-hotfix-preview.yml"
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: settings-select-hotfix-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy-webkit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate Settings select dependency contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < site/settings-route-v3.js
+          node --input-type=module --check < site/settings.js
+          grep -Fq "ensureStyle('link[data-fnb-style]','/fnb.css?v=2&ui=2','data-fnb-style')" site/settings-route-v3.js
+          grep -Fq "ensureStyle('link[data-fnb-approved-polish]','/fnb-approved-polish.css?v=2','data-fnb-approved-polish')" site/settings-route-v3.js
+          grep -q 'fnb-select settings-select' site/settings.js
+          grep -q '\.fnb-select-trigger svg' site/fnb-approved-polish.css
+          grep -q '\.fnb-select-menu{' site/fnb-approved-polish.css
+          grep -q '\.fnb-select-option{' site/fnb-approved-polish.css
+          grep -q '\.fnb-select select\[hidden\]' site/fnb-approved-polish.css
+          # Preserve the performance release: F&B CSS must remain off the global index startup path.
+          ! grep -q 'fnb.css' site/index.html
+          echo 'Settings select dependency contract OK'
+
+      - name: Deploy Cloudflare branch preview
+        if: github.event_name == 'push'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Resolve preview URL
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          alias="${GITHUB_REF_NAME:0:28}"
+          alias="${alias%-}"
+          echo "PREVIEW_BASE_URL=https://${alias}.sindhorn-midtown-internal.pages.dev" >> "$GITHUB_ENV"
+
+      - name: Smoke deployed dependency assets
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=false
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent --show-error --location "${PREVIEW_BASE_URL}/settings-route-v3.js" -o /tmp/settings-route.js \
+              && grep -Fq "'/fnb.css?v=2&ui=2'" /tmp/settings-route.js \
+              && grep -Fq "'/fnb-approved-polish.css?v=2'" /tmp/settings-route.js; then
+              ready=true
+              break
+            fi
+            sleep 3
+          done
+          test "$ready" = true
+          curl --fail --silent --show-error --location "${PREVIEW_BASE_URL}/fnb.css?v=2&ui=2" -o /tmp/fnb.css
+          curl --fail --silent --show-error --location "${PREVIEW_BASE_URL}/fnb-approved-polish.css?v=2" -o /tmp/fnb-approved-polish.css
+          grep -q '\.fnb-select-trigger svg' /tmp/fnb-approved-polish.css
+          grep -q '\.fnb-select-menu{' /tmp/fnb-approved-polish.css
+          echo 'Deployed dependency smoke OK'
+
+      - name: Validate select rendering in WebKit
+        if: github.event_name == 'push'
+        shell: bash
+        env:
+          BASE_URL: ${{ env.PREVIEW_BASE_URL }}
+        run: |
+          set -euo pipefail
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps webkit >/dev/null 2>&1
+          node <<'NODE'
+          const {webkit}=require('playwright');
+          const assert=require('node:assert/strict');
+          (async()=>{
+            const browser=await webkit.launch({headless:true});
+            const page=await browser.newPage({viewport:{width:1200,height:900}});
+            const base=process.env.BASE_URL;
+            await page.setContent(`<!doctype html><html><head>
+              <style>:root{--sm-text:#FAF7F5;--font-ui:Arial,sans-serif}</style>
+              <link rel="stylesheet" href="${base}/fnb.css?v=2&ui=2">
+              <link rel="stylesheet" href="${base}/fnb-approved-polish.css?v=2">
+              <link rel="stylesheet" href="${base}/settings.css?v=2">
+            </head><body><section class="settings-route"><div class="settings-field">
+              <label>Role</label>
+              <div class="fnb-select settings-select is-open" data-settings-select="role">
+                <button class="fnb-select-trigger settings-select-trigger" type="button" aria-expanded="true"><span>Employee</span><svg viewBox="0 0 20 20"><path d="M5.5 7.5 10 12l4.5-4.5"/></svg></button>
+                <select hidden><option>Employee</option><option>Supervisor</option><option>Manager</option></select>
+                <div class="fnb-select-menu" aria-hidden="false"><button class="fnb-select-option is-selected" type="button"><span>Employee</span><i></i></button><button class="fnb-select-option" type="button"><span>Supervisor</span><i></i></button><button class="fnb-select-option" type="button"><span>Manager</span><i></i></button></div>
+              </div>
+            </div></section></body></html>`,{waitUntil:'networkidle'});
+            const result=await page.evaluate(()=>{
+              const trigger=document.querySelector('.fnb-select-trigger');
+              const svg=trigger.querySelector('svg');
+              const menu=document.querySelector('.fnb-select-menu');
+              const option=document.querySelector('.fnb-select-option');
+              const hidden=document.querySelector('select[hidden]');
+              const t=getComputedStyle(trigger),s=getComputedStyle(svg),m=getComputedStyle(menu),o=getComputedStyle(option),h=getComputedStyle(hidden);
+              return {triggerDisplay:t.display,svgWidth:s.width,svgHeight:s.height,menuPosition:m.position,menuVisibility:m.visibility,menuOpacity:m.opacity,optionDisplay:o.display,hiddenDisplay:h.display,triggerHeight:t.height};
+            });
+            assert.equal(result.triggerDisplay,'flex');
+            assert.equal(result.svgWidth,'15px');
+            assert.equal(result.svgHeight,'15px');
+            assert.equal(result.menuPosition,'absolute');
+            assert.equal(result.menuVisibility,'visible');
+            assert.equal(result.menuOpacity,'1');
+            assert.equal(result.optionDisplay,'flex');
+            assert.equal(result.hiddenDisplay,'none');
+            assert.equal(result.triggerHeight,'40px');
+            console.log(JSON.stringify(result));
+            await page.screenshot({path:'/tmp/settings-select-webkit.png',fullPage:true});
+            await browser.close();
+          })().catch(error=>{console.error(error);process.exit(1)});
+          NODE
+
+      - name: Upload WebKit evidence
+        if: always() && github.event_name == 'push'
+        uses: actions/upload-artifact@v6
+        with:
+          name: settings-select-webkit
+          path: /tmp/settings-select-webkit.png
+          if-no-files-found: warn
+          retention-days: 7
