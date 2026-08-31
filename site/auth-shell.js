@@ -26,11 +26,12 @@ function applyEmployeeHeader(profileInput=null){
 }
 async function loadClassicScript(src){await new Promise((resolve,reject)=>{if(document.querySelector(`script[data-auth-shell-src="${src}"]`)){resolve();return}const script=document.createElement('script');script.src=src;script.dataset.authShellSrc=src;script.onload=resolve;script.onerror=()=>reject(new Error(`Unable to load ${src}`));document.head.appendChild(script)})}
 
-/* Warm the approved Betta renderer underneath the existing logo/auth phase.
-   bootstrap.js imports the same module URL later, so the browser reuses this
-   in-flight/evaluated module and initEnvironment remains idempotent. */
+/* Download + evaluate the approved Betta bundle underneath auth, but do not
+   initialize it yet. The weather transport adapter in location.js must exist
+   first so Betta's legacy weather request cannot escape directly to Open-Meteo.
+   bootstrap.js imports the same URL later and reuses this evaluated module. */
 mark('sindhorn-betta-warm-start');
-const earlyBetta=import('./betta-runtime.js?v=1').then(module=>module.initEnvironment()).then(()=>mark('sindhorn-betta-warm-ready')).catch(error=>{console.warn('Early Betta startup unavailable; bootstrap will retry.',error)});
+const bettaModulePromise=import('./betta-runtime.js?v=1').then(module=>{mark('sindhorn-betta-module-ready');return module}).catch(error=>{console.warn('Early Betta module warm-up unavailable; bootstrap will retry.',error);return null});
 
 mark('sindhorn-auth-start');
 let state;try{state=await initAuth()}catch(_){state=getState()}
@@ -43,6 +44,9 @@ if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
   mark('sindhorn-location-load-start');
   await loadClassicScript('/location.js');
   mark('sindhorn-location-load-ready');
+  mark('sindhorn-betta-init-start');
+  const bettaModule=await bettaModulePromise;
+  if(bettaModule?.initEnvironment){try{bettaModule.initEnvironment();mark('sindhorn-betta-warm-ready')}catch(error){console.warn('Early Betta initialization unavailable; bootstrap will retry.',error)}}
   mark('sindhorn-bootstrap-import-start');
   await import('./bootstrap.js');
   mark('sindhorn-bootstrap-import-ready');
@@ -51,4 +55,4 @@ if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
   mark('sindhorn-onboarding-import-ready');
   applyEmployeeHeader();
 }
-void earlyBetta;
+void bettaModulePromise;
