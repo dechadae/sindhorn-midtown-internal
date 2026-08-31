@@ -7,6 +7,7 @@ on:
       - sync-today-betta-fade
     paths:
       - "site/index.html"
+      - "site/route-registry.js"
       - "site/auth-shell.js"
       - "site/shell.css"
       - "site/environment.css"
@@ -33,10 +34,12 @@ jobs:
         run: |
           set -euo pipefail
           node --input-type=module --check < scripts/today-startup-gap-smoke.mjs
+          node --input-type=module --check < site/route-registry.js
           node --input-type=module --check < site/auth-shell.js
           grep -q 'data-startup-enter="pending"' site/index.html
           grep -q 'sindhorn-startup-enter-visible' site/index.html
-          grep -q '__SINDHORN_EARLY_ENVIRONMENT_PROMISE__' site/auth-shell.js
+          grep -q 'mountBusinessDashboardStartupRoute' site/route-registry.js
+          grep -q 'host.append(placeholder,staging)' site/route-registry.js
           grep -q 'html\[data-startup-enter="visible"\].*#route-view' site/shell.css
           grep -q 'html\[data-startup-enter="visible"\] body.environment-ready .environment-canvas' site/environment.css
           grep -q 'transition:opacity .32s cubic-bezier(.22,1,.36,1)' site/shell.css
@@ -44,7 +47,6 @@ jobs:
           ! grep -q 'opacity:.001' site/shell.css
           grep -q '/shell.css?v=5' site/index.html
           grep -q '/environment.css?v=4' site/index.html
-          grep -q '/auth-shell.js?v=3' site/index.html
 
       - name: Deploy Cloudflare branch preview
         env:
@@ -58,7 +60,7 @@ jobs:
           set -euo pipefail
           export BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /shell.css?v=5 /environment.css?v=4 /business-dashboard.js /bootstrap.js /auth-shell.js?v=3; do
+          for path in / /shell.css?v=5 /environment.css?v=4 /route-registry.js /business-dashboard.js /bootstrap.js /auth-shell.js?v=3; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
