@@ -5,125 +5,85 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#2E273B">
 <meta name="color-scheme" content="dark">
-<title>Today Motion Lab | Sindhorn Midtown</title>
+<title>Today Progress Lab | Sindhorn Midtown</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-thin.woff2">
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/environment.css?v=4">
-<link rel="stylesheet" href="/today-motion-lab.css?v=1">
+<link rel="stylesheet" href="/today-motion-lab.css?v=2">
 </head>
 <body>
 <div class="environment-stage" id="environmentStage" hidden aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
 <div class="lab-vignette" aria-hidden="true"></div>
-<div class="lab-scan" data-scan aria-hidden="true"></div>
 
 <header class="lab-toolbar">
   <div class="lab-brand">
     <img src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok">
-    <span>Today Motion Lab</span>
+    <span>Today Progress Lab</span>
   </div>
-  <div class="lab-actions">
-    <button type="button" data-replay>Replay</button>
-    <button class="lab-primary" type="button" data-refresh>Simulate fresh data</button>
-  </div>
+  <button type="button" data-replay>Replay progress</button>
 </header>
 
-<aside class="lab-progress" aria-hidden="true">
-  <span class="lab-progress-line"><i data-progress-line></i></span>
-  <div class="lab-progress-nodes">
-    <i data-progress-node="pulse"></i>
-    <i data-progress-node="attention"></i>
-    <i data-progress-node="fnb"></i>
-    <i data-progress-node="rooms"></i>
-    <i data-progress-node="outlook"></i>
-  </div>
-</aside>
+<main class="lab-main">
+  <header class="lab-hero">
+    <p class="lab-eyebrow">Today <span>Progress experiment · synthetic data</span></p>
+    <h1>Hotel Business</h1>
+    <p class="lab-copy">Monday, 31 August 2026 · Daily operating pulse</p>
+    <div class="lab-update"><span>Data updated</span><strong>31 Aug 2026 · 20:48 ICT</strong><small>Validated · Prototype only</small></div>
+  </header>
 
-<main class="lab-main" data-lab-main>
-  <section class="lab-hero lab-enter" data-stage="hero">
-    <p class="lab-eyebrow"><span>Today</span><b>Motion experiment · synthetic data</b></p>
-    <h1><span>Hotel Business</span></h1>
-    <p class="lab-hero-copy">Monday, 31 August 2026 · Daily operating pulse</p>
-    <div class="lab-update" data-update-stamp>
-      <span>Data updated</span>
-      <strong>31 Aug 2026 · 20:48 ICT</strong>
-      <small>Validated · Motion prototype only</small>
-    </div>
-    <div class="lab-source-grid">
-      <div><span>F&amp;B report</span><strong>31 Aug 2026</strong><small>Revision 4</small></div>
-      <div><span>Rooms report</span><strong>31 Aug 2026</strong><small>Pickup through 20:00</small></div>
-    </div>
-  </section>
-
-  <section class="lab-section lab-focus-section" data-section="pulse">
+  <section class="lab-section">
     <header class="lab-section-head"><p>01 · Business pulse</p><h2>At a Glance</h2></header>
+
     <div class="lab-domain">
       <div class="lab-domain-head"><span>Food &amp; Beverage</span><small>Synthetic</small></div>
-      <div class="lab-metric-grid two">
-        <article class="lab-card lab-metric" data-tilt data-metric="revenue" data-value="428600" data-format="money-compact"><span>Today Revenue</span><strong data-rolling>฿429K</strong><p>+6.7% vs forecast</p><div class="lab-track"><i style="--value:86%"></i><b style="--target:80%"></b></div></article>
-        <article class="lab-card lab-metric" data-tilt data-metric="mtd" data-value="9810000" data-format="money-compact"><span>MTD Revenue</span><strong data-rolling>฿9.81M</strong><p>+3.1% vs forecast</p><div class="lab-track"><i style="--value:83%"></i><b style="--target:80%"></b></div></article>
+      <div class="lab-grid">
+        <article class="lab-card" data-progress-card data-progress="0.86">
+          <span>Today Revenue</span><strong>฿429K</strong><p>+6.7% vs forecast</p>
+          <div class="lab-progress" aria-hidden="true"><i></i><b style="--target:80%"></b></div>
+        </article>
+        <article class="lab-card" data-progress-card data-progress="0.83">
+          <span>MTD Revenue</span><strong>฿9.81M</strong><p>+3.1% vs forecast</p>
+          <div class="lab-progress" aria-hidden="true"><i></i><b style="--target:80%"></b></div>
+        </article>
       </div>
     </div>
-    <div class="lab-domain rooms">
+
+    <div class="lab-domain">
       <div class="lab-domain-head"><span>Rooms</span><small>Synthetic</small></div>
-      <div class="lab-metric-grid four">
-        <article class="lab-card lab-metric" data-tilt data-metric="occupancy" data-value="0.861" data-format="percent"><span>Occupancy OTB</span><strong data-rolling>86.1%</strong><p>+2.6 pp vs forecast</p><div class="lab-track"><i style="--value:85%"></i><b style="--target:80%"></b></div></article>
-        <article class="lab-card lab-metric" data-tilt data-metric="adr" data-value="5820" data-format="money"><span>ADR</span><strong data-rolling>฿5,820</strong><p>+฿240 vs forecast</p></article>
-        <article class="lab-card lab-metric" data-tilt data-metric="revpar" data-value="5011" data-format="money"><span>RevPAR</span><strong data-rolling>฿5,011</strong><p>+฿310 vs forecast</p></article>
-        <article class="lab-card lab-metric pickup" data-tilt data-metric="pickup" data-value="27" data-format="rn"><span>24h Pickup</span><strong data-rolling>+27 RN</strong><p>+฿164K</p><small>Pickup ADR ฿6,074</small></article>
+      <div class="lab-grid">
+        <article class="lab-card" data-progress-card data-progress="0.85">
+          <span>Occupancy OTB</span><strong>86.1%</strong><p>+2.6 pp vs forecast</p>
+          <div class="lab-progress" aria-hidden="true"><i></i><b style="--target:80%"></b></div>
+        </article>
+        <article class="lab-card" data-progress-card data-progress="0.84">
+          <span>ADR</span><strong>฿5,820</strong><p>+฿240 vs forecast</p>
+          <div class="lab-progress" aria-hidden="true"><i></i><b style="--target:80%"></b></div>
+        </article>
+        <article class="lab-card" data-progress-card data-progress="0.88">
+          <span>RevPAR</span><strong>฿5,011</strong><p>+฿310 vs forecast</p>
+          <div class="lab-progress" aria-hidden="true"><i></i><b style="--target:80%"></b></div>
+        </article>
+        <article class="lab-card" data-progress-card data-progress="0.72">
+          <span>24h Pickup</span><strong>+27 RN</strong><p>+฿164K · Pickup ADR ฿6,074</p>
+          <div class="lab-progress" aria-hidden="true"><i></i><b style="--target:62%"></b></div>
+        </article>
       </div>
     </div>
   </section>
 
-  <section class="lab-section lab-focus-section" data-section="attention">
-    <header class="lab-section-head"><p>02 · Exceptions</p><h2>Needs Attention</h2><small>New exceptions get one clear signal, then settle.</small></header>
-    <div class="lab-flags">
-      <article class="lab-card lab-flag" data-tilt><div><span>Food &amp; Beverage</span><strong>Lunch pacing below forecast</strong><p>Revenue is trailing the approved lunch forecast.</p></div><b>−8.4%</b></article>
-      <article class="lab-card lab-flag" data-tilt><div><span>Rooms</span><strong>Premium segment pickup accelerated</strong><p>Room-night pickup moved above the daily threshold.</p></div><b>+18 RN</b></article>
+  <section class="lab-section">
+    <header class="lab-section-head"><p>02 · Example summaries</p><h2>Same motion, larger cards</h2><small>The idea is only the progress bar: smooth, quiet, and integrated into the card.</small></header>
+    <div class="lab-stack">
+      <article class="lab-card lab-summary" data-progress-card data-progress="0.86"><span>Total F&amp;B</span><strong>฿428,600</strong><p>+฿26.8K · +6.7% vs forecast</p><div class="lab-progress" aria-hidden="true"><i></i><b style="--target:80%"></b></div></article>
+      <article class="lab-card lab-summary" data-progress-card data-progress="0.84"><span>Room Revenue OTB</span><strong>฿24.6M</strong><p>+฿1.14M · +4.9% vs forecast</p><div class="lab-progress" aria-hidden="true"><i></i><b style="--target:80%"></b></div></article>
     </div>
   </section>
 
-  <section class="lab-section lab-focus-section" data-section="fnb">
-    <header class="lab-section-head"><p>03 · Food &amp; Beverage</p><h2>F&amp;B Today</h2><small>Tap an outlet. The selected layer lifts while its detail unfolds.</small></header>
-    <article class="lab-card lab-summary" data-tilt><span>Total F&amp;B</span><strong data-demo-number>฿428,600</strong><p>+฿26.8K · +6.7% vs forecast</p><div class="lab-track wide"><i style="--value:86%"></i><b style="--target:80%"></b></div></article>
-    <div class="lab-disclosures">
-      <article class="lab-card lab-disclosure">
-        <button type="button" aria-expanded="false"><span><small>Bangkok'78</small><strong>฿146K</strong><em>+9.2% vs forecast</em></span><b>›</b></button>
-        <div class="lab-disclosure-panel"><div><dl><div><dt>Forecast</dt><dd>฿134K</dd></div><div><dt>Covers</dt><dd>211</dd></div><div><dt>Food</dt><dd>฿102K</dd></div><div><dt>Beverage</dt><dd>฿44K</dd></div></dl><p>Dinner pacing strengthened after 18:00.</p></div></div>
-      </article>
-      <article class="lab-card lab-disclosure">
-        <button type="button" aria-expanded="false"><span><small>ANJU</small><strong>฿119K</strong><em>−2.8% vs forecast</em></span><b>›</b></button>
-        <div class="lab-disclosure-panel"><div><dl><div><dt>Forecast</dt><dd>฿122K</dd></div><div><dt>Covers</dt><dd>137</dd></div><div><dt>Food</dt><dd>฿71K</dd></div><div><dt>Beverage</dt><dd>฿48K</dd></div></dl><p>Late-evening beverage mix remains the recovery opportunity.</p></div></div>
-      </article>
-      <article class="lab-card lab-disclosure">
-        <button type="button" aria-expanded="false"><span><small>Horizon Pool</small><strong>฿82K</strong><em>+14.1% vs forecast</em></span><b>›</b></button>
-        <div class="lab-disclosure-panel"><div><dl><div><dt>Forecast</dt><dd>฿72K</dd></div><div><dt>Covers</dt><dd>96</dd></div><div><dt>Food</dt><dd>฿37K</dd></div><div><dt>Beverage</dt><dd>฿45K</dd></div></dl><p>Sunset trade outperformed the synthetic baseline.</p></div></div>
-      </article>
-    </div>
-  </section>
-
-  <section class="lab-section lab-focus-section" data-section="rooms">
-    <header class="lab-section-head"><p>04 · Rooms / Revenue</p><h2>Current Month</h2><small>High-value numbers settle with a short mechanical roll instead of a generic fade.</small></header>
-    <article class="lab-card lab-summary" data-tilt><span>Room Revenue OTB</span><strong data-demo-number>฿24.6M</strong><p>+฿1.14M · +4.9% vs forecast</p><div class="lab-track wide"><i style="--value:84%"></i><b style="--target:80%"></b></div></article>
-    <div class="lab-benchmarks">
-      <div><span>Budget revenue</span><strong>฿23.9M</strong></div><div><span>STLY revenue</span><strong>฿22.8M</strong></div><div><span>Last year</span><strong>฿21.9M</strong></div><div><span>24h pickup</span><strong>+27 RN · ฿164K</strong></div>
-    </div>
-  </section>
-
-  <section class="lab-section lab-focus-section" data-section="outlook">
-    <header class="lab-section-head"><p>05 · Forward outlook</p><h2>Next Months</h2><small>Swipe horizontally. The card nearest the viewport centre becomes the visual focus.</small></header>
-    <div class="lab-outlook" data-outlook>
-      <article class="lab-card lab-outlook-card"><span>Sep 26</span><strong>71.4%</strong><p>76.0% forecast occupancy</p><dl><div><dt>OTB Revenue</dt><dd>฿20.8M</dd></div><div><dt>24h Pickup</dt><dd>+31 RN</dd></div></dl></article>
-      <article class="lab-card lab-outlook-card"><span>Oct 26</span><strong>63.8%</strong><p>70.5% forecast occupancy</p><dl><div><dt>OTB Revenue</dt><dd>฿18.4M</dd></div><div><dt>24h Pickup</dt><dd>+22 RN</dd></div></dl></article>
-      <article class="lab-card lab-outlook-card"><span>Nov 26</span><strong>48.6%</strong><p>61.0% forecast occupancy</p><dl><div><dt>OTB Revenue</dt><dd>฿14.1M</dd></div><div><dt>24h Pickup</dt><dd>+18 RN</dd></div></dl></article>
-      <article class="lab-card lab-outlook-card"><span>Dec 26</span><strong>41.2%</strong><p>58.5% forecast occupancy</p><dl><div><dt>OTB Revenue</dt><dd>฿12.7M</dd></div><div><dt>24h Pickup</dt><dd>+14 RN</dd></div></dl></article>
-    </div>
-  </section>
-
-  <footer class="lab-footer"><span>Motion Lab · Synthetic data only</span><p>This page does not read or expose Sindhorn Midtown operational business data.</p></footer>
+  <footer class="lab-footer"><span>Progress Lab · Synthetic data only</span><p>This page does not read or expose Sindhorn Midtown operational business data.</p></footer>
 </main>
 
-<script type="module" src="/today-motion-lab.js?v=1"></script>
+<script type="module" src="/today-motion-lab.js?v=2"></script>
 </body>
 </html>
