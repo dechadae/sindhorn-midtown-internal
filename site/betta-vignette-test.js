@@ -1,6 +1,6 @@
 import {BETTA_PRESETS} from './betta-fin-presets.js';
 import {BETTA_DAY_PERIODS} from './betta-day-periods.js';
-import {applyVignetteGrade} from './betta-vignette-palettes.js';
+import {applyVignetteGrade} from './betta-vignette-palettes.js?v=4';
 
 const params=new URLSearchParams(location.search);
 const requestedGrade=params.get('grade');
