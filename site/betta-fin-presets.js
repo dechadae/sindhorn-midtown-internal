@@ -21,6 +21,7 @@ export const BETTA_PRESETS={
     },
     layers:[
       {seed:1.17,scale:1,rotation:0,offset:[0,0,0],alpha:.94,phase:0},
+      {seed:2.91,scale:.986,rotation:.018,offset:[.06,.04,-.12],alpha:.18,phase:14.6},
     ]
   },
   superRedHalfmoon:{
@@ -37,7 +38,7 @@ export const BETTA_PRESETS={
     },
     layers:[
       {seed:4.31,scale:1.12,rotation:-.12,offset:[-1.22,-.32,.12],alpha:.88,phase:7.4},
-      {seed:8.63,scale:.92,rotation:3.03,offset:[1.36,.46,-.24],alpha:.36,phase:19.7},
+      {seed:8.63,scale:.94,rotation:3.01,offset:[1.28,.42,-.22],alpha:.27,phase:19.7},
     ]
   },
   mustardGas:{
@@ -54,6 +55,7 @@ export const BETTA_PRESETS={
     },
     layers:[
       {seed:6.14,scale:1.02,rotation:0,offset:[0,0,.05],alpha:.94,phase:3.2},
+      {seed:10.82,scale:.982,rotation:-.025,offset:[-.05,.07,-.1],alpha:.17,phase:16.4},
     ]
   },
   blackOrchid:{
@@ -70,6 +72,7 @@ export const BETTA_PRESETS={
     },
     layers:[
       {seed:31.6,scale:1.05,rotation:.04,offset:[0,0,.18],alpha:.92,phase:13.8},
+      {seed:37.2,scale:.988,rotation:-.022,offset:[.06,-.04,-.12],alpha:.16,phase:30.2},
     ]
   },
   copperMetallic:{
@@ -86,7 +89,7 @@ export const BETTA_PRESETS={
     },
     layers:[
       {seed:15.7,scale:1.08,rotation:-.58,offset:[-1.3,-.68,.25],alpha:.78,phase:5.7},
-      {seed:19.8,scale:.9,rotation:2.28,offset:[1.5,.76,-.25],alpha:.32,phase:23.1},
+      {seed:19.8,scale:.94,rotation:2.28,offset:[1.4,.7,-.22],alpha:.24,phase:23.1},
     ]
   },
   turquoiseMetallic:{
@@ -103,7 +106,7 @@ export const BETTA_PRESETS={
     },
     layers:[
       {seed:12.9,scale:1.02,rotation:-.55,offset:[-1.34,-.64,.32],alpha:.76,phase:4.2},
-      {seed:22.4,scale:.9,rotation:2.08,offset:[1.48,.72,-.26],alpha:.28,phase:32.1},
+      {seed:22.4,scale:.94,rotation:2.08,offset:[1.38,.66,-.22],alpha:.22,phase:32.1},
     ]
   },
   nemoGalaxyKoi:{
@@ -120,7 +123,7 @@ export const BETTA_PRESETS={
     },
     layers:[
       {seed:42.3,scale:1.08,rotation:-.2,offset:[-1.05,-.28,.15],alpha:.84,phase:6.8},
-      {seed:47.1,scale:.9,rotation:2.94,offset:[1.25,.44,-.2],alpha:.34,phase:26.3},
+      {seed:47.1,scale:.94,rotation:2.94,offset:[1.18,.4,-.18],alpha:.26,phase:26.3},
     ]
   },
   redSnowDragon:{
@@ -137,7 +140,7 @@ export const BETTA_PRESETS={
     },
     layers:[
       {seed:52.7,scale:1.02,rotation:-.04,offset:[0,0,.08],alpha:.86,phase:9.3},
-      {seed:57.4,scale:.76,rotation:3.06,offset:[.72,.28,-.18],alpha:.28,phase:28.7},
+      {seed:57.4,scale:.84,rotation:3.06,offset:[.65,.24,-.16],alpha:.22,phase:28.7},
     ]
   }
 };
