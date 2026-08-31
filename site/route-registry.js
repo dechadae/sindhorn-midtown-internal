@@ -21,8 +21,10 @@ function startupLoadingRoute(){
 }
 
 export async function mountBusinessDashboardStartupRoute(host){
-  const {mountBusinessDashboardRoute}=await import('./business-dashboard.js?v=4');
-  if(document.documentElement.dataset.startupEnter!=='pending')return mountBusinessDashboardRoute(host);
+  if(document.documentElement.dataset.startupEnter!=='pending'){
+    const {mountBusinessDashboardRoute}=await import('./business-dashboard.js?v=4');
+    return mountBusinessDashboardRoute(host);
+  }
 
   const placeholder=startupLoadingRoute();
   const staging=document.createElement('div');
@@ -32,11 +34,14 @@ export async function mountBusinessDashboardStartupRoute(host){
 
   let disposed=false;
   let realCleanup=null;
-  const mounting=mountBusinessDashboardRoute(staging).then(cleanup=>{
+  const mounting=(async()=>{
+    const {mountBusinessDashboardRoute}=await import('./business-dashboard.js?v=4');
+    return mountBusinessDashboardRoute(staging);
+  })().then(cleanup=>{
     realCleanup=typeof cleanup==='function'?cleanup:null;
     if(disposed){realCleanup?.();staging.remove();return}
     const realRoute=staging.querySelector(':scope > .business-dashboard-route');
-    if(realRoute){placeholder.replaceWith(realRoute)}
+    if(realRoute)placeholder.replaceWith(realRoute);
     staging.remove();
   }).catch(error=>{
     console.warn('Today dashboard startup mount failed',error);
