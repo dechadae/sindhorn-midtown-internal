@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - fix-today-startup-gap
+      - sync-today-betta-fade
     paths:
       - "site/index.html"
       - "site/shell.css"
+      - "site/environment.css"
       - "scripts/today-startup-gap-smoke.mjs"
       - ".github/workflows/today-startup-gap-preview.yml"
   workflow_dispatch:
@@ -30,11 +32,15 @@ jobs:
         run: |
           set -euo pipefail
           node --input-type=module --check < scripts/today-startup-gap-smoke.mjs
-          grep -q '\[data-shell-loading="true"\] #app-header,\[data-shell-loading="true"\] #route-view{opacity:1!important}' site/index.html
-          grep -q '\[data-shell-loading="true"\] #app-footer{display:block!important}' site/index.html
-          grep -q '#app-header,#route-view{opacity:1}' site/shell.css
+          grep -q 'data-startup-enter="pending"' site/index.html
+          grep -q 'sindhorn-startup-enter-visible' site/index.html
+          grep -q 'html\[data-startup-enter="visible"\].*#route-view' site/shell.css
+          grep -q 'html\[data-startup-enter="visible"\] body.environment-ready .environment-canvas' site/environment.css
+          grep -q 'transition:opacity .32s cubic-bezier(.22,1,.36,1)' site/shell.css
+          grep -q 'transition:opacity .32s cubic-bezier(.22,1,.36,1)' site/environment.css
           ! grep -q 'opacity:.001' site/shell.css
-          grep -q '/shell.css?v=4' site/index.html
+          grep -q '/shell.css?v=5' site/index.html
+          grep -q '/environment.css?v=4' site/index.html
 
       - name: Deploy Cloudflare branch preview
         env:
@@ -48,7 +54,7 @@ jobs:
           set -euo pipefail
           export BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /shell.css /business-dashboard.js /bootstrap.js /auth-shell.js; do
+          for path in / /shell.css?v=5 /environment.css?v=4 /business-dashboard.js /bootstrap.js /auth-shell.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
