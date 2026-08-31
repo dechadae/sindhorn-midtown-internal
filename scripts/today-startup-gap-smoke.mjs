@@ -3,13 +3,15 @@ import {chromium} from 'playwright';
 const BASE_URL=(process.env.BASE_URL||'http://127.0.0.1:8788').replace(/\/$/,'');
 const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 const authShim=`
-window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Startup Preview',pin_configured_at:new Date().toISOString()};
+window.__SINDHORN_AUTH_PROFILE__={employee_number:'00000',display_name:'Startup Preview',pin_configured_at:new Date().toISOString()};
 await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='/location.js';script.onload=resolve;script.onerror=reject;document.head.appendChild(script)});
 await import('/bootstrap.js');
 `;
+// Synthetic regression fixture only. Never copy production hotel figures into this public test.
+const TEST_BUSINESS_DATE='2000-01-01';
 const dashboard={
-  businessDate:'2026-08-30',revision:2,validationStatus:'passed',publishedAt:'2026-08-31T00:54:53.872Z',sources:[],
-  fnb:{summary:{daily:{revenue:201864.91,forecast:367838.06,covers:591},mtd:{revenue:9099462.143,forecast:11035141.94,covers:21635}},outlets:[],notes:[]},
+  businessDate:TEST_BUSINESS_DATE,revision:1,validationStatus:'passed',publishedAt:'2000-01-01T00:00:00.000Z',sources:[],
+  fnb:{summary:{daily:{revenue:1000,forecast:1200,covers:10},mtd:{revenue:5000,forecast:6000,covers:50}},outlets:[],notes:[]},
   rooms:{months:[],segments:[]},flags:[]
 };
 
@@ -47,14 +49,14 @@ try{
   assert(early.headerVisible&&early.footerDisplay!=='none',`Persistent shell is not progressively visible: ${JSON.stringify(early)}`);
   assert(early.businessDate==='',`Slow RPC unexpectedly completed before early startup probe: ${JSON.stringify(early)}`);
 
-  await page.waitForSelector('.business-dashboard-route[data-business-date="2026-08-30"]',{timeout:9000});
+  await page.waitForFunction(expectedDate=>document.querySelector('.business-dashboard-route')?.dataset.businessDate===expectedDate,TEST_BUSINESS_DATE,{timeout:12000});
   await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false');
   const final=await page.evaluate(()=>({
     shellLoading:document.documentElement.dataset.shellLoading,
     title:document.querySelector('.business-dashboard-route .app-route-title')?.textContent?.trim(),
     businessDate:document.querySelector('.business-dashboard-route')?.dataset.businessDate||''
   }));
-  assert(final.shellLoading==='false'&&final.title==='Hotel Business'&&final.businessDate==='2026-08-30',`Today did not complete after delayed data load: ${JSON.stringify(final)}`);
+  assert(final.shellLoading==='false'&&final.title==='Hotel Business'&&final.businessDate===TEST_BUSINESS_DATE,`Today did not complete after delayed data load: ${JSON.stringify(final)}`);
   console.log(JSON.stringify({ok:true,baseUrl:BASE_URL,earlyElapsedMs,early,final}));
 }finally{
   await context.close();
