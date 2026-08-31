@@ -32,6 +32,7 @@ on:
       - "supabase/migrations/20260830151616_daily_business_dashboard_flag_builder.sql"
       - "supabase/migrations/20260830151646_daily_business_dashboard_read_model.sql"
       - "supabase/migrations/20260831045500_daily_business_dashboard_notification_bridge.sql"
+      - "supabase/migrations/20260831050000_daily_business_dashboard_fk_indexes.sql"
       - ".github/workflows/business-dashboard-preview.yml"
   workflow_dispatch:
 
