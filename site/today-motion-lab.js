@@ -6,13 +6,16 @@ function setCardProgress(card,{animate=true}={}){
   const value=Math.max(0,Math.min(1,Number(card.dataset.progress)||0));
   const fill=card.querySelector('.lab-progress i');
   if(!fill)return;
-  card.classList.remove('is-progress-ready');
-  fill.style.transform='scaleX(0)';
-  if(reduce()||!animate){fill.style.transform=`scaleX(${value})`;return}
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    card.classList.add('is-progress-ready');
+  fill.getAnimations?.().forEach(animation=>animation.cancel());
+  if(reduce()||!animate||typeof fill.animate!=='function'){
     fill.style.transform=`scaleX(${value})`;
-  }));
+    return;
+  }
+  fill.style.transform=`scaleX(${value})`;
+  fill.animate(
+    [{transform:'scaleX(0)'},{transform:`scaleX(${value})`}],
+    {duration:920,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'}
+  );
 }
 
 function replayProgress(){cards.forEach((card,index)=>setTimeout(()=>setCardProgress(card,{animate:true}),index*55))}
