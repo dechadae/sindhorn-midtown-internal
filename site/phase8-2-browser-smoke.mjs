@@ -66,13 +66,57 @@ async function signIn(page,name){
   }
 }
 
-async function assertCanvasMotion(page,name,phase,delayMs=1200){
+async function captureCanvasFrame(page,name,phase){
   const canvas=page.locator('#environmentCanvas');
-  const before=await canvas.screenshot();
+  const box=await canvas.boundingBox();
+  if(!box||box.width<1||box.height<1)throw new Error(`${name}: Betta canvas has no capture bounds during ${phase}`);
+  const viewport=page.viewportSize();
+  const x=Math.max(0,box.x),y=Math.max(0,box.y);
+  const width=Math.min(box.width,(viewport?.width||box.x+box.width)-x);
+  const height=Math.min(box.height,(viewport?.height||box.y+box.height)-y);
+  if(width<1||height<1)throw new Error(`${name}: Betta canvas is outside viewport during ${phase}`);
+  return page.screenshot({clip:{x,y,width,height},animations:'allow',caret:'hide'});
+}
+async function assertCanvasMotion(page,name,phase,delayMs=1200){
+  /* locator.screenshot() waits for element stability, which is the opposite of
+     the property under test for a continuously animated WebGL canvas. Capture
+     the fixed viewport rectangle instead so motion itself cannot deadlock CI. */
+  const before=await captureCanvasFrame(page,name,phase);
   await page.waitForTimeout(delayMs);
-  const after=await canvas.screenshot();
+  const after=await captureCanvasFrame(page,name,phase);
   if(Buffer.compare(before,after)===0)throw new Error(`${name}: Betta canvas did not visibly change during ${phase}`);
   return true;
+}
+
+async function resourcePerformance(page){
+  return page.evaluate(()=>{
+    const resources=performance.getEntriesByType('resource').map(entry=>({
+      name:entry.name,
+      initiatorType:entry.initiatorType,
+      duration:+entry.duration.toFixed(2),
+      transferSize:Number(entry.transferSize)||0,
+      encodedBodySize:Number(entry.encodedBodySize)||0,
+      decodedBodySize:Number(entry.decodedBodySize)||0
+    }));
+    const navigation=performance.getEntriesByType('navigation')[0];
+    const mark=performance.getEntriesByName('sindhorn-startup-enter-visible').at(-1);
+    const sameOrigin=resources.filter(entry=>entry.name.startsWith(location.origin));
+    const total=(key)=>sameOrigin.reduce((sum,entry)=>sum+(Number(entry[key])||0),0);
+    const findPath=path=>sameOrigin.find(entry=>{try{return new URL(entry.name).pathname===path}catch{return false}})||null;
+    return{
+      startupEnterMs:mark?+mark.startTime.toFixed(2):null,
+      domContentLoadedMs:navigation?+navigation.domContentLoadedEventEnd.toFixed(2):null,
+      loadEventMs:navigation?+navigation.loadEventEnd.toFixed(2):null,
+      sameOriginResourceCount:sameOrigin.length,
+      sameOriginTransferBytes:total('transferSize'),
+      sameOriginEncodedBytes:total('encodedBodySize'),
+      sameOriginDecodedBytes:total('decodedBodySize'),
+      bettaRuntime:findPath('/betta-runtime.js'),
+      html2canvasLoaded:Boolean(findPath('/vendor/html2canvas.min.js')),
+      threeModuleLoaded:Boolean(findPath('/vendor/three.module.js')),
+      largestSameOrigin:[...sameOrigin].sort((a,b)=>b.decodedBodySize-a.decodedBodySize).slice(0,8)
+    };
+  });
 }
 
 async function exerciseLifecycleRecovery(page,name){
@@ -126,6 +170,9 @@ async function inspectLive(viewport,name){
      delivery states by design. */
   await page.waitForFunction(()=>Boolean(window.SindhornLiveData?.getState?.()),null,{timeout:20000});
   await page.waitForTimeout(800);
+  const performanceData=await resourcePerformance(page);
+  if(performanceData.html2canvasLoaded)throw new Error(`${name}: html2canvas was loaded before Save Image interaction`);
+  if(performanceData.threeModuleLoaded)throw new Error(`${name}: redundant Three module was loaded outside the tree-shaken Betta runtime`);
   await assertCanvasMotion(page,name,'normal foreground motion');
   const lifecycle=await exerciseLifecycleRecovery(page,name);
   const state=await page.evaluate(()=>{
@@ -176,7 +223,7 @@ async function inspectLive(viewport,name){
   await page.screenshot({path:`phase82-artifacts/${name}.png`,fullPage:true});
   const pacing=await sampleFrames(page,name);
   await context.close();
-  return {...state,motionChanged:true,...lifecycle,...pacing};
+  return {...state,motionChanged:true,...lifecycle,...pacing,performance:performanceData};
 }
 
 let desktop=null,mobile=null,fatal=null;
