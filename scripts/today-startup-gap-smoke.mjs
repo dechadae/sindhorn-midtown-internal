@@ -5,7 +5,6 @@ const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 const authShim=`
 window.__SINDHORN_AUTH_PROFILE__={employee_number:'00000',display_name:'Startup Preview',pin_configured_at:new Date().toISOString()};
 await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='/location.js';script.onload=resolve;script.onerror=reject;document.head.appendChild(script)});
-const host=document.getElementById('route-view');let started=false,observer=null;const startBetta=()=>{if(started)return;started=true;observer?.disconnect();window.__SINDHORN_EARLY_ENVIRONMENT_PROMISE__=import('/betta-environment.js').then(module=>module.initEnvironment())};if(host.childElementCount)startBetta();else{observer=new MutationObserver(()=>{if(host.childElementCount)startBetta()});observer.observe(host,{childList:true})}
 await import('/bootstrap.js');
 `;
 // Synthetic regression fixture only. Never copy production hotel figures into this public test.
@@ -76,7 +75,7 @@ try{
     };
   });
   const revealElapsedMs=Date.now()-startedAt;
-  assert(revealElapsedMs<2500,`Synchronized Today/Betta reveal took too long: ${revealElapsedMs}ms`);
+  assert(revealElapsedMs<2500,`Synchronized Today/Betta reveal took too long: ${revealElapsedMs}ms; ${JSON.stringify(reveal)}`);
   assert(reveal.startupEnter==='visible'&&reveal.environmentReady,`Startup reveal fired before Betta readiness: ${JSON.stringify(reveal)}`);
   assert(reveal.routeHostOpacity>.95&&reveal.canvasOpacity>.95&&reveal.headerVisible&&reveal.footerVisible,`Today and Betta did not finish the shared fade together: ${JSON.stringify(reveal)}`);
   assert(Number.isFinite(reveal.transitionDeltaMs)&&reveal.transitionDeltaMs<=16,`Today and Betta opacity transitions did not start in the same frame: ${JSON.stringify(reveal)}`);
