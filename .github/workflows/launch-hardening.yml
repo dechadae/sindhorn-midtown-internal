@@ -119,7 +119,7 @@ jobs:
           assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index and '/storm-effects.js' not in index
 
           # PWA, Today v4 motion and push release lineage.
-          for token in ("'/business-dashboard.js'","'/business-dashboard-motion.js'","'/business-dashboard-motion.css'","'/betta-environment.js'","'/betta-satellite.js'","'/betta-day-periods.js'","'/fnb.js'","'/push-client.js'"):
+          for token in ("'/business-dashboard.js'","'/business-dashboard-motion.js'","'/business-dashboard-motion.css'","'/betta-runtime.js'","'/betta-satellite.js'","'/betta-day-periods.js'","'/fnb.js'","'/push-client.js'"):
               assert token in sw,token
           assert 'sindhorn-midtown-internal-pwa-v38-today-motion-r1' in sw
           assert 'sindhorn-midtown-internal-pwa-v38-betta-day-cycle-r1' in sw
