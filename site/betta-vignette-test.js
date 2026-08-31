@@ -4,7 +4,7 @@ import {VIGNETTE_GRADES,applyVignetteGrade} from './betta-vignette-palettes.js';
 
 const params=new URLSearchParams(location.search);
 const requestedGrade=params.get('grade');
-const gradeKey=requestedGrade==='a'||requestedGrade==='b'?requestedGrade:'current';
+const gradeKey=requestedGrade==='a'||requestedGrade==='b'||requestedGrade==='selected'?requestedGrade:'current';
 const grade=gradeKey==='current'?null:applyVignetteGrade(BETTA_PRESETS,gradeKey);
 const requestedPeriod=params.get('period');
 
