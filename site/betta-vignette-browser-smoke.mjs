@@ -44,10 +44,10 @@ async function review(name,viewport,grade,period){
 }
 
 const results=[];
-results.push(await review('mobile-a-midday',{width:390,height:844},'a','midday'));
-results.push(await review('mobile-b-golden-hour',{width:390,height:844},'b','golden-hour'));
-results.push(await review('desktop-a-bright-morning',{width:1440,height:1000},'a','bright-morning'));
-results.push(await review('desktop-b-midnight',{width:1440,height:1000},'b','midnight'));
+results.push(await review('mobile-selected-midday',{width:390,height:844},'selected','midday'));
+results.push(await review('mobile-selected-golden-hour',{width:390,height:844},'selected','golden-hour'));
+results.push(await review('desktop-selected-bright-morning',{width:1440,height:1000},'selected','bright-morning'));
+results.push(await review('desktop-selected-midnight',{width:1440,height:1000},'selected','midnight'));
 fs.writeFileSync('betta-vignette-artifacts/results.json',JSON.stringify(results,null,2));
 await browser.close();
-console.log('Cool Vignette public reviewer smoke passed at explicit mobile and desktop viewports.');
+console.log('Cool Vignette selected-mix reviewer smoke passed at explicit mobile and desktop viewports.');
