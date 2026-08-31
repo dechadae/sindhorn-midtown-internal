@@ -5,7 +5,7 @@ const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 const authShim=`
 window.__SINDHORN_AUTH_PROFILE__={employee_number:'00000',display_name:'Startup Preview',pin_configured_at:new Date().toISOString()};
 await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='/location.js';script.onload=resolve;script.onerror=reject;document.head.appendChild(script)});
-window.__SINDHORN_EARLY_ENVIRONMENT_PROMISE__=import('/betta-environment.js').then(module=>module.initEnvironment());
+const host=document.getElementById('route-view');let started=false,observer=null;const startBetta=()=>{if(started)return;started=true;observer?.disconnect();window.__SINDHORN_EARLY_ENVIRONMENT_PROMISE__=import('/betta-environment.js').then(module=>module.initEnvironment())};if(host.childElementCount)startBetta();else{observer=new MutationObserver(()=>{if(host.childElementCount)startBetta()});observer.observe(host,{childList:true})}
 await import('/bootstrap.js');
 `;
 // Synthetic regression fixture only. Never copy production hotel figures into this public test.
@@ -34,7 +34,7 @@ await page.route('**/rest/v1/rpc/sindhorn_business_dashboard_read_model',async r
 });
 
 try{
-  const started=Date.now();
+  const startedAt=Date.now();
   await page.goto(`${BASE_URL}/`,{waitUntil:'domcontentloaded'});
   await page.waitForSelector('.business-dashboard-route',{state:'attached',timeout:2500});
   const mounted=await page.evaluate(()=>{
@@ -47,7 +47,7 @@ try{
       businessDate:route?.dataset.businessDate||''
     };
   });
-  const mountedElapsedMs=Date.now()-started;
+  const mountedElapsedMs=Date.now()-startedAt;
   assert(mountedElapsedMs<2500,`Today startup shell took too long to mount: ${mountedElapsedMs}ms`);
   assert(mounted.title==='Hotel Business'&&/Loading the latest approved daily business report/.test(mounted.loadingCopy),`Today loading structure did not mount before business data: ${JSON.stringify(mounted)}`);
   assert(mounted.businessDate==='',`Slow RPC unexpectedly completed before startup reveal: ${JSON.stringify(mounted)}`);
@@ -75,7 +75,7 @@ try{
       transitionDeltaMs:routeTransition&&canvasTransition?Math.abs(routeTransition.t-canvasTransition.t):null
     };
   });
-  const revealElapsedMs=Date.now()-started;
+  const revealElapsedMs=Date.now()-startedAt;
   assert(revealElapsedMs<2500,`Synchronized Today/Betta reveal took too long: ${revealElapsedMs}ms`);
   assert(reveal.startupEnter==='visible'&&reveal.environmentReady,`Startup reveal fired before Betta readiness: ${JSON.stringify(reveal)}`);
   assert(reveal.routeHostOpacity>.95&&reveal.canvasOpacity>.95&&reveal.headerVisible&&reveal.footerVisible,`Today and Betta did not finish the shared fade together: ${JSON.stringify(reveal)}`);
