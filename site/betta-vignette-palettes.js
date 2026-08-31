@@ -1,5 +1,16 @@
 const freezeGrade=grade=>Object.freeze(Object.fromEntries(Object.entries(grade).map(([key,value])=>[key,Object.freeze([...value])])));
 
+export const VIGNETTE_SELECTED_BY_PERIOD=Object.freeze({
+  'midnight':'b',
+  'before-dawn':'a',
+  'first-light':'b',
+  'bright-morning':'b',
+  'midday':'a',
+  'afternoon':'a',
+  'golden-hour':'b',
+  'blue-hour':'a'
+});
+
 export const VIGNETTE_GRADES=Object.freeze({
   a:Object.freeze({
     key:'a',
@@ -29,6 +40,21 @@ export const VIGNETTE_GRADES=Object.freeze({
       turquoiseMetallic:['#043944','#087c89','#23c1b8','#c1f2e7'],
       nemoGalaxyKoi:['#2268a4','#91346b','#df6f84','#fff2ec'],
       redSnowDragon:['#f5f8fb','#cbd9e5','#8f2051','#df4f7c']
+    })
+  }),
+  selected:Object.freeze({
+    key:'selected',
+    name:'Selected Mix',
+    description:'Approved hybrid day-cycle grade: Before Dawn A, First Light B, Bright Morning B, Midday A, Afternoon A, Golden Hour B, Blue Hour A and Midnight B. The selection is locked per Bangkok day period while preserving the underlying production motion and backgrounds.',
+    palettes:freezeGrade({
+      royalBlueHalfmoon:['#070d30','#233b94','#556ade','#c5ccff'],
+      superRedHalfmoon:['#220615','#67133a','#aa285f','#e15d89'],
+      mustardGas:['#081a45','#1b52aa','#a8b72a','#e6e46a'],
+      blackOrchid:['#0a061e','#401d65','#a259d2','#dbb9f7'],
+      copperMetallic:['#17141a','#4a3445','#99627d','#d1a6bb'],
+      turquoiseMetallic:['#043944','#087c89','#23c1b8','#c1f2e7'],
+      nemoGalaxyKoi:['#2268a4','#91346b','#df6f84','#fff2ec'],
+      redSnowDragon:['#f7f9fb','#d4dee7','#a3295a','#e05f83']
     })
   })
 });
