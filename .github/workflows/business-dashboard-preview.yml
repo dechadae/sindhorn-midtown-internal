@@ -55,9 +55,13 @@ jobs:
           grep -q "prefers-reduced-motion:reduce" site/business-dashboard-motion.css
           grep -q "sindhorn-business-dashboard-motion-v2" site/business-dashboard-motion.js
           grep -q "SindhornBusinessDashboard.*refresh" site/app.js
-          grep -q "business-dashboard.js" site/sw.js
+          grep -q "sindhorn-midtown-internal-pwa-v38-today-motion-r1" site/sw.js
+          grep -q "business-dashboard-motion.js" site/sw.js
+          grep -q "business-dashboard-motion.css" site/sw.js
           grep -q "hotel-factsheet.css" site/sw.js
           grep -q "pwa-v34-betta-dashboard-r1" site/sw.js
+          grep -q "self.addEventListener('push'" site/sw.js
+          grep -q "NOTIFICATION_DB='sindhorn-midtown-notification-inbox'" site/sw.js
           grep -q "<title>Today | Sindhorn Midtown Internal</title>" site/index.html
           if grep -Eqi 'border-radius:[[:space:]]*(50%|999px|9999px)' site/business-dashboard.css site/business-dashboard-motion.css; then
             echo 'Circular/capsule dashboard UI is not allowed'; exit 1
@@ -106,10 +110,14 @@ jobs:
           grep -q "business-dashboard-motion.js" /tmp/dashboard.js
           grep -q "business-dashboard-motion.css" /tmp/dashboard.js
           curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/sw.js
+          grep -q "sindhorn-midtown-internal-pwa-v38-today-motion-r1" /tmp/sw.js
           grep -q "business-dashboard-data.js" /tmp/sw.js
+          grep -q "business-dashboard-motion.js" /tmp/sw.js
+          grep -q "business-dashboard-motion.css" /tmp/sw.js
           grep -q "hotel-factsheet.css" /tmp/sw.js
           grep -q "betta-environment.js" /tmp/sw.js
           grep -q "rain-layer-legacy-weather.js" /tmp/sw.js
+          grep -q "self.addEventListener('push'" /tmp/sw.js
 
       - name: Mobile, motion, CI-parity and installed-PWA smoke
         shell: bash
