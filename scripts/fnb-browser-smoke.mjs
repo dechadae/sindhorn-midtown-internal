@@ -33,7 +33,7 @@ const index=await page.evaluate(()=>({
   updatedUnderPeriod:document.querySelector('.fnb-period')?.nextElementSibling?.matches('[data-fnb-data-updated]')||false
 }));
 if(index.path!=='/fnb'||index.title!=='Promotions'||index.cards!==18)throw new Error(`index mismatch ${JSON.stringify(index)}`);
-if(index.footer.join('|')!=='Today|F&B|Messages')throw new Error(`footer mismatch ${JSON.stringify(index.footer)}`);
+if(index.footer.join('|')!=='Today|F&B|Messages|Brand')throw new Error(`footer mismatch ${JSON.stringify(index.footer)}`);
 if(!index.updatedUnderPeriod||!/^Updated \d{1,2} [A-Z][a-z]+ \d{4} · \d{1,2}:\d{2} (am|pm)$/.test(index.updated||''))throw new Error(`update timestamp mismatch ${JSON.stringify(index.updated)}`);
 for(const outlet of ['ALL','ANJU',"Bangkok'78",'Sip & Co.','Horizon Pool Bar','The Lobby Lounge','In-room Dining'])if(!index.outletOptions.includes(outlet))throw new Error(`missing outlet ${outlet}`);
 
