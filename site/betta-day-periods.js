@@ -3,6 +3,7 @@ export const DAY_CYCLE_CHECK_MS=30000;
 export const DAY_CYCLE_ROLLOVER_MS=60000;
 export const DAY_CYCLE_CORRECTION_MS=900;
 
+// Canonical sequential reference assignment: period 1→Fish #1 through period 8→Fish #8.
 export const BETTA_DAY_PERIODS=Object.freeze([
   Object.freeze({key:'midnight',startHour:0,endHour:3,name:'Midnight',baseline:'reference1',referenceId:1,tone:'dark'}),
   Object.freeze({key:'before-dawn',startHour:3,endHour:6,name:'Before Dawn',baseline:'reference2',referenceId:2,tone:'dark'}),
