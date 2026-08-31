@@ -94,7 +94,12 @@ try{
     };
   });
   console.log(JSON.stringify({phase:'startup-diagnostic',baseUrl:BASE_URL,mounted,reveal,pageErrors}));
-  assert(Number.isFinite(reveal.routeTransitionAt)&&reveal.routeTransitionAt<2500,`Synchronized Today/Betta fade started too late in the browser: ${JSON.stringify({mounted,reveal,pageErrors})}`);
+  const todayMountedAt=Number(mounted.marks?.['sindhorn-smoke-today-mounted']);
+  const bettaFirstFrameAt=Number(reveal.marks?.['sindhorn-betta-first-frame']);
+  const startupEnterAt=Number(reveal.marks?.['sindhorn-startup-enter-visible']);
+  assert(Number.isFinite(todayMountedAt)&&todayMountedAt<1000,`Today startup structure was not mounted promptly: ${JSON.stringify({mounted,reveal,pageErrors})}`);
+  assert(Number.isFinite(bettaFirstFrameAt)&&bettaFirstFrameAt<1000,`Betta first rendered frame was not ready promptly: ${JSON.stringify({mounted,reveal,pageErrors})}`);
+  assert(Number.isFinite(startupEnterAt)&&startupEnterAt<1000&&Math.abs(startupEnterAt-bettaFirstFrameAt)<=16,`Today reveal was not released in the first Betta frame: ${JSON.stringify({mounted,reveal,pageErrors})}`);
   assert(reveal.startupEnter==='visible'&&reveal.environmentReady&&reveal.bettaFirstFrame==='ready',`Startup reveal fired before actual Betta first frame: ${JSON.stringify({mounted,reveal,pageErrors})}`);
   assert(reveal.routeHostOpacity>.95&&reveal.canvasOpacity>.95&&reveal.headerVisible&&reveal.footerVisible,`Today and Betta did not finish the shared fade together: ${JSON.stringify({mounted,reveal,pageErrors})}`);
   assert(Number.isFinite(reveal.transitionDeltaMs)&&reveal.transitionDeltaMs<=16,`Today and Betta opacity transitions did not start in the same frame: ${JSON.stringify({mounted,reveal,pageErrors})}`);
