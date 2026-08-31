@@ -25,6 +25,23 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
 
+      - name: Hold first rendered frame through the entrance fade
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('site/betta-environment.js')
+          text=p.read_text()
+          old="function render(now){raf=0;if(!pageVisible||webglContextLost)return;const delta=Math.min(50,Math.max(0,now-previousNow));previousNow=now;activeTime+=delta*.001*(matchMedia('(prefers-reduced-motion: reduce)').matches?.35:1);easeSatellite(delta);applySatelliteUniforms();stepDayCycle(now);for(const material of materials)material.uniforms.uTime.value=activeTime;renderer.render(scene,camera);markFirstFrame();raf=requestAnimationFrame(render)}"
+          new="function resumeAfterStartupEntrance(){if(document.documentElement.dataset.startupEnter!=='pending'||matchMedia('(prefers-reduced-motion: reduce)').matches){requestRender();return}const onEnd=event=>{if(event.propertyName!=='opacity')return;canvas.removeEventListener('transitionend',onEnd);requestRender()};canvas.addEventListener('transitionend',onEnd)}\nfunction render(now){raf=0;if(!pageVisible||webglContextLost)return;const delta=Math.min(50,Math.max(0,now-previousNow));previousNow=now;activeTime+=delta*.001*(matchMedia('(prefers-reduced-motion: reduce)').matches?.35:1);easeSatellite(delta);applySatelliteUniforms();stepDayCycle(now);for(const material of materials)material.uniforms.uTime.value=activeTime;renderer.render(scene,camera);if(!firstFrameRendered){markFirstFrame();resumeAfterStartupEntrance();return}raf=requestAnimationFrame(render)}"
+          if old in text:
+              p.write_text(text.replace(old,new))
+          elif new not in text:
+              raise SystemExit('Expected Betta render loop pattern not found')
+          PY
+          node --input-type=module --check < site/betta-environment.js
+
       - name: Build tree-shaken production runtime
         shell: bash
         run: |
@@ -79,12 +96,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if test -z "$(git status --porcelain -- site/betta-runtime.js site/bootstrap.js site/auth-shell.js site/index.html site/sw.js)"; then
+          if test -z "$(git status --porcelain -- site/betta-environment.js site/betta-runtime.js site/bootstrap.js site/auth-shell.js site/index.html site/sw.js)"; then
             echo "Runtime and startup wiring already current"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site/betta-runtime.js site/bootstrap.js site/auth-shell.js site/index.html site/sw.js
-          git commit -m "Use optimized Betta startup runtime"
+          git add site/betta-environment.js site/betta-runtime.js site/bootstrap.js site/auth-shell.js site/index.html site/sw.js
+          git commit -m "Hold Betta first frame through startup fade"
           git push origin "HEAD:${GITHUB_REF_NAME}"
