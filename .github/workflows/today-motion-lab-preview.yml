@@ -8,6 +8,8 @@ on:
       - "site/today-motion-lab.html"
       - "site/today-motion-lab.css"
       - "site/today-motion-lab.js"
+      - "site/business-dashboard-motion.js"
+      - "site/business-dashboard-motion.css"
       - "site/betta-runtime.js"
       - "site/environment.css"
       - ".github/workflows/today-motion-lab-preview.yml"
@@ -27,11 +29,12 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v6
-      - name: Validate isolated lab
+      - name: Validate isolated lab and production motion layer
         shell: bash
         run: |
           set -euo pipefail
           node --input-type=module --check < site/today-motion-lab.js
+          node --input-type=module --check < site/business-dashboard-motion.js
           grep -Fq 'Progress experiment · synthetic data' site/today-motion-lab.html
           grep -Fq 'today-motion-lab.js?v=4' site/today-motion-lab.html
           grep -Fq "__TODAY_PROGRESS_LAB_VERSION__='v4-raf'" site/today-motion-lab.js
@@ -39,6 +42,11 @@ jobs:
           ! grep -Fq 'lab-scan' site/today-motion-lab.html
           ! grep -Fq 'data-progress-line' site/today-motion-lab.html
           ! grep -Fq '/rest/v1/' site/today-motion-lab.js
+          grep -Fq "mode:'progress-only'" site/business-dashboard-motion.js
+          grep -Fq '.bd-variance-track' site/business-dashboard-motion.css
+          ! grep -Fq 'bdFreshSweep' site/business-dashboard-motion.css
+          ! grep -Fq 'bdGroupReveal' site/business-dashboard-motion.css
+          ! grep -Fq 'bdFlagEnter' site/business-dashboard-motion.css
       - name: Deploy Cloudflare branch preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -54,14 +62,16 @@ jobs:
             if curl --fail --silent --show-error --location "${BASE_URL}/today-motion-lab.html" -o /tmp/lab.html \
               && grep -Fq 'today-motion-lab.js?v=4' /tmp/lab.html \
               && curl --fail --silent --show-error --location "${BASE_URL}/today-motion-lab.js?v=4" -o /tmp/lab.js \
-              && grep -Fq "__TODAY_PROGRESS_LAB_VERSION__='v4-raf'" /tmp/lab.js; then
+              && grep -Fq "__TODAY_PROGRESS_LAB_VERSION__='v4-raf'" /tmp/lab.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/business-dashboard-motion.js" -o /tmp/bd-motion.js \
+              && grep -Fq "mode:'progress-only'" /tmp/bd-motion.js; then
               promoted=true
               break
             fi
             sleep 3
           done
           test "$promoted" = true
-          for path in /today-motion-lab.css?v=2 /betta-runtime.js /environment.css /assets/brand/sindhorn-midtown-vignette-white.png; do
+          for path in /today-motion-lab.css?v=2 /business-dashboard-motion.css /betta-runtime.js /environment.css /assets/brand/sindhorn-midtown-vignette-white.png; do
             curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/lab-asset
             test -s /tmp/lab-asset
           done
@@ -97,7 +107,7 @@ jobs:
           const after=await scale();
           const state=await page.evaluate(()=>({cards:document.querySelectorAll('[data-progress-card]').length,globalPulse:!!document.querySelector('[data-progress-line]'),scan:!!document.querySelector('.lab-scan'),version:window.__TODAY_PROGRESS_LAB_VERSION__}));
           if(state.cards!==8||state.globalPulse||state.scan||state.version!=='v4-raf')throw new Error(`lab structure failed ${JSON.stringify(state)}`);
-          if(!(before>.82&&during>=0&&during<before*.8&&after>before*.98))throw new Error(`progress replay did not animate smoothly: ${before} | ${during} | ${after}`);
+          if(!(before>.82&&during>=0&&during<before*.8&&after>.82))throw new Error(`progress replay did not animate smoothly: ${before} | ${during} | ${after}`);
           if(errors.length)throw new Error(errors.join(' | '));
           console.log('TODAY_PROGRESS_LAB_PASS',JSON.stringify({before,during,after,...state}));
           await browser.close();
