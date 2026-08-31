@@ -55,8 +55,9 @@ void main(){
   vec3 bg=mix(c0,c1,clamp(radial*.74+p.y*.10,0.0,1.0));
   bg=mix(bg,c2,sweep*.48);
   bg=mix(bg,bg*(.82+uSatelliteColor*.34),uSatelliteMix);
-  float vignette=1.0-.22*smoothstep(.38,.92,length((p-.5)*vec2(.92,1.08)));
+  float vignette=1.0-.16*smoothstep(.38,.92,length((p-.5)*vec2(.92,1.08)));
   gl_FragColor=vec4(bg*vignette,1.0);
+  #include <colorspace_fragment>
 }
 `;
 function gradientFor(preset){const g=preset.backgroundGradient;return Array.isArray(g)&&g.length>=3?g:[preset.background,preset.background,preset.background]}
