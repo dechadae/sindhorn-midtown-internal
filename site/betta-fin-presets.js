@@ -50,18 +50,18 @@ export const BETTA_PRESETS={
   },
   blackOrchid:{
     number:'04',name:'Black Orchid',morphMode:4,
-    description:'Real-betta baseline: near-black membrane with blue-black iridescence and restrained steel-blue light tracing the fin rays.',
-    background:'#030405',
-    palette:['#010203','#04070b','#0b1420','#24517c'],
+    description:'Real-betta baseline: luminous blue-black orchid membrane with restrained steel-blue ray light, lifted just enough to retain detail at midnight.',
+    background:'#05070a',
+    palette:['#03070d','#09131f','#17283c','#42729d'],
     params:{
-      spread:4.24,rayCount:52,foldDensity:5.2,curl:1.22,twist:.76,edgeFlutter:.16,depth:1.12,
-      currentStrength:.42,motionSpeed:.5,turbulence:.4,motionAmplitude:.68,
-      opacity:.38,transmission:.72,rimStrength:1.02,foldHighlight:.84,iridescence:.3,bloom:.22,
-      saturation:.9,brightness:.74,gradientPosition:.08,
-      scale:1.48,rotation:1.12,cameraDepth:.48,offsetX:-.95,offsetY:.12
+      spread:4.24,rayCount:52,foldDensity:5.2,curl:1.18,twist:.7,edgeFlutter:.15,depth:1.04,
+      currentStrength:.4,motionSpeed:.49,turbulence:.38,motionAmplitude:.65,
+      opacity:.42,transmission:.75,rimStrength:1.06,foldHighlight:.94,iridescence:.34,bloom:.27,
+      saturation:.94,brightness:.88,gradientPosition:.07,
+      scale:1.46,rotation:1.1,cameraDepth:.45,offsetX:-.92,offsetY:.1
     },
     layers:[
-      {seed:31.6,scale:1.05,rotation:.04,offset:[0,0,.18],alpha:.94,phase:13.8},
+      {seed:31.6,scale:1.05,rotation:.04,offset:[0,0,.18],alpha:.98,phase:13.8},
     ]
   },
   copperMetallic:{
@@ -83,19 +83,19 @@ export const BETTA_PRESETS={
   },
   turquoiseMetallic:{
     number:'06',name:'Turquoise Metallic',morphMode:0,
-    description:'Real-betta baseline: deep blue-green through turquoise and bright metallic aqua, with restrained violet iridescent depth.',
-    background:'#03090b',
-    palette:['#03232d','#006b76','#00aaa4','#71e4cf'],
+    description:'Real-betta baseline refined as a pale turquoise couture membrane: translucent, pearlescent and silk-slow with delicate aqua highlights.',
+    background:'#040b0d',
+    palette:['#062d36','#0b7880','#35beb5','#b4efe0'],
     params:{
-      spread:3.2,rayCount:52,foldDensity:6.7,curl:.72,twist:-.72,edgeFlutter:.2,depth:1.06,
-      currentStrength:.48,motionSpeed:.58,turbulence:.48,motionAmplitude:.74,
-      opacity:.37,transmission:.8,rimStrength:.96,foldHighlight:.82,iridescence:.38,bloom:.3,
-      saturation:.98,brightness:.98,gradientPosition:.1,
-      scale:1.05,rotation:-.08,cameraDepth:.36,offsetX:.05,offsetY:.06
+      spread:3.34,rayCount:56,foldDensity:5.25,curl:.5,twist:-.38,edgeFlutter:.075,depth:.72,
+      currentStrength:.28,motionSpeed:.4,turbulence:.2,motionAmplitude:.46,
+      opacity:.3,transmission:.88,rimStrength:.72,foldHighlight:.62,iridescence:.4,bloom:.2,
+      saturation:.92,brightness:1.1,gradientPosition:.08,
+      scale:1.08,rotation:-.05,cameraDepth:.3,offsetX:.08,offsetY:.03
     },
     layers:[
-      {seed:12.9,scale:1.03,rotation:-.72,offset:[-1.5,-.8,.4],alpha:.89,phase:4.2},
-      {seed:22.4,scale:.87,rotation:2.16,offset:[1.68,.88,-.34],alpha:.67,phase:32.1},
+      {seed:12.9,scale:1.02,rotation:-.55,offset:[-1.34,-.64,.32],alpha:.82,phase:4.2},
+      {seed:22.4,scale:.9,rotation:2.08,offset:[1.48,.72,-.26],alpha:.42,phase:32.1},
     ]
   },
   nemoGalaxyKoi:{
