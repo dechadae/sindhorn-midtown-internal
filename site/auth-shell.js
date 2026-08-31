@@ -27,7 +27,7 @@ async function loadClassicScript(src){await new Promise((resolve,reject)=>{if(do
 /* Warm the approved Betta renderer underneath the existing logo/auth phase.
    bootstrap.js imports the same module URL later, so the browser reuses this
    in-flight/evaluated module and initEnvironment remains idempotent. */
-const earlyBetta=import('./betta-environment.js').then(module=>module.initEnvironment()).catch(error=>{console.warn('Early Betta startup unavailable; bootstrap will retry.',error)});
+const earlyBetta=import('./betta-runtime.js?v=1').then(module=>module.initEnvironment()).catch(error=>{console.warn('Early Betta startup unavailable; bootstrap will retry.',error)});
 
 let state;try{state=await initAuth()}catch(_){state=getState()}
 if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
