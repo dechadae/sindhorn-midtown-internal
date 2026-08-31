@@ -4,31 +4,31 @@ export const VIGNETTE_GRADES=Object.freeze({
   a:Object.freeze({
     key:'a',
     name:'Vignette A',
-    description:'Restrained cool-world grade. Preserves each approved Betta identity and all production luminosity/material/motion values while moving pigment toward sapphire, petrol, plum, pewter, garnet, silver and cool citron.',
+    description:'Restrained cool-world grade. Preserves each approved Betta identity and all production luminosity/material/motion values while moving pigment toward sapphire, petrol, plum, rose-pewter, garnet, silver and cool citron.',
     palettes:freezeGrade({
-      royalBlueHalfmoon:['#07173f','#154b9d','#2d7de0','#a7ceff'],
-      superRedHalfmoon:['#1c0611','#55102f','#971f55','#d6537e'],
-      mustardGas:['#07183f','#174aa0','#9faf29','#d8dc5d'],
-      blackOrchid:['#040812','#11172a','#32275a','#777db5'],
-      copperMetallic:['#101116','#332e37','#705b69','#b59caa'],
-      turquoiseMetallic:['#06343f','#087b86','#35bfb5','#bcefe4'],
-      nemoGalaxyKoi:['#174a7d','#68204a','#b74d58','#e7e6e1'],
-      redSnowDragon:['#f2f5f7','#c6d1da','#8d214b','#ce4a69']
+      royalBlueHalfmoon:['#081942','#1a53a6','#3386e4','#b4d5ff'],
+      superRedHalfmoon:['#220615','#67133a','#aa285f','#e15d89'],
+      mustardGas:['#081a45','#1b52aa','#a8b72a','#e6e46a'],
+      blackOrchid:['#060b16','#17213a','#48557c','#9aabd2'],
+      copperMetallic:['#17141a','#4a3445','#99627d','#d1a6bb'],
+      turquoiseMetallic:['#063944','#087e89','#39c7bc','#c7f3e8'],
+      nemoGalaxyKoi:['#1b568a','#762654','#c75a64','#eee9e4'],
+      redSnowDragon:['#f6f8fa','#d2dce4','#9b2853','#db5575']
     })
   }),
   b:Object.freeze({
     key:'b',
     name:'Vignette B',
-    description:'Stronger cool-world grade. Pushes the same eight distinct organisms deeper into indigo, petrol, aubergine, rose-pewter and icy pearl while keeping Mustard Gas as the singular cool-citron exception.',
+    description:'Stronger cool-world grade with luminous pigment separation. Pushes the same eight distinct organisms deeper into indigo, petrol, aubergine, rose-pewter and icy pearl while keeping Mustard Gas as the singular cool-citron exception.',
     palettes:freezeGrade({
-      royalBlueHalfmoon:['#050b2c','#1a2e86','#4759d4','#b3c1ff'],
-      superRedHalfmoon:['#14030f','#3b0a29','#7a1647','#bf3d69'],
-      mustardGas:['#050d30','#153687','#779c26','#c8d657'],
-      blackOrchid:['#02030a','#0b0d1e','#281a4b','#6268a2'],
-      copperMetallic:['#0e0d12','#2a242d','#6f5264','#aa8699'],
-      turquoiseMetallic:['#032d37','#006a77','#1daea8','#a8e9de'],
-      nemoGalaxyKoi:['#193b70','#55204d','#b0566e','#d9e2e6'],
-      redSnowDragon:['#f0f4f7','#b7c5d4','#74163f','#bd315f']
+      royalBlueHalfmoon:['#070d30','#233b94','#556ade','#c5ccff'],
+      superRedHalfmoon:['#1b0412','#511032','#922056','#d84b7b'],
+      mustardGas:['#071036','#194293','#86a52a','#d9df5d'],
+      blackOrchid:['#070913','#161d34','#465078','#91a8d2'],
+      copperMetallic:['#17121a','#4b3143','#9a5c7a','#d6a1ba'],
+      turquoiseMetallic:['#043944','#087c89','#23c1b8','#c1f2e7'],
+      nemoGalaxyKoi:['#1a5087','#7a2a5c','#d06471','#f0e9e3'],
+      redSnowDragon:['#f3f7fb','#c5d5e3','#922551','#e05478']
     })
   })
 });
