@@ -1,0 +1,104 @@
+name: Today Motion Lab Preview
+
+on:
+  push:
+    branches:
+      - lab-today-motion
+    paths:
+      - "site/today-motion-lab.html"
+      - "site/today-motion-lab.css"
+      - "site/today-motion-lab.js"
+      - "site/betta-runtime.js"
+      - "site/environment.css"
+      - ".github/workflows/today-motion-lab-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: today-motion-lab-preview
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate isolated lab
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s site/today-motion-lab.html
+          test -s site/today-motion-lab.css
+          test -s site/today-motion-lab.js
+          node --input-type=module --check < site/today-motion-lab.js
+          grep -Fq 'Motion experiment · synthetic data' site/today-motion-lab.html
+          grep -Fq 'This page does not read or expose Sindhorn Midtown operational business data.' site/today-motion-lab.html
+          grep -Fq "import('/betta-runtime.js?v=1')" site/today-motion-lab.js
+          ! grep -Fq 'sindhorn_business_dashboard_v1' site/today-motion-lab.js
+          ! grep -Fq '/rest/v1/' site/today-motion-lab.js
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=lab-today-motion
+
+      - name: Smoke lab assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://lab-today-motion.sindhorn-midtown-internal.pages.dev"
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error --location "${BASE_URL}/today-motion-lab.html" -o /tmp/lab.html \
+              && grep -Fq 'Today Motion Lab' /tmp/lab.html; then
+              break
+            fi
+            sleep 3
+          done
+          grep -Fq 'Simulate fresh data' /tmp/lab.html
+          for path in /today-motion-lab.css /today-motion-lab.js /betta-runtime.js /environment.css /assets/brand/sindhorn-midtown-vignette-white.png; do
+            curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/lab-asset
+            test -s /tmp/lab-asset
+          done
+
+      - name: Validate mobile interaction in Chromium
+        env:
+          BASE_URL: https://lab-today-motion.sindhorn-midtown-internal.pages.dev
+        run: |
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium >/dev/null 2>&1
+          node --input-type=module - <<'NODE'
+          import {chromium} from 'playwright';
+          const browser=await chromium.launch({headless:true,args:['--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader']});
+          const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2});
+          const errors=[];
+          page.on('pageerror',error=>errors.push(String(error)));
+          await page.goto(`${process.env.BASE_URL}/today-motion-lab.html`,{waitUntil:'domcontentloaded',timeout:60000});
+          await page.waitForSelector('.lab-metric',{timeout:30000});
+          const before=await page.locator('[data-metric="revenue"] [data-rolling]').textContent();
+          await page.locator('[data-refresh]').click();
+          await page.waitForTimeout(1150);
+          const after=await page.locator('[data-metric="revenue"] [data-rolling]').textContent();
+          if(before===after)throw new Error(`synthetic refresh did not animate value: ${before}`);
+          const disclosure=page.locator('.lab-disclosure').first();
+          await disclosure.locator('button').click();
+          if(await disclosure.locator('button').getAttribute('aria-expanded')!=='true')throw new Error('disclosure did not open');
+          await page.locator('[data-section="outlook"]').scrollIntoViewIfNeeded();
+          await page.waitForTimeout(150);
+          const state=await page.evaluate(()=>({
+            sections:document.querySelectorAll('[data-section]').length,
+            metrics:document.querySelectorAll('[data-metric]').length,
+            outlook:document.querySelectorAll('.lab-outlook-card').length,
+            renderer:document.body.dataset.environmentRenderer||document.body.dataset.labBetta||'',
+            synthetic:document.body.textContent.includes('Synthetic')
+          }));
+          if(state.sections!==5||state.metrics!==6||state.outlook!==4||!state.synthetic)throw new Error(`lab structure failed ${JSON.stringify(state)}`);
+          if(errors.length)throw new Error(errors.join(' | '));
+          console.log('TODAY_MOTION_LAB_PASS',JSON.stringify({before,after,...state}));
+          await browser.close();
+          NODE
