@@ -10,7 +10,9 @@ for(const key of keys){
   assert.equal(p.palette.length,4);
   assert.ok(p.params.spread>=2.6&&p.params.spread<=3.5,`${key} fan angle stays reference-scaled`);
   assert.ok(p.params.foldDensity>=8&&p.params.foldDensity<=12,`${key} keeps fine ray rhythm`);
-  assert.ok(p.params.scale>=.58&&p.params.scale<=.72,`${key} mobile framing scale`);
+  assert.ok(p.params.scale>=.76&&p.params.scale<=.86,`${key} live-wallpaper crop scale`);
+  assert.ok(p.params.offsetX<=-.94&&p.params.offsetX>=-1.12,`${key} keeps fin root near/off the left crop`);
+  assert.ok(Math.abs(p.params.rotation)>=.10&&Math.abs(p.params.rotation)<=.48,`${key} keeps a deliberate diagonal wallpaper angle`);
   assert.ok(p.params.brightness>=1.6,`${key} compensates old shader darkness`);
   assert.ok(p.params.opacity>=.48,`${key} remains visibly colored`);
 }
@@ -19,4 +21,4 @@ assert.deepEqual(BETTA_DAY_PERIODS.map(p=>p.baseline),['reference1','reference2'
 assert.equal(BETTA_PRESETS.reference5.morphMode,1,'Fish #5 keeps multicolor koi patch mode');
 assert.equal(BETTA_PRESETS.reference6.morphMode,4,'Fish #6 exposes pale ray ridges');
 assert.equal(BETTA_PRESETS.reference8.morphMode,4,'Fish #8 exposes electric blue ray ridges');
-console.log('Final photographic-reference tail contract PASS');
+console.log('Final Betta live-wallpaper composition contract PASS');
