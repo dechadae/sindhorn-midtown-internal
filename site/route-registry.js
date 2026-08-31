@@ -19,6 +19,14 @@ function startupLoadingRoute(){
   route.innerHTML='<header class="app-route-hero"><p class="app-route-eyebrow">Today</p><h1 class="app-route-title">Hotel Business</h1><p class="app-route-copy">Loading the latest approved daily business report…</p></header>';
   return route;
 }
+function waitForStartupReveal(){
+  const root=document.documentElement;
+  if(root.dataset.startupEnter!=='pending')return Promise.resolve();
+  return new Promise(resolve=>{
+    const observer=new MutationObserver(()=>{if(root.dataset.startupEnter==='pending')return;observer.disconnect();resolve()});
+    observer.observe(root,{attributes:true,attributeFilter:['data-startup-enter']});
+  });
+}
 
 export async function mountBusinessDashboardStartupRoute(host){
   if(document.documentElement.dataset.startupEnter!=='pending'){
@@ -35,6 +43,8 @@ export async function mountBusinessDashboardStartupRoute(host){
   let disposed=false;
   let realCleanup=null;
   const mounting=(async()=>{
+    await waitForStartupReveal();
+    if(disposed)return null;
     const {mountBusinessDashboardRoute}=await import('./business-dashboard.js?v=4');
     return mountBusinessDashboardRoute(staging);
   })().then(cleanup=>{
