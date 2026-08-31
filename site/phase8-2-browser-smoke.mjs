@@ -61,11 +61,21 @@ async function signIn(page,name){
     const status=(await page.locator('#status').textContent().catch(()=>''))?.trim()||'';
     const tone=await page.locator('#status').getAttribute('data-tone').catch(()=>null);
     const signed=await page.locator('#signedCard').getAttribute('data-show').catch(()=>null);
-    await page.screenshot({path:`phase82-artifacts/${name}-login-failure.png`,fullPage:true}).catch(()=>{});
     throw new Error(`${name}: CI service-employee sign-in did not reach the app${status?` · ${tone||'status'}: ${status}`:''}${signed==='true'?' · signed card was visible before redirect':''}`);
   }
 }
 
+async function cdpScreenshot(page,clip=null){
+  const session=await page.context().newCDPSession(page);
+  try{
+    const params={format:'png',fromSurface:true,captureBeyondViewport:false};
+    if(clip)params.clip={...clip,scale:1};
+    const result=await session.send('Page.captureScreenshot',params);
+    return Buffer.from(result.data,'base64');
+  }finally{
+    await session.detach().catch(()=>{});
+  }
+}
 async function captureCanvasFrame(page,name,phase){
   const canvas=page.locator('#environmentCanvas');
   const box=await canvas.boundingBox();
@@ -75,12 +85,12 @@ async function captureCanvasFrame(page,name,phase){
   const width=Math.min(box.width,(viewport?.width||box.x+box.width)-x);
   const height=Math.min(box.height,(viewport?.height||box.y+box.height)-y);
   if(width<1||height<1)throw new Error(`${name}: Betta canvas is outside viewport during ${phase}`);
-  return page.screenshot({clip:{x,y,width,height},animations:'allow',caret:'hide'});
+  return cdpScreenshot(page,{x,y,width,height});
 }
 async function assertCanvasMotion(page,name,phase,delayMs=1200){
-  /* locator.screenshot() waits for element stability, which is the opposite of
-     the property under test for a continuously animated WebGL canvas. Capture
-     the fixed viewport rectangle instead so motion itself cannot deadlock CI. */
+  /* Playwright screenshot helpers can wait for stability/compositor state. That
+     is unsuitable for a canvas that must never become visually stable. CDP's
+     Page.captureScreenshot samples the fixed viewport rectangle immediately. */
   const before=await captureCanvasFrame(page,name,phase);
   await page.waitForTimeout(delayMs);
   const after=await captureCanvasFrame(page,name,phase);
@@ -171,6 +181,7 @@ async function inspectLive(viewport,name){
   await page.waitForFunction(()=>Boolean(window.SindhornLiveData?.getState?.()),null,{timeout:20000});
   await page.waitForTimeout(800);
   const performanceData=await resourcePerformance(page);
+  console.log(`SINDHORN_PERFORMANCE ${name} ${JSON.stringify(performanceData)}`);
   if(performanceData.html2canvasLoaded)throw new Error(`${name}: html2canvas was loaded before Save Image interaction`);
   if(performanceData.threeModuleLoaded)throw new Error(`${name}: redundant Three module was loaded outside the tree-shaken Betta runtime`);
   await assertCanvasMotion(page,name,'normal foreground motion');
@@ -220,7 +231,7 @@ async function inspectLive(viewport,name){
     if(!Number.isFinite(state.pm)||state.pm<0||state.pm>500)throw new Error(`${name}: invalid PM2.5: ${state.pm}`);
     if(!Number.isFinite(state.aqi)||state.aqi<0||state.aqi>500)throw new Error(`${name}: invalid Thai AQI: ${state.aqi}`);
   }
-  await page.screenshot({path:`phase82-artifacts/${name}.png`,fullPage:true});
+  await fs.promises.writeFile(`phase82-artifacts/${name}.png`,await cdpScreenshot(page));
   const pacing=await sampleFrames(page,name);
   await context.close();
   return {...state,motionChanged:true,...lifecycle,...pacing,performance:performanceData};
