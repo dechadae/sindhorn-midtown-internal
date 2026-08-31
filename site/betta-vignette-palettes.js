@@ -45,7 +45,7 @@ export const VIGNETTE_GRADES=Object.freeze({
   selected:Object.freeze({
     key:'selected',
     name:'Selected Mix',
-    description:'Approved hybrid day-cycle grade: Before Dawn A, First Light B, Bright Morning B, Midday A, Afternoon A, Golden Hour B, Blue Hour A and Midnight B. The selection is locked per Bangkok day period while preserving the underlying production motion and backgrounds.',
+    description:'Approved hybrid day-cycle grade: Before Dawn A, First Light B, Bright Morning B, Midday A, Afternoon A, Golden Hour B, Blue Hour A and Midnight B. The selection is locked per Bangkok day period while preserving the underlying production motion and scene treatment.',
     palettes:freezeGrade({
       royalBlueHalfmoon:['#070d30','#233b94','#556ade','#c5ccff'],
       superRedHalfmoon:['#220615','#67133a','#aa285f','#e15d89'],
