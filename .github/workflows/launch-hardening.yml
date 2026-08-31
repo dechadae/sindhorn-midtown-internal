@@ -5,6 +5,7 @@ on:
     branches:
       - phase7-launch-hardening
       - phase8-2-bangkok-seasonal-clouds
+      - fix-main-release-health-v2-20260831
       - main
     paths:
       - "site/**"
@@ -34,11 +35,17 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Verify frozen PWA identity, Messages, push and Phase 8.2 architecture
+      - name: Verify current PWA, navigation, push and environment architecture
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/bootstrap.js site/route-registry.js site/app-transitions.js site/footer-route-guard.js site/app.js site/push-client.js site/notification-inbox.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/phase8-2-fixtures.js site/sw.js; do node --check "$file"; done
+          for file in \
+            site/bootstrap.js site/route-registry.js site/app-transitions.js site/footer-route-guard.js \
+            site/business-dashboard.js site/business-dashboard-data.js site/app.js site/push-client.js \
+            site/notification-inbox.js site/betta-environment.js site/betta-satellite.js site/environment.js \
+            site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/phase8-2-fixtures.js site/sw.js; do
+            node --check "$file"
+          done
           node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
           python3 - <<'PY'
           from pathlib import Path
@@ -47,36 +54,80 @@ jobs:
           pwa=json.loads((root/'manifest.webmanifest').read_text())
           assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
           assert 'display_override' not in pwa
-          bootstrap=(root/'bootstrap.js').read_text(); registry=(root/'route-registry.js').read_text(); transitions=(root/'app-transitions.js').read_text(); footer_guard=(root/'footer-route-guard.js').read_text(); footer_css=(root/'footer-route-guard.css').read_text(); fnb_polish=(root/'fnb-approved-polish.css').read_text(); fallback=json.loads((root/'fallback/manifest.json').read_text())
-          shell=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1)); assert shell==17 and fallback['minimumShell']==shell
+
+          bootstrap=(root/'bootstrap.js').read_text()
+          registry=(root/'route-registry.js').read_text()
+          transitions=(root/'app-transitions.js').read_text()
+          footer=(root/'footer-route-guard.js').read_text()
+          footer_css=(root/'footer-route-guard.css').read_text()
+          fnb_polish=(root/'fnb-approved-polish.css').read_text()
+          fallback=json.loads((root/'fallback/manifest.json').read_text())
+          index=(root/'index.html').read_text()
+          sw=(root/'sw.js').read_text()
+          betta=(root/'betta-environment.js').read_text()
+          legacy=(root/'environment.js').read_text()
+          shader=(root/'atmosphere-shader.js').read_text()
+          rain=(root/'rain-layer.js').read_text()
+
+          shell=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
+          assert shell==17 and fallback['minimumShell']==shell
           assert "FALLBACK_REQUIRED=[...REQUIRED,'messages.html']" in bootstrap
-          assert "fnb:Object.freeze({path:'/fnb'" in registry and "messages:Object.freeze({path:'/messages'" in registry
-          assert "mount:'mountFnbRoute'" in registry and "kind:'local'" in registry
+          for item in fallback['resources']:
+              assert hashlib.sha256((root/'fallback'/item['path']).read_bytes()).hexdigest()==item['sha256'],item['path']
+
+          # Current single-shell route authority.
+          for token in (
+            "today:Object.freeze({path:'/'",
+            "module:'./business-dashboard.js?v=2'",
+            "mount:'mountBusinessDashboardRoute'",
+            "fnb:Object.freeze({path:'/fnb'",
+            "messages:Object.freeze({path:'/messages'",
+            "brand:Object.freeze({path:'/brand'",
+            "hotelFactsheet:Object.freeze({path:'/hotel-factsheet'",
+            "settings:Object.freeze({path:'/settings'",
+            "ci:Object.freeze({path:'/ci'",
+          ):
+              assert token in registry,token
+          assert "kind:'pack',resource:'messages.html'" in registry
+          assert "['/guidance','today']" in registry and "['/details','today']" in registry
+          assert "['/account','settings']" in registry and "['/admin','settings']" in registry
           assert "routeLink.dataset.appRoute" in transitions and 'transitionToRoute' in transitions
-          assert "sindhorn-footer-v6-fnb-motion" in footer_guard and "route:'fnb'" in footer_guard and "route:'messages'" in footer_guard
-          assert "FNB_MODULE_URL='/fnb.js?v=6'" in footer_guard and 'module.mountFnbRoute' in footer_guard and "dataset.fnbNav='fnb'" in footer_guard
-          assert 'grid-template-columns:repeat(3,minmax(0,1fr))!important' in footer_css and 'height:54px!important' in footer_css and 'height:42px!important' in footer_css
-          assert 'bottom:calc(68px + env(safe-area-inset-bottom))!important' in footer_css and 'border-radius:18px!important' in footer_css
-          assert '--fnb-motion-base:260ms' in fnb_polish and '--fnb-disclosure-ms:420ms' in fnb_polish and '.fnb-select-trigger' in fnb_polish
-          assert '.fnb-summary{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important' in fnb_polish
-          assert 'font-size:10px!important' in fnb_polish and 'calc(84px + env(safe-area-inset-bottom))!important' in fnb_polish
-          assert 'content:"September"' in fnb_polish and 'content:"December"' in fnb_polish
-          for item in fallback['resources']: assert hashlib.sha256((root/'fallback'/item['path']).read_bytes()).hexdigest()==item['sha256'],item['path']
-          fallback_today=(root/'fallback'/'today.html').read_text(); assert 'saveImageBtn' not in fallback_today and 'report-actionbar' not in fallback_today
-          app=(root/'app.js').read_text(); assert "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app and 'performPullRefresh' in app
-          inbox=(root/'notification-inbox.js').read_text()
-          for token in ('sindhorn-midtown-notification-inbox','messageList','messageClearBtn','SINDHORN_NOTIFICATION_STORED','markAllRead'): assert token in inbox
-          push=(root/'push-client.js').read_text(); assert 'pushManager.subscribe' in push and 'enableFromGesture' in push and 'Notification.requestPermission' not in push and 'PREPARE_TIMEOUT_MS' in push
-          index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); env=(root/'environment.js').read_text(); shader=(root/'atmosphere-shader.js').read_text()
-          assert '/footer-route-guard.js?v=6&ui=3' in index and '/footer-route-guard.css?v=6' in index and '/fnb-approved-polish.css?v=2' in index
+          assert 'startViewTransition' not in transitions
+
+          # Footer behavior is checked by capability, not retired v6 markers.
+          for token in ("route:'today'","route:'fnb'","route:'messages'","route:'brand'","FNB_MODULE_URL='/fnb.js?v=7'",'module.mountFnbRoute','syncAllContexts'):
+              assert token in footer,token
+          assert '/footer-route-guard.js?v=15' in index
+          assert '/footer-route-guard.css?v=14' in index
+          assert '/fnb-approved-polish.css?v=2' in index
+          assert 'grid-template-columns:repeat(4,minmax(0,1fr))!important' in footer_css
+          assert '--fnb-motion-base:260ms' in fnb_polish and '--fnb-disclosure-ms:420ms' in fnb_polish
+
+          # Betta is the active persistent visual; legacy weather stays rollback-only.
+          assert "await import('./betta-environment.js')" in bootstrap
+          assert "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" in betta
+          assert "dataset.environmentInput='satellite-only'" in betta
+          assert 'startSatelliteStream' in betta and 'const DPR=2' in betta and 'preserveDrawingBuffer:false' in betta
+          assert 'Legacy weather-visual compatibility no-op' in rain and 'export {}' in rain
+          assert (root/'rain-layer-legacy-weather.js').exists()
+          assert "renderer:'bangkok-seasonal-clouds-v2'" in legacy and 'const DPR=2' in legacy and 'renderExport' in legacy
+          for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','Visible sun disc','texture2D(uNoise'):
+              assert token in shader,token
           assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index and '/storm-effects.js' not in index
-          assert "'/sky-calibration.js'" not in sw and "'/sky-color-renderer.js'" not in sw and "'/storm-effects.js'" not in sw
-          assert 'pwa-v23-bangkok-seasonal-clouds' in sw and "'/atmosphere-shader.js'" in sw and "'/seasonal-sky.js'" in sw
-          assert "'/footer-route-guard.js'" in sw and "'/footer-route-guard.css'" in sw and "'/fnb.js'" in sw and "'/fnb-data.js'" in sw and "'/fnb.css'" in sw and "'/fnb-approved-polish.css'" in sw
-          assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw and 'storeNotification' in sw and 'markNotificationRead' in sw
-          assert "renderer:'bangkok-seasonal-clouds-v2'" in env and 'const DPR=2' in env and 'renderExport' in env and 'antialias:false' in env and 'ensureSnowCanvas' in env and 'ensureHailCanvas' in env
-          for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','uSun','uSolarAltitude','sunDisc','Visible sun disc','texture2D(uNoise','AirBKK PM2.5 optics'): assert token in shader,token
-          wrangler=json.loads(Path('sky-worker/wrangler.jsonc').read_text()); assert wrangler.get('triggers',{}).get('crons')==[]
+
+          # PWA and push release lineage.
+          for token in ("'/business-dashboard.js'","'/betta-environment.js'","'/betta-satellite.js'","'/fnb.js'","'/push-client.js'"):
+              assert token in sw,token
+          assert 'pwa-v34-betta-dashboard-r1' in sw
+          assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw
+          app=(root/'app.js').read_text(); inbox=(root/'notification-inbox.js').read_text(); push=(root/'push-client.js').read_text()
+          assert "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app and 'performPullRefresh' in app
+          for token in ('sindhorn-midtown-notification-inbox','messageList','messageClearBtn','SINDHORN_NOTIFICATION_STORED','markAllRead'):
+              assert token in inbox
+          assert 'pushManager.subscribe' in push and 'enableFromGesture' in push and 'Notification.requestPermission' not in push and 'PREPARE_TIMEOUT_MS' in push
+
+          wrangler=json.loads(Path('sky-worker/wrangler.jsonc').read_text())
+          assert wrangler.get('triggers',{}).get('crons')==[]
           assert Path('sky-worker/src/index.js').exists() and Path('site/sky-calibration.js').exists() and Path('site/sky-color-renderer.js').exists()
           PY
 
@@ -92,50 +143,43 @@ jobs:
             if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
               && curl --fail --silent --show-error --location "${BASE_URL}/route-registry.js" -o /tmp/route-registry.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/footer-route-guard.js" -o /tmp/footer-route-guard.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/footer-route-guard.css" -o /tmp/footer-route-guard.css \
-              && curl --fail --silent --show-error --location "${BASE_URL}/fnb.js?v=6" -o /tmp/fnb.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/fnb-data.js" -o /tmp/fnb-data.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/fnb.css" -o /tmp/fnb.css \
-              && curl --fail --silent --show-error --location "${BASE_URL}/fnb-approved-polish.css?v=2" -o /tmp/fnb-approved-polish.css \
-              && curl --fail --silent --show-error --location "${BASE_URL}/environment.js" -o /tmp/environment.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/business-dashboard.js" -o /tmp/business-dashboard.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/bootstrap.js" -o /tmp/bootstrap.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/betta-environment.js" -o /tmp/betta-environment.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/rain-layer.js" -o /tmp/rain-layer.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/notification-inbox.js" -o /tmp/notification-inbox.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
-              && grep -q '/footer-route-guard.js?v=6&ui=3' /tmp/root.html \
-              && grep -q '/fnb-approved-polish.css?v=2' /tmp/root.html \
-              && grep -q "path:'/fnb'" /tmp/route-registry.js \
-              && grep -q 'sindhorn-footer-v6-fnb-motion' /tmp/footer-route-guard.js \
-              && grep -q "FNB_MODULE_URL='/fnb.js?v=6'" /tmp/footer-route-guard.js \
-              && grep -q 'module.mountFnbRoute' /tmp/footer-route-guard.js \
-              && grep -q 'height:54px!important' /tmp/footer-route-guard.css \
-              && grep -q 'height:42px!important' /tmp/footer-route-guard.css \
-              && grep -q 'mountFnbRoute' /tmp/fnb.js \
-              && grep -q 'FNB_PROMOTIONS' /tmp/fnb-data.js \
-              && grep -q 'background:transparent' /tmp/fnb.css \
-              && grep -q -- '--fnb-disclosure-ms:420ms' /tmp/fnb-approved-polish.css \
-              && grep -q 'calc(84px + env(safe-area-inset-bottom))!important' /tmp/fnb-approved-polish.css \
-              && grep -q 'content:"September"' /tmp/fnb-approved-polish.css \
-              && ! grep -q '/sky-calibration.js' /tmp/root.html \
-              && ! grep -q '/sky-color-renderer.js' /tmp/root.html \
-              && ! grep -q '/storm-effects.js' /tmp/root.html \
-              && grep -q 'bangkok-seasonal-clouds-v2' /tmp/environment.js \
-              && grep -q 'Low convective / monsoon' /tmp/shader.js \
-              && grep -q 'Visible sun disc' /tmp/shader.js \
-              && grep -q 'pwa-v23-bangkok-seasonal-clouds' /tmp/sw.js; then promoted=true; break; fi
+              && grep -q '/footer-route-guard.js?v=15' /tmp/root.html \
+              && grep -q "module:'./business-dashboard.js?v=2'" /tmp/route-registry.js \
+              && grep -q "path:'/brand'" /tmp/route-registry.js \
+              && grep -q "FNB_MODULE_URL='/fnb.js?v=7'" /tmp/footer-route-guard.js \
+              && grep -q 'mountBusinessDashboardRoute' /tmp/business-dashboard.js \
+              && grep -q "await import('./betta-environment.js')" /tmp/bootstrap.js \
+              && grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta-environment.js \
+              && grep -q "dataset.environmentInput='satellite-only'" /tmp/betta-environment.js \
+              && grep -q 'Legacy weather-visual compatibility no-op' /tmp/rain-layer.js \
+              && grep -q 'pwa-v34-betta-dashboard-r1' /tmp/sw.js; then
+                promoted=true; break
+            fi
             sleep 3
           done
           test "$promoted" = true
-          for path in /fnb /messages /location.js /push-config.js /push-client.js /notification-inbox.js /manifest.webmanifest; do curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o "/tmp/$(basename "$path" | sed 's/^$/root/')"; done
+          for path in /fnb /messages /brand /hotel-factsheet /settings /ci /location.js /push-config.js /push-client.js /notification-inbox.js /manifest.webmanifest; do
+            curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o "/tmp/$(basename "$path" | sed 's/^$/root/')"
+          done
           curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${ALERT_WORKER}/health" -o /tmp/alert-health.json
-          grep -q 'Current location' /tmp/location.js
+          grep -q 'Current device location' /tmp/location.js
           grep -q 'pushManager.subscribe' /tmp/push-client.js
           ! grep -q 'Notification.requestPermission' /tmp/push-client.js
           grep -q 'SindhornNotificationInbox' /tmp/notification-inbox.js
           python3 - <<'PY'
           import json
-          pwa=json.load(open('/tmp/manifest.webmanifest')); assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
-          alert=json.load(open('/tmp/alert-health.json')); assert alert.get('ok') is True and alert.get('service')=='sindhorn-midtown-alerts' and alert.get('vapidConfigured') is True
-          last=alert.get('lastEvaluation') or {}; assert last.get('airOk') is True and last.get('weatherOk') is True
+          pwa=json.load(open('/tmp/manifest.webmanifest'))
+          assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
+          alert=json.load(open('/tmp/alert-health.json'))
+          assert alert.get('ok') is True and alert.get('service')=='sindhorn-midtown-alerts' and alert.get('vapidConfigured') is True
+          last=alert.get('lastEvaluation') or {}
+          assert last.get('airOk') is True and last.get('weatherOk') is True
           PY
 
       - name: Verify active Supabase UI pack integrity
@@ -145,16 +189,24 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           import hashlib, json, re, urllib.parse, urllib.request
-          bootstrap=Path('site/bootstrap.js').read_text(); base=re.search(r"const SUPABASE_URL='([^']+)'",bootstrap).group(1); key=re.search(r"const SUPABASE_KEY='([^']+)'",bootstrap).group(1); table=re.search(r"const TABLE='([^']+)'",bootstrap).group(1)
+          bootstrap=Path('site/bootstrap.js').read_text()
+          base=re.search(r"const SUPABASE_URL='([^']+)'",bootstrap).group(1)
+          key=re.search(r"const SUPABASE_KEY='([^']+)'",bootstrap).group(1)
+          table=re.search(r"const TABLE='([^']+)'",bootstrap).group(1)
           query=urllib.parse.urlencode({'select':'pack_id,path,content,content_type,content_sha256,enabled','enabled':'eq.true','order':'pack_id.desc,path.asc'})
           req=urllib.request.Request(f'{base}/rest/v1/{table}?{query}',headers={'apikey':key,'Accept':'application/json'})
           with urllib.request.urlopen(req,timeout=20) as response: rows=json.load(response)
           packs={int(row['pack_id']) for row in rows}; assert len(packs)==1,packs
           active_pack=next(iter(packs))
-          rowmap={row['path']:row for row in rows}; manifest_row=rowmap['manifest.json']; assert hashlib.sha256(manifest_row['content'].encode()).hexdigest()==manifest_row['content_sha256']
-          manifest=json.loads(manifest_row['content']); assert manifest['appPack']==active_pack and manifest['minimumShell']==17 and manifest['environmentConfig']==3
+          rowmap={row['path']:row for row in rows}
+          manifest_row=rowmap['manifest.json']
+          assert hashlib.sha256(manifest_row['content'].encode()).hexdigest()==manifest_row['content_sha256']
+          manifest=json.loads(manifest_row['content'])
+          assert manifest['appPack']==active_pack and manifest['minimumShell']==17 and manifest['environmentConfig']==3
           assert 'messages.html' in rowmap and 'environment-config.json' in rowmap
-          today=rowmap['today.html']['content']; assert 'saveImageBtn' not in today and 'report-actionbar' not in today
+          today=rowmap['today.html']['content']
+          assert 'saveImageBtn' not in today and 'report-actionbar' not in today
           for item in manifest['resources']:
-              row=rowmap[item['path']]; assert row['content_sha256']==item['sha256'] and hashlib.sha256(row['content'].encode()).hexdigest()==item['sha256']
+              row=rowmap[item['path']]
+              assert row['content_sha256']==item['sha256'] and hashlib.sha256(row['content'].encode()).hexdigest()==item['sha256']
           PY
