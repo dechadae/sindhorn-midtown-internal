@@ -8,12 +8,13 @@ const page=await context.newPage();page.setDefaultTimeout(40000);
 
 try{
   // This smoke owns the installed-PWA contract only. Authenticated Today rendering is covered by
-  // business-dashboard-browser-smoke.mjs; coupling this test to that synthetic auth fixture made
-  // first-activation behavior nondeterministic because the service worker can claim the client
-  // while the app shell is still bootstrapping.
+  // business-dashboard-browser-smoke.mjs. Register explicitly here so the test does not depend on
+  // the app's window-load update hook firing while unrelated authentication/bootstrap work runs.
   await page.goto(`${BASE_URL}/index.html`,{waitUntil:'domcontentloaded'});
   const result=await page.evaluate(async()=>{
     const timeout=(label,ms)=>new Promise((_,reject)=>setTimeout(()=>reject(new Error(label)),ms));
+    const requested=await navigator.serviceWorker.register('/sw.js',{scope:'/'});
+    await requested.update().catch(()=>{});
     const registration=await Promise.race([
       navigator.serviceWorker.ready,
       timeout('service worker ready timeout',30000)
@@ -40,7 +41,7 @@ try{
     const cached={};
     for(const path of expected)cached[path]=Boolean(cache&&await cache.match(path));
     return{
-      scriptURL:registration.active?.scriptURL||'',
+      scriptURL:registration.active?.scriptURL||requested.active?.scriptURL||'',
       controller:Boolean(navigator.serviceWorker.controller),
       manifest:{id:manifest.id,start_url:manifest.start_url,scope:manifest.scope,display:manifest.display},
       cacheKey:key||null,
