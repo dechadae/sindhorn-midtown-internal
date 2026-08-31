@@ -4,55 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="robots" content="noindex,nofollow">
-  <title>Cool Vignette Betta Review</title>
+  <title>Reference Tail Betta Review</title>
   <link rel="stylesheet" href="/fonts.css?v=1">
   <style>
-    :root{color-scheme:dark;font-family:var(--font-ui)}
-    *{box-sizing:border-box}
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030509;color:#f6f4ef}
-    body{min-height:100dvh}
-    #environmentStage{position:fixed;inset:0;display:block;background:#030509}
-    #environmentCanvas{display:block;width:100%;height:100%}
-    .topbar{position:fixed;z-index:6;top:max(12px,env(safe-area-inset-top));left:12px;right:12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;pointer-events:none}
-    .badge,.grades{pointer-events:auto;background:rgba(6,8,13,.56);border:1px solid rgba(255,255,255,.11);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 12px 34px rgba(0,0,0,.24)}
-    .badge{padding:8px 11px;border-radius:999px;font-size:11px;color:rgba(246,244,239,.72);white-space:nowrap}
-    .grades{display:flex;gap:5px;padding:5px;border-radius:999px}
-    .review{position:fixed;z-index:5;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(8,10,15,.58);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 16px 46px rgba(0,0,0,.32)}
-    .review-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
-    .review-kicker{margin:0 0 3px;font-size:11px;text-transform:uppercase;color:rgba(246,244,239,.58)}
-    .review-title{margin:0;font-size:18px;font-weight:400}
-    .review-sub{margin:4px 0 0;max-width:620px;font-size:10px;line-height:1.4;color:rgba(246,244,239,.5)}
-    .review-state{text-align:right;font-size:11px;line-height:1.4;color:rgba(246,244,239,.68);white-space:nowrap}
-    .periods{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
-    .periods::-webkit-scrollbar{display:none}
-    button{appearance:none;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.055);color:#f6f4ef;border-radius:999px;padding:9px 12px;font:inherit;font-size:12px;white-space:nowrap;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}
-    button:active{transform:scale(.97)}
-    button span{display:block}
-    button small{display:block;margin-top:2px;font-size:9px;font-weight:400;color:rgba(246,244,239,.5)}
-    button.is-active{background:rgba(184,201,255,.16);border-color:rgba(184,201,255,.4);color:#dbe3ff}
-    .grades button{padding:7px 10px;font-size:11px}
-    .grades button.is-active{background:rgba(184,201,255,.2)}
-    .actions{display:flex;gap:8px;margin-top:9px}
-    .actions button{flex:1;border-radius:12px}
-    .primary{background:rgba(184,201,255,.13);border-color:rgba(184,201,255,.3)}
-    @media(max-width:620px){.topbar{align-items:stretch;flex-direction:column}.badge{align-self:flex-start}.grades{align-self:flex-end;margin-top:-42px}.review-head{align-items:flex-start}.review-state{font-size:10px}.review-sub{display:none}}
-    @media(min-width:800px){.topbar{left:50%;right:auto;width:min(980px,calc(100% - 32px));transform:translateX(-50%)}.review{left:50%;right:auto;width:min(980px,calc(100% - 32px));transform:translateX(-50%);bottom:18px;padding:14px}.review-title{font-size:20px}}
+    :root{color-scheme:dark;font-family:var(--font-ui)}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030509;color:#f6f4ef}body{min-height:100dvh}
+    #environmentStage{position:fixed;inset:0;display:block;background:#030509}#environmentCanvas{display:block;width:100%;height:100%}
+    .topbar{position:fixed;z-index:6;top:max(12px,env(safe-area-inset-top));left:12px;right:12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;pointer-events:none}.badge,.grades{pointer-events:auto;background:rgba(6,8,13,.56);border:1px solid rgba(255,255,255,.11);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 12px 34px rgba(0,0,0,.24)}.badge{padding:8px 11px;border-radius:999px;font-size:11px;color:rgba(246,244,239,.72);white-space:nowrap}.grades{display:flex;gap:5px;padding:5px;border-radius:999px}
+    .review{position:fixed;z-index:5;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:18px;background:rgba(8,10,15,.58);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 16px 46px rgba(0,0,0,.32)}.review-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}.review-kicker{margin:0 0 3px;font-size:11px;text-transform:uppercase;color:rgba(246,244,239,.58)}.review-title{margin:0;font-size:18px;font-weight:400}.review-sub{margin:4px 0 0;max-width:660px;font-size:10px;line-height:1.4;color:rgba(246,244,239,.5)}.review-state{text-align:right;font-size:11px;line-height:1.4;color:rgba(246,244,239,.68);white-space:nowrap}
+    .periods{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.periods::-webkit-scrollbar{display:none}button{appearance:none;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.055);color:#f6f4ef;border-radius:999px;padding:9px 12px;font:inherit;font-size:12px;white-space:nowrap;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}button:active{transform:scale(.97)}button span{display:block}button small,button em{display:block;margin-top:2px;font-size:9px;font-weight:400;color:rgba(246,244,239,.5);font-style:normal}button em{color:rgba(246,244,239,.35)}button.is-active{background:rgba(184,201,255,.16);border-color:rgba(184,201,255,.4);color:#dbe3ff}.grades button{padding:7px 10px;font-size:11px}.grades button.is-active{background:rgba(184,201,255,.2)}.actions{display:flex;gap:8px;margin-top:9px}.actions button{flex:1;border-radius:12px}.primary{background:rgba(184,201,255,.13);border-color:rgba(184,201,255,.3)}
+    @media(max-width:620px){.topbar{align-items:stretch;flex-direction:column}.badge{align-self:flex-start}.grades{align-self:flex-end;margin-top:-42px}.review-head{align-items:flex-start}.review-state{font-size:10px}.review-sub{display:none}}@media(min-width:800px){.topbar{left:50%;right:auto;width:min(980px,calc(100% - 32px));transform:translateX(-50%)}.review{left:50%;right:auto;width:min(980px,calc(100% - 32px));transform:translateX(-50%);bottom:18px;padding:14px}.review-title{font-size:20px}}
   </style>
 </head>
 <body>
   <div id="environmentStage" aria-hidden="true"><canvas id="environmentCanvas"></canvas></div>
-  <div class="topbar">
-    <div class="badge">Public visual review · no login · production motion + Himawari</div>
-    <div class="grades" data-grades aria-label="Color grade"><button type="button" data-grade="current">Current</button><button type="button" data-grade="a">A</button><button type="button" data-grade="b">B</button><button type="button" data-grade="selected">Selected Mix</button></div>
-  </div>
-  <section class="review" aria-label="Cool Vignette Betta review controls">
-    <div class="review-head">
-      <div><p class="review-kicker">Cool Vignette comparison</p><h1 class="review-title" data-title>Betta Atmosphere</h1><p class="review-sub" data-description>Loading palette grade…</p></div>
-      <div class="review-state"><div data-clock>—</div><div data-state>Loading…</div></div>
-    </div>
-    <div class="periods" data-periods></div>
-    <div class="actions"><button class="primary" type="button" data-live>Live Bangkok Time</button><button type="button" data-preview>Preview 24h · 3 min</button></div>
-  </section>
-  <script type="module" src="./betta-vignette-test.js?v=2"></script>
-</body>
-</html>
+  <div class="topbar"><div class="badge">Reference-tail rebuild · old production engine · Himawari live</div><div class="grades" data-grades aria-label="Color grade"><button type="button" data-grade="current">Current</button><button type="button" data-grade="a">A</button><button type="button" data-grade="b">B</button><button type="button" data-grade="selected">Selected Mix</button></div></div>
+  <section class="review" aria-label="Reference-tail Betta review controls"><div class="review-head"><div><p class="review-kicker">Fin + tail reference review</p><h1 class="review-title" data-title>Betta Atmosphere</h1><p class="review-sub" data-description>Loading reference palette…</p></div><div class="review-state"><div data-clock>—</div><div data-state>Loading…</div></div></div><div class="periods" data-periods></div><div class="actions"><button class="primary" type="button" data-live>Live Bangkok Time</button><button type="button" data-preview>Preview 24h · 3 min</button></div></section>
+  <script type="module" src="./betta-vignette-test.js?v=3"></script>
+</body></html>
