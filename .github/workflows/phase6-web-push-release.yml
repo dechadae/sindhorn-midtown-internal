@@ -12,14 +12,17 @@ on:
       - fix-airbkk-proxy-worker
       - fix-airbkk-worker-request
       - fix-airbkk-client-proxy
+      - today-v4-notifications-phase-b
       - main
     paths:
       - "worker/**"
       - "site/live-data.js"
       - "site/push-config.js"
       - "site/push-client.js"
+      - "site/notification-inbox.js"
       - "site/index.html"
       - "site/sw.js"
+      - "scripts/business-notification-worker-smoke.mjs"
       - ".github/workflows/phase6-web-push-release.yml"
   workflow_dispatch:
 
@@ -51,6 +54,7 @@ jobs:
           node --check site/live-data.js
           node --check site/push-client.js
           node --check site/push-config.js
+          node --check site/notification-inbox.js
           node --check site/sw.js
           node --check site/location.js
           grep -q '/push-client.js?v=2' site/index.html
@@ -86,6 +90,17 @@ jobs:
           grep -q 'database_name' worker/wrangler.jsonc
           grep -q 'database_id' worker/wrangler.jsonc
           grep -Fq "${WORKER_URL}" site/push-config.js
+          if [ "${GITHUB_REF_NAME}" = "today-v4-notifications-phase-b" ]; then
+            grep -q "business_notification_dispatches" worker/src/index.js
+            grep -q "url.pathname==='/business-update'" worker/src/index.js
+            grep -q "BUSINESS_UPDATE_TOKEN" worker/src/index.js
+            grep -q "businessUpdatePayload" worker/src/index.js
+            grep -q "secureTokenEqual" worker/src/index.js
+            grep -q "business-fnb-update" site/notification-inbox.js
+            grep -q "business-rooms-update" site/notification-inbox.js
+            grep -q "business updates are on" site/push-client.js
+            ! grep -R "BUSINESS_UPDATE_TOKEN" site scripts/business-notification-messages-smoke.mjs
+          fi
 
       - name: Verify AirBKK upstream public-client contract
         shell: bash
@@ -119,6 +134,10 @@ jobs:
 
       - name: Install Worker dependency
         run: npm install --prefix worker --no-audit --no-fund
+
+      - name: Validate business notification contract
+        if: github.ref_name == 'today-v4-notifications-phase-b'
+        run: node scripts/business-notification-worker-smoke.mjs
 
       - name: Validate Worker bundle
         run: npx --yes wrangler@4.125.0 deploy --dry-run --config worker/wrangler.jsonc --outdir /tmp/phase6-worker
@@ -185,12 +204,13 @@ jobs:
           BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
           BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /guidance /details /location.js /live-data.js /push-config.js /push-client.js /sw.js; do
+          for path in / /guidance /details /messages /location.js /live-data.js /push-config.js /push-client.js /notification-inbox.js /sw.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
             test -s /tmp/smoke
           done
           CLIENT="$(curl --fail --silent --show-error "${BASE_URL}/push-client.js")"
           AIR_CLIENT="$(curl --fail --silent --show-error "${BASE_URL}/live-data.js")"
+          INBOX="$(curl --fail --silent --show-error "${BASE_URL}/notification-inbox.js")"
           ROOT="$(curl --fail --silent --show-error "${BASE_URL}/")"
           grep -q '/push-client.js?v=2' <<<"${ROOT}"
           grep -q 'pushManager.subscribe' <<<"${CLIENT}"
@@ -206,3 +226,8 @@ jobs:
           grep -q "'/location.js'" <<<"${SW}"
           grep -q "addEventListener('push'" <<<"${SW}"
           grep -q "addEventListener('notificationclick'" <<<"${SW}"
+          if [ "${GITHUB_REF_NAME}" = "today-v4-notifications-phase-b" ]; then
+            grep -q 'business updates are on' <<<"${CLIENT}"
+            grep -q 'business-fnb-update' <<<"${INBOX}"
+            grep -q 'business-rooms-update' <<<"${INBOX}"
+          fi
