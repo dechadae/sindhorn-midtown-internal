@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - performance-audit-post-weather-webgl
+      - performance-audit-phase2
     paths:
       - "site/**"
       - "sky-worker/wrangler.jsonc"
@@ -38,12 +39,13 @@ jobs:
             site/business-dashboard.js site/business-dashboard-data.js site/business-dashboard-motion.js site/app.js
             site/push-client.js site/notification-inbox.js site/betta-environment.js site/betta-satellite.js
             site/betta-day-periods.js site/location.js site/rain-now.js site/weather-authority.js
-            site/live-data.js site/sw.js site/screen-capture.js
+            site/live-data.js site/sw.js site/screen-capture.js site/onboarding.js site/onboarding-content.js
           )
           for file in "${files[@]}"; do
             test -s "$file"
             node --input-type=module --check < "$file"
           done
+          node --input-type=module --check < site/startup-performance-smoke.mjs
           node site/betta-day-periods.test.mjs
           node site/betta-vignette-palettes.test.mjs
           node site/weather-authority.test.mjs
@@ -75,6 +77,7 @@ jobs:
           rain=(root/'rain-now.js').read_text()
           weather=(root/'weather-authority.js').read_text()
           capture=(root/'screen-capture.js').read_text()
+          auth_shell=(root/'auth-shell.js').read_text()
 
           fallback=json.loads((root/'fallback/manifest.json').read_text())
           shell=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
@@ -107,15 +110,20 @@ jobs:
               assert f"'/{name}'" not in sw, name
               assert f'/{name}' not in index, name
 
-          # Performance audit: no full Three.js or capture library in startup/install.
-          assert "sindhorn-midtown-internal-pwa-v41-performance-r1" in sw
+          # Performance audit: only production runtime assets belong to install/startup.
+          assert "sindhorn-midtown-internal-pwa-v42-performance-r2" in sw
           assert "'/betta-runtime.js'" in sw
-          assert "'/vendor/three.module.js'" not in sw
-          assert "'/vendor/html2canvas.min.js'" not in sw
+          for path in ('/vendor/three.module.js','/vendor/html2canvas.min.js','/betta-fin-presets.js','/betta-fin-shader.js','/betta-satellite.js','/betta-day-periods.js','/account.js','/account.css','/admin.js','/admin.css'):
+              assert f"'{path}'" not in sw, path
           assert '/vendor/html2canvas.min.js' not in index
+          assert '/account.css' not in index and '/admin.css' not in index
           assert "script.src='/vendor/html2canvas.min.js'" in capture
           assert (root/'vendor/three.module.js').exists()
           assert (root/'vendor/html2canvas.min.js').exists()
+          for source in ('betta-fin-presets.js','betta-fin-shader.js','betta-satellite.js','betta-day-periods.js','account.js','account.css','admin.js','admin.css'):
+              assert (root/source).exists(), source
+          assert "await import('./onboarding.js?v=1')" in auth_shell
+          assert 'sindhorn-auth-start' in auth_shell and 'sindhorn-bootstrap-import-ready' in auth_shell
 
           # Operational weather remains data/UI only.
           assert 'sindhorn-weather-core' in location
@@ -124,7 +132,6 @@ jobs:
           assert 'resolveWeatherAuthority' in rain
           assert 'effectiveWeatherSnapshot' in weather
 
-          assert "'/betta-satellite.js'" in sw
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw
 
           wrangler=json.loads(Path('sky-worker/wrangler.jsonc').read_text())
@@ -156,9 +163,9 @@ jobs:
             SAFE_BRANCH="${SAFE_BRANCH%-}"
             export PHASE82_BASE_URL="https://${SAFE_BRANCH}.sindhorn-midtown-internal.pages.dev"
             ready=false
-            for attempt in $(seq 1 40); do
+            for attempt in $(seq 1 80); do
               if curl --fail --silent --show-error --location "${PHASE82_BASE_URL}/sw.js" -o /tmp/preview-sw.js \
-                && grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/preview-sw.js; then
+                && grep -q 'sindhorn-midtown-internal-pwa-v42-performance-r2' /tmp/preview-sw.js; then
                   ready=true; break
               fi
               sleep 3
@@ -166,6 +173,19 @@ jobs:
             test "$ready" = true
           fi
           node site/phase8-2-browser-smoke.mjs
+
+      - name: Measure authenticated startup stages
+        if: github.ref_name != 'main'
+        env:
+          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
+          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          SAFE_BRANCH="${GITHUB_REF_NAME:0:28}"
+          SAFE_BRANCH="${SAFE_BRANCH%-}"
+          export STARTUP_BASE_URL="https://${SAFE_BRANCH}.sindhorn-midtown-internal.pages.dev"
+          node site/startup-performance-smoke.mjs
 
       - name: Verify production shell and Environmental Alerts Worker
         if: github.ref_name == 'main'
@@ -191,22 +211,31 @@ jobs:
           }
 
           promoted=false
-          for attempt in $(seq 1 40); do
+          for attempt in $(seq 1 80); do
             if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
+              && curl --fail --silent --show-error --location "${BASE_URL}/auth-shell.js" -o /tmp/auth-shell.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/bootstrap.js" -o /tmp/bootstrap.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/betta-environment.js" -o /tmp/betta.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/location.js" -o /tmp/location.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/rain-now.js" -o /tmp/rain-now.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/onboarding.js" -o /tmp/onboarding.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
               && grep -q "await import('./betta-runtime.js?v=1')" /tmp/bootstrap.js \
+              && grep -q "await import('./onboarding.js?v=1')" /tmp/auth-shell.js \
+              && grep -q 'sindhorn-auth-start' /tmp/auth-shell.js \
+              && grep -q 'data-app-guide-host' /tmp/onboarding.js \
               && grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta.js \
               && grep -q "dataset.environmentInput='satellite-only'" /tmp/betta.js \
               && grep -q 'sindhorn-weather-core' /tmp/location.js \
               && grep -q 'sindhorn-weather-core' /tmp/rain-now.js \
-              && grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/sw.js \
+              && grep -q 'sindhorn-midtown-internal-pwa-v42-performance-r2' /tmp/sw.js \
               && ! grep -q "'/vendor/three.module.js'" /tmp/sw.js \
               && ! grep -q "'/vendor/html2canvas.min.js'" /tmp/sw.js \
+              && ! grep -q "'/betta-satellite.js'" /tmp/sw.js \
+              && ! grep -q "'/betta-day-periods.js'" /tmp/sw.js \
               && ! grep -q '/vendor/html2canvas.min.js' /tmp/root.html \
+              && ! grep -q '/account.css' /tmp/root.html \
+              && ! grep -q '/admin.css' /tmp/root.html \
               && ! grep -q '/rain-layer.js' /tmp/root.html \
               && ! grep -q '/sun-dimmer.js' /tmp/root.html \
               && retired_clean; then
