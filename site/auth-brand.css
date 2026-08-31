@@ -139,7 +139,7 @@ body.login-page{
 .login-page .mode-switch{padding:7px 4px;color:var(--vg-accent);font-size:11.5px;font-weight:400;text-decoration:none}
 .login-page .note{color:var(--vg-muted);font-size:11.5px}
 .login-page .pin-setup{padding-top:18px;border-top:1px solid var(--vg-line)}
-.login-page .pin-setup h2{color:var(--vg-ivory);font-size:24px;font-weight:100}
+.login-page .pin-setup h2{color:var(--vg-ivory);font-size:24px;font-weight:400}
 .login-page .step-kicker{color:var(--vg-accent);font-size:9px;font-weight:400}
 .login-page .status{border:1px solid var(--vg-line);background:var(--vg-glass);color:var(--vg-muted)}
 .login-page .status[data-tone=error]{border-color:rgba(240,182,182,.24);background:rgba(172,55,55,.16);color:#F0B6B6}
