@@ -5,6 +5,7 @@ const assert=(condition,message)=>{if(!condition)throw new Error(message)};
 const authShim=`
 window.__SINDHORN_AUTH_PROFILE__={employee_number:'00000',display_name:'Startup Preview',pin_configured_at:new Date().toISOString()};
 await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='/location.js';script.onload=resolve;script.onerror=reject;document.head.appendChild(script)});
+window.__SINDHORN_EARLY_ENVIRONMENT_PROMISE__=import('/betta-environment.js').then(module=>module.initEnvironment());
 await import('/bootstrap.js');
 `;
 // Synthetic regression fixture only. Never copy production hotel figures into this public test.
