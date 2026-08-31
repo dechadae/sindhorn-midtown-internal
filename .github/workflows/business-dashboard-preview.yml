@@ -26,6 +26,8 @@ on:
       - "scripts/business-dashboard-ci-parity-smoke.mjs"
       - "scripts/business-notification-messages-smoke.mjs"
       - "scripts/business-notification-push-smoke.mjs"
+      - "scripts/business-notification-bridge-smoke.mjs"
+      - "supabase/migrations/20260831045500_daily_business_dashboard_notification_bridge.sql"
       - ".github/workflows/business-dashboard-preview.yml"
   workflow_dispatch:
 
@@ -52,7 +54,7 @@ jobs:
           for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard-motion.js site/business-dashboard.js site/app.js site/sw.js site/push-client.js site/notification-inbox.js scripts/business-dashboard-browser-smoke.mjs scripts/business-dashboard-motion-smoke.mjs scripts/business-dashboard-pwa-smoke.mjs scripts/business-dashboard-ci-audit.mjs scripts/business-dashboard-ci-parity-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
-          for file in scripts/business-notification-messages-smoke.mjs scripts/business-notification-push-smoke.mjs; do if [ -f "$file" ]; then node --input-type=module --check < "$file"; fi; done
+          for file in scripts/business-notification-messages-smoke.mjs scripts/business-notification-push-smoke.mjs scripts/business-notification-bridge-smoke.mjs; do if [ -f "$file" ]; then node --input-type=module --check < "$file"; fi; done
           grep -q "today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local'" site/route-registry.js
           grep -q "module:'./business-dashboard.js?v=4'" site/route-registry.js
           grep -q "sindhorn_business_dashboard_read_model" site/business-dashboard-data.js
@@ -77,6 +79,7 @@ jobs:
             grep -q "business-dashboard-update" site/notification-inbox.js
             grep -q "business updates are on" site/push-client.js
             grep -q "ServiceWorker.deliverPushMessage" scripts/business-notification-push-smoke.mjs
+            node scripts/business-notification-bridge-smoke.mjs
           fi
           if grep -Eqi 'border-radius:[[:space:]]*(50%|999px|9999px)' site/business-dashboard.css site/business-dashboard-motion.css; then
             echo 'Circular/capsule dashboard UI is not allowed'; exit 1
