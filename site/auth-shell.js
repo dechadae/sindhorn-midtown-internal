@@ -23,13 +23,6 @@ function applyEmployeeHeader(profileInput=null){
   link.append(name,avatar);if(!existing)tools.prepend(link);
 }
 async function loadClassicScript(src){await new Promise((resolve,reject)=>{if(document.querySelector(`script[data-auth-shell-src="${src}"]`)){resolve();return}const script=document.createElement('script');script.src=src;script.dataset.authShellSrc=src;script.onload=resolve;script.onerror=()=>reject(new Error(`Unable to load ${src}`));document.head.appendChild(script)})}
-function startBettaAfterFirstRouteMount(){
-  const host=document.getElementById('route-view');if(!host)return;
-  let started=false,observer=null;
-  const start=()=>{if(started)return;started=true;observer?.disconnect();window.__SINDHORN_EARLY_ENVIRONMENT_PROMISE__=import('./betta-environment.js').then(module=>module.initEnvironment()).catch(error=>{console.warn('Early Betta startup unavailable; bootstrap will continue.',error);return null})};
-  if(host.childElementCount){start();return}
-  observer=new MutationObserver(()=>{if(host.childElementCount)start()});observer.observe(host,{childList:true});
-}
 
 let state;try{state=await initAuth()}catch(_){state=getState()}
 if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
@@ -37,10 +30,5 @@ if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
   document.addEventListener('sindhorn:pack-updated',()=>applyEmployeeHeader());
   document.addEventListener('sindhorn:capabilities-updated',event=>applyEmployeeHeader(event.detail?.profile));
   document.addEventListener('sindhorn:auth-changed',event=>{const nextState=getState();if(!event.detail?.authenticated||!hasCompleteEmployeeAuth(nextState)){location.replace(loginUrl());return}window.__SINDHORN_AUTH_PROFILE__=event.detail.profile||nextState.profile;applyEmployeeHeader(window.__SINDHORN_AUTH_PROFILE__)});
-  await loadClassicScript('/location.js');
-  /* Give Today first-paint priority. As soon as the first authenticated route
-     structure is inserted, start Betta in parallel with route data loading.
-     bootstrap.js later calls the same idempotent initEnvironment(). */
-  startBettaAfterFirstRouteMount();
-  await import('./bootstrap.js');applyEmployeeHeader();
+  await loadClassicScript('/location.js');await import('./bootstrap.js');applyEmployeeHeader();
 }
