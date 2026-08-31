@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {BETTA_DAY_PERIODS,BANGKOK_TIME_ZONE,DAY_CYCLE_CHECK_MS,DAY_CYCLE_ROLLOVER_MS,DAY_CYCLE_CORRECTION_MS,easeDayCycle,periodForMinuteOfDay,periodForBangkokTime} from './betta-day-periods.js';
-import {BETTA_PRESETS} from './betta-fin-presets.js';
+import {BETTA_PRESETS,BETTA_LUMINOSITY_STANDARD} from './betta-fin-presets.js';
 
 assert.equal(BANGKOK_TIME_ZONE,'Asia/Bangkok');
 assert.equal(BETTA_DAY_PERIODS.length,8);
@@ -19,6 +19,11 @@ assert.equal(periodForBangkokTime(new Date('2026-08-30T23:00:00Z')).key,'first-l
 for(const period of BETTA_DAY_PERIODS){const expectedTone=period.startHour>=6&&period.startHour<18?'bright':'dark';assert.equal(period.tone,expectedTone,`${period.key} tone`);}
 const luxuryCaps={edgeFlutter:.08,currentStrength:.28,motionSpeed:.44,turbulence:.22,motionAmplitude:.5,foldDensity:5.4,curl:.68,depth:.74};
 for(const [key,preset] of Object.entries(BETTA_PRESETS))for(const [param,max] of Object.entries(luxuryCaps))assert.ok(preset.params[param]<=max,`${key}.${param} ${preset.params[param]} <= ${max}`);
-for(const period of BETTA_DAY_PERIODS){const brightness=BETTA_PRESETS[period.baseline].params.brightness;if(period.tone==='bright')assert.ok(brightness>=1.08,`${period.key} vivid brightness`);else assert.ok(brightness<=.92,`${period.key} nocturnal brightness`);}
+assert.equal(BETTA_LUMINOSITY_STANDARD.source,'Nemo Galaxy Koi pre-luxury-cycle');
+assert.deepEqual({brightness:BETTA_LUMINOSITY_STANDARD.brightness,opacity:BETTA_LUMINOSITY_STANDARD.opacity,transmission:BETTA_LUMINOSITY_STANDARD.transmission,bloom:BETTA_LUMINOSITY_STANDARD.bloom},{brightness:.96,opacity:.42,transmission:.70,bloom:.34});
+const nemo=BETTA_PRESETS.nemoGalaxyKoi;
+assert.deepEqual(nemo.palette,['#1679b8','#b92b1c','#ee8e2e','#f1e7d7']);
+for(const key of ['brightness','opacity','transmission','bloom'])assert.equal(nemo.params[key],BETTA_LUMINOSITY_STANDARD[key],`Nemo ${key} preserves luminosity standard`);
+for(const period of BETTA_DAY_PERIODS){const brightness=BETTA_PRESETS[period.baseline].params.brightness;if(period.tone==='bright')assert.ok(brightness>=1.08,`${period.key} vivid brightness`);else{assert.ok(brightness>=BETTA_LUMINOSITY_STANDARD.brightness,`${period.key} meets Nemo visibility floor`);assert.ok(brightness<=1.0,`${period.key} remains nocturnal`);}}
 assert.equal(easeDayCycle(0),0);assert.equal(easeDayCycle(1),1);assert.ok(easeDayCycle(.5)>.5);let last=0;for(let i=1;i<=100;i++){const next=easeDayCycle(i/100);assert.ok(next>=last);last=next;}
 console.log('Betta day-cycle contract PASS');
