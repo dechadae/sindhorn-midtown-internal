@@ -30,10 +30,10 @@ export const BETTA_PRESETS={
     background:'#080305',
     palette:['#210207','#600711','#a61621','#e33d40'],
     params:{
-      spread:3.62,rayCount:64,foldDensity:5.6,curl:.58,twist:.2,edgeFlutter:.06,depth:.76,
+      spread:3.62,rayCount:64,foldDensity:5.4,curl:.58,twist:.2,edgeFlutter:.06,depth:.74,
       currentStrength:.26,motionSpeed:.4,turbulence:.21,motionAmplitude:.47,
-      opacity:.43,transmission:.68,rimStrength:.9,foldHighlight:.86,iridescence:.18,bloom:.27,
-      saturation:1.28,brightness:1.2,gradientPosition:-.03,
+      opacity:.43,transmission:.68,rimStrength:.9,foldHighlight:.86,iridescence:.18,bloom:.324,
+      saturation:1.26,brightness:1.176,gradientPosition:-.03,
       scale:.94,rotation:.16,cameraDepth:-.32,offsetX:.02,offsetY:-.06
     },
     layers:[
@@ -83,8 +83,8 @@ export const BETTA_PRESETS={
     params:{
       spread:3.42,rayCount:52,foldDensity:5.25,curl:.54,twist:.18,edgeFlutter:.055,depth:.74,
       currentStrength:.23,motionSpeed:.36,turbulence:.18,motionAmplitude:.42,
-      opacity:.43,transmission:.68,rimStrength:.9,foldHighlight:.86,iridescence:.52,bloom:.25,
-      saturation:1.04,brightness:1.2,gradientPosition:.02,
+      opacity:.43,transmission:.68,rimStrength:.9,foldHighlight:.86,iridescence:.52,bloom:.312,
+      saturation:.984,brightness:1.176,gradientPosition:.02,
       scale:.98,rotation:.06,cameraDepth:.08,offsetX:.04,offsetY:-.02
     },
     layers:[
