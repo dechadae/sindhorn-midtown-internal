@@ -10,6 +10,7 @@ const titleNode=document.querySelector('[data-title]');
 const descriptionNode=document.querySelector('[data-description]');
 const liveButton=document.querySelector('[data-live]');
 const previewButton=document.querySelector('[data-preview]');
+const tiltButton=document.querySelector('[data-tilt]');
 
 titleNode.textContent='Betta Fine Tune';
 descriptionNode.textContent='Final Betta materials and synchronized gradients, now composed as large diagonal live-wallpaper crops.';
@@ -31,6 +32,7 @@ renderButtons();
 periodsHost.addEventListener('click',event=>{const button=event.target.closest('[data-period]');if(!button)return;window.SindhornEnvironment?.setBettaPeriod?.(button.dataset.period);updateUrl({period:button.dataset.period});paint()});
 liveButton.addEventListener('click',()=>{window.SindhornEnvironment?.useLiveBettaDayCycle?.();updateUrl({period:null});paint()});
 previewButton.addEventListener('click',()=>{window.SindhornEnvironment?.previewBettaDayCycle?.(180);updateUrl({period:null});paint()});
+tiltButton?.addEventListener('click',async()=>{const ok=await window.SindhornEnvironment?.enableBettaTilt?.();tiltButton.textContent=ok?'Tilt On':'Tilt unavailable';paint()});
 
 const {initEnvironment}=await import('./betta-environment.js?v=iphone-wallpaper-1');
 await initEnvironment();

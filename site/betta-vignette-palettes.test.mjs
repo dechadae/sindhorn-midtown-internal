@@ -11,6 +11,9 @@ for(const key of keys){
   assert.ok(p.params.spread>=2.6&&p.params.spread<=3.5,`${key} fan angle stays reference-scaled`);
   assert.ok(p.params.foldDensity>=8&&p.params.foldDensity<=12,`${key} keeps fine ray rhythm`);
   assert.ok(p.params.scale>=.76&&p.params.scale<=.86,`${key} live-wallpaper crop scale`);
+  assert.ok(Math.abs(p.params.rotationX)>=.18&&Math.abs(p.params.rotationX)<=.42,`${key} has deliberate x-axis perspective`);
+  assert.ok(Math.abs(p.params.rotationY)>=.24&&Math.abs(p.params.rotationY)<=.62,`${key} has deliberate y-axis perspective`);
+  assert.ok(p.params.tiltStrength>=.15&&p.params.tiltStrength<=.24,`${key} has bounded device tilt response`);
   assert.ok(p.params.offsetX<=-.94&&p.params.offsetX>=-1.12,`${key} keeps fin root near/off the left crop`);
   assert.ok(Math.abs(p.params.rotation)>=.10&&Math.abs(p.params.rotation)<=.48,`${key} keeps a deliberate diagonal wallpaper angle`);
   assert.ok(p.params.brightness>=1.6,`${key} compensates old shader darkness`);
