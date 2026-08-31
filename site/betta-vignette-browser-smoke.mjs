@@ -44,10 +44,12 @@ async function review(name,viewport,grade,period){
 }
 
 const results=[];
+results.push(await review('mobile-selected-before-dawn',{width:390,height:844},'selected','before-dawn'));
+results.push(await review('mobile-selected-blue-hour',{width:390,height:844},'selected','blue-hour'));
 results.push(await review('mobile-selected-midday',{width:390,height:844},'selected','midday'));
 results.push(await review('mobile-selected-golden-hour',{width:390,height:844},'selected','golden-hour'));
 results.push(await review('desktop-selected-bright-morning',{width:1440,height:1000},'selected','bright-morning'));
 results.push(await review('desktop-selected-midnight',{width:1440,height:1000},'selected','midnight'));
 fs.writeFileSync('betta-vignette-artifacts/results.json',JSON.stringify(results,null,2));
 await browser.close();
-console.log('Cool Vignette selected-mix reviewer smoke passed at explicit mobile and desktop viewports.');
+console.log('Cool Vignette selected-mix reviewer smoke passed at explicit mobile and desktop viewports, including Before Dawn and Blue Hour.');
