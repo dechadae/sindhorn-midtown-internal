@@ -1,9 +1,9 @@
 export const BETTA_LUMINOSITY_STANDARD=Object.freeze({
-  source:'Reference-fin retune on approved radial membrane engine',
-  brightness:1.18,
-  opacity:.42,
-  transmission:.78,
-  bloom:.30
+  source:'Final photographic-reference retune on approved radial membrane engine',
+  brightness:1.58,
+  opacity:.59,
+  transmission:.73,
+  bloom:.34
 });
 
 const preset=value=>Object.freeze(value);
@@ -11,138 +11,138 @@ const preset=value=>Object.freeze(value);
 export const BETTA_PRESETS={
   reference1:preset({
     referenceId:1,number:'01',name:'Fish #1 · Cobalt + Orange Halfmoon',morphMode:2,
-    description:'Midnight authority. Deep cobalt root with orange-red outer fan, broad side-profile Halfmoon silhouette and crisp ray separation.',
-    background:'#04060d',
-    palette:['#06152f','#124a92','#b73518','#ff6a24'],
+    description:'Deep cobalt/navy inner fan with a strongly visible orange-red outer membrane, broad Halfmoon sweep and crisp rays.',
+    background:'#02040a',
+    palette:['#071a3a','#1768bb','#d84822','#ff7942'],
     params:{
-      spread:3.62,rayCount:68,foldDensity:5.65,curl:.46,twist:.10,edgeFlutter:.066,depth:.66,
-      currentStrength:.24,motionSpeed:.36,turbulence:.18,motionAmplitude:.43,
-      opacity:.43,transmission:.78,rimStrength:.84,foldHighlight:.80,iridescence:.30,bloom:.31,
-      saturation:1.20,brightness:1.21,gradientPosition:-.015,
-      scale:1.18,rotation:-.10,cameraDepth:.12,offsetX:.12,offsetY:-.08
+      spread:3.15,rayCount:80,foldDensity:9.6,curl:.42,twist:.08,edgeFlutter:.070,depth:.58,
+      currentStrength:.20,motionSpeed:.34,turbulence:.16,motionAmplitude:.37,
+      opacity:.62,transmission:.71,rimStrength:1.08,foldHighlight:1.12,iridescence:.27,bloom:.36,
+      saturation:1.27,brightness:1.62,gradientPosition:-.08,
+      scale:.66,rotation:.02,cameraDepth:.10,offsetX:-.62,offsetY:-.02
     },
     layers:[
-      {seed:71.1,scale:1.00,rotation:0,offset:[0,0,.06],alpha:.94,phase:1.2},
-      {seed:74.8,scale:.985,rotation:.035,offset:[.07,.02,-.10],alpha:.20,phase:17.6},
+      {seed:71.1,scale:1.00,rotation:0,offset:[0,0,.06],alpha:.96,phase:1.2},
+      {seed:74.8,scale:.94,rotation:.055,offset:[.06,.01,-.10],alpha:.28,phase:17.6},
     ]
   }),
   reference2:preset({
     referenceId:2,number:'02',name:'Fish #2 · Super Red Halfmoon',morphMode:0,
-    description:'Dense rounded scarlet Halfmoon with a nearly continuous circular fan and strong radial folds.',
-    background:'#080203',
-    palette:['#300307','#77100b','#c91a0e','#ff4c1d'],
+    description:'Rounded saturated scarlet Halfmoon with a compact circular fan, dark crimson root and bright vermilion rim.',
+    background:'#050101',
+    palette:['#570303','#a70a06','#ef1c0d','#ff5b24'],
     params:{
-      spread:4.08,rayCount:72,foldDensity:5.9,curl:.52,twist:.17,edgeFlutter:.060,depth:.70,
-      currentStrength:.23,motionSpeed:.34,turbulence:.17,motionAmplitude:.41,
-      opacity:.46,transmission:.72,rimStrength:.80,foldHighlight:.82,iridescence:.12,bloom:.30,
-      saturation:1.18,brightness:1.20,gradientPosition:-.06,
-      scale:1.16,rotation:.10,cameraDepth:.05,offsetX:.02,offsetY:-.04
+      spread:3.22,rayCount:80,foldDensity:10.4,curl:.25,twist:.035,edgeFlutter:.050,depth:.56,
+      currentStrength:.18,motionSpeed:.32,turbulence:.13,motionAmplitude:.34,
+      opacity:.66,transmission:.66,rimStrength:1.06,foldHighlight:1.18,iridescence:.08,bloom:.34,
+      saturation:1.32,brightness:1.66,gradientPosition:-.11,
+      scale:.64,rotation:.02,cameraDepth:.08,offsetX:-.64,offsetY:.00
     },
     layers:[
-      {seed:82.4,scale:1.00,rotation:0,offset:[0,0,.08],alpha:.94,phase:4.9},
-      {seed:87.1,scale:.992,rotation:-.025,offset:[-.04,.05,-.11],alpha:.18,phase:21.2},
+      {seed:82.4,scale:1.00,rotation:0,offset:[0,0,.07],alpha:.98,phase:4.9},
+      {seed:87.1,scale:.955,rotation:-.035,offset:[-.02,.025,-.10],alpha:.23,phase:21.2},
     ]
   }),
   reference3:preset({
     referenceId:3,number:'03',name:'Fish #3 · Coral Magenta Flow',morphMode:0,
-    description:'Warm magenta, rose and coral-orange fan with softer asymmetric sweep and layered couture folds.',
-    background:'#090408',
-    palette:['#511033','#962052','#d94c62','#f38b50'],
+    description:'Asymmetric rose-magenta fan with coral-orange rays, a warmer right-hand sweep and softer flowing edge.',
+    background:'#060207',
+    palette:['#4f102d','#a52d5d','#e45d73','#f19a68'],
     params:{
-      spread:3.72,rayCount:64,foldDensity:5.65,curl:.66,twist:.26,edgeFlutter:.075,depth:.72,
-      currentStrength:.25,motionSpeed:.37,turbulence:.21,motionAmplitude:.46,
-      opacity:.43,transmission:.80,rimStrength:.82,foldHighlight:.76,iridescence:.28,bloom:.30,
-      saturation:1.17,brightness:1.23,gradientPosition:-.025,
-      scale:1.17,rotation:.18,cameraDepth:.05,offsetX:.04,offsetY:-.12
+      spread:3.00,rayCount:76,foldDensity:9.4,curl:.70,twist:.26,edgeFlutter:.085,depth:.64,
+      currentStrength:.20,motionSpeed:.35,turbulence:.19,motionAmplitude:.40,
+      opacity:.61,transmission:.72,rimStrength:1.03,foldHighlight:1.08,iridescence:.24,bloom:.35,
+      saturation:1.26,brightness:1.64,gradientPosition:-.045,
+      scale:.66,rotation:.13,cameraDepth:.08,offsetX:-.60,offsetY:-.03
     },
     layers:[
-      {seed:93.6,scale:1.03,rotation:-.03,offset:[-.06,-.03,.10],alpha:.91,phase:8.7},
-      {seed:98.2,scale:.96,rotation:.12,offset:[.12,.08,-.14],alpha:.26,phase:26.4},
+      {seed:93.6,scale:1.00,rotation:-.025,offset:[-.02,-.03,.09],alpha:.95,phase:8.7},
+      {seed:98.2,scale:.90,rotation:.14,offset:[.08,.08,-.13],alpha:.34,phase:26.4},
     ]
   }),
   reference4:preset({
     referenceId:4,number:'04',name:'Fish #4 · Pearl Blush Veiltail',morphMode:2,
-    description:'Airy pale-blue and pearl membrane with blush-red outer accents, longer lower sweep and visibly delicate rays.',
-    background:'#080b12',
-    palette:['#dce6e8','#a7c4d4','#c77370','#e8b5ab'],
+    description:'Pale pearl and icy-blue translucent fan with blush-red outer streaks, narrower opening and a long downward veiltail sweep.',
+    background:'#05070b',
+    palette:['#e9eef0','#9fc7dc','#ca6e68','#efb8ae'],
     params:{
-      spread:3.34,rayCount:60,foldDensity:5.15,curl:.76,twist:-.34,edgeFlutter:.082,depth:.60,
-      currentStrength:.21,motionSpeed:.32,turbulence:.18,motionAmplitude:.40,
-      opacity:.31,transmission:.92,rimStrength:.79,foldHighlight:.66,iridescence:.20,bloom:.24,
-      saturation:1.02,brightness:1.30,gradientPosition:.02,
-      scale:1.15,rotation:-.18,cameraDepth:.18,offsetX:.06,offsetY:-.05
+      spread:2.68,rayCount:72,foldDensity:8.7,curl:.94,twist:-.46,edgeFlutter:.105,depth:.52,
+      currentStrength:.17,motionSpeed:.30,turbulence:.16,motionAmplitude:.34,
+      opacity:.49,transmission:.90,rimStrength:1.00,foldHighlight:.98,iridescence:.16,bloom:.31,
+      saturation:1.10,brightness:1.70,gradientPosition:.00,
+      scale:.69,rotation:-.28,cameraDepth:.12,offsetX:-.59,offsetY:.12
     },
     layers:[
-      {seed:104.4,scale:1.04,rotation:-.06,offset:[-.08,-.06,.12],alpha:.84,phase:12.1},
-      {seed:109.7,scale:.90,rotation:.24,offset:[.18,.16,-.16],alpha:.30,phase:31.5},
+      {seed:104.4,scale:1.00,rotation:-.03,offset:[-.02,-.04,.11],alpha:.89,phase:12.1},
+      {seed:109.7,scale:.84,rotation:.24,offset:[.12,.13,-.15],alpha:.38,phase:31.5},
     ]
   }),
   reference5:preset({
     referenceId:5,number:'05',name:'Fish #5 · Mustard Galaxy Koi',morphMode:1,
-    description:'Compact irregular fan combining ink blue, cyan, mustard-gold and pearl-white patches.',
-    background:'#06070b',
-    palette:['#42a9c9','#071827','#d5a52d','#f0efe6'],
+    description:'Compact irregular couture fan with distinct ink-blue, cyan, mustard-gold and pearl-white patches instead of a uniform gold wash.',
+    background:'#030507',
+    palette:['#62d1e8','#081923','#e0ad3c','#fff4dd'],
     params:{
-      spread:3.30,rayCount:58,foldDensity:5.72,curl:.70,twist:.32,edgeFlutter:.084,depth:.70,
-      currentStrength:.25,motionSpeed:.39,turbulence:.23,motionAmplitude:.47,
-      opacity:.46,transmission:.76,rimStrength:.84,foldHighlight:.82,iridescence:.38,bloom:.34,
-      saturation:1.18,brightness:1.22,gradientPosition:-.03,
-      scale:1.12,rotation:-.06,cameraDepth:.04,offsetX:.08,offsetY:-.03
+      spread:2.78,rayCount:72,foldDensity:9.8,curl:.82,twist:.34,edgeFlutter:.120,depth:.66,
+      currentStrength:.20,motionSpeed:.35,turbulence:.23,motionAmplitude:.41,
+      opacity:.64,transmission:.69,rimStrength:1.10,foldHighlight:1.16,iridescence:.34,bloom:.39,
+      saturation:1.34,brightness:1.68,gradientPosition:-.05,
+      scale:.62,rotation:-.08,cameraDepth:.08,offsetX:-.58,offsetY:.00
     },
     layers:[
-      {seed:116.2,scale:1.05,rotation:-.08,offset:[-.12,-.05,.12],alpha:.89,phase:15.8},
-      {seed:121.6,scale:.93,rotation:.20,offset:[.16,.11,-.15],alpha:.32,phase:36.7},
+      {seed:116.2,scale:1.00,rotation:-.05,offset:[-.03,-.02,.10],alpha:.94,phase:15.8},
+      {seed:121.6,scale:.82,rotation:.22,offset:[.12,.10,-.15],alpha:.48,phase:36.7},
     ]
   }),
   reference6:preset({
-    referenceId:6,number:'06',name:'Fish #6 · Wine Orchid Halfmoon',morphMode:0,
-    description:'Broad wine-magenta Halfmoon with cool lilac/silver inner rays, pale rim and strong radial rhythm.',
-    background:'#06040b',
-    palette:['#34394d','#6d3158','#a92260','#d96684'],
+    referenceId:6,number:'06',name:'Fish #6 · Wine Orchid Halfmoon',morphMode:4,
+    description:'Broad wine-magenta Halfmoon with deep plum valleys, lavender-silver ray ridges and a clearly brighter pale outer rhythm.',
+    background:'#040207',
+    palette:['#2f203f','#6f2355','#b73175','#ead0e7'],
     params:{
-      spread:4.18,rayCount:72,foldDensity:6.08,curl:.44,twist:-.08,edgeFlutter:.058,depth:.66,
-      currentStrength:.23,motionSpeed:.34,turbulence:.17,motionAmplitude:.41,
-      opacity:.47,transmission:.76,rimStrength:.88,foldHighlight:.84,iridescence:.34,bloom:.32,
-      saturation:1.16,brightness:1.23,gradientPosition:.015,
-      scale:1.17,rotation:-.08,cameraDepth:.10,offsetX:.02,offsetY:-.02
+      spread:3.24,rayCount:80,foldDensity:10.8,curl:.34,twist:-.035,edgeFlutter:.055,depth:.56,
+      currentStrength:.18,motionSpeed:.32,turbulence:.13,motionAmplitude:.34,
+      opacity:.64,transmission:.70,rimStrength:1.12,foldHighlight:1.22,iridescence:.28,bloom:.38,
+      saturation:1.28,brightness:1.68,gradientPosition:-.01,
+      scale:.64,rotation:-.035,cameraDepth:.09,offsetX:-.63,offsetY:.00
     },
     layers:[
-      {seed:128.4,scale:1.00,rotation:0,offset:[0,0,.08],alpha:.94,phase:19.4},
-      {seed:133.8,scale:.988,rotation:.025,offset:[.04,-.03,-.11],alpha:.17,phase:40.2},
+      {seed:128.4,scale:1.00,rotation:0,offset:[0,0,.07],alpha:.97,phase:19.4},
+      {seed:133.8,scale:.95,rotation:.035,offset:[.025,-.02,-.10],alpha:.25,phase:40.2},
     ]
   }),
   reference7:preset({
     referenceId:7,number:'07',name:'Fish #7 · Steel Blue Rosetail',morphMode:4,
-    description:'Huge smoky steel-blue rosetail with soft teal folds, irregular ruffled edge and layered overlapping membrane.',
-    background:'#04070b',
-    palette:['#071824','#17374a','#336579','#91a1a0'],
+    description:'Smoky steel/teal blue rosetail with layered overlapping lobes, brighter silver-blue rays and a visibly ruffled irregular edge.',
+    background:'#020507',
+    palette:['#0b202c','#28576d','#588aa0','#c5d0d2'],
     params:{
-      spread:4.34,rayCount:76,foldDensity:6.25,curl:.78,twist:.30,edgeFlutter:.100,depth:.80,
-      currentStrength:.24,motionSpeed:.31,turbulence:.27,motionAmplitude:.48,
-      opacity:.43,transmission:.83,rimStrength:.91,foldHighlight:.86,iridescence:.32,bloom:.34,
-      saturation:1.04,brightness:1.20,gradientPosition:.035,
-      scale:1.20,rotation:.13,cameraDepth:.14,offsetX:.00,offsetY:.02
+      spread:3.42,rayCount:80,foldDensity:11.6,curl:1.02,twist:.43,edgeFlutter:.165,depth:.78,
+      currentStrength:.19,motionSpeed:.29,turbulence:.27,motionAmplitude:.41,
+      opacity:.58,transmission:.78,rimStrength:1.18,foldHighlight:1.24,iridescence:.28,bloom:.39,
+      saturation:1.17,brightness:1.62,gradientPosition:.015,
+      scale:.62,rotation:.08,cameraDepth:.11,offsetX:-.60,offsetY:.02
     },
     layers:[
-      {seed:141.5,scale:1.04,rotation:.00,offset:[-.05,0,.12],alpha:.90,phase:23.6},
-      {seed:147.9,scale:.91,rotation:.16,offset:[.16,.10,-.18],alpha:.36,phase:45.1},
+      {seed:141.5,scale:1.00,rotation:-.02,offset:[-.03,0,.11],alpha:.93,phase:23.6},
+      {seed:147.9,scale:.80,rotation:.22,offset:[.13,.09,-.18],alpha:.52,phase:45.1},
     ]
   }),
   reference8:preset({
     referenceId:8,number:'08',name:'Fish #8 · Electric Blue Halfmoon',morphMode:4,
-    description:'Monumental near-circular electric cobalt Halfmoon with dark navy root and highly legible radiating folds.',
-    background:'#02040a',
-    palette:['#020917','#072354','#0c59ad','#4a95df'],
+    description:'Near-circular royal/electric cobalt Halfmoon with a dark navy root and highly legible bright blue radiating rays.',
+    background:'#01030a',
+    palette:['#020a20','#0a2f71','#1677d2','#79b9f4'],
     params:{
-      spread:4.42,rayCount:80,foldDensity:6.02,curl:.50,twist:.06,edgeFlutter:.060,depth:.70,
-      currentStrength:.22,motionSpeed:.32,turbulence:.17,motionAmplitude:.41,
-      opacity:.49,transmission:.76,rimStrength:.94,foldHighlight:.88,iridescence:.42,bloom:.36,
-      saturation:1.20,brightness:1.24,gradientPosition:.015,
-      scale:1.18,rotation:-.11,cameraDepth:.14,offsetX:.02,offsetY:.00
+      spread:3.28,rayCount:80,foldDensity:11.2,curl:.27,twist:.018,edgeFlutter:.048,depth:.56,
+      currentStrength:.17,motionSpeed:.30,turbulence:.12,motionAmplitude:.33,
+      opacity:.66,transmission:.68,rimStrength:1.18,foldHighlight:1.26,iridescence:.36,bloom:.42,
+      saturation:1.34,brightness:1.72,gradientPosition:-.035,
+      scale:.64,rotation:-.035,cameraDepth:.10,offsetX:-.64,offsetY:.00
     },
     layers:[
-      {seed:155.2,scale:1.00,rotation:0,offset:[0,0,.08],alpha:.95,phase:27.8},
-      {seed:161.4,scale:.992,rotation:-.02,offset:[-.04,.03,-.12],alpha:.18,phase:49.3},
+      {seed:155.2,scale:1.00,rotation:0,offset:[0,0,.07],alpha:.98,phase:27.8},
+      {seed:161.4,scale:.955,rotation:-.025,offset:[-.02,.02,-.11],alpha:.24,phase:49.3},
     ]
   })
 };
