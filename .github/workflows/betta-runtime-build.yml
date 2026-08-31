@@ -1,0 +1,58 @@
+name: Build Betta Runtime
+
+on:
+  push:
+    branches:
+      - fix-betta-first-frame-startup
+    paths:
+      - ".github/workflows/betta-runtime-build.yml"
+      - "site/betta-environment.js"
+      - "site/betta-fin-presets.js"
+      - "site/betta-fin-shader.js"
+      - "site/betta-satellite.js"
+      - "site/betta-day-periods.js"
+      - "site/vendor/three.module.js"
+      - "site/vendor/three.core.js"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Build tree-shaken production runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes esbuild@0.25.9 site/betta-environment.js \
+            --bundle \
+            --format=esm \
+            --platform=browser \
+            --target=es2022 \
+            --tree-shaking=true \
+            --minify \
+            --legal-comments=none \
+            --outfile=site/betta-runtime.js
+          node --input-type=module --check < site/betta-runtime.js
+          BYTES=$(wc -c < site/betta-runtime.js | tr -d ' ')
+          echo "Betta runtime bytes: ${BYTES}"
+          test "${BYTES}" -lt 700000
+
+      - name: Commit generated runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- site/betta-runtime.js; then
+            echo "Runtime already current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/betta-runtime.js
+          git commit -m "Build tree-shaken Betta runtime"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
