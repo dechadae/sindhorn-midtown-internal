@@ -12,6 +12,7 @@ on:
       - fix-airbkk-proxy-worker
       - fix-airbkk-worker-request
       - fix-airbkk-client-proxy
+      - fix-main-release-health-20260831
       - main
     paths:
       - "worker/**"
@@ -66,7 +67,7 @@ jobs:
           grep -q "'/push-client.js'" site/sw.js
           grep -q "addEventListener('push'" site/sw.js
           grep -q "addEventListener('notificationclick'" site/sw.js
-          grep -q "Current location" site/location.js
+          grep -q "Current device location" site/location.js
           grep -q "weatherLocationEn" site/location.js
           grep -q "import {PUSH_API_BASE} from './push-config.js'" site/live-data.js
           grep -q "PUSH_API_BASE+'/air-current'" site/live-data.js
@@ -201,7 +202,7 @@ jobs:
           ! grep -q 'stations.airbkk.com/api/web/data' <<<"${AIR_CLIENT}"
           grep -q 'sindhorn-midtown-alerts.decha-dae.workers.dev' <<<"${ROOT}"
           ! grep -q 'stations.airbkk.com' <<<"${ROOT}"
-          grep -q 'Current location' <(curl --fail --silent --show-error "${BASE_URL}/location.js")
+          grep -q 'Current device location' <(curl --fail --silent --show-error "${BASE_URL}/location.js")
           SW="$(curl --fail --silent --show-error "${BASE_URL}/sw.js")"
           grep -q "'/location.js'" <<<"${SW}"
           grep -q "addEventListener('push'" <<<"${SW}"
