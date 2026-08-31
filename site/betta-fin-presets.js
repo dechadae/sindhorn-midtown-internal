@@ -1,9 +1,9 @@
 export const BETTA_LUMINOSITY_STANDARD=Object.freeze({
-  source:'Nemo Galaxy Koi pre-luxury-cycle',
-  brightness:.96,
+  source:'Nemo Galaxy Koi pre-luxury-cycle + 20% presentation lift',
+  brightness:1.152,
   opacity:.42,
   transmission:.70,
-  bloom:.34
+  bloom:.408
 });
 
 export const BETTA_PRESETS={
@@ -15,8 +15,8 @@ export const BETTA_PRESETS={
     params:{
       spread:3.48,rayCount:56,foldDensity:5.1,curl:.52,twist:-.28,edgeFlutter:.07,depth:.62,
       currentStrength:.27,motionSpeed:.43,turbulence:.21,motionAmplitude:.48,
-      opacity:.42,transmission:.8,rimStrength:.78,foldHighlight:.72,iridescence:.34,bloom:.24,
-      saturation:1.12,brightness:1.16,gradientPosition:.03,
+      opacity:.42,transmission:.8,rimStrength:.78,foldHighlight:.72,iridescence:.34,bloom:.288,
+      saturation:1.344,brightness:1.392,gradientPosition:.03,
       scale:1.12,rotation:-.46,cameraDepth:.15,offsetX:.48,offsetY:-.58
     },
     layers:[
@@ -31,8 +31,8 @@ export const BETTA_PRESETS={
     params:{
       spread:3.84,rayCount:64,foldDensity:5.35,curl:.62,twist:.25,edgeFlutter:.07,depth:.72,
       currentStrength:.26,motionSpeed:.4,turbulence:.21,motionAmplitude:.47,
-      opacity:.39,transmission:.75,rimStrength:.76,foldHighlight:.72,iridescence:.12,bloom:.27,
-      saturation:1.05,brightness:.98,gradientPosition:-.06,
+      opacity:.39,transmission:.75,rimStrength:.76,foldHighlight:.72,iridescence:.12,bloom:.324,
+      saturation:1.26,brightness:1.176,gradientPosition:-.06,
       scale:1.12,rotation:.16,cameraDepth:-.1,offsetX:.08,offsetY:-.12
     },
     layers:[
@@ -48,8 +48,8 @@ export const BETTA_PRESETS={
     params:{
       spread:4.05,rayCount:60,foldDensity:5.2,curl:.56,twist:-.2,edgeFlutter:.07,depth:.64,
       currentStrength:.27,motionSpeed:.42,turbulence:.22,motionAmplitude:.49,
-      opacity:.4,transmission:.81,rimStrength:.74,foldHighlight:.7,iridescence:.2,bloom:.22,
-      saturation:1.12,brightness:1.1,gradientPosition:-.02,
+      opacity:.4,transmission:.81,rimStrength:.74,foldHighlight:.7,iridescence:.2,bloom:.264,
+      saturation:1.344,brightness:1.32,gradientPosition:-.02,
       scale:1.18,rotation:-.2,cameraDepth:.08,offsetX:.28,offsetY:-.4
     },
     layers:[
@@ -64,8 +64,8 @@ export const BETTA_PRESETS={
     params:{
       spread:4.24,rayCount:52,foldDensity:4.8,curl:.66,twist:.34,edgeFlutter:.055,depth:.74,
       currentStrength:.22,motionSpeed:.35,turbulence:.17,motionAmplitude:.4,
-      opacity:.42,transmission:.78,rimStrength:.86,foldHighlight:.76,iridescence:.38,bloom:.27,
-      saturation:.98,brightness:.99,gradientPosition:.07,
+      opacity:.42,transmission:.78,rimStrength:.86,foldHighlight:.76,iridescence:.38,bloom:.324,
+      saturation:1.176,brightness:1.188,gradientPosition:.07,
       scale:1.46,rotation:1.1,cameraDepth:.45,offsetX:-.92,offsetY:.1
     },
     layers:[
@@ -80,8 +80,8 @@ export const BETTA_PRESETS={
     params:{
       spread:3.55,rayCount:52,foldDensity:4.95,curl:.56,twist:.22,edgeFlutter:.06,depth:.7,
       currentStrength:.23,motionSpeed:.36,turbulence:.18,motionAmplitude:.42,
-      opacity:.37,transmission:.76,rimStrength:.76,foldHighlight:.72,iridescence:.46,bloom:.26,
-      saturation:.82,brightness:.98,gradientPosition:.06,
+      opacity:.37,transmission:.76,rimStrength:.76,foldHighlight:.72,iridescence:.46,bloom:.312,
+      saturation:.984,brightness:1.176,gradientPosition:.06,
       scale:1.08,rotation:.06,cameraDepth:.24,offsetX:.08,offsetY:.03
     },
     layers:[
@@ -97,8 +97,8 @@ export const BETTA_PRESETS={
     params:{
       spread:3.34,rayCount:56,foldDensity:4.8,curl:.44,twist:-.3,edgeFlutter:.05,depth:.62,
       currentStrength:.21,motionSpeed:.33,turbulence:.15,motionAmplitude:.38,
-      opacity:.28,transmission:.9,rimStrength:.68,foldHighlight:.56,iridescence:.42,bloom:.18,
-      saturation:1.02,brightness:1.18,gradientPosition:.08,
+      opacity:.28,transmission:.9,rimStrength:.68,foldHighlight:.56,iridescence:.42,bloom:.216,
+      saturation:1.224,brightness:1.416,gradientPosition:.08,
       scale:1.08,rotation:-.05,cameraDepth:.3,offsetX:.08,offsetY:.03
     },
     layers:[
@@ -108,14 +108,14 @@ export const BETTA_PRESETS={
   },
   nemoGalaxyKoi:{
     number:'07',name:'Nemo Galaxy Koi',morphMode:1,
-    description:'Evening luminosity standard: the original vivid blue, red, orange and cream Nemo palette preserved on the new soft luxury membrane.',
+    description:'Evening luminosity standard: the original vivid blue, red, orange and cream Nemo palette preserved on the new soft luxury membrane, now lifted 20% in saturation, brightness and optical luminosity.',
     background:'#080506',
     palette:['#1679b8','#b92b1c','#ee8e2e','#f1e7d7'],
     params:{
       spread:3.72,rayCount:60,foldDensity:5.15,curl:.6,twist:.27,edgeFlutter:.065,depth:.7,
       currentStrength:.25,motionSpeed:.38,turbulence:.21,motionAmplitude:.46,
-      opacity:.42,transmission:.70,rimStrength:.8,foldHighlight:.78,iridescence:.28,bloom:.34,
-      saturation:1.08,brightness:.96,gradientPosition:-.03,
+      opacity:.42,transmission:.70,rimStrength:.8,foldHighlight:.78,iridescence:.28,bloom:.408,
+      saturation:1.296,brightness:1.152,gradientPosition:-.03,
       scale:1.1,rotation:.14,cameraDepth:.02,offsetX:.04,offsetY:-.08
     },
     layers:[
@@ -131,8 +131,8 @@ export const BETTA_PRESETS={
     params:{
       spread:3.92,rayCount:56,foldDensity:4.9,curl:.5,twist:.14,edgeFlutter:.055,depth:.6,
       currentStrength:.22,motionSpeed:.35,turbulence:.17,motionAmplitude:.4,
-      opacity:.36,transmission:.84,rimStrength:.76,foldHighlight:.68,iridescence:.2,bloom:.2,
-      saturation:1.08,brightness:1.14,gradientPosition:.01,
+      opacity:.36,transmission:.84,rimStrength:.76,foldHighlight:.68,iridescence:.2,bloom:.24,
+      saturation:1.296,brightness:1.368,gradientPosition:.01,
       scale:1.2,rotation:-.12,cameraDepth:.12,offsetX:.24,offsetY:-.32
     },
     layers:[
