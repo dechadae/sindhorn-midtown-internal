@@ -160,11 +160,13 @@ async function refreshPack(){
 window.SindhornAppPack={shellVersion:SHELL_VERSION,mountRoute,refresh:refreshPack,getManifest:()=>activePack?structuredClone(activePack.manifest):null,getEnvironmentConfig:()=>environmentConfig(),getResource:path=>activePack?.resources?.[path]?.content??null,getRoute:()=>routeForPath(location.pathname)||'today'};
 document.documentElement.dataset.shellLoading='true';
 const initial=(await readCachedPack())||(await fallbackPack());await applyPack(initial,{mount:true});
-const live=await import('./live-data.js');await live.initLiveData();
+/* Betta is the first post-route startup task so Today and the persistent WebGL
+   surface can enter together. Live air data continues immediately afterward. */
 const environment=await import('./betta-environment.js');await environment.initEnvironment();
+const live=await import('./live-data.js');await live.initLiveData();
 /* The Betta environment schedules its first WebGL render on requestAnimationFrame.
-   Keep the persistent shell hidden for two paint opportunities so the GPU
-   canvas is already populated before the header/route/footer are released. */
+   Keep the startup state for two paint opportunities so the GPU canvas is
+   already populated before any shell-loading fallback can release. */
 await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
 document.documentElement.dataset.shellLoading='false';
 presentationRecovery=await import('./presentation-recovery.js');
