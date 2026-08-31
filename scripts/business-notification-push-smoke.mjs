@@ -71,8 +71,17 @@ try{
   // browser grants the permission. The same production service-worker handler is already used by
   // live environmental Web Push, so always verify its user-visible notification contract, and
   // additionally inspect the rendered notification whenever the runner exposes that capability.
-  assert(swText.includes("self.addEventListener('push'")&&swText.includes('self.registration.showNotification(title,{body,tag,renotify,data:{route:message.route,messageId:message.id}})'), 'Service worker no longer renders stored push payloads as system notifications');
-  assert(swText.includes("self.addEventListener('notificationclick'")&&swText.includes('markNotificationRead(messageId)'), 'Notification click/read contract changed');
+  const notificationContract=[
+    "self.addEventListener('push'",
+    'self.registration.showNotification(title,{body',
+    "icon:'/icons/app-192.png'",
+    "badge:'/icons/app-192.png'",
+    'tag,renotify:Boolean(payload.renotify)',
+    'requireInteraction:Boolean(payload.requireInteraction)',
+    'data:{route,kind,messageId}'
+  ];
+  assert(notificationContract.every(fragment=>swText.includes(fragment)),`Service worker no longer renders stored push payloads as system notifications: ${notificationContract.filter(fragment=>!swText.includes(fragment)).join(', ')}`);
+  assert(swText.includes("self.addEventListener('notificationclick'")&&swText.includes('markNotificationRead(messageId)')&&swText.includes('new URL(route,self.location.origin).href'), 'Notification click/read/deep-link contract changed');
   if(state.permission==='granted'){
     assert(state.notifications.length===1,`Expected one system notification ${JSON.stringify(state.notifications)}`);
     assert(state.notifications[0].title===payload.titleEn&&state.notifications[0].body===payload.bodyEn&&state.notifications[0].tag===payload.tag,`System notification payload mismatch ${JSON.stringify(state.notifications[0])}`);
