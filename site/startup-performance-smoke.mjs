@@ -32,6 +32,8 @@ try{
       marks,
       durations:{
         authMs:marks['sindhorn-auth-ready']!=null&&marks['sindhorn-auth-start']!=null?+(marks['sindhorn-auth-ready']-marks['sindhorn-auth-start']).toFixed(2):null,
+        bettaModuleWarmMs:marks['sindhorn-betta-module-ready']!=null&&marks['sindhorn-betta-warm-start']!=null?+(marks['sindhorn-betta-module-ready']-marks['sindhorn-betta-warm-start']).toFixed(2):null,
+        bettaInitToFirstFrameMs:marks['sindhorn-betta-first-frame']!=null&&marks['sindhorn-betta-init-start']!=null?+(marks['sindhorn-betta-first-frame']-marks['sindhorn-betta-init-start']).toFixed(2):null,
         locationMs:marks['sindhorn-location-load-ready']!=null&&marks['sindhorn-location-load-start']!=null?+(marks['sindhorn-location-load-ready']-marks['sindhorn-location-load-start']).toFixed(2):null,
         bootstrapMs:marks['sindhorn-bootstrap-import-ready']!=null&&marks['sindhorn-bootstrap-import-start']!=null?+(marks['sindhorn-bootstrap-import-ready']-marks['sindhorn-bootstrap-import-start']).toFixed(2):null,
         onboardingMs:marks['sindhorn-onboarding-import-ready']!=null&&marks['sindhorn-onboarding-import-start']!=null?+(marks['sindhorn-onboarding-import-ready']-marks['sindhorn-onboarding-import-start']).toFixed(2):null,
@@ -45,6 +47,8 @@ try{
   });
   if(result.legacyStartupAssets.accountCss||result.legacyStartupAssets.adminCss)throw new Error(`Legacy route CSS loaded on Today: ${JSON.stringify(result.legacyStartupAssets)}`);
   if(result.legacyStartupAssets.html2canvas||result.legacyStartupAssets.threeSource)throw new Error(`Deferred vendor source loaded on Today: ${JSON.stringify(result.legacyStartupAssets)}`);
+  const directOpenMeteo=result.external.filter(entry=>entry.host==='api.open-meteo.com');
+  if(directOpenMeteo.length)throw new Error(`Direct Open-Meteo request escaped the Sindhorn weather adapter: ${JSON.stringify(directOpenMeteo)}`);
   console.log(`SINDHORN_STARTUP_PERFORMANCE ${JSON.stringify(result)}`);
 }finally{
   await context.close();
