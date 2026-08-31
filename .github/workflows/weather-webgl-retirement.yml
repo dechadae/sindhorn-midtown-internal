@@ -1,221 +1,81 @@
-name: Retire Legacy Weather WebGL
+name: Record Weather WebGL Retirement
 
 on:
   push:
     branches:
       - remove-legacy-weather-webgl
+    paths:
+      - ".github/workflows/weather-webgl-retirement.yml"
+      - "site/sw.js"
+      - "site/index.html"
+      - "supabase/migrations/20260831121436_archive_legacy_weather_webgl_sources.sql"
   workflow_dispatch:
 
 permissions:
   contents: write
-  deployments: write
 
 concurrency:
-  group: retire-legacy-weather-webgl-${{ github.ref_name }}
+  group: record-weather-webgl-retirement-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
-  retire-and-preview:
+  document:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 8
     steps:
       - name: Check out branch
         uses: actions/checkout@v6
         with:
           ref: ${{ github.ref_name }}
-          fetch-depth: 0
 
-      - name: Migrate documentation and release gates
+      - name: Record retirement and recovery authority
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
           from pathlib import Path
 
-          RETIRED = [
-              'site/environment.js',
-              'site/environment.bundle.js',
-              'site/seasonal-sky.js',
-              'site/atmosphere-shader.js',
-              'site/rain-layer-legacy-weather.js',
-              'site/rain-layer.js',
-              'site/sun-dimmer.js',
-              'site/storm-effects.js',
-              'site/sky-calibration.js',
-              'site/sky-color-renderer.js',
-              'site/cloud-tester.js',
-              'site/phase8-2-fixtures.js',
-              'site/phase8-2-seasonal-clouds.test.mjs',
-          ]
+          archive_key='legacy-weather-webgl-20260831'
+          source_commit='29b0c99941163582b84d376982e459fdf6ead85b'
 
-          for path in RETIRED:
-              p=Path(path)
-              if p.exists():
-                  raise SystemExit(f'Retired file unexpectedly still exists before migration: {path}')
-
-          # Canonical handoff: current product-owner decision supersedes rollback retention.
           agents=Path('AGENTS.md')
           text=agents.read_text()
-          text=text.replace(
-              '- The former weather-driven WebGL background, seasonal-sky shader/profile and rain visual are retained as legacy/rollback code and must not be run in parallel with Betta. `site/environment.js` is legacy, and `site/rain-layer-legacy-weather.js` preserves the previous rain overlay. `site/rain-layer.js` is intentionally a no-op in the Betta production architecture.\n',
-              '- **2026-08-31 product decision: the former weather-driven WebGL background and its visual compatibility/rollback files were removed from the deployed app.** Exact source bytes are preserved privately in Supabase table `private.legacy_weather_webgl_archive` under archive key `legacy-weather-webgl-20260831`, sourced from immutable Git commit `29b0c99941163582b84d376982e459fdf6ead85b`. Do not restore those files to the app without a new explicit product decision.\n'
-          )
+          old='- The former weather-driven WebGL background, seasonal-sky shader/profile and rain visual are retained as legacy/rollback code and must not be run in parallel with Betta. `site/environment.js` is legacy, and `site/rain-layer-legacy-weather.js` preserves the previous rain overlay. `site/rain-layer.js` is intentionally a no-op in the Betta production architecture.\n'
+          new=f'- **2026-08-31 product decision: the former weather-driven WebGL background and its visual compatibility/rollback files were removed from the deployed app.** Exact source bytes are preserved privately in Supabase table `private.legacy_weather_webgl_archive` under archive key `{archive_key}`, sourced from immutable Git commit `{source_commit}`. Do not restore those files to the app without a new explicit product decision.\n'
+          if old in text:
+              text=text.replace(old,new)
+          elif archive_key not in text:
+              raise SystemExit('AGENTS product-state retirement marker was not found')
+
           start=text.find('## Legacy Phase 8.2 weather background')
           end=text.find('## Camera / Workers AI status', start)
           if start != -1 and end != -1:
-              replacement='''## Retired Phase 8.2 weather background\n\nThe previous Bangkok seasonal/weather WebGL renderer is no longer shipped in `site/`. On 2026-08-31 the product owner explicitly retired it from the app for performance and architecture simplification.\n\nRecovery source is stored privately in Supabase:\n\n- table: `private.legacy_weather_webgl_archive`\n- archive key: `legacy-weather-webgl-20260831`\n- source commit: `29b0c99941163582b84d376982e459fdf6ead85b`\n- archived files: 13\n- archived bytes: 1,169,050\n\nThis archive includes the generated legacy bundle, renderer, seasonal profile, GLSL shader, legacy rain/storm/sun visual helpers, camera/sky visual research helpers, cloud tester source and deterministic legacy fixtures/tests. It is recovery/research material only and is not exposed to app clients.\n\nThe older Phase 8.2 architecture documents remain historical documentation; they no longer describe files that ship with the app.\n\n'''
+              replacement=f'''## Retired Phase 8.2 weather background\n\nThe previous Bangkok seasonal/weather WebGL renderer is no longer shipped in `site/`. On 2026-08-31 the product owner explicitly retired it from the app for performance and architecture simplification.\n\nRecovery source is stored privately in Supabase:\n\n- table: `private.legacy_weather_webgl_archive`\n- archive key: `{archive_key}`\n- source commit: `{source_commit}`\n- archived files: 13\n- archived bytes: 1,169,050\n\nThis private archive includes the generated legacy bundle, renderer, seasonal profile, GLSL shader, legacy rain/storm/sun visual helpers, camera/sky visual research helpers, cloud tester source and deterministic legacy fixtures/tests. It is recovery/research material only and is not exposed to app clients.\n\nThe older Phase 8.2 architecture documents remain historical documentation; they no longer describe files that ship with the app.\n\n'''
               text=text[:start]+replacement+text[end:]
           agents.write_text(text)
 
-          betta_doc=Path('docs/BETTA-PRODUCTION-ATMOSPHERE-20260831.md')
-          text=betta_doc.read_text()
+          betta=Path('docs/BETTA-PRODUCTION-ATMOSPHERE-20260831.md')
+          text=betta.read_text()
           start=text.find('## Legacy background code — retained intentionally')
           end=text.find('## Compatibility surface', start)
           if start != -1 and end != -1:
-              replacement='''## Legacy weather WebGL — retired from the app\n\nOn 2026-08-31 the product owner explicitly removed the previous weather-driven WebGL stack from the deployed application. It is no longer a rollback path inside `site/`.\n\nBefore deletion, Supabase copied the exact source bytes from immutable Git commit `29b0c99941163582b84d376982e459fdf6ead85b` into private table `private.legacy_weather_webgl_archive`, archive key `legacy-weather-webgl-20260831`. The archive contains 13 files / 1,169,050 bytes and is not granted to `anon` or `authenticated`.\n\nOperational weather and current-rain data remain active UI/data services. Only the retired weather/seasonal visual renderer and its visual compatibility/research files were removed. The Sindhorn Betta renderer remains the sole persistent WebGL visual.\n\n'''
+              replacement=f'''## Legacy weather WebGL — retired from the app\n\nOn 2026-08-31 the product owner explicitly removed the previous weather-driven WebGL stack from the deployed application. It is no longer a rollback path inside `site/`.\n\nBefore deletion, Supabase copied the exact source bytes from immutable Git commit `{source_commit}` into private table `private.legacy_weather_webgl_archive`, archive key `{archive_key}`. The archive contains 13 files / 1,169,050 bytes and has no `anon` or `authenticated` table grants.\n\nOperational weather and current-rain data remain active UI/data services. Only the retired weather/seasonal visual renderer and its visual compatibility/research files were removed. The Sindhorn Betta renderer remains the sole persistent WebGL visual.\n\n'''
               text=text[:start]+replacement+text[end:]
+          elif archive_key not in text:
+              raise SystemExit('Betta legacy section was not found')
           start=text.find('## Rollback')
           if start != -1:
-              text=text[:start]+'''## Recovery\n\nThe retired weather WebGL is recoverable only from the private Supabase archive or immutable Git history. Reintroducing it into the app requires a new explicit product decision and a new preview/validation cycle.\n'''
-          betta_doc.write_text(text)
+              text=text[:start]+f'''## Recovery\n\nThe retired weather WebGL is recoverable only from Supabase archive `{archive_key}` or immutable Git history at `{source_commit}`. Reintroducing it into the app requires a new explicit product decision and a new preview/validation cycle.\n'''
+          betta.write_text(text)
 
-          archive_doc=Path('docs/LEGACY-WEATHER-WEBGL-SUPABASE-ARCHIVE-20260831.md')
-          archive_doc.write_text('''# Legacy Weather WebGL Supabase Archive — 2026-08-31\n\nStatus: retired from deployed app; private recovery copy retained.\n\n## Archive identity\n\n- Supabase project: `sjpvhgxacsiorrtijqua`\n- Table: `private.legacy_weather_webgl_archive`\n- Archive key: `legacy-weather-webgl-20260831`\n- Source repository: `dechadae/sindhorn-midtown-internal`\n- Source commit: `29b0c99941163582b84d376982e459fdf6ead85b`\n- Files: 13\n- Total source bytes: 1,169,050\n- RLS: enabled\n- `anon` / `authenticated` table grants: none\n\n## Archived files\n\n- `site/environment.js`\n- `site/environment.bundle.js`\n- `site/seasonal-sky.js`\n- `site/atmosphere-shader.js`\n- `site/rain-layer-legacy-weather.js`\n- `site/rain-layer.js`\n- `site/sun-dimmer.js`\n- `site/storm-effects.js`\n- `site/sky-calibration.js`\n- `site/sky-color-renderer.js`\n- `site/cloud-tester.js`\n- `site/phase8-2-fixtures.js`\n- `site/phase8-2-seasonal-clouds.test.mjs`\n\nEvery row stores the exact source text, byte length and SHA-256 digest fetched directly by Supabase from the immutable commit before app deletion.\n\n## Product boundary\n\nWeather, rain-now and air-quality data services remain in production. The archive contains only the retired weather/seasonal visual stack and related visual compatibility/research material. The Sindhorn Betta renderer remains the app's sole persistent WebGL visual.\n''')
-
-          # Retire the obsolete legacy-only Phase 8.2 workflow. Current Betta validation remains elsewhere.
-          phase=Path('.github/workflows/phase8-2-seasonal-clouds.yml')
-          if phase.exists():
-              phase.unlink()
-
-          # Launch Hardening: remove hard dependencies on deleted files and assert retirement instead.
-          launch=Path('.github/workflows/launch-hardening.yml')
-          text=launch.read_text()
-          for token in RETIRED:
-              # Keep multiline file/path lists syntactically intact by removing only token text there.
-              text=text.replace(token, '')
-          text=text.replace('          node --experimental-default-type=module \n','')
-          old="""          betta=(root/'betta-environment.js').read_text()\n          legacy=(root/'environment.js').read_text()\n          shader=(root/'atmosphere-shader.js').read_text()\n          rain=(root/'rain-layer.js').read_text()\n"""
-          text=text.replace(old,"""          betta=(root/'betta-environment.js').read_text()\n""")
-          marker_a='          # Betta is the active persistent visual; legacy weather stays rollback-only.\n'
-          marker_b='          # PWA, Today v4 motion and push release lineage.\n'
-          a=text.find(marker_a); b=text.find(marker_b,a)
-          if a != -1 and b != -1:
-              current='''          # Betta is the sole persistent WebGL visual; retired weather WebGL stays absent.\n          assert "await import('./betta-runtime.js?v=1')" in bootstrap\n          assert "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" in betta\n          assert "dataset.environmentInput='satellite-only'" in betta\n          assert 'startSatelliteStream' in betta and 'const DPR=2' in betta and 'preserveDrawingBuffer:false' in betta\n          retired=('environment.js','environment.bundle.js','seasonal-sky.js','atmosphere-shader.js','rain-layer-legacy-weather.js','rain-layer.js','sun-dimmer.js','storm-effects.js','sky-calibration.js','sky-color-renderer.js','cloud-tester.js','phase8-2-fixtures.js','phase8-2-seasonal-clouds.test.mjs')\n          for name in retired:\n              assert not (root/name).exists(),name\n              assert f"'/{name}'" not in sw,name\n          assert '/rain-layer.js' not in index and '/sun-dimmer.js' not in index\n\n'''
-              text=text[:a]+current+text[b:]
-          text=text.replace("          assert Path('sky-worker/src/index.js').exists() and Path('').exists() and Path('').exists()\n","          assert Path('sky-worker/src/index.js').exists()\n")
-          # Remove shell smoke lines that became empty or still target retired paths.
-          cleaned=[]
-          retired_fragments=['/environment.js','/environment.bundle.js','/seasonal-sky.js','/atmosphere-shader.js','/rain-layer-legacy-weather.js','/rain-layer.js','/sun-dimmer.js','/storm-effects.js','/sky-calibration.js','/sky-color-renderer.js','/cloud-tester.js','/phase8-2-fixtures.js','/phase8-2-seasonal-clouds.test.mjs','/tmp/environment.js','/tmp/shader.js','/tmp/rain-layer.js']
-          for line in text.splitlines():
-              if any(frag in line for frag in retired_fragments):
-                  continue
-              cleaned.append(line)
-          launch.write_text('\n'.join(cleaned)+'\n')
-
-          # General deploy workflow: remove legacy syntax/smoke assertions without weakening current app checks.
-          deploy=Path('.github/workflows/deploy.yml')
-          text=deploy.read_text()
-          # Token removal in long for-path lists.
-          for token in RETIRED:
-              text=text.replace(token, '')
-          text=text.replace('          node --experimental-default-type=module \n','')
-          old="""          index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); env=(root/'environment.js').read_text(); shader=(root/'atmosphere-shader.js').read_text(); seasonal=(root/'seasonal-sky.js').read_text(); fixtures=(root/'phase8-2-fixtures.js').read_text()\n"""
-          text=text.replace(old,"""          index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); betta=(root/'betta-environment.js').read_text()\n""")
-          start_marker="          assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index\n"
-          end_marker='          assert fixtures.count("labelEn:")==11\n'
-          a=text.find(start_marker); b=text.find(end_marker,a)
-          if a != -1 and b != -1:
-              b += len(end_marker)
-              current='''          retired=('environment.js','environment.bundle.js','seasonal-sky.js','atmosphere-shader.js','rain-layer-legacy-weather.js','rain-layer.js','sun-dimmer.js','storm-effects.js','sky-calibration.js','sky-color-renderer.js','cloud-tester.js','phase8-2-fixtures.js','phase8-2-seasonal-clouds.test.mjs')\n          for name in retired:\n              assert not (root/name).exists(),name\n              assert f"'/{name}'" not in sw,name\n          assert '/rain-layer.js' not in index and '/sun-dimmer.js' not in index\n          assert "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" in betta\n          assert "dataset.environmentInput='satellite-only'" in betta and 'const DPR=2' in betta\n'''
-              text=text[:a]+current+text[b:]
-          cleaned=[]
-          retired_fragments=['/environment.js','/environment.bundle.js','/seasonal-sky.js','/atmosphere-shader.js','/rain-layer-legacy-weather.js','/rain-layer.js','/sun-dimmer.js','/storm-effects.js','/sky-calibration.js','/sky-color-renderer.js','/cloud-tester.js','/phase8-2-fixtures.js','/phase8-2-seasonal-clouds.test.mjs','/tmp/environment.js','/tmp/shader.js','/tmp/seasonal']
-          for line in text.splitlines():
-              if any(frag in line for frag in retired_fragments):
-                  continue
-              cleaned.append(line)
-          deploy.write_text('\n'.join(cleaned)+'\n')
+          archive=Path('docs/LEGACY-WEATHER-WEBGL-SUPABASE-ARCHIVE-20260831.md')
+          archive.write_text(f'''# Legacy Weather WebGL Supabase Archive — 2026-08-31\n\nStatus: retired from deployed app; private recovery copy retained.\n\n## Archive identity\n\n- Supabase project: `sjpvhgxacsiorrtijqua`\n- Table: `private.legacy_weather_webgl_archive`\n- Archive key: `{archive_key}`\n- Source repository: `dechadae/sindhorn-midtown-internal`\n- Source commit: `{source_commit}`\n- Files: 13\n- Total source bytes: 1,169,050\n- RLS: enabled\n- `anon` / `authenticated` table grants: none\n\n## Archived files\n\n- `site/environment.js`\n- `site/environment.bundle.js`\n- `site/seasonal-sky.js`\n- `site/atmosphere-shader.js`\n- `site/rain-layer-legacy-weather.js`\n- `site/rain-layer.js`\n- `site/sun-dimmer.js`\n- `site/storm-effects.js`\n- `site/sky-calibration.js`\n- `site/sky-color-renderer.js`\n- `site/cloud-tester.js`\n- `site/phase8-2-fixtures.js`\n- `site/phase8-2-seasonal-clouds.test.mjs`\n\nEvery row stores exact source text, byte length and SHA-256 digest fetched directly by Supabase from the immutable source commit before app deletion.\n\n## Product boundary\n\nTMD/MET Norway weather, current-rain authority and AirBKK remain production data/UI services. They no longer have a separate weather-driven WebGL visual layer. The Sindhorn Betta renderer remains the app's sole persistent WebGL visual.\n''')
           PY
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if test -n "$(git status --porcelain)"; then
-            git add AGENTS.md docs .github/workflows
-            git commit -m "Retire legacy weather WebGL release contracts"
+          if test -n "$(git status --porcelain -- AGENTS.md docs)"; then
+            git add AGENTS.md docs
+            git commit -m "Record retired weather WebGL Supabase archive"
             git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
-
-      - name: Validate retired source boundary
-        shell: bash
-        run: |
-          set -euo pipefail
-          for file in site/index.html site/bootstrap.js site/auth-shell.js site/betta-environment.js site/betta-satellite.js site/betta-day-periods.js site/location.js site/rain-now.js site/weather-authority.js site/live-data.js site/sw.js; do
-            test -s "$file"
-          done
-          for file in site/bootstrap.js site/auth-shell.js site/betta-environment.js site/betta-satellite.js site/betta-day-periods.js site/rain-now.js site/weather-authority.js site/live-data.js site/sw.js; do
-            node --input-type=module --check < "$file"
-          done
-          for retired in environment.js environment.bundle.js seasonal-sky.js atmosphere-shader.js rain-layer-legacy-weather.js rain-layer.js sun-dimmer.js storm-effects.js sky-calibration.js sky-color-renderer.js cloud-tester.js phase8-2-fixtures.js phase8-2-seasonal-clouds.test.mjs; do
-            test ! -e "site/$retired"
-            ! grep -q "'/$retired'" site/sw.js
-          done
-          ! grep -q '/rain-layer.js' site/index.html
-          ! grep -q '/sun-dimmer.js' site/index.html
-          grep -q "sindhorn-midtown-internal-pwa-v40-weather-webgl-retired-r1" site/sw.js
-          grep -q "betta-runtime.js?v=1" site/auth-shell.js
-          grep -q "betta-runtime.js?v=1" site/bootstrap.js
-          grep -q "sindhorn-betta-satellite-v1" site/betta-environment.js
-          grep -q "legacy-weather-webgl-20260831" AGENTS.md
-          grep -q "legacy-weather-webgl-20260831" docs/BETTA-PRODUCTION-ATMOSPHERE-20260831.md
-
-      - name: Deploy branch preview
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
-
-      - name: Smoke preview
-        shell: bash
-        run: |
-          set -euo pipefail
-          SAFE_BRANCH="${GITHUB_REF_NAME:0:28}"
-          SAFE_BRANCH="${SAFE_BRANCH%-}"
-          BASE_URL="https://${SAFE_BRANCH}.sindhorn-midtown-internal.pages.dev"
-          promoted=false
-          for attempt in $(seq 1 30); do
-            if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
-              && curl --fail --silent --show-error --location "${BASE_URL}/betta-runtime.js" -o /tmp/betta-runtime.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
-              && ! grep -q '/rain-layer.js' /tmp/root.html \
-              && ! grep -q '/sun-dimmer.js' /tmp/root.html \
-              && grep -q 'sindhorn-midtown-internal-pwa-v40-weather-webgl-retired-r1' /tmp/sw.js; then
-                promoted=true; break
-            fi
-            sleep 3
-          done
-          test "$promoted" = true
-          for retired in environment.js environment.bundle.js seasonal-sky.js atmosphere-shader.js rain-layer-legacy-weather.js rain-layer.js sun-dimmer.js storm-effects.js sky-calibration.js sky-color-renderer.js cloud-tester.js phase8-2-fixtures.js phase8-2-seasonal-clouds.test.mjs; do
-            code=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' "${BASE_URL}/${retired}")
-            test "$code" = "404"
-          done
-
-      - name: Install Chromium renderer
-        shell: bash
-        run: |
-          npm install --no-save playwright@1.55.0
-          npx playwright install --with-deps chromium
-
-      - name: Verify authenticated Betta and Today remain healthy
-        env:
-          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
-          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          SAFE_BRANCH="${GITHUB_REF_NAME:0:28}"
-          SAFE_BRANCH="${SAFE_BRANCH%-}"
-          export PHASE82_BASE_URL="https://${SAFE_BRANCH}.sindhorn-midtown-internal.pages.dev"
-          node site/phase8-2-browser-smoke.mjs
