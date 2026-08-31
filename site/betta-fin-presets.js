@@ -1,3 +1,11 @@
+export const BETTA_LUMINOSITY_STANDARD=Object.freeze({
+  source:'Nemo Galaxy Koi pre-luxury-cycle',
+  brightness:.96,
+  opacity:.42,
+  transmission:.70,
+  bloom:.34
+});
+
 export const BETTA_PRESETS={
   royalBlueHalfmoon:{
     number:'01',name:'Royal Blue Halfmoon',morphMode:0,
@@ -17,14 +25,14 @@ export const BETTA_PRESETS={
   },
   superRedHalfmoon:{
     number:'02',name:'Super Red Halfmoon',morphMode:0,
-    description:'Night luxury baseline: deep garnet and velvet crimson with restrained scarlet edges and slow, fluid Halfmoon folds.',
+    description:'Night luxury baseline: deep garnet and velvet crimson with Nemo-standard luminosity, restrained scarlet edges and slow, fluid Halfmoon folds.',
     background:'#080305',
-    palette:['#190105','#50040a','#920d16','#d62d32'],
+    palette:['#210207','#600711','#a61621','#e33d40'],
     params:{
       spread:3.84,rayCount:64,foldDensity:5.35,curl:.62,twist:.25,edgeFlutter:.07,depth:.72,
       currentStrength:.26,motionSpeed:.4,turbulence:.21,motionAmplitude:.47,
-      opacity:.36,transmission:.74,rimStrength:.72,foldHighlight:.7,iridescence:.1,bloom:.21,
-      saturation:1.02,brightness:.82,gradientPosition:-.06,
+      opacity:.39,transmission:.75,rimStrength:.76,foldHighlight:.72,iridescence:.12,bloom:.27,
+      saturation:1.05,brightness:.98,gradientPosition:-.06,
       scale:1.12,rotation:.16,cameraDepth:-.1,offsetX:.08,offsetY:-.12
     },
     layers:[
@@ -50,14 +58,14 @@ export const BETTA_PRESETS={
   },
   blackOrchid:{
     number:'04',name:'Black Orchid',morphMode:4,
-    description:'Midnight luxury baseline: readable blue-black orchid silk with soft steel-blue inner light and no hard ray snapping.',
+    description:'Midnight luxury baseline: readable blue-black orchid silk held to the Nemo luminosity standard with soft steel-blue inner light.',
     background:'#05070a',
-    palette:['#03070d','#0a1624','#1b3048','#4b7fab'],
+    palette:['#040912','#0d1c2d','#23405c','#5a8fbd'],
     params:{
       spread:4.24,rayCount:52,foldDensity:4.8,curl:.66,twist:.34,edgeFlutter:.055,depth:.74,
       currentStrength:.22,motionSpeed:.35,turbulence:.17,motionAmplitude:.4,
-      opacity:.4,transmission:.77,rimStrength:.86,foldHighlight:.76,iridescence:.36,bloom:.23,
-      saturation:.96,brightness:.92,gradientPosition:.07,
+      opacity:.42,transmission:.78,rimStrength:.86,foldHighlight:.76,iridescence:.38,bloom:.27,
+      saturation:.98,brightness:.99,gradientPosition:.07,
       scale:1.46,rotation:1.1,cameraDepth:.45,offsetX:-.92,offsetY:.1
     },
     layers:[
@@ -66,14 +74,14 @@ export const BETTA_PRESETS={
   },
   copperMetallic:{
     number:'05',name:'Copper Metallic',morphMode:5,
-    description:'Pre-dawn luxury baseline: smoky graphite and muted bronze with fine satin-metal reflections, never rigid or foil-like.',
+    description:'Pre-dawn luxury baseline: smoky graphite and muted bronze at Nemo-standard luminosity with fine satin-metal reflections, never rigid or foil-like.',
     background:'#070605',
-    palette:['#11100f','#332b28','#75554a','#b9937d'],
+    palette:['#151311','#3d312c','#825f52','#c7a48f'],
     params:{
       spread:3.55,rayCount:52,foldDensity:4.95,curl:.56,twist:.22,edgeFlutter:.06,depth:.7,
       currentStrength:.23,motionSpeed:.36,turbulence:.18,motionAmplitude:.42,
-      opacity:.33,transmission:.74,rimStrength:.74,foldHighlight:.72,iridescence:.44,bloom:.2,
-      saturation:.78,brightness:.86,gradientPosition:.06,
+      opacity:.37,transmission:.76,rimStrength:.76,foldHighlight:.72,iridescence:.46,bloom:.26,
+      saturation:.82,brightness:.98,gradientPosition:.06,
       scale:1.08,rotation:.06,cameraDepth:.24,offsetX:.08,offsetY:.03
     },
     layers:[
@@ -100,14 +108,14 @@ export const BETTA_PRESETS={
   },
   nemoGalaxyKoi:{
     number:'07',name:'Nemo Galaxy Koi',morphMode:1,
-    description:'Evening luxury baseline: deep navy, garnet and burnt-jewel koi pattern with restrained blue flecks carried by one soft membrane.',
-    background:'#070405',
-    palette:['#0b4264','#72252b','#a75b2b','#b9aa98'],
+    description:'Evening luminosity standard: the original vivid blue, red, orange and cream Nemo palette preserved on the new soft luxury membrane.',
+    background:'#080506',
+    palette:['#1679b8','#b92b1c','#ee8e2e','#f1e7d7'],
     params:{
       spread:3.72,rayCount:60,foldDensity:5.15,curl:.6,twist:.27,edgeFlutter:.065,depth:.7,
       currentStrength:.25,motionSpeed:.38,turbulence:.21,motionAmplitude:.46,
-      opacity:.36,transmission:.73,rimStrength:.74,foldHighlight:.7,iridescence:.28,bloom:.22,
-      saturation:.94,brightness:.84,gradientPosition:-.03,
+      opacity:.42,transmission:.70,rimStrength:.8,foldHighlight:.78,iridescence:.28,bloom:.34,
+      saturation:1.08,brightness:.96,gradientPosition:-.03,
       scale:1.1,rotation:.14,cameraDepth:.02,offsetX:.04,offsetY:-.08
     },
     layers:[
