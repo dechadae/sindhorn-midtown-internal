@@ -30,5 +30,11 @@ if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
   document.addEventListener('sindhorn:pack-updated',()=>applyEmployeeHeader());
   document.addEventListener('sindhorn:capabilities-updated',event=>applyEmployeeHeader(event.detail?.profile));
   document.addEventListener('sindhorn:auth-changed',event=>{const nextState=getState();if(!event.detail?.authenticated||!hasCompleteEmployeeAuth(nextState)){location.replace(loginUrl());return}window.__SINDHORN_AUTH_PROFILE__=event.detail.profile||nextState.profile;applyEmployeeHeader(window.__SINDHORN_AUTH_PROFILE__)});
-  await loadClassicScript('/location.js');await import('./bootstrap.js');applyEmployeeHeader();
+  await loadClassicScript('/location.js');
+  /* Start the persistent Betta immediately after authenticated location/weather
+     compatibility is installed. bootstrap.js may still be mounting Today and
+     waiting on route data, so this keeps WebGL startup off the private-data
+     critical path. initEnvironment() is idempotent when bootstrap reaches it. */
+  window.__SINDHORN_EARLY_ENVIRONMENT_PROMISE__=import('./betta-environment.js').then(module=>module.initEnvironment()).catch(error=>{console.warn('Early Betta startup unavailable; bootstrap will continue.',error);return null});
+  await import('./bootstrap.js');applyEmployeeHeader();
 }
