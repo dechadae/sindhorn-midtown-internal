@@ -5,6 +5,7 @@ on:
     branches:
       - phase7-launch-hardening
       - phase8-2-bangkok-seasonal-clouds
+      - hotfix-today-v4-launch-hardening
       - main
     paths:
       - "site/**"
@@ -40,8 +41,8 @@ jobs:
           set -euo pipefail
           for file in \
             site/bootstrap.js site/route-registry.js site/app-transitions.js site/footer-route-guard.js \
-            site/business-dashboard.js site/business-dashboard-data.js site/app.js site/push-client.js \
-            site/notification-inbox.js site/betta-environment.js site/betta-satellite.js site/environment.js \
+            site/business-dashboard.js site/business-dashboard-data.js site/business-dashboard-motion.js site/app.js site/push-client.js \
+            site/notification-inbox.js site/betta-environment.js site/betta-satellite.js site/betta-day-periods.js site/environment.js \
             site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/phase8-2-fixtures.js site/sw.js; do
             node --check "$file"
           done
@@ -67,6 +68,7 @@ jobs:
           legacy=(root/'environment.js').read_text()
           shader=(root/'atmosphere-shader.js').read_text()
           rain=(root/'rain-layer.js').read_text()
+          dashboard_motion=(root/'business-dashboard-motion.js').read_text()
 
           shell=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
           assert shell==17 and fallback['minimumShell']==shell
@@ -77,7 +79,7 @@ jobs:
           # Current single-shell route authority.
           for token in (
             "today:Object.freeze({path:'/'",
-            "module:'./business-dashboard.js?v=3'",
+            "module:'./business-dashboard.js?v=4'",
             "mount:'mountBusinessDashboardRoute'",
             "fnb:Object.freeze({path:'/fnb'",
             "messages:Object.freeze({path:'/messages'",
@@ -87,6 +89,7 @@ jobs:
             "ci:Object.freeze({path:'/ci'",
           ):
               assert token in registry,token
+          assert "module:'./ci-day-cycle-route.js?v=1'" in registry
           assert "kind:'pack',resource:'messages.html'" in registry
           assert "['/guidance','today']" in registry and "['/details','today']" in registry
           assert "['/account','settings']" in registry and "['/admin','settings']" in registry
@@ -109,15 +112,19 @@ jobs:
           assert 'startSatelliteStream' in betta and 'const DPR=2' in betta and 'preserveDrawingBuffer:false' in betta
           assert 'Legacy weather-visual compatibility no-op' in rain and 'export {}' in rain
           assert (root/'rain-layer-legacy-weather.js').exists()
+          assert (root/'betta-day-periods.js').exists()
           assert "renderer:'bangkok-seasonal-clouds-v2'" in legacy and 'const DPR=2' in legacy and 'renderExport' in legacy
           for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','Visible sun disc','texture2D(uNoise'):
               assert token in shader,token
           assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index and '/storm-effects.js' not in index
 
-          # PWA and push release lineage.
-          for token in ("'/business-dashboard.js'","'/betta-environment.js'","'/betta-satellite.js'","'/fnb.js'","'/push-client.js'"):
+          # PWA, Today v4 motion and push release lineage.
+          for token in ("'/business-dashboard.js'","'/business-dashboard-motion.js'","'/business-dashboard-motion.css'","'/betta-environment.js'","'/betta-satellite.js'","'/betta-day-periods.js'","'/fnb.js'","'/push-client.js'"):
               assert token in sw,token
+          assert 'sindhorn-midtown-internal-pwa-v38-today-motion-r1' in sw
+          assert 'sindhorn-midtown-internal-pwa-v38-betta-day-cycle-r1' in sw
           assert 'pwa-v36-release-health-r1' in sw
+          assert 'sindhorn-business-dashboard-motion-v2' in dashboard_motion
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw
           app=(root/'app.js').read_text(); inbox=(root/'notification-inbox.js').read_text(); push=(root/'push-client.js').read_text()
           assert "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app and 'performPullRefresh' in app
@@ -143,21 +150,28 @@ jobs:
               && curl --fail --silent --show-error --location "${BASE_URL}/route-registry.js" -o /tmp/route-registry.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/footer-route-guard.js" -o /tmp/footer-route-guard.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/business-dashboard.js" -o /tmp/business-dashboard.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/business-dashboard-motion.js" -o /tmp/business-dashboard-motion.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/business-dashboard-motion.css" -o /tmp/business-dashboard-motion.css \
               && curl --fail --silent --show-error --location "${BASE_URL}/bootstrap.js" -o /tmp/bootstrap.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/betta-environment.js" -o /tmp/betta-environment.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/betta-day-periods.js" -o /tmp/betta-day-periods.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/rain-layer.js" -o /tmp/rain-layer.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/notification-inbox.js" -o /tmp/notification-inbox.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
               && grep -q '/footer-route-guard.js?v=15' /tmp/root.html \
-              && grep -q "module:'./business-dashboard.js?v=3'" /tmp/route-registry.js \
+              && grep -q "module:'./business-dashboard.js?v=4'" /tmp/route-registry.js \
+              && grep -q "module:'./ci-day-cycle-route.js?v=1'" /tmp/route-registry.js \
               && grep -q "path:'/brand'" /tmp/route-registry.js \
               && grep -q "FNB_MODULE_URL='/fnb.js?v=7'" /tmp/footer-route-guard.js \
               && grep -q 'mountBusinessDashboardRoute' /tmp/business-dashboard.js \
+              && grep -q 'sindhorn-business-dashboard-motion-v2' /tmp/business-dashboard-motion.js \
               && grep -q "await import('./betta-environment.js')" /tmp/bootstrap.js \
               && grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta-environment.js \
               && grep -q "dataset.environmentInput='satellite-only'" /tmp/betta-environment.js \
               && grep -q 'Legacy weather-visual compatibility no-op' /tmp/rain-layer.js \
-              && grep -q 'pwa-v36-release-health-r1' /tmp/sw.js; then
+              && grep -q 'sindhorn-midtown-internal-pwa-v38-today-motion-r1' /tmp/sw.js \
+              && grep -q "'/business-dashboard-motion.js'" /tmp/sw.js \
+              && grep -q "'/betta-day-periods.js'" /tmp/sw.js; then
                 promoted=true; break
             fi
             sleep 3
