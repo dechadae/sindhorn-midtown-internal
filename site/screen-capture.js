@@ -1,9 +1,24 @@
-let captureBusy=false;
+let captureBusy=false,captureLibraryPromise=null;
 
 function keepWindowed(){
   const fullscreenButton=document.getElementById('fullscreenToggle');
   if(fullscreenButton)fullscreenButton.remove();
   if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(()=>{});
+}
+
+function ensureCaptureLibrary(){
+  if(window.html2canvas)return Promise.resolve(window.html2canvas);
+  if(captureLibraryPromise)return captureLibraryPromise;
+  captureLibraryPromise=new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src='/vendor/html2canvas.min.js';
+    script.async=true;
+    script.dataset.sindhornHtml2canvas='true';
+    script.onload=()=>window.html2canvas?resolve(window.html2canvas):reject(new Error('Capture library did not initialize'));
+    script.onerror=()=>reject(new Error('Capture library failed to load'));
+    document.head.appendChild(script);
+  }).catch(error=>{captureLibraryPromise=null;throw error});
+  return captureLibraryPromise;
 }
 
 function captureFilename(){
@@ -38,9 +53,9 @@ async function renderNormalFullPage(atmosphereData,width,height,foreignObjectRen
 async function saveNormalFullPage(button){
   if(captureBusy||!button)return;const state=window.SindhornLiveData?.getState?.(),pm=state?.air?.pm,aqi=state?.air?.aqi;
   if(!Number.isFinite(Number(pm))||!Number.isFinite(Number(aqi))){const original=button.innerHTML;button.textContent='Waiting for data';setTimeout(()=>{if(button.isConnected)button.innerHTML=original},1600);return}
-  if(!window.html2canvas)return;
   captureBusy=true;const original=button.innerHTML;button.disabled=true;button.textContent='Preparing full page';
   try{
+    await ensureCaptureLibrary();
     if(document.fonts?.ready)await Promise.race([document.fonts.ready,new Promise(resolve=>setTimeout(resolve,1400))]);
     const {width,height}=captureSize();let atmosphereData=null;
     if(window.SindhornEnvironment?.renderExport){atmosphereData=await window.SindhornEnvironment.renderExport(width*2,height*2);await preloadImage(atmosphereData)}

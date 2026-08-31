@@ -1,6 +1,6 @@
 export const ROUTES=Object.freeze({
   today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local',module:'./route-registry.js',mount:'mountBusinessDashboardStartupRoute'}),
-  fnb:Object.freeze({path:'/fnb',title:'F&B | Sindhorn Midtown Internal',kind:'local',module:'./fnb.js',mount:'mountFnbRoute'}),
+  fnb:Object.freeze({path:'/fnb',title:'F&B | Sindhorn Midtown Internal',kind:'local',module:'./fnb-route.js',mount:'mountFnbRoute'}),
   brand:Object.freeze({path:'/brand',title:'Brand | Sindhorn Midtown Internal',kind:'local',module:'./brand.js?v=3',mount:'mountBrandRoute'}),
   ihgHistory:Object.freeze({path:'/ihg-history',title:'Our History | Sindhorn Midtown Internal',kind:'local',module:'./ihg-history.js',mount:'mountIhgHistoryRoute'}),
   hotelFactsheet:Object.freeze({path:'/hotel-factsheet',title:'Hotel Factsheet | Sindhorn Midtown Internal',kind:'local',module:'./hotel-factsheet-route.js?v=2',mount:'mountHotelFactsheetRoute'}),

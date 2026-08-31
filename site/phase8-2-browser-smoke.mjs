@@ -61,18 +61,72 @@ async function signIn(page,name){
     const status=(await page.locator('#status').textContent().catch(()=>''))?.trim()||'';
     const tone=await page.locator('#status').getAttribute('data-tone').catch(()=>null);
     const signed=await page.locator('#signedCard').getAttribute('data-show').catch(()=>null);
-    await page.screenshot({path:`phase82-artifacts/${name}-login-failure.png`,fullPage:true}).catch(()=>{});
     throw new Error(`${name}: CI service-employee sign-in did not reach the app${status?` · ${tone||'status'}: ${status}`:''}${signed==='true'?' · signed card was visible before redirect':''}`);
   }
 }
 
-async function assertCanvasMotion(page,name,phase,delayMs=1200){
+async function cdpScreenshot(page,clip=null){
+  const session=await page.context().newCDPSession(page);
+  try{
+    const params={format:'png',fromSurface:true,captureBeyondViewport:false};
+    if(clip)params.clip={...clip,scale:1};
+    const result=await session.send('Page.captureScreenshot',params);
+    return Buffer.from(result.data,'base64');
+  }finally{
+    await session.detach().catch(()=>{});
+  }
+}
+async function captureCanvasFrame(page,name,phase){
   const canvas=page.locator('#environmentCanvas');
-  const before=await canvas.screenshot();
+  const box=await canvas.boundingBox();
+  if(!box||box.width<1||box.height<1)throw new Error(`${name}: Betta canvas has no capture bounds during ${phase}`);
+  const viewport=page.viewportSize();
+  const x=Math.max(0,box.x),y=Math.max(0,box.y);
+  const width=Math.min(box.width,(viewport?.width||box.x+box.width)-x);
+  const height=Math.min(box.height,(viewport?.height||box.y+box.height)-y);
+  if(width<1||height<1)throw new Error(`${name}: Betta canvas is outside viewport during ${phase}`);
+  return cdpScreenshot(page,{x,y,width,height});
+}
+async function assertCanvasMotion(page,name,phase,delayMs=1200){
+  /* Playwright screenshot helpers can wait for stability/compositor state. That
+     is unsuitable for a canvas that must never become visually stable. CDP's
+     Page.captureScreenshot samples the fixed viewport rectangle immediately. */
+  const before=await captureCanvasFrame(page,name,phase);
   await page.waitForTimeout(delayMs);
-  const after=await canvas.screenshot();
+  const after=await captureCanvasFrame(page,name,phase);
   if(Buffer.compare(before,after)===0)throw new Error(`${name}: Betta canvas did not visibly change during ${phase}`);
   return true;
+}
+
+async function resourcePerformance(page){
+  return page.evaluate(()=>{
+    const resources=performance.getEntriesByType('resource').map(entry=>({
+      name:entry.name,
+      initiatorType:entry.initiatorType,
+      duration:+entry.duration.toFixed(2),
+      transferSize:Number(entry.transferSize)||0,
+      encodedBodySize:Number(entry.encodedBodySize)||0,
+      decodedBodySize:Number(entry.decodedBodySize)||0
+    }));
+    const navigation=performance.getEntriesByType('navigation')[0];
+    const mark=performance.getEntriesByName('sindhorn-startup-enter-visible').at(-1);
+    const sameOrigin=resources.filter(entry=>entry.name.startsWith(location.origin));
+    const total=(key)=>sameOrigin.reduce((sum,entry)=>sum+(Number(entry[key])||0),0);
+    const findPath=path=>sameOrigin.find(entry=>{try{return new URL(entry.name).pathname===path}catch{return false}})||null;
+    return{
+      startupEnterMs:mark?+mark.startTime.toFixed(2):null,
+      domContentLoadedMs:navigation?+navigation.domContentLoadedEventEnd.toFixed(2):null,
+      loadEventMs:navigation?+navigation.loadEventEnd.toFixed(2):null,
+      sameOriginResourceCount:sameOrigin.length,
+      sameOriginTransferBytes:total('transferSize'),
+      sameOriginEncodedBytes:total('encodedBodySize'),
+      sameOriginDecodedBytes:total('decodedBodySize'),
+      bettaRuntime:findPath('/betta-runtime.js'),
+      html2canvasLoaded:Boolean(findPath('/vendor/html2canvas.min.js')),
+      threeModuleLoaded:Boolean(findPath('/vendor/three.module.js')),
+      largestSameOrigin:[...sameOrigin].sort((a,b)=>b.decodedBodySize-a.decodedBodySize).slice(0,8)
+    };
+  });
 }
 
 async function exerciseLifecycleRecovery(page,name){
@@ -126,6 +180,10 @@ async function inspectLive(viewport,name){
      delivery states by design. */
   await page.waitForFunction(()=>Boolean(window.SindhornLiveData?.getState?.()),null,{timeout:20000});
   await page.waitForTimeout(800);
+  const performanceData=await resourcePerformance(page);
+  console.log(`SINDHORN_PERFORMANCE ${name} ${JSON.stringify(performanceData)}`);
+  if(performanceData.html2canvasLoaded)throw new Error(`${name}: html2canvas was loaded before Save Image interaction`);
+  if(performanceData.threeModuleLoaded)throw new Error(`${name}: redundant Three module was loaded outside the tree-shaken Betta runtime`);
   await assertCanvasMotion(page,name,'normal foreground motion');
   const lifecycle=await exerciseLifecycleRecovery(page,name);
   const state=await page.evaluate(()=>{
@@ -173,10 +231,10 @@ async function inspectLive(viewport,name){
     if(!Number.isFinite(state.pm)||state.pm<0||state.pm>500)throw new Error(`${name}: invalid PM2.5: ${state.pm}`);
     if(!Number.isFinite(state.aqi)||state.aqi<0||state.aqi>500)throw new Error(`${name}: invalid Thai AQI: ${state.aqi}`);
   }
-  await page.screenshot({path:`phase82-artifacts/${name}.png`,fullPage:true});
+  await fs.promises.writeFile(`phase82-artifacts/${name}.png`,await cdpScreenshot(page));
   const pacing=await sampleFrames(page,name);
   await context.close();
-  return {...state,motionChanged:true,...lifecycle,...pacing};
+  return {...state,motionChanged:true,...lifecycle,...pacing,performance:performanceData};
 }
 
 let desktop=null,mobile=null,fatal=null;

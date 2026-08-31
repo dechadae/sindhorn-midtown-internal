@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - remove-legacy-weather-webgl
+      - performance-audit-post-weather-webgl
     paths:
       - "site/**"
       - "scripts/generate-fnb-share.mjs"
@@ -100,10 +100,19 @@ jobs:
           registry=(root/'route-registry.js').read_text()
           transitions=(root/'app-transitions.js').read_text()
 
-          assert "sindhorn-midtown-internal-pwa-v40-weather-webgl-retired-r1" in sw
+          assert "sindhorn-midtown-internal-pwa-v41-performance-r1" in sw
           for name in retired:
               assert f"'/{name}'" not in sw, f'retired file remains in service-worker cache: {name}'
               assert f'/{name}' not in index, f'retired file remains in app shell: {name}'
+
+          # Performance audit: the tree-shaken Betta runtime is the only Three.js
+          # payload in the install path, and capture tooling loads on demand.
+          assert "'/betta-runtime.js'" in sw
+          assert "'/vendor/three.module.js'" not in sw
+          assert "'/vendor/html2canvas.min.js'" not in sw
+          assert '/vendor/html2canvas.min.js' not in index
+          assert (root/'vendor/three.module.js').exists(), 'Three source must remain available for reproducible Betta builds'
+          assert (root/'vendor/html2canvas.min.js').exists(), 'Capture library source must remain available for lazy loading'
 
           assert "await import('./betta-runtime.js?v=1')" in bootstrap
           assert "import('./betta-runtime.js?v=1')" in auth_shell
@@ -157,7 +166,38 @@ jobs:
             PREVIEW_BRANCH="${PREVIEW_BRANCH%-}"
             BASE_URL="https://${PREVIEW_BRANCH}.sindhorn-midtown-internal.pages.dev"
           fi
-          sleep 8
+
+          retired_clean(){
+            local retired result code type
+            for retired in environment.js environment.bundle.js seasonal-sky.js atmosphere-shader.js rain-layer-legacy-weather.js rain-layer.js sun-dimmer.js storm-effects.js sky-calibration.js sky-color-renderer.js cloud-tester.js phase8-2-fixtures.js phase8-2-seasonal-clouds.test.mjs; do
+              result=$(curl --silent --show-error --location --output /tmp/retired-response --write-out '%{http_code}|%{content_type}' "${BASE_URL}/${retired}") || return 1
+              code="${result%%|*}"
+              type="${result#*|}"
+              if [ "$code" = "200" ]; then
+                case "$type" in text/html*) ;; *) return 1 ;; esac
+                grep -qi '<!doctype html\|<html' /tmp/retired-response || return 1
+              elif [ "$code" != "404" ]; then
+                return 1
+              fi
+            done
+          }
+
+          # Cloudflare's stable branch aliases can lag the immutable deployment
+          # URL. Wait for the alias to expose this exact cache generation AND for
+          # every retired source path to stop serving JavaScript; never accept a
+          # stale deployment as success.
+          promoted=false
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
+              && grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/sw.js \
+              && retired_clean; then
+                promoted=true
+                break
+            fi
+            sleep 3
+          done
+          test "$promoted" = true
+
           paths=(
             / /fnb /messages /settings /account /admin /route-registry.js
             /business-dashboard.js /business-dashboard-data.js /business-dashboard.css
@@ -175,21 +215,9 @@ jobs:
           curl --fail --silent --show-error --location "${BASE_URL}/betta-environment.js" -o /tmp/betta.js
           ! grep -q '/rain-layer.js' /tmp/root.html
           ! grep -q '/sun-dimmer.js' /tmp/root.html
-          grep -q 'sindhorn-midtown-internal-pwa-v40-weather-webgl-retired-r1' /tmp/sw.js
+          ! grep -q '/vendor/html2canvas.min.js' /tmp/root.html
+          grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/sw.js
+          ! grep -q "'/vendor/three.module.js'" /tmp/sw.js
+          ! grep -q "'/vendor/html2canvas.min.js'" /tmp/sw.js
           grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta.js
           grep -q "dataset.environmentInput='satellite-only'" /tmp/betta.js
-
-          # Cloudflare Pages routes unknown paths to the SPA shell. A retired source
-          # path may therefore be 404 or 200 text/html, but must never expose JS.
-          for retired in environment.js environment.bundle.js seasonal-sky.js atmosphere-shader.js rain-layer-legacy-weather.js rain-layer.js sun-dimmer.js storm-effects.js sky-calibration.js sky-color-renderer.js cloud-tester.js phase8-2-fixtures.js phase8-2-seasonal-clouds.test.mjs; do
-            result=$(curl --silent --show-error --location --output /tmp/retired-response --write-out '%{http_code}|%{content_type}' "${BASE_URL}/${retired}")
-            code="${result%%|*}"
-            type="${result#*|}"
-            if [ "$code" = "200" ]; then
-              case "$type" in text/html*) ;; *) echo "Retired asset /${retired} exposed as ${type}"; exit 1 ;; esac
-              grep -qi '<!doctype html\|<html' /tmp/retired-response
-            elif [ "$code" != "404" ]; then
-              echo "Unexpected retired asset status /${retired}: ${code} ${type}"
-              exit 1
-            fi
-          done
