@@ -13,6 +13,7 @@ export const BETTA_PRESETS={
     referenceId:1,number:'01',name:'Fish #1 · Cobalt + Orange Halfmoon',morphMode:2,
     description:'Deep cobalt/navy inner fan with a brighter photographic vermilion-orange outer membrane, broad Halfmoon sweep and crisp rays.',
     background:'#02040a',
+    backgroundGradient:['#010207','#061126','#1a0807'],
     palette:['#0a2454','#237fd2','#ef421f','#ff8a48'],
     params:{
       spread:3.15,rayCount:80,foldDensity:9.6,curl:.42,twist:.08,edgeFlutter:.070,depth:.58,
@@ -30,6 +31,7 @@ export const BETTA_PRESETS={
     referenceId:2,number:'02',name:'Fish #2 · Super Red Halfmoon',morphMode:0,
     description:'Rounded saturated scarlet Halfmoon with a near-black inner root, deep crimson transition and vivid scarlet-vermilion outer fin.',
     background:'#050101',
+    backgroundGradient:['#020102','#150204','#260706'],
     palette:['#090103','#5e0506','#e6180e','#ff5a20'],
     params:{
       spread:3.22,rayCount:80,foldDensity:10.4,curl:.25,twist:.035,edgeFlutter:.050,depth:.56,
@@ -47,6 +49,7 @@ export const BETTA_PRESETS={
     referenceId:3,number:'03',name:'Fish #3 · Coral Magenta Flow',morphMode:0,
     description:'Asymmetric photographic rose-magenta fan with vivid pink, coral-orange and pale lilac separation rather than a uniform red wash.',
     background:'#060207',
+    backgroundGradient:['#030104','#170612','#2a0b10'],
     palette:['#652047','#d33d86','#ff755f','#e8b1d6'],
     params:{
       spread:3.00,rayCount:76,foldDensity:9.4,curl:.70,twist:.26,edgeFlutter:.085,depth:.64,
@@ -64,6 +67,7 @@ export const BETTA_PRESETS={
     referenceId:4,number:'04',name:'Fish #4 · Pearl Blush Veiltail',morphMode:2,
     description:'Pale pearl and icy-blue translucent fan with a clearly visible vivid coral-red outer mix and warm coral streak character.',
     background:'#05070b',
+    backgroundGradient:['#020407','#07131b','#1e090b'],
     palette:['#fbfdff','#9fdaf0','#ff4d3f','#ff9a82'],
     params:{
       spread:2.68,rayCount:72,foldDensity:8.7,curl:.94,twist:-.46,edgeFlutter:.105,depth:.52,
@@ -81,6 +85,7 @@ export const BETTA_PRESETS={
     referenceId:5,number:'05',name:'Fish #5 · Mustard Galaxy Koi',morphMode:1,
     description:'Distinct ink-blue, cyan, mustard-gold and pearl-white photographic patches with protected color separation instead of an amber/brown blend.',
     background:'#030507',
+    backgroundGradient:['#010304','#071319','#1b1205'],
     palette:['#67d7e9','#071820','#e5b13b','#fff8ea'],
     params:{
       spread:2.78,rayCount:72,foldDensity:9.8,curl:.82,twist:.34,edgeFlutter:.120,depth:.66,
@@ -96,9 +101,10 @@ export const BETTA_PRESETS={
   }),
   reference6:preset({
     referenceId:6,number:'06',name:'Fish #6 · Wine Orchid Halfmoon',morphMode:4,
-    description:'Broad wine-magenta Halfmoon with deeper burgundy/plum valleys and stronger silver-lavender ray ridges and pale outer rhythm.',
+    description:'Broad wine-magenta Halfmoon with deeper burgundy/plum valleys and a restrained sunset-gold highlight carried by the bright outer rays.',
     background:'#040207',
-    palette:['#21152f','#5c1748','#c42f79','#f0dff2'],
+    backgroundGradient:['#030104','#180715','#251605'],
+    palette:['#21152f','#5c1748','#c42f79','#e7ae61'],
     params:{
       spread:3.24,rayCount:80,foldDensity:10.8,curl:.34,twist:-.035,edgeFlutter:.055,depth:.56,
       currentStrength:.18,motionSpeed:.32,turbulence:.13,motionAmplitude:.34,
@@ -115,6 +121,7 @@ export const BETTA_PRESETS={
     referenceId:7,number:'07',name:'Fish #7 · Steel Blue Rosetail',morphMode:4,
     description:'Smoky steel blue-green rosetail with a darker teal root, silver-blue midtones and restrained rose-gold ray and tip highlights on the approved layered ruffled form.',
     background:'#020507',
+    backgroundGradient:['#010304','#07141a','#180c10'],
     palette:['#061820','#17495b','#4e91a5','#d7a49a'],
     params:{
       spread:3.42,rayCount:80,foldDensity:11.6,curl:1.02,twist:.43,edgeFlutter:.165,depth:.78,
@@ -132,6 +139,7 @@ export const BETTA_PRESETS={
     referenceId:8,number:'08',name:'Fish #8 · Electric Blue Halfmoon',morphMode:4,
     description:'Near-circular royal/electric cobalt Halfmoon with a dark navy root and highly legible bright blue radiating rays.',
     background:'#01030a',
+    backgroundGradient:['#010208','#050e22','#0b1635'],
     palette:['#020a20','#0a2f71','#1677d2','#79b9f4'],
     params:{
       spread:3.28,rayCount:80,foldDensity:11.2,curl:.27,twist:.018,edgeFlutter:.048,depth:.56,
