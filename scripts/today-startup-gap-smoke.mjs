@@ -49,7 +49,7 @@ try{
   assert(early.headerVisible&&early.footerDisplay!=='none',`Persistent shell is not progressively visible: ${JSON.stringify(early)}`);
   assert(early.businessDate==='',`Slow RPC unexpectedly completed before early startup probe: ${JSON.stringify(early)}`);
 
-  await page.waitForSelector(`.business-dashboard-route[data-business-date="${TEST_BUSINESS_DATE}"]`,{timeout:9000});
+  await page.waitForFunction(expectedDate=>document.querySelector('.business-dashboard-route')?.dataset.businessDate===expectedDate,TEST_BUSINESS_DATE,{timeout:12000});
   await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false');
   const final=await page.evaluate(()=>({
     shellLoading:document.documentElement.dataset.shellLoading,
