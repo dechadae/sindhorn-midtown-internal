@@ -11,7 +11,8 @@ async function review(name,viewport,grade,period){
   const errors=[];
   page.on('pageerror',error=>errors.push(String(error)));
   page.on('console',message=>{if(message.type()==='error')errors.push(message.text())});
-  await page.goto(`${base}/betta-vignette-test.html?grade=${grade}&period=${period}`,{waitUntil:'networkidle',timeout:90000});
+  await page.goto(`${base}/betta-vignette-test.html?grade=${grade}&period=${period}`,{waitUntil:'domcontentloaded',timeout:60000});
+  await page.waitForSelector('#environmentCanvas',{state:'attached',timeout:30000});
   await page.waitForFunction(()=>window.SindhornEnvironment?.getState?.()?.betta?.dayCycle?.targetPeriodKey,{timeout:60000});
   await page.waitForTimeout(1600);
   const result=await page.evaluate(()=>{
