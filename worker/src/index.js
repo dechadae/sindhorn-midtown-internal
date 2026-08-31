@@ -33,6 +33,7 @@ function airLevel(pm){const index=levelForPm(pm);return{index,...AIR_LEVELS[inde
 async function ensureSchema(env){
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS push_subscriptions (endpoint TEXT PRIMARY KEY, p256dh TEXT NOT NULL, auth TEXT NOT NULL, expiration_time INTEGER, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)').run();
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS monitor_state (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL)').run();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS business_notification_dispatches (id TEXT PRIMARY KEY, domain TEXT NOT NULL, business_date TEXT NOT NULL, revision INTEGER, published_at TEXT NOT NULL, summary_en TEXT, status TEXT NOT NULL, sent INTEGER NOT NULL DEFAULT 0, failed INTEGER NOT NULL DEFAULT 0, expired INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)').run();
 }
 async function stateGet(env,key){const row=await env.DB.prepare('SELECT value FROM monitor_state WHERE key=?').bind(key).first();if(!row?.value)return null;try{return JSON.parse(row.value)}catch(_){return null}}
 async function stateSet(env,key,value){const now=new Date().toISOString();await env.DB.prepare('INSERT INTO monitor_state(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at').bind(key,JSON.stringify(value),now,now).run()}
@@ -86,6 +87,44 @@ function airBetterPayload(air){return{kind:'air-quality-better',tag:'air-quality
 function weatherPayload(weather){return{kind:'severe-weather',tag:'weather-alert',route:'/',titleEn:'WEATHER ALERT NEAR SINDHORN MIDTOWN',bodyEn:`${weather.labelEn}. Wind gusts ${Math.round(weather.windGusts)} km/h · precipitation ${weather.precipitation.toFixed(1)} mm.`}}
 function outagePayload(){return{kind:'air-data-delay',tag:'air-data-alert',route:'/details',titleEn:'AIR QUALITY DATA DELAY',bodyEn:'AirBKK data has been unavailable for more than one hour. Check the app before making outdoor plans.'}}
 
+function secureTokenEqual(left,right){
+  const a=new TextEncoder().encode(String(left||'')),b=new TextEncoder().encode(String(right||''));
+  if(a.length!==b.length||a.length===0)return false;
+  let diff=0;for(let i=0;i<a.length;i++)diff|=a[i]^b[i];return diff===0;
+}
+function normalizeBusinessUpdate(value){
+  if(!value||typeof value!=='object')return null;
+  const id=String(value.id||'').trim(),domain=String(value.domain||'').trim().toLowerCase(),businessDate=String(value.businessDate||'').trim(),publishedAt=String(value.publishedAt||'').trim(),summaryEn=String(value.summaryEn||'').trim();
+  const revisionRaw=value.revision===null||value.revision===undefined||value.revision===''?null:Number(value.revision),revision=revisionRaw===null?null:(Number.isInteger(revisionRaw)&&revisionRaw>=1&&revisionRaw<=999?revisionRaw:null);
+  if(!/^[A-Za-z0-9:_-]{8,160}$/.test(id)||!['fnb','rooms','both'].includes(domain)||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(businessDate)||!publishedAt||publishedAt.length>64||!Number.isFinite(Date.parse(publishedAt))||summaryEn.length>240)return null;
+  if(revisionRaw!==null&&revision===null)return null;
+  return{id,domain,businessDate,publishedAt:new Date(publishedAt).toISOString(),revision,summaryEn};
+}
+function businessUpdatePayload(update){
+  const titleEn=update.domain==='fnb'?'F&B REPORT UPDATED':update.domain==='rooms'?'ROOMS REPORT UPDATED':'TODAY BUSINESS REPORT UPDATED';
+  const kind=update.domain==='fnb'?'business-fnb-update':update.domain==='rooms'?'business-rooms-update':'business-dashboard-update';
+  const revision=update.revision?` · Revision ${update.revision}`:'';
+  return{id:update.id,kind,tag:`business-dashboard:${update.id}`,route:'/',titleEn,bodyEn:update.summaryEn||`${update.businessDate}${revision}. Tap to view Hotel Business.`,renotify:false,requireInteraction:false};
+}
+async function reserveBusinessDispatch(env,update){
+  const now=new Date().toISOString(),result=await env.DB.prepare('INSERT OR IGNORE INTO business_notification_dispatches(id,domain,business_date,revision,published_at,summary_en,status,created_at,updated_at) VALUES(?,?,?,?,?,?,\'sending\',?,?)').bind(update.id,update.domain,update.businessDate,update.revision,update.publishedAt,update.summaryEn||null,now,now).run();
+  return Number(result?.meta?.changes||result?.changes||0)>0;
+}
+async function finishBusinessDispatch(env,id,status,delivery){const now=new Date().toISOString();await env.DB.prepare('UPDATE business_notification_dispatches SET status=?,sent=?,failed=?,expired=?,updated_at=? WHERE id=?').bind(status,Number(delivery?.sent)||0,Number(delivery?.failed)||0,Number(delivery?.expired)||0,now,id).run()}
+async function releaseBusinessDispatch(env,id){await env.DB.prepare('DELETE FROM business_notification_dispatches WHERE id=?').bind(id).run()}
+async function handleBusinessUpdate(request,env){
+  const configured=Boolean(env.BUSINESS_UPDATE_TOKEN);if(!configured)return json({error:'business_update_unavailable'},503);
+  const header=String(request.headers.get('authorization')||''),token=header.startsWith('Bearer ')?header.slice(7):'';if(!secureTokenEqual(token,env.BUSINESS_UPDATE_TOKEN))return json({error:'unauthorized'},401);
+  let body;try{body=await request.json()}catch(_){return json({error:'invalid_json'},400)}
+  const update=normalizeBusinessUpdate(body);if(!update)return json({error:'invalid_business_update'},400);
+  const reserved=await reserveBusinessDispatch(env,update);if(!reserved)return json({ok:true,duplicate:true,id:update.id},200);
+  const payload=businessUpdatePayload(update);
+  let delivery;try{delivery=await notifyAll(env,payload)}catch(error){await releaseBusinessDispatch(env,update.id);throw error}
+  if(!delivery.configured){await releaseBusinessDispatch(env,update.id);return json({error:'push_unavailable'},503)}
+  if(delivery.sent===0&&delivery.failed>0){await releaseBusinessDispatch(env,update.id);return json({error:'push_delivery_failed',delivery},502)}
+  const status=delivery.failed>0?'partial':'sent';await finishBusinessDispatch(env,update.id,status,delivery);return json({ok:true,duplicate:false,id:update.id,domain:update.domain,delivery,status},200);
+}
+
 async function evaluateAndNotify(env){
   await ensureSchema(env);const now=Date.now(),notifications=[];const [airResult,weatherResult]=await Promise.allSettled([fetchAir(),fetchWeather()]);
   if(airResult.status==='fulfilled'){
@@ -108,8 +147,9 @@ async function handleFetch(request,env){
   await ensureSchema(env);const url=new URL(request.url),origin=request.headers.get('origin')||'';
   if(request.method==='OPTIONS'){if(!allowedOrigin(origin,env))return new Response(null,{status:403});return new Response(null,{status:204,headers:corsHeaders(origin)})}
   if(request.method==='GET'&&url.pathname==='/health'){
-    const row=await env.DB.prepare('SELECT COUNT(*) AS count FROM push_subscriptions').first(),last=await stateGet(env,'last_evaluation');return json({ok:true,service:'sindhorn-midtown-alerts',subscriptions:Number(row?.count)||0,vapidConfigured:Boolean(env.VAPID_SERVER_PUBLIC_KEY&&env.VAPID_SERVER_PRIVATE_KEY),lastEvaluation:last},200,allowedOrigin(origin,env)?origin:'');
+    const row=await env.DB.prepare('SELECT COUNT(*) AS count FROM push_subscriptions').first(),last=await stateGet(env,'last_evaluation');return json({ok:true,service:'sindhorn-midtown-alerts',subscriptions:Number(row?.count)||0,vapidConfigured:Boolean(env.VAPID_SERVER_PUBLIC_KEY&&env.VAPID_SERVER_PRIVATE_KEY),businessUpdateConfigured:Boolean(env.BUSINESS_UPDATE_TOKEN),lastEvaluation:last},200,allowedOrigin(origin,env)?origin:'');
   }
+  if(request.method==='POST'&&url.pathname==='/business-update')return handleBusinessUpdate(request,env);
   if(request.method==='GET'&&url.pathname==='/air-current'){
     if(!allowedOrigin(origin,env))return json({error:'origin_not_allowed'},403);
     try{return json(await fetchAir(),200,origin)}catch(error){console.error('air-current failed',error);return json({error:'air_unavailable'},503,origin)}
@@ -128,6 +168,7 @@ async function handleFetch(request,env){
   return json({error:'not_found'},404,allowedOrigin(origin,env)?origin:'');
 }
 
+export {normalizeBusinessUpdate,businessUpdatePayload,secureTokenEqual};
 export default{
   fetch(request,env){return handleFetch(request,env).catch(error=>{console.error(error);return json({error:'internal_error'},500)})},
   scheduled(_controller,env,ctx){ctx.waitUntil(evaluateAndNotify(env).catch(error=>console.error('scheduled evaluation failed',error)))}

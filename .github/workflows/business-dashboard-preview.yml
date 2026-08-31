@@ -2,22 +2,37 @@ name: Daily Business Dashboard Preview
 
 on:
   push:
-    branches: [daily-business-dashboard-preview]
+    branches:
+      - today-v4-motion-phase-a
+      - today-v4-notifications-phase-b
     paths:
       - "site/index.html"
       - "site/app.js"
       - "site/sw.js"
+      - "site/push-client.js"
+      - "site/notification-inbox.js"
       - "site/business-dashboard.js"
       - "site/business-dashboard-data.js"
       - "site/business-dashboard.css"
+      - "site/business-dashboard-motion.js"
+      - "site/business-dashboard-motion.css"
       - "site/route-registry.js"
       - "site/ui-system-registry.js"
       - "site/ci-specimen-fixes.css"
-      - "supabase/migrations/*daily_business_dashboard*.sql"
       - "scripts/business-dashboard-browser-smoke.mjs"
+      - "scripts/business-dashboard-motion-smoke.mjs"
       - "scripts/business-dashboard-pwa-smoke.mjs"
       - "scripts/business-dashboard-ci-audit.mjs"
       - "scripts/business-dashboard-ci-parity-smoke.mjs"
+      - "scripts/business-dashboard-schema-smoke.mjs"
+      - "scripts/business-notification-messages-smoke.mjs"
+      - "scripts/business-notification-push-smoke.mjs"
+      - "scripts/business-notification-bridge-smoke.mjs"
+      - "supabase/migrations/20260830151557_daily_business_dashboard_foundation.sql"
+      - "supabase/migrations/20260830151616_daily_business_dashboard_flag_builder.sql"
+      - "supabase/migrations/20260830151646_daily_business_dashboard_read_model.sql"
+      - "supabase/migrations/20260831045500_daily_business_dashboard_notification_bridge.sql"
+      - "supabase/migrations/20260831050000_daily_business_dashboard_fk_indexes.sql"
       - ".github/workflows/business-dashboard-preview.yml"
   workflow_dispatch:
 
@@ -26,7 +41,7 @@ permissions:
   deployments: write
 
 concurrency:
-  group: daily-business-dashboard-preview
+  group: today-v4-dashboard-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -41,21 +56,41 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard.js site/app.js site/sw.js scripts/business-dashboard-browser-smoke.mjs scripts/business-dashboard-pwa-smoke.mjs scripts/business-dashboard-ci-audit.mjs scripts/business-dashboard-ci-parity-smoke.mjs; do
+          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard-motion.js site/business-dashboard.js site/app.js site/sw.js site/push-client.js site/notification-inbox.js scripts/business-dashboard-browser-smoke.mjs scripts/business-dashboard-motion-smoke.mjs scripts/business-dashboard-pwa-smoke.mjs scripts/business-dashboard-ci-audit.mjs scripts/business-dashboard-ci-parity-smoke.mjs scripts/business-dashboard-schema-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
+          for file in scripts/business-notification-messages-smoke.mjs scripts/business-notification-push-smoke.mjs scripts/business-notification-bridge-smoke.mjs; do if [ -f "$file" ]; then node --input-type=module --check < "$file"; fi; done
+          node scripts/business-dashboard-schema-smoke.mjs
           grep -q "today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local'" site/route-registry.js
+          grep -q "module:'./business-dashboard.js?v=4'" site/route-registry.js
           grep -q "sindhorn_business_dashboard_read_model" site/business-dashboard-data.js
-          grep -q "business-dashboard-route" site/business-dashboard.js site/business-dashboard.css
+          grep -q "applyBusinessDashboardMotion" site/business-dashboard.js
+          grep -q "data-bd-motion-key" site/business-dashboard.js
+          grep -q "business-dashboard-motion.css" site/business-dashboard.js
+          grep -q "prefers-reduced-motion:reduce" site/business-dashboard-motion.css
+          grep -q "sindhorn-business-dashboard-motion-v2" site/business-dashboard-motion.js
           grep -q "SindhornBusinessDashboard.*refresh" site/app.js
-          grep -q "business-dashboard.js" site/sw.js
+          grep -q "sindhorn-midtown-internal-pwa-v38-today-motion-r1" site/sw.js
+          grep -q "business-dashboard-motion.js" site/sw.js
+          grep -q "business-dashboard-motion.css" site/sw.js
           grep -q "hotel-factsheet.css" site/sw.js
           grep -q "pwa-v34-betta-dashboard-r1" site/sw.js
+          grep -q "self.addEventListener('push'" site/sw.js
+          grep -q "NOTIFICATION_DB='sindhorn-midtown-notification-inbox'" site/sw.js
           grep -q "<title>Today | Sindhorn Midtown Internal</title>" site/index.html
-          if grep -Eqi 'border-radius:[[:space:]]*(50%|999px|9999px)' site/business-dashboard.css; then
+          ! grep -q "Notification.requestPermission" site/push-client.js
+          if [ "${GITHUB_REF_NAME}" = "today-v4-notifications-phase-b" ]; then
+            grep -q "business-fnb-update" site/notification-inbox.js
+            grep -q "business-rooms-update" site/notification-inbox.js
+            grep -q "business-dashboard-update" site/notification-inbox.js
+            grep -q "business updates are on" site/push-client.js
+            grep -q "ServiceWorker.deliverPushMessage" scripts/business-notification-push-smoke.mjs
+            node scripts/business-notification-bridge-smoke.mjs
+          fi
+          if grep -Eqi 'border-radius:[[:space:]]*(50%|999px|9999px)' site/business-dashboard.css site/business-dashboard-motion.css; then
             echo 'Circular/capsule dashboard UI is not allowed'; exit 1
           fi
-          if grep -Eq 'letter-spacing:[[:space:]]*[^0!]' site/business-dashboard.css; then
+          if grep -Eq 'letter-spacing:[[:space:]]*[^0!]' site/business-dashboard.css site/business-dashboard-motion.css; then
             echo 'Non-zero dashboard letter spacing detected'; exit 1
           fi
 
@@ -87,43 +122,56 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BASE_URL="https://daily-business-dashboard-pre.sindhorn-midtown-internal.pages.dev"
+          BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /hotel-factsheet.css /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /rain-layer.js /rain-layer-legacy-weather.js /app.js /sw.js /manifest.webmanifest; do
+          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /business-dashboard-motion.js /business-dashboard-motion.css /hotel-factsheet.css /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /rain-layer.js /rain-layer-legacy-weather.js /push-client.js /notification-inbox.js /app.js /sw.js /manifest.webmanifest; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
           curl --fail --silent --show-error "${BASE_URL}/route-registry.js" -o /tmp/routes.js
-          grep -q "kind:'local',module:'./business-dashboard.js?v=2'" /tmp/routes.js
+          grep -q "kind:'local',module:'./business-dashboard.js?v=4'" /tmp/routes.js
+          curl --fail --silent --show-error "${BASE_URL}/business-dashboard.js" -o /tmp/dashboard.js
+          grep -q "business-dashboard-motion.js" /tmp/dashboard.js
+          grep -q "business-dashboard-motion.css" /tmp/dashboard.js
           curl --fail --silent --show-error "${BASE_URL}/sw.js" -o /tmp/sw.js
+          grep -q "sindhorn-midtown-internal-pwa-v38-today-motion-r1" /tmp/sw.js
           grep -q "business-dashboard-data.js" /tmp/sw.js
+          grep -q "business-dashboard-motion.js" /tmp/sw.js
+          grep -q "business-dashboard-motion.css" /tmp/sw.js
           grep -q "hotel-factsheet.css" /tmp/sw.js
           grep -q "betta-environment.js" /tmp/sw.js
           grep -q "rain-layer-legacy-weather.js" /tmp/sw.js
+          grep -q "self.addEventListener('push'" /tmp/sw.js
 
-      - name: Mobile, CI-parity and installed-PWA smoke
+      - name: Mobile, motion, CI-parity and installed-PWA smoke
         shell: bash
         env:
-          BASE_URL: https://daily-business-dashboard-pre.sindhorn-midtown-internal.pages.dev
           SCREENSHOT_DIR: /tmp/business-dashboard-preview
         run: |
           set -euo pipefail
+          export BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
           npm install --no-save playwright@1.55.0 >/dev/null 2>&1
           npx playwright install chromium >/dev/null 2>&1
           node scripts/business-dashboard-browser-smoke.mjs | tee /tmp/business-dashboard-browser-report.json
+          node scripts/business-dashboard-motion-smoke.mjs | tee /tmp/business-dashboard-motion-report.json
           node scripts/business-dashboard-ci-parity-smoke.mjs | tee /tmp/business-dashboard-ci-parity-report.json
           node scripts/business-dashboard-pwa-smoke.mjs | tee /tmp/business-dashboard-pwa-report.json
+          if [ -f scripts/business-notification-messages-smoke.mjs ]; then node scripts/business-notification-messages-smoke.mjs | tee /tmp/business-notification-messages-report.json; fi
+          if [ -f scripts/business-notification-push-smoke.mjs ]; then node scripts/business-notification-push-smoke.mjs | tee /tmp/business-notification-push-report.json; fi
 
       - name: Upload screenshots and reports
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: business-dashboard-preview
+          name: business-dashboard-motion-preview
           path: |
             /tmp/business-dashboard-preview
             /tmp/business-dashboard-browser-report.json
+            /tmp/business-dashboard-motion-report.json
             /tmp/business-dashboard-ci-audit.json
             /tmp/business-dashboard-ci-parity-report.json
             /tmp/business-dashboard-pwa-report.json
+            /tmp/business-notification-messages-report.json
+            /tmp/business-notification-push-report.json
           if-no-files-found: warn
           retention-days: 14

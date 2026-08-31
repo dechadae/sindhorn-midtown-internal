@@ -1,5 +1,5 @@
 export const ROUTES=Object.freeze({
-  today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local',module:'./business-dashboard.js?v=3',mount:'mountBusinessDashboardRoute'}),
+  today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local',module:'./business-dashboard.js?v=4',mount:'mountBusinessDashboardRoute'}),
   fnb:Object.freeze({path:'/fnb',title:'F&B | Sindhorn Midtown Internal',kind:'local',module:'./fnb.js',mount:'mountFnbRoute'}),
   brand:Object.freeze({path:'/brand',title:'Brand | Sindhorn Midtown Internal',kind:'local',module:'./brand.js?v=3',mount:'mountBrandRoute'}),
   ihgHistory:Object.freeze({path:'/ihg-history',title:'Our History | Sindhorn Midtown Internal',kind:'local',module:'./ihg-history.js',mount:'mountIhgHistoryRoute'}),
@@ -8,6 +8,6 @@ export const ROUTES=Object.freeze({
   settings:Object.freeze({path:'/settings',title:'Settings | Sindhorn Midtown Internal',kind:'local',module:'./settings-route-v3.js?v=12&r=release-health-1',mount:'mountSettingsRoute'}),
   ci:Object.freeze({path:'/ci',title:'UI Library | Sindhorn Midtown Internal',kind:'local',module:'./ci-day-cycle-route.js?v=1',mount:'mountCiRoute'})
 });
-// Today cache lineage: business-dashboard.js?v=2 -> v3 for explicit freshness/domain separation.
+// Today cache lineage: business-dashboard.js?v=2 -> v3 for explicit freshness/domain separation -> v4 for semantic dashboard motion.
 // Cache lineage: settings-route-v3.js?v=10&r=6&d=5 -> v11&r=ci-1 -> v12&r=release-health-1 for capability-gated Business Card loading.
 const PATH_TO_ROUTE=new Map(Object.entries(ROUTES).map(([key,value])=>[value.path,key]));const LEGACY_ALIASES=new Map([['/index.html','today'],['/guidance','today'],['/details','today'],['/account','settings'],['/account.html','settings'],['/admin','settings'],['/admin.html','settings']]);function normalizePath(pathname){let path=String(pathname||'/').split('?')[0].split('#')[0]||'/';if(path.length>1&&path.endsWith('/'))path=path.slice(0,-1);return path||'/'}export function routeForPath(pathname){const path=normalizePath(pathname);return PATH_TO_ROUTE.get(path)||LEGACY_ALIASES.get(path)||null}export function routePath(route){return ROUTES[route]?.path||ROUTES.today.path}export function routeTitle(route){return ROUTES[route]?.title||ROUTES.today.title}export function isAppRoutePath(pathname){return routeForPath(pathname)!==null}export function canonicalRoute(route){return ROUTES[route]?route:'today'}

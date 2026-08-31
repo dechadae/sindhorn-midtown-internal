@@ -29,11 +29,11 @@ async function prepare(){
 }
 async function render(){
   const {button}=statusNodes();if(!button)return;
-  if(!API){writeButton('Alerts unavailable',true);writeStatus('Alert service is not configured yet.','unavailable');return}
+  if(!API){writeButton('Alerts unavailable',true);writeStatus('Notification service is not configured yet.','unavailable');return}
   if(!('serviceWorker'in navigator)||!('PushManager'in window)||!('Notification'in window)){writeButton('Alerts unavailable',true);writeStatus('This browser does not support Web Push. Install the PWA if your platform requires it.','unavailable');return}
   if(Notification.permission==='denied'){writeButton('Alerts blocked',true);writeStatus('Notifications are blocked in browser or system settings.','blocked');return}
   if(!prepared){writeButton('Preparing alerts…',true);writeStatus('Preparing secure notification support.','working');try{await prepare()}catch(error){console.warn('Push preparation failed',error);prepared=false;registration=null;publicKey='';subscription=null;writeButton('Retry alerts',false);writeStatus('Alert setup did not finish. Tap Retry alerts to try again.','error');return}}
-  if(subscription){writeButton('Turn alerts off',busy);writeStatus('Air-quality and severe-weather alerts are on.','on')}else{writeButton('Turn alerts on',busy);writeStatus('Enable alerts only when you want lock-screen updates.','off')}
+  if(subscription){writeButton('Turn alerts off',busy);writeStatus('Weather, air-quality and business updates are on.','on')}else{writeButton('Turn alerts on',busy);writeStatus('Enable notifications when you want weather, air-quality and business updates on this device.','off')}
 }
 async function enableFromGesture(){
   if(!capable()||busy||!prepared||!registration||!publicKey||subscription)return;
@@ -41,12 +41,12 @@ async function enableFromGesture(){
   try{
     const subscribePromise=registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:base64urlBytes(publicKey).buffer});
     created=await subscribePromise;subscription=created;
-    const payload=subscription.toJSON();await request('/subscribe',{method:'POST',body:JSON.stringify({endpoint:payload.endpoint,expirationTime:payload.expirationTime??null,keys:payload.keys})});writeStatus('Environmental alerts are enabled.','on');
+    const payload=subscription.toJSON();await request('/subscribe',{method:'POST',body:JSON.stringify({endpoint:payload.endpoint,expirationTime:payload.expirationTime??null,keys:payload.keys})});writeStatus('Sindhorn Midtown notifications are enabled.','on');
   }catch(error){console.warn('Push enable failed',error);if(created)try{await created.unsubscribe()}catch(_){ }subscription=null;prepared=false;publicKey='';writeStatus(Notification.permission==='denied'?'Notifications were blocked.':'Could not enable alerts. Please try again.',Notification.permission==='denied'?'blocked':'error')}
   finally{busy=false;await render()}
 }
 async function disable(){
-  if(!capable()||busy||!prepared)return;busy=true;writeButton('Turning alerts off…',true);writeStatus('Removing this device from environmental alerts.','working');
+  if(!capable()||busy||!prepared)return;busy=true;writeButton('Turning alerts off…',true);writeStatus('Removing this device from Sindhorn Midtown notifications.','working');
   try{if(subscription){const endpoint=subscription.endpoint;try{await request('/subscribe',{method:'DELETE',body:JSON.stringify({endpoint})})}catch(error){console.warn('Push backend removal failed',error)}await subscription.unsubscribe()}subscription=null;prepared=false;publicKey='';writeStatus('Alerts are off for this device.','off')}catch(error){console.warn('Push disable failed',error);writeStatus('Could not turn alerts off. Please try again.','error')}finally{busy=false;await render()}
 }
 async function toggleFromGesture(){
