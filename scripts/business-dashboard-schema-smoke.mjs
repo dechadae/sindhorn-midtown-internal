@@ -3,7 +3,8 @@ import fs from 'node:fs';
 const files={
   foundation:'supabase/migrations/20260830151557_daily_business_dashboard_foundation.sql',
   flags:'supabase/migrations/20260830151616_daily_business_dashboard_flag_builder.sql',
-  readModel:'supabase/migrations/20260830151646_daily_business_dashboard_read_model.sql'
+  readModel:'supabase/migrations/20260830151646_daily_business_dashboard_read_model.sql',
+  fkIndexes:'supabase/migrations/20260831050000_daily_business_dashboard_fk_indexes.sql'
 };
 const sql=Object.fromEntries(Object.entries(files).map(([key,path])=>[key,fs.readFileSync(path,'utf8')]));
 const assert=(condition,message)=>{if(!condition)throw new Error(message)};
@@ -27,6 +28,10 @@ assert(sql.flags.includes('revoke all on function public.sindhorn_business_rebui
 assert(sql.readModel.includes('create or replace function public.sindhorn_business_dashboard_read_model'),'Read-model migration missing RPC');
 assert(sql.readModel.includes("sindhorn_has_capability('business_dashboard.read')"),'Read model must enforce capability authority');
 assert(sql.readModel.includes('grant execute on function public.sindhorn_business_dashboard_read_model(date) to authenticated, service_role'),'Authenticated app must receive only the read-model RPC');
+assert(sql.fkIndexes.includes('business_dashboard_flags_rule_key_idx'),'Rule foreign key must have a covering index');
+assert(sql.fkIndexes.includes('on public.business_dashboard_flags(rule_key)'),'Rule index must cover rule_key');
+assert(sql.fkIndexes.includes('business_dashboard_publications_supersedes_run_idx'),'Superseded publication foreign key must have a covering index');
+assert(sql.fkIndexes.includes('on public.business_dashboard_publications(supersedes_run_id)'),'Supersession index must cover supersedes_run_id');
 
 const forbiddenDataInserts=[
   'insert into public.fnb_daily_summary',
@@ -41,4 +46,4 @@ const forbiddenDataInserts=[
 ];
 for(const fragment of forbiddenDataInserts)assert(!sql.foundation.toLowerCase().includes(fragment),`Historical schema migration must remain data-free: ${fragment}`);
 
-console.log(JSON.stringify({ok:true,migrations:Object.values(files),contracts:{historicalVersionsRestored:true,dataFree:true,rlsClosed:true,capabilityReadModel:true}}));
+console.log(JSON.stringify({ok:true,migrations:Object.values(files),contracts:{historicalVersionsRestored:true,dataFree:true,rlsClosed:true,capabilityReadModel:true,foreignKeysCovered:true}}));
