@@ -33,8 +33,8 @@ jobs:
           set -euo pipefail
           node --input-type=module --check < site/today-motion-lab.js
           grep -Fq 'Progress experiment · synthetic data' site/today-motion-lab.html
-          grep -Fq 'today-motion-lab.js?v=3' site/today-motion-lab.html
-          grep -Fq "__TODAY_PROGRESS_LAB_VERSION__='v3-waapi'" site/today-motion-lab.js
+          grep -Fq 'today-motion-lab.js?v=4' site/today-motion-lab.html
+          grep -Fq "__TODAY_PROGRESS_LAB_VERSION__='v4-raf'" site/today-motion-lab.js
           grep -Fq 'data-progress-card' site/today-motion-lab.html
           ! grep -Fq 'lab-scan' site/today-motion-lab.html
           ! grep -Fq 'data-progress-line' site/today-motion-lab.html
@@ -52,9 +52,9 @@ jobs:
           promoted=false
           for attempt in $(seq 1 40); do
             if curl --fail --silent --show-error --location "${BASE_URL}/today-motion-lab.html" -o /tmp/lab.html \
-              && grep -Fq 'today-motion-lab.js?v=3' /tmp/lab.html \
-              && curl --fail --silent --show-error --location "${BASE_URL}/today-motion-lab.js?v=3" -o /tmp/lab.js \
-              && grep -Fq "__TODAY_PROGRESS_LAB_VERSION__='v3-waapi'" /tmp/lab.js; then
+              && grep -Fq 'today-motion-lab.js?v=4' /tmp/lab.html \
+              && curl --fail --silent --show-error --location "${BASE_URL}/today-motion-lab.js?v=4" -o /tmp/lab.js \
+              && grep -Fq "__TODAY_PROGRESS_LAB_VERSION__='v4-raf'" /tmp/lab.js; then
               promoted=true
               break
             fi
@@ -77,18 +77,19 @@ jobs:
           const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2});
           const errors=[];page.on('pageerror',error=>errors.push(String(error)));
           await page.goto(`${process.env.BASE_URL}/today-motion-lab.html`,{waitUntil:'domcontentloaded',timeout:60000});
-          await page.waitForFunction(()=>window.__TODAY_PROGRESS_LAB_VERSION__==='v3-waapi',{timeout:30000});
+          await page.waitForFunction(()=>window.__TODAY_PROGRESS_LAB_VERSION__==='v4-raf',{timeout:30000});
           await page.waitForTimeout(1050);
           const fill=page.locator('[data-progress-card]').first().locator('.lab-progress i');
-          const before=await fill.evaluate(node=>getComputedStyle(node).transform);
+          const scale=async()=>fill.evaluate(node=>new DOMMatrixReadOnly(getComputedStyle(node).transform).a);
+          const before=await scale();
           await page.locator('[data-replay]').click();
           await page.waitForTimeout(120);
-          const during=await fill.evaluate(node=>getComputedStyle(node).transform);
+          const during=await scale();
           await page.waitForTimeout(950);
-          const after=await fill.evaluate(node=>getComputedStyle(node).transform);
+          const after=await scale();
           const state=await page.evaluate(()=>({cards:document.querySelectorAll('[data-progress-card]').length,globalPulse:!!document.querySelector('[data-progress-line]'),scan:!!document.querySelector('.lab-scan'),version:window.__TODAY_PROGRESS_LAB_VERSION__}));
-          if(state.cards!==8||state.globalPulse||state.scan||state.version!=='v3-waapi')throw new Error(`lab structure failed ${JSON.stringify(state)}`);
-          if(before===during||during===after)throw new Error(`progress replay did not visibly animate: ${before} | ${during} | ${after}`);
+          if(state.cards!==8||state.globalPulse||state.scan||state.version!=='v4-raf')throw new Error(`lab structure failed ${JSON.stringify(state)}`);
+          if(!(before>.82&&during>0&&during<before*.8&&after>before*.98))throw new Error(`progress replay did not animate smoothly: ${before} | ${during} | ${after}`);
           if(errors.length)throw new Error(errors.join(' | '));
           console.log('TODAY_PROGRESS_LAB_PASS',JSON.stringify({before,during,after,...state}));
           await browser.close();
