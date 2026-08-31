@@ -1,0 +1,49 @@
+name: Temporary Betta iPhone Composition Pass
+
+on:
+  push:
+    branches: [betta-reference-rebuild]
+    paths:
+      - '.github/workflows/tmp-betta-iphone-composition.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: betta-reference-rebuild
+      - name: Apply wallpaper composition only
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('site/betta-fin-presets.js')
+          s = p.read_text()
+          replacements = {
+            "scale:.66,rotation:.02,cameraDepth:.10,offsetX:-.62,offsetY:-.02": "scale:.80,rotation:.28,cameraDepth:.10,offsetX:-1.02,offsetY:-.36",
+            "scale:.64,rotation:.02,cameraDepth:.08,offsetX:-.64,offsetY:.00": "scale:.78,rotation:-.22,cameraDepth:.08,offsetX:-1.05,offsetY:.28",
+            "scale:.66,rotation:.13,cameraDepth:.08,offsetX:-.60,offsetY:-.03": "scale:.82,rotation:.38,cameraDepth:.08,offsetX:-.98,offsetY:-.42",
+            "scale:.69,rotation:-.28,cameraDepth:.12,offsetX:-.59,offsetY:.12": "scale:.80,rotation:-.44,cameraDepth:.12,offsetX:-1.00,offsetY:.38",
+            "scale:.62,rotation:-.08,cameraDepth:.08,offsetX:-.58,offsetY:.00": "scale:.80,rotation:.12,cameraDepth:.08,offsetX:-1.02,offsetY:-.24",
+            "scale:.64,rotation:-.035,cameraDepth:.09,offsetX:-.63,offsetY:.00": "scale:.82,rotation:.30,cameraDepth:.09,offsetX:-1.04,offsetY:-.36",
+            "scale:.62,rotation:.08,cameraDepth:.11,offsetX:-.60,offsetY:.02": "scale:.80,rotation:-.28,cameraDepth:.11,offsetX:-.98,offsetY:.30",
+            "scale:.64,rotation:-.035,cameraDepth:.10,offsetX:-.64,offsetY:.00": "scale:.84,rotation:.20,cameraDepth:.10,offsetX:-1.06,offsetY:-.20",
+          }
+          for old,new in replacements.items():
+              if old not in s:
+                  raise SystemExit(f'composition target not found: {old}')
+              s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+      - name: Syntax check
+        run: node --input-type=module --check < site/betta-fin-presets.js
+      - name: Commit composition
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/betta-fin-presets.js
+          git commit -m "Tune Betta composition for live wallpaper framing"
+          git push origin HEAD:betta-reference-rebuild
