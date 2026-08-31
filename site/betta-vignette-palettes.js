@@ -39,7 +39,9 @@ export function applyVignetteGrade(presets,gradeKey){
   if(!grade)return null;
   for(const [key,palette] of Object.entries(grade.palettes)){
     if(!presets[key])throw new Error(`Missing Betta preset: ${key}`);
-    presets[key].palette=[...palette];
+    const target=presets[key].palette;
+    if(!Array.isArray(target))throw new Error(`Missing Betta palette: ${key}`);
+    target.splice(0,target.length,...palette);
   }
   return grade;
 }
