@@ -4,14 +4,14 @@ export const DAY_CYCLE_ROLLOVER_MS=60000;
 export const DAY_CYCLE_CORRECTION_MS=900;
 
 export const BETTA_DAY_PERIODS=Object.freeze([
-  Object.freeze({key:'midnight',startHour:0,endHour:3,name:'Midnight',baseline:'blackOrchid'}),
-  Object.freeze({key:'before-dawn',startHour:3,endHour:6,name:'Before Dawn',baseline:'redSnowDragon'}),
-  Object.freeze({key:'first-light',startHour:6,endHour:9,name:'First Light',baseline:'mustardGas'}),
-  Object.freeze({key:'bright-morning',startHour:9,endHour:12,name:'Bright Morning',baseline:'turquoiseMetallic'}),
-  Object.freeze({key:'midday',startHour:12,endHour:15,name:'Midday',baseline:'royalBlueHalfmoon'}),
-  Object.freeze({key:'afternoon',startHour:15,endHour:18,name:'Afternoon',baseline:'copperMetallic'}),
-  Object.freeze({key:'golden-hour',startHour:18,endHour:21,name:'Golden Hour',baseline:'nemoGalaxyKoi'}),
-  Object.freeze({key:'blue-hour',startHour:21,endHour:24,name:'Blue Hour',baseline:'superRedHalfmoon'})
+  Object.freeze({key:'midnight',startHour:0,endHour:3,name:'Midnight',baseline:'blackOrchid',tone:'dark'}),
+  Object.freeze({key:'before-dawn',startHour:3,endHour:6,name:'Before Dawn',baseline:'copperMetallic',tone:'dark'}),
+  Object.freeze({key:'first-light',startHour:6,endHour:9,name:'First Light',baseline:'turquoiseMetallic',tone:'bright'}),
+  Object.freeze({key:'bright-morning',startHour:9,endHour:12,name:'Bright Morning',baseline:'royalBlueHalfmoon',tone:'bright'}),
+  Object.freeze({key:'midday',startHour:12,endHour:15,name:'Midday',baseline:'redSnowDragon',tone:'bright'}),
+  Object.freeze({key:'afternoon',startHour:15,endHour:18,name:'Afternoon',baseline:'mustardGas',tone:'bright'}),
+  Object.freeze({key:'golden-hour',startHour:18,endHour:21,name:'Golden Hour',baseline:'nemoGalaxyKoi',tone:'dark'}),
+  Object.freeze({key:'blue-hour',startHour:21,endHour:24,name:'Blue Hour',baseline:'superRedHalfmoon',tone:'dark'})
 ]);
 
 const clamp=value=>Math.min(1,Math.max(0,Number(value)||0));

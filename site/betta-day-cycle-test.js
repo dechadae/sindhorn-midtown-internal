@@ -8,13 +8,16 @@ const liveButton=document.querySelector('[data-live]');
 const previewButton=document.querySelector('[data-preview]');
 
 function labelBaseline(key){return String(key||'').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,c=>c.toUpperCase())}
-function renderButtons(){periodsHost.innerHTML=BETTA_DAY_PERIODS.map(period=>`<button type="button" data-period="${period.key}">${period.name}</button>`).join('')}
+function hourLabel(value){return `${String(value).padStart(2,'0')}:00`}
+function renderButtons(){periodsHost.innerHTML=BETTA_DAY_PERIODS.map(period=>`<button type="button" data-period="${period.key}" data-tone="${period.tone}"><span>${period.name}</span><small>${hourLabel(period.startHour)}–${hourLabel(period.endHour)} · ${labelBaseline(period.baseline)}</small></button>`).join('')}
 function paint(){
   const env=window.SindhornEnvironment?.getState?.();
   const day=env?.betta?.dayCycle;
   if(!day){stateNode.textContent='Loading renderer…';return}
+  const current=BETTA_DAY_PERIODS.find(period=>period.key===day.targetPeriodKey);
   clockNode.textContent=`Bangkok ${day.bangkokTime||'—'}`;
-  stateNode.textContent=`${day.periodName||day.targetPeriodKey||'—'} · ${labelBaseline(day.targetBaseline)} · ${Math.round((Number(day.transitionMix)||0)*100)}%`;
+  stateNode.textContent=`${day.periodName||day.targetPeriodKey||'—'} · ${current?.tone==='bright'?'Vivid day':'Dark night'} · ${labelBaseline(day.targetBaseline)} · ${Math.round((Number(day.transitionMix)||0)*100)}%`;
+  document.body.dataset.reviewTone=current?.tone||'';
   document.querySelectorAll('[data-period]').forEach(button=>button.classList.toggle('is-active',button.dataset.period===day.targetPeriodKey));
 }
 

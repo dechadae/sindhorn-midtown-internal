@@ -20,18 +20,23 @@
     .periods{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
     .periods::-webkit-scrollbar{display:none}
     button{appearance:none;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.055);color:#f5f2ea;border-radius:999px;padding:9px 12px;font:inherit;font-size:12px;white-space:nowrap;cursor:pointer;transition:background .2s ease,border-color .2s ease,transform .2s ease}
+    button span{display:block}
+    button small{display:block;margin-top:2px;font-size:9px;font-weight:400;color:rgba(245,242,234,.54)}
+    button[data-tone="bright"]{border-color:rgba(185,235,255,.18)}
+    button[data-tone="dark"]{border-color:rgba(218,190,232,.14)}
     button:active{transform:scale(.97)}
     button.is-active{background:rgba(244,232,190,.16);border-color:rgba(244,232,190,.42);color:#f2e6b9}
+    button.is-active small{color:rgba(242,230,185,.72)}
     .actions{display:flex;gap:8px;margin-top:9px}
     .actions button{flex:1;border-radius:12px}
     .primary{background:rgba(244,232,190,.15);border-color:rgba(244,232,190,.35)}
     .badge{position:fixed;z-index:4;top:max(12px,env(safe-area-inset-top));left:12px;padding:7px 10px;border-radius:999px;background:rgba(6,8,11,.48);border:1px solid rgba(255,255,255,.1);font-size:11px;color:rgba(245,242,234,.75);backdrop-filter:blur(12px)}
-    @media(min-width:800px){.review{left:50%;right:auto;width:min(900px,calc(100% - 32px));transform:translateX(-50%);bottom:18px;padding:14px}.review-title{font-size:20px}}
+    @media(min-width:800px){.review{left:50%;right:auto;width:min(980px,calc(100% - 32px));transform:translateX(-50%);bottom:18px;padding:14px}.review-title{font-size:20px}}
   </style>
 </head>
 <body>
   <div id="environmentStage" aria-hidden="true"><canvas id="environmentCanvas"></canvas></div>
-  <div class="badge">Public visual review · no login</div>
+  <div class="badge">Public visual review · no login · 06:00–18:00 vivid / 18:00–06:00 dark</div>
   <section class="review" aria-label="Betta day-cycle review controls">
     <div class="review-head">
       <div><p class="review-kicker">Bangkok Day Cycle</p><h1 class="review-title">Betta Atmosphere Review</h1></div>
@@ -40,6 +45,6 @@
     <div class="periods" data-periods></div>
     <div class="actions"><button class="primary" type="button" data-live>Live Bangkok Time</button><button type="button" data-preview>Preview 24h · 3 min</button></div>
   </section>
-  <script type="module" src="./betta-day-cycle-test.js?v=1"></script>
+  <script type="module" src="./betta-day-cycle-test.js?v=2"></script>
 </body>
 </html>
