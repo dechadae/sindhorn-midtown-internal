@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - typography-line-seed-sans-th
+      - fix-main-release-health-20260831
     paths:
       - "site/**"
       - "docs/**"
