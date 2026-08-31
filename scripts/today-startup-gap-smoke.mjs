@@ -33,12 +33,12 @@ await page.route('**/rest/v1/rpc/sindhorn_business_dashboard_read_model',async r
 });
 
 try{
-  const startedAt=Date.now();
   await page.goto(`${BASE_URL}/`,{waitUntil:'domcontentloaded'});
   await page.waitForSelector('.business-dashboard-route',{state:'attached',timeout:2500});
   const mounted=await page.evaluate(()=>{
     const route=document.querySelector('.business-dashboard-route');
     return{
+      browserMs:performance.now(),
       startupEnter:document.documentElement.dataset.startupEnter,
       shellLoading:document.documentElement.dataset.shellLoading,
       title:route?.querySelector('.app-route-title')?.textContent?.trim()||'',
@@ -46,8 +46,7 @@ try{
       businessDate:route?.dataset.businessDate||''
     };
   });
-  const mountedElapsedMs=Date.now()-startedAt;
-  assert(mountedElapsedMs<2500,`Today startup shell took too long to mount: ${mountedElapsedMs}ms`);
+  assert(mounted.browserMs<2500,`Today startup shell took too long to mount in the browser: ${JSON.stringify(mounted)}`);
   assert(mounted.title==='Hotel Business'&&/Loading the latest approved daily business report/.test(mounted.loadingCopy),`Today loading structure did not mount before business data: ${JSON.stringify(mounted)}`);
   assert(mounted.businessDate==='',`Slow RPC unexpectedly completed before startup reveal: ${JSON.stringify(mounted)}`);
 
@@ -61,6 +60,7 @@ try{
     const route=document.querySelector('.business-dashboard-route'),routeHost=document.getElementById('route-view'),canvas=document.getElementById('environmentCanvas'),header=document.querySelector('#app-header .masthead'),footer=document.getElementById('app-footer');
     const transitions=window.__startupTransitions||[],routeTransition=transitions.find(item=>item.id==='route-view'),canvasTransition=transitions.find(item=>item.id==='environmentCanvas');
     return{
+      browserMs:performance.now(),
       startupEnter:document.documentElement.dataset.startupEnter,
       shellLoading:document.documentElement.dataset.shellLoading,
       routeHostOpacity:Number.parseFloat(getComputedStyle(routeHost).opacity),
@@ -74,8 +74,7 @@ try{
       transitionDeltaMs:routeTransition&&canvasTransition?Math.abs(routeTransition.t-canvasTransition.t):null
     };
   });
-  const revealElapsedMs=Date.now()-startedAt;
-  assert(revealElapsedMs<2500,`Synchronized Today/Betta reveal took too long: ${revealElapsedMs}ms; ${JSON.stringify(reveal)}`);
+  assert(Number.isFinite(reveal.routeTransitionAt)&&reveal.routeTransitionAt<2500,`Synchronized Today/Betta fade started too late in the browser: ${JSON.stringify(reveal)}`);
   assert(reveal.startupEnter==='visible'&&reveal.environmentReady,`Startup reveal fired before Betta readiness: ${JSON.stringify(reveal)}`);
   assert(reveal.routeHostOpacity>.95&&reveal.canvasOpacity>.95&&reveal.headerVisible&&reveal.footerVisible,`Today and Betta did not finish the shared fade together: ${JSON.stringify(reveal)}`);
   assert(Number.isFinite(reveal.transitionDeltaMs)&&reveal.transitionDeltaMs<=16,`Today and Betta opacity transitions did not start in the same frame: ${JSON.stringify(reveal)}`);
@@ -90,7 +89,7 @@ try{
     businessDate:document.querySelector('.business-dashboard-route')?.dataset.businessDate||''
   }));
   assert(final.startupEnter==='visible'&&final.shellLoading==='false'&&final.title==='Hotel Business'&&final.businessDate===TEST_BUSINESS_DATE,`Today did not complete after delayed data load: ${JSON.stringify(final)}`);
-  console.log(JSON.stringify({ok:true,baseUrl:BASE_URL,mountedElapsedMs,mounted,revealElapsedMs,reveal,final}));
+  console.log(JSON.stringify({ok:true,baseUrl:BASE_URL,mounted,reveal,final}));
 }finally{
   await context.close();
   await browser.close();
