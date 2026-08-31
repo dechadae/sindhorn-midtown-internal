@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - performance-audit-post-weather-webgl
+      - performance-audit-phase2
     paths:
       - "site/**"
       - "scripts/generate-fnb-share.mjs"
@@ -59,12 +60,13 @@ jobs:
             site/location.js site/bootstrap.js site/live-data.js site/betta-environment.js
             site/betta-satellite.js site/betta-day-periods.js site/rain-now.js site/weather-authority.js
             site/screen-capture.js site/notification-inbox.js site/push-client.js site/presentation-recovery.js
-            site/app.js site/sw.js worker/src/index.js auth-worker/src/index.js
+            site/onboarding.js site/onboarding-content.js site/app.js site/sw.js worker/src/index.js auth-worker/src/index.js
           )
           for file in "${MODULES[@]}"; do
             test -s "$file"
             node --input-type=module --check < "$file"
           done
+          node --input-type=module --check < site/startup-performance-smoke.mjs
           node --input-type=module --check < scripts/generate-fnb-share.mjs
           node --input-type=module --check < scripts/generate-pwa-icons.mjs
           node --input-type=module --check < site/share/fnb-runtime.js
@@ -100,19 +102,22 @@ jobs:
           registry=(root/'route-registry.js').read_text()
           transitions=(root/'app-transitions.js').read_text()
 
-          assert "sindhorn-midtown-internal-pwa-v41-performance-r1" in sw
+          assert "sindhorn-midtown-internal-pwa-v42-performance-r2" in sw
           for name in retired:
               assert f"'/{name}'" not in sw, f'retired file remains in service-worker cache: {name}'
               assert f'/{name}' not in index, f'retired file remains in app shell: {name}'
 
-          # Performance audit: the tree-shaken Betta runtime is the only Three.js
-          # payload in the install path, and capture tooling loads on demand.
+          # Performance audit: production executes only the tree-shaken Betta
+          # runtime. Build/source modules remain in GitHub but not in install cache.
           assert "'/betta-runtime.js'" in sw
-          assert "'/vendor/three.module.js'" not in sw
-          assert "'/vendor/html2canvas.min.js'" not in sw
+          for path in ('/vendor/three.module.js','/vendor/html2canvas.min.js','/betta-fin-presets.js','/betta-fin-shader.js','/betta-satellite.js','/betta-day-periods.js','/account.js','/account.css','/admin.js','/admin.css'):
+              assert f"'{path}'" not in sw, f'unnecessary install asset remains: {path}'
           assert '/vendor/html2canvas.min.js' not in index
+          assert '/account.css' not in index and '/admin.css' not in index
           assert (root/'vendor/three.module.js').exists(), 'Three source must remain available for reproducible Betta builds'
           assert (root/'vendor/html2canvas.min.js').exists(), 'Capture library source must remain available for lazy loading'
+          for source in ('betta-fin-presets.js','betta-fin-shader.js','betta-satellite.js','betta-day-periods.js','account.js','account.css','admin.js','admin.css'):
+              assert (root/source).exists(), f'source authority unexpectedly removed: {source}'
 
           assert "await import('./betta-runtime.js?v=1')" in bootstrap
           assert "import('./betta-runtime.js?v=1')" in auth_shell
@@ -120,6 +125,8 @@ jobs:
           assert "dataset.environmentInput='satellite-only'" in betta
           assert 'const DPR=2' in betta and 'preserveDrawingBuffer:false' in betta
           assert 'startSatelliteStream' in betta
+          assert "await import('./onboarding.js?v=1')" in auth_shell
+          assert "sindhorn-auth-start" in auth_shell and "sindhorn-bootstrap-import-ready" in auth_shell
 
           # Weather and current-rain remain operational data/UI services, not WebGL visuals.
           assert 'sindhorn-weather-core' in location
@@ -182,14 +189,13 @@ jobs:
             done
           }
 
-          # Cloudflare's stable branch aliases can lag the immutable deployment
-          # URL. Wait for the alias to expose this exact cache generation AND for
-          # every retired source path to stop serving JavaScript; never accept a
-          # stale deployment as success.
+          # Stable Cloudflare aliases can lag the immutable deployment. Keep the
+          # assertion strict, but give the alias enough time to promote instead
+          # of failing a healthy upload after only two minutes.
           promoted=false
-          for attempt in $(seq 1 40); do
+          for attempt in $(seq 1 80); do
             if curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
-              && grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/sw.js \
+              && grep -q 'sindhorn-midtown-internal-pwa-v42-performance-r2' /tmp/sw.js \
               && retired_clean; then
                 promoted=true
                 break
@@ -204,7 +210,7 @@ jobs:
             /business-dashboard-motion.js /business-dashboard-motion.css /auth-shell.js /auth-client.js
             /location.js /bootstrap.js /betta-runtime.js /betta-environment.js /betta-satellite.js
             /rain-now.js /weather-authority.js /live-data.js /notification-inbox.js /push-client.js
-            /manifest.webmanifest /sw.js /share/fnb
+            /onboarding.js /onboarding-content.js /onboarding.css /manifest.webmanifest /sw.js /share/fnb
           )
           for path in "${paths[@]}"; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
@@ -216,8 +222,14 @@ jobs:
           ! grep -q '/rain-layer.js' /tmp/root.html
           ! grep -q '/sun-dimmer.js' /tmp/root.html
           ! grep -q '/vendor/html2canvas.min.js' /tmp/root.html
-          grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/sw.js
+          ! grep -q '/account.css' /tmp/root.html
+          ! grep -q '/admin.css' /tmp/root.html
+          grep -q 'sindhorn-midtown-internal-pwa-v42-performance-r2' /tmp/sw.js
           ! grep -q "'/vendor/three.module.js'" /tmp/sw.js
           ! grep -q "'/vendor/html2canvas.min.js'" /tmp/sw.js
+          ! grep -q "'/betta-fin-presets.js'" /tmp/sw.js
+          ! grep -q "'/betta-fin-shader.js'" /tmp/sw.js
+          ! grep -q "'/betta-satellite.js'" /tmp/sw.js
+          ! grep -q "'/betta-day-periods.js'" /tmp/sw.js
           grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta.js
           grep -q "dataset.environmentInput='satellite-only'" /tmp/betta.js
