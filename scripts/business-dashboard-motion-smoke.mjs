@@ -29,6 +29,22 @@ async function waitForStableRoute(page){
   });
 }
 
+async function waitForRefreshedMotionState(page){
+  // A publication refresh may overlap with a shell/presentation remount. Assert the complete
+  // post-refresh state on one currently connected Today root rather than sampling an older root.
+  await page.waitForFunction(()=>{
+    const root=document.querySelector('.business-dashboard-route');
+    const occupancy=root?.querySelector('[data-bd-motion-key="rooms.current.occupancy"]');
+    return root?.dataset.bdMotionReady==='true'&&occupancy?.dataset.bdMotionValue==='0.902';
+  });
+  await page.waitForFunction(()=>document.querySelector('.business-dashboard-route .bd-update-stamp')?.classList.contains('is-fresh'));
+  await page.waitForTimeout(760);
+  await page.waitForFunction(()=>{
+    const root=document.querySelector('.business-dashboard-route');
+    return root?.dataset.bdMotionReady==='true'&&root.querySelector('[data-bd-motion-key="rooms.current.occupancy"]')?.dataset.bdMotionValue==='0.902';
+  });
+}
+
 async function run(reducedMotion){
   let current=dashboard({publishedAt:'2026-08-31T01:00:00Z',revision:1,fnbRevenue:420000,occupancy:.89,pickupRns:40,pickupRevenue:168000});
   const browser=await chromium.launch({headless:true});
@@ -48,10 +64,8 @@ async function run(reducedMotion){
 
     current=dashboard({publishedAt:'2026-08-31T02:00:00Z',revision:2,fnbRevenue:445000,occupancy:.902,pickupRns:15,pickupRevenue:97034,newFlag:true});
     await page.evaluate(()=>window.SindhornBusinessDashboard.refresh());
-    await page.waitForFunction(()=>document.querySelector('.bd-update-stamp')?.classList.contains('is-fresh'));
-    await page.waitForFunction(()=>document.querySelector('[data-bd-motion-key="rooms.current.occupancy"]')?.dataset.bdMotionValue==='0.902');
-    await page.waitForTimeout(760);
-    const refreshed=await page.evaluate(()=>({occupancy:document.querySelector('[data-bd-motion-key="rooms.current.occupancy"]')?.textContent.trim(),pickup:document.querySelector('[data-bd-motion-key="rooms.current.pickup.rns"]')?.textContent.trim(),fnb:document.querySelector('[data-bd-motion-key="fnb.daily.revenue"]')?.textContent.trim(),newFlag:document.querySelectorAll('.bd-flag.is-new').length,ready:document.querySelector('.business-dashboard-route')?.dataset.bdMotionReady,activeAnimations:document.getAnimations().filter(animation=>animation.playState==='running').length}));
+    await waitForRefreshedMotionState(page);
+    const refreshed=await page.evaluate(()=>{const root=document.querySelector('.business-dashboard-route');return{occupancy:root?.querySelector('[data-bd-motion-key="rooms.current.occupancy"]')?.textContent.trim(),pickup:root?.querySelector('[data-bd-motion-key="rooms.current.pickup.rns"]')?.textContent.trim(),fnb:root?.querySelector('[data-bd-motion-key="fnb.daily.revenue"]')?.textContent.trim(),newFlag:root?.querySelectorAll('.bd-flag.is-new').length||0,ready:root?.dataset.bdMotionReady,activeAnimations:document.getAnimations().filter(animation=>animation.playState==='running').length}});
     assert(refreshed.occupancy==='90.2%',`${reducedMotion}: occupancy did not finish at new value ${JSON.stringify(refreshed)}`);
     assert(refreshed.pickup==='+15 RN',`${reducedMotion}: pickup did not finish at new value ${JSON.stringify(refreshed)}`);
     assert(refreshed.fnb==='฿445K',`${reducedMotion}: F&B value did not finish at new value ${JSON.stringify(refreshed)}`);
