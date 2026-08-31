@@ -66,6 +66,50 @@ async function signIn(page,name){
   }
 }
 
+async function assertCanvasMotion(page,name,phase,delayMs=1200){
+  const canvas=page.locator('#environmentCanvas');
+  const before=await canvas.screenshot();
+  await page.waitForTimeout(delayMs);
+  const after=await canvas.screenshot();
+  if(Buffer.compare(before,after)===0)throw new Error(`${name}: Betta canvas did not visibly change during ${phase}`);
+  return true;
+}
+
+async function exerciseLifecycleRecovery(page,name){
+  await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));
+  await page.waitForFunction(()=>{
+    const betta=window.SindhornEnvironment?.getState?.().betta;
+    return betta?.lifecycle==='suspended'&&betta?.rendering===false&&betta?.satelliteStreaming===false;
+  },null,{timeout:5000});
+  await page.evaluate(()=>window.dispatchEvent(new Event('pageshow')));
+  await page.waitForFunction(()=>{
+    const betta=window.SindhornEnvironment?.getState?.().betta;
+    return betta?.lifecycle==='active'&&betta?.rendering===true&&betta?.satelliteStreaming===true&&betta?.contextLost===false;
+  },null,{timeout:10000});
+  await assertCanvasMotion(page,name,'pagehide/pageshow resume');
+
+  const contextTested=await page.evaluate(()=>{
+    const canvas=document.querySelector('#environmentCanvas');
+    const gl=canvas?.getContext('webgl2')||canvas?.getContext('webgl');
+    const ext=gl?.getExtension?.('WEBGL_lose_context');
+    if(!ext)return false;
+    window.__bettaLoseContextExtension=ext;
+    ext.loseContext();
+    return true;
+  });
+  if(contextTested){
+    await page.waitForFunction(()=>window.SindhornEnvironment?.getState?.().betta?.contextLost===true,null,{timeout:5000});
+    await page.evaluate(()=>window.__bettaLoseContextExtension?.restoreContext());
+    await page.waitForFunction(()=>{
+      const betta=window.SindhornEnvironment?.getState?.().betta;
+      return betta?.contextLost===false&&betta?.lifecycle==='active'&&betta?.rendering===true&&betta?.satelliteStreaming===true;
+    },null,{timeout:12000});
+    await page.waitForTimeout(300);
+    await assertCanvasMotion(page,name,'WebGL context restore');
+  }
+  return{pageLifecycleResume:true,webglContextRestoreTested:contextTested};
+}
+
 async function inspectLive(viewport,name){
   const context=await browser.newContext({viewport,screen:viewport,serviceWorkers:'block'});
   const page=await context.newPage();
@@ -80,11 +124,8 @@ async function inspectLive(viewport,name){
     return state?.delivery==='live'&&Number.isFinite(Number(state?.air?.pm))&&Number.isFinite(Number(state?.air?.aqi));
   },null,{timeout:20000});
   await page.waitForTimeout(800);
-  const canvas=page.locator('#environmentCanvas');
-  const motionA=await canvas.screenshot();
-  await page.waitForTimeout(1200);
-  const motionB=await canvas.screenshot();
-  if(Buffer.compare(motionA,motionB)===0)throw new Error(`${name}: Betta canvas did not visibly change`);
+  await assertCanvasMotion(page,name,'normal foreground motion');
+  const lifecycle=await exerciseLifecycleRecovery(page,name);
   const state=await page.evaluate(()=>{
     const env=window.SindhornEnvironment?.getState?.()||{};
     const live=window.SindhornLiveData?.getState?.()||{};
@@ -100,6 +141,8 @@ async function inspectLive(viewport,name){
       baseline:env.betta?.baseline||null,availableBaselines:env.betta?.availableBaselines||[],
       satelliteStatus:env.betta?.satelliteStatus||null,satelliteSource:env.betta?.satelliteSource||null,
       satelliteObservedAt:env.betta?.observedAt||null,satelliteMetrics:env.betta?.metrics||null,
+      lifecycle:env.betta?.lifecycle||null,lifecycleReason:env.betta?.lifecycleReason||null,
+      contextLost:Boolean(env.betta?.contextLost),satelliteStreaming:Boolean(env.betta?.satelliteStreaming),rendering:Boolean(env.betta?.rendering),
       airDelivery:live.delivery||null,airStationId:String(live.air?.stationId||''),
       pm:Number(live.air?.pm),aqi:Number(live.air?.aqi)
     };
@@ -111,6 +154,7 @@ async function inspectLive(viewport,name){
   if(state.availableBaselines.length!==8)throw new Error(`${name}: expected eight Betta baselines, got ${state.availableBaselines.length}`);
   if(state.satelliteStatus!=='live'||!String(state.satelliteSource).includes('Himawari-9'))throw new Error(`${name}: satellite feed not live`);
   if(!state.satelliteMetrics||!Number.isFinite(Number(state.satelliteMetrics.energy)))throw new Error(`${name}: satellite metrics missing`);
+  if(state.lifecycle!=='active'||state.contextLost||!state.satelliteStreaming||!state.rendering)throw new Error(`${name}: Betta lifecycle did not recover: ${JSON.stringify({lifecycle:state.lifecycle,contextLost:state.contextLost,satelliteStreaming:state.satelliteStreaming,rendering:state.rendering})}`);
   if(Math.abs(state.dprX-2)>.05||Math.abs(state.dprY-2)>.05)throw new Error(`${name}: DPR not fixed at 2: ${state.dprX}x${state.dprY}`);
   if(state.antialias!==false)throw new Error(`${name}: WebGL antialias should be false`);
   if(state.preserveDrawingBuffer!==false)throw new Error(`${name}: live preserveDrawingBuffer should be false`);
@@ -121,7 +165,7 @@ async function inspectLive(viewport,name){
   await page.screenshot({path:`phase82-artifacts/${name}.png`,fullPage:true});
   const pacing=await sampleFrames(page,name);
   await context.close();
-  return {...state,motionChanged:true,...pacing};
+  return {...state,motionChanged:true,...lifecycle,...pacing};
 }
 
 let desktop=null,mobile=null,fatal=null;
@@ -137,4 +181,5 @@ if(fatal)throw fatal;
 if(errors.length)throw new Error(errors.join('\n'));
 for(const [name,m] of Object.entries({desktop,mobile})){
   if(!m||m.frameSamples<1)throw new Error(`${name}: renderer produced no diagnostic frames`);
+  if(!m.pageLifecycleResume)throw new Error(`${name}: page lifecycle resume was not exercised`);
 }
