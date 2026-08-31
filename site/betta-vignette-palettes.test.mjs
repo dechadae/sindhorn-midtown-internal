@@ -14,8 +14,8 @@ for(const key of keys){
   assert.ok(p.params.brightness>=1.6,`${key} compensates old shader darkness`);
   assert.ok(p.params.opacity>=.48,`${key} remains visibly colored`);
 }
-assert.deepEqual(BETTA_DAY_PERIODS.map(p=>p.referenceId),[1,7,4,6,2,3,5,8]);
-assert.deepEqual(BETTA_DAY_PERIODS.map(p=>p.baseline),['reference1','reference7','reference4','reference6','reference2','reference3','reference5','reference8']);
+assert.deepEqual(BETTA_DAY_PERIODS.map(p=>p.referenceId),[1,2,3,4,5,6,7,8]);
+assert.deepEqual(BETTA_DAY_PERIODS.map(p=>p.baseline),['reference1','reference2','reference3','reference4','reference5','reference6','reference7','reference8']);
 assert.equal(BETTA_PRESETS.reference5.morphMode,1,'Fish #5 keeps multicolor koi patch mode');
 assert.equal(BETTA_PRESETS.reference6.morphMode,4,'Fish #6 exposes pale ray ridges');
 assert.equal(BETTA_PRESETS.reference8.morphMode,4,'Fish #8 exposes electric blue ray ridges');
