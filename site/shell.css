@@ -7,9 +7,12 @@ body{overflow-x:hidden}
 #app-footer{position:relative}
 .environment-stage{z-index:0}
 .environment-stage+*{position:relative}
-/* Shell hosts start empty. Let authenticated header/route/footer paint as soon as
-   bootstrap mounts them instead of holding a blank purple frame until all
-   background/live-data initialization has completed. */
-#app-header,#route-view{opacity:1}
+/* Authenticated startup uses one shared entrance state for shell + Betta.
+   The shell is mounted first, then bootstrap releases both layers together on
+   the same animation frame as the Betta renderer's first scheduled draw. */
+#app-header,#route-view,#app-footer{opacity:1}
+html[data-startup-enter="pending"] #app-header,html[data-startup-enter="pending"] #route-view,html[data-startup-enter="pending"] #app-footer{opacity:0}
+html[data-startup-enter="visible"] #app-header,html[data-startup-enter="visible"] #route-view,html[data-startup-enter="visible"] #app-footer{opacity:1;transition:opacity .32s cubic-bezier(.22,1,.36,1)}
 .skip:not(:focus):not(:focus-visible){position:fixed!important;left:-10000px!important;top:0!important;width:1px!important;height:1px!important;padding:0!important;margin:0!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;opacity:0!important;transform:none!important;pointer-events:none!important}
 .skip:focus,.skip:focus-visible{position:fixed!important;z-index:220!important;left:12px!important;top:12px!important;width:auto!important;height:auto!important;overflow:visible!important;clip:auto!important;clip-path:none!important;opacity:1!important;transform:none!important;pointer-events:auto!important}
+@media(prefers-reduced-motion:reduce){html[data-startup-enter="visible"] #app-header,html[data-startup-enter="visible"] #route-view,html[data-startup-enter="visible"] #app-footer{transition:none}}
