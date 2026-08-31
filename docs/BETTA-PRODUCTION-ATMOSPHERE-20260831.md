@@ -49,17 +49,13 @@ The existing production authorities continue unchanged for operational informati
 
 `site/betta-environment.js` continues to render the Today weather card through the existing legacy fetch contract intercepted by `site/location.js`; those values never enter the Betta shader.
 
-## Legacy background code — retained intentionally
+## Legacy weather WebGL — retired from the app
 
-The previous weather-driven background is not deleted.
+On 2026-08-31 the product owner explicitly removed the previous weather-driven WebGL stack from the deployed application. It is no longer a rollback path inside `site/`.
 
-- `site/environment.js` remains the full Bangkok seasonal/weather WebGL renderer and rollback reference.
-- `site/atmosphere-shader.js` remains its weather/sky shader.
-- `site/seasonal-sky.js` remains its seasonal Bangkok sky profile.
-- `site/rain-layer-legacy-weather.js` preserves the previous rain overlay implementation verbatim.
-- `site/rain-layer.js` is now a compatibility no-op so ground/model rain cannot alter the active Betta visual.
+Before deletion, Supabase copied the exact source bytes from immutable Git commit `29b0c99941163582b84d376982e459fdf6ead85b` into private table `private.legacy_weather_webgl_archive`, archive key `legacy-weather-webgl-20260831`. The archive contains 13 files / 1,169,050 bytes and has no `anon` or `authenticated` table grants.
 
-These legacy files are not the default visual runtime. They may be used for rollback/research only and must not be silently re-enabled alongside Betta because two persistent WebGL/weather visual systems would waste GPU/battery and violate the satellite-only visual contract.
+Operational weather and current-rain data remain active UI/data services. Only the retired weather/seasonal visual renderer and its visual compatibility/research files were removed. The Sindhorn Betta renderer remains the sole persistent WebGL visual.
 
 ## Compatibility surface
 
@@ -85,6 +81,6 @@ The active renderer preserves `window.SindhornEnvironment` for existing app cons
 
 The JMA images are temporary CPU analysis inputs and are never displayed or uploaded as WebGL textures.
 
-## Rollback
+## Recovery
 
-A renderer rollback can switch bootstrap back from `./betta-environment.js` to `./environment.js` and restore the legacy rain-layer entry point. Weather-data authority does not need to change for that rollback because it remains operational throughout this release.
+The retired weather WebGL is recoverable only from Supabase archive `legacy-weather-webgl-20260831` or immutable Git history at `29b0c99941163582b84d376982e459fdf6ead85b`. Reintroducing it into the app requires a new explicit product decision and a new preview/validation cycle.
