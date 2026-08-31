@@ -79,8 +79,8 @@ jobs:
           # Current single-shell route authority.
           for token in (
             "today:Object.freeze({path:'/'",
-            "module:'./business-dashboard.js?v=4'",
-            "mount:'mountBusinessDashboardRoute'",
+            "module:'./route-registry.js'",
+            "mount:'mountBusinessDashboardStartupRoute'",
             "fnb:Object.freeze({path:'/fnb'",
             "messages:Object.freeze({path:'/messages'",
             "brand:Object.freeze({path:'/brand'",
@@ -106,7 +106,7 @@ jobs:
           assert '--fnb-motion-base:260ms' in fnb_polish and '--fnb-disclosure-ms:420ms' in fnb_polish
 
           # Betta is the active persistent visual; legacy weather stays rollback-only.
-          assert "await import('./betta-environment.js')" in bootstrap
+          assert "await import('./betta-runtime.js?v=1')" in bootstrap
           assert "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" in betta
           assert "dataset.environmentInput='satellite-only'" in betta
           assert 'startSatelliteStream' in betta and 'const DPR=2' in betta and 'preserveDrawingBuffer:false' in betta
@@ -119,7 +119,7 @@ jobs:
           assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index and '/storm-effects.js' not in index
 
           # PWA, Today v4 motion and push release lineage.
-          for token in ("'/business-dashboard.js'","'/business-dashboard-motion.js'","'/business-dashboard-motion.css'","'/betta-environment.js'","'/betta-satellite.js'","'/betta-day-periods.js'","'/fnb.js'","'/push-client.js'"):
+          for token in ("'/business-dashboard.js'","'/business-dashboard-motion.js'","'/business-dashboard-motion.css'","'/betta-runtime.js'","'/betta-satellite.js'","'/betta-day-periods.js'","'/fnb.js'","'/push-client.js'"):
               assert token in sw,token
           assert 'sindhorn-midtown-internal-pwa-v38-today-motion-r1' in sw
           assert 'sindhorn-midtown-internal-pwa-v38-betta-day-cycle-r1' in sw
@@ -159,13 +159,14 @@ jobs:
               && curl --fail --silent --show-error --location "${BASE_URL}/notification-inbox.js" -o /tmp/notification-inbox.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
               && grep -q '/footer-route-guard.js?v=15' /tmp/root.html \
-              && grep -q "module:'./business-dashboard.js?v=4'" /tmp/route-registry.js \
+              && grep -q "module:'./route-registry.js'" /tmp/route-registry.js \
+              && grep -q "mount:'mountBusinessDashboardStartupRoute'" /tmp/route-registry.js \
               && grep -q "module:'./ci-day-cycle-route.js?v=1'" /tmp/route-registry.js \
               && grep -q "path:'/brand'" /tmp/route-registry.js \
               && grep -q "FNB_MODULE_URL='/fnb.js?v=7'" /tmp/footer-route-guard.js \
               && grep -q 'mountBusinessDashboardRoute' /tmp/business-dashboard.js \
               && grep -q 'sindhorn-business-dashboard-motion-v2' /tmp/business-dashboard-motion.js \
-              && grep -q "await import('./betta-environment.js')" /tmp/bootstrap.js \
+              && grep -q "await import('./betta-runtime.js?v=1')" /tmp/bootstrap.js \
               && grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta-environment.js \
               && grep -q "dataset.environmentInput='satellite-only'" /tmp/betta-environment.js \
               && grep -q 'Legacy weather-visual compatibility no-op' /tmp/rain-layer.js \
