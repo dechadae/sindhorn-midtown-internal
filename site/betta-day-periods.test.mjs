@@ -19,11 +19,28 @@ assert.equal(periodForBangkokTime(new Date('2026-08-30T23:00:00Z')).key,'first-l
 for(const period of BETTA_DAY_PERIODS){const expectedTone=period.startHour>=6&&period.startHour<18?'bright':'dark';assert.equal(period.tone,expectedTone,`${period.key} tone`);}
 const luxuryCaps={edgeFlutter:.08,currentStrength:.28,motionSpeed:.44,turbulence:.22,motionAmplitude:.5,foldDensity:5.4,curl:.68,depth:.74};
 for(const [key,preset] of Object.entries(BETTA_PRESETS))for(const [param,max] of Object.entries(luxuryCaps))assert.ok(preset.params[param]<=max,`${key}.${param} ${preset.params[param]} <= ${max}`);
-assert.equal(BETTA_LUMINOSITY_STANDARD.source,'Nemo Galaxy Koi pre-luxury-cycle');
-assert.deepEqual({brightness:BETTA_LUMINOSITY_STANDARD.brightness,opacity:BETTA_LUMINOSITY_STANDARD.opacity,transmission:BETTA_LUMINOSITY_STANDARD.transmission,bloom:BETTA_LUMINOSITY_STANDARD.bloom},{brightness:.96,opacity:.42,transmission:.70,bloom:.34});
+
+const backgrounds={royalBlueHalfmoon:'#07101d',superRedHalfmoon:'#080305',mustardGas:'#07101b',blackOrchid:'#05070a',copperMetallic:'#070605',turquoiseMetallic:'#061116',nemoGalaxyKoi:'#080506',redSnowDragon:'#121318'};
+for(const [key,hex] of Object.entries(backgrounds))assert.equal(BETTA_PRESETS[key].background,hex,`${key} background stays dark and unchanged`);
+
+const previousPresentation={
+  royalBlueHalfmoon:{saturation:1.12,brightness:1.16,bloom:.24},
+  superRedHalfmoon:{saturation:1.05,brightness:.98,bloom:.27},
+  mustardGas:{saturation:1.12,brightness:1.10,bloom:.22},
+  blackOrchid:{saturation:.98,brightness:.99,bloom:.27},
+  copperMetallic:{saturation:.82,brightness:.98,bloom:.26},
+  turquoiseMetallic:{saturation:1.02,brightness:1.18,bloom:.18},
+  nemoGalaxyKoi:{saturation:1.08,brightness:.96,bloom:.34},
+  redSnowDragon:{saturation:1.08,brightness:1.14,bloom:.20}
+};
+const close=(a,b)=>Math.abs(a-b)<1e-9;
+for(const [key,base] of Object.entries(previousPresentation))for(const param of ['saturation','brightness','bloom'])assert.ok(close(BETTA_PRESETS[key].params[param],base[param]*1.2),`${key}.${param} receives exact 20% lift`);
+
+assert.equal(BETTA_LUMINOSITY_STANDARD.source,'Nemo Galaxy Koi pre-luxury-cycle + 20% presentation lift');
+assert.deepEqual({brightness:BETTA_LUMINOSITY_STANDARD.brightness,opacity:BETTA_LUMINOSITY_STANDARD.opacity,transmission:BETTA_LUMINOSITY_STANDARD.transmission,bloom:BETTA_LUMINOSITY_STANDARD.bloom},{brightness:1.152,opacity:.42,transmission:.70,bloom:.408});
 const nemo=BETTA_PRESETS.nemoGalaxyKoi;
 assert.deepEqual(nemo.palette,['#1679b8','#b92b1c','#ee8e2e','#f1e7d7']);
-for(const key of ['brightness','opacity','transmission','bloom'])assert.equal(nemo.params[key],BETTA_LUMINOSITY_STANDARD[key],`Nemo ${key} preserves luminosity standard`);
-for(const period of BETTA_DAY_PERIODS){const brightness=BETTA_PRESETS[period.baseline].params.brightness;if(period.tone==='bright')assert.ok(brightness>=1.08,`${period.key} vivid brightness`);else{assert.ok(brightness>=BETTA_LUMINOSITY_STANDARD.brightness,`${period.key} meets Nemo visibility floor`);assert.ok(brightness<=1.0,`${period.key} remains nocturnal`);}}
+for(const key of ['brightness','opacity','transmission','bloom'])assert.equal(nemo.params[key],BETTA_LUMINOSITY_STANDARD[key],`Nemo ${key} defines lifted luminosity standard`);
+for(const period of BETTA_DAY_PERIODS){const brightness=BETTA_PRESETS[period.baseline].params.brightness;if(period.tone==='bright')assert.ok(brightness>BETTA_LUMINOSITY_STANDARD.brightness,`${period.key} remains brighter than Nemo standard`);else assert.ok(brightness>=BETTA_LUMINOSITY_STANDARD.brightness,`${period.key} meets Nemo luminosity floor`);}
 assert.equal(easeDayCycle(0),0);assert.equal(easeDayCycle(1),1);assert.ok(easeDayCycle(.5)>.5);let last=0;for(let i=1;i<=100;i++){const next=easeDayCycle(i/100);assert.ok(next>=last);last=next;}
 console.log('Betta day-cycle contract PASS');
