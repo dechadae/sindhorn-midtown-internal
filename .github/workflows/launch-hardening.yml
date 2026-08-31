@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - remove-legacy-weather-webgl
+      - performance-audit-post-weather-webgl
     paths:
       - "site/**"
       - "sky-worker/wrangler.jsonc"
@@ -38,7 +38,7 @@ jobs:
             site/business-dashboard.js site/business-dashboard-data.js site/business-dashboard-motion.js site/app.js
             site/push-client.js site/notification-inbox.js site/betta-environment.js site/betta-satellite.js
             site/betta-day-periods.js site/location.js site/rain-now.js site/weather-authority.js
-            site/live-data.js site/sw.js
+            site/live-data.js site/sw.js site/screen-capture.js
           )
           for file in "${files[@]}"; do
             test -s "$file"
@@ -74,6 +74,7 @@ jobs:
           location=(root/'location.js').read_text()
           rain=(root/'rain-now.js').read_text()
           weather=(root/'weather-authority.js').read_text()
+          capture=(root/'screen-capture.js').read_text()
 
           fallback=json.loads((root/'fallback/manifest.json').read_text())
           shell=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
@@ -106,6 +107,16 @@ jobs:
               assert f"'/{name}'" not in sw, name
               assert f'/{name}' not in index, name
 
+          # Performance audit: no full Three.js or capture library in startup/install.
+          assert "sindhorn-midtown-internal-pwa-v41-performance-r1" in sw
+          assert "'/betta-runtime.js'" in sw
+          assert "'/vendor/three.module.js'" not in sw
+          assert "'/vendor/html2canvas.min.js'" not in sw
+          assert '/vendor/html2canvas.min.js' not in index
+          assert "script.src='/vendor/html2canvas.min.js'" in capture
+          assert (root/'vendor/three.module.js').exists()
+          assert (root/'vendor/html2canvas.min.js').exists()
+
           # Operational weather remains data/UI only.
           assert 'sindhorn-weather-core' in location
           assert 'open_meteo_used:false' in location
@@ -113,8 +124,6 @@ jobs:
           assert 'resolveWeatherAuthority' in rain
           assert 'effectiveWeatherSnapshot' in weather
 
-          assert "sindhorn-midtown-internal-pwa-v40-weather-webgl-retired-r1" in sw
-          assert "'/betta-runtime.js'" in sw
           assert "'/betta-satellite.js'" in sw
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw
 
@@ -146,6 +155,15 @@ jobs:
             SAFE_BRANCH="${GITHUB_REF_NAME:0:28}"
             SAFE_BRANCH="${SAFE_BRANCH%-}"
             export PHASE82_BASE_URL="https://${SAFE_BRANCH}.sindhorn-midtown-internal.pages.dev"
+            ready=false
+            for attempt in $(seq 1 40); do
+              if curl --fail --silent --show-error --location "${PHASE82_BASE_URL}/sw.js" -o /tmp/preview-sw.js \
+                && grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/preview-sw.js; then
+                  ready=true; break
+              fi
+              sleep 3
+            done
+            test "$ready" = true
           fi
           node site/phase8-2-browser-smoke.mjs
 
@@ -156,6 +174,22 @@ jobs:
           set -euo pipefail
           BASE_URL="https://sindhorn-midtown-internal.pages.dev"
           ALERT_WORKER="https://sindhorn-midtown-alerts.decha-dae.workers.dev"
+
+          retired_clean(){
+            local retired result code type
+            for retired in environment.js environment.bundle.js seasonal-sky.js atmosphere-shader.js rain-layer-legacy-weather.js rain-layer.js sun-dimmer.js storm-effects.js sky-calibration.js sky-color-renderer.js cloud-tester.js phase8-2-fixtures.js phase8-2-seasonal-clouds.test.mjs; do
+              result=$(curl --silent --show-error --location --output /tmp/retired-response --write-out '%{http_code}|%{content_type}' "${BASE_URL}/${retired}") || return 1
+              code="${result%%|*}"
+              type="${result#*|}"
+              if [ "$code" = "200" ]; then
+                case "$type" in text/html*) ;; *) return 1 ;; esac
+                grep -qi '<!doctype html\|<html' /tmp/retired-response || return 1
+              elif [ "$code" != "404" ]; then
+                return 1
+              fi
+            done
+          }
+
           promoted=false
           for attempt in $(seq 1 40); do
             if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
@@ -169,27 +203,18 @@ jobs:
               && grep -q "dataset.environmentInput='satellite-only'" /tmp/betta.js \
               && grep -q 'sindhorn-weather-core' /tmp/location.js \
               && grep -q 'sindhorn-weather-core' /tmp/rain-now.js \
-              && grep -q 'sindhorn-midtown-internal-pwa-v40-weather-webgl-retired-r1' /tmp/sw.js \
+              && grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/sw.js \
+              && ! grep -q "'/vendor/three.module.js'" /tmp/sw.js \
+              && ! grep -q "'/vendor/html2canvas.min.js'" /tmp/sw.js \
+              && ! grep -q '/vendor/html2canvas.min.js' /tmp/root.html \
               && ! grep -q '/rain-layer.js' /tmp/root.html \
-              && ! grep -q '/sun-dimmer.js' /tmp/root.html; then
+              && ! grep -q '/sun-dimmer.js' /tmp/root.html \
+              && retired_clean; then
                 promoted=true; break
             fi
             sleep 3
           done
           test "$promoted" = true
-
-          for retired in environment.js environment.bundle.js seasonal-sky.js atmosphere-shader.js rain-layer-legacy-weather.js rain-layer.js sun-dimmer.js storm-effects.js sky-calibration.js sky-color-renderer.js cloud-tester.js phase8-2-fixtures.js phase8-2-seasonal-clouds.test.mjs; do
-            result=$(curl --silent --show-error --location --output /tmp/retired-response --write-out '%{http_code}|%{content_type}' "${BASE_URL}/${retired}")
-            code="${result%%|*}"
-            type="${result#*|}"
-            if [ "$code" = "200" ]; then
-              case "$type" in text/html*) ;; *) echo "Retired source /${retired} exposed as ${type}"; exit 1 ;; esac
-              grep -qi '<!doctype html\|<html' /tmp/retired-response
-            elif [ "$code" != "404" ]; then
-              echo "Unexpected retired path status /${retired}: ${code} ${type}"
-              exit 1
-            fi
-          done
 
           curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${ALERT_WORKER}/health" -o /tmp/alert-health.json
           python3 - <<'PY'
