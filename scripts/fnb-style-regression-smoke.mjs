@@ -14,10 +14,10 @@ for(const [name,type] of [['chromium',chromium],['webkit',webkit]]){
   await page.waitForSelector('[data-fnb-nav="fnb"]',{timeout:15000});
   await page.click('[data-fnb-nav="fnb"]');
   await page.waitForSelector('#route-view .fnb-route',{timeout:20000});
-  await page.waitForSelector('link[data-fnb-style]');
-  await page.waitForSelector('link[data-fnb-approved-polish]');
-  await page.waitForSelector('link[data-fnb-refinements]');
-  await page.waitForSelector('link[data-fnb-layout-stability]');
+  await page.waitForSelector('link[data-fnb-style]',{state:'attached'});
+  await page.waitForSelector('link[data-fnb-approved-polish]',{state:'attached'});
+  await page.waitForSelector('link[data-fnb-refinements]',{state:'attached'});
+  await page.waitForSelector('link[data-fnb-layout-stability]',{state:'attached'});
   await page.waitForFunction(()=>document.querySelector('[data-fnb-data-updated]'));
   await page.waitForTimeout(350);
 
