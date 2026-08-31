@@ -46,7 +46,7 @@ The single-shell router invariant is mandatory for all authenticated app feature
 - AirBKK remains authoritative for PM2.5 and Thai AQI as operational data/UI. It does not alter Betta optics or geometry.
 - TMD AWS remains authoritative for fresh observed current local weather. MET Norway is model support for cloud/forecast fields only and must never activate current rain by itself. Open-Meteo is not a production weather dependency; its URL string in the compatibility contract is intercepted by `site/location.js` and no production Open-Meteo network request is made.
 - Current precipitation is observation-only: fresh observed dry releases rain immediately; model/base wet signals must not activate rain. This is a data/current-rain invariant, not a visual-background driver.
-- The former weather-driven WebGL background, seasonal-sky shader/profile and rain visual are retained as legacy/rollback code and must not be run in parallel with Betta. `site/environment.js` is legacy, and `site/rain-layer-legacy-weather.js` preserves the previous rain overlay. `site/rain-layer.js` is intentionally a no-op in the Betta production architecture.
+- **2026-08-31 product decision: the former weather-driven WebGL background and its visual compatibility/rollback files were removed from the deployed app.** Exact source bytes are preserved privately in Supabase table `private.legacy_weather_webgl_archive` under archive key `legacy-weather-webgl-20260831`, sourced from immutable Git commit `29b0c99941163582b84d376982e459fdf6ead85b`. Do not restore those files to the app without a new explicit product decision.
 - PWA identity stays `id=/`, `start_url=/`, `scope=/`, `display=standalone`.
 - Normal releases require no reinstall and must preserve existing push subscriptions.
 - The visible **Save full page** action was explicitly removed on 2026-08-27 from live Pack 38 and the offline fallback. Do not restore that button/action bar without a new explicit product decision. Internal capture/export code may remain as non-visible infrastructure unless separately removed.
@@ -116,19 +116,21 @@ Active implementation components:
 
 Performance contract: one persistent WebGL canvas, fixed DPR 2, `antialias:false`, live `preserveDrawingBuffer:false`, visibility pause/resume, 1–2 major membrane draws for current presets, no full-screen post-processing, and zero WebGL image textures for the Betta itself.
 
-## Legacy Phase 8.2 weather background
+## Retired Phase 8.2 weather background
 
-The previous Bangkok seasonal/weather atmosphere remains intentionally preserved for rollback and research:
+The previous Bangkok seasonal/weather WebGL renderer is no longer shipped in `site/`. On 2026-08-31 the product owner explicitly retired it from the app for performance and architecture simplification.
 
-- `site/environment.js` — full legacy production environment renderer.
-- `site/seasonal-sky.js` — continuous Bangkok seasonal sky profile and weather morphology controls.
-- `site/atmosphere-shader.js` — legacy seasonal sky/cloud GLSL.
-- `site/rain-layer-legacy-weather.js` — preserved previous rain visual overlay.
-- `site/phase8-2-fixtures.js` and `site/phase8-2-seasonal-clouds.test.mjs` — deterministic legacy renderer regression fixtures/tests.
+Recovery source is stored privately in Supabase:
 
-Do not delete these simply because Betta is active, and do not silently run them alongside Betta. A rollback is an explicit bootstrap/runtime switch, not a dual-renderer configuration.
+- table: `private.legacy_weather_webgl_archive`
+- archive key: `legacy-weather-webgl-20260831`
+- source commit: `29b0c99941163582b84d376982e459fdf6ead85b`
+- archived files: 13
+- archived bytes: 1,169,050
 
-**2026-08-28 — tester/example pages removed.** `site/cloud-tester.html`, `site/cloud-tester-shared.js`, `site/atmosphere-tester.html`, `site/atmosphere-tester.js`, `site/tester-celestials.js` and `site/january-sunset-example.html` were deleted at the product owner's explicit request. Do not recreate a standalone tester page without a new explicit product decision.
+This private archive includes the generated legacy bundle, renderer, seasonal profile, GLSL shader, legacy rain/storm/sun visual helpers, camera/sky visual research helpers, cloud tester source and deterministic legacy fixtures/tests. It is recovery/research material only and is not exposed to app clients.
+
+The older Phase 8.2 architecture documents remain historical documentation; they no longer describe files that ship with the app.
 
 ## Camera / Workers AI status
 

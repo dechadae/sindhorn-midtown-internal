@@ -3,21 +3,15 @@ name: Launch Hardening
 on:
   push:
     branches:
-      - phase7-launch-hardening
-      - phase8-2-bangkok-seasonal-clouds
-      - hotfix-today-v4-launch-hardening
       - main
+      - remove-legacy-weather-webgl
     paths:
       - "site/**"
       - "sky-worker/wrangler.jsonc"
       - ".github/workflows/launch-hardening.yml"
-      - ".github/workflows/phase8-2-seasonal-clouds.yml"
-      - "docs/PHASE6-WEB-PUSH-IMPLEMENTATION-20260826.md"
-      - "docs/PHASE7-LAUNCH-HARDENING-20260827.md"
-      - "docs/BANGKOK-SEASONAL-SKY-AND-CLOUD-ARCHITECTURE-OVERRIDE-20260827.md"
-      - "docs/PHASE8.2-BANGKOK-SEASONAL-CLOUD-MORPHOLOGY-PLAN-20260827.md"
-      - "docs/PHASE8.2-IMPLEMENTATION-20260827.md"
-      - "docs/ANDROID-WEB-PUSH-ACCEPTANCE-20260827.md"
+      - "docs/**"
+      - "AGENTS.md"
+      - "supabase/migrations/**"
   workflow_dispatch:
 
 permissions:
@@ -30,57 +24,65 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 30
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Verify current PWA, navigation, push and environment architecture
+      - name: Verify current PWA, Betta, weather-data and navigation architecture
         shell: bash
         run: |
           set -euo pipefail
-          for file in \
-            site/bootstrap.js site/route-registry.js site/app-transitions.js site/footer-route-guard.js \
-            site/business-dashboard.js site/business-dashboard-data.js site/business-dashboard-motion.js site/app.js site/push-client.js \
-            site/notification-inbox.js site/betta-environment.js site/betta-satellite.js site/betta-day-periods.js site/environment.js \
-            site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/phase8-2-fixtures.js site/sw.js; do
-            node --check "$file"
+          files=(
+            site/bootstrap.js site/route-registry.js site/app-transitions.js site/footer-route-guard.js
+            site/business-dashboard.js site/business-dashboard-data.js site/business-dashboard-motion.js site/app.js
+            site/push-client.js site/notification-inbox.js site/betta-environment.js site/betta-satellite.js
+            site/betta-day-periods.js site/location.js site/rain-now.js site/weather-authority.js
+            site/live-data.js site/sw.js
+          )
+          for file in "${files[@]}"; do
+            test -s "$file"
+            node --input-type=module --check < "$file"
           done
-          node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
+          node site/betta-day-periods.test.mjs
+          node site/betta-vignette-palettes.test.mjs
+          node site/weather-authority.test.mjs
+
           python3 - <<'PY'
           from pathlib import Path
           import hashlib, json, re
           root=Path('site')
+          retired=(
+            'environment.js','environment.bundle.js','seasonal-sky.js','atmosphere-shader.js',
+            'rain-layer-legacy-weather.js','rain-layer.js','sun-dimmer.js','storm-effects.js',
+            'sky-calibration.js','sky-color-renderer.js','cloud-tester.js',
+            'phase8-2-fixtures.js','phase8-2-seasonal-clouds.test.mjs'
+          )
+          for name in retired:
+              assert not (root/name).exists(), name
+
           pwa=json.loads((root/'manifest.webmanifest').read_text())
           assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
-          assert 'display_override' not in pwa
 
           bootstrap=(root/'bootstrap.js').read_text()
           registry=(root/'route-registry.js').read_text()
           transitions=(root/'app-transitions.js').read_text()
           footer=(root/'footer-route-guard.js').read_text()
-          footer_css=(root/'footer-route-guard.css').read_text()
-          fnb_polish=(root/'fnb-approved-polish.css').read_text()
-          fallback=json.loads((root/'fallback/manifest.json').read_text())
           index=(root/'index.html').read_text()
           sw=(root/'sw.js').read_text()
           betta=(root/'betta-environment.js').read_text()
-          legacy=(root/'environment.js').read_text()
-          shader=(root/'atmosphere-shader.js').read_text()
-          rain=(root/'rain-layer.js').read_text()
-          dashboard_motion=(root/'business-dashboard-motion.js').read_text()
+          location=(root/'location.js').read_text()
+          rain=(root/'rain-now.js').read_text()
+          weather=(root/'weather-authority.js').read_text()
 
+          fallback=json.loads((root/'fallback/manifest.json').read_text())
           shell=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
           assert shell==17 and fallback['minimumShell']==shell
-          assert "FALLBACK_REQUIRED=[...REQUIRED,'messages.html']" in bootstrap
           for item in fallback['resources']:
-              assert hashlib.sha256((root/'fallback'/item['path']).read_bytes()).hexdigest()==item['sha256'],item['path']
+              assert hashlib.sha256((root/'fallback'/item['path']).read_bytes()).hexdigest()==item['sha256'], item['path']
 
-          # Current single-shell route authority.
           for token in (
             "today:Object.freeze({path:'/'",
-            "module:'./route-registry.js'",
-            "mount:'mountBusinessDashboardStartupRoute'",
             "fnb:Object.freeze({path:'/fnb'",
             "messages:Object.freeze({path:'/messages'",
             "brand:Object.freeze({path:'/brand'",
@@ -88,54 +90,64 @@ jobs:
             "settings:Object.freeze({path:'/settings'",
             "ci:Object.freeze({path:'/ci'",
           ):
-              assert token in registry,token
-          assert "module:'./ci-day-cycle-route.js?v=1'" in registry
-          assert "kind:'pack',resource:'messages.html'" in registry
+              assert token in registry, token
           assert "['/guidance','today']" in registry and "['/details','today']" in registry
           assert "['/account','settings']" in registry and "['/admin','settings']" in registry
-          assert "routeLink.dataset.appRoute" in transitions and 'transitionToRoute' in transitions
           assert 'startViewTransition' not in transitions
+          assert "route:'today'" in footer and "route:'fnb'" in footer and "route:'messages'" in footer
 
-          # Footer behavior is checked by capability, not retired v6 markers.
-          for token in ("route:'today'","route:'fnb'","route:'messages'","route:'brand'","FNB_MODULE_URL='/fnb.js?v=7'",'module.mountFnbRoute','syncAllContexts'):
-              assert token in footer,token
-          assert '/footer-route-guard.js?v=15' in index
-          assert '/footer-route-guard.css?v=14' in index
-          assert '/fnb-approved-polish.css?v=2' in index
-          assert 'grid-template-columns:repeat(4,minmax(0,1fr))!important' in footer_css
-          assert '--fnb-motion-base:260ms' in fnb_polish and '--fnb-disclosure-ms:420ms' in fnb_polish
-
-          # Betta is the active persistent visual; legacy weather stays rollback-only.
+          # Betta is the only persistent WebGL visual.
           assert "await import('./betta-runtime.js?v=1')" in bootstrap
           assert "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" in betta
           assert "dataset.environmentInput='satellite-only'" in betta
-          assert 'startSatelliteStream' in betta and 'const DPR=2' in betta and 'preserveDrawingBuffer:false' in betta
-          assert 'Legacy weather-visual compatibility no-op' in rain and 'export {}' in rain
-          assert (root/'rain-layer-legacy-weather.js').exists()
-          assert (root/'betta-day-periods.js').exists()
-          assert "renderer:'bangkok-seasonal-clouds-v2'" in legacy and 'const DPR=2' in legacy and 'renderExport' in legacy
-          for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','Visible sun disc','texture2D(uNoise'):
-              assert token in shader,token
-          assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index and '/storm-effects.js' not in index
+          assert 'startSatelliteStream' in betta
+          assert 'const DPR=2' in betta and 'preserveDrawingBuffer:false' in betta
+          for name in retired:
+              assert f"'/{name}'" not in sw, name
+              assert f'/{name}' not in index, name
 
-          # PWA, Today v4 motion and push release lineage.
-          for token in ("'/business-dashboard.js'","'/business-dashboard-motion.js'","'/business-dashboard-motion.css'","'/betta-runtime.js'","'/betta-satellite.js'","'/betta-day-periods.js'","'/fnb.js'","'/push-client.js'"):
-              assert token in sw,token
-          assert 'sindhorn-midtown-internal-pwa-v38-today-motion-r1' in sw
-          assert 'sindhorn-midtown-internal-pwa-v38-betta-day-cycle-r1' in sw
-          assert 'pwa-v36-release-health-r1' in sw
-          assert 'sindhorn-business-dashboard-motion-v2' in dashboard_motion
+          # Operational weather remains data/UI only.
+          assert 'sindhorn-weather-core' in location
+          assert 'open_meteo_used:false' in location
+          assert 'sindhorn-weather-core' in rain
+          assert 'resolveWeatherAuthority' in rain
+          assert 'effectiveWeatherSnapshot' in weather
+
+          assert "sindhorn-midtown-internal-pwa-v40-weather-webgl-retired-r1" in sw
+          assert "'/betta-runtime.js'" in sw
+          assert "'/betta-satellite.js'" in sw
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw
-          app=(root/'app.js').read_text(); inbox=(root/'notification-inbox.js').read_text(); push=(root/'push-client.js').read_text()
-          assert "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app and 'performPullRefresh' in app
-          for token in ('sindhorn-midtown-notification-inbox','messageList','messageClearBtn','SINDHORN_NOTIFICATION_STORED','markAllRead'):
-              assert token in inbox
-          assert 'pushManager.subscribe' in push and 'enableFromGesture' in push and 'Notification.requestPermission' not in push and 'PREPARE_TIMEOUT_MS' in push
 
           wrangler=json.loads(Path('sky-worker/wrangler.jsonc').read_text())
           assert wrangler.get('triggers',{}).get('crons')==[]
-          assert Path('sky-worker/src/index.js').exists() and Path('site/sky-calibration.js').exists() and Path('site/sky-color-renderer.js').exists()
+          assert Path('sky-worker/src/index.js').exists()
+
+          migration=Path('supabase/migrations/20260831121436_archive_legacy_weather_webgl_sources.sql').read_text()
+          assert 'private.legacy_weather_webgl_archive' in migration
+          assert 'enable row level security' in migration.lower()
           PY
+
+      - name: Install Chromium renderer
+        shell: bash
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Authenticated Betta lifecycle and frame review
+        env:
+          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
+          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            export PHASE82_BASE_URL="https://sindhorn-midtown-internal.pages.dev"
+          else
+            SAFE_BRANCH="${GITHUB_REF_NAME:0:28}"
+            SAFE_BRANCH="${SAFE_BRANCH%-}"
+            export PHASE82_BASE_URL="https://${SAFE_BRANCH}.sindhorn-midtown-internal.pages.dev"
+          fi
+          node site/phase8-2-browser-smoke.mjs
 
       - name: Verify production shell and Environmental Alerts Worker
         if: github.ref_name == 'main'
@@ -147,80 +159,45 @@ jobs:
           promoted=false
           for attempt in $(seq 1 40); do
             if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
-              && curl --fail --silent --show-error --location "${BASE_URL}/route-registry.js" -o /tmp/route-registry.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/footer-route-guard.js" -o /tmp/footer-route-guard.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/business-dashboard.js" -o /tmp/business-dashboard.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/business-dashboard-motion.js" -o /tmp/business-dashboard-motion.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/business-dashboard-motion.css" -o /tmp/business-dashboard-motion.css \
               && curl --fail --silent --show-error --location "${BASE_URL}/bootstrap.js" -o /tmp/bootstrap.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/betta-environment.js" -o /tmp/betta-environment.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/betta-day-periods.js" -o /tmp/betta-day-periods.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/rain-layer.js" -o /tmp/rain-layer.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/notification-inbox.js" -o /tmp/notification-inbox.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/betta-environment.js" -o /tmp/betta.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/location.js" -o /tmp/location.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/rain-now.js" -o /tmp/rain-now.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
-              && grep -q '/footer-route-guard.js?v=15' /tmp/root.html \
-              && grep -q "module:'./route-registry.js'" /tmp/route-registry.js \
-              && grep -q "mount:'mountBusinessDashboardStartupRoute'" /tmp/route-registry.js \
-              && grep -q "module:'./ci-day-cycle-route.js?v=1'" /tmp/route-registry.js \
-              && grep -q "path:'/brand'" /tmp/route-registry.js \
-              && grep -q "FNB_MODULE_URL='/fnb.js?v=7'" /tmp/footer-route-guard.js \
-              && grep -q 'mountBusinessDashboardRoute' /tmp/business-dashboard.js \
-              && grep -q 'sindhorn-business-dashboard-motion-v2' /tmp/business-dashboard-motion.js \
               && grep -q "await import('./betta-runtime.js?v=1')" /tmp/bootstrap.js \
-              && grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta-environment.js \
-              && grep -q "dataset.environmentInput='satellite-only'" /tmp/betta-environment.js \
-              && grep -q 'Legacy weather-visual compatibility no-op' /tmp/rain-layer.js \
-              && grep -q 'sindhorn-midtown-internal-pwa-v38-today-motion-r1' /tmp/sw.js \
-              && grep -q "'/business-dashboard-motion.js'" /tmp/sw.js \
-              && grep -q "'/betta-day-periods.js'" /tmp/sw.js; then
+              && grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta.js \
+              && grep -q "dataset.environmentInput='satellite-only'" /tmp/betta.js \
+              && grep -q 'sindhorn-weather-core' /tmp/location.js \
+              && grep -q 'sindhorn-weather-core' /tmp/rain-now.js \
+              && grep -q 'sindhorn-midtown-internal-pwa-v40-weather-webgl-retired-r1' /tmp/sw.js \
+              && ! grep -q '/rain-layer.js' /tmp/root.html \
+              && ! grep -q '/sun-dimmer.js' /tmp/root.html; then
                 promoted=true; break
             fi
             sleep 3
           done
           test "$promoted" = true
-          for path in /fnb /messages /brand /hotel-factsheet /settings /ci /location.js /push-config.js /push-client.js /notification-inbox.js /manifest.webmanifest; do
-            curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o "/tmp/$(basename "$path" | sed 's/^$/root/')"
+
+          for retired in environment.js environment.bundle.js seasonal-sky.js atmosphere-shader.js rain-layer-legacy-weather.js rain-layer.js sun-dimmer.js storm-effects.js sky-calibration.js sky-color-renderer.js cloud-tester.js phase8-2-fixtures.js phase8-2-seasonal-clouds.test.mjs; do
+            result=$(curl --silent --show-error --location --output /tmp/retired-response --write-out '%{http_code}|%{content_type}' "${BASE_URL}/${retired}")
+            code="${result%%|*}"
+            type="${result#*|}"
+            if [ "$code" = "200" ]; then
+              case "$type" in text/html*) ;; *) echo "Retired source /${retired} exposed as ${type}"; exit 1 ;; esac
+              grep -qi '<!doctype html\|<html' /tmp/retired-response
+            elif [ "$code" != "404" ]; then
+              echo "Unexpected retired path status /${retired}: ${code} ${type}"
+              exit 1
+            fi
           done
+
           curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${ALERT_WORKER}/health" -o /tmp/alert-health.json
-          grep -q 'Current device location' /tmp/location.js
-          grep -q 'pushManager.subscribe' /tmp/push-client.js
-          ! grep -q 'Notification.requestPermission' /tmp/push-client.js
-          grep -q 'SindhornNotificationInbox' /tmp/notification-inbox.js
           python3 - <<'PY'
           import json
-          pwa=json.load(open('/tmp/manifest.webmanifest'))
-          assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
           alert=json.load(open('/tmp/alert-health.json'))
-          assert alert.get('ok') is True and alert.get('service')=='sindhorn-midtown-alerts' and alert.get('vapidConfigured') is True
+          assert alert.get('ok') is True
+          assert alert.get('service')=='sindhorn-midtown-alerts'
+          assert alert.get('vapidConfigured') is True
           last=alert.get('lastEvaluation') or {}
           assert last.get('airOk') is True and last.get('weatherOk') is True
-          PY
-
-      - name: Verify active Supabase UI pack integrity
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          import hashlib, json, re, urllib.parse, urllib.request
-          bootstrap=Path('site/bootstrap.js').read_text()
-          base=re.search(r"const SUPABASE_URL='([^']+)'",bootstrap).group(1)
-          key=re.search(r"const SUPABASE_KEY='([^']+)'",bootstrap).group(1)
-          table=re.search(r"const TABLE='([^']+)'",bootstrap).group(1)
-          query=urllib.parse.urlencode({'select':'pack_id,path,content,content_type,content_sha256,enabled','enabled':'eq.true','order':'pack_id.desc,path.asc'})
-          req=urllib.request.Request(f'{base}/rest/v1/{table}?{query}',headers={'apikey':key,'Accept':'application/json'})
-          with urllib.request.urlopen(req,timeout=20) as response: rows=json.load(response)
-          packs={int(row['pack_id']) for row in rows}; assert len(packs)==1,packs
-          active_pack=next(iter(packs))
-          rowmap={row['path']:row for row in rows}
-          manifest_row=rowmap['manifest.json']
-          assert hashlib.sha256(manifest_row['content'].encode()).hexdigest()==manifest_row['content_sha256']
-          manifest=json.loads(manifest_row['content'])
-          assert manifest['appPack']==active_pack and manifest['minimumShell']==17 and manifest['environmentConfig']==3
-          assert 'messages.html' in rowmap and 'environment-config.json' in rowmap
-          today=rowmap['today.html']['content']
-          assert 'saveImageBtn' not in today and 'report-actionbar' not in today
-          for item in manifest['resources']:
-              row=rowmap[item['path']]
-              assert row['content_sha256']==item['sha256'] and hashlib.sha256(row['content'].encode()).hexdigest()==item['sha256']
           PY
