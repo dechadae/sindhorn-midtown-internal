@@ -1,0 +1,113 @@
+name: F&B Route Compatibility Preview
+
+on:
+  push:
+    branches:
+      - hotfix-fnb-route-compat
+    paths:
+      - "site/fnb*"
+      - "site/footer-route-guard.js"
+      - "site/index.html"
+      - "scripts/fnb-browser-smoke.mjs"
+      - "scripts/fnb-style-regression-smoke.mjs"
+      - ".github/workflows/fnb-route-compat-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: fnb-route-compat-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate one F&B route owner
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in site/fnb.js site/fnb-route.js site/footer-route-guard.js scripts/fnb-browser-smoke.mjs scripts/fnb-style-regression-smoke.mjs; do
+            test -s "$file"
+            node --input-type=module --check < "$file"
+          done
+          grep -Fq "const FNB_MODULE_URL='/fnb-route.js?v=1'" site/footer-route-guard.js
+          grep -Fq "module:'./fnb-route.js'" site/route-registry.js
+          grep -q 'fnb-approved-polish.css' site/fnb-route.js
+          grep -q 'fnb-refinements.css' site/fnb-route.js
+          grep -q 'fnb-layout-stability.css' site/fnb-route.js
+          grep -q 'fnb-timestamp-stability.js' site/fnb-route.js
+          grep -q 'fnb-share-ui.js' site/fnb-route.js
+          grep -q 'footer-route-guard.js?v=16' site/index.html
+          ! grep -q 'fnb-approved-polish.css' site/index.html
+          ! grep -q 'fnb-refinements.css' site/index.html
+          ! grep -q 'fnb-layout-stability.css' site/index.html
+
+      - name: Build F&B share fixtures and single-shell harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          alias="${GITHUB_REF_NAME:0:28}"
+          alias="${alias%-}"
+          export PUBLIC_ORIGIN="https://${alias}.sindhorn-midtown-internal.pages.dev"
+          node scripts/generate-fnb-share.mjs >/tmp/fnb-share-report.json
+          cat > site/__fnb-footer-smoke.html <<'HTML'
+          <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/fonts.css?v=1"><link rel="stylesheet" href="/footer-route-guard.css?v=14"></head><body><main id="route-view"><p>Before F&amp;B</p></main><footer id="app-footer"></footer><script>window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'Smoke Test'};</script><script type="module" src="/footer-route-guard.js?v=16"></script></body></html>
+          HTML
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Resolve and smoke preview assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          alias="${GITHUB_REF_NAME:0:28}"
+          alias="${alias%-}"
+          BASE_URL="https://${alias}.sindhorn-midtown-internal.pages.dev"
+          ready=false
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent --show-error --location "${BASE_URL}/footer-route-guard.js?v=16" -o /tmp/footer.js \
+              && grep -Fq "const FNB_MODULE_URL='/fnb-route.js?v=1'" /tmp/footer.js; then
+              ready=true
+              break
+            fi
+            sleep 3
+          done
+          test "$ready" = true
+          for path in /__fnb-footer-smoke.html /fnb-route.js /fnb.js /fnb.css /fnb-approved-polish.css /fnb-refinements.css /fnb-layout-stability.css /fnb-timestamp-stability.js /fnb-share-ui.js /share/fnb; do
+            curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
+            test -s /tmp/response
+          done
+
+      - name: Chromium and WebKit F&B regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          alias="${GITHUB_REF_NAME:0:28}"
+          alias="${alias%-}"
+          export BASE_URL="https://${alias}.sindhorn-midtown-internal.pages.dev"
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install --with-deps chromium webkit >/dev/null 2>&1
+          node scripts/fnb-style-regression-smoke.mjs | tee /tmp/fnb-style.json
+          node scripts/fnb-browser-smoke.mjs | tee /tmp/fnb-browser.json
+
+      - name: Upload F&B regression evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: fnb-route-compat-evidence
+          path: |
+            /tmp/fnb-browser.json
+            /tmp/fnb-style.json
+            /tmp/fnb-share-report.json
+          if-no-files-found: warn
+          retention-days: 14
