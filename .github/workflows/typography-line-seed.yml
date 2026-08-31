@@ -5,8 +5,10 @@ on:
     branches:
       - main
       - typography-line-seed-sans-th
+      - fix-main-release-health-v2-20260831
     paths:
       - "site/**"
+      - "scripts/generate-fnb-share.mjs"
       - "docs/**"
       - "AGENTS.md"
       - ".github/tests/**"
@@ -15,6 +17,7 @@ on:
     branches: [main]
     paths:
       - "site/**"
+      - "scripts/generate-fnb-share.mjs"
       - "docs/**"
       - "AGENTS.md"
       - ".github/tests/**"
@@ -92,20 +95,26 @@ jobs:
           if [ "${GITHUB_REF_NAME}" = "main" ]; then
             echo "BASE_URL=https://sindhorn-midtown-internal.pages.dev" >> "$GITHUB_ENV"
           else
+            SAFE_BRANCH="${GITHUB_REF_NAME:0:28}"
+            SAFE_BRANCH="${SAFE_BRANCH%-}"
+            export PUBLIC_ORIGIN="https://${SAFE_BRANCH}.sindhorn-midtown-internal.pages.dev"
+            node scripts/generate-fnb-share.mjs
             npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
-            echo "BASE_URL=https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev" >> "$GITHUB_ENV"
+            echo "BASE_URL=${PUBLIC_ORIGIN}" >> "$GITHUB_ENV"
           fi
       - name: Smoke font assets and shell
         shell: bash
         run: |
           set -euo pipefail
           sleep 8
-          for path in / /login.html /fonts.css /assets/fonts/line-seed-sans-th-thin.woff2 /assets/fonts/line-seed-sans-th-regular.woff2 /assets/fonts/line-seed-sans-th-bold.woff2 /sw.js; do
+          for path in / /login.html /fonts.css /share/fnb-public-data.js /assets/fonts/line-seed-sans-th-thin.woff2 /assets/fonts/line-seed-sans-th-regular.woff2 /assets/fonts/line-seed-sans-th-bold.woff2 /sw.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/font-smoke
             test -s /tmp/font-smoke
           done
           curl --fail --silent --show-error --location "${BASE_URL}/fonts.css" -o /tmp/fonts.css
           grep -q 'LINE Seed Sans TH' /tmp/fonts.css
+          curl --fail --silent --show-error --location "${BASE_URL}/share/fnb-public-data.js" -o /tmp/fnb-public-data.js
+          grep -q 'FNB_PUBLIC_PROMOTIONS' /tmp/fnb-public-data.js
           curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js
           grep -q 'pwa-v31-line-seed-sans-th' /tmp/sw.js
           for font in thin regular bold; do
