@@ -1,0 +1,7 @@
+retired_at=2026-08-31
+archive_table=private.legacy_weather_webgl_archive
+archive_key=legacy-weather-webgl-20260831
+source_commit=29b0c99941163582b84d376982e459fdf6ead85b
+archived_files=13
+archived_bytes=1169050
+active_webgl=sindhorn-betta-satellite-v1
