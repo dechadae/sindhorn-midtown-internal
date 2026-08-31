@@ -32,7 +32,7 @@ periodsHost.addEventListener('click',event=>{const button=event.target.closest('
 liveButton.addEventListener('click',()=>{window.SindhornEnvironment?.useLiveBettaDayCycle?.();updateUrl({period:null});paint()});
 previewButton.addEventListener('click',()=>{window.SindhornEnvironment?.previewBettaDayCycle?.(180);updateUrl({period:null});paint()});
 
-const {initEnvironment}=await import('./betta-environment.js?v=fine-tune-gradient-1');
+const {initEnvironment}=await import('./betta-environment.js?v=fine-tune-gradient-2');
 await initEnvironment();
 if(requestedPeriod&&BETTA_DAY_PERIODS.some(period=>period.key===requestedPeriod))window.SindhornEnvironment?.setBettaPeriod?.(requestedPeriod);
 paint();setInterval(paint,250);
