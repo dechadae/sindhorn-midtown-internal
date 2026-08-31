@@ -12,7 +12,6 @@ on:
       - fix-airbkk-proxy-worker
       - fix-airbkk-worker-request
       - fix-airbkk-client-proxy
-      - fix-main-release-health-v2-20260831
       - main
     paths:
       - "worker/**"
