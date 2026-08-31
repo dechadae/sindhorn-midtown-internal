@@ -26,19 +26,19 @@ export const BETTA_PRESETS={
   },
   superRedHalfmoon:{
     number:'02',name:'Super Red Halfmoon',morphMode:0,
-    description:'Night luxury baseline: deep garnet and velvet crimson with Nemo-standard luminosity, restrained scarlet edges and slow, fluid Halfmoon folds.',
+    description:'Night luxury baseline: deep garnet and velvet crimson with a fully readable Halfmoon fan, restrained scarlet edges and slow, fluid folds.',
     background:'#080305',
     palette:['#210207','#600711','#a61621','#e33d40'],
     params:{
-      spread:3.84,rayCount:64,foldDensity:5.35,curl:.62,twist:.25,edgeFlutter:.07,depth:.72,
+      spread:3.62,rayCount:64,foldDensity:5.6,curl:.58,twist:.2,edgeFlutter:.06,depth:.76,
       currentStrength:.26,motionSpeed:.4,turbulence:.21,motionAmplitude:.47,
-      opacity:.39,transmission:.75,rimStrength:.76,foldHighlight:.72,iridescence:.12,bloom:.324,
-      saturation:1.26,brightness:1.176,gradientPosition:-.06,
-      scale:1.12,rotation:.16,cameraDepth:-.1,offsetX:.08,offsetY:-.12
+      opacity:.43,transmission:.68,rimStrength:.9,foldHighlight:.86,iridescence:.18,bloom:.27,
+      saturation:1.28,brightness:1.2,gradientPosition:-.03,
+      scale:.94,rotation:.16,cameraDepth:-.32,offsetX:.02,offsetY:-.06
     },
     layers:[
-      {seed:4.31,scale:1.12,rotation:-.12,offset:[-1.22,-.32,.12],alpha:.88,phase:7.4},
-      {seed:8.63,scale:.94,rotation:3.01,offset:[1.28,.42,-.22],alpha:.27,phase:19.7},
+      {seed:4.31,scale:1.02,rotation:-.1,offset:[-.72,-.18,.1],alpha:.88,phase:7.4},
+      {seed:8.63,scale:.92,rotation:3.01,offset:[.78,.26,-.18],alpha:.28,phase:19.7},
     ]
   },
   mustardGas:{
@@ -77,19 +77,19 @@ export const BETTA_PRESETS={
   },
   copperMetallic:{
     number:'05',name:'Copper Metallic',morphMode:5,
-    description:'Pre-dawn luxury baseline: smoky graphite and muted bronze at Nemo-standard luminosity with fine satin-metal reflections, never rigid or foil-like.',
+    description:'Pre-dawn luxury baseline: smoky graphite and muted bronze with tighter satin layers, stronger fold separation and fine metallic reflections.',
     background:'#070605',
     palette:['#151311','#3d312c','#825f52','#c7a48f'],
     params:{
-      spread:3.55,rayCount:52,foldDensity:4.95,curl:.56,twist:.22,edgeFlutter:.06,depth:.7,
+      spread:3.42,rayCount:52,foldDensity:5.25,curl:.54,twist:.18,edgeFlutter:.055,depth:.74,
       currentStrength:.23,motionSpeed:.36,turbulence:.18,motionAmplitude:.42,
-      opacity:.37,transmission:.76,rimStrength:.76,foldHighlight:.72,iridescence:.46,bloom:.312,
-      saturation:.984,brightness:1.176,gradientPosition:.06,
-      scale:1.08,rotation:.06,cameraDepth:.24,offsetX:.08,offsetY:.03
+      opacity:.43,transmission:.68,rimStrength:.9,foldHighlight:.86,iridescence:.52,bloom:.25,
+      saturation:1.04,brightness:1.2,gradientPosition:.02,
+      scale:.98,rotation:.06,cameraDepth:.08,offsetX:.04,offsetY:-.02
     },
     layers:[
-      {seed:15.7,scale:1.08,rotation:-.58,offset:[-1.3,-.68,.25],alpha:.78,phase:5.7},
-      {seed:19.8,scale:.94,rotation:2.28,offset:[1.4,.7,-.22],alpha:.24,phase:23.1},
+      {seed:15.7,scale:1.02,rotation:-.52,offset:[-.78,-.36,.18],alpha:.82,phase:5.7},
+      {seed:19.8,scale:.92,rotation:2.28,offset:[.84,.4,-.18],alpha:.26,phase:23.1},
     ]
   },
   turquoiseMetallic:{
