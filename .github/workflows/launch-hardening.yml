@@ -77,7 +77,7 @@ jobs:
           # Current single-shell route authority.
           for token in (
             "today:Object.freeze({path:'/'",
-            "module:'./business-dashboard.js?v=2'",
+            "module:'./business-dashboard.js?v=3'",
             "mount:'mountBusinessDashboardRoute'",
             "fnb:Object.freeze({path:'/fnb'",
             "messages:Object.freeze({path:'/messages'",
@@ -117,7 +117,7 @@ jobs:
           # PWA and push release lineage.
           for token in ("'/business-dashboard.js'","'/betta-environment.js'","'/betta-satellite.js'","'/fnb.js'","'/push-client.js'"):
               assert token in sw,token
-          assert 'pwa-v35-release-health-r1' in sw
+          assert 'pwa-v36-release-health-r1' in sw
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw
           app=(root/'app.js').read_text(); inbox=(root/'notification-inbox.js').read_text(); push=(root/'push-client.js').read_text()
           assert "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app and 'performPullRefresh' in app
@@ -149,7 +149,7 @@ jobs:
               && curl --fail --silent --show-error --location "${BASE_URL}/notification-inbox.js" -o /tmp/notification-inbox.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
               && grep -q '/footer-route-guard.js?v=15' /tmp/root.html \
-              && grep -q "module:'./business-dashboard.js?v=2'" /tmp/route-registry.js \
+              && grep -q "module:'./business-dashboard.js?v=3'" /tmp/route-registry.js \
               && grep -q "path:'/brand'" /tmp/route-registry.js \
               && grep -q "FNB_MODULE_URL='/fnb.js?v=7'" /tmp/footer-route-guard.js \
               && grep -q 'mountBusinessDashboardRoute' /tmp/business-dashboard.js \
@@ -157,7 +157,7 @@ jobs:
               && grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta-environment.js \
               && grep -q "dataset.environmentInput='satellite-only'" /tmp/betta-environment.js \
               && grep -q 'Legacy weather-visual compatibility no-op' /tmp/rain-layer.js \
-              && grep -q 'pwa-v35-release-health-r1' /tmp/sw.js; then
+              && grep -q 'pwa-v36-release-health-r1' /tmp/sw.js; then
                 promoted=true; break
             fi
             sleep 3
