@@ -21,9 +21,6 @@ const currentDescription='Current production palette. Use this as the control: a
 titleNode.textContent=grade?.name||'Current Production';
 descriptionNode.textContent=grade?.description||currentDescription;
 
-grade?.palettes&&Object.entries(grade.palettes).forEach(([key,palette])=>{document.documentElement.style.setProperty(`--${key}-swatch`,palette[2])});
-
-grad esHost;
 function labelBaseline(key){return BETTA_PRESETS[key]?.name||String(key||'').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,c=>c.toUpperCase())}
 function hourLabel(value){return `${String(value).padStart(2,'0')}:00`}
 function renderButtons(){periodsHost.innerHTML=BETTA_DAY_PERIODS.map(period=>`<button type="button" data-period="${period.key}" data-tone="${period.tone}"><span>${period.name}</span><small>${hourLabel(period.startHour)}–${hourLabel(period.endHour)} · ${labelBaseline(period.baseline)}</small></button>`).join('')}
