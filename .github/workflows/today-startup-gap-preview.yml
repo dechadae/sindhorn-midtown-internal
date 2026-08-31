@@ -56,7 +56,8 @@ jobs:
           grep -q 'modulepreload" href="/betta-runtime.js?v=1"' site/index.html
           grep -q "const live=await import('./live-data.js');await live.initLiveData();" site/bootstrap.js
           grep -q "function markFirstFrame()" site/betta-environment.js
-          grep -q "renderer.render(scene,camera);markFirstFrame()" site/betta-environment.js
+          grep -q "function resumeAfterStartupEntrance()" site/betta-environment.js
+          grep -q "renderer.render(scene,camera);if(!firstFrameRendered){markFirstFrame();resumeAfterStartupEntrance();return}" site/betta-environment.js
           grep -q "dataset.bettaFirstFrame='pending'" site/betta-environment.js
           ! grep -q "classList.add('environment-ready').*buildFins" site/betta-environment.js
           grep -q "sindhorn-midtown-internal-pwa-v39-betta-first-frame-r1" site/sw.js
