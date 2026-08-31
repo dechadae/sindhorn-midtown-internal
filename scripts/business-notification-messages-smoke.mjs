@@ -20,6 +20,11 @@ try{
   // for the node to exist rather than treating initial visibility as a prerequisite.
   await page.waitForSelector('#messageList',{state:'attached'});
   await page.waitForFunction(()=>Boolean(window.SindhornNotificationInbox?.refresh));
+  // Bootstrap can refresh the presentation pack once after first paint and remount the Messages
+  // fragment. Let that expected remount settle before seeding IndexedDB so refresh() targets the
+  // final connected #messageList instead of a node that is about to be replaced.
+  await page.waitForTimeout(1000);
+  await page.waitForSelector('#messageList',{state:'attached'});
   await page.evaluate(async()=>{
     const db=await new Promise((resolve,reject)=>{
       const request=indexedDB.open('sindhorn-midtown-notification-inbox',1);
@@ -34,7 +39,7 @@ try{
     await new Promise((resolve,reject)=>{const tx=db.transaction('messages','readwrite'),store=tx.objectStore('messages');rows.forEach(row=>store.put(row));tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)});
     await window.SindhornNotificationInbox.refresh();
   });
-  await page.waitForFunction(()=>document.querySelectorAll('#messageList .message-card').length===3);
+  await page.waitForFunction(()=>document.querySelectorAll('#messageList .message-kind').length===3);
   const state=await page.evaluate(()=>({
     route:document.body.dataset.route,
     kinds:[...document.querySelectorAll('#messageList .message-kind')].map(node=>node.textContent.trim()),
