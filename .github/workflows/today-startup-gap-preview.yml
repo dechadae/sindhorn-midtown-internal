@@ -5,6 +5,7 @@ on:
     branches:
       - fix-today-startup-gap
       - sync-today-betta-fade
+      - fix-betta-first-frame-startup
     paths:
       - "site/index.html"
       - "site/bootstrap.js"
@@ -12,6 +13,8 @@ on:
       - "site/auth-shell.js"
       - "site/shell.css"
       - "site/environment.css"
+      - "site/betta-environment.js"
+      - "site/sw.js"
       - "scripts/today-startup-gap-smoke.mjs"
       - ".github/workflows/today-startup-gap-preview.yml"
   workflow_dispatch:
@@ -26,7 +29,7 @@ concurrency:
 
 jobs:
   preview:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
 
@@ -38,6 +41,8 @@ jobs:
           node --input-type=module --check < site/bootstrap.js
           node --input-type=module --check < site/route-registry.js
           node --input-type=module --check < site/auth-shell.js
+          node --input-type=module --check < site/betta-environment.js
+          node --check site/sw.js
           grep -q 'data-startup-enter="pending"' site/index.html
           grep -q 'sindhorn-startup-enter-visible' site/index.html
           grep -q 'mountBusinessDashboardStartupRoute' site/route-registry.js
@@ -45,6 +50,11 @@ jobs:
           grep -q 'await waitForStartupReveal()' site/route-registry.js
           grep -q "const environment=await import('./betta-environment.js');await environment.initEnvironment();" site/bootstrap.js
           grep -q "const live=await import('./live-data.js');await live.initLiveData();" site/bootstrap.js
+          grep -q "function markFirstFrame()" site/betta-environment.js
+          grep -q "renderer.render(scene,camera);markFirstFrame()" site/betta-environment.js
+          grep -q "dataset.bettaFirstFrame='pending'" site/betta-environment.js
+          ! grep -q "classList.add('environment-ready').*buildFins" site/betta-environment.js
+          grep -q "sindhorn-midtown-internal-pwa-v39-betta-first-frame-r1" site/sw.js
           grep -q 'html\[data-startup-enter="visible"\].*#route-view' site/shell.css
           grep -q 'html\[data-startup-enter="visible"\] body.environment-ready .environment-canvas' site/environment.css
           grep -q 'transition:opacity .32s cubic-bezier(.22,1,.36,1)' site/shell.css
@@ -65,7 +75,7 @@ jobs:
           set -euo pipefail
           export BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /shell.css?v=5 /environment.css?v=4 /route-registry.js /business-dashboard.js /bootstrap.js /auth-shell.js?v=3; do
+          for path in / /shell.css?v=5 /environment.css?v=4 /route-registry.js /business-dashboard.js /bootstrap.js /betta-environment.js /sw.js /auth-shell.js?v=3; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
