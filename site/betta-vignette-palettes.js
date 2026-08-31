@@ -24,7 +24,7 @@ export const VIGNETTE_GRADES=Object.freeze({
       royalBlueHalfmoon:['#070d30','#233b94','#556ade','#c5ccff'],
       superRedHalfmoon:['#1b0412','#511032','#922056','#d84b7b'],
       mustardGas:['#071036','#194293','#86a52a','#d9df5d'],
-      blackOrchid:['#080718','#201a48','#594f9e','#b3a5e5'],
+      blackOrchid:['#0a061e','#401d65','#a259d2','#dbb9f7'],
       copperMetallic:['#17121a','#4b3143','#9a5c7a','#d6a1ba'],
       turquoiseMetallic:['#043944','#087c89','#23c1b8','#c1f2e7'],
       nemoGalaxyKoi:['#2268a4','#91346b','#df6f84','#fff2ec'],
