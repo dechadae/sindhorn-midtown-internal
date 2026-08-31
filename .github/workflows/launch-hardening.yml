@@ -118,7 +118,7 @@ jobs:
           # PWA and push release lineage.
           for token in ("'/business-dashboard.js'","'/betta-environment.js'","'/betta-satellite.js'","'/fnb.js'","'/push-client.js'"):
               assert token in sw,token
-          assert 'pwa-v34-betta-dashboard-r1' in sw
+          assert 'pwa-v35-release-health-r1' in sw
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw
           app=(root/'app.js').read_text(); inbox=(root/'notification-inbox.js').read_text(); push=(root/'push-client.js').read_text()
           assert "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app and 'performPullRefresh' in app
@@ -158,7 +158,7 @@ jobs:
               && grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta-environment.js \
               && grep -q "dataset.environmentInput='satellite-only'" /tmp/betta-environment.js \
               && grep -q 'Legacy weather-visual compatibility no-op' /tmp/rain-layer.js \
-              && grep -q 'pwa-v34-betta-dashboard-r1' /tmp/sw.js; then
+              && grep -q 'pwa-v35-release-health-r1' /tmp/sw.js; then
                 promoted=true; break
             fi
             sleep 3
