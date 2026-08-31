@@ -25,10 +25,10 @@ assert.deepEqual(BETTA_DAY_PERIODS.map(p=>p.baseline),['reference1','reference2'
 assert.ok(BETTA_PRESETS.reference1.params.offsetX>.3&&BETTA_PRESETS.reference1.params.offsetY<-1,'Midnight drops into the lower-right and leaves a quiet upper-left field');
 assert.ok(BETTA_PRESETS.reference2.params.offsetX<-1.5&&BETTA_PRESETS.reference2.params.offsetY<-1,'Before Dawn approved aggressive corner crop remains unchanged');
 assert.ok(BETTA_PRESETS.reference3.params.offsetX<-1.6&&BETTA_PRESETS.reference3.params.offsetY>.4,'First Light now enters from the left edge');
-assert.ok(BETTA_PRESETS.reference4.params.offsetX>.3,'Bright Morning is reduced to a right-edge slice');
+assert.ok(BETTA_PRESETS.reference4.params.offsetX<-1.2&&BETTA_PRESETS.reference4.params.scale>.9&&BETTA_PRESETS.reference4.params.rotation>0&&BETTA_PRESETS.reference4.params.rotationY<0,'Bright Morning is mirrored to the opposite side and enlarged slightly');
 assert.ok(BETTA_PRESETS.reference5.params.scale>1,'Midday approved macro texture crop remains unchanged');
 assert.ok(BETTA_PRESETS.reference6.params.offsetX<-1.6&&BETTA_PRESETS.reference6.params.offsetY>.7,'Afternoon sweeps from the upper-left');
-assert.ok(BETTA_PRESETS.reference7.params.offsetX>.3&&BETTA_PRESETS.reference7.params.offsetY<-.5,'Golden Hour is a lower-right rosetail crescent');
+assert.ok(BETTA_PRESETS.reference7.params.offsetX>.3&&BETTA_PRESETS.reference7.params.offsetY<-.5&&BETTA_PRESETS.reference7.params.scale>=1,'Golden Hour keeps its lower-right crescent and is enlarged');
 assert.equal(BETTA_PRESETS.reference8.params.scale,.84,'Blue Hour approved crop scale remains unchanged');
 assert.equal(BETTA_PRESETS.reference8.params.offsetX,-1.06,'Blue Hour approved horizontal crop remains unchanged');
 assert.equal(BETTA_PRESETS.reference8.params.offsetY,-.20,'Blue Hour approved vertical crop remains unchanged');
