@@ -1,7 +1,8 @@
 import {mountSettingsRoute as mountBaseSettingsRoute} from './settings.js?v=3&r=modal-shell-2';
-import {mountSettingsBusinessCard,preloadSettingsBusinessCard} from './business-card-settings.js?v=10&r=modal-shell-2';
+import {mountSettingsBusinessCard} from './business-card-settings.js?v=10&r=modal-shell-2';
 import {mountSettingsSystemLibrary} from './settings-system-library.js?v=1';
 // Cache lineage: business-card-settings.js?v=9 -> v10 for the fixed-shell renderer.
+// Release-health lineage: Business Card data loads only after its capability check; no eager unauthorized preload.
 // Cache lineage: /settings-dialog-standard.css?v=1&r=5 -> r=6 for Business Card scrollbar/action parity.
 // Validation lineage: all Settings popups now resolve through settings-dialog-standard.js.
 // System lineage: fixed four-tab rail + developer-only UI Library entry are layered after the base renderer.
@@ -61,7 +62,6 @@ function installSettingsViewport(root){
 export async function mountSettingsRoute(root){
   const previousVisibility=root.style.visibility;
   root.style.visibility='hidden';
-  const cardPreload=preloadSettingsBusinessCard();
   let baseCleanup=null,systemLibraryCleanup=null,signOutCleanup=null,cardCleanup=null,viewportCleanup=null;
   try{
     await Promise.all([
@@ -75,7 +75,7 @@ export async function mountSettingsRoute(root){
     baseCleanup=await mountBaseSettingsRoute(root);
     systemLibraryCleanup=await mountSettingsSystemLibrary(root);
     signOutCleanup=installHeroSignOut(root);
-    cardCleanup=await mountSettingsBusinessCard(root,{preload:cardPreload});
+    cardCleanup=await mountSettingsBusinessCard(root);
     viewportCleanup=installSettingsViewport(root);
   }finally{
     root.style.visibility=previousVisibility;
