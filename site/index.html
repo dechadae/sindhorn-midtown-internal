@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="app-shell" data-shell-loading="true">
+<html lang="en" class="app-shell" data-shell-loading="true" data-startup-enter="pending">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -27,10 +27,18 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-thin.woff2">
 <link rel="preload" as="image" href="/assets/brand/sindhorn-midtown-vignette-white.png">
+<link rel="modulepreload" href="/bootstrap.js">
+<link rel="modulepreload" href="/route-registry.js">
+<link rel="modulepreload" href="/betta-environment.js">
+<link rel="modulepreload" href="/vendor/three.module.js">
+<link rel="modulepreload" href="/betta-fin-presets.js">
+<link rel="modulepreload" href="/betta-fin-shader.js">
+<link rel="modulepreload" href="/betta-satellite.js">
+<link rel="modulepreload" href="/betta-day-periods.js">
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-transitions.css">
-<link rel="stylesheet" href="/shell.css?v=4">
-<link rel="stylesheet" href="/environment.css?v=3">
+<link rel="stylesheet" href="/shell.css?v=5">
+<link rel="stylesheet" href="/environment.css?v=4">
 <link rel="stylesheet" href="/pwa.css">
 <link rel="stylesheet" href="/auth-shell.css?v=1">
 <link rel="stylesheet" href="/account.css?v=2">
@@ -43,7 +51,7 @@
 <link rel="stylesheet" href="/app-controls.css?v=1">
 <link rel="stylesheet" href="/ci-specimen-fixes.css?v=2">
 <link rel="stylesheet" href="/app-shapes.css?v=1">
-<style>[data-shell-loading="true"] #app-header,[data-shell-loading="true"] #route-view{opacity:1!important}[data-shell-loading="true"] #app-footer{display:block!important}#fullscreenToggle{display:none!important}</style>
+<style>[data-shell-loading="true"] #app-header,[data-shell-loading="true"] #route-view{opacity:1!important}[data-shell-loading="true"] #app-footer{display:block!important}html[data-startup-enter="pending"] #app-header,html[data-startup-enter="pending"] #route-view,html[data-startup-enter="pending"] #app-footer{opacity:0!important}html[data-startup-enter="visible"] #app-header,html[data-startup-enter="visible"] #route-view,html[data-startup-enter="visible"] #app-footer{opacity:1!important;transition:opacity .32s cubic-bezier(.22,1,.36,1)}#fullscreenToggle{display:none!important}@media(prefers-reduced-motion:reduce){html[data-startup-enter="visible"] #app-header,html[data-startup-enter="visible"] #route-view,html[data-startup-enter="visible"] #app-footer{transition:none}}</style>
 <script src="/vendor/html2canvas.min.js" defer></script>
 </head>
 <body data-level="very-good">
@@ -53,9 +61,10 @@
 <main id="route-view" aria-live="polite"></main>
 <footer id="app-footer"></footer>
 <noscript><p style="padding:24px;color:#FAF7F5">JavaScript is required to load Sindhorn Midtown Internal.</p></noscript>
+<script>(()=>{const root=document.documentElement,body=document.body,route=document.getElementById('route-view');let released=false,queued=false;const ready=()=>body.classList.contains('environment-ready')&&route.childElementCount>0||root.dataset.shellLoading==='false';const release=()=>{if(released||queued)return;queued=true;requestAnimationFrame(()=>{if(released)return;released=true;root.dataset.startupEnter='visible';performance.mark?.('sindhorn-startup-enter-visible')})};if(ready())release();const observer=new MutationObserver(()=>{if(!ready())return;observer.disconnect();release()});observer.observe(body,{attributes:true,attributeFilter:['class']});observer.observe(root,{attributes:true,attributeFilter:['data-shell-loading']});observer.observe(route,{childList:true})})();</script>
 <script type="module" src="/pwa-version-guard.js?v=1"></script>
 <script type="module" src="/app-transitions.js"></script>
-<script type="module" src="/auth-shell.js?v=2"></script>
+<script type="module" src="/auth-shell.js?v=3"></script>
 <script type="module" src="/fnb-timestamp-stability.js?v=1"></script>
 <script type="module" src="/footer-route-guard.js?v=15"></script>
 <script type="module" src="/brand-route-controls.js?v=1"></script>
