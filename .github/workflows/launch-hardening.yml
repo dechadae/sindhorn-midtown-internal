@@ -81,7 +81,6 @@ jobs:
           for item in fallback['resources']:
               assert hashlib.sha256((root/'fallback'/item['path']).read_bytes()).hexdigest()==item['sha256'], item['path']
 
-          # Current single-shell route authority.
           for token in (
             "today:Object.freeze({path:'/'",
             "fnb:Object.freeze({path:'/fnb'",
@@ -180,8 +179,16 @@ jobs:
           test "$promoted" = true
 
           for retired in environment.js environment.bundle.js seasonal-sky.js atmosphere-shader.js rain-layer-legacy-weather.js rain-layer.js sun-dimmer.js storm-effects.js sky-calibration.js sky-color-renderer.js cloud-tester.js phase8-2-fixtures.js phase8-2-seasonal-clouds.test.mjs; do
-            code=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' "${BASE_URL}/${retired}")
-            test "$code" = "404"
+            result=$(curl --silent --show-error --location --output /tmp/retired-response --write-out '%{http_code}|%{content_type}' "${BASE_URL}/${retired}")
+            code="${result%%|*}"
+            type="${result#*|}"
+            if [ "$code" = "200" ]; then
+              case "$type" in text/html*) ;; *) echo "Retired source /${retired} exposed as ${type}"; exit 1 ;; esac
+              grep -qi '<!doctype html\|<html' /tmp/retired-response
+            elif [ "$code" != "404" ]; then
+              echo "Unexpected retired path status /${retired}: ${code} ${type}"
+              exit 1
+            fi
           done
 
           curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 2 "${ALERT_WORKER}/health" -o /tmp/alert-health.json
