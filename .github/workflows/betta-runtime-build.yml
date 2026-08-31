@@ -43,16 +43,48 @@ jobs:
           echo "Betta runtime bytes: ${BYTES}"
           test "${BYTES}" -lt 700000
 
-      - name: Commit generated runtime
+      - name: Wire production startup to optimized runtime
         shell: bash
         run: |
           set -euo pipefail
-          if test -z "$(git status --porcelain -- site/betta-runtime.js)"; then
-            echo "Runtime already current"
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace(path, old, new):
+              p=Path(path)
+              text=p.read_text()
+              if old not in text:
+                  if new in text:
+                      return
+                  raise SystemExit(f"Expected startup pattern missing in {path}: {old}")
+              p.write_text(text.replace(old,new))
+
+          replace('site/bootstrap.js', "import('./betta-environment.js')", "import('./betta-runtime.js?v=1')")
+          replace('site/auth-shell.js', "import('./betta-environment.js')", "import('./betta-runtime.js?v=1')")
+
+          index=Path('site/index.html')
+          text=index.read_text()
+          old='''<link rel="modulepreload" href="/betta-environment.js">\n<link rel="modulepreload" href="/vendor/three.module.js">\n<link rel="modulepreload" href="/betta-fin-presets.js">\n<link rel="modulepreload" href="/betta-fin-shader.js">\n<link rel="modulepreload" href="/betta-satellite.js">\n<link rel="modulepreload" href="/betta-day-periods.js">'''
+          new='<link rel="modulepreload" href="/betta-runtime.js?v=1">'
+          if old in text:
+              text=text.replace(old,new)
+          elif new not in text:
+              raise SystemExit('Expected Betta preload block missing in site/index.html')
+          index.write_text(text)
+
+          replace('site/sw.js', "'/betta-environment.js'", "'/betta-runtime.js'")
+          PY
+
+      - name: Commit generated runtime and wiring
+        shell: bash
+        run: |
+          set -euo pipefail
+          if test -z "$(git status --porcelain -- site/betta-runtime.js site/bootstrap.js site/auth-shell.js site/index.html site/sw.js)"; then
+            echo "Runtime and startup wiring already current"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site/betta-runtime.js
-          git commit -m "Build tree-shaken Betta runtime"
+          git add site/betta-runtime.js site/bootstrap.js site/auth-shell.js site/index.html site/sw.js
+          git commit -m "Use optimized Betta startup runtime"
           git push origin "HEAD:${GITHUB_REF_NAME}"
