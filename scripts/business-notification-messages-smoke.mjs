@@ -16,7 +16,10 @@ await page.route('**/auth-shell.js*',route=>route.fulfill({status:200,contentTyp
 try{
   await page.goto(`${BASE_URL}/messages`,{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false');
-  await page.waitForSelector('#messageList');
+  // The empty Messages list is intentionally hidden until it has content, so this contract waits
+  // for the node to exist rather than treating initial visibility as a prerequisite.
+  await page.waitForSelector('#messageList',{state:'attached'});
+  await page.waitForFunction(()=>Boolean(window.SindhornNotificationInbox?.refresh));
   await page.evaluate(async()=>{
     const db=await new Promise((resolve,reject)=>{
       const request=indexedDB.open('sindhorn-midtown-notification-inbox',1);
