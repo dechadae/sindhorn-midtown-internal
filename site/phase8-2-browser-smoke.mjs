@@ -138,7 +138,8 @@ async function inspectLive(viewport,name){
       dprX:canvas?.width?canvas.width/innerWidth:0,dprY:canvas?.height?canvas.height/innerHeight:0,
       antialias:attrs.antialias,preserveDrawingBuffer:attrs.preserveDrawingBuffer,
       renderer:env.renderer||null,quality:env.quality||null,inputMode:env.inputMode||null,
-      baseline:env.betta?.baseline||null,availableBaselines:env.betta?.availableBaselines||[],
+      baseline:env.betta?.baseline||null,baselineAuthority:env.betta?.baselineAuthority||null,
+      dayCycle:env.betta?.dayCycle||null,availableBaselines:env.betta?.availableBaselines||[],
       satelliteStatus:env.betta?.satelliteStatus||null,satelliteSource:env.betta?.satelliteSource||null,
       satelliteObservedAt:env.betta?.observedAt||null,satelliteMetrics:env.betta?.metrics||null,
       lifecycle:env.betta?.lifecycle||null,lifecycleReason:env.betta?.lifecycleReason||null,
@@ -150,7 +151,13 @@ async function inspectLive(viewport,name){
   if(state.width!==viewport.width||state.height!==viewport.height)throw new Error(`${name}: viewport mismatch ${state.width}x${state.height}`);
   if(state.renderer!=='sindhorn-betta-satellite-v1')throw new Error(`${name}: renderer mismatch ${state.renderer}`);
   if(state.inputMode!=='satellite-only')throw new Error(`${name}: renderer is not satellite-only`);
-  if(state.baseline!=='royalBlueHalfmoon')throw new Error(`${name}: unexpected default Betta baseline ${state.baseline}`);
+  if(state.baselineAuthority!=='bangkok-day-cycle')throw new Error(`${name}: unexpected Betta baseline authority ${state.baselineAuthority}`);
+  if(state.dayCycle?.timeZone!=='Asia/Bangkok'||state.dayCycle?.periods?.length!==8)throw new Error(`${name}: invalid Bangkok day-cycle state`);
+  if(state.baseline!==state.dayCycle?.targetBaseline)throw new Error(`${name}: active baseline ${state.baseline} does not match period target ${state.dayCycle?.targetBaseline}`);
+  const activePeriod=state.dayCycle?.periods?.find(period=>period.key===state.dayCycle?.targetPeriodKey);
+  if(!activePeriod||activePeriod.baseline!==state.baseline)throw new Error(`${name}: active period/baseline mismatch`);
+  const expectedTone=activePeriod.startHour>=6&&activePeriod.startHour<18?'bright':'dark';
+  if(activePeriod.tone!==expectedTone)throw new Error(`${name}: invalid ${activePeriod.key} tone ${activePeriod.tone}`);
   if(state.availableBaselines.length!==8)throw new Error(`${name}: expected eight Betta baselines, got ${state.availableBaselines.length}`);
   if(state.satelliteStatus!=='live'||!String(state.satelliteSource).includes('Himawari-9'))throw new Error(`${name}: satellite feed not live`);
   if(!state.satelliteMetrics||!Number.isFinite(Number(state.satelliteMetrics.energy)))throw new Error(`${name}: satellite metrics missing`);
@@ -174,7 +181,7 @@ try{
   mobile=await inspectLive({width:390,height:844},'app-mobile');
 }catch(error){fatal=error;errors.push(`fatal: ${error.message}`)}finally{
   await browser.close();
-  const metrics={benchmark:'CPU-only SwANGLE diagnostic; physical GPU acceptance remains separate',renderer:'sindhorn-betta-satellite-v1',realtimeVisualInput:'JMA Himawari-9 satellite only',desktop,mobile,errors};
+  const metrics={benchmark:'CPU-only SwANGLE diagnostic; physical GPU acceptance remains separate',renderer:'sindhorn-betta-satellite-v1',baselineAuthority:'Asia/Bangkok eight-period day cycle',realtimeVisualInput:'JMA Himawari-9 satellite only',desktop,mobile,errors};
   fs.writeFileSync('phase82-artifacts/metrics.json',JSON.stringify(metrics,null,2));console.log(JSON.stringify(metrics,null,2));
 }
 if(fatal)throw fatal;

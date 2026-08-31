@@ -6,7 +6,7 @@ export const ROUTES=Object.freeze({
   hotelFactsheet:Object.freeze({path:'/hotel-factsheet',title:'Hotel Factsheet | Sindhorn Midtown Internal',kind:'local',module:'./hotel-factsheet-route.js?v=2',mount:'mountHotelFactsheetRoute'}),
   messages:Object.freeze({path:'/messages',title:'Environmental Messages | Sindhorn Midtown Hotel Bangkok',kind:'pack',resource:'messages.html'}),
   settings:Object.freeze({path:'/settings',title:'Settings | Sindhorn Midtown Internal',kind:'local',module:'./settings-route-v3.js?v=12&r=release-health-1',mount:'mountSettingsRoute'}),
-  ci:Object.freeze({path:'/ci',title:'UI Library | Sindhorn Midtown Internal',kind:'local',module:'./ci.js?v=1',mount:'mountCiRoute'})
+  ci:Object.freeze({path:'/ci',title:'UI Library | Sindhorn Midtown Internal',kind:'local',module:'./ci-day-cycle-route.js?v=1',mount:'mountCiRoute'})
 });
 // Today cache lineage: business-dashboard.js?v=2 -> v3 for explicit freshness/domain separation -> v4 for semantic dashboard motion.
 // Cache lineage: settings-route-v3.js?v=10&r=6&d=5 -> v11&r=ci-1 -> v12&r=release-health-1 for capability-gated Business Card loading.
