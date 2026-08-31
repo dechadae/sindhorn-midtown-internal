@@ -43,9 +43,10 @@ assert(dashboardCss.includes('--fs-disclosure:420ms'),'disclosure-motion','Dashb
 assert(ciSpecimenFixes.includes('--fs-ease:cubic-bezier(.22,1,.36,1)')&&ciSpecimenFixes.includes('--fs-disclosure:420ms')&&ciSpecimenFixes.includes('--fs-border:var(--ci-border)'),'ci-specimen-token-bridge','The UI Library host supplies canonical Factsheet tokens so its living disclosure specimen renders the real production interaction.');
 assert(/@media\(prefers-reduced-motion:reduce\)/.test(dashboardCss)&&/@media\(prefers-reduced-motion:reduce\)/.test(motionCss),'reduced-motion','Base dashboard and motion layer both suppress non-essential motion when reduced motion is requested.');
 assert(/@media\(min-width:700px\)/.test(dashboardCss)&&/@media\(max-width:359px\)/.test(dashboardCss),'responsive-contract','Dashboard includes explicit compact and wide responsive behavior for the 360/390/768 validation matrix.');
-assert(dashboardJs.includes('applyBusinessDashboardMotion')&&dashboardJs.includes('data-bd-motion-key')&&dashboardJs.includes('bd-variance-track'),'semantic-motion','Business motion is wired to actual business values and comparison context rather than decorative looping effects.');
+assert(dashboardJs.includes('applyBusinessDashboardMotion')&&dashboardJs.includes('data-bd-motion-key'),'semantic-motion','Business motion is wired to actual business values rather than decorative looping effects.');
 assert(motionJs.includes('sindhorn-business-dashboard-motion-v2')&&motionJs.includes('publicationChanged')&&motionJs.includes('data-bd-flag-key'),'motion-state','Motion compares approved publication snapshots and only promotes newly appearing exception states.');
-assert(motionCss.includes('bdGroupReveal')&&motionCss.includes('bdFreshSweep')&&motionCss.includes('bd-outlook-marker'),'motion-language','Grouped reveal, one-time freshness confirmation and forward-outlook position motion are present.');
+assert(motionCss.includes('bdGroupReveal')&&motionCss.includes('bdFreshSweep'),'motion-language','Grouped reveal and one-time freshness confirmation are present.');
+assert(!motionCss.includes('.bd-variance-track{')&&!motionCss.includes('.bd-outlook-track{')&&!motionCss.includes('.bd-outlook-marker{'),'no-progress-tracks','Progress-style KPI and forward-outlook tracks are intentionally not rendered.');
 assert(!/animation\s*:[^;]*(infinite|linear\s+infinite)/i.test(motionCss),'no-looping-motion','Dashboard motion contains no perpetual animation loop.');
 
 console.log(JSON.stringify({ok:true,source:'site/ui-system-registry.js',checks},null,2));
