@@ -15,7 +15,10 @@ const page=await context.newPage();page.setDefaultTimeout(40000);
 await page.route('**/auth-shell.js*',route=>route.fulfill({status:200,contentType:'text/javascript',body:authShim}));
 await page.route('**/rest/v1/rpc/sindhorn_business_dashboard_read_model',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(dashboard)}));
 try{
-  await page.goto(`${BASE_URL}/`,{waitUntil:'domcontentloaded'});
+  // Use the legacy index alias so the first service-worker activation can be verified without
+  // intentionally navigating this synthetic authenticated test client. The installed manifest
+  // identity remains id/start_url/scope=/ and is asserted below.
+  await page.goto(`${BASE_URL}/index.html`,{waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false');
   await page.waitForSelector('.business-dashboard-route[data-business-date="2026-08-30"]');
   const result=await page.evaluate(async()=>{
