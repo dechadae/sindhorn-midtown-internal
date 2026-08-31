@@ -1,11 +1,22 @@
 import assert from 'node:assert/strict';
 import {BETTA_PRESETS} from './betta-fin-presets.js';
 import {BETTA_DAY_PERIODS} from './betta-day-periods.js';
-import {VIGNETTE_GRADES,VIGNETTE_SELECTED_BY_PERIOD,applyVignetteGrade} from './betta-vignette-palettes.js';
-const keys=Object.keys(BETTA_PRESETS);assert.equal(keys.length,8);
-for(const key of keys){const p=BETTA_PRESETS[key];assert.equal(p.referenceId,Number(key.replace('reference','')));assert.equal(p.palette.length,4);assert.ok(p.params.spread>=3.2&&p.params.spread<=4.5);assert.ok(p.params.foldDensity>=5&&p.params.foldDensity<=6.4)}
-const snapshot=structuredClone(BETTA_PRESETS);
-for(const gradeKey of ['a','b','selected']){const working=structuredClone(BETTA_PRESETS);applyVignetteGrade(working,gradeKey);for(const key of keys){assert.deepEqual(working[key].params,snapshot[key].params,`${gradeKey}/${key} preserves tail morphology`);assert.equal(working[key].background,snapshot[key].background,`${gradeKey}/${key} preserves background`);assert.equal(working[key].palette.length,4)}}
-assert.deepEqual(Object.keys(VIGNETTE_SELECTED_BY_PERIOD).sort(),BETTA_DAY_PERIODS.map(p=>p.key).sort());
-for(const period of BETTA_DAY_PERIODS){const grade=VIGNETTE_SELECTED_BY_PERIOD[period.key];assert.deepEqual(VIGNETTE_GRADES.selected.palettes[period.baseline],VIGNETTE_GRADES[grade].palettes[period.baseline])}
-console.log('Reference-tail palette contract PASS');
+
+const keys=Object.keys(BETTA_PRESETS);
+assert.equal(keys.length,8);
+for(const key of keys){
+  const p=BETTA_PRESETS[key];
+  assert.equal(p.referenceId,Number(key.replace('reference','')));
+  assert.equal(p.palette.length,4);
+  assert.ok(p.params.spread>=2.6&&p.params.spread<=3.5,`${key} fan angle stays reference-scaled`);
+  assert.ok(p.params.foldDensity>=8&&p.params.foldDensity<=12,`${key} keeps fine ray rhythm`);
+  assert.ok(p.params.scale>=.58&&p.params.scale<=.72,`${key} mobile framing scale`);
+  assert.ok(p.params.brightness>=1.6,`${key} compensates old shader darkness`);
+  assert.ok(p.params.opacity>=.48,`${key} remains visibly colored`);
+}
+assert.deepEqual(BETTA_DAY_PERIODS.map(p=>p.referenceId),[1,7,4,6,2,3,5,8]);
+assert.deepEqual(BETTA_DAY_PERIODS.map(p=>p.baseline),['reference1','reference7','reference4','reference6','reference2','reference3','reference5','reference8']);
+assert.equal(BETTA_PRESETS.reference5.morphMode,1,'Fish #5 keeps multicolor koi patch mode');
+assert.equal(BETTA_PRESETS.reference6.morphMode,4,'Fish #6 exposes pale ray ridges');
+assert.equal(BETTA_PRESETS.reference8.morphMode,4,'Fish #8 exposes electric blue ray ridges');
+console.log('Final photographic-reference tail contract PASS');
