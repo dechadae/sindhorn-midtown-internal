@@ -1,5 +1,6 @@
 const SNAPSHOT_KEY='sindhorn-business-dashboard-motion-v2';
 const MOTION_QUERY='(prefers-reduced-motion: reduce)';
+const FRESH_CONTINUATION_MS=2600;
 
 function safeNumber(value){
   const n=Number(value);
@@ -30,13 +31,14 @@ function animateValue(node,from,to,formatName,{pickup=false}={}){
 }
 export function applyBusinessDashboardMotion(root,data,{reason='load'}={}){
   if(!root)return;
-  const reduced=window.matchMedia?.(MOTION_QUERY)?.matches===true,previous=readSnapshot(),publishedAt=String(data?.publishedAt||data?.importedAt||'');
-  const current={publishedAt,businessDate:String(data?.businessDate||''),revision:Number(data?.revision)||0,metrics:collectMetrics(root),flags:collectFlagKeys(root)};
-  const publicationChanged=Boolean(previous?.publishedAt&&publishedAt&&previous.publishedAt!==publishedAt);
+  const reduced=window.matchMedia?.(MOTION_QUERY)?.matches===true,previous=readSnapshot(),publishedAt=String(data?.publishedAt||data?.importedAt||''),now=Date.now();
+  const flags=collectFlagKeys(root),publicationChanged=Boolean(previous?.publishedAt&&publishedAt&&previous.publishedAt!==publishedAt),sameFreshPublication=Boolean(previous?.publishedAt&&publishedAt&&previous.publishedAt===publishedAt&&Number(previous?.freshUntil)>now);
+  const priorFlags=new Set(Array.isArray(previous?.flags)?previous.flags:[]),newFlags=publicationChanged?flags.filter(flag=>!priorFlags.has(flag)):sameFreshPublication&&Array.isArray(previous?.newFlags)?previous.newFlags.filter(flag=>flags.includes(flag)):[];
+  const current={publishedAt,businessDate:String(data?.businessDate||''),revision:Number(data?.revision)||0,metrics:collectMetrics(root),flags,newFlags,freshUntil:publicationChanged?now+FRESH_CONTINUATION_MS:sameFreshPublication?Number(previous.freshUntil):0};
   root.dataset.bdMotionReady='true';
-  if(publicationChanged)root.querySelector('.bd-update-stamp')?.classList.add('is-fresh');
+  if(publicationChanged||sameFreshPublication)root.querySelector('.bd-update-stamp')?.classList.add('is-fresh');
   if(!reduced&&previous?.metrics)root.querySelectorAll('[data-bd-motion-key][data-bd-motion-value]').forEach(node=>{const key=node.dataset.bdMotionKey,currentValue=safeNumber(node.dataset.bdMotionValue),prior=safeNumber(previous.metrics?.[key]?.value);if(currentValue===null||prior===null||currentValue===prior)return;animateValue(node,prior,currentValue,node.dataset.bdMotionFormat||previous.metrics?.[key]?.format||'',{pickup:node.dataset.bdPickup==='true'})});
-  if(!reduced&&publicationChanged){const priorFlags=new Set(Array.isArray(previous?.flags)?previous.flags:[]);root.querySelectorAll('[data-bd-flag-key]').forEach((flag,index)=>{if(priorFlags.has(flag.dataset.bdFlagKey))return;flag.classList.add('is-new');flag.style.animationDelay=`${Math.min(index,4)*45}ms`})}
+  if(!reduced&&(publicationChanged||sameFreshPublication)&&newFlags.length){const freshFlags=new Set(newFlags);root.querySelectorAll('[data-bd-flag-key]').forEach((flag,index)=>{if(!freshFlags.has(flag.dataset.bdFlagKey))return;flag.classList.add('is-new');flag.style.animationDelay=`${Math.min(index,4)*45}ms`})}
   writeSnapshot(current);
-  root.dispatchEvent(new CustomEvent('sindhorn:business-dashboard-motion-complete',{detail:{reason,publicationChanged,reduced}}));
+  root.dispatchEvent(new CustomEvent('sindhorn:business-dashboard-motion-complete',{detail:{reason,publicationChanged,continuedFreshPublication:sameFreshPublication,reduced}}));
 }
