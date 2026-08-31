@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - betta-production-integration
+      - promote-betta-day-cycle
     paths:
       - "site/**"
       - "docs/BETTA-PRODUCTION-ATMOSPHERE-20260831.md"
@@ -29,16 +30,23 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/bootstrap.js site/betta-environment.js site/betta-fin-presets.js site/betta-fin-shader.js site/betta-satellite.js site/_worker.js site/rain-layer.js site/rain-layer-legacy-weather.js site/environment.js site/phase8-2-browser-smoke.mjs; do
+          for file in site/bootstrap.js site/route-registry.js site/betta-environment.js site/betta-fin-presets.js site/betta-fin-shader.js site/betta-satellite.js site/betta-day-periods.js site/betta-day-periods.test.mjs site/ci-betta-day-cycle.js site/ci-day-cycle-route.js site/_worker.js site/rain-layer.js site/rain-layer-legacy-weather.js site/environment.js site/phase8-2-browser-smoke.mjs site/sw.js; do
             node --input-type=module --check < "$file"
           done
+          node site/betta-day-periods.test.mjs
           python3 - <<'PY'
           from pathlib import Path
           import json
           root=Path('site')
           bootstrap=(root/'bootstrap.js').read_text()
+          registry=(root/'route-registry.js').read_text()
           active=(root/'betta-environment.js').read_text()
           presets=(root/'betta-fin-presets.js').read_text()
+          shader=(root/'betta-fin-shader.js').read_text()
+          periods=(root/'betta-day-periods.js').read_text()
+          controls=(root/'ci-betta-day-cycle.js').read_text()
+          wrapper=(root/'ci-day-cycle-route.js').read_text()
+          sw=(root/'sw.js').read_text()
           legacy=(root/'environment.js').read_text()
           rain=(root/'rain-layer.js').read_text()
           worker=(root/'_worker.js').read_text()
@@ -47,16 +55,30 @@ jobs:
           assert "await import('./environment.js')" not in bootstrap
           assert "renderer:'sindhorn-betta-satellite-v1'" in active
           assert "inputMode:'satellite-only'" in active
+          assert "baselineAuthority:'bangkok-day-cycle'" in active
+          assert "BANGKOK_TIME_ZONE='Asia/Bangkok'" in periods
+          assert 'DAY_CYCLE_ROLLOVER_MS=60000' in periods and 'DAY_CYCLE_CORRECTION_MS=900' in periods and 'DAY_CYCLE_CHECK_MS=30000' in periods
+          for token in ('uMorphModeFrom','uMorphModeTo','uMorphTransition','baseFrom','baseTo'):
+              assert token in shader,token
+          for token in ('setBettaPeriod','useLiveBettaDayCycle','previewBettaDayCycle'):
+              assert token in active and token in controls,token
+          assert "module:'./ci-day-cycle-route.js?v=1'" in registry
+          assert 'mountCanonicalCiRoute' in wrapper and 'mountBettaDayCycleControls' in wrapper
           assert 'const DPR=2' in active and 'antialias:false' in active and 'preserveDrawingBuffer:false' in active
           assert "DEFAULT_PRESET='royalBlueHalfmoon'" in presets
           assert presets.count("number:'0")==8
+          assert "source:'Nemo Galaxy Koi pre-luxury-cycle + 20% presentation lift'" in presets
           for name in ('Royal Blue Halfmoon','Super Red Halfmoon','Mustard Gas','Black Orchid','Copper Metallic','Turquoise Metallic','Nemo Galaxy Koi','Red Snow Dragon'):
               assert name in presets,name
+          assert "const VERSION='sindhorn-midtown-internal-pwa-v38-betta-day-cycle-r1'" in sw
+          assert "'/betta-day-periods.js'" in sw and 'pwa-v37-betta-resume-r1' in sw
           assert "renderer:'bangkok-seasonal-clouds-v2'" in legacy
           assert Path('site/rain-layer-legacy-weather.js').exists()
           assert 'compatibility no-op' in rain and 'rain-layer-legacy-weather.js' in rain
           assert 'www.data.jma.go.jp/mscweb/data/himawari' in worker
           assert any('/api/betta-satellite' in item for item in routes.get('include',[]))
+          assert not Path('site/betta-day-cycle-test.html').exists()
+          assert not Path('site/betta-day-cycle-test.js').exists()
           for forbidden in ('open-meteo','api.met.no','airbkk','deviceorientation','geolocation'):
               assert forbidden not in (root/'betta-satellite.js').read_text().lower(),forbidden
           PY
@@ -73,7 +95,7 @@ jobs:
           set -euo pipefail
           BASE_URL="https://betta-production-integration.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /bootstrap.js /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /environment.js /rain-layer.js /rain-layer-legacy-weather.js; do
+          for path in / /bootstrap.js /route-registry.js /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /betta-day-periods.js /ci-betta-day-cycle.js /ci-day-cycle-route.js /environment.js /rain-layer.js /rain-layer-legacy-weather.js /sw.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
             test -s /tmp/smoke
           done
