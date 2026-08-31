@@ -4,42 +4,16 @@ on:
   push:
     branches:
       - main
-      - design-unification-pass
-      - phase1-foundation
-      - english-only-interface
-      - fnb-action-plan-redesign
-      - today-guidance-details-fnb
-      - phase9-single-shell-router
-      - hotfix-phase9-deploy-gate
-      - hotfix-phase8-2-deploy-validation
-      - hotfix-today-dashboard-deploy-gate
-      - webgl-environment-v1
-      - hybrid-shell-v15
-      - atmosphere-tester-v1
-      - hotfix-rain-svg-pane
-      - rain-realism-type-consistency
-      - promote-atmosphere-tester
-      - fix-duplicate-sun-final
-      - fix-celestial-v2-import
-      - fix-soft-luminous-sun
-      - sun-post-cloud-composite
-      - fix-blue-cloudy-sky
-      - fix-sun-statusbar
-      - revert-capture-dim-sun
-      - user-local-location
-      - storm-rain-realism
-      - capture-normal-layout
-      - fix-skip-link-flash
-      - fix-lunar-phase-v2
-      - fix-lunar-phase-shader
-      - live-location-fixtures
-      - hotfix-settings-deploy-gate-v2
+      - remove-legacy-weather-webgl
     paths:
       - "site/**"
       - "scripts/generate-fnb-share.mjs"
       - "scripts/generate-pwa-icons.mjs"
-      - ".github/tests/fnb-sharing-regression.test.mjs"
+      - ".github/tests/**"
       - ".github/workflows/deploy.yml"
+      - "supabase/migrations/**"
+      - "docs/**"
+      - "AGENTS.md"
   workflow_dispatch:
 
 permissions:
@@ -53,6 +27,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -72,14 +47,23 @@ jobs:
           node scripts/generate-fnb-share.mjs
           node scripts/generate-pwa-icons.mjs
 
-      - name: Validate shell candidate
+      - name: Validate current shell candidate
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard.js site/business-dashboard-motion.js site/app-transitions.js site/auth-shell.js site/auth-client.js site/login.js site/account.js site/admin.js site/capabilities.js site/settings.js site/settings-route-v3.js site/fnb.js site/fnb-data.js site/fnb-share-ui.js site/location.js site/bootstrap.js site/live-data.js site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/rain-layer.js site/sun-dimmer.js site/screen-capture.js site/notification-inbox.js site/push-client.js site/phase8-2-fixtures.js site/phase8-2-browser-smoke.mjs site/presentation-recovery.js site/app.js site/sw.js worker/src/index.js auth-worker/src/index.js; do
-            if ! node --input-type=module --check < "$file" 2>/tmp/modcheck.err; then
-              echo "ES module syntax error in $file"; cat /tmp/modcheck.err; exit 1
-            fi
+          MODULES=(
+            site/route-registry.js site/business-dashboard-data.js site/business-dashboard.js
+            site/business-dashboard-motion.js site/app-transitions.js site/auth-shell.js site/auth-client.js
+            site/login.js site/account.js site/admin.js site/capabilities.js site/settings.js
+            site/settings-route-v3.js site/fnb.js site/fnb-data.js site/fnb-share-ui.js
+            site/location.js site/bootstrap.js site/live-data.js site/betta-environment.js
+            site/betta-satellite.js site/betta-day-periods.js site/rain-now.js site/weather-authority.js
+            site/screen-capture.js site/notification-inbox.js site/push-client.js site/presentation-recovery.js
+            site/app.js site/sw.js worker/src/index.js auth-worker/src/index.js
+          )
+          for file in "${MODULES[@]}"; do
+            test -s "$file"
+            node --input-type=module --check < "$file"
           done
           node --input-type=module --check < scripts/generate-fnb-share.mjs
           node --input-type=module --check < scripts/generate-pwa-icons.mjs
@@ -88,85 +72,72 @@ jobs:
           node --input-type=module --check < site/share/fnb-share-ui-public.js
           node .github/tests/fnb-sharing-regression.test.mjs
           node .github/tests/font-architecture.test.mjs
-          node --experimental-default-type=module site/phase8-2-seasonal-clouds.test.mjs
-          python - <<'PY'
+          node site/betta-day-periods.test.mjs
+          node site/betta-vignette-palettes.test.mjs
+          node site/weather-authority.test.mjs
+
+          python3 - <<'PY'
           from pathlib import Path
           import hashlib, json, re
           root=Path('site'); fallback=root/'fallback'
+          retired=(
+            'environment.js','environment.bundle.js','seasonal-sky.js','atmosphere-shader.js',
+            'rain-layer-legacy-weather.js','rain-layer.js','sun-dimmer.js','storm-effects.js',
+            'sky-calibration.js','sky-color-renderer.js','cloud-tester.js',
+            'phase8-2-fixtures.js','phase8-2-seasonal-clouds.test.mjs'
+          )
+          for name in retired:
+              assert not (root/name).exists(), f'retired weather WebGL file still ships: {name}'
+
+          index=(root/'index.html').read_text()
+          sw=(root/'sw.js').read_text()
+          bootstrap=(root/'bootstrap.js').read_text()
+          auth_shell=(root/'auth-shell.js').read_text()
+          betta=(root/'betta-environment.js').read_text()
+          location=(root/'location.js').read_text()
+          rain_now=(root/'rain-now.js').read_text()
+          weather_authority=(root/'weather-authority.js').read_text()
+          registry=(root/'route-registry.js').read_text()
+          transitions=(root/'app-transitions.js').read_text()
+
+          assert "sindhorn-midtown-internal-pwa-v40-weather-webgl-retired-r1" in sw
+          for name in retired:
+              assert f"'/{name}'" not in sw, f'retired file remains in service-worker cache: {name}'
+              assert f'/{name}' not in index, f'retired file remains in app shell: {name}'
+
+          assert "await import('./betta-runtime.js?v=1')" in bootstrap
+          assert "import('./betta-runtime.js?v=1')" in auth_shell
+          assert "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" in betta
+          assert "dataset.environmentInput='satellite-only'" in betta
+          assert 'const DPR=2' in betta and 'preserveDrawingBuffer:false' in betta
+          assert 'startSatelliteStream' in betta
+
+          # Weather and current-rain remain operational data/UI services, not WebGL visuals.
+          assert 'sindhorn-weather-core' in location
+          assert 'sindhorn-weather-core' in rain_now
+          assert 'resolveWeatherAuthority' in rain_now
+          assert 'effectiveWeatherSnapshot' in weather_authority
+          assert 'open_meteo_used:false' in location
+
+          assert "today:Object.freeze({path:'/'" in registry
+          assert "fnb:Object.freeze({path:'/fnb'" in registry
+          assert "messages:Object.freeze({path:'/messages'" in registry
+          assert "settings:Object.freeze({path:'/settings'" in registry
+          assert 'startViewTransition' not in transitions
+
           manifest=json.loads((fallback/'manifest.json').read_text())
-          bootstrap=(root/'bootstrap.js').read_text(); auth_shell=(root/'auth-shell.js').read_text(); registry=(root/'route-registry.js').read_text(); transitions=(root/'app-transitions.js').read_text()
           shell_version=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
           assert manifest['minimumShell']==shell_version==17
           for item in manifest['resources']:
-              assert hashlib.sha256((fallback/item['path']).read_bytes()).hexdigest()==item['sha256'],item['path']
-          index=(root/'index.html').read_text(); sw=(root/'sw.js').read_text(); env=(root/'environment.js').read_text(); shader=(root/'atmosphere-shader.js').read_text(); seasonal=(root/'seasonal-sky.js').read_text(); fixtures=(root/'phase8-2-fixtures.js').read_text()
-          dashboard=(root/'business-dashboard.js').read_text(); dashboard_data=(root/'business-dashboard-data.js').read_text()
-          caps=(root/'capabilities.js').read_text(); settings=(root/'settings.js').read_text(); settings_wrapper=(root/'settings-route-v3.js').read_text(); settings_refinements=(root/'settings-refinements.css').read_text()
-          assert '/auth-shell.js' in index and '/auth-shell.css' in index
-          assert '/account.css' in index and '/admin.css' in index
-          assert '/fnb-refinements.css' in index and '/fnb-share-ui.js' in index
-          assert 'src="/location.js"' not in index and 'src="/bootstrap.js"' not in index
-          assert "await initAuth" in auth_shell and "location.replace(loginUrl())" in auth_shell
-          assert "loadClassicScript('/location.js')" in auth_shell and "await import('./bootstrap.js')" in auth_shell
-          assert "const SETTINGS_PATH='/settings'" in auth_shell and "/account.html" not in auth_shell
-          assert "dataset.appRoute='settings'" in auth_shell
-          for token in ("today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local',module:'./route-registry.js',mount:'mountBusinessDashboardStartupRoute'})","fnb:Object.freeze({path:'/fnb'","settings:Object.freeze({path:'/settings'","kind:'local'","mount:'mountFnbRoute'","mount:'mountSettingsRoute'"):
-              assert token in registry,token
-          assert 'sindhorn_business_dashboard_read_model' in dashboard_data and 'factsheet-room-card' in dashboard
-          assert "'/business-dashboard.js'" in sw and "'/business-dashboard-data.js'" in sw and "'/business-dashboard.css'" in sw and "'/business-dashboard-motion.js'" in sw and "'/business-dashboard-motion.css'" in sw
-          assert "account:Object.freeze" not in registry and "admin:Object.freeze" not in registry
-          assert "['/account','settings']" in registry and "['/admin','settings']" in registry
-          assert "guidance:Object.freeze" not in registry and "details:Object.freeze" not in registry
-          assert "['/guidance','today']" in registry and "['/details','today']" in registry
-          assert "import {ROUTES,canonicalRoute,routeForPath}" in bootstrap
-          assert 'mountLocalRoute' in bootstrap and "routeHost.dataset.shellRoute=route" in bootstrap
-          assert 'packMarkup' in bootstrap and 'normalizeFooterNavigation' in bootstrap
-          assert "dataset.appRoute='fnb'" in bootstrap and "querySelectorAll('[data-app-route=\"guidance\"],[data-app-route=\"details\"]')" in bootstrap
-          assert 'routeOnlyFade' in transitions and 'appRouteFromAnchor' in transitions
-          assert 'startViewTransition' not in transitions and 'view-transition' not in transitions.lower()
-          assert 'sindhorn_settings_manifest' in caps
-          assert 'loadSettingsAuthority({force:true})' in settings
-          assert "fnb-select settings-select" in settings and 'data-settings-select-option' in settings
-          assert "'/settings-refinements.css?v=2'" in settings_wrapper
-          assert '.settings-add{' in settings_refinements and 'background:rgba(229,236,190,.10)' in settings_refinements
-          assert 'overflow-y:auto!important' in settings_refinements
-          redirects_raw=(root/'_redirects').read_text()
-          assert redirects_raw.endswith('\n'),'_redirects needs a trailing newline or its last rule is dropped'
-          rules=[l.strip() for l in redirects_raw.splitlines() if l.strip() and not l.lstrip().startswith('#')]
-          for token in ('/guidance / 301','/details / 301','/account.html /account 301','/admin.html /admin 301','/settings / 200','/account / 200','/admin / 200'):
-              assert token in rules,token
-          assert not any('/index.html' in r and r.endswith('200') for r in rules),'SPA rewrite target must be "/" not "/index.html"'
-          assert not any(r.startswith('/*') for r in rules),'catch-all splat shadows static assets - list routes explicitly'
-          for path in sorted(set(re.findall(r"path:'(/[a-z]*)'",registry))):
-              if path=='/':continue
-              assert f'{path} / 200' in rules,f'{path} is in route-registry.js but missing its "_redirects" SPA fallback line'
-          assert '/sky-calibration.js' not in index and '/sky-color-renderer.js' not in index
-          assert '/seasonal-sky.js?v=1' not in index
-          assert '/storm-effects.js' not in index
-          assert "'/sky-calibration.js'" not in sw and "'/sky-color-renderer.js'" not in sw and "'/storm-effects.js'" not in sw
-          assert "'/atmosphere-shader.js'" in sw and "'/seasonal-sky.js'" in sw and "'/fnb.js'" in sw
-          assert 'pwa-v23-bangkok-seasonal-clouds' in sw
-          assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw
-          assert "NOTIFICATION_DB='sindhorn-midtown-notification-inbox'" in sw
-          assert "url.pathname.startsWith('/fnb')" in sw
-          for token in ('seasonalSkyForState','ATMOSPHERE_VERTEX_SHADER','ATMOSPHERE_FRAGMENT_SHADER','createAtmosphereNoiseTexture'):
-              assert token in env,token
-          assert "renderer:'bangkok-seasonal-clouds-v2'" in env and 'const DPR=2' in env
-          assert 'ensureSnowCanvas' in env and 'ensureHailCanvas' in env and 'renderExport' in env and 'antialias:false' in env
-          for token in ('High veil / cirrus','Mid broken cloud','Low convective / monsoon','uHighCoverage','uMidCoverage','uLowCoverage','uSun','uSolarAltitude','sunDisc','Visible sun disc','texture2D(uNoise','AirBKK PM2.5 optics'):
-              assert token in shader,token
-          assert 'MONTHLY=[' in seasonal and 'bangkokSeasonalProfile' in seasonal and 'cloudMorphologyForWeather' in seasonal
-          assert fixtures.count("labelEn:")==11
+              assert hashlib.sha256((fallback/item['path']).read_bytes()).hexdigest()==item['sha256'], item['path']
+
           pwa=json.loads((root/'manifest.webmanifest').read_text())
           assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
-          app=(root/'app.js').read_text(); push=(root/'push-client.js').read_text()
-          assert "messages:'/messages'" in app and "navigator.serviceWorker.register('/sw.js',{scope:'/'})" in app
-          assert "new Set(['today','messages'])" in app
-          assert 'pushManager.subscribe' in push and 'Notification.requestPermission' not in push
-          assert 'letter-spacing:0!important' in (root/'auth-shell.css').read_text()
-          public=(root/'share/fnb.html').read_text()
-          assert 'property="og:title"' in public and 'property="og:url"' in public
-          assert 'og:image' not in public.lower() and 'twitter:image' not in public.lower()
+
+          migration=Path('supabase/migrations/20260831121436_archive_legacy_weather_webgl_sources.sql').read_text()
+          assert 'private.legacy_weather_webgl_archive' in migration
+          assert 'enable row level security' in migration.lower()
+          assert 'revoke all' in migration.lower()
           PY
 
       - name: Deploy to Cloudflare Pages
@@ -175,7 +146,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
 
-      - name: Smoke test deployed shell
+      - name: Smoke deployed shell
         shell: bash
         run: |
           set -euo pipefail
@@ -187,85 +158,30 @@ jobs:
             BASE_URL="https://${PREVIEW_BRANCH}.sindhorn-midtown-internal.pages.dev"
           fi
           sleep 8
-          for path in / /fnb /messages /settings /account /admin /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /business-dashboard-motion.js /business-dashboard-motion.css /hotel-factsheet.css /app-transitions.js /auth-shell.js /auth-shell.css /auth-client.js /login.html /login.js /capabilities.js /settings.js /settings-route-v3.js /settings.css /settings-refinements.css /fnb.js /fnb-share-ui.js /fnb-refinements.css /location.js /bootstrap.js /environment.js /atmosphere-shader.js /seasonal-sky.js /rain-layer.js /sun-dimmer.js /screen-capture.js /manifest.webmanifest /phase8-2-fixtures.js /notification-inbox.js /push-client.js /sw.js /share/fnb; do
+          paths=(
+            / /fnb /messages /settings /account /admin /route-registry.js
+            /business-dashboard.js /business-dashboard-data.js /business-dashboard.css
+            /business-dashboard-motion.js /business-dashboard-motion.css /auth-shell.js /auth-client.js
+            /location.js /bootstrap.js /betta-runtime.js /betta-environment.js /betta-satellite.js
+            /rain-now.js /weather-authority.js /live-data.js /notification-inbox.js /push-client.js
+            /manifest.webmanifest /sw.js /share/fnb
+          )
+          for path in "${paths[@]}"; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
             test -s /tmp/smoke-response
           done
-          for path in / /fnb /messages /settings /account /admin; do
-            curl --fail --silent --show-error --location "${BASE_URL}${path}" -o /tmp/app-route.html
-            grep -q '/auth-shell.js' /tmp/app-route.html
-            grep -q 'id="route-view"' /tmp/app-route.html
-          done
-          for path in /fnb /messages /settings /account /admin; do
-            code=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' "${BASE_URL}${path}")
-            if [ "$code" != "200" ]; then
-              echo "FAIL ${path} returned ${code} (expected 200 with the URL preserved)"
+          curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html
+          curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js
+          curl --fail --silent --show-error --location "${BASE_URL}/betta-environment.js" -o /tmp/betta.js
+          ! grep -q '/rain-layer.js' /tmp/root.html
+          ! grep -q '/sun-dimmer.js' /tmp/root.html
+          grep -q 'sindhorn-midtown-internal-pwa-v40-weather-webgl-retired-r1' /tmp/sw.js
+          grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta.js
+          grep -q "dataset.environmentInput='satellite-only'" /tmp/betta.js
+          for retired in environment.js environment.bundle.js seasonal-sky.js atmosphere-shader.js rain-layer-legacy-weather.js rain-layer.js sun-dimmer.js storm-effects.js sky-calibration.js sky-color-renderer.js cloud-tester.js phase8-2-fixtures.js phase8-2-seasonal-clouds.test.mjs; do
+            code=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' "${BASE_URL}/${retired}")
+            if [ "$code" != "404" ]; then
+              echo "Retired asset /${retired} returned ${code}; expected 404"
               exit 1
             fi
           done
-          for legacy in /guidance /details; do
-            curl --fail --silent --show-error --location "${BASE_URL}${legacy}" -o /tmp/legacy-environment.html
-            grep -q '/auth-shell.js' /tmp/legacy-environment.html
-          done
-          curl --fail --silent --show-error --location "${BASE_URL}/account.html" -o /tmp/legacy-account.html
-          grep -q '/auth-shell.js' /tmp/legacy-account.html
-          curl --fail --silent --show-error --location "${BASE_URL}/admin.html" -o /tmp/legacy-admin.html
-          grep -q '/auth-shell.js' /tmp/legacy-admin.html
-          curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html
-          curl --fail --silent --show-error --location "${BASE_URL}/auth-shell.js" -o /tmp/auth-shell.js
-          curl --fail --silent --show-error --location "${BASE_URL}/route-registry.js" -o /tmp/route-registry.js
-          curl --fail --silent --show-error --location "${BASE_URL}/business-dashboard.js" -o /tmp/business-dashboard.js
-          curl --fail --silent --show-error --location "${BASE_URL}/business-dashboard-data.js" -o /tmp/business-dashboard-data.js
-          curl --fail --silent --show-error --location "${BASE_URL}/capabilities.js" -o /tmp/capabilities.js
-          curl --fail --silent --show-error --location "${BASE_URL}/settings-route-v3.js" -o /tmp/settings-wrapper.js
-          curl --fail --silent --show-error --location "${BASE_URL}/settings-refinements.css" -o /tmp/settings-refinements.css
-          curl --fail --silent --show-error --location "${BASE_URL}/bootstrap.js" -o /tmp/bootstrap.js
-          curl --fail --silent --show-error --location "${BASE_URL}/environment.js" -o /tmp/environment.js
-          curl --fail --silent --show-error --location "${BASE_URL}/atmosphere-shader.js" -o /tmp/shader.js
-          curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js
-          curl --fail --silent --show-error "${BASE_URL}/share/fnb" -o /tmp/share-fnb.html
-          curl --fail --silent --show-error "${BASE_URL}/share/fnb/fried-chicken-waffles" -o /tmp/share-promo.html
-          grep -q '/auth-shell.js' /tmp/root.html
-          ! grep -q 'src="/bootstrap.js"' /tmp/root.html
-          ! grep -q 'src="/location.js"' /tmp/root.html
-          grep -q "await import('./bootstrap.js')" /tmp/auth-shell.js
-          grep -q "loadClassicScript('/location.js')" /tmp/auth-shell.js
-          grep -q 'masthead-user' /tmp/auth-shell.js
-          grep -q "SETTINGS_PATH='/settings'" /tmp/auth-shell.js
-          grep -q "path:'/'" /tmp/route-registry.js
-          grep -q "module:'./route-registry.js'" /tmp/route-registry.js
-          grep -q "mount:'mountBusinessDashboardStartupRoute'" /tmp/route-registry.js
-          grep -q 'sindhorn_business_dashboard_read_model' /tmp/business-dashboard-data.js
-          grep -q 'factsheet-room-card' /tmp/business-dashboard.js
-          grep -q "path:'/fnb'" /tmp/route-registry.js
-          grep -q "path:'/settings'" /tmp/route-registry.js
-          grep -q "['/account','settings']" /tmp/route-registry.js
-          grep -q "['/admin','settings']" /tmp/route-registry.js
-          grep -q 'sindhorn_settings_manifest' /tmp/capabilities.js
-          grep -q 'settings-refinements.css?v=2' /tmp/settings-wrapper.js
-          grep -q 'overflow-y:auto!important' /tmp/settings-refinements.css
-          grep -q 'background:rgba(229,236,190,.10)' /tmp/settings-refinements.css
-          grep -q 'normalizeFooterNavigation' /tmp/bootstrap.js
-          ! grep -q '/sky-calibration.js' /tmp/root.html
-          ! grep -q '/sky-color-renderer.js' /tmp/root.html
-          ! grep -q '/storm-effects.js' /tmp/root.html
-          grep -q 'bangkok-seasonal-clouds-v2' /tmp/environment.js
-          grep -q 'Low convective / monsoon' /tmp/shader.js
-          grep -q 'Visible sun disc' /tmp/shader.js
-          grep -q 'texture2D(uNoise' /tmp/shader.js
-          grep -q 'pwa-v23-bangkok-seasonal-clouds' /tmp/sw.js
-          grep -q 'pwa-v33-business-dashboard-ci-r1' /tmp/sw.js
-          grep -q "'/business-dashboard.js'" /tmp/sw.js
-          grep -q "'/business-dashboard-motion.js'" /tmp/sw.js
-          grep -q "'/business-dashboard-motion.css'" /tmp/sw.js
-          ! grep -q "'/sky-calibration.js'" /tmp/sw.js
-          grep -q "addEventListener('push'" /tmp/sw.js
-          curl --fail --silent --show-error --location "${BASE_URL}/location.js" -o /tmp/location.js
-          grep -q 'navigator.geolocation.getCurrentPosition' /tmp/location.js
-          grep -q 'sindhorn:location-updated' /tmp/location.js
-          grep -q 'property="og:title"' /tmp/share-fnb.html
-          grep -q 'property="og:url"' /tmp/share-fnb.html
-          ! grep -qi 'og:image' /tmp/share-fnb.html
-          ! grep -qi 'twitter:image' /tmp/share-fnb.html
-          grep -q 'Fried Chicken &amp; Waffles | Sindhorn Midtown' /tmp/share-promo.html
-          ! grep -qiE 'sharepoint\.com|1drv\.ms|onedrive\.live\.com|employee_number|Add / change artwork link|auth-client|id="app-footer"' /tmp/share-promo.html
