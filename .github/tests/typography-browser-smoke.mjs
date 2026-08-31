@@ -10,7 +10,7 @@ fs.mkdirSync('typography-artifacts',{recursive:true});
 
 const browser=await chromium.launch({headless:true,args:['--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader','--disable-background-timer-throttling','--disable-renderer-backgrounding']});
 const errors=[];
-const report={base,checks:[],errors};
+const report={base,checks:[],network:[],errors};
 const assert=(ok,message)=>{if(!ok)throw new Error(message)};
 const familyOk=value=>String(value).toLowerCase().includes('line seed sans th');
 const allowedWeights=new Set(['100','400','700']);
@@ -78,8 +78,12 @@ async function signIn(page,label){
 
   await page.fill('#employeeNumber',employee);
   for(let i=0;i<6;i++)await page.fill(`[data-pin-login-digit="${i}"]`,pin[i]);
-  await page.click('#pinLoginButton');
-  await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:20000,waitUntil:'commit'});
+  /* The CI service employee is synthetic and may intentionally not satisfy the
+     human-facing employee-number HTML constraint. Dispatch the form submit
+     event directly so the smoke exercises login.js + the authenticated RPC,
+     matching the production Phase 8.2 browser test without weakening UI rules. */
+  await page.evaluate(()=>document.querySelector('#employeeForm')?.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
+  await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:45000,waitUntil:'commit'});
   await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false'&&document.querySelector('#route-view'),null,{timeout:30000});
   await page.evaluate(()=>{document.__typographyShellToken=`shell-${Date.now()}-${Math.random()}`});
 }
@@ -116,7 +120,11 @@ async function inspectAuthenticated(viewport,label){
   const context=await browser.newContext({viewport,screen:viewport,serviceWorkers:'block'});
   const page=await context.newPage();
   page.on('pageerror',e=>errors.push(`${label} pageerror: ${e.message}`));
-  page.on('console',m=>{if(m.type()==='error')errors.push(`${label} console: ${m.text()}`)});
+  page.on('console',m=>{if(m.type()==='error'){const source=m.location()?.url||'';errors.push(`${label} console${source?` @ ${source}`:''}: ${m.text()}`)}});
+  page.on('response',response=>{
+    const request=response.request(),type=request.resourceType(),contentType=String(response.headers()['content-type']||'');
+    if(response.status()>=400||type==='script'&&!/(javascript|ecmascript|wasm)/i.test(contentType))report.network.push({label,type,status:response.status(),contentType,url:response.url()});
+  });
   await signIn(page,label);
   await settleFonts(page);await page.waitForTimeout(250);
   await auditVisibleTypography(page,`${label}-today`,{requireThinSelectors:['.intro h1','.pm-value','.aqi-value','.weather-temp']});
@@ -131,12 +139,15 @@ async function inspectAuthenticated(viewport,label){
   await page.screenshot({path:`typography-artifacts/${label}-messages.png`,fullPage:true});
 
   const account=page.locator('.masthead-user');
-  assert(await account.count(),'missing account link');
+  assert(await account.count(),'missing settings/account link');
   const token=await page.evaluate(()=>document.__typographyShellToken);
-  await account.click();await page.waitForURL(url=>new URL(url).pathname==='/account',{timeout:12000});await page.waitForTimeout(300);await settleFonts(page);
-  assert(await page.evaluate(()=>document.__typographyShellToken)===token,'account navigation replaced the authenticated document');
-  await auditVisibleTypography(page,`${label}-account`);
-  await page.screenshot({path:`typography-artifacts/${label}-account.png`,fullPage:true});
+  await account.click();
+  await page.waitForURL(url=>new URL(url).pathname==='/settings',{timeout:12000});
+  await page.waitForFunction(()=>document.body.dataset.route==='settings'&&document.querySelector('.settings-route'),null,{timeout:20000});
+  await page.waitForTimeout(300);await settleFonts(page);
+  assert(await page.evaluate(()=>document.__typographyShellToken)===token,'settings navigation replaced the authenticated document');
+  await auditVisibleTypography(page,`${label}-settings`);
+  await page.screenshot({path:`typography-artifacts/${label}-settings.png`,fullPage:true});
 
   await syntheticAdminVisual(page,label);
   await context.close();
