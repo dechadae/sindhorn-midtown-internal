@@ -1,12 +1,19 @@
 import {activate,getState,initAuth,setPermanentPin,signInWithPin,signOut} from './auth-client.js';
 
 const COPY={eyebrow:'Internal employee access',title:'Employee sign in.',supportPin:'Enter your Employee ID and permanent 6-digit code.',supportOtp:'Enter your Employee ID and the one-time code provided by an administrator.',employeeId:'Employee ID',permanentCode:'Permanent code',oneTimeCode:'Administrator one-time code',signIn:'Sign in',continue:'Continue',useOneTime:'First time or forgot your code? Use an administrator one-time code.',oneTimeHint:'The administrator code works once and expires after 15 minutes. After verification, you will create a new permanent code.',usePermanent:'Back to permanent code sign in',setupKicker:'Secure your account',setupTitle:'Create your permanent code.',setupSupport:'Choose a 6-digit code you will use with your Employee ID for future sign-ins.',newCode:'New permanent code',confirmCode:'Confirm permanent code',saveCode:'Save code & open app',pinSafety:'Your permanent code is stored only as a secure hash. Five failed attempts temporarily lock PIN sign-in for 15 minutes.',openApp:'Open app',admin:'Admin',signOut:'Sign out',working:'Signing you in…',checkingOtp:'Checking one-time code…',savingPin:'Saving your permanent code…',success:'Signed in successfully.',pinReady:'Permanent code saved.',badPin:'Check your Employee ID and permanent code, then try again. If needed, use an administrator one-time code.',badCode:'Check your Employee ID and administrator one-time code, then try again. Ask an administrator for a new code if it has expired.',pinMismatch:'The two permanent codes do not match.',pinLength:'Enter all 6 digits of your permanent code.',genericError:'Sign-in could not be completed. Please try again.'};
+const ONBOARDING_PENDING='sindhorn-onboarding:pending:v1',ONBOARDING_SESSION='sindhorn-onboarding:suppress-session:v1';
 
 const $=selector=>document.querySelector(selector);
 const $$=selector=>[...document.querySelectorAll(selector)];
 const controls=$('#loginControls'),status=$('#status'),signedCard=$('#signedCard'),signedName=$('#signedName'),signedMeta=$('#signedMeta'),adminLink=$('#adminLink'),openAppLink=$('#signedCard .signed-actions a[href="/"]'),pinSetupStep=$('#pinSetupStep');
 let mode='pin';
 
+function installFirstTimeHelp(){
+  if(!document.querySelector('link[data-onboarding-style]')){const link=document.createElement('link');link.rel='stylesheet';link.href='/onboarding.css?v=1';link.dataset.onboardingStyle='';document.head.append(link)}
+  if(!controls||controls.querySelector('.login-first-time'))return;
+  const details=document.createElement('details');details.className='login-first-time';details.innerHTML='<summary>First time here?</summary><div class="login-first-time-body"><ol><li><strong>Get a one-time code.</strong> Ask an authorized administrator for your 6-digit first-login code. It works once and expires after 15 minutes.</li><li><strong>Choose the first-time option.</strong> Enter your Employee ID, select “First time or forgot your code?”, then enter the administrator code.</li><li><strong>Create your permanent code.</strong> After verification, choose and confirm the 6-digit code you will use for normal sign-ins.</li><li><strong>Open the app.</strong> New accounts receive a short guided tour. The full App Guide remains available from Settings.</li></ol><p>Five failed permanent-code attempts temporarily lock PIN sign-in for 15 minutes.</p></div>';
+  controls.append(details);
+}
 function requestedNext(){
   const value=new URLSearchParams(location.search).get('next')||'/';
   if(!value.startsWith('/')||value.startsWith('//')||value.startsWith('/login'))return'/';
@@ -74,6 +81,7 @@ function renderState(){
   adminLink.classList.toggle('hidden',!['admin','super_admin'].includes(profile.role));
 }
 
+installFirstTimeHelp();
 $('#useOneTimeButton').addEventListener('click',()=>setMode('otp'));
 $('#usePermanentButton').addEventListener('click',()=>setMode('pin'));
 consumeInvitationHash();
@@ -85,10 +93,10 @@ $('#employeeForm').addEventListener('submit',async event=>{
   try{
     if(mode==='otp'){
       const code=oneTime.sync();if(code.length!==6){showStatus(COPY.badCode,'error');oneTime.digits.find(input=>!input.value)?.focus();return}
-      const result=await activate(employeeNumber,code);renderState();
+      await activate(employeeNumber,code);renderState();
     }else{
       const pin=pinLogin.sync();if(pin.length!==6){showStatus(COPY.badPin,'error');pinLogin.digits.find(input=>!input.value)?.focus();return}
-      const result=await signInWithPin(employeeNumber,pin);renderState();setTimeout(()=>location.assign(requestedNext()),420);
+      await signInWithPin(employeeNumber,pin);renderState();setTimeout(()=>location.assign(requestedNext()),420);
     }
   }catch(error){showStatus(errorMessage(error),'error')}
   finally{setLoginBusy(false)}
@@ -98,7 +106,7 @@ $('#pinSetupForm').addEventListener('submit',async event=>{
   if(pin.length!==6||confirm.length!==6){showStatus(COPY.pinLength,'error');(newPin.digits.find(input=>!input.value)||confirmPin.digits.find(input=>!input.value))?.focus();return}
   if(pin!==confirm){showStatus(COPY.pinMismatch,'error');confirmPin.clear();confirmPin.digits[0]?.focus();return}
   const button=$('#savePinButton');button.disabled=true;showStatus(COPY.savingPin,'neutral');
-  try{await setPermanentPin(pin);showStatus(COPY.pinReady,'success');renderState();setTimeout(()=>location.assign(requestedNext()),520)}catch(error){showStatus(errorMessage(error),'error')}
+  try{await setPermanentPin(pin);try{localStorage.setItem(ONBOARDING_PENDING,'1');sessionStorage.removeItem(ONBOARDING_SESSION)}catch(_){}showStatus(COPY.pinReady,'success');renderState();setTimeout(()=>location.assign(requestedNext()),520)}catch(error){showStatus(errorMessage(error),'error')}
   finally{button.disabled=false}
 });
 $('#signOutButton').addEventListener('click',async()=>{await signOut();showStatus('');controls.hidden=false;setMode('pin',{focus:false});renderState()});
