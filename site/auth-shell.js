@@ -2,6 +2,8 @@ import {getState,initAuth} from './auth-client.js';
 
 const LOGIN_PATH='/login.html';
 const SETTINGS_PATH='/settings';
+const mark=name=>performance.mark?.(name);
+mark('sindhorn-auth-shell-start');
 
 function safeReturnPath(){
   const value=`${location.pathname}${location.search}${location.hash}`;
@@ -27,14 +29,26 @@ async function loadClassicScript(src){await new Promise((resolve,reject)=>{if(do
 /* Warm the approved Betta renderer underneath the existing logo/auth phase.
    bootstrap.js imports the same module URL later, so the browser reuses this
    in-flight/evaluated module and initEnvironment remains idempotent. */
-const earlyBetta=import('./betta-runtime.js?v=1').then(module=>module.initEnvironment()).catch(error=>{console.warn('Early Betta startup unavailable; bootstrap will retry.',error)});
+mark('sindhorn-betta-warm-start');
+const earlyBetta=import('./betta-runtime.js?v=1').then(module=>module.initEnvironment()).then(()=>mark('sindhorn-betta-warm-ready')).catch(error=>{console.warn('Early Betta startup unavailable; bootstrap will retry.',error)});
 
+mark('sindhorn-auth-start');
 let state;try{state=await initAuth()}catch(_){state=getState()}
+mark('sindhorn-auth-ready');
 if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
   window.__SINDHORN_AUTH_PROFILE__=state.profile;
   document.addEventListener('sindhorn:pack-updated',()=>applyEmployeeHeader());
   document.addEventListener('sindhorn:capabilities-updated',event=>applyEmployeeHeader(event.detail?.profile));
   document.addEventListener('sindhorn:auth-changed',event=>{const nextState=getState();if(!event.detail?.authenticated||!hasCompleteEmployeeAuth(nextState)){location.replace(loginUrl());return}window.__SINDHORN_AUTH_PROFILE__=event.detail.profile||nextState.profile;applyEmployeeHeader(window.__SINDHORN_AUTH_PROFILE__)});
-  await loadClassicScript('/location.js');await import('./bootstrap.js');await import('./onboarding.js?v=1');applyEmployeeHeader();
+  mark('sindhorn-location-load-start');
+  await loadClassicScript('/location.js');
+  mark('sindhorn-location-load-ready');
+  mark('sindhorn-bootstrap-import-start');
+  await import('./bootstrap.js');
+  mark('sindhorn-bootstrap-import-ready');
+  mark('sindhorn-onboarding-import-start');
+  await import('./onboarding.js?v=1');
+  mark('sindhorn-onboarding-import-ready');
+  applyEmployeeHeader();
 }
 void earlyBetta;
