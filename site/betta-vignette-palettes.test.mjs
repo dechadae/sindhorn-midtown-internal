@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {BETTA_PRESETS} from './betta-fin-presets.js';
-import {VIGNETTE_GRADES,applyVignetteGrade} from './betta-vignette-palettes.js';
+import {BETTA_DAY_PERIODS} from './betta-day-periods.js';
+import {VIGNETTE_GRADES,VIGNETTE_SELECTED_BY_PERIOD,applyVignetteGrade} from './betta-vignette-palettes.js';
 
 const presetKeys=Object.keys(BETTA_PRESETS);
 assert.equal(presetKeys.length,8,'exactly eight canonical Betta presets');
@@ -12,7 +13,7 @@ const rgb=value=>[1,3,5].map(i=>parseInt(value.slice(i,i+2),16));
 const average=palette=>palette.map(rgb).reduce((sum,c)=>sum.map((v,i)=>v+c[i]),[0,0,0]).map(v=>v/palette.length);
 const distance=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
 
-for(const gradeKey of ['a','b']){
+for(const gradeKey of ['a','b','selected']){
   const grade=VIGNETTE_GRADES[gradeKey];
   assert.ok(grade,`grade ${gradeKey} exists`);
   assert.deepEqual(Object.keys(grade.palettes).sort(),[...presetKeys].sort(),`grade ${gradeKey} covers all eight fish`);
@@ -41,4 +42,11 @@ for(const gradeKey of ['a','b']){
   }
 }
 
-console.log('Cool Vignette palette contract passed: 8 distinct fish, unchanged dark backgrounds, unchanged motion and approved optical values.');
+assert.deepEqual(Object.keys(VIGNETTE_SELECTED_BY_PERIOD).sort(),BETTA_DAY_PERIODS.map(period=>period.key).sort(),'selected mix covers every Bangkok day period exactly once');
+for(const period of BETTA_DAY_PERIODS){
+  const gradeKey=VIGNETTE_SELECTED_BY_PERIOD[period.key];
+  assert.ok(gradeKey==='a'||gradeKey==='b',`${period.key} selects A or B`);
+  assert.deepEqual(VIGNETTE_GRADES.selected.palettes[period.baseline],VIGNETTE_GRADES[gradeKey].palettes[period.baseline],`${period.name} keeps approved ${gradeKey.toUpperCase()} palette`);
+}
+
+console.log('Cool Vignette palette contract passed: A, B and approved selected mix stay distinct with unchanged dark backgrounds, unchanged motion and approved optical values.');
