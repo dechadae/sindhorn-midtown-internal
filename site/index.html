@@ -29,12 +29,7 @@
 <link rel="preload" as="image" href="/assets/brand/sindhorn-midtown-vignette-white.png">
 <link rel="modulepreload" href="/bootstrap.js">
 <link rel="modulepreload" href="/route-registry.js">
-<link rel="modulepreload" href="/betta-environment.js">
-<link rel="modulepreload" href="/vendor/three.module.js">
-<link rel="modulepreload" href="/betta-fin-presets.js">
-<link rel="modulepreload" href="/betta-fin-shader.js">
-<link rel="modulepreload" href="/betta-satellite.js">
-<link rel="modulepreload" href="/betta-day-periods.js">
+<link rel="modulepreload" href="/betta-runtime.js?v=1">
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-transitions.css">
 <link rel="stylesheet" href="/shell.css?v=5">
@@ -64,7 +59,7 @@
 <script>(()=>{const root=document.documentElement,body=document.body,route=document.getElementById('route-view');let released=false,queued=false;const ready=()=>body.classList.contains('environment-ready')&&route.childElementCount>0||root.dataset.shellLoading==='false';const release=()=>{if(released||queued)return;queued=true;requestAnimationFrame(()=>{if(released)return;released=true;root.dataset.startupEnter='visible';performance.mark?.('sindhorn-startup-enter-visible')})};if(ready())release();const observer=new MutationObserver(()=>{if(!ready())return;observer.disconnect();release()});observer.observe(body,{attributes:true,attributeFilter:['class']});observer.observe(root,{attributes:true,attributeFilter:['data-shell-loading']});observer.observe(route,{childList:true})})();</script>
 <script type="module" src="/pwa-version-guard.js?v=1"></script>
 <script type="module" src="/app-transitions.js"></script>
-<script type="module" src="/auth-shell.js?v=3"></script>
+<script type="module" src="/auth-shell.js?v=4"></script>
 <script type="module" src="/fnb-timestamp-stability.js?v=1"></script>
 <script type="module" src="/footer-route-guard.js?v=15"></script>
 <script type="module" src="/brand-route-controls.js?v=1"></script>
