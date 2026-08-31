@@ -1,3 +1,4 @@
+window.__TODAY_PROGRESS_LAB_VERSION__='v3-waapi';
 const reduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const cards=[...document.querySelectorAll('[data-progress-card]')];
 const replay=document.querySelector('[data-replay]');

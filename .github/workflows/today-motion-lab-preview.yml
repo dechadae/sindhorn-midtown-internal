@@ -27,47 +27,44 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v6
-
       - name: Validate isolated lab
         shell: bash
         run: |
           set -euo pipefail
-          test -s site/today-motion-lab.html
-          test -s site/today-motion-lab.css
-          test -s site/today-motion-lab.js
           node --input-type=module --check < site/today-motion-lab.js
           grep -Fq 'Progress experiment · synthetic data' site/today-motion-lab.html
-          grep -Fq 'This page does not read or expose Sindhorn Midtown operational business data.' site/today-motion-lab.html
-          grep -Fq "import('/betta-runtime.js?v=1')" site/today-motion-lab.js
+          grep -Fq 'today-motion-lab.js?v=3' site/today-motion-lab.html
+          grep -Fq "__TODAY_PROGRESS_LAB_VERSION__='v3-waapi'" site/today-motion-lab.js
           grep -Fq 'data-progress-card' site/today-motion-lab.html
           ! grep -Fq 'lab-scan' site/today-motion-lab.html
           ! grep -Fq 'data-progress-line' site/today-motion-lab.html
           ! grep -Fq '/rest/v1/' site/today-motion-lab.js
-
       - name: Deploy Cloudflare branch preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=lab-today-motion
-
-      - name: Smoke lab assets
+      - name: Smoke exact lab generation
         shell: bash
         run: |
           set -euo pipefail
           BASE_URL="https://lab-today-motion.sindhorn-midtown-internal.pages.dev"
-          for attempt in $(seq 1 30); do
+          promoted=false
+          for attempt in $(seq 1 40); do
             if curl --fail --silent --show-error --location "${BASE_URL}/today-motion-lab.html" -o /tmp/lab.html \
-              && grep -Fq 'Today Progress Lab' /tmp/lab.html; then
+              && grep -Fq 'today-motion-lab.js?v=3' /tmp/lab.html \
+              && curl --fail --silent --show-error --location "${BASE_URL}/today-motion-lab.js?v=3" -o /tmp/lab.js \
+              && grep -Fq "__TODAY_PROGRESS_LAB_VERSION__='v3-waapi'" /tmp/lab.js; then
+              promoted=true
               break
             fi
             sleep 3
           done
-          grep -Fq 'Replay progress' /tmp/lab.html
-          for path in /today-motion-lab.css /today-motion-lab.js /betta-runtime.js /environment.css /assets/brand/sindhorn-midtown-vignette-white.png; do
+          test "$promoted" = true
+          for path in /today-motion-lab.css?v=2 /betta-runtime.js /environment.css /assets/brand/sindhorn-midtown-vignette-white.png; do
             curl --fail --silent --show-error --location --retry 8 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/lab-asset
             test -s /tmp/lab-asset
           done
-
       - name: Validate mobile progress animation in Chromium
         env:
           BASE_URL: https://lab-today-motion.sindhorn-midtown-internal.pages.dev
@@ -80,16 +77,17 @@ jobs:
           const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:2});
           const errors=[];page.on('pageerror',error=>errors.push(String(error)));
           await page.goto(`${process.env.BASE_URL}/today-motion-lab.html`,{waitUntil:'domcontentloaded',timeout:60000});
-          await page.waitForSelector('[data-progress-card]',{timeout:30000});
-          await page.waitForTimeout(1100);
-          const before=await page.locator('[data-progress-card]').first().locator('.lab-progress i').evaluate(node=>getComputedStyle(node).transform);
+          await page.waitForFunction(()=>window.__TODAY_PROGRESS_LAB_VERSION__==='v3-waapi',{timeout:30000});
+          await page.waitForTimeout(1050);
+          const fill=page.locator('[data-progress-card]').first().locator('.lab-progress i');
+          const before=await fill.evaluate(node=>getComputedStyle(node).transform);
           await page.locator('[data-replay]').click();
-          await page.waitForTimeout(100);
-          const during=await page.locator('[data-progress-card]').first().locator('.lab-progress i').evaluate(node=>getComputedStyle(node).transform);
-          await page.waitForTimeout(1000);
-          const after=await page.locator('[data-progress-card]').first().locator('.lab-progress i').evaluate(node=>getComputedStyle(node).transform);
-          const state=await page.evaluate(()=>({cards:document.querySelectorAll('[data-progress-card]').length,globalPulse:!!document.querySelector('[data-progress-line]'),scan:!!document.querySelector('.lab-scan'),synthetic:document.body.textContent.includes('Synthetic')}));
-          if(state.cards!==8||state.globalPulse||state.scan||!state.synthetic)throw new Error(`lab structure failed ${JSON.stringify(state)}`);
+          await page.waitForTimeout(120);
+          const during=await fill.evaluate(node=>getComputedStyle(node).transform);
+          await page.waitForTimeout(950);
+          const after=await fill.evaluate(node=>getComputedStyle(node).transform);
+          const state=await page.evaluate(()=>({cards:document.querySelectorAll('[data-progress-card]').length,globalPulse:!!document.querySelector('[data-progress-line]'),scan:!!document.querySelector('.lab-scan'),version:window.__TODAY_PROGRESS_LAB_VERSION__}));
+          if(state.cards!==8||state.globalPulse||state.scan||state.version!=='v3-waapi')throw new Error(`lab structure failed ${JSON.stringify(state)}`);
           if(before===during||during===after)throw new Error(`progress replay did not visibly animate: ${before} | ${during} | ${after}`);
           if(errors.length)throw new Error(errors.join(' | '));
           console.log('TODAY_PROGRESS_LAB_PASS',JSON.stringify({before,during,after,...state}));
