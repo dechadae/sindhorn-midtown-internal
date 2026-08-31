@@ -98,7 +98,7 @@ js.write_text(s)
 
 test=Path('site/betta-vignette-palettes.test.mjs')
 s=test.read_text()
-target="  assert.ok(p.params.scale>=.76&&p.params.scale<=.86,`${key} live-wallpaper framing scale`);"
+target="  assert.ok(p.params.scale>=.76&&p.params.scale<=.86,`${key} live-wallpaper crop scale`);"
 if 'x-axis perspective' not in s:
   repl=target+"\n  assert.ok(Math.abs(p.params.rotationX)>=.18&&Math.abs(p.params.rotationX)<=.42,`${key} has deliberate x-axis perspective`);\n  assert.ok(Math.abs(p.params.rotationY)>=.24&&Math.abs(p.params.rotationY)<=.62,`${key} has deliberate y-axis perspective`);\n  assert.ok(p.params.tiltStrength>=.15&&p.params.tiltStrength<=.24,`${key} has bounded device tilt response`);"
   if target not in s: raise SystemExit('CI 3D target missing')
