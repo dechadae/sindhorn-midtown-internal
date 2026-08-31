@@ -2,11 +2,15 @@ name: Daily Business Dashboard Preview
 
 on:
   push:
-    branches: [today-v4-motion-phase-a]
+    branches:
+      - today-v4-motion-phase-a
+      - today-v4-notifications-phase-b
     paths:
       - "site/index.html"
       - "site/app.js"
       - "site/sw.js"
+      - "site/push-client.js"
+      - "site/notification-inbox.js"
       - "site/business-dashboard.js"
       - "site/business-dashboard-data.js"
       - "site/business-dashboard.css"
@@ -20,6 +24,7 @@ on:
       - "scripts/business-dashboard-pwa-smoke.mjs"
       - "scripts/business-dashboard-ci-audit.mjs"
       - "scripts/business-dashboard-ci-parity-smoke.mjs"
+      - "scripts/business-notification-messages-smoke.mjs"
       - ".github/workflows/business-dashboard-preview.yml"
   workflow_dispatch:
 
@@ -28,7 +33,7 @@ permissions:
   deployments: write
 
 concurrency:
-  group: today-v4-motion-phase-a
+  group: today-v4-dashboard-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -43,9 +48,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard-motion.js site/business-dashboard.js site/app.js site/sw.js scripts/business-dashboard-browser-smoke.mjs scripts/business-dashboard-motion-smoke.mjs scripts/business-dashboard-pwa-smoke.mjs scripts/business-dashboard-ci-audit.mjs scripts/business-dashboard-ci-parity-smoke.mjs; do
+          for file in site/route-registry.js site/business-dashboard-data.js site/business-dashboard-motion.js site/business-dashboard.js site/app.js site/sw.js site/push-client.js site/notification-inbox.js scripts/business-dashboard-browser-smoke.mjs scripts/business-dashboard-motion-smoke.mjs scripts/business-dashboard-pwa-smoke.mjs scripts/business-dashboard-ci-audit.mjs scripts/business-dashboard-ci-parity-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
+          if [ -f scripts/business-notification-messages-smoke.mjs ]; then node --input-type=module --check < scripts/business-notification-messages-smoke.mjs; fi
           grep -q "today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local'" site/route-registry.js
           grep -q "module:'./business-dashboard.js?v=4'" site/route-registry.js
           grep -q "sindhorn_business_dashboard_read_model" site/business-dashboard-data.js
@@ -63,6 +69,13 @@ jobs:
           grep -q "self.addEventListener('push'" site/sw.js
           grep -q "NOTIFICATION_DB='sindhorn-midtown-notification-inbox'" site/sw.js
           grep -q "<title>Today | Sindhorn Midtown Internal</title>" site/index.html
+          ! grep -q "Notification.requestPermission" site/push-client.js
+          if [ "${GITHUB_REF_NAME}" = "today-v4-notifications-phase-b" ]; then
+            grep -q "business-fnb-update" site/notification-inbox.js
+            grep -q "business-rooms-update" site/notification-inbox.js
+            grep -q "business-dashboard-update" site/notification-inbox.js
+            grep -q "business updates are on" site/push-client.js
+          fi
           if grep -Eqi 'border-radius:[[:space:]]*(50%|999px|9999px)' site/business-dashboard.css site/business-dashboard-motion.css; then
             echo 'Circular/capsule dashboard UI is not allowed'; exit 1
           fi
@@ -98,9 +111,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          BASE_URL="https://today-v4-motion-phase-a.sindhorn-midtown-internal.pages.dev"
+          BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /business-dashboard-motion.js /business-dashboard-motion.css /hotel-factsheet.css /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /rain-layer.js /rain-layer-legacy-weather.js /app.js /sw.js /manifest.webmanifest; do
+          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /business-dashboard-motion.js /business-dashboard-motion.css /hotel-factsheet.css /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /rain-layer.js /rain-layer-legacy-weather.js /push-client.js /notification-inbox.js /app.js /sw.js /manifest.webmanifest; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
@@ -122,7 +135,7 @@ jobs:
       - name: Mobile, motion, CI-parity and installed-PWA smoke
         shell: bash
         env:
-          BASE_URL: https://today-v4-motion-phase-a.sindhorn-midtown-internal.pages.dev
+          BASE_URL: https://${{ github.ref_name }}.sindhorn-midtown-internal.pages.dev
           SCREENSHOT_DIR: /tmp/business-dashboard-preview
         run: |
           set -euo pipefail
@@ -132,6 +145,7 @@ jobs:
           node scripts/business-dashboard-motion-smoke.mjs | tee /tmp/business-dashboard-motion-report.json
           node scripts/business-dashboard-ci-parity-smoke.mjs | tee /tmp/business-dashboard-ci-parity-report.json
           node scripts/business-dashboard-pwa-smoke.mjs | tee /tmp/business-dashboard-pwa-report.json
+          if [ -f scripts/business-notification-messages-smoke.mjs ]; then node scripts/business-notification-messages-smoke.mjs | tee /tmp/business-notification-messages-report.json; fi
 
       - name: Upload screenshots and reports
         if: always()
@@ -145,5 +159,6 @@ jobs:
             /tmp/business-dashboard-ci-audit.json
             /tmp/business-dashboard-ci-parity-report.json
             /tmp/business-dashboard-pwa-report.json
+            /tmp/business-notification-messages-report.json
           if-no-files-found: warn
           retention-days: 14
