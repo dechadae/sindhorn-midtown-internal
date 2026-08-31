@@ -35,6 +35,6 @@ if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
   document.addEventListener('sindhorn:pack-updated',()=>applyEmployeeHeader());
   document.addEventListener('sindhorn:capabilities-updated',event=>applyEmployeeHeader(event.detail?.profile));
   document.addEventListener('sindhorn:auth-changed',event=>{const nextState=getState();if(!event.detail?.authenticated||!hasCompleteEmployeeAuth(nextState)){location.replace(loginUrl());return}window.__SINDHORN_AUTH_PROFILE__=event.detail.profile||nextState.profile;applyEmployeeHeader(window.__SINDHORN_AUTH_PROFILE__)});
-  await loadClassicScript('/location.js');await import('./bootstrap.js');applyEmployeeHeader();
+  await loadClassicScript('/location.js');await import('./bootstrap.js');await import('./onboarding.js?v=1');applyEmployeeHeader();
 }
 void earlyBetta;

@@ -1,0 +1,86 @@
+name: New User Onboarding Preview
+
+on:
+  push:
+    branches: [new-user-onboarding]
+    paths:
+      - "site/onboarding.js"
+      - "site/onboarding-content.js"
+      - "site/onboarding.css"
+      - "site/onboarding-contract.test.mjs"
+      - "site/auth-shell.js"
+      - "site/login.js"
+      - ".github/workflows/new-user-onboarding-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: new-user-onboarding-preview-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate onboarding architecture
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in site/onboarding.js site/onboarding-content.js site/auth-shell.js site/login.js; do
+            node --input-type=module --check < "$file"
+          done
+          node site/onboarding-contract.test.mjs
+          node .github/tests/font-architecture.test.mjs
+          python - <<'PY'
+          from pathlib import Path
+          root=Path('site')
+          tour=(root/'onboarding.js').read_text()
+          content=(root/'onboarding-content.js').read_text()
+          auth=(root/'auth-shell.js').read_text()
+          login=(root/'login.js').read_text()
+          css=(root/'onboarding.css').read_text()
+          assert not (root/'tutorial.html').exists()
+          assert not (root/'onboarding.html').exists()
+          assert "await import('./bootstrap.js');await import('./onboarding.js?v=1')" in auth
+          assert "sindhorn-onboarding:pending:v1" in login
+          assert "First time here?" in login
+          assert "data-app-guide-host" in tour
+          assert "business_card.read" in content
+          assert "developer.ui_library" in content
+          assert "people.manage" in content and "security.manage" in content
+          assert "Save full page" not in content
+          assert "@media(prefers-reduced-motion:reduce)" in css
+          assert "font-family" not in css, 'onboarding must inherit production LINE Seed typography'
+          assert "environment.js" not in tour and "betta-environment" not in tour
+          PY
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke public preview assets and login help
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREVIEW_BRANCH="${GITHUB_REF_NAME:0:28}"
+          BASE_URL="https://${PREVIEW_BRANCH}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /login.html /login.js /auth-shell.js /onboarding.js /onboarding-content.js /onboarding.css; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o "/tmp/$(echo "$path" | tr '/' '_')"
+          done
+          grep -q "sindhorn-onboarding:pending:v1" /tmp/_login.js
+          grep -q "First time here?" /tmp/_login.js
+          grep -q "onboarding.js?v=1" /tmp/_auth-shell.js
+          grep -q "data-app-guide-host" /tmp/_onboarding.js
+          grep -q "business_card.read" /tmp/_onboarding-content.js
+          grep -q "prefers-reduced-motion:reduce" /tmp/_onboarding.css
+          code=$(curl --silent --show-error --output /tmp/settings-route.html --write-out '%{http_code}' "${BASE_URL}/settings")
+          test "$code" = "200"
+          grep -q 'id="route-view"' /tmp/settings-route.html
