@@ -83,7 +83,7 @@ function setupTouchPhysics(){
   addEventListener('pointerup',clear,{passive:true});addEventListener('pointercancel',clear,{passive:true});
 }
 function setupDisclosures(){
-  document.querySelectorAll('.lab-disclosure button').forEach(button=>button.addEventListener('click',()=>{const card=button.closest('.lab-disclosure'),open=!card.classList.contains('is-open');document.querySelectorAll('.lab-disclosure.is-open').forEach(other=>{if(other!==card){other.classList.remove('is-open');other.querySelector('button')?.setAttribute('aria-expanded','false')}});card.classList.toggle('is-open',open);button.setAttribute('aria-expanded',String(open));if(open&&!reduce())card.animate([{transform:'translateY(1px) scale(.995)'},{transform:'translateY(-4px) scale(1.006)',offset:.55},{transform:'translateY(-3px) scale(1)}],{duration:420,easing:'cubic-bezier(.22,1,.36,1)'})}));
+  document.querySelectorAll('.lab-disclosure button').forEach(button=>button.addEventListener('click',()=>{const card=button.closest('.lab-disclosure'),open=!card.classList.contains('is-open');document.querySelectorAll('.lab-disclosure.is-open').forEach(other=>{if(other!==card){other.classList.remove('is-open');other.querySelector('button')?.setAttribute('aria-expanded','false')}});card.classList.toggle('is-open',open);button.setAttribute('aria-expanded',String(open));if(open&&!reduce())card.animate([{transform:'translateY(1px) scale(.995)'},{transform:'translateY(-4px) scale(1.006)',offset:.55},{transform:'translateY(-3px) scale(1)'}],{duration:420,easing:'cubic-bezier(.22,1,.36,1)'})}));
 }
 function updateOutlook(){
   const strip=document.querySelector('[data-outlook]');if(!strip)return;const center=innerWidth/2;
