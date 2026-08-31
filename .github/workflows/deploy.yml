@@ -110,7 +110,7 @@ jobs:
           assert "loadClassicScript('/location.js')" in auth_shell and "await import('./bootstrap.js')" in auth_shell
           assert "const SETTINGS_PATH='/settings'" in auth_shell and "/account.html" not in auth_shell
           assert "dataset.appRoute='settings'" in auth_shell
-          for token in ("today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local',module:'./business-dashboard.js?v=4',mount:'mountBusinessDashboardRoute'})","fnb:Object.freeze({path:'/fnb'","settings:Object.freeze({path:'/settings'","kind:'local'","mount:'mountFnbRoute'","mount:'mountSettingsRoute'"):
+          for token in ("today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local',module:'./route-registry.js',mount:'mountBusinessDashboardStartupRoute'})","fnb:Object.freeze({path:'/fnb'","settings:Object.freeze({path:'/settings'","kind:'local'","mount:'mountFnbRoute'","mount:'mountSettingsRoute'"):
               assert token in registry,token
           assert 'sindhorn_business_dashboard_read_model' in dashboard_data and 'factsheet-room-card' in dashboard
           assert "'/business-dashboard.js'" in sw and "'/business-dashboard-data.js'" in sw and "'/business-dashboard.css'" in sw and "'/business-dashboard-motion.js'" in sw and "'/business-dashboard-motion.css'" in sw
@@ -233,8 +233,8 @@ jobs:
           grep -q 'masthead-user' /tmp/auth-shell.js
           grep -q "SETTINGS_PATH='/settings'" /tmp/auth-shell.js
           grep -q "path:'/'" /tmp/route-registry.js
-          grep -q "module:'./business-dashboard.js?v=4'" /tmp/route-registry.js
-          grep -q "mount:'mountBusinessDashboardRoute'" /tmp/route-registry.js
+          grep -q "module:'./route-registry.js'" /tmp/route-registry.js
+          grep -q "mount:'mountBusinessDashboardStartupRoute'" /tmp/route-registry.js
           grep -q 'sindhorn_business_dashboard_read_model' /tmp/business-dashboard-data.js
           grep -q 'factsheet-room-card' /tmp/business-dashboard.js
           grep -q "path:'/fnb'" /tmp/route-registry.js

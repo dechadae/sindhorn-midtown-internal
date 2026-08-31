@@ -46,16 +46,15 @@ assert.ok(env.includes('antialias:false'),'legacy fullscreen shader should avoid
 const legacyRenderer=env.match(/renderer=new THREE\.WebGLRenderer\((\{[^;]+?\})\)/)?.[1]||'';assert.ok(!legacyRenderer.includes('preserveDrawingBuffer:true'),'legacy live renderer must not preserve drawing buffer');
 assert.ok(env.includes('ensureSnowCanvas()')&&env.includes('ensureHailCanvas()'),'legacy rare precipitation overlays should allocate lazily');
 
-// Production authority: persistent shell loads Betta, whose visual driver is satellite-only.
+// Production authority: persistent shell loads the optimized Betta runtime, while source contracts remain verified against betta-environment.js.
 const bootstrap=fs.readFileSync(new URL('./bootstrap.js',import.meta.url),'utf8');
 const betta=fs.readFileSync(new URL('./betta-environment.js',import.meta.url),'utf8');
-assert.ok(bootstrap.includes("await import('./betta-environment.js')"),'persistent shell must load Betta environment');
+assert.ok(bootstrap.includes("await import('./betta-runtime.js?v=1')"),'persistent shell must load optimized Betta runtime');
 assert.ok(!bootstrap.includes("await import('./environment.js')"),'legacy weather renderer must not be mounted as production background');
 assert.ok(betta.includes("renderer:'sindhorn-betta-satellite-v1'"),'Betta renderer identity must remain production authority');
 assert.ok(betta.includes("inputMode:'satellite-only'"),'Betta visual input must remain satellite-only');
 assert.ok(betta.includes('const DPR=2'),'Betta production renderer must keep DPR 2');
-const bettaLiveRenderer=betta.match(/renderer=new THREE\.WebGLRenderer\((\{[^;]+?\})\)/)?.[1]||'';
-assert.ok(bettaLiveRenderer.includes('antialias:false'),'Betta live renderer must keep MSAA disabled');
+const bettaLiveRenderer=betta.match(/renderer=new THREE\.WebGLRenderer\((\{[^;]+?\})\)/)?.[1]||'';assert.ok(bettaLiveRenderer.includes('antialias:false'),'Betta live renderer must keep MSAA disabled');
 assert.ok(!bettaLiveRenderer.includes('preserveDrawingBuffer:true'),'Betta live renderer must not preserve its drawing buffer');
 assert.ok(betta.includes('preserveDrawingBuffer:true'),'one-shot export renderer may preserve its drawing buffer for capture');
 
