@@ -13,7 +13,7 @@ const previewButton=document.querySelector('[data-preview]');
 const tiltButton=document.querySelector('[data-tilt]');
 
 titleNode.textContent='Betta Fine Tune';
-descriptionNode.textContent='Final Betta materials with independent XYZ poses, live-wallpaper cropping and calibrated device-tilt parallax.';
+descriptionNode.textContent='Final Betta materials with independent XYZ poses, deliberately asymmetric editorial crops, negative space and calibrated device-tilt parallax.';
 
 function hourLabel(value){return `${String(value).padStart(2,'0')}:00`}
 function renderButtons(){periodsHost.innerHTML=BETTA_DAY_PERIODS.map(period=>{const preset=BETTA_PRESETS[period.baseline];return `<button type="button" data-period="${period.key}" data-reference="${period.referenceId}" data-tone="${period.tone}"><span>${period.name}</span><small>${hourLabel(period.startHour)}–${hourLabel(period.endHour)} · Fish #${period.referenceId}</small><em>${preset?.name?.replace(/^Fish #\d+ · /,'')||''}</em></button>`}).join('')}
@@ -23,7 +23,7 @@ function paint(){
   if(!day){stateNode.textContent='Loading renderer…';return}
   const current=BETTA_DAY_PERIODS.find(period=>period.key===day.targetPeriodKey);
   clockNode.textContent=`Bangkok ${day.bangkokTime||'—'}`;
-  stateNode.textContent=`${day.periodName||day.targetPeriodKey||'—'} · Fish #${current?.referenceId||'—'} · XYZ + tilt · ${Math.round((Number(day.transitionMix)||0)*100)}%`;
+  stateNode.textContent=`${day.periodName||day.targetPeriodKey||'—'} · Fish #${current?.referenceId||'—'} · editorial crop + tilt · ${Math.round((Number(day.transitionMix)||0)*100)}%`;
   if(tiltButton&&tilt?.enabled)tiltButton.textContent='Tilt On';
   document.body.dataset.referenceId=String(current?.referenceId||'');
   document.querySelectorAll('[data-period]').forEach(button=>button.classList.toggle('is-active',button.dataset.period===day.targetPeriodKey));
@@ -35,7 +35,7 @@ liveButton.addEventListener('click',()=>{window.SindhornEnvironment?.useLiveBett
 previewButton.addEventListener('click',()=>{window.SindhornEnvironment?.previewBettaDayCycle?.(180);updateUrl({period:null});paint()});
 tiltButton?.addEventListener('click',async()=>{const ok=await window.SindhornEnvironment?.enableBettaTilt?.();tiltButton.textContent=ok?'Tilt On':'Tilt unavailable';paint()});
 
-const {initEnvironment}=await import('./betta-environment.js?v=iphone-wallpaper-3d-tilt-1');
+const {initEnvironment}=await import('./betta-environment.js?v=editorial-crop-1');
 await initEnvironment();
 if(requestedPeriod&&BETTA_DAY_PERIODS.some(period=>period.key===requestedPeriod))window.SindhornEnvironment?.setBettaPeriod?.(requestedPeriod);
 paint();setInterval(paint,250);
