@@ -1,6 +1,4 @@
 import {mountFnbRoute as mountBaseFnbRoute} from './fnb.js';
-import './fnb-timestamp-stability.js';
-import './fnb-share-ui.js';
 
 const STYLES=[
   ['link[data-fnb-style]','/fnb.css?v=2&ui=2','data-fnb-style'],
@@ -23,7 +21,16 @@ function ensureStyle(selector,href,attribute){
   });
 }
 
+async function loadRouteHelpers(){
+  const results=await Promise.allSettled([
+    import('./fnb-timestamp-stability.js?v=1'),
+    import('./fnb-share-ui.js?v=3')
+  ]);
+  for(const result of results)if(result.status==='rejected')console.warn('F&B route helper unavailable',result.reason);
+}
+
 export async function mountFnbRoute(root){
   await Promise.all(STYLES.map(args=>ensureStyle(...args)));
+  await loadRouteHelpers();
   return mountBaseFnbRoute(root);
 }
