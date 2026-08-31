@@ -100,7 +100,7 @@ jobs:
           assert '/footer-route-guard.js?v=15' in index
           assert '/footer-route-guard.css?v=14' in index
           assert '/fnb-approved-polish.css?v=2' in index
-          assert 'grid-template-columns:repeat(3,minmax(0,1fr))!important' in footer_css
+          assert 'grid-template-columns:repeat(4,minmax(0,1fr))!important' in footer_css
           assert '--fnb-motion-base:260ms' in fnb_polish and '--fnb-disclosure-ms:420ms' in fnb_polish
 
           # Betta is the active persistent visual; legacy weather stays rollback-only.
