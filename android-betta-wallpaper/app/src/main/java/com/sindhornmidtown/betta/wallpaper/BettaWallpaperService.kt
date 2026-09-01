@@ -1,6 +1,5 @@
 package com.sindhornmidtown.betta.wallpaper
 
-import android.app.WallpaperManager
 import android.content.SharedPreferences
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -11,13 +10,15 @@ import android.opengl.EGLConfig
 import android.opengl.EGLContext
 import android.opengl.EGLDisplay
 import android.opengl.EGLSurface
+import android.opengl.GLES30
 import android.os.SystemClock
 import android.service.wallpaper.WallpaperService
+import android.util.Log
 import android.view.Surface
 import android.view.SurfaceHolder
 import com.sindhornmidtown.betta.BettaSettings
-import kotlin.math.max
-import kotlin.math.min
+
+private const val TAG = "SindhornBettaGL"
 
 class BettaWallpaperService : WallpaperService() {
     override fun onCreateEngine(): Engine = BettaEngine()
@@ -163,6 +164,13 @@ private class BettaRenderThread(
     override fun run() {
         try {
             initEgl()
+
+            // Put a non-black frame on screen immediately. This also gives us a visible
+            // distinction between an EGL failure and a later shader/renderer failure.
+            GLES30.glClearColor(.01f, .025f, .055f, 1f)
+            GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
+            EGL14.eglSwapBuffers(display, eglSurface)
+
             renderer = BettaRenderer(prefs)
             renderer.onSurfaceCreated()
             var lastNs = System.nanoTime()
@@ -190,11 +198,15 @@ private class BettaRenderThread(
                 val height = size[0]
                 val pageParallax = currentPage * .16f
                 renderer.draw(width, height, now, currentTiltX, currentTiltY + pageParallax)
-                if (!EGL14.eglSwapBuffers(display, eglSurface)) break
+                if (!EGL14.eglSwapBuffers(display, eglSurface)) {
+                    Log.e(TAG, "eglSwapBuffers failed: 0x${EGL14.eglGetError().toString(16)}")
+                    break
+                }
                 SystemClock.sleep(16)
             }
-        } catch (_: Throwable) {
-            // Wallpaper services should fail closed rather than crash the launcher process.
+        } catch (error: Throwable) {
+            Log.e(TAG, "Betta wallpaper renderer failed", error)
+            showFailureFrame()
         } finally {
             if (::renderer.isInitialized) renderer.release()
             releaseEgl()
@@ -205,9 +217,19 @@ private class BettaRenderThread(
         display = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY)
         require(display != EGL14.EGL_NO_DISPLAY) { "No EGL display" }
         val versions = IntArray(2)
-        require(EGL14.eglInitialize(display, versions, 0, versions, 1)) { "EGL init failed" }
+        require(EGL14.eglInitialize(display, versions, 0, versions, 1)) {
+            "EGL init failed: 0x${EGL14.eglGetError().toString(16)}"
+        }
+        require(EGL14.eglBindAPI(EGL14.EGL_OPENGL_ES_API)) {
+            "eglBindAPI failed: 0x${EGL14.eglGetError().toString(16)}"
+        }
+
+        // Android EGL14 does not expose an EGL_OPENGL_ES3_BIT constant. Selecting
+        // an ES2-capable window config and then requesting client version 3 is the
+        // portable Android path for an OpenGL ES 3 context.
         val attribs = intArrayOf(
-            EGL14.EGL_RENDERABLE_TYPE, 0x40,
+            EGL14.EGL_SURFACE_TYPE, EGL14.EGL_WINDOW_BIT,
+            EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
             EGL14.EGL_RED_SIZE, 8,
             EGL14.EGL_GREEN_SIZE, 8,
             EGL14.EGL_BLUE_SIZE, 8,
@@ -216,12 +238,42 @@ private class BettaRenderThread(
         )
         val configs = arrayOfNulls<EGLConfig>(1)
         val count = IntArray(1)
-        require(EGL14.eglChooseConfig(display, attribs, 0, configs, 0, 1, count, 0) && count[0] > 0) { "No GLES3 config" }
-        context = EGL14.eglCreateContext(display, configs[0], EGL14.EGL_NO_CONTEXT, intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, 3, EGL14.EGL_NONE), 0)
-        require(context != EGL14.EGL_NO_CONTEXT) { "GLES3 context failed" }
-        eglSurface = EGL14.eglCreateWindowSurface(display, configs[0], surface, intArrayOf(EGL14.EGL_NONE), 0)
-        require(eglSurface != EGL14.EGL_NO_SURFACE) { "Wallpaper EGL surface failed" }
-        require(EGL14.eglMakeCurrent(display, eglSurface, eglSurface, context)) { "eglMakeCurrent failed" }
+        require(EGL14.eglChooseConfig(display, attribs, 0, configs, 0, 1, count, 0) && count[0] > 0) {
+            "No compatible window config: 0x${EGL14.eglGetError().toString(16)}"
+        }
+        val config = requireNotNull(configs[0]) { "EGL config missing" }
+        context = EGL14.eglCreateContext(
+            display,
+            config,
+            EGL14.EGL_NO_CONTEXT,
+            intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, 3, EGL14.EGL_NONE),
+            0,
+        )
+        require(context != EGL14.EGL_NO_CONTEXT) {
+            "GLES3 context failed: 0x${EGL14.eglGetError().toString(16)}"
+        }
+        eglSurface = EGL14.eglCreateWindowSurface(display, config, surface, intArrayOf(EGL14.EGL_NONE), 0)
+        require(eglSurface != EGL14.EGL_NO_SURFACE) {
+            "Wallpaper EGL surface failed: 0x${EGL14.eglGetError().toString(16)}"
+        }
+        require(EGL14.eglMakeCurrent(display, eglSurface, eglSurface, context)) {
+            "eglMakeCurrent failed: 0x${EGL14.eglGetError().toString(16)}"
+        }
+
+        val glVersion = GLES30.glGetString(GLES30.GL_VERSION).orEmpty()
+        require(glVersion.contains("OpenGL ES 3")) { "Expected OpenGL ES 3, got '$glVersion'" }
+        Log.i(TAG, "Wallpaper EGL ready: EGL ${versions[0]}.${versions[1]}, $glVersion")
+    }
+
+    private fun showFailureFrame() {
+        if (display == EGL14.EGL_NO_DISPLAY || eglSurface == EGL14.EGL_NO_SURFACE || context == EGL14.EGL_NO_CONTEXT) return
+        try {
+            GLES30.glClearColor(.12f, .012f, .08f, 1f)
+            GLES30.glClear(GLES30.GL_COLOR_BUFFER_BIT)
+            EGL14.eglSwapBuffers(display, eglSurface)
+        } catch (_: Throwable) {
+            // Nothing else is safe to do here; Logcat already contains the root failure.
+        }
     }
 
     private fun releaseEgl() {
