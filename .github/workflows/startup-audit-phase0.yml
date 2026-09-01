@@ -8,6 +8,7 @@ on:
       - "site/index.html"
       - "site/startup-audit.html"
       - "scripts/startup-audit-browser-smoke.mjs"
+      - "scripts/startup-shell-precache-probe.mjs"
       - "docs/STARTUP-PERFORMANCE-AUDIT-PHASE0.md"
       - ".github/workflows/startup-audit-phase0.yml"
   workflow_dispatch:
@@ -35,9 +36,11 @@ jobs:
           test -s site/index.html
           test -s site/startup-audit.html
           test -s scripts/startup-audit-browser-smoke.mjs
+          test -s scripts/startup-shell-precache-probe.mjs
           grep -q 'sindhorn-startup-audit:v1' site/index.html
           grep -q 'SINDHORN STARTUP AUDIT' site/startup-audit.html
           node --check scripts/startup-audit-browser-smoke.mjs
+          node --check scripts/startup-shell-precache-probe.mjs
           git diff --exit-code origin/main...HEAD -- site/sw.js site/auth-client.js site/auth-shell.js site/bootstrap.js site/route-registry.js site/betta-environment.js site/betta-runtime.js site/location.js site/rain-now.js site/live-data.js || {
             echo 'Phase 0 is instrumentation-only; protected runtime files changed.' >&2
             exit 1
@@ -68,6 +71,11 @@ jobs:
           test "$ready" = true
           echo "Preview: ${BASE_URL}/"
           echo "Audit report: ${BASE_URL}/startup-audit.html"
+
+      - name: Serial app-shell precache audit
+        env:
+          BASE_URL: https://audit-startup-phase0.sindhorn-midtown-internal.pages.dev
+        run: node scripts/startup-shell-precache-probe.mjs
 
       - name: Install Chromium audit runner
         run: |
