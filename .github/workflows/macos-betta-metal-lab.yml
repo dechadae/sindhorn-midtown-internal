@@ -1,0 +1,45 @@
+name: macOS Betta Metal Lab
+
+on:
+  push:
+    branches: [macos-betta-metal-lab]
+    paths:
+      - 'macos-betta-metal/**'
+      - '.github/workflows/macos-betta-metal-lab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Compile Metal shader
+        working-directory: macos-betta-metal
+        run: xcrun -sdk macosx metal -c Sources/BettaMetalLab/Shaders.metal -o "$RUNNER_TEMP/BettaShaders.air"
+      - name: Swift self-test
+        working-directory: macos-betta-metal
+        run: swift run BettaMetalLab --self-test
+      - name: Build release app
+        working-directory: macos-betta-metal
+        run: ./scripts/build-app.sh
+      - name: Inspect app
+        working-directory: macos-betta-metal
+        run: |
+          file "dist/Sindhorn Betta Metal Lab.app/Contents/MacOS/BettaMetalLab"
+          codesign -dv --verbose=2 "dist/Sindhorn Betta Metal Lab.app" 2>&1
+          plutil -lint "dist/Sindhorn Betta Metal Lab.app/Contents/Info.plist"
+      - name: Upload runnable lab
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sindhorn-Betta-Metal-Lab-macOS
+          path: macos-betta-metal/dist/Sindhorn-Betta-Metal-Lab-macOS.zip
+          if-no-files-found: error
+          retention-days: 30
