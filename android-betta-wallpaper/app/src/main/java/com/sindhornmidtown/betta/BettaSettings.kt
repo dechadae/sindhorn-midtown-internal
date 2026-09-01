@@ -9,6 +9,8 @@ object BettaSettings {
     const val KEY_TILT = "tilt"
     const val KEY_TILT_STRENGTH = "tilt_strength"
     const val KEY_MOTION = "motion"
+    const val KEY_RENDERER_STATUS = "renderer_status"
+    const val KEY_RENDERER_ERROR = "renderer_error"
 
     const val MODE_LIVE = "live"
     const val MODE_MANUAL = "manual"
