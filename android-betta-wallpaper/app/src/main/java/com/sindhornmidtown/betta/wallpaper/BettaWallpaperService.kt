@@ -11,7 +11,7 @@ import android.opengl.EGLContext
 import android.opengl.EGLDisplay
 import android.opengl.EGLSurface
 import android.opengl.GLES30
-import android.os.SystemClock
+import java.util.concurrent.locks.LockSupport
 import android.service.wallpaper.WallpaperService
 import android.util.Log
 import android.view.Surface
@@ -58,12 +58,17 @@ class BettaWallpaperService : WallpaperService() {
         override fun onSurfaceCreated(holder: SurfaceHolder) {
             super.onSurfaceCreated(holder)
             renderThread?.shutdown()
-            renderThread = BettaRenderThread(holder.surface, prefs) {
-                Triple(targetTiltX, targetTiltY, pageOffset)
-            }.also {
+            renderThread = BettaRenderThread(holder.surface, prefs).also {
+                it.setSurfaceSize(holder.surfaceFrame.width(), holder.surfaceFrame.height())
+                it.setMotionTargets(targetTiltX, targetTiltY, pageOffset)
                 it.setWallpaperVisible(visible)
                 it.start()
             }
+        }
+
+        override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+            super.onSurfaceChanged(holder, format, width, height)
+            renderThread?.setSurfaceSize(width, height)
         }
 
         override fun onSurfaceDestroyed(holder: SurfaceHolder) {
@@ -87,6 +92,7 @@ class BettaWallpaperService : WallpaperService() {
             yPixelOffset: Int,
         ) {
             pageOffset = ((xOffset - .5f) * 2f).coerceIn(-1f, 1f)
+            renderThread?.setMotionTargets(targetTiltX, targetTiltY, pageOffset)
         }
 
         override fun onSensorChanged(event: SensorEvent) {
@@ -101,16 +107,16 @@ class BettaWallpaperService : WallpaperService() {
             }
             targetTiltX = ((pitch - pitch0) / .42f).coerceIn(-1f, 1f)
             targetTiltY = ((roll - roll0) / .42f).coerceIn(-1f, 1f)
+            renderThread?.setMotionTargets(targetTiltX, targetTiltY, pageOffset)
         }
 
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
 
         override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-            if (key == BettaSettings.KEY_TILT) {
-                if (visible) {
-                    unregisterTilt()
-                    registerTilt()
-                }
+            renderThread?.notifySettingsChanged()
+            if (key == BettaSettings.KEY_TILT && visible) {
+                unregisterTilt()
+                registerTilt()
             }
         }
 
@@ -118,6 +124,7 @@ class BettaWallpaperService : WallpaperService() {
             calibrated = false
             targetTiltX = 0f
             targetTiltY = 0f
+            renderThread?.setMotionTargets(targetTiltX, targetTiltY, pageOffset)
             if (!prefs.getBoolean(BettaSettings.KEY_TILT, true)) return
             rotationSensor?.let {
                 sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
@@ -129,6 +136,7 @@ class BettaWallpaperService : WallpaperService() {
             calibrated = false
             targetTiltX = 0f
             targetTiltY = 0f
+            renderThread?.setMotionTargets(targetTiltX, targetTiltY, pageOffset)
         }
     }
 }
@@ -136,14 +144,25 @@ class BettaWallpaperService : WallpaperService() {
 private class BettaRenderThread(
     private val surface: Surface,
     private val prefs: SharedPreferences,
-    private val tiltSource: () -> Triple<Float, Float, Float>,
 ) : Thread("SindhornBettaGL") {
     private val stateLock = Object()
     @Volatile private var running = true
     @Volatile private var wallpaperVisible = false
+    @Volatile private var surfaceWidth = 0
+    @Volatile private var surfaceHeight = 0
+    @Volatile private var targetTiltX = 0f
+    @Volatile private var targetTiltY = 0f
+    @Volatile private var targetPage = 0f
+    @Volatile private var settingsDirty = true
     private var currentTiltX = 0f
     private var currentTiltY = 0f
     private var currentPage = 0f
+    private var perfWindowStartNs = 0L
+    private var perfLastFrameStartNs = 0L
+    private var perfFrameCount = 0
+    private var perfRenderTotalNs = 0L
+    private val perfIntervalsNs = LongArray(240)
+    private var perfIntervalCount = 0
 
     private var display: EGLDisplay = EGL14.EGL_NO_DISPLAY
     private var context: EGLContext = EGL14.EGL_NO_CONTEXT
@@ -152,6 +171,23 @@ private class BettaRenderThread(
 
     fun setWallpaperVisible(value: Boolean) {
         wallpaperVisible = value
+        synchronized(stateLock) { stateLock.notifyAll() }
+    }
+
+    fun setSurfaceSize(width: Int, height: Int) {
+        surfaceWidth = width.coerceAtLeast(0)
+        surfaceHeight = height.coerceAtLeast(0)
+        synchronized(stateLock) { stateLock.notifyAll() }
+    }
+
+    fun setMotionTargets(tiltX: Float, tiltY: Float, page: Float) {
+        targetTiltX = tiltX
+        targetTiltY = tiltY
+        targetPage = page
+    }
+
+    fun notifySettingsChanged() {
+        settingsDirty = true
         synchronized(stateLock) { stateLock.notifyAll() }
     }
 
@@ -175,9 +211,11 @@ private class BettaRenderThread(
             renderer.onSurfaceCreated()
             var lastNs = System.nanoTime()
             while (running) {
-                if (!wallpaperVisible || !surface.isValid) {
+                if (!wallpaperVisible || !surface.isValid || surfaceWidth <= 0 || surfaceHeight <= 0) {
+                    publishPerformance(System.nanoTime(), surfaceWidth, surfaceHeight, true)
+                    resetPerformanceWindow()
                     synchronized(stateLock) {
-                        if (running && (!wallpaperVisible || !surface.isValid)) stateLock.wait(500)
+                        if (running && (!wallpaperVisible || !surface.isValid || surfaceWidth <= 0 || surfaceHeight <= 0)) stateLock.wait(500)
                     }
                     lastNs = System.nanoTime()
                     continue
@@ -185,26 +223,28 @@ private class BettaRenderThread(
                 val now = System.nanoTime()
                 val dt = ((now - lastNs).coerceAtMost(50_000_000L) / 1_000_000_000f)
                 lastNs = now
-                val (targetX, targetY, page) = tiltSource()
+                if (settingsDirty) {
+                    renderer.refreshPreferences()
+                    settingsDirty = false
+                }
                 val response = 1f - kotlin.math.exp((-dt * 10f).toDouble()).toFloat()
-                currentTiltX += (targetX - currentTiltX) * response
-                currentTiltY += (targetY - currentTiltY) * response
-                currentPage += (page - currentPage) * response
+                currentTiltX += (targetTiltX - currentTiltX) * response
+                currentTiltY += (targetTiltY - currentTiltY) * response
+                currentPage += (targetPage - currentPage) * response
 
-                val size = IntArray(1)
-                EGL14.eglQuerySurface(display, eglSurface, EGL14.EGL_WIDTH, size, 0)
-                val width = size[0]
-                EGL14.eglQuerySurface(display, eglSurface, EGL14.EGL_HEIGHT, size, 0)
-                val height = size[0]
+                val width = surfaceWidth
+                val height = surfaceHeight
                 val pageParallax = currentPage * .16f
                 renderer.draw(width, height, now, dt, currentTiltX, currentTiltY + pageParallax)
+                val drawEndNs = System.nanoTime()
                 if (!EGL14.eglSwapBuffers(display, eglSurface)) {
                     Log.e(TAG, "eglSwapBuffers failed: 0x${EGL14.eglGetError().toString(16)}")
                     break
                 }
+                publishPerformance(now, width, height, false, drawEndNs - now)
                 val frameElapsedNs = System.nanoTime() - now
                 val remainingNs = 16_666_667L - frameElapsedNs
-                if (remainingNs > 1_000_000L) SystemClock.sleep(remainingNs / 1_000_000L)
+                if (remainingNs > 100_000L) LockSupport.parkNanos(remainingNs)
             }
         } catch (error: Throwable) {
             Log.e(TAG, "Betta wallpaper renderer failed", error)
@@ -213,6 +253,46 @@ private class BettaRenderThread(
             if (::renderer.isInitialized) renderer.release()
             releaseEgl()
         }
+    }
+
+    private fun publishPerformance(nowNs: Long, width: Int, height: Int, force: Boolean, renderNs: Long = 0L) {
+        if (perfWindowStartNs == 0L) perfWindowStartNs = nowNs
+        if (perfLastFrameStartNs != 0L && perfIntervalCount < perfIntervalsNs.size) {
+            perfIntervalsNs[perfIntervalCount++] = (nowNs - perfLastFrameStartNs).coerceAtLeast(0L)
+        }
+        perfLastFrameStartNs = nowNs
+        if (renderNs > 0L) {
+            perfRenderTotalNs += renderNs
+            perfFrameCount++
+        }
+        val elapsed = nowNs - perfWindowStartNs
+        if (!force && elapsed < 3_000_000_000L) return
+        if (perfFrameCount <= 0 || elapsed <= 0L) return
+        val intervals = perfIntervalsNs.copyOf(perfIntervalCount)
+        intervals.sort()
+        val averageIntervalNs = if (intervals.isNotEmpty()) intervals.sum() / intervals.size else 0L
+        val p95Index = if (intervals.isNotEmpty()) ((intervals.size - 1) * .95f).toInt().coerceIn(0, intervals.lastIndex) else 0
+        val p95Ns = if (intervals.isNotEmpty()) intervals[p95Index] else 0L
+        val fpsX100 = ((perfFrameCount * 100.0 * 1_000_000_000.0) / elapsed).toInt().coerceAtLeast(0)
+        val frameMsX100 = (averageIntervalNs / 10_000L).toInt().coerceAtLeast(0)
+        val p95MsX100 = (p95Ns / 10_000L).toInt().coerceAtLeast(0)
+        val renderMsX100 = ((perfRenderTotalNs / perfFrameCount) / 10_000L).toInt().coerceAtLeast(0)
+        prefs.edit()
+            .putInt(BettaSettings.KEY_PERF_FPS_X100, fpsX100)
+            .putInt(BettaSettings.KEY_PERF_FRAME_MS_X100, frameMsX100)
+            .putInt(BettaSettings.KEY_PERF_P95_MS_X100, p95MsX100)
+            .putInt(BettaSettings.KEY_PERF_RENDER_MS_X100, renderMsX100)
+            .putString(BettaSettings.KEY_PERF_SURFACE, "${width}×${height}")
+            .apply()
+        resetPerformanceWindow(nowNs)
+    }
+
+    private fun resetPerformanceWindow(startNs: Long = 0L) {
+        perfWindowStartNs = startNs
+        perfLastFrameStartNs = 0L
+        perfFrameCount = 0
+        perfRenderTotalNs = 0L
+        perfIntervalCount = 0
     }
 
     private fun initEgl() {
@@ -264,8 +344,13 @@ private class BettaRenderThread(
         EGL14.eglSwapInterval(display, 1)
 
         val glVersion = GLES30.glGetString(GLES30.GL_VERSION).orEmpty()
+        val glRenderer = GLES30.glGetString(GLES30.GL_RENDERER).orEmpty()
         require(glVersion.contains("OpenGL ES 3")) { "Expected OpenGL ES 3, got '$glVersion'" }
-        Log.i(TAG, "Wallpaper EGL ready: EGL ${versions[0]}.${versions[1]}, $glVersion")
+        prefs.edit()
+            .putString(BettaSettings.KEY_GL_RENDERER, glRenderer)
+            .putString(BettaSettings.KEY_GL_VERSION, glVersion)
+            .apply()
+        Log.i(TAG, "Wallpaper EGL ready: EGL ${versions[0]}.${versions[1]}, $glVersion, $glRenderer")
     }
 
     private fun showFailureFrame() {

@@ -35,6 +35,18 @@ class BettaRenderer(private val prefs: SharedPreferences) {
     private var transitionDurationNs = 0L
     private var firstTarget = true
     private var reportedFirstFrame = false
+    private var viewportWidth = 0
+    private var viewportHeight = 0
+    private var cameraZ = 10.4f
+    private var cachedMode = BettaSettings.MODE_LIVE
+    private var cachedManualIndex = 0
+    private var cachedTiltEnabled = true
+    private var cachedTiltStrength = 1f
+    private var cachedMotionMultiplier = 1f
+    private var forceTargetCheck = true
+    private var nextTargetCheckNs = 0L
+    private var commonUniformFrom = -1
+    private var commonUniformTo = -1
     private val bgLocations = HashMap<String, Int>()
     private val finLocations = HashMap<String, Int>()
 
@@ -63,10 +75,12 @@ class BettaRenderer(private val prefs: SharedPreferences) {
         checkGl("geometry")
         GLES30.glDisable(GLES30.GL_CULL_FACE)
         GLES30.glDisable(GLES30.GL_DITHER)
-        GLES30.glEnable(GLES30.GL_BLEND)
+        GLES30.glDisable(GLES30.GL_DEPTH_TEST)
+        GLES30.glDisable(GLES30.GL_BLEND)
         GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA)
         checkGl("renderer-state")
         activeTimeSeconds = 0f
+        refreshPreferences()
         val initial = desiredIndex()
         fromIndex = initial
         toIndex = initial
@@ -89,23 +103,17 @@ class BettaRenderer(private val prefs: SharedPreferences) {
         val e = transitionMix(nowNs)
         val from = BettaPresets.all[fromIndex]
         val to = BettaPresets.all[toIndex]
-        val aspect = width.toFloat() / height.toFloat()
-        val cameraZ = if (aspect < .7f) 10.4f else 9f
 
-        GLES30.glViewport(0, 0, width, height)
-        GLES30.glDisable(GLES30.GL_DEPTH_TEST)
+        updateViewport(width, height)
+        GLES30.glDisable(GLES30.GL_BLEND)
         drawBackground(from, to, e)
-
-        Matrix.perspectiveM(proj, 0, 32f, aspect, .1f, 50f)
-        Matrix.setLookAtM(view, 0, 0f, 0f, cameraZ, 0f, 0f, 0f, 0f, 1f, 0f)
-        Matrix.multiplyMM(viewProj, 0, proj, 0, view, 0)
+        GLES30.glEnable(GLES30.GL_BLEND)
 
         GLES30.glUseProgram(finProgram)
-        uniformMatrix("uViewProj", viewProj)
-        uniform3("uCameraPosition", 0f, 0f, cameraZ)
-        activeTimeSeconds += deltaSeconds.coerceIn(0f, .05f) * motionMultiplier()
+        activeTimeSeconds += deltaSeconds.coerceIn(0f, .05f) * cachedMotionMultiplier
         uniform1("uTime", activeTimeSeconds)
         setSatelliteUniforms()
+        setPresetUniformsIfNeeded(from, to, e)
         GLES30.glBindVertexArray(vao)
         for (layerIndex in 0..1) drawLayer(from, to, e, layerIndex, tiltX, tiltY)
         GLES30.glBindVertexArray(0)
@@ -115,6 +123,30 @@ class BettaRenderer(private val prefs: SharedPreferences) {
             reportedFirstFrame = true
             recordStatus("running")
         }
+    }
+
+    fun refreshPreferences() {
+        cachedMode = prefs.getString(BettaSettings.KEY_MODE, BettaSettings.MODE_LIVE) ?: BettaSettings.MODE_LIVE
+        cachedManualIndex = prefs.getInt(BettaSettings.KEY_MANUAL_INDEX, 0).coerceIn(0, BettaPresets.all.lastIndex)
+        cachedTiltEnabled = prefs.getBoolean(BettaSettings.KEY_TILT, true)
+        cachedTiltStrength = prefs.getInt(BettaSettings.KEY_TILT_STRENGTH, 100).coerceIn(0, 160) / 100f
+        cachedMotionMultiplier = prefs.getInt(BettaSettings.KEY_MOTION, 100).coerceIn(20, 160) / 100f
+        forceTargetCheck = true
+    }
+
+    private fun updateViewport(width: Int, height: Int) {
+        if (width == viewportWidth && height == viewportHeight) return
+        viewportWidth = width
+        viewportHeight = height
+        val aspect = width.toFloat() / height.toFloat()
+        cameraZ = if (aspect < .7f) 10.4f else 9f
+        GLES30.glViewport(0, 0, width, height)
+        Matrix.perspectiveM(proj, 0, 32f, aspect, .1f, 50f)
+        Matrix.setLookAtM(view, 0, 0f, 0f, cameraZ, 0f, 0f, 0f, 0f, 1f, 0f)
+        Matrix.multiplyMM(viewProj, 0, proj, 0, view, 0)
+        GLES30.glUseProgram(finProgram)
+        uniformMatrix("uViewProj", viewProj)
+        uniform3("uCameraPosition", 0f, 0f, cameraZ)
     }
 
     private fun drawBackground(from: BettaPreset, to: BettaPreset, e: Float) {
@@ -129,15 +161,12 @@ class BettaRenderer(private val prefs: SharedPreferences) {
         GLES30.glDrawArrays(GLES30.GL_TRIANGLES, 0, 3)
     }
 
-    private fun drawLayer(from: BettaPreset, to: BettaPreset, e: Float, layerIndex: Int, tiltX: Float, tiltY: Float) {
+    private fun setPresetUniformsIfNeeded(from: BettaPreset, to: BettaPreset, e: Float) {
+        val transitionActive = fromIndex != toIndex
+        if (!transitionActive && commonUniformFrom == fromIndex && commonUniformTo == toIndex) return
         val a = from.params
         val b = to.params
-        val la = from.layers[layerIndex]
-        val lb = to.layers[layerIndex]
-
         fun p(x: Float, y: Float) = lerp(x, y, e)
-        uniform1("uSeed", p(la.seed, lb.seed))
-        uniform1("uPhase", p(la.phase, lb.phase))
         uniform1("uSpread", p(a.spread, b.spread))
         uniform1("uFoldDensity", p(a.foldDensity, b.foldDensity))
         uniform1("uCurl", p(a.curl, b.curl))
@@ -157,7 +186,6 @@ class BettaRenderer(private val prefs: SharedPreferences) {
         uniform1("uSaturation", p(a.saturation, b.saturation))
         uniform1("uBrightness", p(a.brightness, b.brightness))
         uniform1("uGradientPosition", p(a.gradientPosition, b.gradientPosition))
-        uniform1("uLayerAlpha", p(la.alpha, lb.alpha))
         uniform1("uMorphModeFrom", from.morphMode)
         uniform1("uMorphModeTo", to.morphMode)
         uniform1("uMorphTransition", e)
@@ -165,9 +193,23 @@ class BettaRenderer(private val prefs: SharedPreferences) {
             uniform3("uColor${i}From", from.palette[i])
             uniform3("uColor${i}To", to.palette[i])
         }
+        commonUniformFrom = fromIndex
+        commonUniformTo = toIndex
+    }
 
-        val tiltEnabled = prefs.getBoolean(BettaSettings.KEY_TILT, true)
-        val globalTilt = prefs.getInt(BettaSettings.KEY_TILT_STRENGTH, 100).coerceIn(0, 160) / 100f
+    private fun drawLayer(from: BettaPreset, to: BettaPreset, e: Float, layerIndex: Int, tiltX: Float, tiltY: Float) {
+        val a = from.params
+        val b = to.params
+        val la = from.layers[layerIndex]
+        val lb = to.layers[layerIndex]
+
+        fun p(x: Float, y: Float) = lerp(x, y, e)
+        uniform1("uSeed", p(la.seed, lb.seed))
+        uniform1("uPhase", p(la.phase, lb.phase))
+        uniform1("uLayerAlpha", p(la.alpha, lb.alpha))
+
+        val tiltEnabled = cachedTiltEnabled
+        val globalTilt = cachedTiltStrength
         val layerTilt = if (layerIndex == 0) 1f else .82f
         val tiltStrength = p(a.tiltStrength, b.tiltStrength) * globalTilt * layerTilt
         val rx = lerpAngle(a.rotationX, b.rotationX, e) + if (tiltEnabled) tiltX * tiltStrength else 0f
@@ -204,6 +246,9 @@ class BettaRenderer(private val prefs: SharedPreferences) {
     }
 
     private fun updateTarget(nowNs: Long) {
+        if (!forceTargetCheck && nowNs < nextTargetCheckNs) return
+        forceTargetCheck = false
+        nextTargetCheckNs = nowNs + 500_000_000L
         val desired = desiredIndex()
         if (firstTarget) {
             fromIndex = desired; toIndex = desired; firstTarget = false; return
@@ -211,13 +256,15 @@ class BettaRenderer(private val prefs: SharedPreferences) {
         if (desired == toIndex) return
         fromIndex = toIndex
         toIndex = desired
+        commonUniformFrom = -1
+        commonUniformTo = -1
         transitionStartNs = nowNs
-        transitionDurationNs = if (prefs.getString(BettaSettings.KEY_MODE, BettaSettings.MODE_LIVE) == BettaSettings.MODE_LIVE) 60_000_000_000L else 900_000_000L
+        transitionDurationNs = if (cachedMode == BettaSettings.MODE_LIVE) 60_000_000_000L else 900_000_000L
     }
 
     private fun desiredIndex(): Int {
-        return if (prefs.getString(BettaSettings.KEY_MODE, BettaSettings.MODE_LIVE) == BettaSettings.MODE_MANUAL) {
-            prefs.getInt(BettaSettings.KEY_MANUAL_INDEX, 0).coerceIn(0, BettaPresets.all.lastIndex)
+        return if (cachedMode == BettaSettings.MODE_MANUAL) {
+            cachedManualIndex
         } else {
             (ZonedDateTime.now(BANGKOK).hour / 3).coerceIn(0, 7)
         }
@@ -230,8 +277,6 @@ class BettaRenderer(private val prefs: SharedPreferences) {
         if (raw >= 1f) { fromIndex = toIndex; transitionDurationNs = 0L }
         return eased
     }
-
-    private fun motionMultiplier(): Float = prefs.getInt(BettaSettings.KEY_MOTION, 100).coerceIn(20, 160) / 100f
 
     private fun createGeometry() {
         val vertices = FloatArray((RAYS + 1) * (RADIAL_SEGMENTS + 1) * 3)

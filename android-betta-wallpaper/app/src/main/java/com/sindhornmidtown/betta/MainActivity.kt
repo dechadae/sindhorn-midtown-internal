@@ -24,6 +24,7 @@ import com.sindhornmidtown.betta.wallpaper.BettaWallpaperService
 class MainActivity : Activity() {
     private val prefs by lazy { BettaSettings.prefs(this) }
     private lateinit var diagnosticText: TextView
+    private lateinit var performanceText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,7 +86,15 @@ class MainActivity : Activity() {
             background = panelDrawable()
             setTextIsSelectable(true)
         }
-        root.addView(diagnosticText, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(22) })
+        root.addView(diagnosticText, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(18) })
+
+        root.addView(label("PERFORMANCE DIAGNOSTIC"))
+        performanceText = text("Run the wallpaper for a few seconds, then return here.", 13f, Color.rgb(183, 177, 193)).apply {
+            setPadding(dp(14), dp(12), dp(14), dp(12))
+            background = panelDrawable()
+            setTextIsSelectable(true)
+        }
+        root.addView(performanceText, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(22) })
 
         val preview = button("Preview / Set Live Wallpaper") { openWallpaperPreview() }
         root.addView(preview, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(58)).apply { bottomMargin = dp(12) })
@@ -107,11 +116,13 @@ class MainActivity : Activity() {
 
         setContentView(scroll)
         updateDiagnostic()
+        updatePerformanceDiagnostic()
     }
 
     override fun onResume() {
         super.onResume()
         if (::diagnosticText.isInitialized) updateDiagnostic()
+        if (::performanceText.isInitialized) updatePerformanceDiagnostic()
     }
 
     private fun updateDiagnostic() {
@@ -125,6 +136,23 @@ class MainActivity : Activity() {
             else -> "Not tested yet. Open Preview, then return here if the wallpaper does not render."
         }
         diagnosticText.setTextColor(if (status == "failed") Color.rgb(255, 146, 166) else Color.rgb(183, 177, 193))
+    }
+
+    private fun updatePerformanceDiagnostic() {
+        val fpsX100 = prefs.getInt(BettaSettings.KEY_PERF_FPS_X100, -1)
+        if (fpsX100 < 0) {
+            performanceText.text = "Run the wallpaper for at least 3 seconds, then return here. Metrics are measured on the native wallpaper surface."
+            return
+        }
+        fun metric(key: String): String {
+            val value = prefs.getInt(key, 0)
+            return String.format(java.util.Locale.US, "%.2f", value / 100.0)
+        }
+        val fps = String.format(java.util.Locale.US, "%.2f", fpsX100 / 100.0)
+        val surface = prefs.getString(BettaSettings.KEY_PERF_SURFACE, "unknown surface")
+        val gpu = prefs.getString(BettaSettings.KEY_GL_RENDERER, "unknown GPU")
+        val gl = prefs.getString(BettaSettings.KEY_GL_VERSION, "")
+        performanceText.text = "$fps fps · avg ${metric(BettaSettings.KEY_PERF_FRAME_MS_X100)} ms · p95 ${metric(BettaSettings.KEY_PERF_P95_MS_X100)} ms\nRender submit ${metric(BettaSettings.KEY_PERF_RENDER_MS_X100)} ms · $surface\n$gpu${if (gl.isNullOrBlank()) "" else " · $gl"}"
     }
 
     private fun openWallpaperPreview() {
