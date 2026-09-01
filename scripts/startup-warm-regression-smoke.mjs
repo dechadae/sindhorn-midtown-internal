@@ -8,6 +8,7 @@ if(!employeeNumber||!pin||!/^[0-9]{6}$/.test(pin))throw new Error('CI smoke cred
 
 const browser=await chromium.launch({headless:true,args:['--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows','--disable-features=CalculateNativeWinOcclusion']});
 const context=await browser.newContext({viewport:{width:390,height:844},screen:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'allow'});
+await context.addInitScript({path:'site/startup-audit.js'});
 const page=await context.newPage();
 page.setDefaultTimeout(20000);
 const phase=name=>console.log(`SINDHORN_WARM_START_PHASE ${name}`);
