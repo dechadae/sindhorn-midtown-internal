@@ -23,6 +23,14 @@ object BettaShaders {
         uniform float uSatelliteMix;
         in vec2 vUv;
         out vec4 fragColor;
+        vec3 linearToSrgb(vec3 c){
+          c=max(c,vec3(0.0));
+          return vec3(
+            c.r<=.0031308?c.r*12.92:1.055*pow(c.r,1.0/2.4)-.055,
+            c.g<=.0031308?c.g*12.92:1.055*pow(c.g,1.0/2.4)-.055,
+            c.b<=.0031308?c.b*12.92:1.055*pow(c.b,1.0/2.4)-.055
+          );
+        }
         void main(){
           vec2 p=vUv;
           vec3 c0=mix(uBg0From,uBg0To,uMix);
@@ -34,7 +42,7 @@ object BettaShaders {
           bg=mix(bg,c2,sweep*.48);
           bg=mix(bg,bg*(.82+uSatelliteColor*.34),uSatelliteMix);
           float vignette=1.0-.16*smoothstep(.38,.92,length((p-.5)*vec2(.92,1.08)));
-          fragColor=vec4(bg*vignette,1.0);
+          fragColor=vec4(linearToSrgb(bg*vignette),1.0);
         }
     """
 
@@ -167,18 +175,32 @@ object BettaShaders {
         vec3 paletteFor(float t,vec3 c0,vec3 c1,vec3 c2,vec3 c3){t=clamp(t,0.0,1.0);if(t<.34)return mix(c0,c1,t/.34);if(t<.7)return mix(c1,c2,(t-.34)/.36);return mix(c2,c3,(t-.7)/.3);}
         vec3 morphBase(float mode,vec3 c0,vec3 c1,vec3 c2,vec3 c3,float satelliteGradient,float fresnel,float rayRidge,float micro,float patchA,float patchB){
           float gradient=clamp(vFinUv.x*.67+vFinUv.y*.28+uGradientPosition+satelliteGradient+.055*sin(vFinUv.y*13.0+uSeed),0.0,1.0);
+          if(mode>2.5&&mode<3.5)gradient=clamp(vFinUv.x*.94+vFinUv.y*.05+uGradientPosition+satelliteGradient*.55,0.0,1.0);
           vec3 base=paletteFor(gradient,c0,c1,c2,c3);
           if(mode>.5&&mode<1.5){
             float warmField=clamp(patchA*.74+patchB*.26,0.0,1.0);vec3 koi=mix(c1,c2,smoothstep(.3,.62,warmField));koi=mix(koi,c3,smoothstep(.67,.86,warmField));
-            float darkField=valueNoise(vFinUv*vec2(5.7,8.6)+vec2(uSeed*.21,-uSeed*.11));float darkPatch=smoothstep(.72,.9,darkField);koi=mix(koi,vec3(.008),darkPatch*.7);
+            float darkField=valueNoise(vFinUv*vec2(5.7,8.6)+vec2(uSeed*.21,-uSeed*.11));float darkPatch=smoothstep(.72,.9,darkField);koi=mix(koi,vec3(.008,.008,.012),darkPatch*.7);
             float galaxyField=valueNoise(vFinUv*vec2(44.0,67.0)+vec2(uSeed*1.7,uSeed*.83));float galaxyMask=smoothstep(.81,.94,galaxyField)*(1.0-darkPatch)*(.55+.45*rayRidge);koi=mix(koi,c0*1.45,galaxyMask*.7);base=koi;
           } else if(mode>1.5&&mode<2.5){
             float boundary=.59+(patchA-.5)*.2+(patchB-.5)*.08;float redZone=smoothstep(boundary-.055,boundary+.055,vFinUv.x);
             vec3 pearl=mix(c0,c1,clamp(vFinUv.x/.7,0.0,1.0));vec3 red=mix(c2,c3,smoothstep(boundary,1.0,vFinUv.x));base=mix(pearl,red,redZone);base+=c0*rayRidge*.07*(1.0-redZone);
           } else if(mode>3.5&&mode<4.5){base=mix(base,c3,clamp(rayRidge*.26+fresnel*.08,0.0,.3));}
+          else if(mode>4.5&&mode<5.5){float metallic=clamp(fresnel*.34+rayRidge*.2+(micro-.5)*.06,0.0,.38);base=mix(base,c3,metallic);}
           return base;
         }
         vec3 saturateColor(vec3 c,float s){float l=dot(c,vec3(.2126,.7152,.0722));return mix(vec3(l),c,s);}
+        vec3 acesTone(vec3 c){
+          c=max(c,vec3(0.0))*1.05;
+          return clamp((c*(2.51*c+.03))/(c*(2.43*c+.59)+.14),0.0,1.0);
+        }
+        vec3 linearToSrgb(vec3 c){
+          c=max(c,vec3(0.0));
+          return vec3(
+            c.r<=.0031308?c.r*12.92:1.055*pow(c.r,1.0/2.4)-.055,
+            c.g<=.0031308?c.g*12.92:1.055*pow(c.g,1.0/2.4)-.055,
+            c.b<=.0031308?c.b*12.92:1.055*pow(c.b,1.0/2.4)-.055
+          );
+        }
         void main(){
           vec3 N=normalize(vNormal);if(!gl_FrontFacing)N=-N;vec3 V=normalize(uCameraPosition-vWorldPos);float nv=clamp(abs(dot(N,V)),0.0,1.0);
           float fresnel=pow(1.0-nv,2.1),rayRidge=pow(1.0-vRay,5.5),micro=hash21(floor(vFinUv*vec2(211.0,377.0)+uSeed*17.0));
@@ -198,7 +220,7 @@ object BettaShaders {
           base*=.70+wrapA*.34+wrapB*.12;base+=base*foldLight*.24;base+=vec3(1.0,.94,.90)*edgeLight*(.06+.08*uBloom);base+=biologicalNoise;
           float transmitted=(1.0-nv)*uTransmission;base+=base*transmitted*.14;
           float alpha=uOpacity*uLayerAlpha*(.78+.10*rayRidge+.08*vFold);alpha*=1.0-vEdge*.055;
-          fragColor=vec4(max(base,vec3(0.0)),clamp(alpha,.015,.94));
+          fragColor=vec4(linearToSrgb(acesTone(max(base,vec3(0.0)))),clamp(alpha,.015,.94));
         }
     """
 }
