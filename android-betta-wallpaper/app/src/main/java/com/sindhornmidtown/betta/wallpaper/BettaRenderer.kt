@@ -295,7 +295,7 @@ class BettaRenderer(private val prefs: SharedPreferences) {
     }
 
     private fun compile(label: String, type: Int, originalSource: String): Int {
-        val source = compatibilitySource(originalSource)
+        val source = compatibilitySource(originalSource).trimStart()
         val shader = GLES30.glCreateShader(type)
         GLES30.glShaderSource(shader, source)
         GLES30.glCompileShader(shader)
