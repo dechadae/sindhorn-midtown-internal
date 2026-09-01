@@ -1,0 +1,80 @@
+name: Android Betta Wallpaper
+
+on:
+  push:
+    branches:
+      - android-betta-wallpaper
+    paths:
+      - "android-betta-wallpaper/**"
+      - ".github/workflows/android-betta-wallpaper.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: android-betta-wallpaper
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+
+      - name: Build debug APK
+        run: gradle -p android-betta-wallpaper :app:assembleDebug --stacktrace
+
+      - name: Stage direct-download APK
+        run: |
+          set -euo pipefail
+          mkdir -p site/downloads
+          cp android-betta-wallpaper/app/build/outputs/apk/debug/app-debug.apk site/downloads/sindhorn-betta-wallpaper.apk
+          test -s site/downloads/sindhorn-betta-wallpaper.apk
+          python3 - <<'PY'
+          import json, os
+          path='site/downloads/sindhorn-betta-wallpaper.apk'
+          with open('site/downloads/sindhorn-betta-wallpaper.json','w') as f:
+              json.dump({'ok':True,'version':'0.1.0','variant':'debug','bytes':os.path.getsize(path)},f)
+          PY
+
+      - name: Deploy APK download preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=android-betta-wallpaper
+
+      - name: Smoke direct APK download
+        run: |
+          set -euo pipefail
+          BASE_URL="https://android-betta-wallpaper.sindhorn-midtown-internal.pages.dev"
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error --location "${BASE_URL}/downloads/sindhorn-betta-wallpaper.json" -o /tmp/meta.json \
+              && python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/meta.json'))
+          assert d['ok'] is True
+          assert d['bytes'] > 100000
+          PY
+            then break; fi
+            sleep 3
+          done
+          curl --fail --silent --show-error --location "${BASE_URL}/downloads/sindhorn-betta-wallpaper.apk" -o /tmp/betta.apk
+          test "$(stat -c %s /tmp/betta.apk)" -gt 100000
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sindhorn-betta-wallpaper-apk
+          path: android-betta-wallpaper/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
