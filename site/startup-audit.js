@@ -1,0 +1,23 @@
+(()=>{
+  const KEY='sindhorn-startup-audit:v1',MAX=12,id=`${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+  const read=()=>{try{const v=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(v)?v:[]}catch{return[]}};
+  const clean=value=>{try{const u=new URL(typeof value==='string'?value:value?.url||'',location.href);return`${u.origin}${u.pathname}`}catch{return'unknown'}};
+  const kind=value=>{try{const u=new URL(typeof value==='string'?value:value?.url||'',location.href),p=u.pathname;if(u.hostname.endsWith('supabase.co')&&p.includes('/auth/v1/token'))return'auth-refresh';if(u.hostname.endsWith('supabase.co')&&p.includes('/rest/v1/rpc/sindhorn_current_employee_profile'))return'employee-profile';if(u.origin===location.origin&&p==='/api/betta-satellite')return'satellite';return'other'}catch{return'other'}};
+  let history=read();
+  const session={id,startedAt:Date.now(),timeOrigin:performance.timeOrigin,href:`${location.pathname}${location.search}`,standalone:matchMedia('(display-mode: standalone)').matches,sw:{controller:navigator.serviceWorker?.controller?.scriptURL||null},events:[],fetches:[],marks:[],navigation:null};
+  history.push(session);history=history.slice(-MAX);
+  const persist=()=>{try{const i=history.findIndex(x=>x.id===id);if(i>=0)history[i]=session;localStorage.setItem(KEY,JSON.stringify(history))}catch{}};
+  const record=(name,detail={})=>{session.events.push({name,t:+performance.now().toFixed(1),detail});persist()};
+  const snapshot=()=>{const n=performance.getEntriesByType('navigation')[0];if(n)session.navigation={type:n.type,workerStart:+n.workerStart.toFixed(1),fetchStart:+n.fetchStart.toFixed(1),requestStart:+n.requestStart.toFixed(1),responseStart:+n.responseStart.toFixed(1),responseEnd:+n.responseEnd.toFixed(1),domContentLoadedEventEnd:+n.domContentLoadedEventEnd.toFixed(1),loadEventEnd:+n.loadEventEnd.toFixed(1),transferSize:Number(n.transferSize)||0,deliveryType:n.deliveryType||''};session.marks=performance.getEntriesByType('mark').filter(x=>x.name.startsWith('sindhorn-')).map(x=>({name:x.name,startTime:+x.startTime.toFixed(1)}));session.sw.controller=navigator.serviceWorker?.controller?.scriptURL||null;persist();return structuredClone(session)};
+  window.SindhornStartupAudit={record,snapshot,getHistory:()=>structuredClone(history),clear:()=>{history=[];localStorage.removeItem(KEY)}};
+  record('audit-script-start',{controlled:Boolean(session.sw.controller)});
+  const originalFetch=window.fetch.bind(window);
+  window.fetch=async function(input,init){const started=performance.now(),k=kind(input),path=clean(input),method=String(init?.method||input?.method||'GET').toUpperCase();try{const r=await originalFetch(input,init);session.fetches.push({kind:k,path,method,status:r.status,start:+started.toFixed(1),duration:+(performance.now()-started).toFixed(1)});persist();return r}catch(e){session.fetches.push({kind:k,path,method,status:0,start:+started.toFixed(1),duration:+(performance.now()-started).toFixed(1),error:e?.name||'error'});persist();throw e}};
+  if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('controllerchange',()=>{record('sw-controllerchange');snapshot()});navigator.serviceWorker.getRegistration('/').then(r=>{if(!r)return;record('sw-registration',{active:r.active?.state||null,waiting:r.waiting?.state||null,installing:r.installing?.state||null});r.addEventListener('updatefound',()=>{record('sw-updatefound');snapshot()})}).catch(()=>{})}
+  addEventListener('DOMContentLoaded',()=>{record('dom-content-loaded');snapshot()},{once:true});
+  addEventListener('load',()=>{record('window-load');snapshot();setTimeout(snapshot,2500);setTimeout(snapshot,7000)},{once:true});
+  addEventListener('pagehide',e=>{record('pagehide',{persisted:Boolean(e.persisted)});snapshot()});
+  document.addEventListener('sindhorn:betta-first-frame',()=>{record('betta-first-frame');snapshot()});
+  try{new PerformanceObserver(()=>snapshot()).observe({entryTypes:['mark']})}catch{}
+  snapshot();
+})();
