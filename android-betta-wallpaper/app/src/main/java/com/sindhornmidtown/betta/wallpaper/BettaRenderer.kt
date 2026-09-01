@@ -28,7 +28,7 @@ class BettaRenderer(private val prefs: SharedPreferences) {
     private var vbo = 0
     private var ebo = 0
     private var indexCount = 0
-    private var startNs = 0L
+    private var activeTimeSeconds = 0f
     private var fromIndex = 0
     private var toIndex = 0
     private var transitionStartNs = 0L
@@ -66,7 +66,7 @@ class BettaRenderer(private val prefs: SharedPreferences) {
         GLES30.glEnable(GLES30.GL_BLEND)
         GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA)
         checkGl("renderer-state")
-        startNs = System.nanoTime()
+        activeTimeSeconds = 0f
         val initial = desiredIndex()
         fromIndex = initial
         toIndex = initial
@@ -83,7 +83,7 @@ class BettaRenderer(private val prefs: SharedPreferences) {
         vao = 0; vbo = 0; ebo = 0; backgroundProgram = 0; finProgram = 0
     }
 
-    fun draw(width: Int, height: Int, nowNs: Long, tiltX: Float, tiltY: Float) {
+    fun draw(width: Int, height: Int, nowNs: Long, deltaSeconds: Float, tiltX: Float, tiltY: Float) {
         if (width <= 0 || height <= 0 || finProgram == 0) return
         updateTarget(nowNs)
         val e = transitionMix(nowNs)
@@ -103,7 +103,8 @@ class BettaRenderer(private val prefs: SharedPreferences) {
         GLES30.glUseProgram(finProgram)
         uniformMatrix("uViewProj", viewProj)
         uniform3("uCameraPosition", 0f, 0f, cameraZ)
-        uniform1("uTime", ((nowNs - startNs).coerceAtLeast(0L) / 1_000_000_000.0).toFloat() * motionMultiplier())
+        activeTimeSeconds += deltaSeconds.coerceIn(0f, .05f) * motionMultiplier()
+        uniform1("uTime", activeTimeSeconds)
         setSatelliteUniforms()
         GLES30.glBindVertexArray(vao)
         for (layerIndex in 0..1) drawLayer(from, to, e, layerIndex, tiltX, tiltY)

@@ -197,12 +197,14 @@ private class BettaRenderThread(
                 EGL14.eglQuerySurface(display, eglSurface, EGL14.EGL_HEIGHT, size, 0)
                 val height = size[0]
                 val pageParallax = currentPage * .16f
-                renderer.draw(width, height, now, currentTiltX, currentTiltY + pageParallax)
+                renderer.draw(width, height, now, dt, currentTiltX, currentTiltY + pageParallax)
                 if (!EGL14.eglSwapBuffers(display, eglSurface)) {
                     Log.e(TAG, "eglSwapBuffers failed: 0x${EGL14.eglGetError().toString(16)}")
                     break
                 }
-                SystemClock.sleep(16)
+                val frameElapsedNs = System.nanoTime() - now
+                val remainingNs = 16_666_667L - frameElapsedNs
+                if (remainingNs > 1_000_000L) SystemClock.sleep(remainingNs / 1_000_000L)
             }
         } catch (error: Throwable) {
             Log.e(TAG, "Betta wallpaper renderer failed", error)
@@ -259,6 +261,7 @@ private class BettaRenderThread(
         require(EGL14.eglMakeCurrent(display, eglSurface, eglSurface, context)) {
             "eglMakeCurrent failed: 0x${EGL14.eglGetError().toString(16)}"
         }
+        EGL14.eglSwapInterval(display, 1)
 
         val glVersion = GLES30.glGetString(GLES30.GL_VERSION).orEmpty()
         require(glVersion.contains("OpenGL ES 3")) { "Expected OpenGL ES 3, got '$glVersion'" }

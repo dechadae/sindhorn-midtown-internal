@@ -216,11 +216,19 @@ object BettaShaders {
           float wrapA=pow(clamp(dot(N,lightA)*.5+.5,0.0,1.0),2.2),wrapB=pow(clamp(dot(N,lightB)*.5+.5,0.0,1.0),3.0);
           float foldLight=(wrapA*.72+wrapB*.28)*(vFold*.48+rayRidge*.68)*uFoldHighlight;
           float edgeLight=(fresnel*.7+vEdge*.3)*uRimStrength;
-          float biologicalNoise=(micro-.5)*(.025+.03*uSatelliteEnergy);
-          base*=.70+wrapA*.34+wrapB*.12;base+=base*foldLight*.24;base+=vec3(1.0,.94,.90)*edgeLight*(.06+.08*uBloom);base+=biologicalNoise;
-          float transmitted=(1.0-nv)*uTransmission;base+=base*transmitted*.14;
-          float alpha=uOpacity*uLayerAlpha*(.78+.10*rayRidge+.08*vFold);alpha*=1.0-vEdge*.055;
-          fragColor=vec4(linearToSrgb(acesTone(max(base,vec3(0.0)))),clamp(alpha,.015,.94));
+          float biologicalNoise=(micro-.5)*.045;
+          vec3 transmitted=base*(.36+.44*uTransmission+.2*nv);
+          vec3 lit=transmitted+base*(foldLight*.42+edgeLight*.25)+vec3(1.0,.82,.92)*edgeLight*uBloom*.13;
+          lit+=satTint*uSatelliteCold*vFold*.035;
+          lit+=biologicalNoise*base;
+          float membrane=.42+.35*(1.0-uTransmission)+.22*(1.0-nv);
+          float alpha=uOpacity*membrane;
+          alpha*=.72+.28*rayRidge;
+          alpha+=vEdge*uOpacity*.09;
+          alpha*=uLayerAlpha;
+          alpha=clamp(alpha,0.0,.86);
+          if(alpha<.001)discard;
+          fragColor=vec4(lit,alpha);
         }
     """
 }
