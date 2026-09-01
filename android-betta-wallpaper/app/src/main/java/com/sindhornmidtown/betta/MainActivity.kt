@@ -23,6 +23,7 @@ import com.sindhornmidtown.betta.wallpaper.BettaWallpaperService
 
 class MainActivity : Activity() {
     private val prefs by lazy { BettaSettings.prefs(this) }
+    private lateinit var diagnosticText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,7 +77,15 @@ class MainActivity : Activity() {
         root.addView(label("TILT STRENGTH"))
         root.addView(seek(BettaSettings.KEY_TILT_STRENGTH, 100, 160), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)).apply { bottomMargin = dp(14) })
         root.addView(label("MOTION INTENSITY"))
-        root.addView(seek(BettaSettings.KEY_MOTION, 100, 160), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)).apply { bottomMargin = dp(26) })
+        root.addView(seek(BettaSettings.KEY_MOTION, 100, 160), LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(48)).apply { bottomMargin = dp(20) })
+
+        root.addView(label("RENDERER DIAGNOSTIC"))
+        diagnosticText = text("Not tested yet", 13f, Color.rgb(183, 177, 193)).apply {
+            setPadding(dp(14), dp(12), dp(14), dp(12))
+            background = panelDrawable()
+            setTextIsSelectable(true)
+        }
+        root.addView(diagnosticText, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply { bottomMargin = dp(22) })
 
         val preview = button("Preview / Set Live Wallpaper") { openWallpaperPreview() }
         root.addView(preview, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(58)).apply { bottomMargin = dp(12) })
@@ -97,9 +106,29 @@ class MainActivity : Activity() {
         ).apply { setPadding(0, dp(16), 0, 0) })
 
         setContentView(scroll)
+        updateDiagnostic()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::diagnosticText.isInitialized) updateDiagnostic()
+    }
+
+    private fun updateDiagnostic() {
+        val status = prefs.getString(BettaSettings.KEY_RENDERER_STATUS, null)
+        val error = prefs.getString(BettaSettings.KEY_RENDERER_ERROR, null)
+        diagnosticText.text = when {
+            status == "running" -> "RUNNING · OpenGL ES 3 renderer produced a complete Betta frame."
+            status == "ready" -> "READY · shaders and geometry initialized; waiting for the first visible frame."
+            status == "failed" -> "FAILED\n${error ?: "Unknown native renderer error"}"
+            !status.isNullOrBlank() -> "STARTING · $status"
+            else -> "Not tested yet. Open Preview, then return here if the wallpaper does not render."
+        }
+        diagnosticText.setTextColor(if (status == "failed") Color.rgb(255, 146, 166) else Color.rgb(183, 177, 193))
     }
 
     private fun openWallpaperPreview() {
+        prefs.edit().remove(BettaSettings.KEY_RENDERER_ERROR).putString(BettaSettings.KEY_RENDERER_STATUS, "launching").apply()
         val component = ComponentName(this, BettaWallpaperService::class.java)
         val direct = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT, component)
         try { startActivity(direct) } catch (_: Exception) { startActivity(Intent(WallpaperManager.ACTION_LIVE_WALLPAPER_CHOOSER)) }
