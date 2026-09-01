@@ -1,8 +1,8 @@
 {
   "id":"/",
-  "name":"Sindhorn Test D — Minimal SW",
-  "short_name":"Test D",
-  "description":"Diagnostic standalone PWA for Sindhorn Midtown startup isolation.",
+  "name":"Sindhorn Test E — No WebGL",
+  "short_name":"Test E",
+  "description":"Diagnostic standalone PWA for Sindhorn Midtown WebGL startup isolation.",
   "lang":"en-TH",
   "start_url":"/",
   "scope":"/",
