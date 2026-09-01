@@ -11,10 +11,6 @@ import java.nio.ShortBuffer
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.exp
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.sin
 
 class BettaRenderer(private val prefs: SharedPreferences) {
@@ -38,6 +34,7 @@ class BettaRenderer(private val prefs: SharedPreferences) {
     private var transitionStartNs = 0L
     private var transitionDurationNs = 0L
     private var firstTarget = true
+    private var reportedFirstFrame = false
     private val bgLocations = HashMap<String, Int>()
     private val finLocations = HashMap<String, Int>()
 
@@ -57,18 +54,24 @@ class BettaRenderer(private val prefs: SharedPreferences) {
     private val satelliteFingerprint = floatArrayOf(.5f, .5f, .5f)
 
     fun onSurfaceCreated() {
-        backgroundProgram = link(BettaShaders.BACKGROUND_VERTEX, BettaShaders.BACKGROUND_FRAGMENT)
-        finProgram = link(BettaShaders.FIN_VERTEX, BettaShaders.FIN_FRAGMENT)
+        recordStatus("background-shader")
+        backgroundProgram = link("background", BettaShaders.BACKGROUND_VERTEX, BettaShaders.BACKGROUND_FRAGMENT)
+        recordStatus("fin-shader")
+        finProgram = link("fin", BettaShaders.FIN_VERTEX, BettaShaders.FIN_FRAGMENT)
+        recordStatus("geometry")
         createGeometry()
+        checkGl("geometry")
         GLES30.glDisable(GLES30.GL_CULL_FACE)
         GLES30.glDisable(GLES30.GL_DITHER)
         GLES30.glEnable(GLES30.GL_BLEND)
         GLES30.glBlendFunc(GLES30.GL_SRC_ALPHA, GLES30.GL_ONE_MINUS_SRC_ALPHA)
+        checkGl("renderer-state")
         startNs = System.nanoTime()
         val initial = desiredIndex()
         fromIndex = initial
         toIndex = initial
         firstTarget = false
+        recordStatus("ready")
     }
 
     fun release() {
@@ -105,6 +108,12 @@ class BettaRenderer(private val prefs: SharedPreferences) {
         GLES30.glBindVertexArray(vao)
         for (layerIndex in 0..1) drawLayer(from, to, e, layerIndex, tiltX, tiltY)
         GLES30.glBindVertexArray(0)
+
+        if (!reportedFirstFrame) {
+            checkGl("first-draw")
+            reportedFirstFrame = true
+            recordStatus("running")
+        }
     }
 
     private fun drawBackground(from: BettaPreset, to: BettaPreset, e: Float) {
@@ -265,22 +274,85 @@ class BettaRenderer(private val prefs: SharedPreferences) {
         GLES30.glBindVertexArray(0)
     }
 
-    private fun link(vertexSource: String, fragmentSource: String): Int {
-        val vertex = compile(GLES30.GL_VERTEX_SHADER, vertexSource)
-        val fragment = compile(GLES30.GL_FRAGMENT_SHADER, fragmentSource)
+    private fun link(label: String, vertexSource: String, fragmentSource: String): Int {
+        val vertex = compile("$label vertex", GLES30.GL_VERTEX_SHADER, vertexSource)
+        val fragment = compile("$label fragment", GLES30.GL_FRAGMENT_SHADER, fragmentSource)
         val program = GLES30.glCreateProgram()
-        GLES30.glAttachShader(program, vertex); GLES30.glAttachShader(program, fragment); GLES30.glLinkProgram(program)
-        val status = IntArray(1); GLES30.glGetProgramiv(program, GLES30.GL_LINK_STATUS, status, 0)
-        if (status[0] == 0) throw IllegalStateException("GL program link failed: ${GLES30.glGetProgramInfoLog(program)}")
-        GLES30.glDeleteShader(vertex); GLES30.glDeleteShader(fragment)
+        GLES30.glAttachShader(program, vertex)
+        GLES30.glAttachShader(program, fragment)
+        GLES30.glLinkProgram(program)
+        val status = IntArray(1)
+        GLES30.glGetProgramiv(program, GLES30.GL_LINK_STATUS, status, 0)
+        if (status[0] == 0) {
+            val message = "$label program link failed: ${GLES30.glGetProgramInfoLog(program)}"
+            recordFailure(message)
+            throw IllegalStateException(message)
+        }
+        GLES30.glDeleteShader(vertex)
+        GLES30.glDeleteShader(fragment)
+        checkGl("$label-link")
         return program
     }
 
-    private fun compile(type: Int, source: String): Int {
-        val shader = GLES30.glCreateShader(type); GLES30.glShaderSource(shader, source); GLES30.glCompileShader(shader)
-        val status = IntArray(1); GLES30.glGetShaderiv(shader, GLES30.GL_COMPILE_STATUS, status, 0)
-        if (status[0] == 0) throw IllegalStateException("GL shader compile failed: ${GLES30.glGetShaderInfoLog(shader)}")
+    private fun compile(label: String, type: Int, originalSource: String): Int {
+        val source = compatibilitySource(originalSource)
+        val shader = GLES30.glCreateShader(type)
+        GLES30.glShaderSource(shader, source)
+        GLES30.glCompileShader(shader)
+        val status = IntArray(1)
+        GLES30.glGetShaderiv(shader, GLES30.GL_COMPILE_STATUS, status, 0)
+        if (status[0] == 0) {
+            val driver = GLES30.glGetString(GLES30.GL_RENDERER).orEmpty()
+            val sl = GLES30.glGetString(GLES30.GL_SHADING_LANGUAGE_VERSION).orEmpty()
+            val message = "$label shader compile failed on $driver / $sl: ${GLES30.glGetShaderInfoLog(shader)}"
+            recordFailure(message)
+            throw IllegalStateException(message)
+        }
         return shader
+    }
+
+    private fun compatibilitySource(source: String): String {
+        var out = source
+        out = out.replace(
+            "const vec2 P[3] = vec2[](vec2(-1.0,-1.0),vec2(3.0,-1.0),vec2(-1.0,3.0));",
+            "// Samsung-safe fullscreen triangle: avoid array constructors in the vertex shader."
+        )
+        out = out.replace(
+            "vec2 p=P[gl_VertexID];",
+            "vec2 p; if(gl_VertexID==0) p=vec2(-1.0,-1.0); else if(gl_VertexID==1) p=vec2(3.0,-1.0); else p=vec2(-1.0,3.0);"
+        )
+        out = out.replace(
+            "return vec3(\n            c.r<=.0031308?c.r*12.92:1.055*pow(c.r,1.0/2.4)-.055,\n            c.g<=.0031308?c.g*12.92:1.055*pow(c.g,1.0/2.4)-.055,\n            c.b<=.0031308?c.b*12.92:1.055*pow(c.b,1.0/2.4)-.055\n          );",
+            "vec3 low=c*12.92; vec3 high=1.055*pow(c,vec3(1.0/2.4))-.055; return mix(low,high,step(vec3(.0031308),c));"
+        )
+        return out
+    }
+
+    private fun checkGl(stage: String) {
+        var error = GLES30.glGetError()
+        if (error == GLES30.GL_NO_ERROR) return
+        val values = ArrayList<String>()
+        while (error != GLES30.GL_NO_ERROR) {
+            values += "0x${error.toString(16)}"
+            error = GLES30.glGetError()
+        }
+        val message = "$stage GL error: ${values.joinToString()}"
+        recordFailure(message)
+        throw IllegalStateException(message)
+    }
+
+    private fun recordStatus(status: String) {
+        prefs.edit()
+            .putString(BettaSettings.KEY_RENDERER_STATUS, status)
+            .remove(BettaSettings.KEY_RENDERER_ERROR)
+            .apply()
+    }
+
+    private fun recordFailure(message: String) {
+        prefs.edit()
+            .putString(BettaSettings.KEY_RENDERER_STATUS, "failed")
+            .putString(BettaSettings.KEY_RENDERER_ERROR, message.take(1800))
+            .apply()
     }
 
     private fun finLoc(name: String) = finLocations.getOrPut(name) { GLES30.glGetUniformLocation(finProgram, name) }
