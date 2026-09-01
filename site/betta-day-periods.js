@@ -3,15 +3,16 @@ export const DAY_CYCLE_CHECK_MS=30000;
 export const DAY_CYCLE_ROLLOVER_MS=60000;
 export const DAY_CYCLE_CORRECTION_MS=900;
 
+// Canonical sequential reference assignment: period 1→Fish #1 through period 8→Fish #8.
 export const BETTA_DAY_PERIODS=Object.freeze([
-  Object.freeze({key:'midnight',startHour:0,endHour:3,name:'Midnight',baseline:'blackOrchid',tone:'dark'}),
-  Object.freeze({key:'before-dawn',startHour:3,endHour:6,name:'Before Dawn',baseline:'copperMetallic',tone:'dark'}),
-  Object.freeze({key:'first-light',startHour:6,endHour:9,name:'First Light',baseline:'turquoiseMetallic',tone:'bright'}),
-  Object.freeze({key:'bright-morning',startHour:9,endHour:12,name:'Bright Morning',baseline:'royalBlueHalfmoon',tone:'bright'}),
-  Object.freeze({key:'midday',startHour:12,endHour:15,name:'Midday',baseline:'redSnowDragon',tone:'bright'}),
-  Object.freeze({key:'afternoon',startHour:15,endHour:18,name:'Afternoon',baseline:'mustardGas',tone:'bright'}),
-  Object.freeze({key:'golden-hour',startHour:18,endHour:21,name:'Golden Hour',baseline:'nemoGalaxyKoi',tone:'dark'}),
-  Object.freeze({key:'blue-hour',startHour:21,endHour:24,name:'Blue Hour',baseline:'superRedHalfmoon',tone:'dark'})
+  Object.freeze({key:'midnight',startHour:0,endHour:3,name:'Midnight',baseline:'reference1',referenceId:1,tone:'dark'}),
+  Object.freeze({key:'before-dawn',startHour:3,endHour:6,name:'Before Dawn',baseline:'reference2',referenceId:2,tone:'dark'}),
+  Object.freeze({key:'first-light',startHour:6,endHour:9,name:'First Light',baseline:'reference3',referenceId:3,tone:'bright'}),
+  Object.freeze({key:'bright-morning',startHour:9,endHour:12,name:'Bright Morning',baseline:'reference4',referenceId:4,tone:'bright'}),
+  Object.freeze({key:'midday',startHour:12,endHour:15,name:'Midday',baseline:'reference5',referenceId:5,tone:'bright'}),
+  Object.freeze({key:'afternoon',startHour:15,endHour:18,name:'Afternoon',baseline:'reference6',referenceId:6,tone:'bright'}),
+  Object.freeze({key:'golden-hour',startHour:18,endHour:21,name:'Golden Hour',baseline:'reference7',referenceId:7,tone:'dark'}),
+  Object.freeze({key:'blue-hour',startHour:21,endHour:24,name:'Blue Hour',baseline:'reference8',referenceId:8,tone:'dark'})
 ]);
 
 const clamp=value=>Math.min(1,Math.max(0,Number(value)||0));
