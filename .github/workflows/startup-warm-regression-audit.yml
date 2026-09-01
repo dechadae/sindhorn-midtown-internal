@@ -1,0 +1,78 @@
+name: Startup Warm Regression Audit
+
+on:
+  push:
+    branches:
+      - startup-warm-regression-audit
+    paths:
+      - "site/index.html"
+      - "site/startup-audit.js"
+      - "site/startup-audit.html"
+      - "scripts/startup-warm-regression-smoke.mjs"
+      - "docs/STARTUP-WARM-REGRESSION-20260901.md"
+      - ".github/workflows/startup-warm-regression-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: startup-warm-regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate preview-only instrumentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s site/startup-audit.js
+          test -s site/startup-audit.html
+          test -s scripts/startup-warm-regression-smoke.mjs
+          grep -q '/startup-audit.js' site/index.html
+          node --check site/startup-audit.js
+          node --check scripts/startup-warm-regression-smoke.mjs
+          git diff --exit-code origin/main...HEAD -- site/sw.js site/auth-client.js site/auth-shell.js site/bootstrap.js site/route-registry.js site/betta-environment.js site/betta-runtime.js site/location.js site/rain-now.js site/live-data.js || {
+            echo 'Audit branch must not change protected runtime files.' >&2
+            exit 1
+          }
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Wait for preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
+          ready=false
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
+              && grep -q '/startup-audit.js' /tmp/root.html \
+              && curl --fail --silent --show-error --location "${BASE_URL}/startup-audit.html" -o /tmp/audit.html \
+              && grep -q 'SINDHORN STARTUP AUDIT' /tmp/audit.html; then ready=true; break; fi
+            sleep 3
+          done
+          test "$ready" = true
+
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Measure authenticated first and warm controlled launches
+        env:
+          BASE_URL: https://startup-warm-regression-audit.sindhorn-midtown-internal.pages.dev
+          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
+          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
+        run: node scripts/startup-warm-regression-smoke.mjs
