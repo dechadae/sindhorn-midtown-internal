@@ -119,6 +119,6 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
     private func updatePerformance(now:TimeInterval){ if perfWindowStart==0 { perfWindowStart=now }; perfFrames += 1; let elapsed=now-perfWindowStart; if elapsed>=1 { measuredFPS=Double(perfFrames)/elapsed; perfFrames=0; perfWindowStart=now } }
     private func rgba(_ c:SIMD3<Float>)->SIMD4<Float>{SIMD4<Float>(c.x,c.y,c.z,1)}
     private func write<T>(_ value:T,to buffer:MTLBuffer,offset:Int){var copy=value;withUnsafeBytes(of:&copy){buffer.contents().advanced(by:offset).copyMemory(from:$0.baseAddress!,byteCount:$0.count)}}
-    private static func aligned(_ value:Int)->Int{(value+uniformAlignment-1)&~(uniformAlignment-1)}
+    private static func aligned(_ value:Int)->Int{(value + uniformAlignment - 1) & ~(uniformAlignment - 1)}
     private static func loadShaderSource() throws -> String { if let url=Bundle.main.url(forResource:"Shaders",withExtension:"metal"),let s=try?String(contentsOf:url,encoding:.utf8){return s}; if let url=Bundle.module.url(forResource:"Shaders",withExtension:"metal"),let s=try?String(contentsOf:url,encoding:.utf8){return s}; throw BettaRendererError.shaderSourceMissing }
 }
