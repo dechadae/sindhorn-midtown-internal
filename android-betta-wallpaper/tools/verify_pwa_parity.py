@@ -18,7 +18,8 @@ forbidden_shader = [
 ]
 required_renderer = [
     "private var activeTimeSeconds = 0f",
-    "activeTimeSeconds += deltaSeconds.coerceIn(0f, .05f) * motionMultiplier()",
+    "cachedMotionMultiplier = prefs.getInt(BettaSettings.KEY_MOTION, 100).coerceIn(20, 160) / 100f",
+    "activeTimeSeconds += deltaSeconds.coerceIn(0f, .05f) * cachedMotionMultiplier",
     'uniform1("uTime", activeTimeSeconds)',
 ]
 required_service = [
