@@ -1,0 +1,64 @@
+name: Betta Today Transition Preview
+
+on:
+  push:
+    branches:
+      - lab-betta-today-transition
+    paths:
+      - "site/index.html"
+      - "site/betta-today-transition-test.js"
+      - "site/betta-day-periods.js"
+      - "site/betta-environment.js"
+      - "site/betta-fin-presets.js"
+      - ".github/workflows/betta-today-transition-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: betta-today-transition-preview
+  cancel-in-progress: true
+
+jobs:
+  validate-and-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate transition test control
+        run: |
+          set -euo pipefail
+          node --input-type=module --check < site/betta-today-transition-test.js
+          node --input-type=module --check < site/betta-day-periods.js
+          grep -Fq '/betta-today-transition-test.js?v=1' site/index.html
+          grep -Fq "params.get('betta-test')==='1'" site/betta-today-transition-test.js
+          grep -Fq 'setBettaPeriod(next.key)' site/betta-today-transition-test.js
+          grep -Fq "function setBettaPeriod(key)" site/betta-environment.js
+          grep -Fq "DAY_CYCLE_CORRECTION_MS=900" site/betta-day-periods.js
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch=lab-betta-today-transition
+
+      - name: Smoke deployed Today tester
+        run: |
+          set -euo pipefail
+          BASE_URL="https://lab-betta-today-transition.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/?betta-test=1" -o /tmp/index.html
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/betta-today-transition-test.js?v=1" -o /tmp/test.js
+          grep -Fq '/betta-today-transition-test.js?v=1' /tmp/index.html
+          grep -Fq 'betta-transition-test' /tmp/test.js
+          curl --fail --silent --show-error --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/api/betta-satellite?kind=latest" -o /tmp/satellite.json
+          python3 - <<'PY'
+          import json
+          data=json.load(open('/tmp/satellite.json'))
+          assert data.get('ok') is True,data
+          assert data.get('satellite')=='Himawari-9',data
+          assert data.get('provider')=='JMA',data
+          PY
