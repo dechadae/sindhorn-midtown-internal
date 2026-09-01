@@ -33,7 +33,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Build navigation-only Betta disposal
+      - name: Build soft Betta navigation cleanup
         shell: bash
         run: |
           set -euo pipefail
@@ -43,9 +43,10 @@ jobs:
           node --input-type=module --check < site/betta-environment.js
           node --input-type=module --check < site/betta-runtime.js
           node --check site/sw.js
-          grep -q 'hardDisposeEnvironment' site/betta-environment.js
+          grep -q 'prepareNavigationCleanup' site/betta-environment.js
           grep -q 'beforeunload' site/betta-runtime.js
-          grep -q 'pwa-v46-betta-unload-r1' site/sw.js
+          ! grep -q 'forceContextLoss' site/betta-environment.js
+          grep -q 'pwa-v47-betta-soft-unload-r1' site/sw.js
           BYTES=$(wc -c < site/betta-runtime.js | tr -d ' ')
           echo "Betta runtime bytes ${BYTES}"
           test "${BYTES}" -lt 700000
@@ -53,7 +54,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add site/betta-environment.js site/betta-runtime.js site/sw.js
-            git commit -m "Dispose Betta GPU resources on navigation"
+            git commit -m "Prepare Betta cleanly before navigation"
             git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
 
@@ -65,11 +66,11 @@ jobs:
           test -s scripts/startup-betta-isolation-smoke.mjs
           ! grep -q '/startup-audit.js' site/index.html
           ! grep -q 'addInitScript' scripts/startup-warm-regression-smoke.mjs
-          grep -q 'pwa-v46-betta-unload-r1' site/sw.js
+          grep -q 'pwa-v47-betta-soft-unload-r1' site/sw.js
           grep -q 'PRECACHE_CONCURRENCY=8' site/sw.js
           ! grep -q 'ONE_TIME_CLIENT_REFRESH' site/sw.js
-          grep -q 'hardDisposeEnvironment' site/betta-environment.js
-          grep -q 'beforeunload' site/betta-environment.js
+          grep -q 'prepareNavigationCleanup' site/betta-environment.js
+          ! grep -q 'forceContextLoss' site/betta-environment.js
           node --check site/sw.js
           node --input-type=module --check < site/betta-environment.js
           node --input-type=module --check < site/betta-runtime.js
@@ -90,7 +91,7 @@ jobs:
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           ready=false
           for attempt in $(seq 1 40); do
-            if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html && ! grep -q '/startup-audit.js' /tmp/root.html && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js && grep -q 'pwa-v46-betta-unload-r1' /tmp/sw.js; then
+            if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html && ! grep -q '/startup-audit.js' /tmp/root.html && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js && grep -q 'pwa-v47-betta-soft-unload-r1' /tmp/sw.js; then
               ready=true
               break
             fi
