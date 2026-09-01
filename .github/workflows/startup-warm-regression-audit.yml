@@ -1,10 +1,11 @@
-name: Startup Warm Regression Audit
+name: PWA Warm Startup Fix Preview
 
 on:
   push:
     branches:
-      - startup-warm-audit2
+      - fix-pwa-warm-startup
     paths:
+      - "site/sw.js"
       - "site/index.html"
       - "site/startup-audit.js"
       - "site/startup-audit.html"
@@ -18,7 +19,7 @@ permissions:
   deployments: write
 
 concurrency:
-  group: startup-warm-regression-${{ github.ref }}
+  group: pwa-warm-startup-fix-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -30,7 +31,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate preview-only instrumentation
+      - name: Validate narrow runtime change
         shell: bash
         run: |
           set -euo pipefail
@@ -38,10 +39,14 @@ jobs:
           test -s site/startup-audit.html
           test -s scripts/startup-warm-regression-smoke.mjs
           grep -q '/startup-audit.js' site/index.html
+          grep -q "pwa-v44-warm-startup-r1" site/sw.js
+          grep -q "PRECACHE_CONCURRENCY=8" site/sw.js
+          ! grep -q "ONE_TIME_CLIENT_REFRESH" site/sw.js
+          node --check site/sw.js
           node --check site/startup-audit.js
           node --check scripts/startup-warm-regression-smoke.mjs
-          git diff --exit-code origin/main...HEAD -- site/sw.js site/auth-client.js site/auth-shell.js site/bootstrap.js site/route-registry.js site/betta-environment.js site/betta-runtime.js site/location.js site/rain-now.js site/live-data.js || {
-            echo 'Audit branch must not change protected runtime files.' >&2
+          git diff --exit-code origin/main...HEAD -- site/auth-client.js site/auth-shell.js site/bootstrap.js site/route-registry.js site/betta-environment.js site/betta-runtime.js site/location.js site/rain-now.js site/live-data.js || {
+            echo 'Warm-start fix may change service worker only; protected app runtime changed.' >&2
             exit 1
           }
 
@@ -60,8 +65,8 @@ jobs:
           for attempt in $(seq 1 40); do
             if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
               && grep -q '/startup-audit.js' /tmp/root.html \
-              && curl --fail --silent --show-error --location "${BASE_URL}/startup-audit.html" -o /tmp/audit.html \
-              && grep -q 'SINDHORN STARTUP AUDIT' /tmp/audit.html; then ready=true; break; fi
+              && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
+              && grep -q 'pwa-v44-warm-startup-r1' /tmp/sw.js; then ready=true; break; fi
             sleep 3
           done
           test "$ready" = true
@@ -71,9 +76,9 @@ jobs:
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Measure authenticated first and warm controlled launches
+      - name: Measure first immediate and settled warm launches
         env:
-          BASE_URL: https://startup-warm-audit2.sindhorn-midtown-internal.pages.dev
+          BASE_URL: https://fix-pwa-warm-startup.sindhorn-midtown-internal.pages.dev
           CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
           CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
         run: timeout 150s node scripts/startup-warm-regression-smoke.mjs
