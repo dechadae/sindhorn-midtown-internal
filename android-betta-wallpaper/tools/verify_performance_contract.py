@@ -14,6 +14,7 @@ forbidden_service = [
     "val (targetX, targetY, page) = tiltSource()",
     "EGL14.eglQuerySurface",
     "SystemClock.sleep",
+    "if (!force && elapsed",
 ]
 required_renderer = [
     "cachedMotionMultiplier",
@@ -21,6 +22,7 @@ required_renderer = [
     "setPresetUniformsIfNeeded",
     "updateViewport(width, height)",
     "GLES30.glDisable(GLES30.GL_BLEND)",
+    "backgroundUniformFrom",
 ]
 missing = [x for x in required_service if x not in service] + [x for x in required_renderer if x not in renderer]
 forbidden = [x for x in forbidden_service if x in service]

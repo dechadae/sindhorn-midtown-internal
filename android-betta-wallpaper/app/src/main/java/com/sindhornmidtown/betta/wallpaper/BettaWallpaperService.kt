@@ -266,7 +266,7 @@ private class BettaRenderThread(
             perfFrameCount++
         }
         val elapsed = nowNs - perfWindowStartNs
-        if (!force && elapsed < 3_000_000_000L) return
+        if (!force) return
         if (perfFrameCount <= 0 || elapsed <= 0L) return
         val intervals = perfIntervalsNs.copyOf(perfIntervalCount)
         intervals.sort()

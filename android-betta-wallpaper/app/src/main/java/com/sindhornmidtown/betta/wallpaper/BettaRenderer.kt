@@ -47,6 +47,8 @@ class BettaRenderer(private val prefs: SharedPreferences) {
     private var nextTargetCheckNs = 0L
     private var commonUniformFrom = -1
     private var commonUniformTo = -1
+    private var backgroundUniformFrom = -1
+    private var backgroundUniformTo = -1
     private val bgLocations = HashMap<String, Int>()
     private val finLocations = HashMap<String, Int>()
 
@@ -151,9 +153,13 @@ class BettaRenderer(private val prefs: SharedPreferences) {
 
     private fun drawBackground(from: BettaPreset, to: BettaPreset, e: Float) {
         GLES30.glUseProgram(backgroundProgram)
-        for (i in 0..2) {
-            uniform3Bg("uBg${i}From", from.background[i])
-            uniform3Bg("uBg${i}To", to.background[i])
+        if (backgroundUniformFrom != fromIndex || backgroundUniformTo != toIndex) {
+            for (i in 0..2) {
+                uniform3Bg("uBg${i}From", from.background[i])
+                uniform3Bg("uBg${i}To", to.background[i])
+            }
+            backgroundUniformFrom = fromIndex
+            backgroundUniformTo = toIndex
         }
         uniform1Bg("uMix", e)
         uniform3Bg("uSatelliteColor", satelliteColor)
@@ -258,6 +264,8 @@ class BettaRenderer(private val prefs: SharedPreferences) {
         toIndex = desired
         commonUniformFrom = -1
         commonUniformTo = -1
+        backgroundUniformFrom = -1
+        backgroundUniformTo = -1
         transitionStartNs = nowNs
         transitionDurationNs = if (cachedMode == BettaSettings.MODE_LIVE) 60_000_000_000L else 900_000_000L
     }
