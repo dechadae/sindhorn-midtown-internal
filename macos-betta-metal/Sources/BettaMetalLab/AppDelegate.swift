@@ -64,20 +64,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
     func windowWillClose(_ notification: Notification) { if !window.desktopMode { NSApp.terminate(nil) } }
 
-    @objc private func selectFish(_ sender: NSMenuItem) {
-        editorPanel.selectFish(index: sender.tag)
-    }
-
+    @objc private func selectFish(_ sender: NSMenuItem) { editorPanel.selectFish(index: sender.tag) }
     @objc private func useLive(_ sender: Any?) { renderer.useLiveMode() }
     @objc private func usePreview(_ sender: Any?) { renderer.usePreviewMode() }
-    @objc private func nextFish(_ sender: Any?) {
-        let next = min(7, max(0, editorPanelIndexOffset(1)))
-        editorPanel.selectFish(index: next)
-    }
-    @objc private func previousFish(_ sender: Any?) {
-        let previous = min(7, max(0, editorPanelIndexOffset(-1)))
-        editorPanel.selectFish(index: previous)
-    }
+    @objc private func nextFish(_ sender: Any?) { editorPanel.cycleFish(1) }
+    @objc private func previousFish(_ sender: Any?) { editorPanel.cycleFish(-1) }
 
     @objc private func toggleDesktop(_ sender: Any?) {
         if window.desktopMode {
@@ -89,11 +80,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             setEditorVisible(false)
             window.setDesktopMode(true)
         }
-    }
-
-    private func editorPanelIndexOffset(_ delta: Int) -> Int {
-        let current = BettaMorphState.bangkokIndex(for: Date())
-        return (current + delta + 8) % 8
     }
 
     private func saveAndUseAsWallpaper() {
