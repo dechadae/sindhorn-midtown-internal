@@ -3,7 +3,7 @@ name: Build Betta Runtime
 on:
   push:
     branches:
-      - fix-betta-first-frame-startup
+      - betta-final-runtime-sync
     paths:
       - ".github/workflows/betta-runtime-build.yml"
       - "site/betta-environment.js"
@@ -103,5 +103,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add site/betta-environment.js site/betta-runtime.js site/bootstrap.js site/auth-shell.js site/index.html site/sw.js
-          git commit -m "Hold Betta first frame through startup fade"
+          git commit -m "Rebuild Betta production runtime from final engine"
           git push origin "HEAD:${GITHUB_REF_NAME}"
