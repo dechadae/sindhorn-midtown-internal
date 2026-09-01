@@ -1,5 +1,7 @@
 package com.sindhornmidtown.betta.wallpaper
 
+import kotlin.math.pow
+
 data class BettaLayer(
     val seed: Float,
     val scale: Float,
@@ -51,12 +53,13 @@ data class BettaPreset(
     val layers: Array<BettaLayer>,
 )
 
+private fun srgbToLinear(value: Float): Float = if (value <= .04045f) value / 12.92f else (((value + .055f) / 1.055f).toDouble().pow(2.4)).toFloat()
 private fun rgb(hex: String): FloatArray {
     val value = hex.removePrefix("#").toLong(16)
     return floatArrayOf(
-        ((value shr 16) and 0xff).toFloat() / 255f,
-        ((value shr 8) and 0xff).toFloat() / 255f,
-        (value and 0xff).toFloat() / 255f,
+        srgbToLinear(((value shr 16) and 0xff).toFloat() / 255f),
+        srgbToLinear(((value shr 8) and 0xff).toFloat() / 255f),
+        srgbToLinear((value and 0xff).toFloat() / 255f),
     )
 }
 
