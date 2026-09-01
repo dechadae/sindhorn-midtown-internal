@@ -60,6 +60,9 @@ jobs:
       - name: Guard final Betta parity
         run: python3 android-betta-wallpaper/tools/verify_pwa_parity.py
 
+      - name: Guard Android performance contract
+        run: python3 android-betta-wallpaper/tools/verify_performance_contract.py
+
       - name: Build debug APK
         run: gradle -p android-betta-wallpaper :app:assembleDebug --stacktrace
 
@@ -73,7 +76,7 @@ jobs:
           import json, os
           path='site/downloads/sindhorn-betta-wallpaper.apk'
           with open('site/downloads/sindhorn-betta-wallpaper.json','w') as f:
-              json.dump({'ok':True,'version':'0.1.4','variant':'debug','bytes':os.path.getsize(path)},f)
+              json.dump({'ok':True,'version':'0.1.5','variant':'debug','bytes':os.path.getsize(path)},f)
           PY
 
       - name: Deploy APK download preview
@@ -92,7 +95,7 @@ jobs:
           import json
           d=json.load(open('/tmp/meta.json'))
           assert d['ok'] is True
-          assert d['version'] == '0.1.4'
+          assert d['version'] == '0.1.5'
           assert d['bytes'] > 100000
           PY
             then break; fi
