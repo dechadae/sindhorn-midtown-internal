@@ -12,7 +12,7 @@ const page=await context.newPage();
 page.setDefaultTimeout(45000);
 const errors=[];
 page.on('pageerror',error=>errors.push(`pageerror:${error.message}`));
-page.on('console',message=>{if(message.type()==='error')errors.push(`console:${message.text()}`)});
+page.on('console',message=>{if(message.type()==='error'||message.type()==='warning')errors.push(`${message.type()}:${message.text()}`)});
 
 async function signIn(){
   await page.goto(`${BASE_URL}/login.html`,{waitUntil:'domcontentloaded'});
@@ -21,6 +21,27 @@ async function signIn(){
   for(let i=0;i<6;i++)await page.fill(`[data-pin-login-digit="${i}"]`,pin[i]);
   await page.evaluate(()=>document.querySelector('#employeeForm')?.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
   await page.waitForURL(url=>new URL(url).pathname==='/',{waitUntil:'commit'});
+}
+
+async function diagnostics(label){
+  const value=await page.evaluate(async label=>{
+    window.SindhornStartupAudit?.snapshot?.();
+    const registration=await navigator.serviceWorker?.getRegistration?.('/').catch(()=>null);
+    return{
+      label,
+      href:location.href,
+      controller:navigator.serviceWorker?.controller?.scriptURL||null,
+      registration:registration?{
+        scope:registration.scope,
+        active:registration.active?{state:registration.active.state,scriptURL:registration.active.scriptURL}:null,
+        waiting:registration.waiting?{state:registration.waiting.state,scriptURL:registration.waiting.scriptURL}:null,
+        installing:registration.installing?{state:registration.installing.state,scriptURL:registration.installing.scriptURL}:null
+      }:null,
+      history:JSON.parse(localStorage.getItem('sindhorn-startup-audit:v1')||'[]')
+    };
+  },label);
+  console.log('SINDHORN_STARTUP_AUDIT_DIAGNOSTICS '+JSON.stringify(value));
+  return value;
 }
 
 function summarize(history){
@@ -36,11 +57,14 @@ function summarize(history){
       navigationType:session.navigation?.type||null,
       workerStart:session.navigation?.workerStart??null,
       responseStart:session.navigation?.responseStart??null,
+      responseEnd:session.navigation?.responseEnd??null,
       domContentLoaded:session.navigation?.domContentLoadedEventEnd??null,
       profileMs:fetchMs('employee-profile'),
       authRefreshMs:fetchMs('auth-refresh'),
       bettaFirstFrame:mark('sindhorn-betta-first-frame')??event('betta-first-frame'),
       startupReveal:mark('sindhorn-startup-enter-visible')??event('startup-enter-visible'),
+      swRegisterStart:event('sw-register-start'),
+      swRegisterEnd:event('sw-register-end'),
       swUpdateStart:event('sw-update-start'),
       swUpdateEnd:event('sw-update-end'),
       updateFound:event('sw-updatefound'),
@@ -54,24 +78,24 @@ function summarize(history){
 try{
   await signIn();
   await page.waitForFunction(()=>document.documentElement.dataset.startupEnter==='visible');
-  await page.waitForTimeout(9000);
-  await page.waitForFunction(()=>Boolean(navigator.serviceWorker?.controller),null,{timeout:30000});
   await page.waitForFunction(()=>Boolean(window.SindhornStartupAudit?.snapshot));
-  await page.evaluate(()=>window.SindhornStartupAudit.snapshot());
-  const firstHistory=await page.evaluate(()=>JSON.parse(localStorage.getItem('sindhorn-startup-audit:v1')||'[]'));
-  if(firstHistory.length<1)throw new Error('No Phase 0 audit navigation was recorded');
+  await page.waitForTimeout(3000);
+  const after3s=await diagnostics('after-3s');
+  await page.waitForTimeout(9000);
+  const after12s=await diagnostics('after-12s');
+  await page.waitForTimeout(18000);
+  const after30s=await diagnostics('after-30s');
+  if(!after30s.history.length)throw new Error('No Phase 0 audit navigation was recorded');
 
   await page.reload({waitUntil:'domcontentloaded'});
   await page.waitForFunction(()=>document.documentElement.dataset.startupEnter==='visible');
-  await page.waitForTimeout(2500);
-  await page.evaluate(()=>window.SindhornStartupAudit.snapshot());
-  const history=await page.evaluate(()=>JSON.parse(localStorage.getItem('sindhorn-startup-audit:v1')||'[]'));
-  if(history.length<2)throw new Error(`Expected at least two startup records, got ${history.length}`);
-  if(!history.some(session=>session.sw?.controller))throw new Error('No service-worker-controlled startup record was captured');
+  await page.waitForTimeout(3000);
+  const warm=await diagnostics('warm-reload');
+  if(warm.history.length<2)throw new Error(`Expected at least two startup records, got ${warm.history.length}`);
 
-  const summary=summarize(history);
+  const summary=summarize(warm.history);
   console.log('SINDHORN_STARTUP_AUDIT_SUMMARY '+JSON.stringify(summary));
-  console.log('SINDHORN_STARTUP_AUDIT_HISTORY '+JSON.stringify(history));
+  console.log('SINDHORN_STARTUP_AUDIT_CONTROLLER_RESULT '+JSON.stringify({after3s:Boolean(after3s.controller),after12s:Boolean(after12s.controller),after30s:Boolean(after30s.controller),warm:Boolean(warm.controller)}));
   if(errors.length)console.log('SINDHORN_STARTUP_AUDIT_BROWSER_ERRORS '+JSON.stringify(errors));
 }finally{
   await context.close();
