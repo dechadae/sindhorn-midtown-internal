@@ -36,7 +36,7 @@ jobs:
           test -s scripts/startup-warm-regression-smoke.mjs
           ! grep -q '/startup-audit.js' site/index.html
           ! grep -q 'addInitScript' scripts/startup-warm-regression-smoke.mjs
-          grep -q "pwa-v44-warm-startup-r1" site/sw.js
+          grep -q "pwa-v45-warm-cache-r1" site/sw.js
           grep -q "PRECACHE_CONCURRENCY=8" site/sw.js
           ! grep -q "ONE_TIME_CLIENT_REFRESH" site/sw.js
           node --check site/sw.js
@@ -62,7 +62,7 @@ jobs:
             if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
               && ! grep -q '/startup-audit.js' /tmp/root.html \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
-              && grep -q 'pwa-v44-warm-startup-r1' /tmp/sw.js; then ready=true; break; fi
+              && grep -q 'pwa-v45-warm-cache-r1' /tmp/sw.js; then ready=true; break; fi
             sleep 3
           done
           test "$ready" = true
