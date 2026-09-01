@@ -37,4 +37,6 @@ The desktop toggle uses public Core Graphics desktop window levels and AppKit Sp
 
 Creates `dist/Sindhorn Betta Metal Lab.app` and a ZIP with ad-hoc signing. Notarization and a polished installer are intentionally deferred.
 
+The branch CI validates the Swift package and compiles `Shaders.metal` on a native macOS runner before publishing the runnable lab artifact.
+
 See `docs/BETTA-METAL-PARITY.md` for the port contract and acceptance checklist.
