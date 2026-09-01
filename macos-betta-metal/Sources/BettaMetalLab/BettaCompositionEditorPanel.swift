@@ -6,6 +6,7 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
 
     private let store = BettaCompositionStore.shared
     private var selectedIndex: Int
+    var selectedFishIndex: Int { selectedIndex }
 
     private let fishSelector: NSSegmentedControl
     private let orientationControl: NSSegmentedControl
@@ -40,6 +41,10 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
         fishSelector.selectedSegment = selectedIndex
         loadSelectedFish()
         if notifyRenderer { onSelectFish?(selectedIndex) }
+    }
+
+    func cycleFish(_ delta: Int) {
+        selectFish(index: (selectedIndex + delta + 8) % 8)
     }
 
     private func configure() {
@@ -97,6 +102,11 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
         help.textColor = .tertiaryLabelColor
         help.maximumNumberOfLines = 4
 
+        let scaleRow = sliderRow(title: "Scale", slider: scaleSlider, value: scaleValue)
+        let xRow = sliderRow(title: "X Position", slider: xSlider, value: xValue)
+        let yRow = sliderRow(title: "Y Position", slider: ySlider, value: yValue)
+        let zRow = sliderRow(title: "Z Position", slider: zSlider, value: zValue)
+
         let stack = NSStackView(views: [
             title,
             subtitle,
@@ -106,10 +116,10 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
             spacer(2),
             orientationLabel,
             orientationControl,
-            sliderRow(title: "Scale", slider: scaleSlider, value: scaleValue),
-            sliderRow(title: "X Position", slider: xSlider, value: xValue),
-            sliderRow(title: "Y Position", slider: ySlider, value: yValue),
-            sliderRow(title: "Z Position", slider: zSlider, value: zValue),
+            scaleRow,
+            xRow,
+            yRow,
+            zRow,
             statusLabel,
             reset,
             save,
@@ -129,6 +139,10 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
             stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
             fishSelector.widthAnchor.constraint(equalTo: stack.widthAnchor),
             orientationControl.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            scaleRow.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            xRow.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            yRow.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            zRow.widthAnchor.constraint(equalTo: stack.widthAnchor),
             reset.widthAnchor.constraint(equalTo: stack.widthAnchor),
             save.widthAnchor.constraint(equalTo: stack.widthAnchor)
         ])
