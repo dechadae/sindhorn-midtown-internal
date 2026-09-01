@@ -3,7 +3,7 @@ name: Startup Warm Regression Audit
 on:
   push:
     branches:
-      - startup-warm-regression-audit
+      - startup-warm-audit
     paths:
       - "site/index.html"
       - "site/startup-audit.js"
@@ -72,7 +72,7 @@ jobs:
 
       - name: Measure authenticated first and warm controlled launches
         env:
-          BASE_URL: https://startup-warm-regression-audit.sindhorn-midtown-internal.pages.dev
+          BASE_URL: https://startup-warm-audit.sindhorn-midtown-internal.pages.dev
           CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
           CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
         run: node scripts/startup-warm-regression-smoke.mjs
