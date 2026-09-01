@@ -8,7 +8,6 @@ if(!employeeNumber||!pin||!/^[0-9]{6}$/.test(pin))throw new Error('CI smoke cred
 
 const browser=await chromium.launch({headless:true,args:['--enable-unsafe-swiftshader','--use-gl=angle','--use-angle=swiftshader','--disable-background-timer-throttling','--disable-renderer-backgrounding','--disable-backgrounding-occluded-windows','--disable-features=CalculateNativeWinOcclusion']});
 const context=await browser.newContext({viewport:{width:390,height:844},screen:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'allow'});
-await context.addInitScript({path:'site/startup-audit.js'});
 const page=await context.newPage();
 page.setDefaultTimeout(20000);
 const phase=name=>console.log(`SINDHORN_WARM_START_PHASE ${name}`);
@@ -30,41 +29,63 @@ async function waitReveal(label){
   phase(`${label}-wait-reveal`);
   try{await page.waitForFunction(()=>document.documentElement.dataset.startupEnter==='visible',null,{timeout:35000})}
   catch(error){console.log(`SINDHORN_WARM_START_REVEAL_TIMEOUT ${label} ${JSON.stringify({href:page.url(),message:error.message})}`)}
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(250);
 }
 
 async function swState(label){
-  const state=await page.evaluate(async label=>{const r=await navigator.serviceWorker.getRegistration('/').catch(()=>null);return{label,controller:navigator.serviceWorker.controller?.scriptURL||null,active:r?.active?.state||null,waiting:r?.waiting?.state||null,installing:r?.installing?.state||null}} ,label);
-  console.log('SINDHORN_WARM_SW_STATE '+JSON.stringify(state));return state;
+  const state=await page.evaluate(async label=>{const r=await navigator.serviceWorker.getRegistration('/').catch(()=>null);return{label,controller:navigator.serviceWorker.controller?.scriptURL||null,active:r?.active?.state||null,waiting:r?.waiting?.state||null,installing:r?.installing?.state||null}},label);
+  console.log('SINDHORN_WARM_SW_STATE '+JSON.stringify(state));
+  return state;
 }
 
 async function waitForSettledServiceWorker(){
   phase('wait-sw-settled');
   const started=Date.now();
   await page.waitForFunction(async()=>{const r=await navigator.serviceWorker.getRegistration('/').catch(()=>null);return Boolean(r?.active)&&!r?.installing&&!r?.waiting},{timeout:60000});
-  await page.waitForTimeout(3000);
+  await page.waitForTimeout(1000);
   console.log('SINDHORN_WARM_SW_SETTLED '+JSON.stringify({durationMs:Date.now()-started}));
   return swState('settled');
 }
 
-async function snap(label){
-  const data=await page.evaluate(label=>{
-    window.SindhornStartupAudit?.snapshot?.();
-    let history=[];try{history=JSON.parse(localStorage.getItem('sindhorn-startup-audit:v1')||'[]')}catch{}
-    const current=history.at(-1)||{},nav=current.navigation||{};
-    const fetchMs=kind=>{const rows=(current.fetches||[]).filter(x=>x.kind===kind);return rows.reduce((sum,x)=>sum+(Number(x.duration)||0),0)||0};
-    const mark=name=>current.marks?.find(x=>x.name===name)?.startTime??null;
-    return {label,href:location.href,startupEnter:document.documentElement.dataset.startupEnter||null,controlledAtScriptStart:Boolean(current.sw?.controller),workerStart:nav.workerStart??null,responseStart:nav.responseStart??null,responseEnd:nav.responseEnd??null,domContentLoaded:nav.domContentLoadedEventEnd??null,profileMs:+fetchMs('employee-profile').toFixed(1),authRefreshMs:+fetchMs('auth-refresh').toFixed(1),bettaFirstFrame:mark('sindhorn-betta-first-frame'),startupReveal:mark('sindhorn-startup-enter-visible'),pagehideCount:(current.events||[]).filter(x=>x.name==='pagehide').length,updateFound:(current.events||[]).some(x=>x.name==='sw-updatefound'),historyCount:history.length,slowestResources:(current.resources||[]).slice(0,15)};
-  },label);
+async function snap(label,wall={}){
+  const data=await page.evaluate(({label,wall})=>{
+    const n=performance.getEntriesByType('navigation')[0]||{};
+    const resources=performance.getEntriesByType('resource').map(x=>({path:x.name,initiatorType:x.initiatorType||'',startTime:+x.startTime.toFixed(1),responseEnd:+x.responseEnd.toFixed(1),duration:+x.duration.toFixed(1),transferSize:Number(x.transferSize)||0,encodedBodySize:Number(x.encodedBodySize)||0,deliveryType:x.deliveryType||''}));
+    const marks=performance.getEntriesByType('mark');
+    const mark=name=>marks.find(x=>x.name===name)?.startTime??null;
+    const sumWhere=predicate=>+resources.filter(predicate).reduce((sum,x)=>sum+x.duration,0).toFixed(1);
+    const swControlled=Boolean(navigator.serviceWorker?.controller);
+    return {
+      label,
+      href:location.href,
+      startupEnter:document.documentElement.dataset.startupEnter||null,
+      swControlled,
+      workerStart:Number.isFinite(n.workerStart)?+n.workerStart.toFixed(1):null,
+      responseStart:Number.isFinite(n.responseStart)?+n.responseStart.toFixed(1):null,
+      responseEnd:Number.isFinite(n.responseEnd)?+n.responseEnd.toFixed(1):null,
+      domContentLoaded:Number.isFinite(n.domContentLoadedEventEnd)?+n.domContentLoadedEventEnd.toFixed(1):null,
+      loadEnd:Number.isFinite(n.loadEventEnd)?+n.loadEventEnd.toFixed(1):null,
+      profileMs:sumWhere(x=>x.path.includes('/rest/v1/rpc/sindhorn_current_employee_profile')),
+      authRefreshMs:sumWhere(x=>x.path.includes('/auth/v1/token')),
+      bettaFirstFrame:mark('sindhorn-betta-first-frame'),
+      startupReveal:mark('sindhorn-startup-enter-visible'),
+      wallDomContentLoadedMs:wall.domContentLoadedMs??null,
+      wallRevealMs:wall.revealMs??null,
+      slowestResources:resources.sort((a,b)=>b.duration-a.duration).slice(0,15)
+    };
+  },{label,wall});
   console.log('SINDHORN_WARM_START '+JSON.stringify(data));
   return data;
 }
 
 async function reloadAndMeasure(label){
   phase(`${label}-reload`);
+  const started=Date.now();
   await page.reload({waitUntil:'domcontentloaded',timeout:40000});
+  const domContentLoadedMs=Date.now()-started;
   await waitReveal(label);
-  return snap(label);
+  const revealMs=Date.now()-started;
+  return snap(label,{domContentLoadedMs,revealMs});
 }
 
 try{
