@@ -1,0 +1,65 @@
+name: Startup Audit Phase 0 Preview
+
+on:
+  push:
+    branches:
+      - audit-startup-phase0
+    paths:
+      - "site/index.html"
+      - "site/startup-audit.html"
+      - "docs/STARTUP-PERFORMANCE-AUDIT-PHASE0.md"
+      - ".github/workflows/startup-audit-phase0.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: startup-audit-phase0-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate audit-only candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s site/index.html
+          test -s site/startup-audit.html
+          grep -q 'sindhorn-startup-audit:v1' site/index.html
+          grep -q 'SINDHORN STARTUP AUDIT' site/startup-audit.html
+          git diff --exit-code origin/main...HEAD -- site/sw.js site/auth-client.js site/auth-shell.js site/bootstrap.js site/route-registry.js site/betta-environment.js site/betta-runtime.js site/location.js site/rain-now.js site/live-data.js || {
+            echo 'Phase 0 is instrumentation-only; protected runtime files changed.' >&2
+            exit 1
+          }
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke audit preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
+          ready=false
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
+              && grep -q 'sindhorn-startup-audit:v1' /tmp/root.html \
+              && curl --fail --silent --show-error --location "${BASE_URL}/startup-audit.html" -o /tmp/audit.html \
+              && grep -q 'SINDHORN STARTUP AUDIT' /tmp/audit.html; then
+              ready=true
+              break
+            fi
+            sleep 3
+          done
+          test "$ready" = true
+          echo "Preview: ${BASE_URL}/"
+          echo "Audit report: ${BASE_URL}/startup-audit.html"
