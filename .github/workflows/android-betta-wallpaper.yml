@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -32,6 +32,30 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.11.1"
+
+      - name: Validate OpenGL ES shaders
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq glslang-tools
+          python3 - <<'PY'
+          import pathlib, re, subprocess, tempfile
+          source = pathlib.Path('android-betta-wallpaper/app/src/main/java/com/sindhornmidtown/betta/wallpaper/BettaShaders.kt').read_text()
+          shaders = {
+              'BACKGROUND_VERTEX': 'vert',
+              'BACKGROUND_FRAGMENT': 'frag',
+              'FIN_VERTEX': 'vert',
+              'FIN_FRAGMENT': 'frag',
+          }
+          with tempfile.TemporaryDirectory() as tmp:
+              for name, stage in shaders.items():
+                  match = re.search(rf'const val {name}\s*=\s*"""(.*?)"""', source, re.S)
+                  if not match:
+                      raise SystemExit(f'Could not extract {name}')
+                  path = pathlib.Path(tmp) / f'{name}.{stage}'
+                  path.write_text(match.group(1).strip() + '\n')
+                  subprocess.run(['glslangValidator', '-S', stage, str(path)], check=True)
+          PY
 
       - name: Build debug APK
         run: gradle -p android-betta-wallpaper :app:assembleDebug --stacktrace
@@ -46,7 +70,7 @@ jobs:
           import json, os
           path='site/downloads/sindhorn-betta-wallpaper.apk'
           with open('site/downloads/sindhorn-betta-wallpaper.json','w') as f:
-              json.dump({'ok':True,'version':'0.1.0','variant':'debug','bytes':os.path.getsize(path)},f)
+              json.dump({'ok':True,'version':'0.1.1','variant':'debug','bytes':os.path.getsize(path)},f)
           PY
 
       - name: Deploy APK download preview
@@ -65,6 +89,7 @@ jobs:
           import json
           d=json.load(open('/tmp/meta.json'))
           assert d['ok'] is True
+          assert d['version'] == '0.1.1'
           assert d['bytes'] > 100000
           PY
             then break; fi
