@@ -1,0 +1,110 @@
+name: Build Betta Warm Startup Preview
+
+on:
+  push:
+    branches:
+      - fix-pwa-warm-startup
+    paths:
+      - ".github/workflows/betta-warm-startup-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Add navigation-only Betta hard disposal
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('site/betta-environment.js')
+          text=p.read_text()
+
+          old="let initialized=false,stage=null,canvas=null,renderer=null,scene=null,camera=null,sharedGeometry=null,backgroundMesh=null,backgroundMaterial=null,raf=0,activeTime=0,previousNow=performance.now(),firstFrameRendered=false;"
+          new="let initialized=false,stage=null,canvas=null,renderer=null,scene=null,camera=null,sharedGeometry=null,backgroundMesh=null,backgroundMaterial=null,raf=0,activeTime=0,previousNow=performance.now(),firstFrameRendered=false,resizeObserver=null,weatherTimer=0,dayCycleTimer=0,watchdogTimer=0,hardDisposed=false;"
+          if old in text:text=text.replace(old,new)
+          elif new not in text:raise SystemExit('Betta lifecycle variable pattern missing')
+
+          old="function handleContextRestored(){webglContextLost=false;document.body.dataset.bettaContext='restored';renderer?.resetState?.();buildFins();resumeEnvironment('webglcontextrestored')}"
+          new="""function handleContextRestored(){webglContextLost=false;document.body.dataset.bettaContext='restored';renderer?.resetState?.();buildFins();resumeEnvironment('webglcontextrestored')}
+function hardDisposeEnvironment(reason='beforeunload'){
+  if(hardDisposed)return;hardDisposed=true;pageVisible=false;setLifecycle('disposed',reason);stopRender();pauseSatellite();
+  if(weatherTimer){clearInterval(weatherTimer);weatherTimer=0}if(dayCycleTimer){clearInterval(dayCycleTimer);dayCycleTimer=0}if(watchdogTimer){clearInterval(watchdogTimer);watchdogTimer=0}
+  resizeObserver?.disconnect();resizeObserver=null;
+  if(tilt.listening){removeEventListener('deviceorientation',handleDeviceOrientation);tilt.listening=false}
+  canvas?.removeEventListener('webglcontextlost',handleContextLost,false);canvas?.removeEventListener('webglcontextrestored',handleContextRestored,false);
+  try{clearFins()}catch(_){}sharedGeometry?.dispose();sharedGeometry=null;
+  if(backgroundMesh){try{scene?.remove(backgroundMesh)}catch(_){}backgroundMesh.geometry?.dispose?.();backgroundMesh=null}backgroundMaterial?.dispose?.();backgroundMaterial=null;
+  try{renderer?.setAnimationLoop?.(null)}catch(_){}try{renderer?.dispose?.()}catch(_){}try{renderer?.forceContextLoss?.()}catch(_){}
+  renderer=null;scene=null;camera=null;document.body.dataset.bettaContext='disposed';
+}"""
+          if old in text:text=text.replace(old,new)
+          elif 'function hardDisposeEnvironment' not in text:raise SystemExit('Betta context restore pattern missing')
+
+          old="new ResizeObserver(()=>resize()).observe(stage);document.addEventListener('visibilitychange',()=>{if(document.hidden)suspendEnvironment('visibilitychange');else resumeEnvironment('visibilitychange')});addEventListener('pagehide',()=>suspendEnvironment('pagehide'));addEventListener('pageshow',()=>resumeEnvironment('pageshow'));addEventListener('focus',()=>resumeEnvironment('focus'));document.addEventListener('freeze',()=>suspendEnvironment('freeze'));document.addEventListener('resume',()=>resumeEnvironment('resume'));canvas.addEventListener('webglcontextlost',handleContextLost,false);canvas.addEventListener('webglcontextrestored',handleContextRestored,false);document.addEventListener('sindhorn:route-mounted',renderWeather);document.addEventListener('sindhorn:location-updated',()=>fetchWeather().catch(()=>{}));startSatellite();"
+          new="resizeObserver=new ResizeObserver(()=>resize());resizeObserver.observe(stage);document.addEventListener('visibilitychange',()=>{if(document.hidden)suspendEnvironment('visibilitychange');else resumeEnvironment('visibilitychange')});addEventListener('pagehide',()=>suspendEnvironment('pagehide'));addEventListener('pageshow',()=>resumeEnvironment('pageshow'));addEventListener('focus',()=>resumeEnvironment('focus'));addEventListener('beforeunload',()=>hardDisposeEnvironment('beforeunload'),{once:true});document.addEventListener('freeze',()=>suspendEnvironment('freeze'));document.addEventListener('resume',()=>resumeEnvironment('resume'));canvas.addEventListener('webglcontextlost',handleContextLost,false);canvas.addEventListener('webglcontextrestored',handleContextRestored,false);document.addEventListener('sindhorn:route-mounted',renderWeather);document.addEventListener('sindhorn:location-updated',()=>fetchWeather().catch(()=>{}));startSatellite();"
+          if old in text:text=text.replace(old,new)
+          elif "beforeunload',()=>hardDisposeEnvironment" not in text:raise SystemExit('Betta lifecycle listener pattern missing')
+
+          old="requestRender();fetchWeather().catch(()=>{});setInterval(()=>fetchWeather().catch(()=>{}),10*60*1000);setInterval(()=>{if(dayCycle.mode==='live'&&!document.hidden)syncDayCycle(performance.now())},DAY_CYCLE_CHECK_MS);setInterval(()=>{if(!document.hidden&&!webglContextLost&&!raf)resumeEnvironment('watchdog')},2000);"
+          new="requestRender();fetchWeather().catch(()=>{});weatherTimer=setInterval(()=>fetchWeather().catch(()=>{}),10*60*1000);dayCycleTimer=setInterval(()=>{if(dayCycle.mode==='live'&&!document.hidden)syncDayCycle(performance.now())},DAY_CYCLE_CHECK_MS);watchdogTimer=setInterval(()=>{if(!document.hidden&&!webglContextLost&&!raf)resumeEnvironment('watchdog')},2000);"
+          if old in text:text=text.replace(old,new)
+          elif new not in text:raise SystemExit('Betta timer pattern missing')
+
+          p.write_text(text)
+
+          sw=Path('site/sw.js')
+          sw_text=sw.read_text()
+          old="const VERSION='sindhorn-midtown-internal-pwa-v45-warm-cache-r1';"
+          new="const VERSION='sindhorn-midtown-internal-pwa-v46-betta-unload-r1';\n// sindhorn-midtown-internal-pwa-v45-warm-cache-r1"
+          if old in sw_text:sw_text=sw_text.replace(old,new,1)
+          elif "pwa-v46-betta-unload-r1" not in sw_text:raise SystemExit('Service worker v45 marker missing')
+          sw.write_text(sw_text)
+          PY
+          node --input-type=module --check < site/betta-environment.js
+          node --check site/sw.js
+          grep -q 'hardDisposeEnvironment' site/betta-environment.js
+          grep -q "beforeunload" site/betta-environment.js
+          grep -q 'pwa-v46-betta-unload-r1' site/sw.js
+
+      - name: Build tree-shaken Betta runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx --yes esbuild@0.25.9 site/betta-environment.js \
+            --bundle \
+            --format=esm \
+            --platform=browser \
+            --target=es2022 \
+            --tree-shaking=true \
+            --minify \
+            --legal-comments=none \
+            --outfile=site/betta-runtime.js
+          node --input-type=module --check < site/betta-runtime.js
+          grep -q 'beforeunload' site/betta-runtime.js
+          BYTES=$(wc -c < site/betta-runtime.js | tr -d ' ')
+          echo "Betta runtime bytes: ${BYTES}"
+          test "${BYTES}" -lt 700000
+
+      - name: Commit preview runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          if test -z "$(git status --porcelain -- site/betta-environment.js site/betta-runtime.js site/sw.js)"; then
+            echo 'Betta warm-start runtime already current'
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/betta-environment.js site/betta-runtime.js site/sw.js
+          git commit -m "Dispose Betta GPU resources on navigation"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
