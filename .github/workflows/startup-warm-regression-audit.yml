@@ -9,6 +9,7 @@ on:
       - "site/index.html"
       - "site/betta-environment.js"
       - "site/betta-runtime.js"
+      - "scripts/apply-betta-unload-fix.mjs"
       - "scripts/startup-warm-regression-smoke.mjs"
       - "scripts/startup-betta-isolation-smoke.mjs"
       - "docs/STARTUP-WARM-REGRESSION-20260901.md"
@@ -36,61 +37,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python - <<'PY'
-          from pathlib import Path
-          p=Path('site/betta-environment.js')
-          text=p.read_text()
-
-          old="let initialized=false,stage=null,canvas=null,renderer=null,scene=null,camera=null,sharedGeometry=null,backgroundMesh=null,backgroundMaterial=null,raf=0,activeTime=0,previousNow=performance.now(),firstFrameRendered=false;"
-          new="let initialized=false,stage=null,canvas=null,renderer=null,scene=null,camera=null,sharedGeometry=null,backgroundMesh=null,backgroundMaterial=null,raf=0,activeTime=0,previousNow=performance.now(),firstFrameRendered=false,resizeObserver=null,weatherTimer=0,dayCycleTimer=0,watchdogTimer=0,hardDisposed=false;"
-          if old in text:text=text.replace(old,new)
-          elif new not in text:raise SystemExit('Betta lifecycle variable pattern missing')
-
-          old="function handleContextRestored(){webglContextLost=false;document.body.dataset.bettaContext='restored';renderer?.resetState?.();buildFins();resumeEnvironment('webglcontextrestored')}"
-          new="""function handleContextRestored(){webglContextLost=false;document.body.dataset.bettaContext='restored';renderer?.resetState?.();buildFins();resumeEnvironment('webglcontextrestored')}
-function hardDisposeEnvironment(reason='beforeunload'){
-  if(hardDisposed)return;hardDisposed=true;pageVisible=false;setLifecycle('disposed',reason);stopRender();pauseSatellite();
-  if(weatherTimer){clearInterval(weatherTimer);weatherTimer=0}if(dayCycleTimer){clearInterval(dayCycleTimer);dayCycleTimer=0}if(watchdogTimer){clearInterval(watchdogTimer);watchdogTimer=0}
-  resizeObserver?.disconnect();resizeObserver=null;
-  if(tilt.listening){removeEventListener('deviceorientation',handleDeviceOrientation);tilt.listening=false}
-  canvas?.removeEventListener('webglcontextlost',handleContextLost,false);canvas?.removeEventListener('webglcontextrestored',handleContextRestored,false);
-  try{clearFins()}catch(_){}sharedGeometry?.dispose();sharedGeometry=null;
-  if(backgroundMesh){try{scene?.remove(backgroundMesh)}catch(_){}backgroundMesh.geometry?.dispose?.();backgroundMesh=null}backgroundMaterial?.dispose?.();backgroundMaterial=null;
-  try{renderer?.setAnimationLoop?.(null)}catch(_){}try{renderer?.dispose?.()}catch(_){}try{renderer?.forceContextLoss?.()}catch(_){}
-  renderer=null;scene=null;camera=null;document.body.dataset.bettaContext='disposed';
-}"""
-          if old in text:text=text.replace(old,new)
-          elif 'function hardDisposeEnvironment' not in text:raise SystemExit('Betta context restore pattern missing')
-
-          old="new ResizeObserver(()=>resize()).observe(stage);document.addEventListener('visibilitychange',()=>{if(document.hidden)suspendEnvironment('visibilitychange');else resumeEnvironment('visibilitychange')});addEventListener('pagehide',()=>suspendEnvironment('pagehide'));addEventListener('pageshow',()=>resumeEnvironment('pageshow'));addEventListener('focus',()=>resumeEnvironment('focus'));document.addEventListener('freeze',()=>suspendEnvironment('freeze'));document.addEventListener('resume',()=>resumeEnvironment('resume'));canvas.addEventListener('webglcontextlost',handleContextLost,false);canvas.addEventListener('webglcontextrestored',handleContextRestored,false);document.addEventListener('sindhorn:route-mounted',renderWeather);document.addEventListener('sindhorn:location-updated',()=>fetchWeather().catch(()=>{}));startSatellite();"
-          new="resizeObserver=new ResizeObserver(()=>resize());resizeObserver.observe(stage);document.addEventListener('visibilitychange',()=>{if(document.hidden)suspendEnvironment('visibilitychange');else resumeEnvironment('visibilitychange')});addEventListener('pagehide',()=>suspendEnvironment('pagehide'));addEventListener('pageshow',()=>resumeEnvironment('pageshow'));addEventListener('focus',()=>resumeEnvironment('focus'));addEventListener('beforeunload',()=>hardDisposeEnvironment('beforeunload'),{once:true});document.addEventListener('freeze',()=>suspendEnvironment('freeze'));document.addEventListener('resume',()=>resumeEnvironment('resume'));canvas.addEventListener('webglcontextlost',handleContextLost,false);canvas.addEventListener('webglcontextrestored',handleContextRestored,false);document.addEventListener('sindhorn:route-mounted',renderWeather);document.addEventListener('sindhorn:location-updated',()=>fetchWeather().catch(()=>{}));startSatellite();"
-          if old in text:text=text.replace(old,new)
-          elif "beforeunload',()=>hardDisposeEnvironment" not in text:raise SystemExit('Betta lifecycle listener pattern missing')
-
-          old="requestRender();fetchWeather().catch(()=>{});setInterval(()=>fetchWeather().catch(()=>{}),10*60*1000);setInterval(()=>{if(dayCycle.mode==='live'&&!document.hidden)syncDayCycle(performance.now())},DAY_CYCLE_CHECK_MS);setInterval(()=>{if(!document.hidden&&!webglContextLost&&!raf)resumeEnvironment('watchdog')},2000);"
-          new="requestRender();fetchWeather().catch(()=>{});weatherTimer=setInterval(()=>fetchWeather().catch(()=>{}),10*60*1000);dayCycleTimer=setInterval(()=>{if(dayCycle.mode==='live'&&!document.hidden)syncDayCycle(performance.now())},DAY_CYCLE_CHECK_MS);watchdogTimer=setInterval(()=>{if(!document.hidden&&!webglContextLost&&!raf)resumeEnvironment('watchdog')},2000);"
-          if old in text:text=text.replace(old,new)
-          elif new not in text:raise SystemExit('Betta timer pattern missing')
-          p.write_text(text)
-
-          sw=Path('site/sw.js')
-          sw_text=sw.read_text()
-          old="const VERSION='sindhorn-midtown-internal-pwa-v45-warm-cache-r1';"
-          new="const VERSION='sindhorn-midtown-internal-pwa-v46-betta-unload-r1';\n// sindhorn-midtown-internal-pwa-v45-warm-cache-r1"
-          if old in sw_text:sw_text=sw_text.replace(old,new,1)
-          elif "pwa-v46-betta-unload-r1" not in sw_text:raise SystemExit('Service worker v45 marker missing')
-          sw.write_text(sw_text)
-          PY
-
-          npx --yes esbuild@0.25.9 site/betta-environment.js \
-            --bundle \
-            --format=esm \
-            --platform=browser \
-            --target=es2022 \
-            --tree-shaking=true \
-            --minify \
-            --legal-comments=none \
-            --outfile=site/betta-runtime.js
+          node --check scripts/apply-betta-unload-fix.mjs
+          node scripts/apply-betta-unload-fix.mjs
+          npx --yes esbuild@0.25.9 site/betta-environment.js --bundle --format=esm --platform=browser --target=es2022 --tree-shaking=true --minify --legal-comments=none --outfile=site/betta-runtime.js
           node --input-type=module --check < site/betta-environment.js
           node --input-type=module --check < site/betta-runtime.js
           node --check site/sw.js
@@ -98,9 +47,8 @@ function hardDisposeEnvironment(reason='beforeunload'){
           grep -q 'beforeunload' site/betta-runtime.js
           grep -q 'pwa-v46-betta-unload-r1' site/sw.js
           BYTES=$(wc -c < site/betta-runtime.js | tr -d ' ')
-          echo "Betta runtime bytes: ${BYTES}"
+          echo "Betta runtime bytes ${BYTES}"
           test "${BYTES}" -lt 700000
-
           if test -n "$(git status --porcelain -- site/betta-environment.js site/betta-runtime.js site/sw.js)"; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -117,20 +65,17 @@ function hardDisposeEnvironment(reason='beforeunload'){
           test -s scripts/startup-betta-isolation-smoke.mjs
           ! grep -q '/startup-audit.js' site/index.html
           ! grep -q 'addInitScript' scripts/startup-warm-regression-smoke.mjs
-          grep -q "pwa-v46-betta-unload-r1" site/sw.js
-          grep -q "PRECACHE_CONCURRENCY=8" site/sw.js
-          ! grep -q "ONE_TIME_CLIENT_REFRESH" site/sw.js
+          grep -q 'pwa-v46-betta-unload-r1' site/sw.js
+          grep -q 'PRECACHE_CONCURRENCY=8' site/sw.js
+          ! grep -q 'ONE_TIME_CLIENT_REFRESH' site/sw.js
           grep -q 'hardDisposeEnvironment' site/betta-environment.js
-          grep -q "beforeunload" site/betta-environment.js
+          grep -q 'beforeunload' site/betta-environment.js
           node --check site/sw.js
           node --input-type=module --check < site/betta-environment.js
           node --input-type=module --check < site/betta-runtime.js
           node --check scripts/startup-warm-regression-smoke.mjs
           node --check scripts/startup-betta-isolation-smoke.mjs
-          git diff --exit-code origin/main...HEAD -- site/auth-client.js site/auth-shell.js site/bootstrap.js site/route-registry.js site/location.js site/rain-now.js site/live-data.js || {
-            echo 'Warm-start fix changed protected non-Betta app runtime.' >&2
-            exit 1
-          }
+          git diff --exit-code origin/main...HEAD -- site/auth-client.js site/auth-shell.js site/bootstrap.js site/route-registry.js site/location.js site/rain-now.js site/live-data.js
 
       - name: Deploy Cloudflare branch preview
         env:
@@ -145,10 +90,10 @@ function hardDisposeEnvironment(reason='beforeunload'){
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           ready=false
           for attempt in $(seq 1 40); do
-            if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
-              && ! grep -q '/startup-audit.js' /tmp/root.html \
-              && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
-              && grep -q 'pwa-v46-betta-unload-r1' /tmp/sw.js; then ready=true; break; fi
+            if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html && ! grep -q '/startup-audit.js' /tmp/root.html && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js && grep -q 'pwa-v46-betta-unload-r1' /tmp/sw.js; then
+              ready=true
+              break
+            fi
             sleep 3
           done
           test "$ready" = true
