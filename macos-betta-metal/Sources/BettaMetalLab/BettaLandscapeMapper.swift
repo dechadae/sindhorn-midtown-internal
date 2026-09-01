@@ -1,30 +1,19 @@
 import Foundation
 import simd
 
-struct LandscapeOverride {
-    var deltaX: Float = 0
-    var deltaY: Float = 0
-    var scaleMultiplier: Float = 1
-}
-
 struct MappedComposition {
     var position: SIMD3<Float>
     var scaleMultiplier: Float
+    var rotationZOffset: Float
 }
 
 enum BettaLandscapeMapper {
-    // Intentionally empty for the first parity milestone. The mechanism exists so that
-    // any later fish-specific correction remains a tiny delta on top of the shared map.
-    private static let overrides: [Int: LandscapeOverride] = [:]
-
     static func map(position source: SIMD3<Float>, aspect: Float, referenceId: Int) -> MappedComposition {
-        let override = overrides[referenceId] ?? LandscapeOverride()
         let orientationMix = smoothstep(0.95, 1.25, aspect)
+        let adjustment = BettaCompositionStore.shared.adjustment(for: referenceId)
+
         guard orientationMix > 0 else {
-            return MappedComposition(
-                position: source + SIMD3<Float>(override.deltaX, override.deltaY, 0),
-                scaleMultiplier: override.scaleMultiplier
-            )
+            return MappedComposition(position: source, scaleMultiplier: 1, rotationZOffset: 0)
         }
 
         let fov = BettaSettings.fovYDegrees * .pi / 180
@@ -33,24 +22,27 @@ enum BettaLandscapeMapper {
         let sourceHalfWidth = halfHeight * BettaSettings.portraitReferenceAspect
         let targetHalfWidth = halfHeight * max(aspect, 0.001)
 
-        // Preserve the portrait root's screen-edge intent rather than preserving its raw
-        // world-space X. Roots already beyond the portrait frame remain beyond the edge,
-        // but their overhang is compressed so landscape does not throw the organism away.
+        // Preserve the production portrait entry side first, then apply the user's
+        // landscape-only composition adjustment. This keeps the approved organism
+        // untouched while making the desktop framing fully editable.
         let normalized = source.x / max(sourceHalfWidth, 0.001)
         let magnitude = abs(normalized)
-        let targetMagnitude: Float
-        if magnitude <= 1 {
-            targetMagnitude = magnitude
-        } else {
-            targetMagnitude = 1 + (magnitude - 1) * 0.55
-        }
+        let targetMagnitude: Float = magnitude <= 1 ? magnitude : 1 + (magnitude - 1) * 0.55
         let mappedX = (normalized < 0 ? -1 : 1) * targetMagnitude * targetHalfWidth
-        let x = lerp(source.x, mappedX, orientationMix) + override.deltaX
-        let y = source.y + override.deltaY
+        let autoX = lerp(source.x, mappedX, orientationMix)
+
+        let position = SIMD3<Float>(
+            autoX + adjustment.x * orientationMix,
+            source.y + adjustment.y * orientationMix,
+            source.z + adjustment.z * orientationMix
+        )
+        let scale = lerp(1, adjustment.scale, orientationMix)
+        let rotation = Float(adjustment.quarterTurns) * (.pi / 2) * orientationMix
 
         return MappedComposition(
-            position: SIMD3<Float>(x, y, source.z),
-            scaleMultiplier: override.scaleMultiplier
+            position: position,
+            scaleMultiplier: scale,
+            rotationZOffset: rotation
         )
     }
 
