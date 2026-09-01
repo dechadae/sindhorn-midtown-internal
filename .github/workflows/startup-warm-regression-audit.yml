@@ -7,6 +7,8 @@ on:
     paths:
       - "site/sw.js"
       - "site/index.html"
+      - "site/betta-environment.js"
+      - "site/betta-runtime.js"
       - "scripts/startup-warm-regression-smoke.mjs"
       - "scripts/startup-betta-isolation-smoke.mjs"
       - "docs/STARTUP-WARM-REGRESSION-20260901.md"
@@ -41,11 +43,17 @@ jobs:
           grep -q "pwa-v45-warm-cache-r1" site/sw.js
           grep -q "PRECACHE_CONCURRENCY=8" site/sw.js
           ! grep -q "ONE_TIME_CLIENT_REFRESH" site/sw.js
+          if git diff --name-only origin/main...HEAD | grep -qx 'site/betta-environment.js'; then
+            grep -q 'hardDisposeEnvironment' site/betta-environment.js
+            grep -q "beforeunload" site/betta-environment.js
+          fi
           node --check site/sw.js
+          node --input-type=module --check < site/betta-environment.js
+          node --input-type=module --check < site/betta-runtime.js
           node --check scripts/startup-warm-regression-smoke.mjs
           node --check scripts/startup-betta-isolation-smoke.mjs
-          git diff --exit-code origin/main...HEAD -- site/auth-client.js site/auth-shell.js site/bootstrap.js site/route-registry.js site/betta-environment.js site/betta-runtime.js site/location.js site/rain-now.js site/live-data.js || {
-            echo 'Warm-start fix may change service worker only; protected app runtime changed.' >&2
+          git diff --exit-code origin/main...HEAD -- site/auth-client.js site/auth-shell.js site/bootstrap.js site/route-registry.js site/location.js site/rain-now.js site/live-data.js || {
+            echo 'Warm-start fix changed protected non-Betta app runtime.' >&2
             exit 1
           }
 
