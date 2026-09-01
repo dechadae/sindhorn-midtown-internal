@@ -27,9 +27,23 @@ async function signIn(){
 
 async function waitReveal(label){
   phase(`${label}-wait-reveal`);
-  try{await page.waitForFunction(()=>document.documentElement.dataset.startupEnter==='visible',null,{timeout:30000})}
+  try{await page.waitForFunction(()=>document.documentElement.dataset.startupEnter==='visible',null,{timeout:35000})}
   catch(error){console.log(`SINDHORN_WARM_START_REVEAL_TIMEOUT ${label} ${JSON.stringify({href:page.url(),message:error.message})}`)}
-  await page.waitForTimeout(750);
+  await page.waitForTimeout(500);
+}
+
+async function swState(label){
+  const state=await page.evaluate(async label=>{const r=await navigator.serviceWorker.getRegistration('/').catch(()=>null);return{label,controller:navigator.serviceWorker.controller?.scriptURL||null,active:r?.active?.state||null,waiting:r?.waiting?.state||null,installing:r?.installing?.state||null}} ,label);
+  console.log('SINDHORN_WARM_SW_STATE '+JSON.stringify(state));return state;
+}
+
+async function waitForSettledServiceWorker(){
+  phase('wait-sw-settled');
+  const started=Date.now();
+  await page.waitForFunction(async()=>{const r=await navigator.serviceWorker.getRegistration('/').catch(()=>null);return Boolean(r?.active)&&!r?.installing&&!r?.waiting},{timeout:60000});
+  await page.waitForTimeout(3000);
+  console.log('SINDHORN_WARM_SW_SETTLED '+JSON.stringify({durationMs:Date.now()-started}));
+  return swState('settled');
 }
 
 async function snap(label){
@@ -39,28 +53,33 @@ async function snap(label){
     const current=history.at(-1)||{},nav=current.navigation||{};
     const fetchMs=kind=>{const rows=(current.fetches||[]).filter(x=>x.kind===kind);return rows.reduce((sum,x)=>sum+(Number(x.duration)||0),0)||0};
     const mark=name=>current.marks?.find(x=>x.name===name)?.startTime??null;
-    return {label,href:location.href,startupEnter:document.documentElement.dataset.startupEnter||null,controlledAtScriptStart:Boolean(current.sw?.controller),workerStart:nav.workerStart??null,responseStart:nav.responseStart??null,responseEnd:nav.responseEnd??null,domContentLoaded:nav.domContentLoadedEventEnd??null,profileMs:+fetchMs('employee-profile').toFixed(1),authRefreshMs:+fetchMs('auth-refresh').toFixed(1),bettaFirstFrame:mark('sindhorn-betta-first-frame'),startupReveal:mark('sindhorn-startup-enter-visible'),pagehideCount:(current.events||[]).filter(x=>x.name==='pagehide').length,updateFound:(current.events||[]).some(x=>x.name==='sw-updatefound'),historyCount:history.length};
+    return {label,href:location.href,startupEnter:document.documentElement.dataset.startupEnter||null,controlledAtScriptStart:Boolean(current.sw?.controller),workerStart:nav.workerStart??null,responseStart:nav.responseStart??null,responseEnd:nav.responseEnd??null,domContentLoaded:nav.domContentLoadedEventEnd??null,profileMs:+fetchMs('employee-profile').toFixed(1),authRefreshMs:+fetchMs('auth-refresh').toFixed(1),bettaFirstFrame:mark('sindhorn-betta-first-frame'),startupReveal:mark('sindhorn-startup-enter-visible'),pagehideCount:(current.events||[]).filter(x=>x.name==='pagehide').length,updateFound:(current.events||[]).some(x=>x.name==='sw-updatefound'),historyCount:history.length,slowestResources:(current.resources||[]).slice(0,15)};
   },label);
   console.log('SINDHORN_WARM_START '+JSON.stringify(data));
   return data;
+}
+
+async function reloadAndMeasure(label){
+  phase(`${label}-reload`);
+  await page.reload({waitUntil:'domcontentloaded',timeout:40000});
+  await waitReveal(label);
+  return snap(label);
 }
 
 try{
   await signIn();
   await waitReveal('first');
   const first=await snap('first-authenticated-launch');
+  await swState('after-first');
 
-  phase('warm-reload-1');
-  await page.reload({waitUntil:'domcontentloaded',timeout:30000});
-  await waitReveal('warm1');
-  const warm1=await snap('warm-controlled-reload-1');
+  const immediateWarm=await reloadAndMeasure('immediate-warm-reload');
+  await swState('after-immediate-warm');
 
-  phase('warm-reload-2');
-  await page.reload({waitUntil:'domcontentloaded',timeout:30000});
-  await waitReveal('warm2');
-  const warm2=await snap('warm-controlled-reload-2');
+  await waitForSettledServiceWorker();
+  const settledWarm1=await reloadAndMeasure('settled-warm-reload-1');
+  const settledWarm2=await reloadAndMeasure('settled-warm-reload-2');
 
-  console.log('SINDHORN_WARM_START_COMPARISON '+JSON.stringify({first,warm1,warm2}));
+  console.log('SINDHORN_WARM_START_COMPARISON '+JSON.stringify({first,immediateWarm,settledWarm1,settledWarm2}));
 }finally{
   await context.close();
   await browser.close();
