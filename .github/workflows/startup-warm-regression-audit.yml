@@ -7,8 +7,6 @@ on:
     paths:
       - "site/sw.js"
       - "site/index.html"
-      - "site/startup-audit.js"
-      - "site/startup-audit.html"
       - "scripts/startup-warm-regression-smoke.mjs"
       - "docs/STARTUP-WARM-REGRESSION-20260901.md"
       - ".github/workflows/startup-warm-regression-audit.yml"
@@ -35,16 +33,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s site/startup-audit.js
-          test -s site/startup-audit.html
           test -s scripts/startup-warm-regression-smoke.mjs
           ! grep -q '/startup-audit.js' site/index.html
-          grep -q "addInitScript" scripts/startup-warm-regression-smoke.mjs
+          ! grep -q 'addInitScript' scripts/startup-warm-regression-smoke.mjs
           grep -q "pwa-v44-warm-startup-r1" site/sw.js
           grep -q "PRECACHE_CONCURRENCY=8" site/sw.js
           ! grep -q "ONE_TIME_CLIENT_REFRESH" site/sw.js
           node --check site/sw.js
-          node --check site/startup-audit.js
           node --check scripts/startup-warm-regression-smoke.mjs
           git diff --exit-code origin/main...HEAD -- site/auth-client.js site/auth-shell.js site/bootstrap.js site/route-registry.js site/betta-environment.js site/betta-runtime.js site/location.js site/rain-now.js site/live-data.js || {
             echo 'Warm-start fix may change service worker only; protected app runtime changed.' >&2
