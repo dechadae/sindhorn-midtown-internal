@@ -26,109 +26,8 @@ jobs:
         with:
           ref: android-betta-wallpaper
 
-      - name: Apply canonical PWA Betta parity patch
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-
-          shaders = Path('android-betta-wallpaper/app/src/main/java/com/sindhornmidtown/betta/wallpaper/BettaShaders.kt')
-          s = shaders.read_text()
-          old = '''          float biologicalNoise=(micro-.5)*(.025+.03*uSatelliteEnergy);
-          base*=.70+wrapA*.34+wrapB*.12;base+=base*foldLight*.24;base+=vec3(1.0,.94,.90)*edgeLight*(.06+.08*uBloom);base+=biologicalNoise;
-          float transmitted=(1.0-nv)*uTransmission;base+=base*transmitted*.14;
-          float alpha=uOpacity*uLayerAlpha*(.78+.10*rayRidge+.08*vFold);alpha*=1.0-vEdge*.055;
-          fragColor=vec4(linearToSrgb(acesTone(max(base,vec3(0.0)))),clamp(alpha,.015,.94));'''
-          new = '''          float biologicalNoise=(micro-.5)*.045;
-          vec3 transmitted=base*(.36+.44*uTransmission+.2*nv);
-          vec3 lit=transmitted+base*(foldLight*.42+edgeLight*.25)+vec3(1.0,.82,.92)*edgeLight*uBloom*.13;
-          lit+=satTint*uSatelliteCold*vFold*.035;
-          lit+=biologicalNoise*base;
-          float membrane=.42+.35*(1.0-uTransmission)+.22*(1.0-nv);
-          float alpha=uOpacity*membrane;
-          alpha*=.72+.28*rayRidge;
-          alpha+=vEdge*uOpacity*.09;
-          alpha*=uLayerAlpha;
-          alpha=clamp(alpha,0.0,.86);
-          if(alpha<.001)discard;
-          fragColor=vec4(lit,alpha);'''
-          if old in s:
-              s = s.replace(old, new)
-              shaders.write_text(s)
-          elif new not in s:
-              raise SystemExit('Unexpected Android fin-lighting source; refusing blind patch')
-
-          renderer = Path('android-betta-wallpaper/app/src/main/java/com/sindhornmidtown/betta/wallpaper/BettaRenderer.kt')
-          r = renderer.read_text()
-          if '    private var startNs = 0L\n' in r:
-              r = r.replace('    private var startNs = 0L\n', '    private var activeTimeSeconds = 0f\n')
-          elif '    private var activeTimeSeconds = 0f\n' not in r:
-              raise SystemExit('Unexpected Android motion-time field')
-          if '        startNs = System.nanoTime()\n' in r:
-              r = r.replace('        startNs = System.nanoTime()\n', '        activeTimeSeconds = 0f\n')
-          old_sig = '    fun draw(width: Int, height: Int, nowNs: Long, tiltX: Float, tiltY: Float) {'
-          new_sig = '    fun draw(width: Int, height: Int, nowNs: Long, deltaSeconds: Float, tiltX: Float, tiltY: Float) {'
-          if old_sig in r:
-              r = r.replace(old_sig, new_sig)
-          elif new_sig not in r:
-              raise SystemExit('Unexpected Android renderer draw signature')
-          old_time = '        uniform1("uTime", ((nowNs - startNs).coerceAtLeast(0L) / 1_000_000_000.0).toFloat() * motionMultiplier())\n'
-          new_time = '        activeTimeSeconds += deltaSeconds.coerceIn(0f, .05f) * motionMultiplier()\n        uniform1("uTime", activeTimeSeconds)\n'
-          if old_time in r:
-              r = r.replace(old_time, new_time)
-          elif new_time not in r:
-              raise SystemExit('Unexpected Android uTime source')
-          renderer.write_text(r)
-
-          service = Path('android-betta-wallpaper/app/src/main/java/com/sindhornmidtown/betta/wallpaper/BettaWallpaperService.kt')
-          w = service.read_text()
-          old_draw = '                renderer.draw(width, height, now, currentTiltX, currentTiltY + pageParallax)\n'
-          new_draw = '                renderer.draw(width, height, now, dt, currentTiltX, currentTiltY + pageParallax)\n'
-          if old_draw in w:
-              w = w.replace(old_draw, new_draw)
-          elif new_draw not in w:
-              raise SystemExit('Unexpected wallpaper draw call')
-          old_sleep = '''                if (!EGL14.eglSwapBuffers(display, eglSurface)) {
-                    Log.e(TAG, "eglSwapBuffers failed: 0x${EGL14.eglGetError().toString(16)}")
-                    break
-                }
-                SystemClock.sleep(16)'''
-          new_sleep = '''                if (!EGL14.eglSwapBuffers(display, eglSurface)) {
-                    Log.e(TAG, "eglSwapBuffers failed: 0x${EGL14.eglGetError().toString(16)}")
-                    break
-                }
-                val frameElapsedNs = System.nanoTime() - now
-                val remainingNs = 16_666_667L - frameElapsedNs
-                if (remainingNs > 1_000_000L) SystemClock.sleep(remainingNs / 1_000_000L)'''
-          if old_sleep in w:
-              w = w.replace(old_sleep, new_sleep)
-          elif new_sleep not in w:
-              raise SystemExit('Unexpected Android frame-pacing source')
-          old_current = '''        require(EGL14.eglMakeCurrent(display, eglSurface, eglSurface, context)) {
-            "eglMakeCurrent failed: 0x${EGL14.eglGetError().toString(16)}"
-        }
-
-        val glVersion'''
-          new_current = '''        require(EGL14.eglMakeCurrent(display, eglSurface, eglSurface, context)) {
-            "eglMakeCurrent failed: 0x${EGL14.eglGetError().toString(16)}"
-        }
-        EGL14.eglSwapInterval(display, 1)
-
-        val glVersion'''
-          if old_current in w:
-              w = w.replace(old_current, new_current)
-          elif new_current not in w:
-              raise SystemExit('Unexpected EGL current block')
-          service.write_text(w)
-
-          gradle = Path('android-betta-wallpaper/app/build.gradle.kts')
-          g = gradle.read_text()
-          if 'versionName = "0.1.3"' in g:
-              g = g.replace('versionCode = 4', 'versionCode = 5').replace('versionName = "0.1.3"', 'versionName = "0.1.4"')
-          elif 'versionName = "0.1.4"' not in g:
-              raise SystemExit('Unexpected Android app version')
-          gradle.write_text(g)
-          PY
+      - name: Apply canonical PWA parity patch
+        run: python3 android-betta-wallpaper/tools/apply_pwa_parity.py
 
       - name: Commit parity source fix
         run: |
@@ -176,24 +75,8 @@ jobs:
                   subprocess.run(['glslangValidator', '-S', stage, str(path)], check=True)
           PY
 
-      - name: Guard final Betta membrane parity
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          native = Path('android-betta-wallpaper/app/src/main/java/com/sindhornmidtown/betta/wallpaper/BettaShaders.kt').read_text()
-          required = [
-              'vec3 transmitted=base*(.36+.44*uTransmission+.2*nv);',
-              'vec3 lit=transmitted+base*(foldLight*.42+edgeLight*.25)+vec3(1.0,.82,.92)*edgeLight*uBloom*.13;',
-              'float membrane=.42+.35*(1.0-uTransmission)+.22*(1.0-nv);',
-              'alpha=clamp(alpha,0.0,.86);',
-              'fragColor=vec4(lit,alpha);',
-          ]
-          forbidden = ['acesTone(max(base', 'uOpacity*uLayerAlpha*(.78+.10*rayRidge']
-          missing = [x for x in required if x not in native]
-          present = [x for x in forbidden if x in native]
-          if missing or present:
-              raise SystemExit(f'Android Betta membrane parity failed; missing={missing}, forbidden={present}')
-          PY
+      - name: Guard final Betta parity
+        run: python3 android-betta-wallpaper/tools/verify_pwa_parity.py
 
       - name: Build debug APK
         run: gradle -p android-betta-wallpaper :app:assembleDebug --stacktrace
