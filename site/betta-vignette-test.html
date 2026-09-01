@@ -20,15 +20,15 @@
 </head>
 <body>
   <div id="environmentStage" aria-hidden="true"><canvas id="environmentCanvas"></canvas></div>
-  <div class="topbar"><div class="badge">Betta final engine · camera editor + device tilt · Himawari live</div></div>
+  <div class="topbar"><div class="badge">Betta final engine · live camera editor + device tilt · Himawari live</div></div>
   <section class="review" aria-label="Betta fine-tune controls">
     <div class="review-head"><div><p class="review-kicker">Fin + tail composition</p><h1 class="review-title" data-title>Betta Camera Editor</h1><p class="review-sub" data-description>Loading fine-tune renderer…</p></div><div class="review-state"><div data-clock>—</div><div data-state>Loading…</div></div></div>
     <div class="periods" data-periods></div>
     <div class="actions"><button class="primary" type="button" data-live>Live</button><button type="button" data-preview>24h</button><button type="button" data-tilt>Tilt</button><button type="button" data-camera>Camera</button><button type="button" data-hide-ui>Hide UI</button></div>
     <div class="camera" data-camera-panel>
-      <div class="camera-head"><div class="camera-title" data-camera-title>Camera · —</div><div class="camera-status" data-camera-status>Adjust, then Preview Position</div></div>
+      <div class="camera-head"><div class="camera-title" data-camera-title>Camera · —</div><div class="camera-status" data-camera-status>Sliders update live</div></div>
       <div class="camera-grid" data-camera-grid></div>
-      <div class="camera-actions"><button class="primary" type="button" data-apply>Preview Position</button><button class="save" type="button" data-save>Save Location</button><button type="button" data-reset>Reset</button><button class="copy" type="button" data-copy>Copy All 8</button></div>
+      <div class="camera-actions"><button class="primary" type="button" data-apply>Recenter Tilt</button><button class="save" type="button" data-save>Save Location</button><button type="button" data-reset>Reset</button><button class="copy" type="button" data-copy>Copy All 8</button></div>
     </div>
   </section>
   <script>
@@ -42,5 +42,5 @@
       document.addEventListener('keydown',event=>{if(event.key==='Escape')showUI()});
     })();
   </script>
-  <script type="module" src="./betta-vignette-test.js?v=camera-editor-1"></script>
+  <script type="module" src="./betta-vignette-test.js?v=camera-editor-2"></script>
 </body></html>
