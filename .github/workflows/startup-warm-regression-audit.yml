@@ -38,7 +38,8 @@ jobs:
           test -s site/startup-audit.js
           test -s site/startup-audit.html
           test -s scripts/startup-warm-regression-smoke.mjs
-          grep -q '/startup-audit.js' site/index.html
+          ! grep -q '/startup-audit.js' site/index.html
+          grep -q "addInitScript" scripts/startup-warm-regression-smoke.mjs
           grep -q "pwa-v44-warm-startup-r1" site/sw.js
           grep -q "PRECACHE_CONCURRENCY=8" site/sw.js
           ! grep -q "ONE_TIME_CLIENT_REFRESH" site/sw.js
@@ -64,7 +65,7 @@ jobs:
           ready=false
           for attempt in $(seq 1 40); do
             if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
-              && grep -q '/startup-audit.js' /tmp/root.html \
+              && ! grep -q '/startup-audit.js' /tmp/root.html \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
               && grep -q 'pwa-v44-warm-startup-r1' /tmp/sw.js; then ready=true; break; fi
             sleep 3
