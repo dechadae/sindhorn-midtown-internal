@@ -47,18 +47,18 @@ let cameraPeriodKey=null;
 let cameraOpen=params.get('camera')==='1';
 
 titleNode.textContent='Betta Camera Editor';
-descriptionNode.textContent='Tune and save independent XYZ position, scale and XYZ rotation for every Betta period. Saved locations stay on this device until exported.';
+descriptionNode.textContent='Tune independent XYZ position, scale and XYZ rotation in real time. Save Location persists each Betta composition on this device.';
 
 function hourLabel(value){return `${String(value).padStart(2,'0')}:00`}
 function renderButtons(){periodsHost.innerHTML=BETTA_DAY_PERIODS.map(period=>{const preset=BETTA_PRESETS[period.baseline];return `<button type="button" data-period="${period.key}" data-reference="${period.referenceId}" data-tone="${period.tone}"><span>${period.name}</span><small>${hourLabel(period.startHour)}–${hourLabel(period.endHour)} · Fish #${period.referenceId}</small><em>${preset?.name?.replace(/^Fish #\d+ · /,'')||''}</em></button>`}).join('')}
 function updateUrl(next={}){const url=new URL(location.href);url.searchParams.delete('grade');for(const [key,value] of Object.entries(next)){if(value==null||value==='')url.searchParams.delete(key);else url.searchParams.set(key,value)}history.replaceState(null,'',url)}
 function activePeriodKey(){const env=window.SindhornEnvironment?.getState?.();return env?.betta?.dayCycle?.targetPeriodKey||requestedPeriod||BETTA_DAY_PERIODS[0].key}
 function compositionFor(periodKey){const period=periodByKey(periodKey);if(!period)return null;return pickComposition(BETTA_PRESETS[period.baseline].params)}
-function statusFor(periodKey){if(saved[periodKey])return'Saved on this device';if(drafts[periodKey])return'Preview draft applied';return'Branch default'}
+function statusFor(periodKey){if(saved[periodKey])return'Saved on this device';if(drafts[periodKey])return'Live draft · unsaved';return'Branch default · live sliders'}
 function fieldMarkup(field,value){return `<label class="field"><div class="field-head"><span>${field.label}</span><output data-value="${field.key}">${Number(value).toFixed(field.digits)}</output></div><input type="range" data-camera-field="${field.key}" min="${field.min}" max="${field.max}" step="${field.step}" value="${value}"></label>`}
 function populateCamera(periodKey=activePeriodKey(),force=false){if(!cameraPanel)return;if(!force&&cameraPeriodKey===periodKey)return;const period=periodByKey(periodKey);if(!period)return;cameraPeriodKey=periodKey;const composition=compositionFor(periodKey);cameraTitle.textContent=`Camera · ${period.name} · Fish #${period.referenceId}`;cameraStatus.textContent=statusFor(periodKey);cameraGrid.innerHTML=FIELDS.map(field=>fieldMarkup(field,composition[field.key])).join('')}
 function candidateFromControls(){const out={};for(const field of FIELDS){const input=cameraGrid.querySelector(`[data-camera-field="${field.key}"]`);const value=Number(input?.value);out[field.key]=Number.isFinite(value)?value:defaults[cameraPeriodKey][field.key]}return out}
-function reloadEditor(periodKey=cameraPeriodKey){const url=new URL(location.href);url.searchParams.set('period',periodKey);url.searchParams.set('camera','1');url.searchParams.set('edit',String(Date.now()));location.replace(url)}
+function applyLiveComposition(value=candidateFromControls()){if(!cameraPeriodKey)return false;const period=periodByKey(cameraPeriodKey);if(!period)return false;for(const field of FIELDS){const n=Number(value[field.key]);if(Number.isFinite(n))BETTA_PRESETS[period.baseline].params[field.key]=n}return Boolean(window.SindhornEnvironment?.previewBettaComposition?.(cameraPeriodKey,value))}
 function setCameraOpen(open){cameraOpen=Boolean(open);cameraPanel.classList.toggle('is-open',cameraOpen);document.body.classList.toggle('camera-open',cameraOpen);cameraButton.classList.toggle('is-active',cameraOpen);cameraButton.textContent=cameraOpen?'Camera On':'Camera';updateUrl({camera:cameraOpen?'1':null});if(cameraOpen)populateCamera(activePeriodKey(),true)}
 
 function paint(){
@@ -66,7 +66,7 @@ function paint(){
   if(!day){stateNode.textContent='Loading renderer…';return}
   const current=BETTA_DAY_PERIODS.find(period=>period.key===day.targetPeriodKey);
   clockNode.textContent=`Bangkok ${day.bangkokTime||'—'}`;
-  stateNode.textContent=`${day.periodName||day.targetPeriodKey||'—'} · Fish #${current?.referenceId||'—'} · camera editor + tilt · ${Math.round((Number(day.transitionMix)||0)*100)}%`;
+  stateNode.textContent=`${day.periodName||day.targetPeriodKey||'—'} · Fish #${current?.referenceId||'—'} · live camera + tilt · ${Math.round((Number(day.transitionMix)||0)*100)}%`;
   if(tiltButton&&tilt?.enabled)tiltButton.textContent='Tilt On';
   document.body.dataset.referenceId=String(current?.referenceId||'');
   document.querySelectorAll('[data-period]').forEach(button=>button.classList.toggle('is-active',button.dataset.period===day.targetPeriodKey));
@@ -80,13 +80,14 @@ liveButton.addEventListener('click',()=>{window.SindhornEnvironment?.useLiveBett
 previewButton.addEventListener('click',()=>{window.SindhornEnvironment?.previewBettaDayCycle?.(180);updateUrl({period:null});paint()});
 tiltButton?.addEventListener('click',async()=>{const ok=await window.SindhornEnvironment?.enableBettaTilt?.();tiltButton.textContent=ok?'Tilt On':'Tilt unavailable';paint()});
 cameraButton?.addEventListener('click',()=>setCameraOpen(!cameraOpen));
-cameraGrid?.addEventListener('input',event=>{const input=event.target.closest('[data-camera-field]');if(!input)return;const field=FIELDS.find(item=>item.key===input.dataset.cameraField);const output=cameraGrid.querySelector(`[data-value="${input.dataset.cameraField}"]`);if(output&&field)output.textContent=Number(input.value).toFixed(field.digits);cameraStatus.textContent='Unsaved values · tap Preview Position'});
-applyButton?.addEventListener('click',()=>{if(!cameraPeriodKey)return;drafts[cameraPeriodKey]=candidateFromControls();writeStore(sessionStorage,DRAFT_KEY,drafts);reloadEditor(cameraPeriodKey)});
-saveButton?.addEventListener('click',()=>{if(!cameraPeriodKey)return;const value=candidateFromControls();drafts[cameraPeriodKey]=value;saved[cameraPeriodKey]=value;writeStore(sessionStorage,DRAFT_KEY,drafts);writeStore(localStorage,SAVED_KEY,saved);reloadEditor(cameraPeriodKey)});
-resetButton?.addEventListener('click',()=>{if(!cameraPeriodKey)return;delete drafts[cameraPeriodKey];delete saved[cameraPeriodKey];writeStore(sessionStorage,DRAFT_KEY,drafts);writeStore(localStorage,SAVED_KEY,saved);reloadEditor(cameraPeriodKey)});
+cameraGrid?.addEventListener('input',event=>{const input=event.target.closest('[data-camera-field]');if(!input||!cameraPeriodKey)return;const field=FIELDS.find(item=>item.key===input.dataset.cameraField);const output=cameraGrid.querySelector(`[data-value="${input.dataset.cameraField}"]`);if(output&&field)output.textContent=Number(input.value).toFixed(field.digits);const value=candidateFromControls();drafts[cameraPeriodKey]=value;const ok=applyLiveComposition(value);cameraStatus.textContent=ok?'Live preview · unsaved':'Waiting for active period…'});
+cameraGrid?.addEventListener('change',()=>{if(!cameraPeriodKey)return;drafts[cameraPeriodKey]=candidateFromControls();writeStore(sessionStorage,DRAFT_KEY,drafts)});
+applyButton?.addEventListener('click',()=>{window.SindhornEnvironment?.recenterBettaTilt?.();cameraStatus.textContent='Tilt recentered · sliders remain live'});
+saveButton?.addEventListener('click',()=>{if(!cameraPeriodKey)return;const value=candidateFromControls();drafts[cameraPeriodKey]=value;saved[cameraPeriodKey]=value;writeStore(sessionStorage,DRAFT_KEY,drafts);writeStore(localStorage,SAVED_KEY,saved);applyLiveComposition(value);cameraStatus.textContent='Saved on this device'});
+resetButton?.addEventListener('click',()=>{if(!cameraPeriodKey)return;delete drafts[cameraPeriodKey];delete saved[cameraPeriodKey];writeStore(sessionStorage,DRAFT_KEY,drafts);writeStore(localStorage,SAVED_KEY,saved);const period=periodByKey(cameraPeriodKey),value={...defaults[cameraPeriodKey]};for(const field of FIELDS)BETTA_PRESETS[period.baseline].params[field.key]=value[field.key];applyLiveComposition(value);populateCamera(cameraPeriodKey,true);cameraStatus.textContent='Reset to branch default'});
 copyButton?.addEventListener('click',async()=>{const all={};for(const period of BETTA_DAY_PERIODS){all[period.key]={referenceId:period.referenceId,...compositionFor(period.key)}}if(cameraPeriodKey)all[cameraPeriodKey]={referenceId:periodByKey(cameraPeriodKey).referenceId,...candidateFromControls()};const text=JSON.stringify(all,null,2);try{await navigator.clipboard.writeText(text);cameraStatus.textContent='Copied all 8 camera locations'}catch(_){cameraStatus.textContent='Clipboard blocked · long-press browser copy';prompt('Copy all 8 camera locations',text)}});
 
-const {initEnvironment}=await import('./betta-environment.js?v=camera-editor-1');
+const {initEnvironment}=await import('./betta-environment.js?v=camera-editor-2');
 await initEnvironment();
 if(requestedPeriod&&BETTA_DAY_PERIODS.some(period=>period.key===requestedPeriod))window.SindhornEnvironment?.setBettaPeriod?.(requestedPeriod);
 paint();if(cameraOpen)populateCamera(activePeriodKey(),true);setInterval(paint,250);
