@@ -72,7 +72,7 @@ export async function mountSettingsRoute(root){
       ensureStyle('link[data-settings-refinements]','/settings-refinements.css?v=2','data-settings-refinements'),
       ensureStyle('link[data-settings-dialog-standard]','/settings-dialog-standard.css?v=1&r=6','data-settings-dialog-standard'),
       ensureStyle('link[data-business-card-component]','/business-card-component.css?v=1&r=3','data-business-card-component'),
-      ensureStyle('link[data-business-card-settings-style]','/business-card-settings.css?v=11','data-business-card-settings-style'),
+      ensureStyle('link[data-business-card-settings-style]','/business-card-settings.css?v=12','data-business-card-settings-style'),
       ensureStyle('link[data-settings-system-library-style]','/settings-system-library.css?v=1','data-settings-system-library-style')
     ]);
     baseCleanup=await mountBaseSettingsRoute(root);
