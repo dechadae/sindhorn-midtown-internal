@@ -37,16 +37,30 @@ struct BackgroundUniforms {
 }
 
 enum BettaRendererError: LocalizedError {
-    case metalUnavailable, shaderSourceMissing, bufferAllocationFailed, commandQueueFailed
+    case metalUnavailable
+    case shaderSourceMissing
+    case shaderLibraryFailed(String)
+    case pipelineCreationFailed(String, String)
+    case bufferAllocationFailed
+    case commandQueueFailed
     case shaderFunctionMissing(String)
 
     var errorDescription: String? {
         switch self {
-        case .metalUnavailable: return "Metal is unavailable on this Mac."
-        case .shaderSourceMissing: return "Shaders.metal could not be loaded."
-        case .shaderFunctionMissing(let name): return "Metal shader function missing: \(name)."
-        case .bufferAllocationFailed: return "Metal buffer allocation failed."
-        case .commandQueueFailed: return "Metal command queue creation failed."
+        case .metalUnavailable:
+            return "Metal is unavailable on this Mac."
+        case .shaderSourceMissing:
+            return "Neither the precompiled BettaShaders.metallib nor Shaders.metal fallback could be loaded."
+        case .shaderLibraryFailed(let detail):
+            return "Metal shader library failed to initialize. \(detail)"
+        case .pipelineCreationFailed(let stage, let detail):
+            return "Metal \(stage) pipeline failed to initialize. \(detail)"
+        case .shaderFunctionMissing(let name):
+            return "Metal shader function missing: \(name)."
+        case .bufferAllocationFailed:
+            return "Metal buffer allocation failed."
+        case .commandQueueFailed:
+            return "Metal command queue creation failed."
         }
     }
 }
@@ -85,7 +99,7 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         commandQueue = queue
         commandQueue.label = "Sindhorn Betta Metal command queue"
 
-        let library = try metalDevice.makeLibrary(source: Self.loadShaderSource(), options: nil)
+        let library = try Self.loadMetalLibrary(device: metalDevice)
         guard let finVertex = library.makeFunction(name: "finVertex") else { throw BettaRendererError.shaderFunctionMissing("finVertex") }
         guard let finFragment = library.makeFunction(name: "finFragment") else { throw BettaRendererError.shaderFunctionMissing("finFragment") }
         guard let backgroundVertex = library.makeFunction(name: "backgroundVertex") else { throw BettaRendererError.shaderFunctionMissing("backgroundVertex") }
@@ -113,7 +127,11 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         blend.destinationRGBBlendFactor = .oneMinusSourceAlpha
         blend.sourceAlphaBlendFactor = .sourceAlpha
         blend.destinationAlphaBlendFactor = .oneMinusSourceAlpha
-        finPipeline = try metalDevice.makeRenderPipelineState(descriptor: fd)
+        do {
+            finPipeline = try metalDevice.makeRenderPipelineState(descriptor: fd)
+        } catch {
+            throw BettaRendererError.pipelineCreationFailed("membrane", error.localizedDescription)
+        }
 
         let bd = MTLRenderPipelineDescriptor()
         bd.label = "Sindhorn Betta background pipeline"
@@ -121,7 +139,11 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         bd.fragmentFunction = backgroundFragment
         bd.colorAttachments[0].pixelFormat = .bgra8Unorm
         bd.depthAttachmentPixelFormat = .depth32Float
-        backgroundPipeline = try metalDevice.makeRenderPipelineState(descriptor: bd)
+        do {
+            backgroundPipeline = try metalDevice.makeRenderPipelineState(descriptor: bd)
+        } catch {
+            throw BettaRendererError.pipelineCreationFailed("background", error.localizedDescription)
+        }
 
         let dd = MTLDepthStencilDescriptor()
         dd.depthCompareFunction = .lessEqual
@@ -347,6 +369,28 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
     }
 
     private static func aligned(_ value: Int) -> Int { (value + uniformAlignment - 1) & ~(uniformAlignment - 1) }
+
+    private static func loadMetalLibrary(device: MTLDevice) throws -> MTLLibrary {
+        var binaryFailure: String?
+
+        if let url = Bundle.main.url(forResource: "BettaShaders", withExtension: "metallib") {
+            do {
+                return try device.makeLibrary(URL: url)
+            } catch {
+                binaryFailure = error.localizedDescription
+            }
+        } else {
+            binaryFailure = "BettaShaders.metallib is missing from the app bundle"
+        }
+
+        do {
+            let source = try loadShaderSource()
+            return try device.makeLibrary(source: source, options: nil)
+        } catch {
+            let binary = binaryFailure ?? "unknown precompiled-library error"
+            throw BettaRendererError.shaderLibraryFailed("Precompiled library: \(binary). Source fallback: \(error.localizedDescription)")
+        }
+    }
 
     private static func loadShaderSource() throws -> String {
         if let url = Bundle.main.url(forResource: "Shaders", withExtension: "metal"), let source = try? String(contentsOf: url, encoding: .utf8) { return source }
