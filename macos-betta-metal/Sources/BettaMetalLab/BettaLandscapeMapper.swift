@@ -8,7 +8,7 @@ struct MappedComposition {
 }
 
 enum BettaLandscapeMapper {
-    static func map(position source: SIMD3<Float>, aspect: Float, referenceId: Int) -> MappedComposition {
+    static func map(position source: SIMD3<Float>, aspect: Float, referenceId: Int, camera: BettaCameraAdjustment) -> MappedComposition {
         let orientationMix = smoothstep(0.95, 1.25, aspect)
         let adjustment = BettaCompositionStore.shared.adjustment(for: referenceId)
 
@@ -16,15 +16,12 @@ enum BettaLandscapeMapper {
             return MappedComposition(position: source, scaleMultiplier: 1, rotationZOffset: 0)
         }
 
-        let fov = BettaSettings.fovYDegrees * .pi / 180
-        let depthFromCamera = max(0.5, BettaSettings.cameraZ - source.z)
+        let fov = camera.fov * .pi / 180
+        let depthFromCamera = max(0.5, camera.z - source.z)
         let halfHeight = tan(fov * 0.5) * depthFromCamera
         let sourceHalfWidth = halfHeight * BettaSettings.portraitReferenceAspect
         let targetHalfWidth = halfHeight * max(aspect, 0.001)
 
-        // Preserve the production portrait entry side first, then apply the user's
-        // landscape-only composition adjustment. This keeps the approved organism
-        // untouched while making the desktop framing fully editable.
         let normalized = source.x / max(sourceHalfWidth, 0.001)
         let magnitude = abs(normalized)
         let targetMagnitude: Float = magnitude <= 1 ? magnitude : 1 + (magnitude - 1) * 0.55
@@ -39,11 +36,7 @@ enum BettaLandscapeMapper {
         let scale = lerp(1, adjustment.scale, orientationMix)
         let rotation = Float(adjustment.quarterTurns) * (.pi / 2) * orientationMix
 
-        return MappedComposition(
-            position: position,
-            scaleMultiplier: scale,
-            rotationZOffset: rotation
-        )
+        return MappedComposition(position: position, scaleMultiplier: scale, rotationZOffset: rotation)
     }
 
     private static func smoothstep(_ edge0: Float, _ edge1: Float, _ x: Float) -> Float {
