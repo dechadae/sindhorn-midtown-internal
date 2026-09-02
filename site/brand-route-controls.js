@@ -18,11 +18,11 @@ function backControl(){
 
 function topControl(){
   const wrapper=document.createElement('div');
-  wrapper.className='app-end-actions';
+  wrapper.className='app-end-actions app-utility-actions';
   wrapper.dataset.routeEndActions='true';
   const button=document.createElement('button');
   button.type='button';
-  button.className='app-quiet-action';
+  button.className='app-utility-action';
   button.dataset.routeBackToTop='true';
   button.setAttribute('aria-label','Back to top');
   button.innerHTML=`${TOP_ICON}<span>Back to top</span>`;
