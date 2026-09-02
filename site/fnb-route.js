@@ -1,8 +1,8 @@
 import {mountFnbRoute as mountBaseFnbRoute} from './fnb.js';
 
 const STYLES=[
-  ['link[data-fnb-style]','/fnb.css?v=2&ui=2','data-fnb-style'],
-  ['link[data-fnb-approved-polish]','/fnb-approved-polish.css?v=2','data-fnb-approved-polish'],
+  ['link[data-fnb-style]','/fnb.css?v=3&ui=3','data-fnb-style'],
+  ['link[data-fnb-approved-polish]','/fnb-approved-polish.css?v=3','data-fnb-approved-polish'],
   ['link[data-fnb-refinements]','/fnb-refinements.css?v=2','data-fnb-refinements'],
   ['link[data-fnb-layout-stability]','/fnb-layout-stability.css?v=1','data-fnb-layout-stability']
 ];
