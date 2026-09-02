@@ -171,6 +171,6 @@ await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resol
 document.documentElement.dataset.shellLoading='false';
 presentationRecovery=await import('./presentation-recovery.js');
 const inbox=await import('./notification-inbox.js');await inbox.initNotificationInbox();
-const app=await import('./app.js');await app.initApp();
+const app=await import('./app.js?v=2');await app.initApp();
 const activeRoute=routeForPath(location.pathname)||'today';document.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route:activeRoute,packId:activePack.manifest.appPack}}));document.body.dataset.route=activeRoute;document.title=ROUTES[activeRoute]?.title||ROUTES.today.title;
 refreshPack().catch(error=>console.warn('Sindhorn UI pack update unavailable; using known-good pack.',error));
