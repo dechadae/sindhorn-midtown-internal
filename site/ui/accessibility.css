@@ -1,6 +1,17 @@
 *,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 :focus-visible{outline:2px solid var(--ui-color-sorbet);outline-offset:3px;}
-.ui-screen-reader,.screen-reader{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;}
+.app-shell .ui-screen-reader,
+.app-shell .screen-reader{
+  position:absolute;
+  width:1px;
+  height:1px;
+  padding:0;
+  margin:-1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0);
+  white-space:nowrap;
+  border:0;
+}
 .skip{position:fixed;z-index:var(--ui-z-toast);left:12px;top:12px;transform:translateY(-180%);padding:9px 12px;background:var(--ui-color-vignette);border:1px solid var(--ui-glass-border);color:var(--ui-color-white);text-decoration:none;}
 .skip:focus{transform:none;}
 button,a,input,select,textarea{font:inherit;}
