@@ -54,7 +54,7 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
             slider.tag = tag
             slider.minValue = Double(min)
             slider.maxValue = Double(max)
-            slider.doubleValue = min(Double(max), max(Double(min), Double(value)))
+            slider.doubleValue = Swift.min(Double(max), Swift.max(Double(min), Double(value)))
             slider.target = target
             slider.action = action
             slider.toolTip = format
