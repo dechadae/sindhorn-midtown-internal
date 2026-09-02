@@ -1,0 +1,23 @@
+.ui-ci{padding-bottom:var(--ui-space-16);}
+.ui-ci__section{padding:var(--ui-space-10) 0;border-bottom:var(--ui-border);}
+.ui-ci__section-head{display:grid;gap:var(--ui-space-2);margin-bottom:var(--ui-space-5);}
+.ui-ci__section-head h2{margin:0;font-size:1.4rem;font-weight:var(--ui-weight-regular);}
+.ui-ci__specimens{display:grid;gap:var(--ui-space-4);}
+.ui-ci__specimen{display:grid;gap:var(--ui-space-3);}
+.ui-ci__label{display:flex;justify-content:space-between;gap:var(--ui-space-3);color:var(--ui-color-muted);font-size:.68rem;text-transform:uppercase;}
+.ui-ci__swatches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ui-space-3);}
+.ui-ci__swatch{min-height:92px;display:flex;align-items:flex-end;padding:var(--ui-space-3);border-radius:var(--ui-radius-md);border:1px solid var(--ui-glass-border);font-size:.72rem;}
+.ui-ci__swatch[data-token="vignette"]{background:var(--ui-color-vignette);}
+.ui-ci__swatch[data-token="white"]{background:var(--ui-color-white);color:var(--ui-color-vignette);}
+.ui-ci__swatch[data-token="sorbet"]{background:var(--ui-color-sorbet);color:var(--ui-color-vignette);}
+.ui-ci__swatch[data-token="glass"]{background:var(--ui-glass-bg);-webkit-backdrop-filter:blur(var(--ui-glass-blur)) saturate(var(--ui-glass-saturation));backdrop-filter:blur(var(--ui-glass-blur)) saturate(var(--ui-glass-saturation));}
+.ui-ci__type-sample{display:grid;gap:var(--ui-space-3);}
+.ui-ci__type-sample p{margin:0;}
+.ui-ci__type-thin{font-weight:var(--ui-weight-thin);font-size:1.5rem;}
+.ui-ci__type-regular{font-weight:var(--ui-weight-regular);font-size:1.5rem;}
+.ui-ci__type-bold{font-weight:var(--ui-weight-bold);font-size:1.5rem;}
+.ui-ci__spacing{display:flex;align-items:flex-end;gap:var(--ui-space-3);overflow:auto;}
+.ui-ci__space{flex:0 0 auto;background:rgba(var(--ui-color-sorbet-rgb),.18);border:1px solid rgba(var(--ui-color-sorbet-rgb),.4);min-width:48px;display:grid;place-items:center;font-size:.66rem;}
+.ui-ci__space[data-space="1"]{height:4px}.ui-ci__space[data-space="2"]{height:8px}.ui-ci__space[data-space="4"]{height:16px}.ui-ci__space[data-space="6"]{height:24px}.ui-ci__space[data-space="8"]{height:32px}.ui-ci__space[data-space="12"]{height:48px}
+.ui-ci__footer-note{margin-top:var(--ui-space-4);color:var(--ui-color-muted);font-size:.78rem;}
+@media(min-width:680px){.ui-ci__specimens--2{grid-template-columns:repeat(2,minmax(0,1fr));}.ui-ci__swatches{grid-template-columns:repeat(4,minmax(0,1fr));}}
