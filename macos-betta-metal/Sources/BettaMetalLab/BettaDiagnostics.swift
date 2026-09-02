@@ -25,16 +25,32 @@ final class BettaDiagnostics {
     private var lines: [String] = []
     private var startedAt = Date()
     private var previousIncomplete: PersistedState?
+    private var startupCompleted = false
 
     private init() {
         previousIncomplete = loadPersisted().flatMap { state in
-            guard !state.completed, !Self.isTerminalDiagnosticStage(state.lastStage) else { return nil }
-            return state
+            Self.representsIncompleteLaunch(
+                completed: state.completed,
+                lastStage: state.lastStage,
+                log: state.log
+            ) ? state : nil
         }
     }
 
     private static func isTerminalDiagnosticStage(_ stage: String) -> Bool {
         stage == "failure.ui.visible" || stage == "failure.report.ready" || stage == "startup.complete"
+    }
+
+    // Compatibility guard for 0.3.7 and earlier diagnostic files. Those builds could
+    // persist a healthy post-startup checkpoint (for example random.generated) with
+    // completed=false, even though startup.complete had already been reached. Never
+    // turn a successful historical launch into a recovery failure just because later
+    // runtime activity updated the last checkpoint.
+    static func representsIncompleteLaunch(completed: Bool, lastStage: String, log: [String]) -> Bool {
+        if completed { return false }
+        if isTerminalDiagnosticStage(lastStage) { return false }
+        if log.contains(where: { $0.contains("startup.complete") }) { return false }
+        return true
     }
 
     var hasPreviousIncompleteLaunch: Bool {
@@ -54,6 +70,7 @@ final class BettaDiagnostics {
             startedAt = Date()
             failureStage = nil
             errorText = nil
+            startupCompleted = false
             lines.removeAll(keepingCapacity: true)
             appendLocked("diagnostics.begin")
             persistLocked(stage: "diagnostics.begin", completed: false)
@@ -64,7 +81,9 @@ final class BettaDiagnostics {
         queue.sync {
             let suffix = detail.flatMap { $0.isEmpty ? nil : " — \($0)" } ?? ""
             appendLocked("\(stage)\(suffix)")
-            persistLocked(stage: stage, completed: false)
+            // Once startup has completed, ordinary runtime checkpoints must never
+            // demote the persisted session back to an incomplete launch.
+            persistLocked(stage: stage, completed: startupCompleted || Self.isTerminalDiagnosticStage(stage))
         }
     }
 
@@ -73,7 +92,9 @@ final class BettaDiagnostics {
             failureStage = stage
             errorText = error.localizedDescription
             appendLocked("FAIL \(stage) — \(error.localizedDescription)")
-            persistLocked(stage: stage, completed: false)
+            // A failure recorded after startup is a runtime failure, not evidence that
+            // the next launch should be intercepted by startup recovery.
+            persistLocked(stage: stage, completed: startupCompleted)
         }
     }
 
@@ -86,6 +107,7 @@ final class BettaDiagnostics {
 
     func markStartupComplete() {
         queue.sync {
+            startupCompleted = true
             appendLocked("startup.complete")
             persistLocked(stage: "startup.complete", completed: true)
         }
