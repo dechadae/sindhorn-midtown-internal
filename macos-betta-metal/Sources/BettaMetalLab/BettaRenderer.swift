@@ -82,6 +82,7 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
     private let inFlightSemaphore = DispatchSemaphore(value: BettaRenderer.inFlightCount)
     private let morph = BettaMorphState()
     private let advancedStore = BettaAdvancedTuningStore.shared
+    private let randomStyleStore = BettaRandomStyleStore.shared
 
     private var frameNumber = 0
     private var lastTime: TimeInterval = 0
@@ -183,7 +184,8 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
     var statusText: String {
         let p = BettaPreset.all[morph.toIndex]
         let fps = measuredFPS > 0 ? String(format: "%.0f fps", measuredFPS) : "warming up"
-        return "\(morph.modeLabel) · Fish #\(p.referenceId) · \(p.name) · High Detail \(BettaGeometry.rays)×\(BettaGeometry.radialSegments) · \(fps) · \(device.name)"
+        let randomSuffix = randomStyleStore.style(for: p.referenceId).map { " · Random #\($0.shortSeed)" } ?? ""
+        return "\(morph.modeLabel) · Fish #\(p.referenceId) · \(p.name)\(randomSuffix) · High Detail \(BettaGeometry.rays)×\(BettaGeometry.radialSegments) · \(fps) · \(device.name)"
     }
 
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
@@ -207,6 +209,12 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         let e = mf.mix
         let fromAdvanced = advancedStore.adjustment(for: from.referenceId)
         let toAdvanced = advancedStore.adjustment(for: to.referenceId)
+        let fromStyle = randomStyleStore.style(for: from.referenceId)
+        let toStyle = randomStyleStore.style(for: to.referenceId)
+        let fromPalette = fromStyle?.resolvedPalette ?? from.palette
+        let toPalette = toStyle?.resolvedPalette ?? to.palette
+        let fromBackground = fromStyle?.resolvedBackground ?? from.background
+        let toBackground = toStyle?.resolvedBackground ?? to.background
         let camera = interpolatedCamera(fromAdvanced.camera, toAdvanced.camera, e)
 
         let aspect = Float(max(1, view.drawableSize.width) / max(1, view.drawableSize.height))
@@ -222,7 +230,11 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         let slot = frameNumber % Self.inFlightCount
         frameNumber += 1
         let backgroundOffset = slot * backgroundUniformStride
-        write(makeBackgroundUniforms(from: from, to: to, mix: e), to: backgroundUniformBuffer, offset: backgroundOffset)
+        write(
+            makeBackgroundUniforms(fromBackground: fromBackground, toBackground: toBackground, mix: e),
+            to: backgroundUniformBuffer,
+            offset: backgroundOffset
+        )
 
         pass.colorAttachments[0].loadAction = .clear
         pass.colorAttachments[0].storeAction = .store
@@ -247,6 +259,8 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
                 to: to,
                 fromAdvanced: fromAdvanced,
                 toAdvanced: toAdvanced,
+                fromPalette: fromPalette,
+                toPalette: toPalette,
                 mix: e,
                 layerIndex: layer,
                 aspect: aspect,
@@ -268,6 +282,8 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         to: BettaPreset,
         fromAdvanced: BettaAdvancedAdjustment,
         toAdvanced: BettaAdvancedAdjustment,
+        fromPalette: [SIMD3<Float>],
+        toPalette: [SIMD3<Float>],
         mix e: Float,
         layerIndex: Int,
         aspect: Float,
@@ -311,14 +327,14 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
             fingerprint: SIMD4<Float>(n.fingerprint.x, n.fingerprint.y, n.fingerprint.z, 0),
             detail0: SIMD4<Float>(p(ta.rayCount, tb.rayCount), p(ta.microFold, tb.microFold), p(ta.rayDefinition, tb.rayDefinition), p(ta.edgeRuffle, tb.edgeRuffle)),
             detail1: SIMD4<Float>(p(ta.veinStrength, tb.veinStrength), p(ta.membraneGrain, tb.membraneGrain), p(ta.fineFlutter, tb.fineFlutter), p(ta.normalDetail, tb.normalDetail)),
-            color0From: rgba(from.palette[0]),
-            color1From: rgba(from.palette[1]),
-            color2From: rgba(from.palette[2]),
-            color3From: rgba(from.palette[3]),
-            color0To: rgba(to.palette[0]),
-            color1To: rgba(to.palette[1]),
-            color2To: rgba(to.palette[2]),
-            color3To: rgba(to.palette[3])
+            color0From: rgba(fromPalette[0]),
+            color1From: rgba(fromPalette[1]),
+            color2From: rgba(fromPalette[2]),
+            color3From: rgba(fromPalette[3]),
+            color0To: rgba(toPalette[0]),
+            color1To: rgba(toPalette[1]),
+            color2To: rgba(toPalette[2]),
+            color3To: rgba(toPalette[3])
         )
     }
 
@@ -337,12 +353,16 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         )
     }
 
-    private func makeBackgroundUniforms(from: BettaPreset, to: BettaPreset, mix: Float) -> BackgroundUniforms {
+    private func makeBackgroundUniforms(
+        fromBackground: [SIMD3<Float>],
+        toBackground: [SIMD3<Float>],
+        mix: Float
+    ) -> BackgroundUniforms {
         let n = BettaSettings.neutralSatellite
         let satelliteMix = 0.025 + 0.025 * n.cloud + 0.018 * n.visible
         return BackgroundUniforms(
-            bg0From: rgba(from.background[0]), bg1From: rgba(from.background[1]), bg2From: rgba(from.background[2]),
-            bg0To: rgba(to.background[0]), bg1To: rgba(to.background[1]), bg2To: rgba(to.background[2]),
+            bg0From: rgba(fromBackground[0]), bg1From: rgba(fromBackground[1]), bg2From: rgba(fromBackground[2]),
+            bg0To: rgba(toBackground[0]), bg1To: rgba(toBackground[1]), bg2To: rgba(toBackground[2]),
             satelliteColorMix: SIMD4<Float>(n.color.x, n.color.y, n.color.z, satelliteMix),
             transition: SIMD4<Float>(mix, 0, 0, 0)
         )
