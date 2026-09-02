@@ -57,10 +57,10 @@ async function runViewport(browser,width,height){
     for(const target of report.targets){assert(!target.missing,`${width}: missing ${target.selector}`);assert(includesBlur(target.filter),`${width}: ${target.selector} has no blur (${target.filter})`)}
     assert(errors.length===0,`${width}: browser error ${errors[0]}`);
     if(width===390){
-      await page.locator('#ci-glass').scrollIntoViewIfNeeded();
+      await page.evaluate(()=>document.getElementById('ci-glass')?.scrollIntoView({block:'start',behavior:'auto'}));
       await page.waitForTimeout(180);
       await page.screenshot({path:path.join(OUT_DIR,'ci-glass-390x844.png'),fullPage:false});
-      await page.locator('#ci-surfaces').scrollIntoViewIfNeeded();
+      await page.evaluate(()=>document.getElementById('ci-surfaces')?.scrollIntoView({block:'start',behavior:'auto'}));
       await page.waitForTimeout(120);
       await page.screenshot({path:path.join(OUT_DIR,'ci-surfaces-glass-390x844.png'),fullPage:false});
     }
