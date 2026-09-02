@@ -18,6 +18,12 @@ enum BettaLiquidGlassSurface {
                 if glass.responds(to: NSSelectorFromString("setEffectIsInteractive:")) {
                     glass.setValue(true, forKey: "effectIsInteractive")
                 }
+                NSLayoutConstraint.activate([
+                    content.leadingAnchor.constraint(equalTo: glass.leadingAnchor),
+                    content.trailingAnchor.constraint(equalTo: glass.trailingAnchor),
+                    content.topAnchor.constraint(equalTo: glass.topAnchor),
+                    content.bottomAnchor.constraint(equalTo: glass.bottomAnchor)
+                ])
                 return glass
             }
         }
