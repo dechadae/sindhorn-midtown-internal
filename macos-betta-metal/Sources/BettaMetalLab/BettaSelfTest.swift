@@ -20,6 +20,17 @@ struct BettaSelfTest {
             expect(abs(advanced.camera.fov - 32) < 0.001 && abs(advanced.camera.z - 9) < 0.001, "Camera defaults must preserve production framing")
         }
 
+        let referenceId = BettaPreset.all[0].referenceId
+        let currentCamera = BettaAdvancedTuningStore.shared.adjustment(for: referenceId).camera
+        if let generation = BettaRandomStyleStore.shared.makeGeneration(referenceId: referenceId) {
+            expect(generation.style.resolvedPalette?.count == 4, "Random generation must create four palette stops")
+            expect(generation.style.resolvedBackground?.count == 3, "Random generation must create three matching background stops")
+            expect(generation.adjustment.camera == currentCamera, "Random generation must preserve the user's camera")
+        } else {
+            failures.append("Random Betta generator could not create an evolution target")
+        }
+        expect(abs(BettaEvolutionController.defaultSegmentDuration - 45) < 0.001, "Continuous Evolution target duration must remain 45 seconds")
+
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = BettaSettings.bangkokTimeZone
         for index in 0..<8 {
@@ -47,7 +58,7 @@ struct BettaSelfTest {
 
         if failures.isEmpty {
             print("Betta Metal Lab self-test: PASS")
-            print("8 presets · 160×144 high-detail topology · 2 layers · full per-tail camera/detail controls · Bangkok schedule")
+            print("8 presets · 160×144 high-detail topology · 2 layers · random + continuous evolution · Bangkok schedule")
             return true
         }
         print("Betta Metal Lab self-test: FAIL")
