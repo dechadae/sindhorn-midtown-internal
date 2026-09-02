@@ -1,10 +1,16 @@
 /* Sindhorn Midtown Internal — canonical translucent glass material authority.
    Rule: if an interface surface intentionally shows the atmosphere/content behind it,
    the same surface also blurs that background. Fully transparent utility actions are
-   deliberately exempt and are owned by app-controls.css. */
+   deliberately exempt and are owned by app-controls.css.
+
+   Android/Chromium note: the live Betta is a hardware-accelerated WebGL layer. A
+   light 18px blur still leaves its large high-contrast fin edges visually sharp on
+   real mobile compositors. The centralized surface recipe therefore uses a stronger
+   blur plus a denser neutral veil; pages must not compensate with route-local paint. */
 :root{
-  --app-glass-surface-filter:blur(18px) saturate(1.18);
-  --app-glass-control-filter:blur(12px) saturate(1.12);
+  --app-glass-surface-filter:blur(32px) saturate(.86) brightness(.92);
+  --app-glass-control-filter:blur(20px) saturate(.92) brightness(.95);
+  --app-glass-surface-fill:rgba(46,39,59,.64);
 }
 
 /* Route material authority.
@@ -22,6 +28,7 @@
   .onboarding-complete,.settings-guide-card,
   .signed-card,.admin-panel
 ){
+  background-color:var(--app-glass-surface-fill)!important;
   backdrop-filter:var(--app-glass-surface-filter)!important;
   -webkit-backdrop-filter:var(--app-glass-surface-filter)!important;
 }
@@ -54,6 +61,7 @@
 
 /* Login/onboarding boundary is outside #route-view. */
 :is(.login-first-time,.onboarding-complete){
+  background-color:var(--app-glass-surface-fill)!important;
   backdrop-filter:var(--app-glass-surface-filter)!important;
   -webkit-backdrop-filter:var(--app-glass-surface-filter)!important;
 }
