@@ -96,8 +96,17 @@ final class BettaRandomStyleStore {
     }
 
     func style(for referenceId: Int) -> BettaRandomStyle? {
-        lock.lock(); defer { lock.unlock() }
-        return values[referenceId]
+        lock.lock()
+        let style = values[referenceId]
+        lock.unlock()
+        guard let style else { return nil }
+
+        if let preset = BettaPreset.all.first(where: { $0.referenceId == referenceId }),
+           BettaAdvancedTuningStore.shared.adjustment(for: referenceId) == .canonical(preset) {
+            clear(referenceId: referenceId)
+            return nil
+        }
+        return style
     }
 
     func clear(referenceId: Int) {
@@ -174,8 +183,23 @@ final class BettaRandomStyleStore {
 
     @discardableResult
     func save() -> Bool {
-        lock.lock(); let snapshot = values; lock.unlock()
-        let encoded = Dictionary(uniqueKeysWithValues: snapshot.map { (String($0.key), $0.value) })
+        lock.lock()
+        let snapshot = values
+        lock.unlock()
+
+        var filtered: [Int: BettaRandomStyle] = [:]
+        for (referenceId, style) in snapshot {
+            guard let preset = BettaPreset.all.first(where: { $0.referenceId == referenceId }) else { continue }
+            if BettaAdvancedTuningStore.shared.adjustment(for: referenceId) != .canonical(preset) {
+                filtered[referenceId] = style
+            }
+        }
+
+        lock.lock()
+        values = filtered
+        lock.unlock()
+
+        let encoded = Dictionary(uniqueKeysWithValues: filtered.map { (String($0.key), $0.value) })
         guard let data = try? JSONEncoder().encode(encoded) else { return false }
         UserDefaults.standard.set(data, forKey: Self.storageKey)
         return UserDefaults.standard.synchronize()
@@ -208,7 +232,9 @@ final class BettaRandomStyleStore {
     }
 
     private func makeMatchingBackground(palette: [SIMD3<Float>], rng: inout SplitMix64) -> [SIMD3<Float>] {
-        guard palette.count >= 4 else { return [SIMD3<Float>(repeating: 0.003), SIMD3<Float>(repeating: 0.008), SIMD3<Float>(repeating: 0.012)] }
+        guard palette.count >= 4 else {
+            return [SIMD3<Float>(repeating: 0.003), SIMD3<Float>(repeating: 0.008), SIMD3<Float>(repeating: 0.012)]
+        }
         let neutral = SIMD3<Float>(0.0012, 0.0016, 0.0024)
         let first = (mix(palette[0], palette[1], rng.range(0.28, 0.48)) * rng.range(0.045, 0.085)) + neutral
         let middle = (mix(palette[1], palette[2], rng.range(0.18, 0.40)) * rng.range(0.055, 0.105)) + neutral * 1.25
@@ -232,5 +258,16 @@ final class BettaRandomStyleStore {
             min(1, max(0, value.y)),
             min(1, max(0, value.z))
         )
+    }
+}
+
+extension BettaCompositionEditorPanel {
+    @discardableResult
+    func randomizeCurrentBetta() -> BettaRandomStyle? {
+        let index = selectedFishIndex
+        let referenceId = BettaPreset.all[index].referenceId
+        guard let style = BettaRandomStyleStore.shared.randomize(referenceId: referenceId) else { return nil }
+        selectFish(index: index)
+        return style
     }
 }
