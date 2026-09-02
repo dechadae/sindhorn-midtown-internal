@@ -1,7 +1,7 @@
 /* Sindhorn Midtown Internal — canonical translucent glass material authority.
    Rule: if an interface surface intentionally shows the atmosphere/content behind it,
-   the same surface also blurs that background. This file owns material only: it does
-   not change component geometry, colour, content, spacing or interaction. */
+   the same surface also blurs that background. Fully transparent utility actions are
+   deliberately exempt and are owned by app-controls.css. */
 :root{
   --app-glass-surface-filter:blur(18px) saturate(1.18);
   --app-glass-control-filter:blur(12px) saturate(1.12);
@@ -28,7 +28,7 @@
 
 #route-view :is(
   .fnb-chip,.fnb-select select,.fnb-select-trigger,.fnb-select-menu,.fnb-action,.fnb-back,.fnb-expand,.fnb-link-field input,
-  .app-back-control,.app-quiet-action,
+  .app-back-control,
   .action.message-clear,.message-clear,
   .settings-primary,.settings-quiet-action,.settings-add,.settings-search,.settings-close,.settings-field input,.settings-status,
   .settings-dialog-actions button,.settings-code-actions button,.business-card-settings-actions button,
@@ -39,6 +39,17 @@
 ){
   backdrop-filter:var(--app-glass-control-filter)!important;
   -webkit-backdrop-filter:var(--app-glass-control-filter)!important;
+}
+
+/* Utility actions are transparent affordances, not translucent surfaces.
+   Keep this explicit so a future broad material selector cannot accidentally
+   turn Sign out / Share / Back to top into glass buttons again. */
+#route-view :is(.app-utility-action,.app-quiet-action){
+  background:transparent!important;
+  border-color:transparent!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
 }
 
 /* Login/onboarding boundary is outside #route-view. */
