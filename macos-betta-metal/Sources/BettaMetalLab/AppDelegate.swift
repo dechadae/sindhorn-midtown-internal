@@ -185,5 +185,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         diagnostics.checkpoint("failure.ui.visible")
+        diagnostics.markFailureUIReady()
     }
 }
