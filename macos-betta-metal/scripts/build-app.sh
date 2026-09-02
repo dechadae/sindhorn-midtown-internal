@@ -18,8 +18,9 @@ rm -rf "$DIST"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/BettaMetalLab" "$APP/Contents/MacOS/BettaMetalLab"
 
-# 0.3.5 keeps the runtime-safe High Detail kernel and safe reusable editor,
-# and fixes diagnostic recovery so an old report cannot block a clean startup.
+# 0.3.6 adds a procedural Random Betta generator with curated palette recipes
+# and a matching dark three-stop gradient while preserving the stable 0.3.5
+# startup, diagnostics, High Detail renderer and safe reusable editor.
 xcrun -sdk macosx metal -mmacosx-version-min=13.0 -c "$SAFE_SHADER" -o "$AIR"
 xcrun -sdk macosx metallib "$AIR" -o "$METALLIB"
 rm -f "$AIR"
@@ -38,8 +39,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>Sindhorn Betta Metal Lab</string>
 <key>CFBundleDisplayName</key><string>Sindhorn Betta Metal Lab</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.3.5</string>
-<key>CFBundleVersion</key><string>8</string>
+<key>CFBundleShortVersionString</key><string>0.3.6</string>
+<key>CFBundleVersion</key><string>9</string>
 <key>BettaGitSHA</key><string>__BETTA_GIT_SHA__</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>NSHighResolutionCapable</key><true/>
