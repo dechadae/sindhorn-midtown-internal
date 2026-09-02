@@ -29,8 +29,15 @@ struct BettaSelfTest {
             expect(highMembrane.normalized.membraneCount == 1, "Membrane count must clamp to at least one")
         }
 
+        let mustard = BettaPreset.all[4]
+        let immutableMustardStyle = BettaRandomStyleStore.originalStyle(for: mustard, seed: 0xBEE5)
+        expect(immutableMustardStyle.resolvedPalette == mustard.palette, "Mustard Galaxy Koi original palette must remain immutable and recoverable")
+        expect(immutableMustardStyle.resolvedBackground == mustard.background, "Mustard Galaxy Koi original background must remain immutable and recoverable")
+        expect(immutableMustardStyle.seed == 0xBEE5, "Original-color restore must preserve the supplied organism seed metadata")
+
         let referenceId = BettaPreset.all[0].referenceId
         let currentAdvanced = BettaAdvancedTuningStore.shared.adjustment(for: referenceId)
+        let currentComposition = BettaCompositionStore.shared.adjustment(for: referenceId)
         if let generation = BettaRandomStyleStore.shared.makeGeneration(referenceId: referenceId) {
             expect(generation.style.resolvedPalette?.count == 4, "Random generation must create four palette stops")
             expect(generation.style.resolvedBackground?.count == 3, "Random generation must create three matching background stops")
@@ -39,6 +46,11 @@ struct BettaSelfTest {
         } else {
             failures.append("Random Betta generator could not create an evolution target")
         }
+
+        _ = BettaRandomStyleStore.shared.restoreOriginalColors(referenceId: referenceId)
+        expect(BettaAdvancedTuningStore.shared.adjustment(for: referenceId) == currentAdvanced, "Restoring original colors must not modify tail/camera/membrane settings")
+        expect(BettaCompositionStore.shared.adjustment(for: referenceId) == currentComposition, "Restoring original colors must not modify scale/position/XYZ rotation")
+
         expect(abs(BettaEvolutionController.defaultSegmentDuration - 45) < 0.001, "Continuous Evolution target duration must remain 45 seconds")
 
         expect(
@@ -96,7 +108,7 @@ struct BettaSelfTest {
 
         if failures.isEmpty {
             print("Betta Metal Lab self-test: PASS")
-            print("8 presets · 160×144 high-detail topology · 1–6 membrane stack · full XYZ rotation · presets/favorites · random + continuous evolution · recovery regression · Bangkok schedule")
+            print("8 immutable originals · non-destructive color restore · 160×144 high-detail topology · 1–6 membrane stack · full XYZ rotation · presets/favorites · random + continuous evolution · recovery regression · Bangkok schedule")
             return true
         }
         print("Betta Metal Lab self-test: FAIL")
