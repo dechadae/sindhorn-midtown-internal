@@ -1,8 +1,8 @@
 {
   "id":"/",
-  "name":"Sindhorn Test F — Foreground First",
-  "short_name":"Test F",
-  "description":"Diagnostic standalone PWA for foreground-first startup isolation.",
+  "name":"Sindhorn Test G — Fast Betta Boot",
+  "short_name":"Test G",
+  "description":"Diagnostic standalone PWA for bootstrap-first Betta startup.",
   "lang":"en-TH",
   "start_url":"/",
   "scope":"/",
