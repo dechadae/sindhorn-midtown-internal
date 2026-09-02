@@ -19,6 +19,11 @@ const routes=[
   {path:'/ci',root:'.ci-route',target:'.ci-status',name:'CI'}
 ];
 const normalize=value=>String(value||'none').replace(/\s+/g,' ').trim();
+function alphaOf(value){
+  const text=String(value||'');
+  const match=text.match(/rgba\([^,]+,[^,]+,[^,]+,\s*(0?\.\d+|1(?:\.0+)?)\s*\)/i);
+  return match?Number(match[1]):(/^rgb\(/i.test(text)?1:NaN);
+}
 
 const browser=await chromium.launch({headless:true});
 const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,reducedMotion:'no-preference',serviceWorkers:'block'});
@@ -50,18 +55,23 @@ try{
     await page.waitForSelector(spec.target,{state:'attached'});
     await page.waitForFunction(selector=>document.querySelector(selector)?.classList.contains('app-glass-surface'),spec.target);
     await page.waitForSelector('.masthead.app-glass-surface',{state:'attached'});
-    await page.waitForSelector('.app-tabbar.app-glass-surface,.shell-footer-rail.app-glass-surface',{state:'attached'});
+    await page.waitForSelector('.app-tabbar.app-glass-surface',{state:'attached'});
     const report=await page.evaluate(({rootSelector,targetSelector,checkBackdropRoot})=>{
-      const root=document.querySelector(rootSelector),target=document.querySelector(targetSelector),header=document.querySelector('.masthead'),footer=document.querySelector('.app-tabbar,.shell-footer-rail');
-      if(!root||!target||!header||!footer)throw new Error('Missing glass route target');
-      const read=node=>{const style=getComputedStyle(node);return{filter:String(style.backdropFilter||style.webkitBackdropFilter||'none'),background:style.backgroundColor,className:node.className}};
+      const root=document.querySelector(rootSelector),target=document.querySelector(targetSelector),header=document.querySelector('.masthead'),globalFooter=document.querySelector('.app-tabbar'),contextFooter=document.querySelector('.fnb-section-rail.shell-footer-rail,.settings-section-rail.shell-footer-rail');
+      if(!root||!target||!header||!globalFooter)throw new Error('Missing glass route target');
+      const read=node=>{if(!node)return null;const style=getComputedStyle(node);return{filter:String(style.backdropFilter||style.webkitBackdropFilter||'none'),background:style.backgroundColor,className:node.className}};
       const rootStyle=getComputedStyle(root),before=getComputedStyle(root,'::before');
-      return{target:read(target),header:read(header),footer:read(footer),isolation:rootStyle.isolation,beforeContent:before.content,beforeBackground:before.backgroundImage,checkBackdropRoot};
+      return{target:read(target),header:read(header),globalFooter:read(globalFooter),contextFooter:read(contextFooter),isolation:rootStyle.isolation,beforeContent:before.content,beforeBackground:before.backgroundImage,checkBackdropRoot};
     },{rootSelector:spec.root,targetSelector:spec.target,checkBackdropRoot:spec.checkBackdropRoot});
-    for(const [label,target] of Object.entries({target:report.target,header:report.header,footer:report.footer})){
+    for(const [label,target] of Object.entries({target:report.target,header:report.header,globalFooter:report.globalFooter})){
       assert(normalize(target.filter)===CI_FILTER,`${spec.name} ${label}: filter drift ${JSON.stringify(report)}`);
       assert(target.background===CI_FILL,`${spec.name} ${label}: fill drift ${JSON.stringify(report)}`);
       assert(target.className.includes('app-glass-surface'),`${spec.name} ${label}: canonical class missing ${JSON.stringify(report)}`);
+    }
+    if(report.contextFooter){
+      assert(normalize(report.contextFooter.filter)===CI_FILTER,`${spec.name} contextual footer: filter drift ${JSON.stringify(report)}`);
+      assert(Math.abs(alphaOf(report.contextFooter.background)-.30)<=.01,`${spec.name} contextual footer: alpha drift ${JSON.stringify(report)}`);
+      assert(report.contextFooter.className.includes('app-glass-surface'),`${spec.name} contextual footer: canonical class missing ${JSON.stringify(report)}`);
     }
     if(spec.checkBackdropRoot){
       assert(report.isolation==='auto',`${spec.name}: route creates isolated backdrop context ${JSON.stringify(report)}`);
