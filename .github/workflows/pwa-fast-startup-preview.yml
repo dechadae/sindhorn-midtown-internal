@@ -29,14 +29,14 @@ jobs:
           for file in \
             site/pwa-version-guard.js site/betta-runtime.js site/betta-runtime-full.js site/auth-shell.js \
             site/startup-skeleton.js site/ui-system-registry.js site/ci-day-cycle-route.js site/ci-glass-audit.js \
-            scripts/ci-glass-browser-smoke.mjs; do
+            site/settings-route-v3.js scripts/ci-glass-browser-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
           grep -q "sindhorn-midtown-internal-pwa-v47-skeleton-pulse-r1" site/sw.js
           grep -q "PRECACHE_CONCURRENCY=8" site/sw.js
           grep -q "betta-runtime-full.js?v=1" site/betta-runtime.js
           grep -q "betta-runtime.js?v=2" site/index.html
-          grep -q "auth-shell.js?v=5" site/index.html
+          grep -q "auth-shell.js?v=6" site/index.html
           grep -q "bootstrap.js?v=2" site/auth-shell.js
           grep -q "startup-skeleton.css?v=2" site/index.html
           grep -q "startup-skeleton.js?v=1" site/index.html
@@ -47,18 +47,28 @@ jobs:
           grep -q "sindhorn:betta-first-frame" site/pwa-version-guard.js
           grep -q '"name":"Sindhorn Midtown Internal"' site/manifest.webmanifest
           grep -q "addEventListener('fetch'" site/sw.js
-          grep -q "app-glass.css?v=1" site/index.html
+          grep -q "app-glass.css?v=2" site/index.html
           grep -q -- "--app-glass-surface-filter:blur(18px)" site/app-glass.css
           grep -q -- "--app-glass-control-filter:blur(12px)" site/app-glass.css
           grep -q "Translucency always blurs" site/ui-system-registry.js
           grep -q "1.3.0-preview" site/ui-system-registry.js
           grep -q "ci-day-cycle-route.js?v=2" site/route-registry.js
+          grep -q "settings-route-v3.js?v=13&r=frameless-signout-1" site/route-registry.js
+          grep -q "business-card-settings.css?v=11" site/settings-route-v3.js
+          grep -q "fresh.className='settings-hero-signout'" site/settings-route-v3.js
+          grep -q "settings-hero>.settings-hero-signout.*border:0!important" site/business-card-settings.css
           grep -q "mountCiGlassAudit" site/ci-day-cycle-route.js site/ci-glass-audit.js
           grep -q "\.fnb-card" site/app-glass.css
+          grep -q "\.factsheet-picture" site/app-glass.css
           grep -q "\.factsheet-room-card" site/app-glass.css
           grep -q "\.ihg-history-card" site/app-glass.css
           grep -q "\.settings-primary" site/app-glass.css
+          grep -q "Factsheet image-frame blur is active" site/ci-glass-audit.js
           grep -q "!important" site/app-glass.css
+          if grep -Eq "fresh\.className=.*fnb-.*settings-hero-signout" site/settings-route-v3.js; then
+            echo 'Hero sign out must never inherit framed F&B button classes' >&2
+            exit 1
+          fi
           if grep -Eq "sindhorn-skeleton-sheen|translateX\(" site/startup-skeleton.css; then
             echo 'Directional skeleton sweep must not return' >&2
             exit 1
@@ -90,7 +100,7 @@ jobs:
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /ci /sw.js /manifest.webmanifest '/app-glass.css?v=1' '/ci-glass-audit.js?v=1' '/ci-day-cycle-route.js?v=2' /ui-system-registry.js '/startup-skeleton.css?v=2' '/startup-skeleton.js?v=1' '/pwa-version-guard.js?v=2' '/auth-shell.js?v=5' '/bootstrap.js?v=2' '/betta-runtime.js?v=2' '/betta-runtime-full.js?v=1'; do
+          for path in / /ci /sw.js /manifest.webmanifest '/app-glass.css?v=2' '/ci-glass-audit.js?v=1' '/ci-day-cycle-route.js?v=2' /ui-system-registry.js '/startup-skeleton.css?v=2' '/startup-skeleton.js?v=1' '/pwa-version-guard.js?v=2' '/auth-shell.js?v=6' '/bootstrap.js?v=2' '/route-registry.js' '/settings-route-v3.js?v=13&r=frameless-signout-1' '/business-card-settings.css?v=11' '/betta-runtime.js?v=2' '/betta-runtime-full.js?v=1'; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
