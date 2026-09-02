@@ -11,6 +11,8 @@ enum BettaLiquidGlassSurface {
             if let glass = object as? NSView {
                 glass.translatesAutoresizingMaskIntoConstraints = false
                 glass.wantsLayer = true
+                let samplingContent = NSView(frame: .zero)
+                glass.setValue(samplingContent, forKey: "contentView")
                 glass.setValue(NSNumber(value: Double(cornerRadius)), forKey: "cornerRadius")
                 if glass.responds(to: NSSelectorFromString("setEffectIsInteractive:")) {
                     glass.setValue(true, forKey: "effectIsInteractive")
