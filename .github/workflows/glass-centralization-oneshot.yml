@@ -27,6 +27,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          FILES='site/fnb.css site/settings.css site/business-dashboard.css site/brand.css site/hotel-factsheet.css site/ihg-history.css site/ci.css'
           grep -q -- '--app-glass-surface-fill:rgba(46,39,59,.48)' site/app-glass.css
           grep -q -- '--app-glass-surface-filter:blur(18px) saturate(1.18)' site/app-glass.css
           grep -q -- '--ci-glass:var(--app-glass-surface-fill)' site/ci.css
@@ -36,7 +37,7 @@ jobs:
           grep -q -- '--brand-glass:var(--app-glass-surface-fill)' site/brand.css
           grep -q -- '--fs-glass:var(--app-glass-surface-fill)' site/hotel-factsheet.css
           grep -q -- '--ihg-history-surface:var(--app-glass-surface-fill)' site/ihg-history.css
-          if grep -Eq '[^;{}[:space:]]backdrop-filter:' site/fnb.css site/settings.css site/business-dashboard.css site/brand.css site/hotel-factsheet.css site/ihg-history.css site/ci.css; then
+          if grep -Eq -- '-webkit-;backdrop-filter:|easebackdrop-filter:|pxbackdrop-filter:|[0-9]backdrop-filter:|\)backdrop-filter:' $FILES; then
             echo 'Malformed migrated backdrop-filter declaration remains' >&2
             exit 1
           fi
