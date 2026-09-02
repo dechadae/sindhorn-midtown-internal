@@ -38,7 +38,7 @@ async function runViewport(browser,width,height){
       const probes=document.createElement('div');
       probes.className='ci-route';
       probes.hidden=true;
-      probes.innerHTML='<button class="fnb-expand" data-audit-expand>Show full</button><button class="fnb-action" data-audit-folder>View artwork folder</button><button class="action message-clear" data-audit-message>Clear all</button><button class="settings-add" data-audit-add>Add employee</button><article class="settings-planned settings-system-library-card" data-audit-system>System</article><button class="fnb-chip ci-betta-period-chip" data-audit-period>Golden Hour</button>';
+      probes.innerHTML='<button class="fnb-expand" data-audit-expand>Show full</button><button class="fnb-action" data-audit-folder>View artwork folder</button><button class="action message-clear" data-audit-message>Clear all</button><button class="settings-add" data-audit-add>Add employee</button><article class="settings-planned settings-system-library-card" data-audit-system>System</article><button class="fnb-chip ci-betta-period-chip" data-betta-period="golden-hour" data-audit-period>Golden Hour</button>';
       probeHost.appendChild(probes);
       const period=probes.querySelector('[data-audit-period]');
       const periodStyle=getComputedStyle(period);
