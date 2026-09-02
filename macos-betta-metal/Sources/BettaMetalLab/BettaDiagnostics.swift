@@ -30,6 +30,17 @@ final class BettaDiagnostics {
         previousIncomplete = loadPersisted().flatMap { $0.completed ? nil : $0 }
     }
 
+    var hasPreviousIncompleteLaunch: Bool {
+        queue.sync { previousIncomplete != nil }
+    }
+
+    var previousIncompleteSummary: String? {
+        queue.sync {
+            guard let previousIncomplete else { return nil }
+            return "Previous launch stopped unexpectedly at ‘\(previousIncomplete.lastStage)’ (session \(previousIncomplete.sessionID.prefix(8)))."
+        }
+    }
+
     func begin() {
         queue.sync {
             sessionID = UUID().uuidString
