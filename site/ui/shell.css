@@ -1,3 +1,7 @@
+html.app-shell[data-startup-enter="pending"] #app-header,
+html.app-shell[data-startup-enter="pending"] #route-view,
+html.app-shell[data-startup-enter="pending"] #app-footer{opacity:1;}
+
 .app-shell #app-header{
   position:sticky;
   top:0;
