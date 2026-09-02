@@ -31,6 +31,31 @@ struct BettaSelfTest {
         }
         expect(abs(BettaEvolutionController.defaultSegmentDuration - 45) < 0.001, "Continuous Evolution target duration must remain 45 seconds")
 
+        expect(
+            !BettaDiagnostics.representsIncompleteLaunch(
+                completed: false,
+                lastStage: "random.generated",
+                log: ["startup.complete", "random.generated"]
+            ),
+            "A healthy launch followed by Random Betta activity must never become a recovery failure"
+        )
+        expect(
+            !BettaDiagnostics.representsIncompleteLaunch(
+                completed: false,
+                lastStage: "evolution.started",
+                log: ["window.visible", "startup.complete", "evolution.started"]
+            ),
+            "A healthy launch followed by Continuous Evolution must remain completed"
+        )
+        expect(
+            BettaDiagnostics.representsIncompleteLaunch(
+                completed: false,
+                lastStage: "renderer.init.begin",
+                log: ["diagnostics.begin", "renderer.init.begin"]
+            ),
+            "A true startup interruption before startup.complete must still trigger recovery"
+        )
+
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = BettaSettings.bangkokTimeZone
         for index in 0..<8 {
@@ -58,7 +83,7 @@ struct BettaSelfTest {
 
         if failures.isEmpty {
             print("Betta Metal Lab self-test: PASS")
-            print("8 presets · 160×144 high-detail topology · 2 layers · random + continuous evolution · Bangkok schedule")
+            print("8 presets · 160×144 high-detail topology · 2 layers · random + continuous evolution · recovery-state regression · Bangkok schedule")
             return true
         }
         print("Betta Metal Lab self-test: FAIL")
