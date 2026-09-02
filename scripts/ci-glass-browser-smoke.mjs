@@ -30,7 +30,7 @@ async function runViewport(browser,width,height){
     await page.waitForSelector('.ci-route');
     await page.waitForSelector('#ci-glass');
     await page.waitForFunction(()=>window.SindhornUiLibrary?.version==='1.3.0-preview');
-    await page.waitForFunction(()=>document.querySelector('[data-ci-status-title]')?.textContent.trim()==='Design system status · PASS'&&document.querySelector('[data-ci-status-count]')?.textContent.trim()==='18/18');
+    await page.waitForFunction(()=>document.querySelector('[data-ci-status-title]')?.textContent.trim()==='Design system status · PASS'&&document.querySelector('[data-ci-status-count]')?.textContent.trim()==='19/19');
     const report=await page.evaluate(()=>{
       const read=selector=>{const node=document.querySelector(selector);if(!node)return{selector,missing:true,filter:'none'};const style=getComputedStyle(node);return{selector,missing:false,filter:String(style.backdropFilter||style.webkitBackdropFilter||'none'),background:style.backgroundColor}};
       return{
@@ -45,6 +45,7 @@ async function runViewport(browser,width,height){
           read('#ci-actions .settings-primary:not(:disabled)'),
           read('#ci-selectors .fnb-select-trigger'),
           read('#ci-disclosures .factsheet-room-card'),
+          read('[data-ci-glass-picture]'),
           read('.ci-status'),
           read('.ci-index button')
         ],
@@ -52,14 +53,16 @@ async function runViewport(browser,width,height){
       };
     });
     assert(report.sections===19,`${width}: expected 19 CI sections, got ${report.sections}`);
-    assert(report.status==='Design system status · PASS'&&report.count==='18/18',`${width}: CI status ${JSON.stringify(report)}`);
+    assert(report.status==='Design system status · PASS'&&report.count==='19/19',`${width}: CI status ${JSON.stringify(report)}`);
     assert(report.overflow<=1,`${width}: horizontal overflow ${report.overflow}`);
     for(const target of report.targets){assert(!target.missing,`${width}: missing ${target.selector}`);assert(includesBlur(target.filter),`${width}: ${target.selector} has no blur (${target.filter})`)}
     assert(errors.length===0,`${width}: browser error ${errors[0]}`);
     if(width===390){
+      await page.waitForFunction(()=>Boolean(document.getElementById('ci-glass')));
       await page.evaluate(()=>document.getElementById('ci-glass')?.scrollIntoView({block:'start',behavior:'auto'}));
       await page.waitForTimeout(180);
       await page.screenshot({path:path.join(OUT_DIR,'ci-glass-390x844.png'),fullPage:false});
+      await page.waitForFunction(()=>Boolean(document.getElementById('ci-surfaces')));
       await page.evaluate(()=>document.getElementById('ci-surfaces')?.scrollIntoView({block:'start',behavior:'auto'}));
       await page.waitForTimeout(120);
       await page.screenshot({path:path.join(OUT_DIR,'ci-surfaces-glass-390x844.png'),fullPage:false});
