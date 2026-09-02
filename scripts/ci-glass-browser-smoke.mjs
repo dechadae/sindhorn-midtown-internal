@@ -31,17 +31,17 @@ async function runViewport(browser,width,height){
     await page.waitForSelector('#ci-glass');
     await page.waitForFunction(()=>window.SindhornUiLibrary?.version==='1.3.0-preview');
     await page.waitForFunction(()=>document.querySelector('[data-ci-status-title]')?.textContent.trim()==='Design system status · PASS'&&document.querySelector('[data-ci-status-count]')?.textContent.trim()==='19/19');
-    await page.waitForSelector('button[data-betta-period]');
     const report=await page.evaluate(()=>{
       const read=selector=>{const node=document.querySelector(selector);if(!node)return{selector,missing:true,filter:'none'};const style=getComputedStyle(node);return{selector,missing:false,filter:String(style.backdropFilter||style.webkitBackdropFilter||'none'),background:style.backgroundColor}};
       const probeHost=document.getElementById('route-view');
       if(!probeHost)throw new Error('route-view unavailable');
       const probes=document.createElement('div');
+      probes.className='ci-route';
       probes.hidden=true;
-      probes.innerHTML='<button class="fnb-expand" data-audit-expand>Show full</button><button class="fnb-action" data-audit-folder>View artwork folder</button><button class="action message-clear" data-audit-message>Clear all</button><button class="settings-add" data-audit-add>Add employee</button><article class="settings-planned settings-system-library-card" data-audit-system>System</article>';
+      probes.innerHTML='<button class="fnb-expand" data-audit-expand>Show full</button><button class="fnb-action" data-audit-folder>View artwork folder</button><button class="action message-clear" data-audit-message>Clear all</button><button class="settings-add" data-audit-add>Add employee</button><article class="settings-planned settings-system-library-card" data-audit-system>System</article><button class="fnb-chip ci-betta-period-chip" data-audit-period>Golden Hour</button>';
       probeHost.appendChild(probes);
-      const period=document.querySelector('button[data-betta-period]');
-      const periodStyle=period?getComputedStyle(period):null;
+      const period=probes.querySelector('[data-audit-period]');
+      const periodStyle=getComputedStyle(period);
       const result={
         version:window.SindhornUiLibrary?.version,
         sections:document.querySelectorAll('.ci-section').length,
@@ -64,7 +64,7 @@ async function runViewport(browser,width,height){
           read('[data-audit-add]'),
           read('[data-audit-system]')
         ],
-        periodChip:{fontSize:periodStyle?.fontSize||'',paddingTop:periodStyle?.paddingTop||'',paddingRight:periodStyle?.paddingRight||''},
+        periodChip:{fontSize:periodStyle.fontSize,paddingTop:periodStyle.paddingTop,paddingRight:periodStyle.paddingRight},
         overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth
       };
       probes.remove();
