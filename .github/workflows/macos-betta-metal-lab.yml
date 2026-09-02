@@ -21,9 +21,12 @@ jobs:
         run: |
           xcodebuild -version
           swift --version
-      - name: Compile Metal shader
+      - name: Compile runtime-safe Metal shader
         working-directory: macos-betta-metal
-        run: xcrun -sdk macosx metal -c Sources/BettaMetalLab/Shaders.metal -o "$RUNNER_TEMP/BettaShaders.air"
+        run: |
+          xcrun -sdk macosx metal -mmacosx-version-min=13.0 -c Sources/BettaMetalLab/ShadersSafe.metal -o "$RUNNER_TEMP/BettaShadersSafe.air"
+          xcrun -sdk macosx metallib "$RUNNER_TEMP/BettaShadersSafe.air" -o "$RUNNER_TEMP/BettaShadersSafe.metallib"
+          test -s "$RUNNER_TEMP/BettaShadersSafe.metallib"
       - name: Swift self-test
         working-directory: macos-betta-metal
         run: swift run BettaMetalLab --self-test
@@ -36,6 +39,47 @@ jobs:
           file "dist/Sindhorn Betta Metal Lab.app/Contents/MacOS/BettaMetalLab"
           codesign -dv --verbose=2 "dist/Sindhorn Betta Metal Lab.app" 2>&1
           plutil -lint "dist/Sindhorn Betta Metal Lab.app/Contents/Info.plist"
+          test -s "dist/Sindhorn Betta Metal Lab.app/Contents/Resources/BettaShaders.metallib"
+          cmp Sources/BettaMetalLab/ShadersSafe.metal "dist/Sindhorn Betta Metal Lab.app/Contents/Resources/Shaders.metal"
+      - name: Runtime Metal pipeline smoke when GPU is exposed
+        working-directory: macos-betta-metal
+        run: |
+          cat > "$RUNNER_TEMP/metal-smoke.swift" <<'SWIFT'
+          import Foundation
+          import Metal
+
+          guard CommandLine.arguments.count > 1 else { fatalError("metallib path required") }
+          guard let device = MTLCreateSystemDefaultDevice() else {
+              print("Metal runtime smoke: SKIP — runner exposes no Metal device")
+              exit(0)
+          }
+          let url = URL(fileURLWithPath: CommandLine.arguments[1])
+          let library = try device.makeLibrary(URL: url)
+          guard let fv = library.makeFunction(name: "finVertex"),
+                let ff = library.makeFunction(name: "finFragment"),
+                let bv = library.makeFunction(name: "backgroundVertex"),
+                let bf = library.makeFunction(name: "backgroundFragment") else {
+              fatalError("required Metal functions missing")
+          }
+          let vd = MTLVertexDescriptor()
+          vd.attributes[0].format = .float; vd.attributes[0].offset = 0; vd.attributes[0].bufferIndex = 0
+          vd.attributes[1].format = .float; vd.attributes[1].offset = 4; vd.attributes[1].bufferIndex = 0
+          vd.attributes[2].format = .float; vd.attributes[2].offset = 8; vd.attributes[2].bufferIndex = 0
+          vd.layouts[0].stride = 12
+          vd.layouts[0].stepFunction = .perVertex
+          let fin = MTLRenderPipelineDescriptor()
+          fin.vertexFunction = fv; fin.fragmentFunction = ff; fin.vertexDescriptor = vd
+          fin.colorAttachments[0].pixelFormat = .bgra8Unorm
+          fin.depthAttachmentPixelFormat = .depth32Float
+          _ = try device.makeRenderPipelineState(descriptor: fin)
+          let bg = MTLRenderPipelineDescriptor()
+          bg.vertexFunction = bv; bg.fragmentFunction = bf
+          bg.colorAttachments[0].pixelFormat = .bgra8Unorm
+          bg.depthAttachmentPixelFormat = .depth32Float
+          _ = try device.makeRenderPipelineState(descriptor: bg)
+          print("Metal runtime smoke: PASS on \(device.name)")
+          SWIFT
+          xcrun swift "$RUNNER_TEMP/metal-smoke.swift" "dist/Sindhorn Betta Metal Lab.app/Contents/Resources/BettaShaders.metallib"
       - name: Upload runnable lab
         uses: actions/upload-artifact@v4
         with:
