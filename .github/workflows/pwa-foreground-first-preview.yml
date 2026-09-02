@@ -1,0 +1,53 @@
+name: PWA Foreground First Preview
+
+on:
+  push:
+    branches:
+      - test-pwa-foreground-first
+    paths:
+      - "site/**"
+      - ".github/workflows/pwa-foreground-first-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validate foreground-first startup contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/sw.js
+          node --input-type=module --check < site/pwa-version-guard.js
+          node --input-type=module --check < site/betta-runtime.js
+          grep -q 'data-startup-enter="pending"' site/index.html
+          grep -q 'sindhorn-startup-enter-visible' site/index.html
+          grep -q 'waitForStartupReveal' site/pwa-version-guard.js
+          grep -q 'requestIdleCallback' site/pwa-version-guard.js
+          if grep -q "addEventListener('fetch'" site/sw.js; then
+            echo 'Foreground-first diagnostic SW must not intercept fetches' >&2
+            exit 1
+          fi
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Smoke preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /sw.js /manifest.webmanifest /pwa-version-guard.js '/betta-runtime.js?v=1'; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
+            test -s /tmp/response
+          done
