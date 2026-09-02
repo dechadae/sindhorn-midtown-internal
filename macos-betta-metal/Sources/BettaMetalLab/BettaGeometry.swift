@@ -8,8 +8,10 @@ struct BettaVertex {
 }
 
 struct BettaGeometry {
-    static let rays = 80
-    static let radialSegments = 72
+    // Mac-only high-detail mesh. This is 4× the triangle density of the parity build
+    // while remaining comfortably small for Apple Silicon desktop GPUs.
+    static let rays = 160
+    static let radialSegments = 144
 
     let vertexBuffer: MTLBuffer
     let indexBuffer: MTLBuffer
@@ -55,8 +57,8 @@ struct BettaGeometry {
               let ib = device.makeBuffer(bytes: indices, length: MemoryLayout<UInt16>.stride * indices.count, options: .storageModeShared) else {
             throw BettaRendererError.bufferAllocationFailed
         }
-        vb.label = "Betta radial membrane vertices 80x72"
-        ib.label = "Betta membrane triangle indices"
+        vb.label = "Betta high-detail radial membrane vertices 160x144"
+        ib.label = "Betta high-detail membrane triangle indices"
         vertexBuffer = vb
         indexBuffer = ib
         indexCount = indices.count
