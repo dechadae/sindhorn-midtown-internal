@@ -18,7 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window = BettaDesktopWindow(contentRect: initialFrame, styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         window.delegate = self
         window.isReleasedWhenClosed = false
-        window.minSize = NSSize(width: 900, height: 650)
+        window.minSize = NSSize(width: 1000, height: 720)
         window.title = "Sindhorn Betta Metal Lab"
         window.backgroundColor = .black
 
@@ -76,6 +76,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             setEditorVisible(true)
         } else {
             _ = BettaCompositionStore.shared.save()
+            _ = BettaAdvancedTuningStore.shared.save()
             renderer.useLiveMode()
             setEditorVisible(false)
             window.setDesktopMode(true)
@@ -88,9 +89,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.setDesktopMode(true)
     }
 
-    private func setEditorVisible(_ visible: Bool) {
-        editorPanel.isHidden = !visible
-    }
+    private func setEditorVisible(_ visible: Bool) { editorPanel.isHidden = !visible }
 
     private func applyLaunchArguments() {
         let args = CommandLine.arguments
