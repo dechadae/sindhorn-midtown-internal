@@ -1,6 +1,6 @@
 import {BETTA_DAY_PERIODS} from './betta-day-periods.js';
 
-const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[char]));
+const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 export function mountBettaDayCycleControls(route){
   const env=window.SindhornEnvironment;if(!route||!env?.getState||!env?.setBettaPeriod)return()=>{};
   const host=document.createElement('div');host.className='ci-specimen';host.dataset.ciBettaDayCycle='true';host.style.marginTop='9px';
