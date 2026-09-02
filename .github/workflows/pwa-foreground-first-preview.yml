@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - test-pwa-foreground-first
+      - test-pwa-fast-betta-boot
     paths:
       - "site/**"
       - ".github/workflows/pwa-foreground-first-preview.yml"
@@ -26,10 +27,18 @@ jobs:
           node --check site/sw.js
           node --input-type=module --check < site/pwa-version-guard.js
           node --input-type=module --check < site/betta-runtime.js
+          node --input-type=module --check < site/betta-runtime-full.js
           grep -q 'data-startup-enter="pending"' site/index.html
           grep -q 'sindhorn-startup-enter-visible' site/index.html
-          grep -q 'waitForStartupReveal' site/pwa-version-guard.js
+          grep -q 'sindhorn-betta-bootstrap-v1' site/betta-runtime.js
+          grep -q 'betta-runtime-full.js' site/betta-runtime.js
+          grep -q 'sindhorn:betta-bootstrap-first-frame' site/betta-runtime.js
+          grep -q 'sindhorn:betta-first-frame' site/betta-runtime.js
+          grep -q 'bettaStartupCanvas' site/environment.css
+          grep -q 'waitForFullBetta' site/pwa-version-guard.js
           grep -q 'requestIdleCallback' site/pwa-version-guard.js
+          test "$(wc -c < site/betta-runtime.js)" -lt 20000
+          test "$(wc -c < site/betta-runtime-full.js)" -gt 500000
           if grep -q "addEventListener('fetch'" site/sw.js; then
             echo 'Foreground-first diagnostic SW must not intercept fetches' >&2
             exit 1
@@ -47,7 +56,7 @@ jobs:
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /sw.js /manifest.webmanifest /pwa-version-guard.js '/betta-runtime.js?v=1'; do
+          for path in / /sw.js /manifest.webmanifest /pwa-version-guard.js '/betta-runtime.js?v=1' '/betta-runtime-full.js?v=1'; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
