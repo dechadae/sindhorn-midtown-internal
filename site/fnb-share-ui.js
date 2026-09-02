@@ -18,7 +18,7 @@ function button(kind,id=''){
   const title=kind==='page'?'F&B Promotions':promotion(id)?.title||'F&B Promotion';
   const el=document.createElement('button');
   el.type='button';
-  el.className='fnb-action-control fnb-share-button';
+  el.className='app-utility-action fnb-action-control fnb-share-button';
   el.dataset.fnbShare=kind;
   if(id)el.dataset.promotionId=id;
   el.setAttribute('aria-label',kind==='page'?'Share F&B promotions':`Share ${title}`);
@@ -53,7 +53,7 @@ function notify(message){
 }
 async function copyFallback(url){
   try{await navigator.clipboard.writeText(url);return true}catch(_){}
-  const area=document.createElement('textarea');area.value=url;area.readOnly=true;area.style.position='fixed';area.style.opacity='0';document.body.appendChild(area);area.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}area.remove();return ok
+  const area=document.createElement('textarea');area.value=url;area.readOnly=true;area.style.position='fixed';area.style.opacity='0';document.body.append(area);area.select();let ok=false;try{ok=document.execCommand('copy')}catch(_){}area.remove();return ok
 }
 async function performShare(kind,id=''){
   const item=id?promotion(id):null;
