@@ -37,6 +37,9 @@ async function evictStaleBootstrapRuntime(){
         cache.delete('/settings-route-v3.js?v=12&r=release-health-1'),
         cache.delete('/business-card-settings.css?v=10'),
         cache.delete('/bootstrap.js?v=2'),
+        cache.delete('/bootstrap.js?v=3'),
+        cache.delete('/app-glass-runtime.js'),
+        cache.delete('/app-glass-runtime.js?v=1'),
         cache.delete('/app.js'),
         cache.delete('/app.js?v=1'),
         cache.delete('/pwa.css')
@@ -45,8 +48,6 @@ async function evictStaleBootstrapRuntime(){
   }catch(_){}
 }
 
-/* Warm the neutral startup runtime underneath the existing logo/auth phase.
-   The v2 URL intentionally bypasses any cached Test-G bootstrap artwork. */
 const earlyBetta=import('./betta-runtime.js?v=2').then(module=>module.initEnvironment()).catch(error=>{console.warn('Early Betta startup unavailable; bootstrap will retry.',error)});
 
 let state;try{state=await initAuth()}catch(_){state=getState()}
@@ -57,7 +58,7 @@ if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
   document.addEventListener('sindhorn:auth-changed',event=>{const nextState=getState();if(!event.detail?.authenticated||!hasCompleteEmployeeAuth(nextState)){location.replace(loginUrl());return}window.__SINDHORN_AUTH_PROFILE__=event.detail.profile||nextState.profile;applyEmployeeHeader(window.__SINDHORN_AUTH_PROFILE__)});
   await loadClassicScript('/location.js');
   await evictStaleBootstrapRuntime();
-  await import('./bootstrap.js?v=3');
+  await import('./bootstrap.js?v=4');
   await import('./onboarding.js?v=1');
   applyEmployeeHeader();
 }
