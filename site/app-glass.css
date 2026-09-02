@@ -1,28 +1,45 @@
-/* Sindhorn Midtown Internal — canonical glass material tokens.
-   CI is the visual authority: translucent surfaces use the same .48 Vignette
-   base and 18px / 1.18 backdrop treatment. Route styles consume these tokens
-   directly; this file does not patch page selectors or override route CSS. */
+/* Sindhorn Midtown Internal — single canonical frosted-glass material.
+   CI is the visual authority. Every translucent app surface receives one of the
+   two semantic classes below; route styles own geometry/content only.
+
+   Material contract:
+   - keep the proven CI blur exactly at 18px / saturate(1.18)
+   - lower Vignette pigment to 30% so the live Betta remains visible through frost
+   - utility actions (Sign out / Share / Back to top) remain fully transparent
+*/
 :root{
-  --app-glass-surface-fill:rgba(46,39,59,.48);
-  --app-glass-surface-border:rgba(250,247,245,.14);
-  --app-glass-surface-filter:blur(18px) saturate(1.18);
-  --app-glass-control-fill:rgba(46,39,59,.48);
-  --app-glass-control-border:rgba(250,247,245,.14);
-  --app-glass-control-filter:blur(18px) saturate(1.18);
+  --app-glass-fill:rgba(46,39,59,.30);
+  --app-glass-border:rgba(250,247,245,.14);
+  --app-glass-filter:blur(18px) saturate(1.18);
+
+  /* Backward-compatible aliases. There is still only one material value. */
+  --app-glass-surface-fill:var(--app-glass-fill);
+  --app-glass-surface-border:var(--app-glass-border);
+  --app-glass-surface-filter:var(--app-glass-filter);
+  --app-glass-control-fill:var(--app-glass-fill);
+  --app-glass-control-border:var(--app-glass-border);
+  --app-glass-control-filter:var(--app-glass-filter);
 }
 
-/* Optional reusable primitives for new components. Existing route components
-   consume the same tokens from their owning stylesheets so cascade order does
-   not decide whether glass works. */
+/* These classes are the material authority. !important is intentional here:
+   they are explicitly assigned by app-glass-runtime.js, so a late route/UI-pack
+   stylesheet cannot silently replace the shared material with a local tint. */
 .app-glass-surface{
-  background:var(--app-glass-surface-fill);
-  border-color:var(--app-glass-surface-border);
-  backdrop-filter:var(--app-glass-surface-filter);
-  -webkit-backdrop-filter:var(--app-glass-surface-filter);
+  background-color:var(--app-glass-fill)!important;
+  backdrop-filter:var(--app-glass-filter)!important;
+  -webkit-backdrop-filter:var(--app-glass-filter)!important;
 }
 .app-glass-control{
-  background:var(--app-glass-control-fill);
-  border-color:var(--app-glass-control-border);
-  backdrop-filter:var(--app-glass-control-filter);
-  -webkit-backdrop-filter:var(--app-glass-control-filter);
+  background-color:var(--app-glass-fill)!important;
+  backdrop-filter:var(--app-glass-filter)!important;
+  -webkit-backdrop-filter:var(--app-glass-filter)!important;
+}
+
+/* Frameless utilities are intentionally not glass even if a legacy page class
+   once painted them. */
+.app-utility-action,
+.app-quiet-action{
+  background:transparent!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
 }
