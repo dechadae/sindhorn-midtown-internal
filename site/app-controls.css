@@ -5,8 +5,8 @@
 :root{
   --app-back-size:36px;
   --app-back-radius:12px;
-  --app-control-border:rgba(250,247,245,.14);
-  --app-control-glass:rgba(46,39,59,.55);
+  --app-control-border:var(--app-glass-control-border,rgba(250,247,245,.14));
+  --app-control-glass:var(--app-glass-control-fill,rgba(46,39,59,.48));
   --app-control-muted:rgba(250,247,245,.55);
   --app-control-accent:#E5ECBE;
   --app-control-motion-fast:160ms;
@@ -34,6 +34,8 @@
   background:var(--app-control-glass)!important;
   color:var(--sm-text)!important;
   text-decoration:none!important;
+  backdrop-filter:var(--app-glass-control-filter)!important;
+  -webkit-backdrop-filter:var(--app-glass-control-filter)!important;
   cursor:pointer;
   transition:background var(--app-control-motion-base) ease,border-color var(--app-control-motion-base) ease,color var(--app-control-motion-base) ease,box-shadow var(--app-control-motion-base) var(--app-control-motion-ease),transform var(--app-control-motion-fast) var(--app-control-motion-ease),opacity var(--app-control-motion-fast) ease!important;
 }
