@@ -1,8 +1,8 @@
 :root{
   --ihg-history-accent:#E5ECBE;
   --ihg-history-accent-rgb:229,236,190;
-  --ihg-history-surface:rgba(46,39,59,.48);
-  --ihg-history-border:rgba(250,247,245,.14);
+  --ihg-history-surface:var(--app-glass-surface-fill);
+  --ihg-history-border:var(--app-glass-surface-border);
   --ihg-history-line:rgba(250,247,245,.11);
   --ihg-history-text:#FAF7F5;
   --ihg-history-muted:rgba(250,247,245,.66);
@@ -30,7 +30,7 @@ body[data-route="ihgHistory"] #route-view{background:transparent;padding-bottom:
 .ihg-history-stat span{display:block;overflow:hidden;color:var(--ihg-history-muted);font-size:8.5px;font-weight:400;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}
 .ihg-history-stat b{display:block;margin-top:5px;color:var(--ihg-history-text);font-size:14.5px;font-weight:400;line-height:1.2}
 .ihg-history-list{display:grid;gap:9px;padding:18px 0 0;overflow-anchor:none}
-.ihg-history-card{overflow:clip;border:1px solid var(--ihg-history-border);border-radius:14px;background:var(--ihg-history-surface);box-shadow:inset 0 1px 0 rgba(250,247,245,.025);transition:transform var(--ihg-history-motion-base) var(--ihg-history-ease),border-color var(--ihg-history-motion-base) ease,background var(--ihg-history-motion-base) ease,box-shadow var(--ihg-history-motion-base) var(--ihg-history-ease)}
+.ihg-history-card{overflow:clip;border:1px solid var(--ihg-history-border);border-radius:14px;background:var(--ihg-history-surface);box-shadow:inset 0 1px 0 rgba(250,247,245,.025);transition:transform var(--ihg-history-motion-base) var(--ihg-history-ease),border-color var(--ihg-history-motion-base) ease,background var(--ihg-history-motion-base) ease,box-shadow var(--ihg-history-motion-base) var(--ihg-history-ease)backdrop-filter:var(--app-glass-surface-filter);-webkit-backdrop-filter:var(--app-glass-surface-filter);}
 .ihg-history-card:focus-within{border-color:rgba(var(--ihg-history-accent-rgb),.32);box-shadow:0 14px 34px rgba(12,9,18,.14)}
 .ihg-history-card.is-open{border-color:rgba(var(--ihg-history-accent-rgb),.25)}
 .ihg-history-card-button{width:100%;min-height:82px;margin:0;padding:16px 17px;display:flex;align-items:center;justify-content:space-between;gap:16px;border:0;border-radius:0;background:transparent;color:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity var(--ihg-history-motion-fast) ease,transform var(--ihg-history-motion-fast) var(--ihg-history-ease)}
@@ -60,7 +60,7 @@ body[data-route="ihgHistory"] #route-view{background:transparent;padding-bottom:
 .ihg-history-period-visual img[src*="img-1770.jpg"],.ihg-history-period-visual img[src*="img-1946.jpg"],.ihg-history-period-visual img[src*="img-1972.jpg"],.ihg-history-period-visual img[src*="history-2.jpg"]{aspect-ratio:auto 750/422}
 .ihg-history-period-visual img[src*="img-1952.jpg"],.ihg-history-period-visual img[src*="img-1961.jpg"],.ihg-history-period-visual img[src*="img-1981.jpg"],.ihg-history-period-visual img[src*="img-1990.jpg"],.ihg-history-period-visual img[src*="img-2000.png"],.ihg-history-period-visual img[src*="img-2010.jpg"]{aspect-ratio:auto 1/1}
 .ihg-history-visual figcaption{padding:7px 10px 8px;color:rgba(250,247,245,.52);font-size:8.5px;font-weight:400;line-height:1.3;text-transform:uppercase}
-.ihg-history-source{margin:18px 0 0;padding:16px 17px;border:1px solid var(--ihg-history-border);border-radius:14px;background:var(--ihg-history-surface);box-shadow:inset 0 1px 0 rgba(250,247,245,.025)}
+.ihg-history-source{margin:18px 0 0;padding:16px 17px;border:1px solid var(--ihg-history-border);border-radius:14px;background:var(--ihg-history-surface);box-shadow:inset 0 1px 0 rgba(250,247,245,.025)backdrop-filter:var(--app-glass-surface-filter);-webkit-backdrop-filter:var(--app-glass-surface-filter);}
 .ihg-history-source strong{display:block;margin-top:5px;color:var(--ihg-history-text);font-size:14px;font-weight:400;line-height:1.35}
 .ihg-history-source-note{margin:5px 0 0;color:var(--ihg-history-muted);font-size:11.5px;line-height:1.5}
 .ihg-history-source a{min-height:40px;margin-top:7px;display:inline-flex;align-items:center;gap:6px;color:var(--ihg-history-accent);font-size:12px;font-weight:400;line-height:1.2;text-decoration:none;transition:opacity var(--ihg-history-motion-fast) ease,transform var(--ihg-history-motion-fast) var(--ihg-history-ease)}
