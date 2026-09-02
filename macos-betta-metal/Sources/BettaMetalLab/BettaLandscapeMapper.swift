@@ -4,6 +4,8 @@ import simd
 struct MappedComposition {
     var position: SIMD3<Float>
     var scaleMultiplier: Float
+    var rotationXOffset: Float
+    var rotationYOffset: Float
     var rotationZOffset: Float
 }
 
@@ -13,7 +15,7 @@ enum BettaLandscapeMapper {
         let adjustment = BettaCompositionStore.shared.adjustment(for: referenceId)
 
         guard orientationMix > 0 else {
-            return MappedComposition(position: source, scaleMultiplier: 1, rotationZOffset: 0)
+            return MappedComposition(position: source, scaleMultiplier: 1, rotationXOffset: 0, rotationYOffset: 0, rotationZOffset: 0)
         }
 
         let fov = camera.fov * .pi / 180
@@ -34,9 +36,15 @@ enum BettaLandscapeMapper {
             source.z + adjustment.z * orientationMix
         )
         let scale = lerp(1, adjustment.scale, orientationMix)
-        let rotation = Float(adjustment.quarterTurns) * (.pi / 2) * orientationMix
+        let degreesToRadians: Float = .pi / 180
 
-        return MappedComposition(position: position, scaleMultiplier: scale, rotationZOffset: rotation)
+        return MappedComposition(
+            position: position,
+            scaleMultiplier: scale,
+            rotationXOffset: adjustment.rotationX * degreesToRadians * orientationMix,
+            rotationYOffset: adjustment.rotationY * degreesToRadians * orientationMix,
+            rotationZOffset: adjustment.rotationZ * degreesToRadians * orientationMix
+        )
     }
 
     private static func smoothstep(_ edge0: Float, _ edge1: Float, _ x: Float) -> Float {
