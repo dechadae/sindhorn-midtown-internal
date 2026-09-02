@@ -27,7 +27,14 @@ final class BettaDiagnostics {
     private var previousIncomplete: PersistedState?
 
     private init() {
-        previousIncomplete = loadPersisted().flatMap { $0.completed ? nil : $0 }
+        previousIncomplete = loadPersisted().flatMap { state in
+            guard !state.completed, !Self.isTerminalDiagnosticStage(state.lastStage) else { return nil }
+            return state
+        }
+    }
+
+    private static func isTerminalDiagnosticStage(_ stage: String) -> Bool {
+        stage == "failure.ui.visible" || stage == "failure.report.ready" || stage == "startup.complete"
     }
 
     var hasPreviousIncompleteLaunch: Bool {
@@ -67,6 +74,13 @@ final class BettaDiagnostics {
             errorText = error.localizedDescription
             appendLocked("FAIL \(stage) — \(error.localizedDescription)")
             persistLocked(stage: stage, completed: false)
+        }
+    }
+
+    func markFailureUIReady() {
+        queue.sync {
+            appendLocked("failure.report.ready")
+            persistLocked(stage: "failure.report.ready", completed: true)
         }
     }
 
