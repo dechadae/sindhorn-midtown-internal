@@ -2,7 +2,7 @@ name: macOS Betta Metal Lab
 
 on:
   push:
-    branches: [macos-betta-metal-lab]
+    branches: [macos-betta-metal-lab, macos-betta-diagnostics]
     paths:
       - 'macos-betta-metal/**'
       - '.github/workflows/macos-betta-metal-lab.yml'
@@ -39,6 +39,8 @@ jobs:
           file "dist/Sindhorn Betta Metal Lab.app/Contents/MacOS/BettaMetalLab"
           codesign -dv --verbose=2 "dist/Sindhorn Betta Metal Lab.app" 2>&1
           plutil -lint "dist/Sindhorn Betta Metal Lab.app/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "dist/Sindhorn Betta Metal Lab.app/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Print :BettaGitSHA' "dist/Sindhorn Betta Metal Lab.app/Contents/Info.plist"
           test -s "dist/Sindhorn Betta Metal Lab.app/Contents/Resources/BettaShaders.metallib"
           cmp Sources/BettaMetalLab/ShadersSafe.metal "dist/Sindhorn Betta Metal Lab.app/Contents/Resources/Shaders.metal"
       - name: Runtime Metal pipeline smoke when GPU is exposed
