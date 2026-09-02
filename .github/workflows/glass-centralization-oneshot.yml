@@ -1,18 +1,18 @@
-name: One-shot CI Glass Source Migration
+name: One-shot CI Glass Source Repair
 
 on:
   push:
     branches:
       - preview-ci-glass
     paths:
-      - "scripts/centralize-glass.mjs"
+      - "scripts/repair-glass-css.mjs"
       - ".github/workflows/glass-centralization-oneshot.yml"
 
 permissions:
   contents: write
 
 jobs:
-  migrate:
+  repair:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
@@ -20,10 +20,10 @@ jobs:
           ref: preview-ci-glass
           fetch-depth: 0
 
-      - name: Apply source-owned glass migration
-        run: node scripts/centralize-glass.mjs
+      - name: Repair migrated declaration boundaries
+        run: node scripts/repair-glass-css.mjs
 
-      - name: Validate migration invariants
+      - name: Validate centralized glass invariants
         shell: bash
         run: |
           set -euo pipefail
@@ -36,6 +36,10 @@ jobs:
           grep -q -- '--brand-glass:var(--app-glass-surface-fill)' site/brand.css
           grep -q -- '--fs-glass:var(--app-glass-surface-fill)' site/hotel-factsheet.css
           grep -q -- '--ihg-history-surface:var(--app-glass-surface-fill)' site/ihg-history.css
+          if grep -Eq '[^;{}[:space:]]backdrop-filter:' site/fnb.css site/settings.css site/business-dashboard.css site/brand.css site/hotel-factsheet.css site/ihg-history.css site/ci.css; then
+            echo 'Malformed migrated backdrop-filter declaration remains' >&2
+            exit 1
+          fi
           if grep -q 'fnb-card,.fnb-text-card,.fnb-art-card{background:rgba(46,39,59,.66);backdrop-filter:none' site/fnb-approved-polish.css; then
             echo 'Legacy F&B no-blur override remains' >&2
             exit 1
@@ -48,19 +52,14 @@ jobs:
             echo 'Route-wide dark overlay remains' >&2
             exit 1
           fi
-          node --input-type=module --check < site/ui-system-registry.js
 
-      - name: Commit migrated sources
+      - name: Commit repaired sources
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "Sindhorn CI Migration"
           git config user.email "actions@users.noreply.github.com"
-          git add \
-            site/fnb.css site/fnb-approved-polish.css site/fnb-refinements.css \
-            site/settings.css site/settings-refinements.css \
-            site/business-dashboard.css site/brand.css site/hotel-factsheet.css \
-            site/ihg-history.css site/ci.css site/ui-system-registry.js
+          git add site/fnb.css site/settings.css site/business-dashboard.css site/brand.css site/hotel-factsheet.css site/ihg-history.css site/ci.css
           git diff --cached --check
-          git commit -m "Centralize glass on CI material authority"
+          git commit -m "Repair centralized glass CSS declarations"
           git push origin HEAD:preview-ci-glass
