@@ -127,14 +127,33 @@ final class BettaRandomStyleStore {
         values[referenceId] = style
     }
 
-    func snapshot(referenceId: Int) -> BettaRandomGeneration? {
-        guard let preset = BettaPreset.all.first(where: { $0.referenceId == referenceId }) else { return nil }
-        let adjustment = BettaAdvancedTuningStore.shared.adjustment(for: referenceId)
-        let currentStyle = style(for: referenceId) ?? BettaRandomStyle(
-            seed: 0,
+    static func originalStyle(for preset: BettaPreset, seed: UInt64 = 0) -> BettaRandomStyle {
+        BettaRandomStyle(
+            seed: seed,
             palette: preset.palette.map(BettaStoredColor.init),
             background: preset.background.map(BettaStoredColor.init)
         )
+    }
+
+    /// Restores only the immutable original palette and matching background for
+    /// one working copy. Geometry, camera, composition, membrane count/layers,
+    /// motion, optics and detail tuning are intentionally left untouched.
+    @discardableResult
+    func restoreOriginalColors(referenceId: Int) -> BettaRandomStyle? {
+        guard let preset = BettaPreset.all.first(where: { $0.referenceId == referenceId }) else { return nil }
+
+        lock.lock()
+        let seed = values[referenceId]?.seed ?? 0
+        let restored = Self.originalStyle(for: preset, seed: seed)
+        values[referenceId] = restored
+        lock.unlock()
+        return restored
+    }
+
+    func snapshot(referenceId: Int) -> BettaRandomGeneration? {
+        guard let preset = BettaPreset.all.first(where: { $0.referenceId == referenceId }) else { return nil }
+        let adjustment = BettaAdvancedTuningStore.shared.adjustment(for: referenceId)
+        let currentStyle = style(for: referenceId) ?? Self.originalStyle(for: preset)
         return BettaRandomGeneration(adjustment: adjustment, style: currentStyle)
     }
 
@@ -177,7 +196,7 @@ final class BettaRandomStyleStore {
         tail = tail.normalized
 
         // A generated organism inherits the user's current camera. Only its tail,
-        // optical response and two membrane layers are allowed to evolve.
+        // optical response and membrane endpoints are allowed to evolve.
         var adjustment = BettaAdvancedTuningStore.shared.adjustment(for: referenceId)
         adjustment.tail = tail
         adjustment.frontLayer = randomizedLayer(
