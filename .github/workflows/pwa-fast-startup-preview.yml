@@ -53,11 +53,12 @@ jobs:
           grep -q '"name":"Sindhorn Midtown Internal"' site/manifest.webmanifest
           grep -q "addEventListener('fetch'" site/sw.js
           grep -q "app-controls.css?v=2" site/index.html
-          grep -q "app-glass.css?v=4" site/index.html
+          grep -q "app-glass.css?v=5" site/index.html
           grep -q "brand-route-controls.js?v=2" site/index.html
           grep -q "ci-compact-fixes.css?v=2" site/index.html
-          grep -q -- "--app-glass-surface-filter:blur(18px)" site/app-glass.css
-          grep -q -- "--app-glass-control-filter:blur(12px)" site/app-glass.css
+          grep -q -- "--app-glass-surface-filter:blur(32px)" site/app-glass.css
+          grep -q -- "--app-glass-control-filter:blur(20px)" site/app-glass.css
+          grep -q -- "--app-glass-surface-fill:rgba(46,39,59,.64)" site/app-glass.css
           grep -q "#route-view :is" site/app-glass.css
           grep -q "\.message-clear" site/app-glass.css
           grep -q "\.settings-add" site/app-glass.css
@@ -137,7 +138,7 @@ jobs:
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /ci /fnb /settings /hotel-factsheet /sw.js /manifest.webmanifest '/app.js?v=2' '/pwa.css?v=2' '/app-controls.css?v=2' '/app-glass.css?v=4' '/ci-compact-fixes.css?v=2' '/ci-glass-audit.js?v=1' '/ci-day-cycle-route.js?v=3' /ui-system-registry.js '/fnb-route.js?v=2' '/fnb-refinements.css?v=2' '/fnb-share-ui.js?v=4' '/startup-skeleton.css?v=2' '/startup-skeleton.js?v=1' '/pwa-version-guard.js?v=2' '/auth-shell.js?v=7' '/bootstrap.js?v=3' '/route-registry.js' '/settings-route-v3.js?v=14&r=utility-action-1' '/business-card-settings.css?v=12' '/brand-route-controls.js?v=2' '/betta-runtime.js?v=2' '/betta-runtime-full.js?v=1'; do
+          for path in / /ci /fnb /settings /hotel-factsheet /sw.js /manifest.webmanifest '/app.js?v=2' '/pwa.css?v=2' '/app-controls.css?v=2' '/app-glass.css?v=5' '/ci-compact-fixes.css?v=2' '/ci-glass-audit.js?v=1' '/ci-day-cycle-route.js?v=3' /ui-system-registry.js '/fnb-route.js?v=2' '/fnb-refinements.css?v=2' '/fnb-share-ui.js?v=4' '/startup-skeleton.css?v=2' '/startup-skeleton.js?v=1' '/pwa-version-guard.js?v=2' '/auth-shell.js?v=7' '/bootstrap.js?v=3' '/route-registry.js' '/settings-route-v3.js?v=14&r=utility-action-1' '/business-card-settings.css?v=12' '/brand-route-controls.js?v=2' '/betta-runtime.js?v=2' '/betta-runtime-full.js?v=1'; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
