@@ -79,8 +79,6 @@ final class BettaEvolutionController {
 
         guard raw >= 1 else { return }
 
-        // The completed target becomes the exact source of the next generation.
-        // There is no cross-fade reset or dwell frame between organisms.
         self.source = target
         guard let next = randomStore.makeGeneration(referenceId: referenceId) else {
             stop()
@@ -96,7 +94,8 @@ final class BettaEvolutionController {
             camera: camera,
             tail: interpolateTail(a.adjustment.tail, b.adjustment.tail, t),
             frontLayer: interpolateLayer(a.adjustment.frontLayer, b.adjustment.frontLayer, t),
-            backLayer: interpolateLayer(a.adjustment.backLayer, b.adjustment.backLayer, t)
+            backLayer: interpolateLayer(a.adjustment.backLayer, b.adjustment.backLayer, t),
+            membraneCount: a.adjustment.membraneCount
         ).normalized
 
         let style = BettaRandomStyle(
