@@ -5,6 +5,11 @@
 .ui-ci__specimens{display:grid;gap:var(--ui-space-4);}
 .ui-ci__specimen{display:grid;gap:var(--ui-space-3);}
 .ui-ci__label{display:flex;justify-content:space-between;gap:var(--ui-space-3);color:var(--ui-color-muted);font-size:.68rem;text-transform:uppercase;}
+.ui-ci__body-copy{margin-top:var(--ui-space-3);}
+.ui-ci__body-copy--tight{margin-top:var(--ui-space-2);}
+.ui-ci__actions-top{margin-top:var(--ui-space-4);}
+.ui-ci__loading-label{width:28%;}
+.ui-ci__dialog-title{margin:var(--ui-space-2) 0 var(--ui-space-3);font-weight:var(--ui-weight-regular);}
 .ui-ci__swatches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--ui-space-3);}
 .ui-ci__swatch{min-height:92px;display:flex;align-items:flex-end;padding:var(--ui-space-3);border-radius:var(--ui-radius-md);border:1px solid var(--ui-glass-border);font-size:.72rem;}
 .ui-ci__swatch[data-token="vignette"]{background:var(--ui-color-vignette);}
