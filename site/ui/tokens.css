@@ -1,0 +1,66 @@
+:root{
+  --ui-color-vignette:#2E273B;
+  --ui-color-vignette-rgb:46,39,59;
+  --ui-color-white:#FAF7F5;
+  --ui-color-white-rgb:250,247,245;
+  --ui-color-sorbet:#E5ECBE;
+  --ui-color-sorbet-rgb:229,236,190;
+  --ui-color-muted:rgba(250,247,245,.68);
+  --ui-color-line:rgba(250,247,245,.14);
+  --ui-color-success:#72A75D;
+  --ui-color-warning:#D19B59;
+  --ui-color-error:#E3A2A8;
+
+  --ui-font:'LINE Seed Sans TH',system-ui,sans-serif;
+  --ui-weight-thin:100;
+  --ui-weight-regular:400;
+  --ui-weight-bold:700;
+
+  --ui-space-1:4px;
+  --ui-space-2:8px;
+  --ui-space-3:12px;
+  --ui-space-4:16px;
+  --ui-space-5:20px;
+  --ui-space-6:24px;
+  --ui-space-8:32px;
+  --ui-space-10:40px;
+  --ui-space-12:48px;
+  --ui-space-16:64px;
+
+  --ui-radius-xs:8px;
+  --ui-radius-sm:12px;
+  --ui-radius-md:16px;
+  --ui-radius-lg:22px;
+  --ui-radius-pill:999px;
+  --ui-border:1px solid var(--ui-color-line);
+  --ui-control-sm:36px;
+  --ui-control-md:44px;
+  --ui-control-lg:52px;
+
+  --ui-glass-bg:rgba(46,39,59,.30);
+  --ui-glass-border:rgba(250,247,245,.16);
+  --ui-glass-blur:18px;
+  --ui-glass-saturation:1.18;
+  --ui-shadow-float:0 18px 60px rgba(11,8,18,.18);
+
+  --ui-ease-standard:cubic-bezier(.22,1,.36,1);
+  --ui-duration-fast:140ms;
+  --ui-duration-standard:280ms;
+  --ui-duration-slow:420ms;
+
+  --ui-max-content:720px;
+  --ui-gutter:clamp(20px,4vw,48px);
+  --ui-safe-top:env(safe-area-inset-top,0px);
+  --ui-safe-right:env(safe-area-inset-right,0px);
+  --ui-safe-bottom:env(safe-area-inset-bottom,0px);
+  --ui-safe-left:env(safe-area-inset-left,0px);
+
+  --ui-z-background:0;
+  --ui-z-content:10;
+  --ui-z-sticky:80;
+  --ui-z-header:90;
+  --ui-z-footer:100;
+  --ui-z-popover:140;
+  --ui-z-dialog:180;
+  --ui-z-toast:200;
+}
