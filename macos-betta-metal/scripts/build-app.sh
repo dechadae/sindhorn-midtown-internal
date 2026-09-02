@@ -18,8 +18,8 @@ rm -rf "$DIST"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/BettaMetalLab" "$APP/Contents/MacOS/BettaMetalLab"
 
-# 0.3.3 keeps the 0.3.2 runtime-safe High Detail kernel and adds crash-safe
-# native diagnostics + explicit server bug-report submission.
+# 0.3.4 keeps the runtime-safe High Detail kernel and diagnostics, and replaces
+# the crash-prone dynamic editor with fixed reusable native controls.
 xcrun -sdk macosx metal -mmacosx-version-min=13.0 -c "$SAFE_SHADER" -o "$AIR"
 xcrun -sdk macosx metallib "$AIR" -o "$METALLIB"
 rm -f "$AIR"
@@ -38,8 +38,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>Sindhorn Betta Metal Lab</string>
 <key>CFBundleDisplayName</key><string>Sindhorn Betta Metal Lab</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.3.3</string>
-<key>CFBundleVersion</key><string>6</string>
+<key>CFBundleShortVersionString</key><string>0.3.4</string>
+<key>CFBundleVersion</key><string>7</string>
 <key>BettaGitSHA</key><string>__BETTA_GIT_SHA__</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>NSHighResolutionCapable</key><true/>
