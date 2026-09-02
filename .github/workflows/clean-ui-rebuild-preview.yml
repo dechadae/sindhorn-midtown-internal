@@ -1,0 +1,95 @@
+name: Clean UI Rebuild Preview
+
+on:
+  push:
+    branches: [clean-ui-rebuild-preview]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: clean-ui-rebuild-preview-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  validate-deploy-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Validate clean UI foundation
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in \
+            site/route-registry.js \
+            site/ui/ci-route.js \
+            site/ui/shell/init.js \
+            site/ui/shell/pull-to-reload.js; do
+            node --input-type=module --check < "$file"
+          done
+          grep -q -- '--ui-glass-blur:18px' site/ui/tokens.css
+          grep -q -- '--ui-glass-saturation:1.18' site/ui/tokens.css
+          grep -q -- '--ui-glass-bg:rgba(46,39,59,.30)' site/ui/tokens.css
+          grep -q "LINE Seed Sans TH" site/ui/tokens.css
+          grep -q "developer.ui_library" site/ui/ci-route.js
+          grep -q '/ui/index.css' site/index.html
+          grep -q '/ui/shell/init.js' site/index.html
+          if grep -R -n -E 'navigator\.vibrate|\.vibrate\(' site/ui site/route-registry.js site/index.html; then
+            echo 'Haptics are forbidden in rebuilt UI foundation' >&2
+            exit 1
+          fi
+          python - <<'PY'
+          from pathlib import Path
+          css = '\n'.join(p.read_text(encoding='utf-8') for p in Path('site/ui').rglob('*.css'))
+          if '!important' in css:
+              raise SystemExit('New UI foundation must not use !important')
+          if 'letter-spacing:' in css:
+              bad=[]
+              for p in Path('site/ui').rglob('*.css'):
+                  for i,line in enumerate(p.read_text(encoding='utf-8').splitlines(),1):
+                      if 'letter-spacing:' in line and 'letter-spacing:0' not in line.replace(' ',''):
+                          bad.append(f'{p}:{i}:{line}')
+              if bad: raise SystemExit('\n'.join(bad))
+          PY
+
+      - name: Verify protected architecture unchanged
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="$(git merge-base origin/main HEAD)"
+          test -n "$base"
+          for file in \
+            site/betta-environment.js site/betta-runtime.js site/betta-fin-presets.js site/betta-fin-shader.js site/betta-satellite.js \
+            site/location.js site/live-data.js site/rain-now.js \
+            site/auth-client.js site/auth-shell.js site/capabilities.js \
+            site/fnb-data.js site/business-dashboard-data.js site/business-card-component.js \
+            site/manifest.webmanifest; do
+            git diff --exit-code "$base" HEAD -- "$file"
+          done
+
+      - name: Deploy Cloudflare branch preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
+
+      - name: Raw preview smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
+          sleep 8
+          for path in / /ci /route-registry.js /ui/index.css /ui/tokens.css /ui/materials.css /ui/components.css /ui/shell.css /ui/ci.css /ui/ci-route.js /ui/shell/init.js /ui/shell/pull-to-reload.js /betta-runtime.js /betta-environment.js /manifest.webmanifest /sw.js; do
+            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
+            test -s /tmp/response
+          done
+          curl --fail --silent --show-error "${BASE_URL}/route-registry.js" -o /tmp/routes.js
+          grep -q "module:'./ui/ci-route.js'" /tmp/routes.js
+          curl --fail --silent --show-error "${BASE_URL}/ui/tokens.css" -o /tmp/tokens.css
+          grep -q -- '--ui-glass-blur:18px' /tmp/tokens.css
+          grep -q -- '--ui-glass-bg:rgba(46,39,59,.30)' /tmp/tokens.css
