@@ -85,7 +85,7 @@ jobs:
           grep -q "mountCiGlassAudit" site/ci-day-cycle-route.js site/ci-glass-audit.js
           grep -q "\.factsheet-picture" site/app-glass.css
           grep -q "Factsheet image-frame blur is active" site/ci-glass-audit.js
-          grep -q "data.shellPullRefresh='true'" site/app.js
+          grep -q "dataset.shellPullRefresh='true'" site/app.js
           grep -q "pull-refresh-spinner" site/app.js site/pwa.css
           grep -q "Release to reload" site/app.js
           grep -q "mountRoute?.(routeAtStart,{animate:false})" site/app.js
