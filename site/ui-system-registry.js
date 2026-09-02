@@ -1,8 +1,8 @@
-export const UI_SYSTEM_VERSION='1.2.0-preview';
+export const UI_SYSTEM_VERSION='1.3.0-preview';
 export const UI_SYSTEM_CAPABILITY='developer.ui_library';
 
 export const UI_SYSTEM_SECTIONS=Object.freeze([
-  ['identity','Identity'],['foundations','Foundations'],['typography','Typography'],['layout','Layout'],
+  ['identity','Identity'],['foundations','Foundations'],['glass','Glass Material'],['typography','Typography'],['layout','Layout'],
   ['heroes','Heroes'],['surfaces','Surfaces & Cards'],['actions','Actions'],['navigation','Navigation'],
   ['selectors','Filters & Chips'],['disclosures','Disclosures'],['forms','Forms'],['dialogs','Dialogs'],
   ['tables','Tables & Data'],['imagery','Imagery'],['states','States'],['motion','Motion & Accessibility'],
@@ -16,6 +16,8 @@ export const UI_SYSTEM_TOKENS=Object.freeze([
   {name:'--app-control-glass',label:'Control glass',kind:'color',fallback:'rgba(46,39,59,.55)'},
   {name:'--app-control-border',label:'Control border',kind:'color',fallback:'rgba(250,247,245,.14)'},
   {name:'--sm-footer-active',label:'Footer active',kind:'color',fallback:'#E5ECBE'},
+  {name:'--app-glass-surface-filter',label:'Glass surface filter',kind:'material',fallback:'blur(18px) saturate(1.18)'},
+  {name:'--app-glass-control-filter',label:'Glass control filter',kind:'material',fallback:'blur(12px) saturate(1.12)'},
   {name:'--app-control-motion-fast',label:'Fast press',kind:'motion',fallback:'160ms'},
   {name:'--app-control-motion-base',label:'Base state',kind:'motion',fallback:'260ms'},
   {name:'--fnb-motion-slow',label:'Disclosure',kind:'motion',fallback:'420ms'},
@@ -31,6 +33,7 @@ export const UI_SYSTEM_TOKENS=Object.freeze([
 
 export const UI_SYSTEM_COMPONENTS=Object.freeze([
   Object.freeze({id:'hero',label:'Route hero',selector:'.app-route-hero',owner:'site/route-hero-standard.css',use:'Every new authenticated top-level route.',avoid:'Do not invent route-specific title sizing, weights or padding.',a11y:'Exactly one route h1. Keep supporting copy concise.'}),
+  Object.freeze({id:'glass',label:'Translucent glass material',selector:'Translucent cards, controls and chips',owner:'site/app-glass.css',use:'Every interface surface that intentionally reveals the atmosphere or content behind it.',avoid:'Never pair a translucent UI fill with backdrop-filter:none or omit blur from a glass control.',a11y:'Material is decorative; text contrast and semantic behavior remain owned by the component.'}),
   Object.freeze({id:'back',label:'Back control',selector:'.app-back-control',owner:'site/app-controls.css',use:'Contextual return from a child/detail route.',avoid:'Do not redraw the chevron or change the 36 × 36 / 12px geometry.',a11y:'Provide an explicit aria-label and preserve a visible focus ring.'}),
   Object.freeze({id:'quiet',label:'Quiet action',selector:'.app-quiet-action',owner:'site/app-controls.css',use:'Low-emphasis utilities such as Back to top.',avoid:'Do not promote a quiet utility into a filled primary button.',a11y:'Visible text plus semantic button/link behavior.'}),
   Object.freeze({id:'action-card',label:'Actionable glass card',selector:'.fnb-card + .fnb-card-button',owner:'site/fnb.css + site/fnb-approved-polish.css',use:'Whole-surface actions that open detail or another route.',avoid:'Do not make non-actionable information look tappable.',a11y:'One semantic button or link owns the entire hit area.'}),
@@ -46,6 +49,7 @@ export const UI_SYSTEM_RULES=Object.freeze([
   ['Use LINE Seed Sans TH only.','Production ships real weights 100 / 400 / 700; never introduce another UI font.'],
   ['Use zero character tracking.','letter-spacing stays 0 across headings, body, labels and controls.'],
   ['Use rounded corners, never circular UI chrome.','Avatars, chips, badges, status marks and icon controls use app-shapes.css. Do not introduce 50% / 999px capsule geometry for interface elements. Natural sun/moon/weather rendering is exempt.'],
+  ['Translucency always blurs.','If a card, button, chip, field, menu or navigation item intentionally shows the background through its fill, it consumes app-glass.css. Fully transparent controls and opaque surfaces are exempt.'],
   ['Keep one persistent authenticated shell.','Authenticated routes replace only #route-view; header, footer, auth and atmosphere stay mounted.'],
   ['Do not paint a route-wide dark overlay.','The Bangkok atmosphere is the visual ground; use translucent structural surfaces above it.'],
   ['Use the shared hero authority.','New pages use app-route-hero / app-route-eyebrow / app-route-title / app-route-copy.'],
@@ -62,13 +66,13 @@ export const UI_SYSTEM_OWNERSHIP=Object.freeze([
   ['Typography','site/fonts.css'],['Persistent shell','site/shell.css + site/bootstrap.js'],
   ['Route registry','site/route-registry.js'],['Route transition','site/app-transitions.js + site/app-transitions.css'],
   ['Route hero','site/route-hero-standard.css'],['Back / quiet controls','site/app-controls.css'],
-  ['UI shape language','site/app-shapes.css'],
+  ['UI shape language','site/app-shapes.css'],['Glass material','site/app-glass.css'],
   ['Main + contextual footer','site/footer-route-guard.js + site/footer-route-guard.css'],
   ['F&B cards / selectors','site/fnb.css + site/fnb-approved-polish.css + site/fnb-refinements.css'],
   ['Settings renderer','site/settings.js + site/settings-route-v3.js'],['Settings dialogs','site/settings-dialog-standard.js + site/settings-dialog-standard.css'],
   ['Brand cards','site/brand.css'],['History disclosures','site/ihg-history.js + site/ihg-history.css'],
   ['Factsheet tables / room cards','site/hotel-factsheet.js + site/hotel-factsheet.css'],
-  ['Developer CI registry','site/ui-system-registry.js'],['Developer CI renderer','site/ci.js + site/ci.css']
+  ['Developer CI registry','site/ui-system-registry.js'],['Developer CI renderer','site/ci.js + site/ci.css + site/ci-glass-audit.js']
 ]);
 
 export const NEW_PAGE_BLUEPRINT=`export async function mountExampleRoute(root){
