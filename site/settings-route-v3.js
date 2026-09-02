@@ -14,7 +14,7 @@ function promoteSignOutToHero(root){
   const fresh=buttons.find(button=>!hero.contains(button))||buttons.find(button=>hero.contains(button));if(!fresh)return;
   buttons.forEach(button=>{if(button!==fresh)button.remove()});
   const oldHost=fresh.closest('.settings-account-actions');
-  fresh.className='settings-hero-signout';
+  fresh.className='app-utility-action settings-hero-signout';
   fresh.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5v16h5M14 8l4 4-4 4M9 12h9"/></svg><span>Sign out</span>';
   hero.appendChild(fresh);
   if(oldHost&&!oldHost.children.length)oldHost.remove();
