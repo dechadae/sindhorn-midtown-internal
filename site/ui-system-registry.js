@@ -24,6 +24,8 @@ export const UI_SYSTEM_TOKENS=Object.freeze([
   {name:'--app-transition-ms',label:'Route transition',kind:'motion',fallback:'280ms'},
   {name:'--app-back-size',label:'Back control size',kind:'size',fallback:'36px'},
   {name:'--app-back-radius',label:'Back control radius',kind:'size',fallback:'12px'},
+  {name:'--app-utility-height',label:'Utility action height',kind:'size',fallback:'36px'},
+  {name:'--app-utility-font',label:'Utility action type',kind:'size',fallback:'12px'},
   {name:'--app-radius-avatar',label:'Avatar radius',kind:'size',fallback:'12px'},
   {name:'--app-radius-chip',label:'Compact tag radius',kind:'size',fallback:'9px'},
   {name:'--app-radius-indicator',label:'Status mark radius',kind:'size',fallback:'2px'},
@@ -33,9 +35,9 @@ export const UI_SYSTEM_TOKENS=Object.freeze([
 
 export const UI_SYSTEM_COMPONENTS=Object.freeze([
   Object.freeze({id:'hero',label:'Route hero',selector:'.app-route-hero',owner:'site/route-hero-standard.css',use:'Every new authenticated top-level route.',avoid:'Do not invent route-specific title sizing, weights or padding.',a11y:'Exactly one route h1. Keep supporting copy concise.'}),
-  Object.freeze({id:'glass',label:'Translucent glass material',selector:'Translucent cards, controls and chips',owner:'site/app-glass.css',use:'Every interface surface that intentionally reveals the atmosphere or content behind it.',avoid:'Never pair a translucent UI fill with backdrop-filter:none or omit blur from a glass control.',a11y:'Material is decorative; text contrast and semantic behavior remain owned by the component.'}),
+  Object.freeze({id:'glass',label:'Translucent glass material',selector:'Translucent cards, controls and chips',owner:'site/app-glass.css',use:'Every interface surface that intentionally reveals the atmosphere or content behind it.',avoid:'Never pair a translucent UI fill with backdrop-filter:none or omit blur from a glass control. Fully transparent utility actions are exempt.',a11y:'Material is decorative; text contrast and semantic behavior remain owned by the component.'}),
   Object.freeze({id:'back',label:'Back control',selector:'.app-back-control',owner:'site/app-controls.css',use:'Contextual return from a child/detail route.',avoid:'Do not redraw the chevron or change the 36 × 36 / 12px geometry.',a11y:'Provide an explicit aria-label and preserve a visible focus ring.'}),
-  Object.freeze({id:'quiet',label:'Quiet action',selector:'.app-quiet-action',owner:'site/app-controls.css',use:'Low-emphasis utilities such as Back to top.',avoid:'Do not promote a quiet utility into a filled primary button.',a11y:'Visible text plus semantic button/link behavior.'}),
+  Object.freeze({id:'quiet',label:'Utility action',selector:'.app-utility-action',owner:'site/app-controls.css',use:'Low-emphasis utilities: Sign out, Share and Back to top.',avoid:'Never add a fill, border, backdrop blur or left-aligned route variant. Utility actions stay frameless and right anchored.',a11y:'Visible text plus semantic button/link behavior.'}),
   Object.freeze({id:'action-card',label:'Actionable glass card',selector:'.fnb-card + .fnb-card-button',owner:'site/fnb.css + site/fnb-approved-polish.css',use:'Whole-surface actions that open detail or another route.',avoid:'Do not make non-actionable information look tappable.',a11y:'One semantic button or link owns the entire hit area.'}),
   Object.freeze({id:'selector',label:'Selector',selector:'.fnb-select',owner:'site/fnb-approved-polish.css',use:'Compact finite filters and Settings select fields.',avoid:'Do not create a visually different dropdown for a new page.',a11y:'Trigger exposes listbox state; options remain keyboard reachable.'}),
   Object.freeze({id:'disclosure',label:'Disclosure card',selector:'.factsheet-room-card',owner:'site/hotel-factsheet.css',use:'Structured content that expands in place.',avoid:'Do not animate layout with arbitrary heights or route-specific timings.',a11y:'Button maintains aria-expanded and content remains in DOM.'}),
@@ -49,11 +51,12 @@ export const UI_SYSTEM_RULES=Object.freeze([
   ['Use LINE Seed Sans TH only.','Production ships real weights 100 / 400 / 700; never introduce another UI font.'],
   ['Use zero character tracking.','letter-spacing stays 0 across headings, body, labels and controls.'],
   ['Use rounded corners, never circular UI chrome.','Avatars, chips, badges, status marks and icon controls use app-shapes.css. Do not introduce 50% / 999px capsule geometry for interface elements. Natural sun/moon/weather rendering is exempt.'],
-  ['Translucency always blurs.','If a card, button, chip, field, menu or navigation item intentionally shows the background through its fill, it consumes app-glass.css. Fully transparent controls and opaque surfaces are exempt.'],
+  ['Translucency always blurs.','If a card, button, chip, field, menu or navigation item intentionally shows the background through its fill, it consumes app-glass.css. Fully transparent utility actions are exempt.'],
+  ['Utility actions are frameless and right aligned.','Sign out, Share and Back to top consume app-utility-action from app-controls.css. They have no painted background, border, shadow or backdrop blur and stay on the right edge of their action context.'],
   ['Keep one persistent authenticated shell.','Authenticated routes replace only #route-view; header, footer, auth and atmosphere stay mounted.'],
   ['Do not paint a route-wide dark overlay.','The Bangkok atmosphere is the visual ground; use translucent structural surfaces above it.'],
   ['Use the shared hero authority.','New pages use app-route-hero / app-route-eyebrow / app-route-title / app-route-copy.'],
-  ['Use the shared control authority.','Back and quiet actions come from app-controls.css; do not redraw them per route.'],
+  ['Use the shared control authority.','Back and utility actions come from app-controls.css; do not redraw them per route.'],
   ['Reuse before creating.','If a proven card, selector, dialog or disclosure already exists, consume it instead of approximating it.'],
   ['Keep Settings navigation fixed.','The secondary Settings rail is always Account / People / Comms / System. Authorization changes content, never rail geometry.'],
   ['Use capability-driven privileged UI.','Developer UI Library access is granted by developer.ui_library; hiding a card is not the only route gate.'],
@@ -65,7 +68,7 @@ export const UI_SYSTEM_RULES=Object.freeze([
 export const UI_SYSTEM_OWNERSHIP=Object.freeze([
   ['Typography','site/fonts.css'],['Persistent shell','site/shell.css + site/bootstrap.js'],
   ['Route registry','site/route-registry.js'],['Route transition','site/app-transitions.js + site/app-transitions.css'],
-  ['Route hero','site/route-hero-standard.css'],['Back / quiet controls','site/app-controls.css'],
+  ['Route hero','site/route-hero-standard.css'],['Back / utility controls','site/app-controls.css'],
   ['UI shape language','site/app-shapes.css'],['Glass material','site/app-glass.css'],
   ['Main + contextual footer','site/footer-route-guard.js + site/footer-route-guard.css'],
   ['F&B cards / selectors','site/fnb.css + site/fnb-approved-polish.css + site/fnb-refinements.css'],
@@ -93,7 +96,7 @@ export const NEW_PAGE_BLUEPRINT=`export async function mountExampleRoute(root){
 
 export const COMPONENT_CODE=Object.freeze({
   back:`<button class="app-back-control" type="button" aria-label="Back">\n  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>\n</button>`,
-  quiet:`<button class="app-quiet-action" type="button">\n  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M7 10l5-5 5 5"/></svg>\n  <span>Back to top</span>\n</button>`,
+  quiet:`<button class="app-utility-action" type="button">\n  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M7 10l5-5 5 5"/></svg>\n  <span>Back to top</span>\n</button>`,
   hero:`<header class="app-route-hero">\n  <p class="app-route-eyebrow">Section</p>\n  <h1 class="app-route-title">Page Title</h1>\n  <p class="app-route-copy">Supporting copy.</p>\n</header>`,
   card:`<article class="fnb-card">\n  <button class="fnb-card-button" type="button">\n    <div class="fnb-card-status"><span class="fnb-text-label">Upcoming</span></div>\n    <h2 class="fnb-card-title">Actionable Card</h2>\n    <p class="fnb-card-outlets">Supporting information</p>\n    <div class="fnb-card-foot"><span>Open detail</span><span class="fnb-chevron">›</span></div>\n  </button>\n</article>`,
   select:`<div class="fnb-select">\n  <button class="fnb-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">\n    <span>All outlets</span>\n    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5"/></svg>\n  </button>\n  <div class="fnb-select-menu" role="listbox" aria-hidden="true">…</div>\n</div>`,
