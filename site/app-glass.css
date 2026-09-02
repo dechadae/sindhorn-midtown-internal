@@ -1,78 +1,28 @@
-/* Sindhorn Midtown Internal — canonical translucent glass material authority.
-   Rule: if an interface surface intentionally shows the atmosphere/content behind it,
-   the same surface also blurs that background. Fully transparent utility actions are
-   deliberately exempt and are owned by app-controls.css.
-
-   Android/Chromium note: the live Betta is a hardware-accelerated WebGL layer. A
-   light 18px blur still leaves its large high-contrast fin edges visually sharp on
-   real mobile compositors. The centralized surface recipe therefore uses a stronger
-   blur plus a denser neutral veil; pages must not compensate with route-local paint. */
+/* Sindhorn Midtown Internal — canonical glass material tokens.
+   CI is the visual authority: translucent surfaces use the same .48 Vignette
+   base and 18px / 1.18 backdrop treatment. Route styles consume these tokens
+   directly; this file does not patch page selectors or override route CSS. */
 :root{
-  --app-glass-surface-filter:blur(32px) saturate(.86) brightness(.92);
-  --app-glass-control-filter:blur(20px) saturate(.92) brightness(.95);
-  --app-glass-surface-fill:rgba(46,39,59,.64);
+  --app-glass-surface-fill:rgba(46,39,59,.48);
+  --app-glass-surface-border:rgba(250,247,245,.14);
+  --app-glass-surface-filter:blur(18px) saturate(1.18);
+  --app-glass-control-fill:rgba(46,39,59,.48);
+  --app-glass-control-border:rgba(250,247,245,.14);
+  --app-glass-control-filter:blur(18px) saturate(1.18);
 }
 
-/* Route material authority.
-   Route styles are loaded lazily after the shell, so this selector deliberately
-   includes #route-view: the global glass contract must remain stronger than a
-   later page-level declaration that accidentally disables blur. */
-#route-view :is(
-  .fnb-card,.fnb-text-card,.fnb-art-card,.fnb-empty,.fnb-folder-empty,
-  .bd-metric,.bd-flag,.bd-summary-surface,.bd-disclosure,.bd-benchmark-grid,.bd-outlook-card,.bd-empty,
-  .brand-card,
-  .factsheet-picture,.factsheet-card,.factsheet-room-card,.factsheet-disclosure,
-  .ihg-history-card,.ihg-history-source,.ihg-history-visual,
-  .settings-avatar,.settings-user-card,.settings-state,.settings-planned,.settings-system-library-card,
-  .ci-status,.ci-specimen,.ci-doc-card,.ci-rule,.ci-state-card,.ci-owner-card,.ci-identity-lockup,.ci-token,.ci-image-demo,.ci-motion-step,
-  .onboarding-complete,.settings-guide-card,
-  .signed-card,.admin-panel
-){
-  background-color:var(--app-glass-surface-fill)!important;
-  backdrop-filter:var(--app-glass-surface-filter)!important;
-  -webkit-backdrop-filter:var(--app-glass-surface-filter)!important;
+/* Optional reusable primitives for new components. Existing route components
+   consume the same tokens from their owning stylesheets so cascade order does
+   not decide whether glass works. */
+.app-glass-surface{
+  background:var(--app-glass-surface-fill);
+  border-color:var(--app-glass-surface-border);
+  backdrop-filter:var(--app-glass-surface-filter);
+  -webkit-backdrop-filter:var(--app-glass-surface-filter);
 }
-
-#route-view :is(
-  .fnb-chip,.fnb-select select,.fnb-select-trigger,.fnb-select-menu,.fnb-action,.fnb-back,.fnb-expand,.fnb-link-field input,
-  .app-back-control,
-  .action.message-clear,.message-clear,
-  .settings-primary,.settings-quiet-action,.settings-add,.settings-search,.settings-close,.settings-field input,.settings-status,
-  .settings-dialog-actions button,.settings-code-actions button,.business-card-settings-actions button,
-  .public-card-action,
-  .ci-index button,.ci-copy-code,.ci-primary,
-  .onboarding-close,.onboarding-secondary,.onboarding-quiet,.onboarding-guide-footer button,.onboarding-guide-head button,
-  .field input,.field select,.chip-btn
-){
-  backdrop-filter:var(--app-glass-control-filter)!important;
-  -webkit-backdrop-filter:var(--app-glass-control-filter)!important;
-}
-
-/* Utility actions are transparent affordances, not translucent surfaces.
-   Keep this explicit so a future broad material selector cannot accidentally
-   turn Sign out / Share / Back to top into glass buttons again. */
-#route-view :is(.app-utility-action,.app-quiet-action){
-  background:transparent!important;
-  border-color:transparent!important;
-  box-shadow:none!important;
-  backdrop-filter:none!important;
-  -webkit-backdrop-filter:none!important;
-}
-
-/* Login/onboarding boundary is outside #route-view. */
-:is(.login-first-time,.onboarding-complete){
-  background-color:var(--app-glass-surface-fill)!important;
-  backdrop-filter:var(--app-glass-surface-filter)!important;
-  -webkit-backdrop-filter:var(--app-glass-surface-filter)!important;
-}
-:is(.field input,.field select,.chip-btn,.onboarding-close,.onboarding-secondary,.onboarding-quiet){
-  backdrop-filter:var(--app-glass-control-filter)!important;
-  -webkit-backdrop-filter:var(--app-glass-control-filter)!important;
-}
-
-/* The persistent shell surfaces already use stronger local filters. Active
-   translucent footer items still consume the compact control material. */
-#app-footer .shell-footer-rail .nav-chip[aria-current]{
-  backdrop-filter:var(--app-glass-control-filter)!important;
-  -webkit-backdrop-filter:var(--app-glass-control-filter)!important;
+.app-glass-control{
+  background:var(--app-glass-control-fill);
+  border-color:var(--app-glass-control-border);
+  backdrop-filter:var(--app-glass-control-filter);
+  -webkit-backdrop-filter:var(--app-glass-control-filter);
 }
