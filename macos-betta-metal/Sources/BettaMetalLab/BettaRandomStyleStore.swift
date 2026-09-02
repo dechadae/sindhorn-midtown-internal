@@ -41,6 +41,11 @@ struct BettaRandomStyle: Codable, Equatable {
     }
 }
 
+struct BettaRandomGeneration: Equatable {
+    var adjustment: BettaAdvancedAdjustment
+    var style: BettaRandomStyle
+}
+
 final class BettaRandomStyleStore {
     static let shared = BettaRandomStyleStore()
 
@@ -114,8 +119,26 @@ final class BettaRandomStyleStore {
         values.removeValue(forKey: referenceId)
     }
 
-    @discardableResult
-    func randomize(referenceId: Int) -> BettaRandomStyle? {
+    func update(referenceId: Int, style: BettaRandomStyle) {
+        guard (1...8).contains(referenceId),
+              style.resolvedPalette != nil,
+              style.resolvedBackground != nil else { return }
+        lock.lock(); defer { lock.unlock() }
+        values[referenceId] = style
+    }
+
+    func snapshot(referenceId: Int) -> BettaRandomGeneration? {
+        guard let preset = BettaPreset.all.first(where: { $0.referenceId == referenceId }) else { return nil }
+        let adjustment = BettaAdvancedTuningStore.shared.adjustment(for: referenceId)
+        let currentStyle = style(for: referenceId) ?? BettaRandomStyle(
+            seed: 0,
+            palette: preset.palette.map(BettaStoredColor.init),
+            background: preset.background.map(BettaStoredColor.init)
+        )
+        return BettaRandomGeneration(adjustment: adjustment, style: currentStyle)
+    }
+
+    func makeGeneration(referenceId: Int) -> BettaRandomGeneration? {
         guard let preset = BettaPreset.all.first(where: { $0.referenceId == referenceId }) else { return nil }
 
         let seed = UInt64.random(in: UInt64.min...UInt64.max)
@@ -153,6 +176,8 @@ final class BettaRandomStyleStore {
         tail.normalDetail = rng.range(0.82, 1.85)
         tail = tail.normalized
 
+        // A generated organism inherits the user's current camera. Only its tail,
+        // optical response and two membrane layers are allowed to evolve.
         var adjustment = BettaAdvancedTuningStore.shared.adjustment(for: referenceId)
         adjustment.tail = tail
         adjustment.frontLayer = randomizedLayer(
@@ -165,7 +190,6 @@ final class BettaRandomStyleStore {
             isBack: true,
             rng: &rng
         )
-        BettaAdvancedTuningStore.shared.update(referenceId: referenceId, adjustment: adjustment)
 
         let palette = makePalette(base: archetype.palette, accent: accentPreset.palette, rng: &rng)
         let background = makeMatchingBackground(palette: palette, rng: &rng)
@@ -175,10 +199,20 @@ final class BettaRandomStyleStore {
             background: background.map(BettaStoredColor.init)
         )
 
-        lock.lock()
-        values[referenceId] = style
-        lock.unlock()
-        return style
+        return BettaRandomGeneration(adjustment: adjustment.normalized, style: style)
+    }
+
+    func apply(referenceId: Int, generation: BettaRandomGeneration) {
+        guard (1...8).contains(referenceId) else { return }
+        BettaAdvancedTuningStore.shared.update(referenceId: referenceId, adjustment: generation.adjustment)
+        update(referenceId: referenceId, style: generation.style)
+    }
+
+    @discardableResult
+    func randomize(referenceId: Int) -> BettaRandomStyle? {
+        guard let generation = makeGeneration(referenceId: referenceId) else { return nil }
+        apply(referenceId: referenceId, generation: generation)
+        return generation.style
     }
 
     @discardableResult
