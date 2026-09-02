@@ -112,6 +112,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc private func nextFish(_ sender: Any?) { editorPanel?.cycleFish(1) }
     @objc private func previousFish(_ sender: Any?) { editorPanel?.cycleFish(-1) }
 
+    @objc private func randomizeBetta(_ sender: Any?) {
+        guard let editorPanel, let style = editorPanel.randomizeCurrentBetta() else { return }
+        diagnostics.checkpoint(
+            "random.generated",
+            detail: "fish-index=\(editorPanel.selectedFishIndex) seed=\(style.shortSeed)"
+        )
+    }
+
     @objc private func toggleDesktop(_ sender: Any?) {
         guard let window, let renderer else { return }
         if window.desktopMode {
@@ -120,6 +128,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         } else {
             _ = BettaCompositionStore.shared.save()
             _ = BettaAdvancedTuningStore.shared.save()
+            _ = BettaRandomStyleStore.shared.save()
             renderer.useLiveMode()
             setEditorVisible(false)
             window.setDesktopMode(true)
@@ -128,6 +137,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func saveAndUseAsWallpaper() {
         guard let window, let renderer else { return }
+        _ = BettaRandomStyleStore.shared.save()
         renderer.useLiveMode()
         setEditorVisible(false)
         window.setDesktopMode(true)
@@ -167,6 +177,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             item.target = self; item.tag = index; bettaMenu.addItem(item)
         }
         bettaMenu.addItem(.separator())
+        let random = NSMenuItem(title: "Random Betta + Matching Gradient", action: #selector(randomizeBetta(_:)), keyEquivalent: "r")
+        random.target = self
+        bettaMenu.addItem(random)
         let previous = NSMenuItem(title: "Previous Fish", action: #selector(previousFish(_:)), keyEquivalent: "["); previous.target = self; bettaMenu.addItem(previous)
         let next = NSMenuItem(title: "Next Fish", action: #selector(nextFish(_:)), keyEquivalent: "]"); next.target = self; bettaMenu.addItem(next)
         bettaMenu.addItem(.separator())
