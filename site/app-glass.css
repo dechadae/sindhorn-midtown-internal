@@ -1,7 +1,8 @@
 /* Sindhorn Midtown Internal — canonical translucent glass material authority.
    Rule: if an interface surface intentionally shows the atmosphere/content behind it,
    the same surface also blurs that background. This file owns material only: it does
-   not change component geometry, colour, content, spacing or interaction. */
+   not change component geometry, colour, content, spacing or interaction.
+   Preview branch note: this comment creates a fresh Cloudflare origin deployment for cache-isolated review. */
 :root{
   --app-glass-surface-filter:blur(18px) saturate(1.18);
   --app-glass-control-filter:blur(12px) saturate(1.12);
