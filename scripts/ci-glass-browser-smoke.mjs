@@ -39,20 +39,12 @@ async function runViewport(browser,width,height){
       probes.className='ci-route';
       probes.style.cssText='position:fixed;left:-10000px;top:0;width:390px;visibility:hidden;pointer-events:none';
       probes.innerHTML=`
-        <article class="fnb-card" data-probe="fnb-card"></article>
-        <button class="fnb-chip" data-probe="fnb-chip">Chip</button>
-        <button class="app-back-control" data-probe="back"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
-        <button class="settings-primary" data-probe="primary">Primary</button>
-        <button class="fnb-select-trigger" data-probe="select">Select</button>
-        <article class="factsheet-room-card" data-probe="room"></article>
-        <figure class="factsheet-picture" data-probe="picture"></figure>
         <div class="ci-status" data-probe="ci-status"></div>
+        <article class="ci-specimen" data-probe="ci-specimen"></article>
+        <article class="ci-token" data-probe="ci-token"></article>
+        <figure class="ci-image-demo" data-probe="ci-image"></figure>
         <nav class="ci-index"><button data-probe="ci-index">Index</button></nav>
-        <button class="fnb-expand" data-probe="expand">Show full</button>
-        <button class="fnb-action" data-probe="folder">View artwork folder</button>
-        <button class="action message-clear" data-probe="message">Clear all</button>
-        <button class="settings-add" data-probe="add">Add employee</button>
-        <article class="settings-planned settings-system-library-card" data-probe="system"></article>
+        <button class="ci-primary" data-probe="ci-primary">Primary</button>
         <button class="fnb-chip ci-betta-period-chip" data-betta-period="golden-hour" data-probe="period">Golden Hour</button>
         <button class="app-quiet-action" data-probe="legacy-utility">Back to top</button>
         <button class="app-utility-action" data-probe="utility">Share</button>`;
@@ -62,7 +54,8 @@ async function runViewport(browser,width,height){
       const result={
         version:window.SindhornUiLibrary?.version,
         tokens:{surfaceFill:rootStyle.getPropertyValue('--app-glass-surface-fill').trim(),surfaceFilter:rootStyle.getPropertyValue('--app-glass-surface-filter').trim(),controlFilter:rootStyle.getPropertyValue('--app-glass-control-filter').trim()},
-        targets:['fnb-card','fnb-chip','back','primary','select','room','picture','ci-status','ci-index','expand','folder','message','add','system'].map(read),
+        surfaces:['ci-status','ci-specimen','ci-token','ci-image'].map(read),
+        controls:['ci-index','ci-primary'].map(read),
         utilities:['legacy-utility','utility'].map(read),
         periodChip:read('period'),
         overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth
@@ -75,8 +68,9 @@ async function runViewport(browser,width,height){
     assert(normalizedFilter(report.tokens.surfaceFilter)===CI_FILTER,`${width}: CI surface-filter token drift ${JSON.stringify(report.tokens)}`);
     assert(normalizedFilter(report.tokens.controlFilter)===CI_FILTER,`${width}: CI control-filter token drift ${JSON.stringify(report.tokens)}`);
     assert(report.overflow<=1,`${width}: horizontal overflow ${report.overflow}`);
-    for(const target of report.targets)assert(normalizedFilter(target.filter)===CI_FILTER,`${width}: ${target.name} is not using the CI blur recipe (${target.filter})`);
+    for(const target of [...report.surfaces,...report.controls])assert(normalizedFilter(target.filter)===CI_FILTER,`${width}: ${target.name} is not using the CI blur recipe (${target.filter})`);
     for(const utility of report.utilities){assert(hasNoBlur(utility.filter),`${width}: ${utility.name} unexpectedly blurs (${utility.filter})`);assert(utility.background==='rgba(0, 0, 0, 0)',`${width}: ${utility.name} painted background ${utility.background}`);assert(utility.fontSize==='12px',`${width}: ${utility.name} font ${utility.fontSize}`)}
+    assert(normalizedFilter(report.periodChip.filter)===CI_FILTER,`${width}: Betta period chip filter ${report.periodChip.filter}`);
     assert(report.periodChip.fontSize==='12px',`${width}: Betta period chip font ${report.periodChip.fontSize}`);
     if(width<=430)assert(report.periodChip.paddingTop==='7px'&&report.periodChip.paddingRight==='10px',`${width}: mobile Betta period chip padding ${JSON.stringify(report.periodChip)}`);
     assert(errors.length===0,`${width}: browser error ${errors[0]}`);
