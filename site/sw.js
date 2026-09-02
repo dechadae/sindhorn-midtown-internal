@@ -1,37 +1,20 @@
-const VERSION='sindhorn-midtown-internal-pwa-v43-betta-final-r1';
-// Preserve prior release-family markers required by regression gates:
-// sindhorn-midtown-internal-pwa-v42-today-progress-r1
-// sindhorn-midtown-internal-pwa-v41-performance-r1
-// sindhorn-midtown-internal-pwa-v40-weather-webgl-retired-r1
-// sindhorn-midtown-internal-pwa-v39-betta-first-frame-r1
-// sindhorn-midtown-internal-pwa-v38-today-motion-r1
-// sindhorn-midtown-internal-pwa-v38-betta-day-cycle-r1
-// sindhorn-midtown-internal-pwa-v37-betta-resume-r1
-// sindhorn-midtown-internal-pwa-v36-release-health-r1
-// sindhorn-midtown-internal-pwa-v35-dashboard-domain-freshness-r1
-// sindhorn-midtown-internal-pwa-v34-betta-dashboard-r1
-// pwa-v33-business-dashboard-ci-r1
-// pwa-v32-betta-satellite-r1
-// pwa-v31-line-seed-sans-th
-// pwa-v23-bangkok-seasonal-clouds
-const UI_PACK_CACHE='sindhorn-midtown-ui-pack-v1';
-const NOTIFICATION_DB='sindhorn-midtown-notification-inbox';
-const NOTIFICATION_STORE='messages';
-const NOTIFICATION_LIMIT=50;
-const ONE_TIME_CLIENT_REFRESH=VERSION==='sindhorn-midtown-internal-pwa-v43-betta-final-r1';
-const SHELL=['/','/index.html','/route-registry.js','/business-dashboard.js','/business-dashboard-data.js','/business-dashboard.css','/business-dashboard-motion.js','/business-dashboard-motion.css','/hotel-factsheet.css','/app-transitions.js','/app-transitions.css','/pwa-version-guard.js','/footer-route-guard.js','/footer-route-guard.css','/auth-shell.js','/auth-shell.css','/auth-client.js','/account.js','/account.css','/admin.js','/admin.css','/fnb-route.js','/fnb.js','/fnb-data.js','/fnb.css','/fnb-approved-polish.css','/qr-v6.js','/shell.css','/assets/fonts/line-seed-sans-th-bold.woff2','/assets/fonts/line-seed-sans-th-regular.woff2','/assets/fonts/line-seed-sans-th-thin.woff2','/fonts.css','/fonts.css?v=1','/environment.css','/pwa.css','/location.js','/bootstrap.js','/live-data.js','/betta-runtime.js','/betta-fin-presets.js','/betta-fin-shader.js','/betta-satellite.js','/betta-day-periods.js','/push-config.js','/push-client.js','/notification-inbox.js','/screen-capture.js','/presentation-recovery.js','/app.js','/manifest.webmanifest','/fallback/manifest.json','/fallback/header.html','/fallback/today.html','/fallback/guidance.html','/fallback/details.html','/fallback/messages.html','/fallback/footer.html','/fallback/ui.css','/fallback/environment-config.json','/icons/app-192.png','/icons/app-512.png','/icons/maskable-512.png','/icons/apple-touch-icon.png','/assets/brand/sindhorn-midtown-vignette-white.png','/assets/brand/sindhorn-midtown-vignette-black.png'];
-function validResponse(path,response){if(!response||!response.ok)return false;const type=(response.headers.get('content-type')||'').toLowerCase();if(path==='/'||path.endsWith('.html'))return type.includes('text/html');if(path.endsWith('.js'))return type.includes('javascript');if(path.endsWith('.css'))return type.includes('text/css');if(path.endsWith('.webmanifest')||path.endsWith('.json'))return type.includes('json')||type.includes('manifest');if(path.endsWith('.png'))return type.includes('image/png');if(path.endsWith('.woff')||path.endsWith('.woff2'))return!type.includes('text/html');return!type.includes('text/html')}
-async function precacheShell(){const cache=await caches.open(VERSION);for(const path of SHELL){const response=await fetch(new Request(path,{cache:'reload'}));if(!validResponse(path,response))throw new Error('Invalid app-shell response for '+path);await cache.put(path,response.clone())}}
-async function activateShell(){const keys=await caches.keys();await Promise.all(keys.filter(key=>key!==VERSION&&key!==UI_PACK_CACHE).map(key=>caches.delete(key)));await self.clients.claim();if(!ONE_TIME_CLIENT_REFRESH)return;const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});await Promise.all(windows.map(async client=>{try{const url=new URL(client.url),path=url.pathname.length>1&&url.pathname.endsWith('/')?url.pathname.slice(0,-1):url.pathname;const appRoute=path==='/'||path==='/fnb'||path==='/messages'||path==='/brand'||path==='/ihg-history'||path==='/hotel-factsheet'||path==='/settings'||path==='/ci'||path==='/account'||path==='/admin';if(appRoute&&url.origin===self.location.origin&&'navigate'in client)await client.navigate(client.url)}catch(_){}}))}
-self.addEventListener('install',event=>event.waitUntil(precacheShell().then(()=>self.skipWaiting())));
-self.addEventListener('activate',event=>event.waitUntil(activateShell()));
-self.addEventListener('fetch',event=>{const request=event.request;if(request.method!=='GET')return;const url=new URL(request.url);if(request.mode==='navigate'){const isAppRoute=url.pathname==='/'||url.pathname.startsWith('/guidance')||url.pathname.startsWith('/details')||url.pathname.startsWith('/fnb')||url.pathname.startsWith('/messages')||url.pathname.startsWith('/brand')||url.pathname.startsWith('/ihg-history')||url.pathname.startsWith('/hotel-factsheet')||url.pathname.startsWith('/settings')||url.pathname.startsWith('/ci')||url.pathname.startsWith('/account')||url.pathname.startsWith('/admin');if(!isAppRoute){event.respondWith(fetch(request));return}event.respondWith((async()=>{try{const response=await fetch(request),type=(response.headers.get('content-type')||'').toLowerCase();if(response.ok&&type.includes('text/html')){const cache=await caches.open(VERSION);await cache.put('/index.html',response.clone())}return response}catch(_){return(await caches.match('/index.html'))||(await caches.match('/'))}})());return}if(url.origin!==location.origin)return;if(url.pathname==='/api/betta-satellite'){event.respondWith(fetch(request));return}event.respondWith((async()=>{const cached=await caches.match(request);if(cached&&validResponse(url.pathname,cached)){fetch(request).then(async response=>{if(validResponse(url.pathname,response)){const cache=await caches.open(VERSION);await cache.put(request,response.clone())}}).catch(()=>{});return cached}try{const response=await fetch(request);if(!validResponse(url.pathname,response))throw new Error('Invalid MIME for '+url.pathname);const cache=await caches.open(VERSION);await cache.put(request,response.clone());return response}catch(error){if(cached)return cached;throw error}})())});
-function safePushPayload(event){if(!event.data)return{};try{return event.data.json()||{}}catch(_){try{return{bodyEn:event.data.text()}}catch(__){return{}}}}
-function sameOriginRoute(route){try{const url=new URL(route||'/',self.location.origin);if(url.origin!==self.location.origin)return'/';if(url.pathname.startsWith('/guidance')||url.pathname.startsWith('/details'))return'/';if(url.pathname.startsWith('/fnb'))return'/fnb';if(url.pathname.startsWith('/messages'))return'/messages';return'/'}catch(_){return'/'}}
-function openNotificationDb(){return new Promise((resolve,reject)=>{const request=indexedDB.open(NOTIFICATION_DB,1);request.onupgradeneeded=()=>{const db=request.result,store=db.objectStoreNames.contains(NOTIFICATION_STORE)?request.transaction.objectStore(NOTIFICATION_STORE):db.createObjectStore(NOTIFICATION_STORE,{keyPath:'id'});if(!store.indexNames.contains('receivedAt'))store.createIndex('receivedAt','receivedAt',{unique:false});if(!store.indexNames.contains('read'))store.createIndex('read','read',{unique:false})};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||new Error('Notification inbox unavailable'))})}
-async function storeNotification(message){const db=await openNotificationDb();await new Promise((resolve,reject)=>{const tx=db.transaction(NOTIFICATION_STORE,'readwrite'),store=tx.objectStore(NOTIFICATION_STORE);store.put(message);const all=store.getAll();all.onsuccess=()=>{const extra=(all.result||[]).sort((a,b)=>Number(b.receivedAt||0)-Number(a.receivedAt||0)).slice(NOTIFICATION_LIMIT);extra.forEach(row=>store.delete(row.id))};tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Unable to store notification'));tx.onabort=()=>reject(tx.error||new Error('Unable to store notification'))})}
-async function markNotificationRead(id){if(!id)return;const db=await openNotificationDb();await new Promise((resolve,reject)=>{const tx=db.transaction(NOTIFICATION_STORE,'readwrite'),store=tx.objectStore(NOTIFICATION_STORE),request=store.get(id);request.onsuccess=()=>{if(request.result)store.put({...request.result,read:true})};tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||new Error('Unable to mark notification read'));tx.onabort=()=>reject(tx.error||new Error('Unable to mark notification read'))})}
-async function notifyClients(){const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});windows.forEach(client=>{try{client.postMessage({type:'SINDHORN_NOTIFICATION_STORED'})}catch(_){}})}
-self.addEventListener('push',event=>{const payload=safePushPayload(event),titleEn=String(payload.titleEn||'SINDHORN MIDTOWN UPDATE').trim(),bodyEn=String(payload.bodyEn||'New information is available in the app.').trim(),title=titleEn,body=bodyEn,route=sameOriginRoute(payload.route),kind=String(payload.kind||'environment-update'),tag=String(payload.tag||'sindhorn-midtown-environment'),messageId=String(payload.id||`${Date.now()}-${crypto.randomUUID?.()||Math.random().toString(36).slice(2)}`),message={id:messageId,receivedAt:Date.now(),read:false,route,kind,tag,titleEn,bodyEn};event.waitUntil((async()=>{try{await storeNotification(message)}catch(error){console.warn('Notification inbox storage failed',error)}await self.registration.showNotification(title,{body,icon:'/icons/app-192.png',badge:'/icons/app-192.png',tag,renotify:Boolean(payload.renotify),requireInteraction:Boolean(payload.requireInteraction),data:{route,kind,messageId}});await notifyClients()})())});
-self.addEventListener('notificationclick',event=>{event.notification.close();const route=sameOriginRoute(event.notification?.data?.route),messageId=String(event.notification?.data?.messageId||''),target=new URL(route,self.location.origin).href;event.waitUntil((async()=>{try{await markNotificationRead(messageId)}catch(_){}const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});for(const client of windows){try{if(new URL(client.url).origin!==self.location.origin)continue;if('navigate'in client&&client.url!==target)await client.navigate(target);if('focus'in client)return client.focus()}catch(_){}}return self.clients.openWindow?self.clients.openWindow(target):undefined})())});
-self.addEventListener('message',event=>{if(event.data==='SKIP_WAITING')self.skipWaiting()});
+const VERSION='sindhorn-midtown-internal-pwa-v48-foreground-first-test-r1';
+
+// Diagnostic foreground-first service worker.
+// Intentionally performs no precache and registers no fetch handler, so an
+// installed launch is not intercepted by service-worker navigation/subresource
+// logic. The page schedules registration/update only after the shared
+// Today+Betta startup reveal. Production push/offline behavior is not changed;
+// this file exists only on the preview branch to isolate startup ownership.
+
+self.addEventListener('install',event=>{
+  event.waitUntil(self.skipWaiting());
+});
+
+self.addEventListener('activate',event=>{
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('message',event=>{
+  if(event.data==='SKIP_WAITING')self.skipWaiting();
+});
