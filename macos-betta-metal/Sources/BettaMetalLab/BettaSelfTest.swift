@@ -10,22 +10,32 @@ struct BettaSelfTest {
         expect(BettaPreset.all.count == 8, "Expected exactly eight canonical Betta presets")
         expect(BettaGeometry.rays == 160, "Mac high-detail topology must use 160 circumferential samples")
         expect(BettaGeometry.radialSegments == 144, "Mac high-detail topology must use 144 radial samples")
+        expect(abs(BettaCompositionAdjustment.landscapeDefault.rotationZ - 90) < 0.001, "Landscape default must preserve the approved 90° CW composition")
+
         for preset in BettaPreset.all {
-            expect(preset.layers.count == 2, "Fish #\(preset.referenceId) must keep two membrane layers")
+            expect(preset.layers.count == 2, "Fish #\(preset.referenceId) must keep two canonical membrane endpoints")
             expect(preset.palette.count == 4, "Fish #\(preset.referenceId) must keep four palette stops")
             expect(preset.background.count == 3, "Fish #\(preset.referenceId) must keep three background gradient stops")
             let advanced = BettaAdvancedAdjustment.canonical(preset)
+            expect(advanced.membraneCount == 2, "Fish #\(preset.referenceId) must start with two rendered membranes")
             expect(abs(advanced.tail.rayCount - Float(preset.params.rayCount)) < 0.001, "Fish #\(preset.referenceId) ray detail must start at canonical count")
             expect(abs(advanced.tail.microFold - 1) < 0.001, "Fish #\(preset.referenceId) micro detail must start neutral")
             expect(abs(advanced.camera.fov - 32) < 0.001 && abs(advanced.camera.z - 9) < 0.001, "Camera defaults must preserve production framing")
+
+            var highMembrane = advanced
+            highMembrane.membraneCount = 99
+            expect(highMembrane.normalized.membraneCount == 6, "Membrane count must clamp to the supported maximum of six")
+            highMembrane.membraneCount = 0
+            expect(highMembrane.normalized.membraneCount == 1, "Membrane count must clamp to at least one")
         }
 
         let referenceId = BettaPreset.all[0].referenceId
-        let currentCamera = BettaAdvancedTuningStore.shared.adjustment(for: referenceId).camera
+        let currentAdvanced = BettaAdvancedTuningStore.shared.adjustment(for: referenceId)
         if let generation = BettaRandomStyleStore.shared.makeGeneration(referenceId: referenceId) {
             expect(generation.style.resolvedPalette?.count == 4, "Random generation must create four palette stops")
             expect(generation.style.resolvedBackground?.count == 3, "Random generation must create three matching background stops")
-            expect(generation.adjustment.camera == currentCamera, "Random generation must preserve the user's camera")
+            expect(generation.adjustment.camera == currentAdvanced.camera, "Random generation must preserve the user's camera")
+            expect(generation.adjustment.membraneCount == currentAdvanced.membraneCount, "Random generation must preserve the user's membrane count")
         } else {
             failures.append("Random Betta generator could not create an evolution target")
         }
@@ -74,16 +84,19 @@ struct BettaSelfTest {
         let source = SIMD3<Float>(1.88, -0.80, 0.10)
         let portrait = BettaLandscapeMapper.map(position: source, aspect: 9.0 / 16.0, referenceId: 1, camera: .canonical)
         expect(abs(portrait.position.x - source.x) < 0.0001, "Portrait mapping must remain identity")
+        expect(abs(portrait.rotationXOffset) < 0.0001 && abs(portrait.rotationYOffset) < 0.0001 && abs(portrait.rotationZOffset) < 0.0001, "Portrait mapping must not apply landscape rotation")
+
         let landscape = BettaLandscapeMapper.map(position: source, aspect: 16.0 / 9.0, referenceId: 1, camera: .canonical)
         expect(landscape.position.x > source.x, "Landscape mapper must keep right-edge entry intent")
         expect(abs(landscape.position.y - source.y) < 0.0001, "Landscape mapper must preserve vertical art direction")
+        expect(abs(landscape.rotationZOffset) > 1.0, "Landscape mapper must apply the saved full-axis Z rotation")
 
         expect(abs(cubicOut(0) - 0) < 0.0001, "Cubic easing must start at zero")
         expect(abs(cubicOut(1) - 1) < 0.0001, "Cubic easing must finish at one")
 
         if failures.isEmpty {
             print("Betta Metal Lab self-test: PASS")
-            print("8 presets · 160×144 high-detail topology · 2 layers · random + continuous evolution · recovery-state regression · Bangkok schedule")
+            print("8 presets · 160×144 high-detail topology · 1–6 membrane stack · full XYZ rotation · presets/favorites · random + continuous evolution · recovery regression · Bangkok schedule")
             return true
         }
         print("Betta Metal Lab self-test: FAIL")
