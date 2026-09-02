@@ -38,7 +38,7 @@ try{
   for(const spec of routes){
     await page.goto(`${BASE_URL}${spec.path}`,{waitUntil:'domcontentloaded'});
     await page.waitForSelector(spec.root);
-    if(spec.waitFor)await page.waitForSelector(spec.waitFor);
+    if(spec.waitFor)await page.waitForSelector(spec.waitFor,{state:'attached'});
     if(spec.control)await page.waitForFunction(selector=>document.querySelector(selector)?.classList.contains('app-glass-control'),spec.control);
     const report=await page.evaluate(({rootSelector,probeClass,checkBackdropRoot,controlSelector})=>{
       const root=document.querySelector(rootSelector);
