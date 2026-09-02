@@ -4,28 +4,98 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
     var onSelectFish: ((Int) -> Void)?
     var onSaveAndUse: (() -> Void)?
 
+    private final class SliderRow: NSView {
+        let label = NSTextField(labelWithString: "")
+        let valueLabel = NSTextField(labelWithString: "")
+        let slider = NSSlider(value: 0, minValue: 0, maxValue: 1, target: nil, action: nil)
+
+        override init(frame frameRect: NSRect) {
+            super.init(frame: frameRect)
+            translatesAutoresizingMaskIntoConstraints = false
+
+            label.font = .systemFont(ofSize: 11, weight: .medium)
+            label.textColor = .secondaryLabelColor
+
+            valueLabel.font = .monospacedDigitSystemFont(ofSize: 11, weight: .regular)
+            valueLabel.alignment = .right
+            valueLabel.setContentHuggingPriority(.required, for: .horizontal)
+            valueLabel.widthAnchor.constraint(equalToConstant: 72).isActive = true
+
+            let spacer = NSView()
+            spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            let header = NSStackView(views: [label, spacer, valueLabel])
+            header.orientation = .horizontal
+            header.alignment = .centerY
+            header.spacing = 6
+            header.translatesAutoresizingMaskIntoConstraints = false
+
+            slider.translatesAutoresizingMaskIntoConstraints = false
+            slider.isContinuous = true
+
+            addSubview(header)
+            addSubview(slider)
+            NSLayoutConstraint.activate([
+                header.leadingAnchor.constraint(equalTo: leadingAnchor),
+                header.trailingAnchor.constraint(equalTo: trailingAnchor),
+                header.topAnchor.constraint(equalTo: topAnchor),
+                slider.leadingAnchor.constraint(equalTo: leadingAnchor),
+                slider.trailingAnchor.constraint(equalTo: trailingAnchor),
+                slider.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 2),
+                slider.bottomAnchor.constraint(equalTo: bottomAnchor),
+                heightAnchor.constraint(equalToConstant: 34)
+            ])
+        }
+
+        required init?(coder: NSCoder) { nil }
+
+        func configure(tag: Int, title: String, value: Float, min: Float, max: Float, format: String, target: AnyObject, action: Selector) {
+            isHidden = false
+            label.stringValue = title
+            slider.tag = tag
+            slider.minValue = Double(min)
+            slider.maxValue = Double(max)
+            slider.doubleValue = min(Double(max), max(Double(min), Double(value)))
+            slider.target = target
+            slider.action = action
+            slider.toolTip = format
+            valueLabel.stringValue = String(format: format, Double(value))
+        }
+
+        func clear() {
+            isHidden = true
+            slider.target = nil
+            slider.action = nil
+        }
+    }
+
     private let compositionStore = BettaCompositionStore.shared
     private let advancedStore = BettaAdvancedTuningStore.shared
     private var selectedIndex: Int
     private var selectedCategory = 0
     var selectedFishIndex: Int { selectedIndex }
 
-    private let fishSelector: NSSegmentedControl
-    private let categorySelector: NSSegmentedControl
-    private let orientationControl: NSSegmentedControl
-    private let controlsStack = NSStackView()
-    private var valueLabels: [Int: NSTextField] = [:]
-    private let fishTitle = NSTextField(labelWithString: "")
-    private let statusLabel = NSTextField(labelWithString: "Live preview · not saved")
+    private var fishSelector: NSSegmentedControl!
+    private var categoryPopup: NSPopUpButton!
+    private var orientationControl: NSSegmentedControl!
+    private var orientationContainer: NSStackView!
+    private var sectionNote: NSTextField!
+    private var fishTitle: NSTextField!
+    private var statusLabel: NSTextField!
+    private var sliderRows: [SliderRow] = []
+
+    private let categories = ["Layout", "Camera", "Form", "Motion", "Optics", "Color", "Detail", "Front Layer", "Back Layer"]
 
     init(initialIndex: Int) {
         selectedIndex = min(7, max(0, initialIndex))
-        fishSelector = NSSegmentedControl(labels: (1...8).map(String.init), trackingMode: .selectOne, target: nil, action: nil)
-        categorySelector = NSSegmentedControl(labels: ["Layout", "Camera", "Form", "Motion", "Optics", "Color", "Detail", "Front", "Back"], trackingMode: .selectOne, target: nil, action: nil)
-        orientationControl = NSSegmentedControl(labels: ["90° CCW", "Original", "90° CW"], trackingMode: .selectOne, target: nil, action: nil)
         super.init(frame: .zero)
-        configure()
+
+        BettaDiagnostics.shared.checkpoint("editor.super.complete")
+        buildFixedControls()
+        BettaDiagnostics.shared.checkpoint("editor.controls.created")
+        configurePanel()
+        BettaDiagnostics.shared.checkpoint("editor.layout.complete")
         loadSelectedFish()
+        BettaDiagnostics.shared.checkpoint("editor.initial-state.complete", detail: "fish-index=\(selectedIndex)")
     }
 
     required init?(coder: NSCoder) { nil }
@@ -41,7 +111,45 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
         selectFish(index: (selectedIndex + delta + 8) % 8)
     }
 
-    private func configure() {
+    private func buildFixedControls() {
+        fishSelector = NSSegmentedControl(labels: (1...8).map(String.init), trackingMode: .selectOne, target: self, action: #selector(fishChanged(_:)))
+        fishSelector.selectedSegment = selectedIndex
+        fishSelector.segmentDistribution = .fillEqually
+
+        categoryPopup = NSPopUpButton(frame: .zero, pullsDown: false)
+        categoryPopup.addItems(withTitles: categories)
+        categoryPopup.selectItem(at: selectedCategory)
+        categoryPopup.target = self
+        categoryPopup.action = #selector(categoryChanged(_:))
+
+        orientationControl = NSSegmentedControl(labels: ["90° CCW", "Original", "90° CW"], trackingMode: .selectOne, target: self, action: #selector(orientationChanged(_:)))
+        orientationControl.segmentDistribution = .fillEqually
+
+        let orientationLabel = NSTextField(labelWithString: "Orientation")
+        orientationLabel.font = .systemFont(ofSize: 11, weight: .medium)
+        orientationLabel.textColor = .secondaryLabelColor
+        orientationContainer = NSStackView(views: [orientationLabel, orientationControl])
+        orientationContainer.orientation = .vertical
+        orientationContainer.alignment = .leading
+        orientationContainer.spacing = 4
+
+        sectionNote = NSTextField(wrappingLabelWithString: "")
+        sectionNote.font = .systemFont(ofSize: 10)
+        sectionNote.textColor = .tertiaryLabelColor
+        sectionNote.maximumNumberOfLines = 2
+
+        fishTitle = NSTextField(labelWithString: "")
+        fishTitle.font = .systemFont(ofSize: 13, weight: .medium)
+        fishTitle.lineBreakMode = .byTruncatingTail
+
+        statusLabel = NSTextField(labelWithString: "Live preview · not saved")
+        statusLabel.font = .systemFont(ofSize: 11)
+        statusLabel.textColor = .secondaryLabelColor
+
+        sliderRows = (0..<8).map { _ in SliderRow(frame: .zero) }
+    }
+
+    private func configurePanel() {
         material = .hudWindow
         blendingMode = .withinWindow
         state = .active
@@ -50,50 +158,56 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
         layer?.masksToBounds = true
         translatesAutoresizingMaskIntoConstraints = false
 
-        fishSelector.target = self
-        fishSelector.action = #selector(fishChanged(_:))
-        fishSelector.selectedSegment = selectedIndex
-        fishSelector.segmentDistribution = .fillEqually
-
-        categorySelector.target = self
-        categorySelector.action = #selector(categoryChanged(_:))
-        categorySelector.selectedSegment = selectedCategory
-        categorySelector.segmentDistribution = .fillEqually
-        categorySelector.controlSize = .small
-
-        orientationControl.target = self
-        orientationControl.action = #selector(orientationChanged(_:))
-        orientationControl.segmentDistribution = .fillEqually
-
         let title = NSTextField(labelWithString: "Betta High Detail Studio")
         title.font = .systemFont(ofSize: 18, weight: .semibold)
-        let subtitle = NSTextField(wrappingLabelWithString: "Full per-tail camera, form, optics, motion and membrane detail. The production preset is always the reset point.")
+
+        let subtitle = NSTextField(wrappingLabelWithString: "Full per-tail camera, form, optics, motion and membrane detail. Controls are reusable and loaded one section at a time.")
         subtitle.font = .systemFont(ofSize: 11)
         subtitle.textColor = .secondaryLabelColor
         subtitle.maximumNumberOfLines = 2
 
-        fishTitle.font = .systemFont(ofSize: 13, weight: .medium)
-        fishTitle.lineBreakMode = .byTruncatingTail
-        statusLabel.font = .systemFont(ofSize: 11)
-        statusLabel.textColor = .secondaryLabelColor
+        let categoryLabel = NSTextField(labelWithString: "Controls")
+        categoryLabel.font = .systemFont(ofSize: 11, weight: .medium)
+        categoryLabel.textColor = .secondaryLabelColor
+        let categoryHeader = NSStackView(views: [categoryLabel, categoryPopup])
+        categoryHeader.orientation = .horizontal
+        categoryHeader.alignment = .centerY
+        categoryHeader.spacing = 8
 
-        controlsStack.orientation = .vertical
-        controlsStack.alignment = .leading
-        controlsStack.spacing = 7
-        controlsStack.translatesAutoresizingMaskIntoConstraints = false
+        let rowsStack = NSStackView(views: sliderRows)
+        rowsStack.orientation = .vertical
+        rowsStack.alignment = .leading
+        rowsStack.spacing = 5
+        rowsStack.translatesAutoresizingMaskIntoConstraints = false
 
         let controlArea = NSView()
         controlArea.translatesAutoresizingMaskIntoConstraints = false
-        controlArea.addSubview(controlsStack)
+        controlArea.addSubview(sectionNote)
+        controlArea.addSubview(orientationContainer)
+        controlArea.addSubview(rowsStack)
+        sectionNote.translatesAutoresizingMaskIntoConstraints = false
+        orientationContainer.translatesAutoresizingMaskIntoConstraints = false
+
         NSLayoutConstraint.activate([
-            controlArea.heightAnchor.constraint(equalToConstant: 326),
-            controlsStack.leadingAnchor.constraint(equalTo: controlArea.leadingAnchor),
-            controlsStack.trailingAnchor.constraint(equalTo: controlArea.trailingAnchor),
-            controlsStack.topAnchor.constraint(equalTo: controlArea.topAnchor)
+            controlArea.heightAnchor.constraint(equalToConstant: 366),
+            sectionNote.leadingAnchor.constraint(equalTo: controlArea.leadingAnchor),
+            sectionNote.trailingAnchor.constraint(equalTo: controlArea.trailingAnchor),
+            sectionNote.topAnchor.constraint(equalTo: controlArea.topAnchor),
+            orientationContainer.leadingAnchor.constraint(equalTo: controlArea.leadingAnchor),
+            orientationContainer.trailingAnchor.constraint(equalTo: controlArea.trailingAnchor),
+            orientationContainer.topAnchor.constraint(equalTo: sectionNote.bottomAnchor, constant: 7),
+            orientationControl.widthAnchor.constraint(equalTo: orientationContainer.widthAnchor),
+            rowsStack.leadingAnchor.constraint(equalTo: controlArea.leadingAnchor),
+            rowsStack.trailingAnchor.constraint(equalTo: controlArea.trailingAnchor),
+            rowsStack.topAnchor.constraint(equalTo: orientationContainer.bottomAnchor, constant: 7)
         ])
+        for row in sliderRows {
+            row.widthAnchor.constraint(equalTo: rowsStack.widthAnchor).isActive = true
+        }
 
         let reset = NSButton(title: "Reset This Tail to Production", target: self, action: #selector(resetCurrent(_:)))
         reset.bezelStyle = .rounded
+
         let save = NSButton(title: "Save All 8 & Use as Wallpaper", target: self, action: #selector(saveAndUse(_:)))
         save.bezelStyle = .rounded
         save.controlSize = .large
@@ -104,7 +218,7 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
         help.textColor = .tertiaryLabelColor
         help.maximumNumberOfLines = 4
 
-        let stack = NSStackView(views: [title, subtitle, fishSelector, fishTitle, categorySelector, controlArea, statusLabel, reset, save, help])
+        let stack = NSStackView(views: [title, subtitle, fishSelector, fishTitle, categoryHeader, controlArea, statusLabel, reset, save, help])
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.spacing = 9
@@ -118,7 +232,8 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
             stack.topAnchor.constraint(equalTo: topAnchor, constant: 16),
             stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
             fishSelector.widthAnchor.constraint(equalTo: stack.widthAnchor),
-            categorySelector.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            categoryHeader.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            categoryPopup.widthAnchor.constraint(greaterThanOrEqualToConstant: 190),
             controlArea.widthAnchor.constraint(equalTo: stack.widthAnchor),
             reset.widthAnchor.constraint(equalTo: stack.widthAnchor),
             save.widthAnchor.constraint(equalTo: stack.widthAnchor)
@@ -129,16 +244,13 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
         let preset = BettaPreset.all[selectedIndex]
         fishTitle.stringValue = "Fish #\(preset.referenceId) · \(preset.name)"
         fishSelector.selectedSegment = selectedIndex
-        rebuildControls()
+        refreshCategory()
         statusLabel.stringValue = "Live preview · changes apply immediately"
     }
 
-    private func rebuildControls() {
-        for view in controlsStack.arrangedSubviews {
-            controlsStack.removeArrangedSubview(view)
-            view.removeFromSuperview()
-        }
-        valueLabels.removeAll()
+    private func refreshCategory() {
+        sliderRows.forEach { $0.clear() }
+        orientationContainer.isHidden = true
 
         let preset = BettaPreset.all[selectedIndex]
         let composition = compositionStore.adjustment(for: preset.referenceId)
@@ -146,133 +258,107 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
 
         switch selectedCategory {
         case 0:
-            addSectionNote("Landscape transform")
-            addOrientationRow(composition)
-            addSlider(1, "Scale", composition.scale, 0.35, 2.2, "%.2f")
-            addSlider(2, "X Position", composition.x, -8, 8, "%.2f")
-            addSlider(3, "Y Position", composition.y, -5, 5, "%.2f")
-            addSlider(4, "Z Position", composition.z, -4, 4, "%.2f")
+            sectionNote.stringValue = "Landscape transform"
+            orientationContainer.isHidden = false
+            orientationControl.selectedSegment = composition.quarterTurns + 1
+            configureRows([
+                (1, "Scale", composition.scale, 0.35, 2.2, "%.2f"),
+                (2, "X Position", composition.x, -8, 8, "%.2f"),
+                (3, "Y Position", composition.y, -5, 5, "%.2f"),
+                (4, "Z Position", composition.z, -4, 4, "%.2f")
+            ])
         case 1:
-            addSectionNote("Per-tail camera · transitions interpolate between saved cameras")
-            addSlider(10, "Field of View", advanced.camera.fov, 12, 90, "%.1f°")
-            addSlider(11, "Camera X", advanced.camera.x, -10, 10, "%.2f")
-            addSlider(12, "Camera Y", advanced.camera.y, -10, 10, "%.2f")
-            addSlider(13, "Camera Z", advanced.camera.z, 2, 25, "%.2f")
-            addSlider(14, "Pitch", advanced.camera.pitch, -89, 89, "%.1f°")
-            addSlider(15, "Yaw", advanced.camera.yaw, -180, 180, "%.1f°")
-            addSlider(16, "Roll", advanced.camera.roll, -180, 180, "%.1f°")
+            sectionNote.stringValue = "Per-tail camera · transitions interpolate between saved cameras"
+            configureRows([
+                (10, "Field of View", advanced.camera.fov, 12, 90, "%.1f°"),
+                (11, "Camera X", advanced.camera.x, -10, 10, "%.2f"),
+                (12, "Camera Y", advanced.camera.y, -10, 10, "%.2f"),
+                (13, "Camera Z", advanced.camera.z, 2, 25, "%.2f"),
+                (14, "Pitch", advanced.camera.pitch, -89, 89, "%.1f°"),
+                (15, "Yaw", advanced.camera.yaw, -180, 180, "%.1f°"),
+                (16, "Roll", advanced.camera.roll, -180, 180, "%.1f°")
+            ])
         case 2:
-            addSectionNote("Large-scale tail structure")
-            addSlider(20, "Spread", advanced.tail.spread, 1.2, 4.8, "%.2f")
-            addSlider(21, "Ray Count", advanced.tail.rayCount, 24, 160, "%.0f")
-            addSlider(22, "Fold Density", advanced.tail.foldDensity, 2, 24, "%.2f")
-            addSlider(23, "Curl", advanced.tail.curl, -2, 2, "%.3f")
-            addSlider(24, "Twist", advanced.tail.twist, -1.5, 1.5, "%.3f")
-            addSlider(25, "Edge Flutter", advanced.tail.edgeFlutter, 0, 0.45, "%.3f")
-            addSlider(26, "Depth", advanced.tail.depth, 0.05, 1.5, "%.3f")
-            addSlider(27, "Current Strength", advanced.tail.currentStrength, 0, 1, "%.3f")
+            sectionNote.stringValue = "Large-scale tail structure"
+            configureRows([
+                (20, "Spread", advanced.tail.spread, 1.2, 4.8, "%.2f"),
+                (21, "Ray Count", advanced.tail.rayCount, 24, 160, "%.0f"),
+                (22, "Fold Density", advanced.tail.foldDensity, 2, 24, "%.2f"),
+                (23, "Curl", advanced.tail.curl, -2, 2, "%.3f"),
+                (24, "Twist", advanced.tail.twist, -1.5, 1.5, "%.3f"),
+                (25, "Edge Flutter", advanced.tail.edgeFlutter, 0, 0.45, "%.3f"),
+                (26, "Depth", advanced.tail.depth, 0.05, 1.5, "%.3f"),
+                (27, "Current Strength", advanced.tail.currentStrength, 0, 1, "%.3f")
+            ])
         case 3:
-            addSectionNote("Movement character")
-            addSlider(30, "Motion Speed", advanced.tail.motionSpeed, 0.03, 1, "%.3f")
-            addSlider(31, "Turbulence", advanced.tail.turbulence, 0, 1, "%.3f")
-            addSlider(32, "Motion Amplitude", advanced.tail.motionAmplitude, 0, 1, "%.3f")
+            sectionNote.stringValue = "Movement character"
+            configureRows([
+                (30, "Motion Speed", advanced.tail.motionSpeed, 0.03, 1, "%.3f"),
+                (31, "Turbulence", advanced.tail.turbulence, 0, 1, "%.3f"),
+                (32, "Motion Amplitude", advanced.tail.motionAmplitude, 0, 1, "%.3f")
+            ])
         case 4:
-            addSectionNote("Translucency and light response")
-            addSlider(40, "Opacity", advanced.tail.opacity, 0.05, 1.2, "%.3f")
-            addSlider(41, "Transmission", advanced.tail.transmission, 0, 1.3, "%.3f")
-            addSlider(42, "Rim Light", advanced.tail.rimStrength, 0, 2.5, "%.2f")
-            addSlider(43, "Fold Highlight", advanced.tail.foldHighlight, 0, 2.5, "%.2f")
-            addSlider(44, "Iridescence", advanced.tail.iridescence, 0, 1.5, "%.2f")
-            addSlider(45, "Bloom", advanced.tail.bloom, 0, 1.5, "%.2f")
+            sectionNote.stringValue = "Translucency and light response"
+            configureRows([
+                (40, "Opacity", advanced.tail.opacity, 0.05, 1.2, "%.3f"),
+                (41, "Transmission", advanced.tail.transmission, 0, 1.3, "%.3f"),
+                (42, "Rim Light", advanced.tail.rimStrength, 0, 2.5, "%.2f"),
+                (43, "Fold Highlight", advanced.tail.foldHighlight, 0, 2.5, "%.2f"),
+                (44, "Iridescence", advanced.tail.iridescence, 0, 1.5, "%.2f"),
+                (45, "Bloom", advanced.tail.bloom, 0, 1.5, "%.2f")
+            ])
         case 5:
-            addSectionNote("Color grading over the approved palette")
-            addSlider(50, "Saturation", advanced.tail.saturation, 0, 2.5, "%.2f")
-            addSlider(51, "Brightness", advanced.tail.brightness, 0.4, 2.5, "%.2f")
-            addSlider(52, "Gradient Position", advanced.tail.gradientPosition, -0.5, 0.5, "%.3f")
+            sectionNote.stringValue = "Color grading over the approved palette"
+            configureRows([
+                (50, "Saturation", advanced.tail.saturation, 0, 2.5, "%.2f"),
+                (51, "Brightness", advanced.tail.brightness, 0.4, 2.5, "%.2f"),
+                (52, "Gradient Position", advanced.tail.gradientPosition, -0.5, 0.5, "%.3f")
+            ])
         case 6:
-            addSectionNote("Mac-only microstructure · start near 1.0")
-            addSlider(60, "Micro Folds", advanced.tail.microFold, 0, 2.5, "%.2f")
-            addSlider(61, "Ray Definition", advanced.tail.rayDefinition, 0, 2.5, "%.2f")
-            addSlider(62, "Edge Ruffle", advanced.tail.edgeRuffle, 0, 2.5, "%.2f")
-            addSlider(63, "Vein Strength", advanced.tail.veinStrength, 0, 2.5, "%.2f")
-            addSlider(64, "Membrane Grain", advanced.tail.membraneGrain, 0, 2.5, "%.2f")
-            addSlider(65, "Fine Flutter", advanced.tail.fineFlutter, 0, 2.5, "%.2f")
-            addSlider(66, "Normal Detail", advanced.tail.normalDetail, 0, 2.5, "%.2f")
+            sectionNote.stringValue = "Mac-only microstructure · start near 1.0"
+            configureRows([
+                (60, "Micro Folds", advanced.tail.microFold, 0, 2.5, "%.2f"),
+                (61, "Ray Definition", advanced.tail.rayDefinition, 0, 2.5, "%.2f"),
+                (62, "Edge Ruffle", advanced.tail.edgeRuffle, 0, 2.5, "%.2f"),
+                (63, "Vein Strength", advanced.tail.veinStrength, 0, 2.5, "%.2f"),
+                (64, "Membrane Grain", advanced.tail.membraneGrain, 0, 2.5, "%.2f"),
+                (65, "Fine Flutter", advanced.tail.fineFlutter, 0, 2.5, "%.2f"),
+                (66, "Normal Detail", advanced.tail.normalDetail, 0, 2.5, "%.2f")
+            ])
         case 7:
-            addSectionNote("Primary membrane layer")
-            addLayerControls(advanced.frontLayer, baseTag: 70)
+            sectionNote.stringValue = "Primary membrane layer"
+            configureLayer(advanced.frontLayer, baseTag: 70)
         default:
-            addSectionNote("Secondary translucent membrane layer")
-            addLayerControls(advanced.backLayer, baseTag: 80)
+            sectionNote.stringValue = "Secondary translucent membrane layer"
+            configureLayer(advanced.backLayer, baseTag: 80)
         }
     }
 
-    private func addOrientationRow(_ adjustment: BettaCompositionAdjustment) {
-        let label = NSTextField(labelWithString: "Orientation")
-        label.font = .systemFont(ofSize: 11, weight: .medium)
-        label.textColor = .secondaryLabelColor
-        orientationControl.selectedSegment = adjustment.quarterTurns + 1
-        orientationControl.widthAnchor.constraint(equalTo: controlsStack.widthAnchor).isActive = true
-        controlsStack.addArrangedSubview(label)
-        controlsStack.addArrangedSubview(orientationControl)
+    private func configureLayer(_ layer: BettaLayerTuning, baseTag: Int) {
+        configureRows([
+            (baseTag, "Layer Scale", layer.scale, 0.25, 1.8, "%.3f"),
+            (baseTag + 1, "Layer Alpha", layer.alpha, 0, 1.25, "%.3f"),
+            (baseTag + 2, "Offset X", layer.x, -2, 2, "%.3f"),
+            (baseTag + 3, "Offset Y", layer.y, -2, 2, "%.3f"),
+            (baseTag + 4, "Offset Z", layer.z, -2, 2, "%.3f"),
+            (baseTag + 5, "Layer Rotation", layer.rotation, -.pi, .pi, "%.3f"),
+            (baseTag + 6, "Motion Phase", layer.phase, -100, 100, "%.2f")
+        ])
     }
 
-    private func addLayerControls(_ layer: BettaLayerTuning, baseTag: Int) {
-        addSlider(baseTag, "Layer Scale", layer.scale, 0.25, 1.8, "%.3f")
-        addSlider(baseTag + 1, "Layer Alpha", layer.alpha, 0, 1.25, "%.3f")
-        addSlider(baseTag + 2, "Offset X", layer.x, -2, 2, "%.3f")
-        addSlider(baseTag + 3, "Offset Y", layer.y, -2, 2, "%.3f")
-        addSlider(baseTag + 4, "Offset Z", layer.z, -2, 2, "%.3f")
-        addSlider(baseTag + 5, "Layer Rotation", layer.rotation, -.pi, .pi, "%.3f")
-        addSlider(baseTag + 6, "Motion Phase", layer.phase, -100, 100, "%.2f")
+    private func configureRows(_ values: [(Int, String, Float, Float, Float, String)]) {
+        for (index, item) in values.enumerated() where index < sliderRows.count {
+            sliderRows[index].configure(tag: item.0, title: item.1, value: item.2, min: item.3, max: item.4, format: item.5, target: self, action: #selector(sliderChanged(_:)))
+        }
     }
 
-    private func addSectionNote(_ text: String) {
-        let label = NSTextField(wrappingLabelWithString: text)
-        label.font = .systemFont(ofSize: 10)
-        label.textColor = .tertiaryLabelColor
-        label.maximumNumberOfLines = 2
-        label.widthAnchor.constraint(equalTo: controlsStack.widthAnchor).isActive = true
-        controlsStack.addArrangedSubview(label)
+    @objc private func fishChanged(_ sender: NSSegmentedControl) {
+        selectFish(index: sender.selectedSegment)
     }
 
-    private func addSlider(_ tag: Int, _ title: String, _ value: Float, _ min: Float, _ max: Float, _ format: String) {
-        let label = NSTextField(labelWithString: title)
-        label.font = .systemFont(ofSize: 11, weight: .medium)
-        label.textColor = .secondaryLabelColor
-        let valueLabel = NSTextField(labelWithString: String(format: format, value))
-        valueLabel.font = .monospacedDigitSystemFont(ofSize: 11, weight: .regular)
-        valueLabel.alignment = .right
-        valueLabel.widthAnchor.constraint(equalToConstant: 64).isActive = true
-        valueLabels[tag] = valueLabel
-
-        let spacer = NSView()
-        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        let header = NSStackView(views: [label, spacer, valueLabel])
-        header.orientation = .horizontal
-        header.alignment = .centerY
-        header.spacing = 6
-
-        let slider = NSSlider(value: Double(value), minValue: Double(min), maxValue: Double(max), target: self, action: #selector(sliderChanged(_:)))
-        slider.tag = tag
-        slider.isContinuous = true
-        slider.toolTip = format
-
-        let row = NSStackView(views: [header, slider])
-        row.orientation = .vertical
-        row.alignment = .leading
-        row.spacing = 2
-        row.widthAnchor.constraint(equalTo: controlsStack.widthAnchor).isActive = true
-        header.widthAnchor.constraint(equalTo: row.widthAnchor).isActive = true
-        slider.widthAnchor.constraint(equalTo: row.widthAnchor).isActive = true
-        controlsStack.addArrangedSubview(row)
-    }
-
-    @objc private func fishChanged(_ sender: NSSegmentedControl) { selectFish(index: sender.selectedSegment) }
-
-    @objc private func categoryChanged(_ sender: NSSegmentedControl) {
-        selectedCategory = sender.selectedSegment
-        rebuildControls()
+    @objc private func categoryChanged(_ sender: NSPopUpButton) {
+        selectedCategory = min(categories.count - 1, max(0, sender.indexOfSelectedItem))
+        refreshCategory()
     }
 
     @objc private func orientationChanged(_ sender: NSSegmentedControl) {
@@ -285,9 +371,8 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
 
     @objc private func sliderChanged(_ sender: NSSlider) {
         let value = sender.floatValue
-        if let label = valueLabels[sender.tag] {
-            let format = sender.toolTip ?? "%.2f"
-            label.stringValue = String(format: format, value)
+        if let row = sliderRows.first(where: { $0.slider === sender }) {
+            row.valueLabel.stringValue = String(format: sender.toolTip ?? "%.2f", Double(value))
         }
         applySlider(tag: sender.tag, value: value)
         statusLabel.stringValue = "Live preview · unsaved"
@@ -371,7 +456,7 @@ final class BettaCompositionEditorPanel: NSVisualEffectView {
         let id = BettaPreset.all[selectedIndex].referenceId
         compositionStore.reset(referenceId: id)
         advancedStore.reset(referenceId: id)
-        rebuildControls()
+        refreshCategory()
         statusLabel.stringValue = "Reset to production + 90° CW landscape default · unsaved"
     }
 
