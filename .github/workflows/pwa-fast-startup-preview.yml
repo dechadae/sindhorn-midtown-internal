@@ -9,6 +9,7 @@ on:
       - "site/**"
       - "scripts/ci-glass-browser-smoke.mjs"
       - "scripts/utility-action-browser-smoke.mjs"
+      - "scripts/pull-refresh-browser-smoke.mjs"
       - ".github/workflows/pwa-fast-startup-preview.yml"
   workflow_dispatch:
 
@@ -22,24 +23,26 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Validate production startup, glass and utility contracts
+      - name: Validate production startup, glass, utility and pull-reload contracts
         shell: bash
         run: |
           set -euo pipefail
           node --check site/sw.js
           for file in \
-            site/pwa-version-guard.js site/betta-runtime.js site/betta-runtime-full.js site/auth-shell.js \
+            site/pwa-version-guard.js site/betta-runtime.js site/betta-runtime-full.js site/auth-shell.js site/app.js \
             site/startup-skeleton.js site/ui-system-registry.js site/ci-day-cycle-route.js site/ci-glass-audit.js \
             site/settings-route-v3.js site/brand-route-controls.js site/fnb-share-ui.js \
-            scripts/ci-glass-browser-smoke.mjs scripts/utility-action-browser-smoke.mjs; do
+            scripts/ci-glass-browser-smoke.mjs scripts/utility-action-browser-smoke.mjs scripts/pull-refresh-browser-smoke.mjs; do
             node --input-type=module --check < "$file"
           done
           grep -q "sindhorn-midtown-internal-pwa-v47-skeleton-pulse-r1" site/sw.js
           grep -q "PRECACHE_CONCURRENCY=8" site/sw.js
           grep -q "betta-runtime-full.js?v=1" site/betta-runtime.js
           grep -q "betta-runtime.js?v=2" site/index.html
-          grep -q "auth-shell.js?v=6" site/index.html
-          grep -q "bootstrap.js?v=2" site/auth-shell.js
+          grep -q "auth-shell.js?v=7" site/index.html
+          grep -q "bootstrap.js?v=3" site/auth-shell.js site/index.html
+          grep -q "app.js?v=2" site/bootstrap.js
+          grep -q "pwa.css?v=2" site/index.html
           grep -q "startup-skeleton.css?v=2" site/index.html
           grep -q "startup-skeleton.js?v=1" site/index.html
           grep -q "data-startup-skeleton" site/startup-skeleton.js
@@ -82,6 +85,23 @@ jobs:
           grep -q "mountCiGlassAudit" site/ci-day-cycle-route.js site/ci-glass-audit.js
           grep -q "\.factsheet-picture" site/app-glass.css
           grep -q "Factsheet image-frame blur is active" site/ci-glass-audit.js
+          grep -q "data.shellPullRefresh='true'" site/app.js
+          grep -q "pull-refresh-spinner" site/app.js site/pwa.css
+          grep -q "Release to reload" site/app.js
+          grep -q "mountRoute?.(routeAtStart,{animate:false})" site/app.js
+          grep -q "sindhornPullReloadRing" site/pwa.css
+          if grep -q "ENVIRONMENT_ROUTES" site/app.js; then
+            echo 'Pull-to-reload must not be route-gated' >&2
+            exit 1
+          fi
+          if grep -q "pull-refresh-icon" site/app.js; then
+            echo 'Legacy pull arrow/icon container must not return' >&2
+            exit 1
+          fi
+          if grep -q "navigator.vibrate" site/app.js; then
+            echo 'Pull-to-reload must remain haptic-free' >&2
+            exit 1
+          fi
           if grep -Eq "fresh\.className=.*fnb-.*settings-hero-signout" site/settings-route-v3.js; then
             echo 'Hero sign out must never inherit framed F&B button classes' >&2
             exit 1
@@ -117,12 +137,12 @@ jobs:
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /ci /fnb /settings /hotel-factsheet /sw.js /manifest.webmanifest '/app-controls.css?v=2' '/app-glass.css?v=4' '/ci-compact-fixes.css?v=2' '/ci-glass-audit.js?v=1' '/ci-day-cycle-route.js?v=3' /ui-system-registry.js '/fnb-route.js?v=2' '/fnb-refinements.css?v=2' '/fnb-share-ui.js?v=4' '/startup-skeleton.css?v=2' '/startup-skeleton.js?v=1' '/pwa-version-guard.js?v=2' '/auth-shell.js?v=6' '/bootstrap.js?v=2' '/route-registry.js' '/settings-route-v3.js?v=14&r=utility-action-1' '/business-card-settings.css?v=12' '/brand-route-controls.js?v=2' '/betta-runtime.js?v=2' '/betta-runtime-full.js?v=1'; do
+          for path in / /ci /fnb /settings /hotel-factsheet /sw.js /manifest.webmanifest '/app.js?v=2' '/pwa.css?v=2' '/app-controls.css?v=2' '/app-glass.css?v=4' '/ci-compact-fixes.css?v=2' '/ci-glass-audit.js?v=1' '/ci-day-cycle-route.js?v=3' /ui-system-registry.js '/fnb-route.js?v=2' '/fnb-refinements.css?v=2' '/fnb-share-ui.js?v=4' '/startup-skeleton.css?v=2' '/startup-skeleton.js?v=1' '/pwa-version-guard.js?v=2' '/auth-shell.js?v=7' '/bootstrap.js?v=3' '/route-registry.js' '/settings-route-v3.js?v=14&r=utility-action-1' '/business-card-settings.css?v=12' '/brand-route-controls.js?v=2' '/betta-runtime.js?v=2' '/betta-runtime-full.js?v=1'; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
 
-      - name: Browser audit developer UI glass contract
+      - name: Browser audit developer UI and appwide pull reload
         shell: bash
         env:
           BASE_URL: https://${{ github.ref_name }}.sindhorn-midtown-internal.pages.dev
@@ -133,6 +153,7 @@ jobs:
           npx playwright install chromium >/dev/null 2>&1
           node scripts/ci-glass-browser-smoke.mjs | tee /tmp/ci-glass-report.json
           node scripts/utility-action-browser-smoke.mjs | tee /tmp/utility-action-report.json
+          node scripts/pull-refresh-browser-smoke.mjs | tee /tmp/pull-refresh-report.json
 
       - name: Upload CI glass screenshots
         if: always()
@@ -143,5 +164,6 @@ jobs:
             /tmp/ci-glass-preview
             /tmp/ci-glass-report.json
             /tmp/utility-action-report.json
+            /tmp/pull-refresh-report.json
           if-no-files-found: warn
           retention-days: 14
