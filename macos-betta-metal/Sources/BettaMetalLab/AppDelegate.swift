@@ -140,6 +140,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         )
     }
 
+    @objc private func restoreOriginalColorsOnly(_ sender: Any?) {
+        stopEvolution(showEditor: window?.desktopMode != true)
+        guard let editorPanel else { return }
+        let index = editorPanel.selectedFishIndex
+        let preset = BettaPreset.all[index]
+        guard let style = BettaRandomStyleStore.shared.restoreOriginalColors(referenceId: preset.referenceId) else { return }
+
+        // Refresh the editor without changing the selected fish or touching any
+        // geometry/camera/composition/membrane settings.
+        editorPanel.selectFish(index: index, notifyRenderer: false)
+        diagnostics.checkpoint(
+            "original-colors.restored",
+            detail: "fish-index=\(index) reference-id=\(preset.referenceId) seed=\(style.shortSeed) palette+background-only"
+        )
+    }
+
     @objc private func toggleEvolution(_ sender: Any?) {
         if evolution.isRunning {
             stopEvolution(showEditor: window?.desktopMode != true)
@@ -253,6 +269,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let random = NSMenuItem(title: "Random Betta + Matching Gradient", action: #selector(randomizeBetta(_:)), keyEquivalent: "r")
         random.target = self
         bettaMenu.addItem(random)
+
+        let restoreColors = NSMenuItem(title: "Restore Original Colors Only", action: #selector(restoreOriginalColorsOnly(_:)), keyEquivalent: "")
+        restoreColors.target = self
+        restoreColors.toolTip = "Restore the selected original palette + gradient without changing shape, camera, composition or membranes."
+        bettaMenu.addItem(restoreColors)
 
         let evolutionItem = NSMenuItem(title: "Start Continuous Evolution", action: #selector(toggleEvolution(_:)), keyEquivalent: "e")
         evolutionItem.target = self
