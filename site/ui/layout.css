@@ -1,0 +1,11 @@
+html.app-shell{background:var(--ui-color-vignette);}
+body{margin:0;min-height:100dvh;padding-bottom:calc(76px + var(--ui-safe-bottom));}
+#route-view,.ui-content{width:min(100%,var(--ui-max-content));margin-inline:auto;padding-inline:var(--ui-gutter);}
+.ui-stack{display:grid;gap:var(--ui-space-4);}
+.ui-stack--tight{gap:var(--ui-space-2);}
+.ui-grid{display:grid;gap:var(--ui-space-4);}
+@media(min-width:680px){.ui-grid--2{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.ui-section{padding:var(--ui-space-8) 0;border-bottom:var(--ui-border);}
+.ui-actions{display:flex;align-items:center;gap:var(--ui-space-3);flex-wrap:wrap;}
+.ui-actions--end{justify-content:flex-end;}
+.ui-divider{height:1px;background:var(--ui-color-line);border:0;}
