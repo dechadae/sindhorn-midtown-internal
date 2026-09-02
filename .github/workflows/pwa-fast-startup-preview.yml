@@ -32,7 +32,7 @@ jobs:
           for file in \
             site/pwa-version-guard.js site/betta-runtime.js site/betta-runtime-full.js site/auth-shell.js site/app.js \
             site/startup-skeleton.js site/ui-system-registry.js site/ci-day-cycle-route.js site/ci-glass-audit.js \
-            site/settings-route-v3.js site/brand-route-controls.js site/fnb-share-ui.js \
+            site/settings-route-v3.js site/brand-route-controls.js site/fnb-share-ui.js site/notification-inbox.js \
             scripts/ci-glass-browser-smoke.mjs scripts/glass-route-browser-smoke.mjs \
             scripts/utility-action-browser-smoke.mjs scripts/pull-refresh-browser-smoke.mjs; do
             node --input-type=module --check < "$file"
@@ -85,6 +85,10 @@ jobs:
             echo 'Temporary strengthened-glass experiment must not return' >&2
             exit 1
           fi
+          if grep -q '\.ci-route \.fnb-chip' site/index.html; then
+            echo 'CI route styling must not return as an inline index.html patch' >&2
+            exit 1
+          fi
 
           # Owning route CSS must consume the authority directly and preserve the real WebGL backdrop.
           if grep -q 'fnb-card,.fnb-text-card,.fnb-art-card{background:rgba(46,39,59,.66);backdrop-filter:none' site/fnb-approved-polish.css; then
@@ -99,11 +103,16 @@ jobs:
             echo 'F&B/Settings route-wide dark overlay must not return' >&2
             exit 1
           fi
-          GLASS_FILES='site/fnb.css site/settings.css site/business-dashboard.css site/brand.css site/hotel-factsheet.css site/ihg-history.css site/ci.css'
+          GLASS_FILES='site/fnb.css site/fnb-approved-polish.css site/settings.css site/business-dashboard.css site/brand.css site/hotel-factsheet.css site/ihg-history.css site/ci.css site/business-card-component.css'
           if grep -Eq -- '-webkit-;backdrop-filter:|easebackdrop-filter:|pxbackdrop-filter:|[0-9]backdrop-filter:|\)backdrop-filter:' $GLASS_FILES; then
             echo 'Malformed backdrop-filter declaration detected' >&2
             exit 1
           fi
+          grep -q "article.className='message-card app-glass-surface'" site/notification-inbox.js
+          grep -q "clear.classList.add('app-glass-control')" site/notification-inbox.js
+          grep -q "backdrop-filter:var(--app-glass-control-filter)" site/business-card-component.css
+          grep -q "backdrop-filter:var(--app-glass-control-filter)" site/fnb-approved-polish.css
+          grep -q "\.fnb-select-menu.*backdrop-filter:var(--app-glass-surface-filter)" site/fnb-approved-polish.css
 
           # Utility actions remain intentionally frameless / transparent / unblurred.
           grep -q "app-controls.css?v=2" site/index.html
@@ -116,10 +125,14 @@ jobs:
           grep -q "classList.add('app-utility-action')" site/ci-day-cycle-route.js
 
           # Current route/cache lineage and UI-library contracts.
+          grep -q "fnb.css?v=3&ui=3" site/fnb-route.js site/settings-route-v3.js
+          grep -q "fnb-approved-polish.css?v=3" site/fnb-route.js site/settings-route-v3.js
           grep -q "fnb-refinements.css?v=2" site/fnb-route.js
           grep -q "fnb-share-ui.js?v=4" site/fnb-route.js
-          grep -q "fnb-route.js?v=2" site/route-registry.js
-          grep -q "settings-route-v3.js?v=14&r=utility-action-1" site/route-registry.js
+          grep -q "fnb-route.js?v=3" site/route-registry.js
+          grep -q "settings-route-v3.js?v=15&r=ci-glass-1" site/route-registry.js
+          grep -q "settings.css?v=3" site/settings-route-v3.js
+          grep -q "business-card-component.css?v=2&r=glass-1" site/settings-route-v3.js
           grep -q "ci-day-cycle-route.js?v=3" site/route-registry.js
           grep -q "business-card-settings.css?v=12" site/settings-route-v3.js
           grep -q "settings-hero>.settings-hero-signout.*position:absolute" site/business-card-settings.css
@@ -185,15 +198,16 @@ jobs:
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /ci /fnb /settings /brand /ihg-history /hotel-factsheet /sw.js /manifest.webmanifest \
+          for path in / /ci /fnb /settings /brand /ihg-history /hotel-factsheet /messages /sw.js /manifest.webmanifest \
             '/app.js?v=2' '/pwa.css?v=2' '/app-controls.css?v=2' '/app-glass.css?v=5' \
-            '/fnb.css?v=2&ui=2' '/fnb-approved-polish.css?v=2' '/fnb-refinements.css?v=2' \
-            '/settings.css?v=2' '/settings-refinements.css?v=2' '/business-dashboard.css?v=4' \
+            '/fnb.css?v=3&ui=3' '/fnb-approved-polish.css?v=3' '/fnb-refinements.css?v=2' \
+            '/settings.css?v=3' '/settings-refinements.css?v=2' '/business-dashboard.css?v=4' \
             '/brand.css' '/hotel-factsheet.css?v=2' '/ihg-history.css' '/ci.css' \
+            '/business-card-component.css?v=2&r=glass-1' '/notification-inbox.js' \
             '/ci-compact-fixes.css?v=2' '/ci-glass-audit.js?v=1' '/ci-day-cycle-route.js?v=3' \
-            /ui-system-registry.js '/fnb-share-ui.js?v=4' '/startup-skeleton.css?v=2' '/startup-skeleton.js?v=1' \
+            /ui-system-registry.js '/fnb-route.js?v=3' '/fnb-share-ui.js?v=4' '/startup-skeleton.css?v=2' '/startup-skeleton.js?v=1' \
             '/pwa-version-guard.js?v=2' '/auth-shell.js?v=7' '/bootstrap.js?v=3' '/route-registry.js' \
-            '/settings-route-v3.js?v=14&r=utility-action-1' '/business-card-settings.css?v=12' \
+            '/settings-route-v3.js?v=15&r=ci-glass-1' '/business-card-settings.css?v=12' \
             '/brand-route-controls.js?v=2' '/betta-runtime.js?v=2' '/betta-runtime-full.js?v=1'; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
