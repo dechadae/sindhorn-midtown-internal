@@ -100,6 +100,7 @@ final class BettaCompositionEditorPanel: NSView {
         buildFixedControls()
         BettaDiagnostics.shared.checkpoint("editor.controls.created")
         configurePanel()
+        BettaDiagnostics.shared.checkpoint("editor.liquid-glass.ready")
         BettaDiagnostics.shared.checkpoint("editor.layout.complete")
         loadSelectedFish()
         BettaDiagnostics.shared.checkpoint("editor.initial-state.complete", detail: "fish-index=\(selectedIndex)")
@@ -171,9 +172,6 @@ final class BettaCompositionEditorPanel: NSView {
         translatesAutoresizingMaskIntoConstraints = false
         wantsLayer = true
         layer?.backgroundColor = NSColor.clear.cgColor
-
-        let glass = BettaLiquidGlassSurface.makeBackground(cornerRadius: 22)
-        addSubview(glass)
 
         let title = NSTextField(labelWithString: "Betta Living Studio")
         title.font = .systemFont(ofSize: 19, weight: .semibold)
@@ -248,18 +246,15 @@ final class BettaCompositionEditorPanel: NSView {
         stack.alignment = .leading
         stack.spacing = 9
         stack.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(stack)
 
+        let contentHost = NSView(frame: .zero)
+        contentHost.translatesAutoresizingMaskIntoConstraints = false
+        contentHost.addSubview(stack)
         NSLayoutConstraint.activate([
-            widthAnchor.constraint(equalToConstant: 500),
-            glass.leadingAnchor.constraint(equalTo: leadingAnchor),
-            glass.trailingAnchor.constraint(equalTo: trailingAnchor),
-            glass.topAnchor.constraint(equalTo: topAnchor),
-            glass.bottomAnchor.constraint(equalTo: bottomAnchor),
-            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 18),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -18),
-            stack.topAnchor.constraint(equalTo: topAnchor, constant: 18),
-            stack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -18),
+            stack.leadingAnchor.constraint(equalTo: contentHost.leadingAnchor, constant: 18),
+            stack.trailingAnchor.constraint(equalTo: contentHost.trailingAnchor, constant: -18),
+            stack.topAnchor.constraint(equalTo: contentHost.topAnchor, constant: 18),
+            stack.bottomAnchor.constraint(equalTo: contentHost.bottomAnchor, constant: -18),
             fishSelector.widthAnchor.constraint(equalTo: stack.widthAnchor),
             presetActions.widthAnchor.constraint(equalTo: stack.widthAnchor),
             presetPopup.widthAnchor.constraint(greaterThanOrEqualToConstant: 150),
@@ -268,6 +263,16 @@ final class BettaCompositionEditorPanel: NSView {
             controlArea.widthAnchor.constraint(equalTo: stack.widthAnchor),
             reset.widthAnchor.constraint(equalTo: stack.widthAnchor),
             save.widthAnchor.constraint(equalTo: stack.widthAnchor)
+        ])
+
+        let glass = BettaLiquidGlassSurface.make(content: contentHost, cornerRadius: 22)
+        addSubview(glass)
+        NSLayoutConstraint.activate([
+            widthAnchor.constraint(equalToConstant: 500),
+            glass.leadingAnchor.constraint(equalTo: leadingAnchor),
+            glass.trailingAnchor.constraint(equalTo: trailingAnchor),
+            glass.topAnchor.constraint(equalTo: topAnchor),
+            glass.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
 
