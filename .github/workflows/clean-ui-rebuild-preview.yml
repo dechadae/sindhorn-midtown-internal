@@ -21,24 +21,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate clean UI foundation
+      - name: Validate isolated clean UI foundation
         shell: bash
         run: |
           set -euo pipefail
-          for file in \
-            site/route-registry.js \
-            site/ui/shell/init.js \
-            site/ui/shell/pull-to-reload.js; do
+          for file in site/ui/shell/init.js site/ui/shell/pull-to-reload.js; do
             node --input-type=module --check < "$file"
           done
           grep -q -- '--ui-glass-blur:18px' site/ui/tokens.css
           grep -q -- '--ui-glass-saturation:1.18' site/ui/tokens.css
           grep -q -- '--ui-glass-bg:rgba(46,39,59,.30)' site/ui/tokens.css
           grep -q "LINE Seed Sans TH" site/ui/tokens.css
-          grep -q "module:'./ci-day-cycle-route.js?v=1'" site/route-registry.js
-          grep -q '/ui/index.css' site/index.html
-          grep -q '/ui/shell/init.js' site/index.html
-          if grep -R -n -E 'navigator\.vibrate|\.vibrate\(' site/ui site/route-registry.js site/index.html; then
+          if grep -R -n -E 'navigator\.vibrate|\.vibrate\(' site/ui; then
             echo 'Haptics are forbidden in rebuilt UI foundation' >&2
             exit 1
           fi
@@ -55,18 +49,19 @@ jobs:
           if bad: raise SystemExit('\n'.join(bad))
           PY
 
-      - name: Verify protected architecture and approved CI unchanged
+      - name: Verify production shell, protected architecture and approved CI unchanged
         shell: bash
         run: |
           set -euo pipefail
           base="$(git merge-base origin/main HEAD)"
           test -n "$base"
           for file in \
+            site/index.html site/route-registry.js \
             site/betta-environment.js site/betta-runtime.js site/betta-fin-presets.js site/betta-fin-shader.js site/betta-satellite.js \
             site/location.js site/live-data.js site/rain-now.js \
             site/auth-client.js site/auth-shell.js site/capabilities.js \
             site/fnb-data.js site/business-dashboard-data.js site/business-card-component.js \
-            site/manifest.webmanifest \
+            site/manifest.webmanifest site/sw.js \
             site/ci.js site/ci.css site/ci-specimen-fixes.css site/ci-day-cycle-route.js site/ci-betta-day-cycle.js site/ui-system-registry.js; do
             git diff --exit-code "$base" HEAD -- "$file"
           done
