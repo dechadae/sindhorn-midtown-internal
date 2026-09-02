@@ -48,7 +48,7 @@ jobs:
           grep -q '"name":"Sindhorn Midtown Internal"' site/manifest.webmanifest
           grep -q "addEventListener('fetch'" site/sw.js
           grep -q "app-glass.css?v=3" site/index.html
-          grep -q "ci-compact-fixes.css?v=1" site/index.html
+          grep -q "ci-compact-fixes.css?v=2" site/index.html
           grep -q -- "--app-glass-surface-filter:blur(18px)" site/app-glass.css
           grep -q -- "--app-glass-control-filter:blur(12px)" site/app-glass.css
           grep -q "#route-view :is" site/app-glass.css
@@ -103,7 +103,7 @@ jobs:
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /ci /sw.js /manifest.webmanifest '/app-glass.css?v=3' '/ci-compact-fixes.css?v=1' '/ci-glass-audit.js?v=1' '/ci-day-cycle-route.js?v=2' /ui-system-registry.js '/startup-skeleton.css?v=2' '/startup-skeleton.js?v=1' '/pwa-version-guard.js?v=2' '/auth-shell.js?v=6' '/bootstrap.js?v=2' '/route-registry.js' '/settings-route-v3.js?v=13&r=frameless-signout-1' '/business-card-settings.css?v=11' '/betta-runtime.js?v=2' '/betta-runtime-full.js?v=1'; do
+          for path in / /ci /sw.js /manifest.webmanifest '/app-glass.css?v=3' '/ci-compact-fixes.css?v=2' '/ci-glass-audit.js?v=1' '/ci-day-cycle-route.js?v=2' /ui-system-registry.js '/startup-skeleton.css?v=2' '/startup-skeleton.js?v=1' '/pwa-version-guard.js?v=2' '/auth-shell.js?v=6' '/bootstrap.js?v=2' '/route-registry.js' '/settings-route-v3.js?v=13&r=frameless-signout-1' '/business-card-settings.css?v=11' '/betta-runtime.js?v=2' '/betta-runtime-full.js?v=1'; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
