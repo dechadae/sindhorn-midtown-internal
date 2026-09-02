@@ -2,6 +2,7 @@ const CHECK_MIN_INTERVAL=60_000;
 const FNB_RECOVERY_KEY='sindhorn-midtown:fnb-controller-recovery:v1';
 let lastCheck=0;
 let startupReadyPromise=null;
+let fullBettaReadyPromise=null;
 let updateInFlight=null;
 
 function fnbRouteIsBlank(){
@@ -16,25 +17,36 @@ function waitForStartupReveal(){
   if(startupReadyPromise)return startupReadyPromise;
   startupReadyPromise=new Promise(resolve=>{
     const root=document.documentElement;
-    const finish=()=>{
-      observer.disconnect();
-      resolve();
-    };
-    const observer=new MutationObserver(()=>{
-      if(root.dataset.startupEnter==='visible')finish();
-    });
+    const finish=()=>{observer.disconnect();resolve()};
+    const observer=new MutationObserver(()=>{if(root.dataset.startupEnter==='visible')finish()});
     observer.observe(root,{attributes:true,attributeFilter:['data-startup-enter']});
     if(root.dataset.startupEnter==='visible')finish();
   });
   return startupReadyPromise;
 }
 
+function waitForFullBetta(){
+  if(document.body.dataset.bettaFirstFrame==='ready')return Promise.resolve();
+  if(fullBettaReadyPromise)return fullBettaReadyPromise;
+  fullBettaReadyPromise=new Promise(resolve=>{
+    let settled=false;
+    const finish=()=>{
+      if(settled)return;
+      settled=true;
+      clearTimeout(timeout);
+      document.removeEventListener('sindhorn:betta-first-frame',finish);
+      resolve();
+    };
+    const timeout=setTimeout(finish,12_000);
+    document.addEventListener('sindhorn:betta-first-frame',finish,{once:true});
+    if(document.body.dataset.bettaFirstFrame==='ready')finish();
+  });
+  return fullBettaReadyPromise;
+}
+
 function waitForIdle(){
   return new Promise(resolve=>{
-    if('requestIdleCallback'in window){
-      requestIdleCallback(()=>resolve(),{timeout:2000});
-      return;
-    }
+    if('requestIdleCallback'in window){requestIdleCallback(()=>resolve(),{timeout:2000});return}
     setTimeout(resolve,1200);
   });
 }
@@ -46,6 +58,7 @@ async function checkForUpdate(force=false){
   if(updateInFlight)return updateInFlight;
   updateInFlight=(async()=>{
     await waitForStartupReveal();
+    await waitForFullBetta();
     await waitForIdle();
     lastCheck=Date.now();
     try{
@@ -66,10 +79,9 @@ if('serviceWorker'in navigator){
     location.reload();
   });
 
-  // Foreground-first startup: Betta and Today own the critical launch path.
-  // Service-worker registration/update begins only after their shared reveal,
-  // then waits for an idle slice so compilation/rendering is not competing
-  // with SW maintenance on Android standalone launches.
+  // Startup owns the foreground. SW registration/update waits until the
+  // bootstrap Today/Betta reveal, the full approved Betta's real first frame,
+  // and then an idle slice so Android launch resources are never contested.
   void checkForUpdate(true);
   addEventListener('focus',()=>{void checkForUpdate(false)},{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)void checkForUpdate(false)});
