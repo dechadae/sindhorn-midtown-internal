@@ -31,7 +31,11 @@ async function evictStaleBootstrapRuntime(){
       const cache=await caches.open(key);
       await Promise.all([
         cache.delete('/betta-runtime.js?v=1'),
-        cache.delete('/betta-runtime.js')
+        cache.delete('/betta-runtime.js'),
+        cache.delete('/route-registry.js'),
+        cache.delete('/settings-route-v3.js'),
+        cache.delete('/settings-route-v3.js?v=12&r=release-health-1'),
+        cache.delete('/business-card-settings.css?v=10')
       ]);
     }));
   }catch(_){}
