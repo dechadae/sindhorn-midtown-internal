@@ -1,4 +1,4 @@
-export const UI_SYSTEM_VERSION='1.3.0-preview';
+export const UI_SYSTEM_VERSION='1.4.0-preview';
 export const UI_SYSTEM_CAPABILITY='developer.ui_library';
 
 export const UI_SYSTEM_SECTIONS=Object.freeze([
@@ -13,12 +13,10 @@ export const UI_SYSTEM_TOKENS=Object.freeze([
   {name:'--sm-text',label:'Primary text',kind:'color',fallback:'#FAF7F5'},
   {name:'--route-hero-accent',label:'Sorbet accent',kind:'color',fallback:'#E5ECBE'},
   {name:'--route-hero-muted',label:'Muted copy',kind:'color',fallback:'rgba(250,247,245,.66)'},
-  {name:'--app-control-glass',label:'Control glass',kind:'color',fallback:'rgba(46,39,59,.55)'},
-  {name:'--app-glass-surface-fill',label:'Glass surface fill',kind:'color',fallback:'rgba(46,39,59,.48)'},
-  {name:'--app-control-border',label:'Control border',kind:'color',fallback:'rgba(250,247,245,.14)'},
+  {name:'--app-glass-fill',label:'Canonical glass fill',kind:'color',fallback:'rgba(46,39,59,.30)'},
+  {name:'--app-glass-border',label:'Canonical glass border',kind:'color',fallback:'rgba(250,247,245,.14)'},
+  {name:'--app-glass-filter',label:'Canonical glass filter',kind:'material',fallback:'blur(18px) saturate(1.18)'},
   {name:'--sm-footer-active',label:'Footer active',kind:'color',fallback:'#E5ECBE'},
-  {name:'--app-glass-surface-filter',label:'Glass surface filter',kind:'material',fallback:'blur(18px) saturate(1.18)'},
-  {name:'--app-glass-control-filter',label:'Glass control filter',kind:'material',fallback:'blur(18px) saturate(1.18)'},
   {name:'--app-control-motion-fast',label:'Fast press',kind:'motion',fallback:'160ms'},
   {name:'--app-control-motion-base',label:'Base state',kind:'motion',fallback:'260ms'},
   {name:'--fnb-motion-slow',label:'Disclosure',kind:'motion',fallback:'420ms'},
@@ -36,7 +34,7 @@ export const UI_SYSTEM_TOKENS=Object.freeze([
 
 export const UI_SYSTEM_COMPONENTS=Object.freeze([
   Object.freeze({id:'hero',label:'Route hero',selector:'.app-route-hero',owner:'site/route-hero-standard.css',use:'Every new authenticated top-level route.',avoid:'Do not invent route-specific title sizing, weights or padding.',a11y:'Exactly one route h1. Keep supporting copy concise.'}),
-  Object.freeze({id:'glass',label:'Translucent glass material',selector:'Translucent cards, controls and chips',owner:'site/app-glass.css',use:'Every interface surface that intentionally reveals the atmosphere or content behind it.',avoid:'Never pair a translucent UI fill with backdrop-filter:none or omit blur from a glass control. Fully transparent utility actions are exempt.',a11y:'Material is decorative; text contrast and semantic behavior remain owned by the component.'}),
+  Object.freeze({id:'glass',label:'Canonical frosted glass',selector:'.app-glass-surface / .app-glass-control',owner:'site/app-glass.css + site/app-glass-runtime.js',use:'Every translucent shell surface, card, field, selector, chip or button.',avoid:'Never create route-local glass pigment or blur values. CI owns the single 30% Vignette / 18px blur material. Fully transparent utility actions are exempt.',a11y:'Material is decorative; text contrast and semantic behavior remain owned by the component.'}),
   Object.freeze({id:'back',label:'Back control',selector:'.app-back-control',owner:'site/app-controls.css',use:'Contextual return from a child/detail route.',avoid:'Do not redraw the chevron or change the 36 × 36 / 12px geometry.',a11y:'Provide an explicit aria-label and preserve a visible focus ring.'}),
   Object.freeze({id:'quiet',label:'Utility action',selector:'.app-utility-action',owner:'site/app-controls.css',use:'Low-emphasis utilities: Sign out, Share and Back to top.',avoid:'Never add a fill, border, backdrop blur or left-aligned route variant. Utility actions stay frameless and right anchored.',a11y:'Visible text plus semantic button/link behavior.'}),
   Object.freeze({id:'action-card',label:'Actionable glass card',selector:'.fnb-card + .fnb-card-button',owner:'site/fnb.css + site/fnb-approved-polish.css',use:'Whole-surface actions that open detail or another route.',avoid:'Do not make non-actionable information look tappable.',a11y:'One semantic button or link owns the entire hit area.'}),
@@ -45,14 +43,14 @@ export const UI_SYSTEM_COMPONENTS=Object.freeze([
   Object.freeze({id:'field',label:'Form field',selector:'.settings-field',owner:'site/settings.css',use:'Settings and future authenticated forms.',avoid:'Do not remove labels in favor of placeholders.',a11y:'Associate visible labels and expose error/status text.'}),
   Object.freeze({id:'dialog',label:'Dialog / sheet',selector:'.settings-dialog',owner:'site/settings-dialog-standard.js + site/settings-dialog-standard.css',use:'Focused editing, confirmation and bounded secondary tasks.',avoid:'Do not build another modal animation or scrolling model.',a11y:'Use native dialog semantics and the centralized open/close controller.'}),
   Object.freeze({id:'table',label:'Dense data table',selector:'.factsheet-table-wrap',owner:'site/hotel-factsheet.css',use:'Capacity matrices and horizontally dense reference data.',avoid:'Do not squeeze every column until labels become unreadable.',a11y:'Preserve table headers and horizontal scroll on small screens.'}),
-  Object.freeze({id:'footer',label:'Persistent footer',selector:'#app-footer .shell-footer-rail',owner:'site/footer-route-guard.js + site/footer-route-guard.css',use:'Global navigation and the approved Settings/F&B contextual rail.',avoid:'Do not create route-owned painted footers.',a11y:'Current item uses aria-current; labels remain visible.'})
+  Object.freeze({id:'footer',label:'Persistent footer',selector:'#app-footer .app-tabbar',owner:'site/app-glass.css + site/app-glass-runtime.js + site/footer-route-guard.js',use:'Global navigation and the approved Settings/F&B contextual rail.',avoid:'Do not give the persistent footer its own opaque purple material.',a11y:'Current item uses aria-current; labels remain visible.'})
 ]);
 
 export const UI_SYSTEM_RULES=Object.freeze([
   ['Use LINE Seed Sans TH only.','Production ships real weights 100 / 400 / 700; never introduce another UI font.'],
   ['Use zero character tracking.','letter-spacing stays 0 across headings, body, labels and controls.'],
   ['Use rounded corners, never circular UI chrome.','Avatars, chips, badges, status marks and icon controls use app-shapes.css. Do not introduce 50% / 999px capsule geometry for interface elements. Natural sun/moon/weather rendering is exempt.'],
-  ['Translucency always blurs.','If a card, button, chip, field, menu or navigation item intentionally shows the background through its fill, it consumes app-glass.css. Fully transparent utility actions are exempt.'],
+  ['One glass material only.','CI owns rgba(46,39,59,.30) + blur(18px) saturate(1.18). Header, footer, cards, controls and fields consume the same semantic glass classes. Route CSS never invents another glass material.'],
   ['Utility actions are frameless and right aligned.','Sign out, Share and Back to top consume app-utility-action from app-controls.css. They have no painted background, border, shadow or backdrop blur and stay on the right edge of their action context.'],
   ['Keep one persistent authenticated shell.','Authenticated routes replace only #route-view; header, footer, auth and atmosphere stay mounted.'],
   ['Do not paint a route-wide dark overlay.','The Bangkok atmosphere is the visual ground; use translucent structural surfaces above it.'],
@@ -70,7 +68,7 @@ export const UI_SYSTEM_OWNERSHIP=Object.freeze([
   ['Typography','site/fonts.css'],['Persistent shell','site/shell.css + site/bootstrap.js'],
   ['Route registry','site/route-registry.js'],['Route transition','site/app-transitions.js + site/app-transitions.css'],
   ['Route hero','site/route-hero-standard.css'],['Back / utility controls','site/app-controls.css'],
-  ['UI shape language','site/app-shapes.css'],['Glass material','site/app-glass.css'],
+  ['Glass material + assignment','site/app-glass.css + site/app-glass-runtime.js'],
   ['Main + contextual footer','site/footer-route-guard.js + site/footer-route-guard.css'],
   ['F&B cards / selectors','site/fnb.css + site/fnb-approved-polish.css + site/fnb-refinements.css'],
   ['Settings renderer','site/settings.js + site/settings-route-v3.js'],['Settings dialogs','site/settings-dialog-standard.js + site/settings-dialog-standard.css'],
@@ -96,13 +94,13 @@ export const NEW_PAGE_BLUEPRINT=`export async function mountExampleRoute(root){
 }`;
 
 export const COMPONENT_CODE=Object.freeze({
-  back:`<button class="app-back-control" type="button" aria-label="Back">\n  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>\n</button>`,
+  back:`<button class="app-back-control app-glass-control" type="button" aria-label="Back">\n  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>\n</button>`,
   quiet:`<button class="app-utility-action" type="button">\n  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M7 10l5-5 5 5"/></svg>\n  <span>Back to top</span>\n</button>`,
   hero:`<header class="app-route-hero">\n  <p class="app-route-eyebrow">Section</p>\n  <h1 class="app-route-title">Page Title</h1>\n  <p class="app-route-copy">Supporting copy.</p>\n</header>`,
-  card:`<article class="fnb-card">\n  <button class="fnb-card-button" type="button">\n    <div class="fnb-card-status"><span class="fnb-text-label">Upcoming</span></div>\n    <h2 class="fnb-card-title">Actionable Card</h2>\n    <p class="fnb-card-outlets">Supporting information</p>\n    <div class="fnb-card-foot"><span>Open detail</span><span class="fnb-chevron">›</span></div>\n  </button>\n</article>`,
-  select:`<div class="fnb-select">\n  <button class="fnb-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">\n    <span>All outlets</span>\n    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5"/></svg>\n  </button>\n  <div class="fnb-select-menu" role="listbox" aria-hidden="true">…</div>\n</div>`,
-  input:`<div class="settings-field">\n  <label for="fieldId">Label</label>\n  <input id="fieldId" type="text" placeholder="Value">\n</div>`,
+  card:`<article class="fnb-card app-glass-surface">\n  <button class="fnb-card-button" type="button">\n    <div class="fnb-card-status"><span class="fnb-text-label">Upcoming</span></div>\n    <h2 class="fnb-card-title">Actionable Card</h2>\n    <p class="fnb-card-outlets">Supporting information</p>\n    <div class="fnb-card-foot"><span>Open detail</span><span class="fnb-chevron">›</span></div>\n  </button>\n</article>`,
+  select:`<div class="fnb-select">\n  <button class="fnb-select-trigger app-glass-control" type="button" aria-haspopup="listbox" aria-expanded="false">\n    <span>All outlets</span>\n    <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5"/></svg>\n  </button>\n  <div class="fnb-select-menu app-glass-control" role="listbox" aria-hidden="true">…</div>\n</div>`,
+  input:`<div class="settings-field">\n  <label for="fieldId">Label</label>\n  <input class="app-glass-control" id="fieldId" type="text" placeholder="Value">\n</div>`,
   navigation:`<a href="/brand" data-app-route="brand">Brand</a>`,
-  disclosure:`<article class="factsheet-room-card">\n  <button class="factsheet-room-card-button" type="button" aria-expanded="false">…</button>\n  <div class="factsheet-room-panel">…</div>\n</article>`,
+  disclosure:`<article class="factsheet-room-card app-glass-surface">\n  <button class="factsheet-room-card-button" type="button" aria-expanded="false">…</button>\n  <div class="factsheet-room-panel">…</div>\n</article>`,
   image:`<img src="…" alt="Descriptive alternative text" loading="lazy">`
 });
