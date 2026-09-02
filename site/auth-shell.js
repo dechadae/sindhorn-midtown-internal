@@ -35,7 +35,11 @@ async function evictStaleBootstrapRuntime(){
         cache.delete('/route-registry.js'),
         cache.delete('/settings-route-v3.js'),
         cache.delete('/settings-route-v3.js?v=12&r=release-health-1'),
-        cache.delete('/business-card-settings.css?v=10')
+        cache.delete('/business-card-settings.css?v=10'),
+        cache.delete('/bootstrap.js?v=2'),
+        cache.delete('/app.js'),
+        cache.delete('/app.js?v=1'),
+        cache.delete('/pwa.css')
       ]);
     }));
   }catch(_){}
@@ -53,7 +57,7 @@ if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
   document.addEventListener('sindhorn:auth-changed',event=>{const nextState=getState();if(!event.detail?.authenticated||!hasCompleteEmployeeAuth(nextState)){location.replace(loginUrl());return}window.__SINDHORN_AUTH_PROFILE__=event.detail.profile||nextState.profile;applyEmployeeHeader(window.__SINDHORN_AUTH_PROFILE__)});
   await loadClassicScript('/location.js');
   await evictStaleBootstrapRuntime();
-  await import('./bootstrap.js?v=2');
+  await import('./bootstrap.js?v=3');
   await import('./onboarding.js?v=1');
   applyEmployeeHeader();
 }
