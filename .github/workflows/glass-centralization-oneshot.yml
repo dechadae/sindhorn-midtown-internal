@@ -1,0 +1,66 @@
+name: One-shot CI Glass Source Migration
+
+on:
+  push:
+    branches:
+      - preview-ci-glass
+    paths:
+      - "scripts/centralize-glass.mjs"
+      - ".github/workflows/glass-centralization-oneshot.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: preview-ci-glass
+          fetch-depth: 0
+
+      - name: Apply source-owned glass migration
+        run: node scripts/centralize-glass.mjs
+
+      - name: Validate migration invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q -- '--app-glass-surface-fill:rgba(46,39,59,.48)' site/app-glass.css
+          grep -q -- '--app-glass-surface-filter:blur(18px) saturate(1.18)' site/app-glass.css
+          grep -q -- '--ci-glass:var(--app-glass-surface-fill)' site/ci.css
+          grep -q -- '--fnb-glass:var(--app-glass-surface-fill)' site/fnb.css
+          grep -q -- '--settings-glass:var(--app-glass-surface-fill)' site/settings.css
+          grep -q -- '--bd-glass:var(--app-glass-surface-fill)' site/business-dashboard.css
+          grep -q -- '--brand-glass:var(--app-glass-surface-fill)' site/brand.css
+          grep -q -- '--fs-glass:var(--app-glass-surface-fill)' site/hotel-factsheet.css
+          grep -q -- '--ihg-history-surface:var(--app-glass-surface-fill)' site/ihg-history.css
+          if grep -q 'fnb-card,.fnb-text-card,.fnb-art-card{background:rgba(46,39,59,.66);backdrop-filter:none' site/fnb-approved-polish.css; then
+            echo 'Legacy F&B no-blur override remains' >&2
+            exit 1
+          fi
+          if grep -q 'isolation:isolate' site/fnb.css site/settings.css; then
+            echo 'Route isolation still blocks canonical backdrop composition' >&2
+            exit 1
+          fi
+          if grep -q 'linear-gradient(180deg,rgba(24,20,32,.72)' site/fnb.css site/settings.css; then
+            echo 'Route-wide dark overlay remains' >&2
+            exit 1
+          fi
+          node --input-type=module --check < site/ui-system-registry.js
+
+      - name: Commit migrated sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "Sindhorn CI Migration"
+          git config user.email "actions@users.noreply.github.com"
+          git add \
+            site/fnb.css site/fnb-approved-polish.css site/fnb-refinements.css \
+            site/settings.css site/settings-refinements.css \
+            site/business-dashboard.css site/brand.css site/hotel-factsheet.css \
+            site/ihg-history.css site/ci.css site/ui-system-registry.js
+          git diff --cached --check
+          git commit -m "Centralize glass on CI material authority"
+          git push origin HEAD:preview-ci-glass
