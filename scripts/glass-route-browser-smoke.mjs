@@ -33,11 +33,8 @@ await page.route('**/rest/v1/sindhorn_app_files*',route=>route.fulfill({status:5
 
 const reports=[];
 try{
-  /* Today business content is data-dependent; validate its central mapping without
-     requiring a live report fixture. The actual CI material itself is validated
-     independently on the persistent shell and all deterministic routes below. */
   await page.goto(`${BASE_URL}/`,{waitUntil:'domcontentloaded'});
-  await page.waitForSelector('.business-dashboard-route');
+  await page.waitForSelector('.business-dashboard-route',{state:'attached'});
   const today=await page.evaluate(async()=>{
     const host=document.querySelector('.business-dashboard-route');
     const metric=document.createElement('article');metric.className='bd-metric';metric.textContent='Today glass probe';host.appendChild(metric);
@@ -49,11 +46,11 @@ try{
 
   for(const spec of routes){
     await page.goto(`${BASE_URL}${spec.path}`,{waitUntil:'domcontentloaded'});
-    await page.waitForSelector(spec.root);
-    await page.waitForSelector(spec.target);
+    await page.waitForSelector(spec.root,{state:'attached'});
+    await page.waitForSelector(spec.target,{state:'attached'});
     await page.waitForFunction(selector=>document.querySelector(selector)?.classList.contains('app-glass-surface'),spec.target);
-    await page.waitForSelector('.masthead.app-glass-surface');
-    await page.waitForSelector('.app-tabbar.app-glass-surface,.shell-footer-rail.app-glass-surface');
+    await page.waitForSelector('.masthead.app-glass-surface',{state:'attached'});
+    await page.waitForSelector('.app-tabbar.app-glass-surface,.shell-footer-rail.app-glass-surface',{state:'attached'});
     const report=await page.evaluate(({rootSelector,targetSelector,checkBackdropRoot})=>{
       const root=document.querySelector(rootSelector),target=document.querySelector(targetSelector),header=document.querySelector('.masthead'),footer=document.querySelector('.app-tabbar,.shell-footer-rail');
       if(!root||!target||!header||!footer)throw new Error('Missing glass route target');
@@ -75,7 +72,7 @@ try{
   }
 
   await page.goto(`${BASE_URL}/messages`,{waitUntil:'domcontentloaded'});
-  await page.waitForSelector('#route-view');
+  await page.waitForSelector('#route-view',{state:'attached'});
   const messages=await page.evaluate(async()=>{
     const host=document.getElementById('messageList')||document.getElementById('route-view');
     const card=document.createElement('article');card.className='message-card';card.textContent='Glass runtime probe';host.appendChild(card);
