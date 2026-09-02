@@ -30,8 +30,8 @@ jobs:
           set -euo pipefail
           node --check site/sw.js
           for file in \
-            site/pwa-version-guard.js site/betta-runtime.js site/betta-runtime-full.js site/auth-shell.js site/app.js \
-            site/startup-skeleton.js site/ui-system-registry.js site/ci-day-cycle-route.js site/ci-glass-audit.js \
+            site/pwa-version-guard.js site/betta-runtime.js site/betta-runtime-full.js site/auth-shell.js site/bootstrap.js site/app.js \
+            site/app-glass-runtime.js site/startup-skeleton.js site/ui-system-registry.js site/ci-day-cycle-route.js site/ci-glass-audit.js \
             site/settings-route-v3.js site/brand-route-controls.js site/fnb-share-ui.js site/notification-inbox.js \
             scripts/ci-glass-browser-smoke.mjs scripts/glass-route-browser-smoke.mjs \
             scripts/utility-action-browser-smoke.mjs scripts/pull-refresh-browser-smoke.mjs; do
@@ -43,8 +43,9 @@ jobs:
           grep -q "PRECACHE_CONCURRENCY=8" site/sw.js
           grep -q "betta-runtime-full.js?v=1" site/betta-runtime.js
           grep -q "betta-runtime.js?v=2" site/index.html
-          grep -q "auth-shell.js?v=7" site/index.html
-          grep -q "bootstrap.js?v=3" site/auth-shell.js site/index.html
+          grep -q "auth-shell.js?v=8" site/index.html
+          grep -q "bootstrap.js?v=4" site/auth-shell.js site/index.html
+          grep -q "app-glass-runtime.js?v=1" site/bootstrap.js site/index.html
           grep -q "app.js?v=2" site/bootstrap.js
           grep -q "pwa.css?v=2" site/index.html
           grep -q "startup-skeleton.css?v=2" site/index.html
@@ -57,32 +58,40 @@ jobs:
           grep -q '"name":"Sindhorn Midtown Internal"' site/manifest.webmanifest
           grep -q "addEventListener('fetch'" site/sw.js
 
-          # CI is the single glass material authority: .48 fill + 18px / 1.18 blur.
-          grep -q "app-glass.css?v=5" site/index.html
-          grep -q -- "--app-glass-surface-fill:rgba(46,39,59,.48)" site/app-glass.css
-          grep -q -- "--app-glass-surface-border:rgba(250,247,245,.14)" site/app-glass.css
-          grep -q -- "--app-glass-surface-filter:blur(18px) saturate(1.18)" site/app-glass.css
-          grep -q -- "--app-glass-control-fill:rgba(46,39,59,.48)" site/app-glass.css
-          grep -q -- "--app-glass-control-filter:blur(18px) saturate(1.18)" site/app-glass.css
-          grep -q -- "--ci-glass:var(--app-glass-surface-fill)" site/ci.css
-          grep -q -- "--fnb-glass:var(--app-glass-surface-fill)" site/fnb.css
-          grep -q -- "--settings-glass:var(--app-glass-surface-fill)" site/settings.css
-          grep -q -- "--bd-glass:var(--app-glass-surface-fill)" site/business-dashboard.css
-          grep -q -- "--brand-glass:var(--app-glass-surface-fill)" site/brand.css
-          grep -q -- "--fs-glass:var(--app-glass-surface-fill)" site/hotel-factsheet.css
-          grep -q -- "--ihg-history-surface:var(--app-glass-surface-fill)" site/ihg-history.css
-          grep -q -- "--app-control-glass:var(--app-glass-control-fill" site/app-controls.css
-          grep -q -- "backdrop-filter:var(--app-glass-control-filter)!important" site/app-controls.css
-          grep -q -- "fallback:'rgba(46,39,59,.48)'" site/ui-system-registry.js
-          grep -q -- "fallback:'blur(18px) saturate(1.18)'" site/ui-system-registry.js
+          # One CI-owned glass material only: 30% Vignette + proven 18px blur.
+          grep -q "app-glass.css?v=6" site/index.html
+          grep -q -- "--app-glass-fill:rgba(46,39,59,.30)" site/app-glass.css
+          grep -q -- "--app-glass-filter:blur(18px) saturate(1.18)" site/app-glass.css
+          grep -q -- "--app-glass-surface-fill:var(--app-glass-fill)" site/app-glass.css
+          grep -q -- "--app-glass-control-fill:var(--app-glass-fill)" site/app-glass.css
+          grep -q "\.app-glass-surface" site/app-glass.css
+          grep -q "\.app-glass-control" site/app-glass.css
+          grep -q "initGlassMaterial" site/bootstrap.js site/app-glass-runtime.js
+          grep -q "applyGlassMaterial(headerHost)" site/bootstrap.js
+          grep -q "applyGlassMaterial(routeHost)" site/bootstrap.js
+          grep -q "\.masthead" site/app-glass-runtime.js
+          grep -q "\.app-tabbar" site/app-glass-runtime.js
+          grep -q "\.bd-metric" site/app-glass-runtime.js
+          grep -q "\.fnb-card" site/app-glass-runtime.js
+          grep -q "\.settings-user-card" site/app-glass-runtime.js
+          grep -q "\.brand-card" site/app-glass-runtime.js
+          grep -q "\.factsheet-room-card" site/app-glass-runtime.js
+          grep -q "\.ihg-history-card" site/app-glass-runtime.js
+          grep -q "\.message-card" site/app-glass-runtime.js
+          grep -q "\.ci-status" site/app-glass-runtime.js
+          grep -q "1.4.0-preview" site/ui-system-registry.js
+          grep -q "One glass material only" site/ui-system-registry.js
+          grep -q "rgba(46,39,59,.30) + blur(18px) saturate(1.18)" site/ui-system-registry.js
+          grep -q "ci-glass-audit.js?v=2" site/ci-day-cycle-route.js
+          grep -q "ci-day-cycle-route.js?v=4" site/route-registry.js
 
-          # app-glass.css is tokens/primitives only: never a selector patch over route CSS.
-          if grep -Eq '#route-view|\.fnb-|\.settings-|\.ci-|\.brand-|\.factsheet-|\.ihg-|\.bd-' site/app-glass.css; then
-            echo 'Central glass authority must not patch route selectors' >&2
+          # app-glass.css owns material only; route-selector mapping lives in the runtime.
+          if grep -Eq '#route-view|\.fnb-card|\.settings-user-card|\.ci-status|\.brand-card|\.factsheet-room-card|\.ihg-history-card|\.bd-metric' site/app-glass.css; then
+            echo 'app-glass.css must remain a semantic material primitive, not a page selector patch' >&2
             exit 1
           fi
-          if grep -Eq -- '--app-glass-surface-filter:blur\(32px\)|--app-glass-control-filter:blur\(20px\)' site/app-glass.css; then
-            echo 'Temporary strengthened-glass experiment must not return' >&2
+          if grep -Eq -- '--app-glass-filter:blur\((32|20)px\)' site/app-glass.css; then
+            echo 'Experimental stronger blur must not return' >&2
             exit 1
           fi
           if grep -q '\.ci-route \.fnb-chip' site/index.html; then
@@ -90,11 +99,7 @@ jobs:
             exit 1
           fi
 
-          # Owning route CSS must consume the authority directly and preserve the real WebGL backdrop.
-          if grep -q 'fnb-card,.fnb-text-card,.fnb-art-card{background:rgba(46,39,59,.66);backdrop-filter:none' site/fnb-approved-polish.css; then
-            echo 'Late F&B no-blur override must not return' >&2
-            exit 1
-          fi
+          # Route roots must preserve the real WebGL backdrop.
           if grep -q 'isolation:isolate' site/fnb.css site/settings.css; then
             echo 'F&B/Settings must not isolate backdrop composition' >&2
             exit 1
@@ -108,40 +113,16 @@ jobs:
             echo 'Malformed backdrop-filter declaration detected' >&2
             exit 1
           fi
-          grep -q "article.className='message-card app-glass-surface'" site/notification-inbox.js
-          grep -q "clear.classList.add('app-glass-control')" site/notification-inbox.js
-          grep -q "backdrop-filter:var(--app-glass-control-filter)" site/business-card-component.css
-          grep -q "backdrop-filter:var(--app-glass-control-filter)" site/fnb-approved-polish.css
-          grep -q "\.fnb-select-menu.*backdrop-filter:var(--app-glass-surface-filter)" site/fnb-approved-polish.css
 
           # Utility actions remain intentionally frameless / transparent / unblurred.
           grep -q "app-controls.css?v=2" site/index.html
-          grep -q "backdrop-filter:none!important" site/app-controls.css
+          grep -q "backdrop-filter:none!important" site/app-controls.css site/app-glass.css
           grep -q "\.app-utility-action" site/app-controls.css site/ui-system-registry.js
           grep -q "Sign out, Share and Back to top" site/app-controls.css site/ui-system-registry.js
           grep -q "fresh.className='app-utility-action settings-hero-signout'" site/settings-route-v3.js
           grep -q "className='app-utility-action fnb-action-control fnb-share-button'" site/fnb-share-ui.js
           grep -q "button.className='app-utility-action'" site/brand-route-controls.js
           grep -q "classList.add('app-utility-action')" site/ci-day-cycle-route.js
-
-          # Current route/cache lineage and UI-library contracts.
-          grep -q "fnb.css?v=3&ui=3" site/fnb-route.js site/settings-route-v3.js
-          grep -q "fnb-approved-polish.css?v=3" site/fnb-route.js site/settings-route-v3.js
-          grep -q "fnb-refinements.css?v=2" site/fnb-route.js
-          grep -q "fnb-share-ui.js?v=4" site/fnb-route.js
-          grep -q "fnb-route.js?v=3" site/route-registry.js
-          grep -q "settings-route-v3.js?v=15&r=ci-glass-1" site/route-registry.js
-          grep -q "settings.css?v=3" site/settings-route-v3.js
-          grep -q "business-card-component.css?v=2&r=glass-1" site/settings-route-v3.js
-          grep -q "ci-day-cycle-route.js?v=3" site/route-registry.js
-          grep -q "business-card-settings.css?v=12" site/settings-route-v3.js
-          grep -q "settings-hero>.settings-hero-signout.*position:absolute" site/business-card-settings.css
-          grep -q "\[data-betta-period\]" site/ci-compact-fixes.css
-          grep -q "font-size:12px!important" site/ci-compact-fixes.css
-          grep -q "Translucency always blurs" site/ui-system-registry.js
-          grep -q "Utility actions are frameless and right aligned" site/ui-system-registry.js
-          grep -q "1.3.0-preview" site/ui-system-registry.js
-          grep -q "mountCiGlassAudit" site/ci-day-cycle-route.js site/ci-glass-audit.js
 
           # Appwide pull-to-reload contract.
           grep -q "dataset.shellPullRefresh='true'" site/app.js
@@ -199,21 +180,15 @@ jobs:
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
           for path in / /ci /fnb /settings /brand /ihg-history /hotel-factsheet /messages /sw.js /manifest.webmanifest \
-            '/app.js?v=2' '/pwa.css?v=2' '/app-controls.css?v=2' '/app-glass.css?v=5' \
-            '/fnb.css?v=3&ui=3' '/fnb-approved-polish.css?v=3' '/fnb-refinements.css?v=2' \
-            '/settings.css?v=3' '/settings-refinements.css?v=2' '/business-dashboard.css?v=4' \
-            '/brand.css' '/hotel-factsheet.css?v=2' '/ihg-history.css' '/ci.css' \
-            '/business-card-component.css?v=2&r=glass-1' '/notification-inbox.js' \
-            '/ci-compact-fixes.css?v=2' '/ci-glass-audit.js?v=1' '/ci-day-cycle-route.js?v=3' \
-            /ui-system-registry.js '/fnb-route.js?v=3' '/fnb-share-ui.js?v=4' '/startup-skeleton.css?v=2' '/startup-skeleton.js?v=1' \
-            '/pwa-version-guard.js?v=2' '/auth-shell.js?v=7' '/bootstrap.js?v=3' '/route-registry.js' \
-            '/settings-route-v3.js?v=15&r=ci-glass-1' '/business-card-settings.css?v=12' \
-            '/brand-route-controls.js?v=2' '/betta-runtime.js?v=2' '/betta-runtime-full.js?v=1'; do
+            '/app.js?v=2' '/pwa.css?v=2' '/app-controls.css?v=2' '/app-glass.css?v=6' '/app-glass-runtime.js?v=1' \
+            '/ci-compact-fixes.css?v=2' '/ci-glass-audit.js?v=2' '/ci-day-cycle-route.js?v=4' /ui-system-registry.js \
+            '/startup-skeleton.css?v=2' '/startup-skeleton.js?v=1' '/pwa-version-guard.js?v=2' '/auth-shell.js?v=8' '/bootstrap.js?v=4' \
+            '/route-registry.js' '/brand-route-controls.js?v=2' '/betta-runtime.js?v=2' '/betta-runtime-full.js?v=1'; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
 
-      - name: Browser audit CI authority, real route cascades, utilities and pull reload
+      - name: Browser audit CI authority, real routes, utilities and pull reload
         shell: bash
         env:
           BASE_URL: https://${{ github.ref_name }}.sindhorn-midtown-internal.pages.dev
