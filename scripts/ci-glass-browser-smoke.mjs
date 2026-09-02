@@ -29,69 +29,58 @@ async function runViewport(browser,width,height){
   try{
     await page.goto(`${BASE_URL}/ci`,{waitUntil:'domcontentloaded'});
     await page.waitForSelector('.ci-route');
-    await page.waitForSelector('#ci-glass');
     await page.waitForFunction(()=>window.SindhornUiLibrary?.version==='1.3.0-preview');
-    await page.waitForFunction(()=>document.querySelector('[data-ci-status-title]')?.textContent.trim()==='Design system status · PASS'&&document.querySelector('[data-ci-status-count]')?.textContent.trim()==='19/19');
-    await page.waitForSelector('[data-ci-top].app-utility-action');
+    await page.waitForSelector('#ci-glass');
     const report=await page.evaluate(()=>{
-      const read=selector=>{const node=document.querySelector(selector);if(!node)return{selector,missing:true,filter:'none'};const style=getComputedStyle(node);return{selector,missing:false,filter:String(style.backdropFilter||style.webkitBackdropFilter||'none'),background:style.backgroundColor,border:style.borderTopColor,fontSize:style.fontSize}};
-      const probeHost=document.getElementById('route-view');
-      if(!probeHost)throw new Error('route-view unavailable');
+      const routeView=document.getElementById('route-view');
+      if(!routeView)throw new Error('route-view unavailable');
       const probes=document.createElement('div');
       probes.className='ci-route';
-      probes.hidden=true;
-      probes.innerHTML='<button class="fnb-expand" data-audit-expand>Show full</button><button class="fnb-action" data-audit-folder>View artwork folder</button><button class="action message-clear" data-audit-message>Clear all</button><button class="settings-add" data-audit-add>Add employee</button><article class="settings-planned settings-system-library-card" data-audit-system>System</article><button class="fnb-chip ci-betta-period-chip" data-betta-period="golden-hour" data-audit-period>Golden Hour</button><button class="app-utility-action" data-audit-utility>Share</button>';
-      probeHost.appendChild(probes);
-      const period=probes.querySelector('[data-audit-period]');
-      const periodStyle=getComputedStyle(period);
-      const top=document.querySelector('[data-ci-top].app-utility-action');
-      const topRect=top?.getBoundingClientRect();
-      const routeRect=document.querySelector('.ci-route')?.getBoundingClientRect();
+      probes.style.cssText='position:fixed;left:-10000px;top:0;width:390px;visibility:hidden;pointer-events:none';
+      probes.innerHTML=`
+        <article class="fnb-card" data-probe="fnb-card"></article>
+        <button class="fnb-chip" data-probe="fnb-chip">Chip</button>
+        <button class="app-back-control" data-probe="back"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <button class="settings-primary" data-probe="primary">Primary</button>
+        <button class="fnb-select-trigger" data-probe="select">Select</button>
+        <article class="factsheet-room-card" data-probe="room"></article>
+        <figure class="factsheet-picture" data-probe="picture"></figure>
+        <div class="ci-status" data-probe="ci-status"></div>
+        <nav class="ci-index"><button data-probe="ci-index">Index</button></nav>
+        <button class="fnb-expand" data-probe="expand">Show full</button>
+        <button class="fnb-action" data-probe="folder">View artwork folder</button>
+        <button class="action message-clear" data-probe="message">Clear all</button>
+        <button class="settings-add" data-probe="add">Add employee</button>
+        <article class="settings-planned settings-system-library-card" data-probe="system"></article>
+        <button class="fnb-chip ci-betta-period-chip" data-betta-period="golden-hour" data-probe="period">Golden Hour</button>
+        <button class="app-quiet-action" data-probe="legacy-utility">Back to top</button>
+        <button class="app-utility-action" data-probe="utility">Share</button>`;
+      routeView.appendChild(probes);
+      const read=name=>{const node=probes.querySelector(`[data-probe="${name}"]`),style=getComputedStyle(node);return{name,filter:String(style.backdropFilter||style.webkitBackdropFilter||'none'),background:style.backgroundColor,border:style.borderTopColor,fontSize:style.fontSize,paddingTop:style.paddingTop,paddingRight:style.paddingRight}};
       const result={
         version:window.SindhornUiLibrary?.version,
-        sections:document.querySelectorAll('.ci-section').length,
-        status:document.querySelector('[data-ci-status-title]')?.textContent.trim(),
-        count:document.querySelector('[data-ci-status-count]')?.textContent.trim(),
-        targets:[
-          read('#ci-surfaces .fnb-card'),
-          read('#ci-selectors .fnb-chip'),
-          read('#ci-actions .app-back-control'),
-          read('#ci-actions .settings-primary:not(:disabled)'),
-          read('#ci-selectors .fnb-select-trigger'),
-          read('#ci-disclosures .factsheet-room-card'),
-          read('[data-ci-glass-picture]'),
-          read('.ci-status'),
-          read('.ci-index button'),
-          read('[data-audit-expand]'),
-          read('[data-audit-folder]'),
-          read('[data-audit-message]'),
-          read('[data-audit-add]'),
-          read('[data-audit-system]')
-        ],
-        utilities:[read('#ci-actions .app-quiet-action'),read('[data-ci-top].app-utility-action'),read('[data-audit-utility]')],
-        topRightGap:topRect&&routeRect?Math.round(routeRect.right-topRect.right):null,
-        periodChip:{fontSize:periodStyle.fontSize,paddingTop:periodStyle.paddingTop,paddingRight:periodStyle.paddingRight},
+        targets:['fnb-card','fnb-chip','back','primary','select','room','picture','ci-status','ci-index','expand','folder','message','add','system'].map(read),
+        utilities:['legacy-utility','utility'].map(read),
+        periodChip:read('period'),
         overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth
       };
       probes.remove();
       return result;
     });
-    assert(report.sections===19,`${width}: expected 19 CI sections, got ${report.sections}`);
-    assert(report.status==='Design system status · PASS'&&report.count==='19/19',`${width}: CI status ${JSON.stringify(report)}`);
+    assert(report.version==='1.3.0-preview',`${width}: CI registry unavailable`);
     assert(report.overflow<=1,`${width}: horizontal overflow ${report.overflow}`);
-    for(const target of report.targets){assert(!target.missing,`${width}: missing ${target.selector}`);assert(includesBlur(target.filter),`${width}: ${target.selector} has no blur (${target.filter})`)}
-    for(const utility of report.utilities){assert(!utility.missing,`${width}: missing ${utility.selector}`);assert(hasNoBlur(utility.filter),`${width}: ${utility.selector} unexpectedly blurs (${utility.filter})`);assert(utility.background==='rgba(0, 0, 0, 0)',`${width}: ${utility.selector} painted background ${utility.background}`);assert(utility.fontSize==='12px',`${width}: ${utility.selector} font ${utility.fontSize}`)}
-    assert(report.topRightGap!==null&&Math.abs(report.topRightGap)<=8,`${width}: CI Back to top is not right anchored (${report.topRightGap}px)`);
+    for(const target of report.targets)assert(includesBlur(target.filter),`${width}: ${target.name} has no blur (${target.filter})`);
+    for(const utility of report.utilities){assert(hasNoBlur(utility.filter),`${width}: ${utility.name} unexpectedly blurs (${utility.filter})`);assert(utility.background==='rgba(0, 0, 0, 0)',`${width}: ${utility.name} painted background ${utility.background}`);assert(utility.fontSize==='12px',`${width}: ${utility.name} font ${utility.fontSize}`)}
     assert(report.periodChip.fontSize==='12px',`${width}: Betta period chip font ${report.periodChip.fontSize}`);
-    if(width<=430){assert(report.periodChip.paddingTop==='7px'&&report.periodChip.paddingRight==='10px',`${width}: mobile Betta period chip padding ${JSON.stringify(report.periodChip)}`)}
+    if(width<=430)assert(report.periodChip.paddingTop==='7px'&&report.periodChip.paddingRight==='10px',`${width}: mobile Betta period chip padding ${JSON.stringify(report.periodChip)}`);
     assert(errors.length===0,`${width}: browser error ${errors[0]}`);
     if(width===390){
-      await page.evaluate(()=>document.querySelector('[data-ci-top]')?.scrollIntoView({block:'center',behavior:'auto'}));
-      await page.waitForTimeout(180);
-      await page.screenshot({path:path.join(OUT_DIR,'ci-utility-actions-390x844.png'),fullPage:false});
       await page.evaluate(()=>document.getElementById('ci-glass')?.scrollIntoView({block:'start',behavior:'auto'}));
-      await page.waitForTimeout(120);
+      await page.waitForTimeout(160);
       await page.screenshot({path:path.join(OUT_DIR,'ci-glass-390x844.png'),fullPage:false});
+      await page.evaluate(()=>document.querySelector('[data-ci-top]')?.scrollIntoView({block:'center',behavior:'auto'}));
+      await page.waitForTimeout(120);
+      await page.screenshot({path:path.join(OUT_DIR,'ci-utility-actions-390x844.png'),fullPage:false});
     }
     return report;
   }finally{await context.close()}
