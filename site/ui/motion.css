@@ -1,0 +1,9 @@
+@keyframes uiSkeletonPulse{0%,100%{opacity:.56}50%{opacity:1}}
+.ui-route-enter{animation:uiRouteEnter var(--ui-duration-standard) var(--ui-ease-standard) both;}
+@keyframes uiRouteEnter{from{opacity:0}to{opacity:1}}
+.ui-spinner{width:28px;height:28px;border:1.5px solid rgba(var(--ui-color-white-rgb),.25);border-top-color:var(--ui-color-white);border-radius:50%;animation:uiSpin .8s linear infinite;}
+@keyframes uiSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}
+}
