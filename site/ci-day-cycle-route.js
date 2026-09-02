@@ -1,5 +1,5 @@
 import {mountCiRoute as mountCanonicalCiRoute} from './ci.js?v=1';
-import {mountBettaDayCycleControls} from './ci-betta-day-cycle.js';
+import {mountBettaDayCycleControls} from './ci-betta-day-cycle.js?v=2';
 import {mountCiGlassAudit} from './ci-glass-audit.js?v=1';
 
 export async function mountCiRoute(host){
