@@ -1,14 +1,14 @@
 /* CI-only typography correction.
    The documentation shell must not let .ci-route button { font:inherit }
    override the product chip typography used by the live specimens. */
-body[data-route="ci"] .ci-route .fnb-chip{
+.ci-route .fnb-chip{
   font-family:var(--font-ui)!important;
   font-size:10.5px!important;
   font-weight:400!important;
   line-height:1!important;
   letter-spacing:0!important;
 }
-body[data-route="ci"] .ci-route [data-betta-period]{
+.ci-route [data-betta-period]{
   height:auto!important;
   min-height:30px!important;
   padding:8px 12px!important;
@@ -16,5 +16,5 @@ body[data-route="ci"] .ci-route [data-betta-period]{
   white-space:nowrap;
 }
 @media(max-width:620px){
-  body[data-route="ci"] .ci-route [data-betta-period]{padding:7px 10px!important}
+  .ci-route [data-betta-period]{padding:7px 10px!important}
 }
