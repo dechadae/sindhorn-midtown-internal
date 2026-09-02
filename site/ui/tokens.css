@@ -1,12 +1,15 @@
 :root{
+  /* Visual authority: current approved /ci page and its live specimens. */
   --ui-color-vignette:#2E273B;
   --ui-color-vignette-rgb:46,39,59;
   --ui-color-white:#FAF7F5;
   --ui-color-white-rgb:250,247,245;
   --ui-color-sorbet:#E5ECBE;
   --ui-color-sorbet-rgb:229,236,190;
-  --ui-color-muted:rgba(250,247,245,.68);
-  --ui-color-line:rgba(250,247,245,.14);
+  --ui-color-muted:rgba(250,247,245,.55);
+  --ui-color-muted-strong:rgba(250,247,245,.66);
+  --ui-color-line:rgba(250,247,245,.09);
+  --ui-color-line-strong:rgba(250,247,245,.14);
   --ui-color-success:#72A75D;
   --ui-color-warning:#D19B59;
   --ui-color-error:#E3A2A8;
@@ -27,25 +30,31 @@
   --ui-space-12:48px;
   --ui-space-16:64px;
 
-  --ui-radius-xs:8px;
-  --ui-radius-sm:12px;
-  --ui-radius-md:16px;
-  --ui-radius-lg:22px;
-  --ui-radius-pill:999px;
-  --ui-border:1px solid var(--ui-color-line);
-  --ui-control-sm:36px;
-  --ui-control-md:44px;
-  --ui-control-lg:52px;
+  /* Approved CI shape language: rounded rectangles, never circular UI chrome. */
+  --ui-radius-indicator:2px;
+  --ui-radius-badge:5px;
+  --ui-radius-icon:8px;
+  --ui-radius-chip:9px;
+  --ui-radius-control:12px;
+  --ui-radius-footer:13px;
+  --ui-radius-card:14px;
+  --ui-radius-dialog:24px;
 
-  --ui-glass-bg:rgba(46,39,59,.30);
-  --ui-glass-border:rgba(250,247,245,.16);
+  --ui-control-sm:36px;
+  --ui-control-md:40px;
+  --ui-control-field:48px;
+
+  /* One blur authority. Opacity variants reproduce the already-approved CI specimens. */
+  --ui-glass-bg:rgba(46,39,59,.55);
+  --ui-glass-bg-soft:rgba(46,39,59,.48);
+  --ui-glass-border:rgba(250,247,245,.14);
   --ui-glass-blur:18px;
   --ui-glass-saturation:1.18;
-  --ui-shadow-float:0 18px 60px rgba(11,8,18,.18);
+  --ui-shadow-float:0 14px 34px rgba(12,9,18,.14);
 
   --ui-ease-standard:cubic-bezier(.22,1,.36,1);
-  --ui-duration-fast:140ms;
-  --ui-duration-standard:280ms;
+  --ui-duration-fast:160ms;
+  --ui-duration-standard:260ms;
   --ui-duration-slow:420ms;
 
   --ui-max-content:720px;
@@ -60,7 +69,7 @@
   --ui-z-sticky:80;
   --ui-z-header:90;
   --ui-z-footer:100;
-  --ui-z-popover:140;
+  --ui-z-popover:128;
   --ui-z-dialog:180;
   --ui-z-toast:200;
 }
