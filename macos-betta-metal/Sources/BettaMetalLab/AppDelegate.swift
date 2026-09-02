@@ -7,7 +7,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var renderer: BettaRenderer!
     private var editorPanel: BettaCompositionEditorPanel!
     private var titleTimer: Timer?
+    private var evolutionMenuItem: NSMenuItem?
     private let diagnostics = BettaDiagnostics.shared
+    private let evolution = BettaEvolutionController()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let hadPreviousIncompleteLaunch = diagnostics.hasPreviousIncompleteLaunch
@@ -70,7 +72,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let currentIndex = BettaMorphState.bangkokIndex(for: Date())
         diagnostics.checkpoint("editor.init.begin", detail: "fish-index=\(currentIndex)")
         editorPanel = BettaCompositionEditorPanel(initialIndex: currentIndex)
-        editorPanel.onSelectFish = { [weak self] index in self?.renderer?.setManualPreset(index) }
+        editorPanel.onSelectFish = { [weak self] index in
+            guard let self else { return }
+            self.stopEvolution(showEditor: self.window?.desktopMode != true)
+            self.renderer?.setManualPreset(index)
+        }
         editorPanel.onSaveAndUse = { [weak self] in self?.saveAndUseAsWallpaper() }
         root.addSubview(editorPanel)
         NSLayoutConstraint.activate([
@@ -89,13 +95,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         titleTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             guard let self, let window = self.window, let renderer = self.renderer, !window.desktopMode else { return }
-            window.title = "Sindhorn Betta Metal Lab · \(renderer.statusText)"
+            let evolutionText = self.evolution.statusText.map { " · \($0)" } ?? ""
+            window.title = "Sindhorn Betta Metal Lab · \(renderer.statusText)\(evolutionText)"
         }
 
         diagnostics.markStartupComplete()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        evolution.stop()
         titleTimer?.invalidate()
         metalView?.isPaused = true
     }
@@ -106,13 +114,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if window?.desktopMode != true { NSApp.terminate(nil) }
     }
 
-    @objc private func selectFish(_ sender: NSMenuItem) { editorPanel?.selectFish(index: sender.tag) }
-    @objc private func useLive(_ sender: Any?) { renderer?.useLiveMode() }
-    @objc private func usePreview(_ sender: Any?) { renderer?.usePreviewMode() }
+    @objc private func selectFish(_ sender: NSMenuItem) {
+        editorPanel?.selectFish(index: sender.tag)
+    }
+
+    @objc private func useLive(_ sender: Any?) {
+        stopEvolution(showEditor: window?.desktopMode != true)
+        renderer?.useLiveMode()
+    }
+
+    @objc private func usePreview(_ sender: Any?) {
+        stopEvolution(showEditor: window?.desktopMode != true)
+        renderer?.usePreviewMode()
+    }
+
     @objc private func nextFish(_ sender: Any?) { editorPanel?.cycleFish(1) }
     @objc private func previousFish(_ sender: Any?) { editorPanel?.cycleFish(-1) }
 
     @objc private func randomizeBetta(_ sender: Any?) {
+        stopEvolution(showEditor: window?.desktopMode != true)
         guard let editorPanel, let style = editorPanel.randomizeCurrentBetta() else { return }
         diagnostics.checkpoint(
             "random.generated",
@@ -120,16 +140,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         )
     }
 
+    @objc private func toggleEvolution(_ sender: Any?) {
+        if evolution.isRunning {
+            stopEvolution(showEditor: window?.desktopMode != true)
+            return
+        }
+        startEvolutionForSelected()
+    }
+
     @objc private func toggleDesktop(_ sender: Any?) {
         guard let window, let renderer else { return }
         if window.desktopMode {
+            stopEvolution(showEditor: false)
             window.setDesktopMode(false)
+            if let editorPanel {
+                editorPanel.selectFish(index: editorPanel.selectedFishIndex, notifyRenderer: false)
+            }
             setEditorVisible(true)
         } else {
             _ = BettaCompositionStore.shared.save()
             _ = BettaAdvancedTuningStore.shared.save()
             _ = BettaRandomStyleStore.shared.save()
-            renderer.useLiveMode()
+            if !evolution.isRunning { renderer.useLiveMode() }
             setEditorVisible(false)
             window.setDesktopMode(true)
         }
@@ -138,9 +170,46 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private func saveAndUseAsWallpaper() {
         guard let window, let renderer else { return }
         _ = BettaRandomStyleStore.shared.save()
-        renderer.useLiveMode()
+        if !evolution.isRunning { renderer.useLiveMode() }
         setEditorVisible(false)
         window.setDesktopMode(true)
+    }
+
+    private func startEvolutionForSelected() {
+        guard let editorPanel, let renderer else { return }
+        let index = editorPanel.selectedFishIndex
+        let referenceId = BettaPreset.all[index].referenceId
+        renderer.setManualPreset(index)
+
+        guard evolution.start(referenceId: referenceId) else { return }
+        setEditorVisible(false)
+        syncEvolutionMenuItem()
+        diagnostics.checkpoint(
+            "evolution.started",
+            detail: "fish-index=\(index) reference-id=\(referenceId) target=\(evolution.targetSeedShort ?? "unknown") duration=\(Int(BettaEvolutionController.defaultSegmentDuration))s"
+        )
+    }
+
+    private func stopEvolution(showEditor: Bool) {
+        guard evolution.isRunning else { return }
+        let referenceId = evolution.currentReferenceId
+        let targetSeed = evolution.targetSeedShort
+        evolution.stop()
+        syncEvolutionMenuItem()
+        diagnostics.checkpoint(
+            "evolution.stopped",
+            detail: "reference-id=\(referenceId.map(String.init) ?? "unknown") target=\(targetSeed ?? "unknown")"
+        )
+
+        if showEditor, window?.desktopMode != true, let editorPanel {
+            editorPanel.selectFish(index: editorPanel.selectedFishIndex, notifyRenderer: false)
+            setEditorVisible(true)
+        }
+    }
+
+    private func syncEvolutionMenuItem() {
+        evolutionMenuItem?.state = evolution.isRunning ? .on : .off
+        evolutionMenuItem?.title = evolution.isRunning ? "Stop Continuous Evolution" : "Start Continuous Evolution"
     }
 
     private func setEditorVisible(_ visible: Bool) { editorPanel?.isHidden = !visible }
@@ -152,8 +221,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if let fishArg = args.first(where: { $0.hasPrefix("--fish=") }), let value = Int(fishArg.split(separator: "=").last ?? ""), (1...8).contains(value) {
             editorPanel?.selectFish(index: value - 1)
         }
+        if args.contains("--evolve") {
+            startEvolutionForSelected()
+        }
         if args.contains("--desktop") {
-            renderer.useLiveMode()
+            if !evolution.isRunning { renderer.useLiveMode() }
             setEditorVisible(false)
             window?.setDesktopMode(true)
         }
@@ -177,9 +249,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             item.target = self; item.tag = index; bettaMenu.addItem(item)
         }
         bettaMenu.addItem(.separator())
+
         let random = NSMenuItem(title: "Random Betta + Matching Gradient", action: #selector(randomizeBetta(_:)), keyEquivalent: "r")
         random.target = self
         bettaMenu.addItem(random)
+
+        let evolutionItem = NSMenuItem(title: "Start Continuous Evolution", action: #selector(toggleEvolution(_:)), keyEquivalent: "e")
+        evolutionItem.target = self
+        evolutionItem.state = .off
+        bettaMenu.addItem(evolutionItem)
+        evolutionMenuItem = evolutionItem
+
+        bettaMenu.addItem(.separator())
         let previous = NSMenuItem(title: "Previous Fish", action: #selector(previousFish(_:)), keyEquivalent: "["); previous.target = self; bettaMenu.addItem(previous)
         let next = NSMenuItem(title: "Next Fish", action: #selector(nextFish(_:)), keyEquivalent: "]"); next.target = self; bettaMenu.addItem(next)
         bettaMenu.addItem(.separator())
