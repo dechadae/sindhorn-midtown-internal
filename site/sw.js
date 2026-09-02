@@ -1,5 +1,6 @@
-const VERSION='sindhorn-midtown-internal-pwa-v44-fast-startup-r1';
+const VERSION='sindhorn-midtown-internal-pwa-v45-fast-startup-r2';
 // Preserve prior production release-family markers required by regression gates:
+// sindhorn-midtown-internal-pwa-v44-fast-startup-r1
 // sindhorn-midtown-internal-pwa-v43-betta-final-r1
 // sindhorn-midtown-internal-pwa-v42-today-progress-r1
 // sindhorn-midtown-internal-pwa-v41-performance-r1
