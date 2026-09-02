@@ -22,7 +22,8 @@
 #ci-surfaces .fnb-card-button{border:0}
 
 /* Match the compact F&B chip scale instead of inheriting the CI document's 15px button font. */
-#ci-selectors .ci-chip-row .fnb-chip{
+#ci-selectors .ci-chip-row .fnb-chip,
+#ci-glass .fnb-chip{
   height:30px;
   min-height:30px;
   padding:0 13px;
@@ -31,4 +32,15 @@
   font-weight:400;
   line-height:1;
   letter-spacing:0!important;
+}
+
+/* Material tokens display their computed filter recipe as a live value instead of an empty colour swatch. */
+.ci-token[data-kind="material"] .ci-token-swatch{
+  display:grid;
+  place-items:center;
+  background:rgba(250,247,245,.045);
+  color:var(--ci-accent);
+  font-size:9px;
+  text-align:center;
+  padding:8px;
 }
