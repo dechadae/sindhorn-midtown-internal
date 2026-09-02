@@ -18,10 +18,10 @@ rm -rf "$DIST"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/BettaMetalLab" "$APP/Contents/MacOS/BettaMetalLab"
 
-# 0.4.0 builds on the stable 0.3.8 startup/recovery and Metal kernel.
-# It adds exact saved presets/favorites, full XYZ landscape rotation,
-# a configurable 1–6 membrane stack, and native AppKit Liquid Glass UI
-# on macOS 26 with the established visual-effect fallback on older macOS.
+# 0.4.1 is a non-destructive refinement of the approved 0.4.0 Living Studio.
+# Existing UserDefaults keys/settings remain unchanged. The eight canonical
+# Betta definitions stay immutable, while Restore Original Colors Only copies
+# just palette + matching gradient back into the selected working copy.
 xcrun -sdk macosx metal -mmacosx-version-min=13.0 -c "$SAFE_SHADER" -o "$AIR"
 xcrun -sdk macosx metallib "$AIR" -o "$METALLIB"
 rm -f "$AIR"
@@ -40,8 +40,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>Sindhorn Betta Metal Lab</string>
 <key>CFBundleDisplayName</key><string>Sindhorn Betta Metal Lab</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.4.0</string>
-<key>CFBundleVersion</key><string>12</string>
+<key>CFBundleShortVersionString</key><string>0.4.1</string>
+<key>CFBundleVersion</key><string>13</string>
 <key>BettaGitSHA</key><string>__BETTA_GIT_SHA__</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>NSHighResolutionCapable</key><true/>
