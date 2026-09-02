@@ -1,42 +1,52 @@
 /* Sindhorn Midtown Internal — canonical translucent glass material authority.
    Rule: if an interface surface intentionally shows the atmosphere/content behind it,
    the same surface also blurs that background. This file owns material only: it does
-   not change component geometry, colour, content, spacing or interaction.
-   Preview branch note: this comment creates a fresh Cloudflare origin deployment for cache-isolated review. */
+   not change component geometry, colour, content, spacing or interaction. */
 :root{
   --app-glass-surface-filter:blur(18px) saturate(1.18);
   --app-glass-control-filter:blur(12px) saturate(1.12);
 }
 
-/* Standard translucent cards / information surfaces. Strong modal sheets that
-   already own a larger 22–28px filter deliberately keep their local value. */
-:where(
+/* Route material authority.
+   Route styles are loaded lazily after the shell, so this selector deliberately
+   includes #route-view: the global glass contract must remain stronger than a
+   later page-level declaration that accidentally disables blur. */
+#route-view :is(
   .fnb-card,.fnb-text-card,.fnb-art-card,.fnb-empty,.fnb-folder-empty,
   .bd-metric,.bd-flag,.bd-summary-surface,.bd-disclosure,.bd-benchmark-grid,.bd-outlook-card,.bd-empty,
   .brand-card,
   .factsheet-picture,.factsheet-card,.factsheet-room-card,.factsheet-disclosure,
   .ihg-history-card,.ihg-history-source,.ihg-history-visual,
-  .settings-avatar,.settings-user-card,.settings-state,.settings-planned,
+  .settings-avatar,.settings-user-card,.settings-state,.settings-planned,.settings-system-library-card,
   .ci-status,.ci-specimen,.ci-doc-card,.ci-rule,.ci-state-card,.ci-owner-card,.ci-identity-lockup,.ci-token,.ci-image-demo,.ci-motion-step,
-  .onboarding-complete,.settings-guide-card,.login-first-time,
+  .onboarding-complete,.settings-guide-card,
   .signed-card,.admin-panel
 ){
   backdrop-filter:var(--app-glass-surface-filter)!important;
   -webkit-backdrop-filter:var(--app-glass-surface-filter)!important;
 }
 
-/* Compact translucent controls. Fully transparent quiet actions and opaque
-   primary buttons are intentionally excluded. */
-:where(
+#route-view :is(
   .fnb-chip,.fnb-select select,.fnb-select-trigger,.fnb-select-menu,.fnb-action,.fnb-back,.fnb-expand,.fnb-link-field input,
-  .app-back-control,
-  .settings-primary,.settings-quiet-action,.settings-search,.settings-close,.settings-field input,.settings-status,
-  .settings-dialog-actions button,.settings-code-actions button,
+  .app-back-control,.app-quiet-action,
+  .action.message-clear,.message-clear,
+  .settings-primary,.settings-quiet-action,.settings-add,.settings-search,.settings-close,.settings-field input,.settings-status,
+  .settings-dialog-actions button,.settings-code-actions button,.business-card-settings-actions button,
   .public-card-action,
   .ci-index button,.ci-copy-code,.ci-primary,
   .onboarding-close,.onboarding-secondary,.onboarding-quiet,.onboarding-guide-footer button,.onboarding-guide-head button,
   .field input,.field select,.chip-btn
 ){
+  backdrop-filter:var(--app-glass-control-filter)!important;
+  -webkit-backdrop-filter:var(--app-glass-control-filter)!important;
+}
+
+/* Login/onboarding boundary is outside #route-view. */
+:is(.login-first-time,.onboarding-complete){
+  backdrop-filter:var(--app-glass-surface-filter)!important;
+  -webkit-backdrop-filter:var(--app-glass-surface-filter)!important;
+}
+:is(.field input,.field select,.chip-btn,.onboarding-close,.onboarding-secondary,.onboarding-quiet){
   backdrop-filter:var(--app-glass-control-filter)!important;
   -webkit-backdrop-filter:var(--app-glass-control-filter)!important;
 }
