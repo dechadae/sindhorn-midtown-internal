@@ -20,8 +20,8 @@
   .onboarding-complete,.settings-guide-card,.login-first-time,
   .signed-card,.admin-panel
 ){
-  backdrop-filter:var(--app-glass-surface-filter);
-  -webkit-backdrop-filter:var(--app-glass-surface-filter);
+  backdrop-filter:var(--app-glass-surface-filter)!important;
+  -webkit-backdrop-filter:var(--app-glass-surface-filter)!important;
 }
 
 /* Compact translucent controls. Fully transparent quiet actions and opaque
@@ -36,13 +36,13 @@
   .onboarding-close,.onboarding-secondary,.onboarding-quiet,.onboarding-guide-footer button,.onboarding-guide-head button,
   .field input,.field select,.chip-btn
 ){
-  backdrop-filter:var(--app-glass-control-filter);
-  -webkit-backdrop-filter:var(--app-glass-control-filter);
+  backdrop-filter:var(--app-glass-control-filter)!important;
+  -webkit-backdrop-filter:var(--app-glass-control-filter)!important;
 }
 
 /* The persistent shell surfaces already use stronger local filters. Active
    translucent footer items still consume the compact control material. */
 #app-footer .shell-footer-rail .nav-chip[aria-current]{
-  backdrop-filter:var(--app-glass-control-filter);
-  -webkit-backdrop-filter:var(--app-glass-control-filter);
+  backdrop-filter:var(--app-glass-control-filter)!important;
+  -webkit-backdrop-filter:var(--app-glass-control-filter)!important;
 }
