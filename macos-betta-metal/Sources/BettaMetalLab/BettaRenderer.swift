@@ -68,6 +68,7 @@ enum BettaRendererError: LocalizedError {
 final class BettaRenderer: NSObject, MTKViewDelegate {
     private static let inFlightCount = 3
     private static let uniformAlignment = 256
+    private static let maxMembraneCount = 6
 
     let device: MTLDevice
     private let commandQueue: MTLCommandQueue
@@ -155,11 +156,11 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         geometry = try BettaGeometry(device: metalDevice)
         finUniformStride = Self.aligned(MemoryLayout<FinUniforms>.stride)
         backgroundUniformStride = Self.aligned(MemoryLayout<BackgroundUniforms>.stride)
-        guard let fb = metalDevice.makeBuffer(length: finUniformStride * 2 * Self.inFlightCount, options: .storageModeShared),
+        guard let fb = metalDevice.makeBuffer(length: finUniformStride * Self.maxMembraneCount * Self.inFlightCount, options: .storageModeShared),
               let bb = metalDevice.makeBuffer(length: backgroundUniformStride * Self.inFlightCount, options: .storageModeShared) else {
             throw BettaRendererError.bufferAllocationFailed
         }
-        fb.label = "Triple-buffered Betta high-detail fin uniforms"
+        fb.label = "Triple-buffered Betta high-detail membrane uniforms"
         bb.label = "Triple-buffered Betta background uniforms"
         finUniformBuffer = fb
         backgroundUniformBuffer = bb
@@ -185,7 +186,8 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         let p = BettaPreset.all[morph.toIndex]
         let fps = measuredFPS > 0 ? String(format: "%.0f fps", measuredFPS) : "warming up"
         let randomSuffix = randomStyleStore.style(for: p.referenceId).map { " · Random #\($0.shortSeed)" } ?? ""
-        return "\(morph.modeLabel) · Fish #\(p.referenceId) · \(p.name)\(randomSuffix) · High Detail \(BettaGeometry.rays)×\(BettaGeometry.radialSegments) · \(fps) · \(device.name)"
+        let membranes = advancedStore.adjustment(for: p.referenceId).membraneCount
+        return "\(morph.modeLabel) · Fish #\(p.referenceId) · \(p.name)\(randomSuffix) · \(membranes) membranes · High Detail \(BettaGeometry.rays)×\(BettaGeometry.radialSegments) · \(fps) · \(device.name)"
     }
 
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
@@ -216,6 +218,10 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         let fromBackground = fromStyle?.resolvedBackground ?? from.background
         let toBackground = toStyle?.resolvedBackground ?? to.background
         let camera = interpolatedCamera(fromAdvanced.camera, toAdvanced.camera, e)
+        let membraneCount = min(
+            Self.maxMembraneCount,
+            max(1, Int(lerp(Float(fromAdvanced.membraneCount), Float(toAdvanced.membraneCount), e).rounded()))
+        )
 
         let aspect = Float(max(1, view.drawableSize.width) / max(1, view.drawableSize.height))
         let fov = camera.fov * .pi / 180
@@ -252,8 +258,8 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         enc.setRenderPipelineState(finPipeline)
         enc.setDepthStencilState(depthState)
         enc.setVertexBuffer(geometry.vertexBuffer, offset: 0, index: 0)
-        for layer in 0..<2 {
-            let offset = (slot * 2 + layer) * finUniformStride
+        for layer in 0..<membraneCount {
+            let offset = (slot * Self.maxMembraneCount + layer) * finUniformStride
             let uniforms = makeFinUniforms(
                 from: from,
                 to: to,
@@ -263,6 +269,7 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
                 toPalette: toPalette,
                 mix: e,
                 layerIndex: layer,
+                layerCount: membraneCount,
                 aspect: aspect,
                 viewProjection: viewProjection,
                 cameraPosition: cameraPosition
@@ -286,16 +293,17 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         toPalette: [SIMD3<Float>],
         mix e: Float,
         layerIndex: Int,
+        layerCount: Int,
         aspect: Float,
         viewProjection: simd_float4x4,
         cameraPosition: SIMD3<Float>
     ) -> FinUniforms {
         let ta = fromAdvanced.tail
         let tb = toAdvanced.tail
-        let canonicalLayerA = from.layers[layerIndex]
-        let canonicalLayerB = to.layers[layerIndex]
-        let la = layerIndex == 0 ? fromAdvanced.frontLayer : fromAdvanced.backLayer
-        let lb = layerIndex == 0 ? toAdvanced.frontLayer : toAdvanced.backLayer
+        let layerA = synthesizedLayer(preset: from, advanced: fromAdvanced, index: layerIndex, count: layerCount)
+        let layerB = synthesizedLayer(preset: to, advanced: toAdvanced, index: layerIndex, count: layerCount)
+        let la = layerA.tuning
+        let lb = layerB.tuning
         let p: (Float, Float) -> Float = { lerp($0, $1, e) }
 
         let sourceA = SIMD3<Float>(from.params.offsetX + la.x, from.params.offsetY + la.y, from.params.cameraDepth + la.z)
@@ -304,8 +312,8 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         let mb = BettaLandscapeMapper.map(position: sourceB, aspect: aspect, referenceId: to.referenceId, camera: toAdvanced.camera)
         let pos = lerp(ma.position, mb.position, e)
         let scale = p(from.params.scale * la.scale * ma.scaleMultiplier, to.params.scale * lb.scale * mb.scaleMultiplier)
-        let rx = lerpAngle(from.params.rotationX, to.params.rotationX, e)
-        let ry = lerpAngle(from.params.rotationY, to.params.rotationY, e)
+        let rx = lerpAngle(from.params.rotationX + ma.rotationXOffset, to.params.rotationX + mb.rotationXOffset, e)
+        let ry = lerpAngle(from.params.rotationY + ma.rotationYOffset, to.params.rotationY + mb.rotationYOffset, e)
         let rz = lerpAngle(from.params.rotation + la.rotation + ma.rotationZOffset, to.params.rotation + lb.rotation + mb.rotationZOffset, e)
         let model = translationMatrix(pos) * rotationYMatrix(ry) * rotationXMatrix(rx) * rotationZMatrix(rz) * uniformScaleMatrix(scale)
         let n = BettaSettings.neutralSatellite
@@ -314,7 +322,7 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
             modelMatrix: model,
             viewProjectionMatrix: viewProjection,
             cameraPosition: SIMD4<Float>(cameraPosition.x, cameraPosition.y, cameraPosition.z, 1),
-            timeSeedPhaseMorph: SIMD4<Float>(activeTime, p(canonicalLayerA.seed, canonicalLayerB.seed), p(la.phase, lb.phase), e),
+            timeSeedPhaseMorph: SIMD4<Float>(activeTime, p(layerA.seed, layerB.seed), p(la.phase, lb.phase), e),
             shape0: SIMD4<Float>(p(ta.spread, tb.spread), p(ta.foldDensity, tb.foldDensity), p(ta.curl, tb.curl), p(ta.twist, tb.twist)),
             shape1: SIMD4<Float>(p(ta.edgeFlutter, tb.edgeFlutter), p(ta.depth, tb.depth), p(ta.currentStrength, tb.currentStrength), p(ta.motionSpeed, tb.motionSpeed)),
             shape2: SIMD4<Float>(p(ta.turbulence, tb.turbulence), p(ta.motionAmplitude, tb.motionAmplitude), p(ta.opacity, tb.opacity), p(ta.transmission, tb.transmission)),
@@ -336,6 +344,44 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
             color2To: rgba(toPalette[2]),
             color3To: rgba(toPalette[3])
         )
+    }
+
+    private func synthesizedLayer(
+        preset: BettaPreset,
+        advanced: BettaAdvancedAdjustment,
+        index: Int,
+        count: Int
+    ) -> (tuning: BettaLayerTuning, seed: Float) {
+        guard count > 1 else {
+            return (advanced.frontLayer.normalized, preset.layers[0].seed)
+        }
+
+        let t = Float(index) / Float(max(1, count - 1))
+        let front = advanced.frontLayer
+        let back = advanced.backLayer
+        var layer = BettaLayerTuning(
+            scale: lerp(front.scale, back.scale, t),
+            rotation: lerpAngle(front.rotation, back.rotation, t),
+            x: lerp(front.x, back.x, t),
+            y: lerp(front.y, back.y, t),
+            z: lerp(front.z, back.z, t),
+            alpha: lerp(front.alpha, back.alpha, t),
+            phase: lerp(front.phase, back.phase, t)
+        )
+
+        if count > 2 {
+            let interior = sin(.pi * t)
+            let wave = sin(Float(index + 1) * 2.3999632)
+            layer.rotation += wave * 0.045 * interior
+            layer.x += wave * 0.018 * interior
+            layer.y += cos(Float(index + 1) * 1.731) * 0.018 * interior
+            layer.z += (t - 0.5) * 0.07 + wave * 0.025 * interior
+            layer.phase += Float(index) * 7.5
+            layer.alpha *= min(1, sqrt(2 / Float(count)))
+        }
+
+        let seed = lerp(preset.layers[0].seed, preset.layers[1].seed, t) + Float(index) * 13.731
+        return (layer.normalized, seed)
     }
 
     private func interpolatedCamera(_ a: BettaCameraAdjustment, _ b: BettaCameraAdjustment, _ t: Float) -> BettaCameraAdjustment {
