@@ -4,6 +4,7 @@ import path from 'node:path';
 
 const BASE_URL=(process.env.BASE_URL||'http://127.0.0.1:8788').replace(/\/$/,'');
 const OUT_DIR=process.env.SCREENSHOT_DIR||'/tmp/ci-glass-preview';
+const CI_FILTER='blur(18px) saturate(1.18)';
 await fs.mkdir(OUT_DIR,{recursive:true});
 const assert=(value,message)=>{if(!value)throw new Error(message)};
 
@@ -11,11 +12,11 @@ const manifest={ok:true,version:2,profile:{id:'00000000-0000-0000-0000-000000000
 const authShim=`
 window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'CI Developer',pin_configured_at:new Date().toISOString()};
 await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='/location.js';script.onload=resolve;script.onerror=reject;document.head.appendChild(script)});
-await import('/bootstrap.js?v=2');
+await import('/bootstrap.js?v=3');
 `;
 
-function includesBlur(value){return /blur\((?!0(?:px)?\))/i.test(String(value||''))}
-function hasNoBlur(value){return !includesBlur(value)}
+function normalizedFilter(value){return String(value||'none').replace(/\s+/g,' ').trim()}
+function hasNoBlur(value){return !/blur\((?!0(?:px)?\))/i.test(String(value||''))}
 
 async function runViewport(browser,width,height){
   const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:1,isMobile:width<=430,hasTouch:width<=430,reducedMotion:'no-preference',serviceWorkers:'block'});
@@ -57,8 +58,10 @@ async function runViewport(browser,width,height){
         <button class="app-utility-action" data-probe="utility">Share</button>`;
       routeView.appendChild(probes);
       const read=name=>{const node=probes.querySelector(`[data-probe="${name}"]`),style=getComputedStyle(node);return{name,filter:String(style.backdropFilter||style.webkitBackdropFilter||'none'),background:style.backgroundColor,border:style.borderTopColor,fontSize:style.fontSize,paddingTop:style.paddingTop,paddingRight:style.paddingRight}};
+      const rootStyle=getComputedStyle(document.documentElement);
       const result={
         version:window.SindhornUiLibrary?.version,
+        tokens:{surfaceFill:rootStyle.getPropertyValue('--app-glass-surface-fill').trim(),surfaceFilter:rootStyle.getPropertyValue('--app-glass-surface-filter').trim(),controlFilter:rootStyle.getPropertyValue('--app-glass-control-filter').trim()},
         targets:['fnb-card','fnb-chip','back','primary','select','room','picture','ci-status','ci-index','expand','folder','message','add','system'].map(read),
         utilities:['legacy-utility','utility'].map(read),
         periodChip:read('period'),
@@ -68,8 +71,11 @@ async function runViewport(browser,width,height){
       return result;
     });
     assert(report.version==='1.3.0-preview',`${width}: CI registry unavailable`);
+    assert(report.tokens.surfaceFill==='rgba(46,39,59,.48)',`${width}: CI surface token drift ${JSON.stringify(report.tokens)}`);
+    assert(normalizedFilter(report.tokens.surfaceFilter)===CI_FILTER,`${width}: CI surface-filter token drift ${JSON.stringify(report.tokens)}`);
+    assert(normalizedFilter(report.tokens.controlFilter)===CI_FILTER,`${width}: CI control-filter token drift ${JSON.stringify(report.tokens)}`);
     assert(report.overflow<=1,`${width}: horizontal overflow ${report.overflow}`);
-    for(const target of report.targets)assert(includesBlur(target.filter),`${width}: ${target.name} has no blur (${target.filter})`);
+    for(const target of report.targets)assert(normalizedFilter(target.filter)===CI_FILTER,`${width}: ${target.name} is not using the CI blur recipe (${target.filter})`);
     for(const utility of report.utilities){assert(hasNoBlur(utility.filter),`${width}: ${utility.name} unexpectedly blurs (${utility.filter})`);assert(utility.background==='rgba(0, 0, 0, 0)',`${width}: ${utility.name} painted background ${utility.background}`);assert(utility.fontSize==='12px',`${width}: ${utility.name} font ${utility.fontSize}`)}
     assert(report.periodChip.fontSize==='12px',`${width}: Betta period chip font ${report.periodChip.fontSize}`);
     if(width<=430)assert(report.periodChip.paddingTop==='7px'&&report.periodChip.paddingRight==='10px',`${width}: mobile Betta period chip padding ${JSON.stringify(report.periodChip)}`);
@@ -90,5 +96,5 @@ const browser=await chromium.launch({headless:true});
 try{
   const mobile=await runViewport(browser,390,844);
   const tablet=await runViewport(browser,768,1024);
-  console.log(JSON.stringify({ok:true,baseUrl:BASE_URL,mobile,tablet,screenshots:await fs.readdir(OUT_DIR)}));
+  console.log(JSON.stringify({ok:true,baseUrl:BASE_URL,ciAuthority:CI_FILTER,mobile,tablet,screenshots:await fs.readdir(OUT_DIR)}));
 }finally{await browser.close()}
