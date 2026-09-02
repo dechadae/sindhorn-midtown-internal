@@ -152,18 +152,62 @@ struct BettaAdvancedAdjustment: Codable, Equatable {
     var tail: BettaTailTuning
     var frontLayer: BettaLayerTuning
     var backLayer: BettaLayerTuning
+    var membraneCount: Int
+
+    init(
+        camera: BettaCameraAdjustment,
+        tail: BettaTailTuning,
+        frontLayer: BettaLayerTuning,
+        backLayer: BettaLayerTuning,
+        membraneCount: Int = 2
+    ) {
+        self.camera = camera
+        self.tail = tail
+        self.frontLayer = frontLayer
+        self.backLayer = backLayer
+        self.membraneCount = membraneCount
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case camera, tail, frontLayer, backLayer, membraneCount
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        camera = try container.decode(BettaCameraAdjustment.self, forKey: .camera)
+        tail = try container.decode(BettaTailTuning.self, forKey: .tail)
+        frontLayer = try container.decode(BettaLayerTuning.self, forKey: .frontLayer)
+        backLayer = try container.decode(BettaLayerTuning.self, forKey: .backLayer)
+        membraneCount = try container.decodeIfPresent(Int.self, forKey: .membraneCount) ?? 2
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(camera, forKey: .camera)
+        try container.encode(tail, forKey: .tail)
+        try container.encode(frontLayer, forKey: .frontLayer)
+        try container.encode(backLayer, forKey: .backLayer)
+        try container.encode(membraneCount, forKey: .membraneCount)
+    }
 
     static func canonical(_ preset: BettaPreset) -> BettaAdvancedAdjustment {
         BettaAdvancedAdjustment(
             camera: .canonical,
             tail: .canonical(preset),
             frontLayer: .canonical(preset.layers[0]),
-            backLayer: .canonical(preset.layers[1])
+            backLayer: .canonical(preset.layers[1]),
+            membraneCount: 2
         )
     }
 
     var normalized: BettaAdvancedAdjustment {
-        BettaAdvancedAdjustment(camera: camera.normalized, tail: tail.normalized, frontLayer: frontLayer.normalized, backLayer: backLayer.normalized)
+        BettaAdvancedAdjustment(
+            camera: camera.normalized,
+            tail: tail.normalized,
+            frontLayer: frontLayer.normalized,
+            backLayer: backLayer.normalized,
+            membraneCount: min(6, max(1, membraneCount))
+        )
     }
 }
 
