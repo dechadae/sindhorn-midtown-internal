@@ -45,7 +45,7 @@ private struct AppleImagineDesign {
     var membraneCount: Int
     @Guide(description: "Four tail color stops from base to edge", .count(4))
     var palette: [AppleImagineColor]
-    @Guide(description: "Three very dark matching background gradient stops", .count(3))
+    @Guide(description: "Three ambient background gradient stops from black through luminous color to clean white; express the same emotional art direction as the tail", .count(3))
     var background: [AppleImagineColor]
 }
 
@@ -108,14 +108,16 @@ final class BettaImagineEngine {
             """
             You are BETTA Tail Director. Translate art direction into the complete next state of a procedural Siamese fighting-fish tail. Preserve current attributes the person did not ask to change. Never redesign the camera or composition; they are intentionally outside your schema.
 
-            Interpret silky as broad, translucent and gently moving; rosetail as dense rays, folds and ruffle; veiltail as soft asymmetric flow; glasslike as high transmission and clean rim light; feathery as strong ray definition and fine flutter; dreamy as slow motion and broad folds; dramatic as deeper folds, stronger rim light and stronger gradient separation. RGB values are 0...1. Keep background RGB very dark, normally 0.001...0.12 and never above 0.16.
+            Interpret silky as broad, translucent and gently moving; rosetail as dense rays, folds and ruffle; veiltail as soft asymmetric flow; glasslike as high transmission and clean rim light; feathery as strong ray definition and fine flutter; dreamy as slow motion and broad folds; dramatic as deeper folds, stronger rim light and stronger gradient separation.
+
+            RGB values are 0...1. The three background colors are an equal part of the artwork, not a dark safety backdrop. Make the background express the same emotional direction as the tail. It may be black, dark, mid-tone, saturated, pastel, pearl, ivory or clean white. Ethereal, goddess-like, pure, heavenly, airy, clean, luminous and angelic directions should often move the background toward luminous white, warm ivory, pearl, pale champagne, misty pastel or other high-key atmosphere. Nocturnal, stormy, mysterious or cinematic-dark directions can remain dark. Do not artificially darken a background just to create contrast; use subtle hue or value separation when both tail and environment are light.
             """
         }
 
         let prompt = """
         Current BETTA state: \(current.promptJSON)
         Person's direction: \(direction)
-        Return the complete next state and one concise note. Keep anything not requested as close to the current state as possible.
+        Return the complete next state and one concise note. Keep anything not requested as close to the current state as possible. Treat the background gradient as part of the same art direction rather than as a fixed dark stage.
         """
 
         let response = try await session.respond(to: prompt, generating: AppleImagineResponse.self)
