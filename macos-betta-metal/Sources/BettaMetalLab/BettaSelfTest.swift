@@ -8,9 +8,9 @@ struct BettaSelfTest {
         }
 
         expect(BettaReleaseInfo.productName == "BETTA", "Release product name must be BETTA")
-        expect(BettaReleaseInfo.version == "1.1.0", "Release semantic version must be 1.1.0")
-        expect(BettaReleaseInfo.build == "21", "Release build number must be 21")
-        expect(BettaReleaseInfo.persistenceBundleIdentifier == "com.sindhornmidtown.BettaMetalLab", "1.1 must preserve the existing persistence bundle identifier")
+        expect(BettaReleaseInfo.version == "1.1.1", "Release semantic version must be 1.1.1")
+        expect(BettaReleaseInfo.build == "22", "Release build number must be 22")
+        expect(BettaReleaseInfo.persistenceBundleIdentifier == "com.sindhornmidtown.BettaMetalLab", "1.1.1 must preserve the existing persistence bundle identifier")
 
         expect(BettaPreset.all.count == 8, "Expected exactly eight canonical Betta presets")
         expect(BettaGeometry.rays == 160, "Mac high-detail topology must use 160 circumferential samples")
@@ -114,9 +114,9 @@ struct BettaSelfTest {
                 BettaImagineColor(r: 1.0, g: 0.9, b: 0.1)
             ]
             design.background = [
-                BettaImagineColor(r: 0.7, g: 0.8, b: 0.9),
-                BettaImagineColor(r: 0.4, g: 0.3, b: 0.2),
-                BettaImagineColor(r: 0.2, g: 0.1, b: 0.5)
+                BettaImagineColor(r: 1.0, g: 0.99, b: 0.96),
+                BettaImagineColor(r: 0.94, g: 0.97, b: 1.0),
+                BettaImagineColor(r: 0.78, g: 0.88, b: 0.96)
             ]
             expect(design.apply(referenceId: referenceId), "Imagine structured design must apply through the constrained state bridge")
             let afterImagine = BettaAdvancedTuningStore.shared.adjustment(for: referenceId)
@@ -131,7 +131,8 @@ struct BettaSelfTest {
                let background = style.resolvedBackground {
                 expect(colors.count == 4 && background.count == 3, "Imagine must produce exactly four palette and three background stops")
                 expect(colors.allSatisfy { $0.x >= 0 && $0.x <= 1 && $0.y >= 0 && $0.y <= 1 && $0.z >= 0 && $0.z <= 1 }, "Imagine palette colors must be normalized")
-                expect(background.allSatisfy { $0.x <= 0.1601 && $0.y <= 0.1601 && $0.z <= 0.1601 }, "Imagine background colors must remain dark enough for the artwork")
+                expect(background.allSatisfy { $0.x >= 0 && $0.x <= 1 && $0.y >= 0 && $0.y <= 1 && $0.z >= 0 && $0.z <= 1 }, "Imagine background colors must use the full normalized RGB range")
+                expect(background[0].x > 0.95 && background[0].y > 0.95 && background[0].z > 0.90, "Imagine must preserve luminous near-white backgrounds instead of forcing them dark")
             } else {
                 failures.append("Imagine structured design did not store a valid palette/background")
             }
@@ -140,6 +141,9 @@ struct BettaSelfTest {
             failures.append("Imagine could not snapshot the current organism")
         }
         originalSnapshot?.restore()
+
+        let pureWhite = BettaImagineColor(r: 1, g: 1, b: 1).backgroundSIMD
+        expect(abs(pureWhite.x - 1) < 0.0001 && abs(pureWhite.y - 1) < 0.0001 && abs(pureWhite.z - 1) < 0.0001, "Imagine backgrounds must permit clean white")
 
         expect(abs(BettaEvolutionController.defaultSegmentDuration - 45) < 0.001, "Continuous Evolution target duration must remain 45 seconds")
 
@@ -186,7 +190,7 @@ struct BettaSelfTest {
 
         if failures.isEmpty {
             print("BETTA \(BettaReleaseInfo.version) (\(BettaReleaseInfo.build)) self-test: PASS")
-            print("Imagine structured Tail Director · camera/composition isolation · 8 immutable originals · premium morph pacing · live Himawari mood mapping · adaptive energy policy · multi-display release shell · 160×144 topology · 1–6 membranes · presets/favorites · continuous evolution · recovery regression")
+            print("Imagine frameless glass direction · full-range mood backgrounds · camera/composition isolation · 8 immutable originals · premium morph pacing · live Himawari mood mapping · adaptive energy policy · multi-display release shell · 160×144 topology · 1–6 membranes · presets/favorites · continuous evolution · recovery regression")
             return true
         }
         print("BETTA \(BettaReleaseInfo.version) self-test: FAIL")
