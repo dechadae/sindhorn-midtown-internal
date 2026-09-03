@@ -42,10 +42,12 @@ permissions:
   deployments: write
 
 # Shared with pwa-fast-startup-preview: both publish the same Cloudflare Pages
-# branch preview, and two concurrent publishes to one branch fail the Function
-# upload with an opaque internal error. Serialise rather than race.
+# branch preview for a given commit, and two concurrent publishes fail the
+# Function upload with an opaque internal error. Keyed by SHA, not by branch:
+# a branch key also queues unrelated commits, and GitHub keeps only one pending
+# run per group, so the extra queueing silently cancelled real runs.
 concurrency:
-  group: cf-pages-preview-${{ github.ref_name }}
+  group: cf-pages-preview-${{ github.sha }}
   cancel-in-progress: false
 
 jobs:

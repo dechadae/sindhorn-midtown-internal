@@ -27,7 +27,7 @@ permissions:
 
 # Shared with business-dashboard-preview: see the note there.
 concurrency:
-  group: cf-pages-preview-${{ github.ref_name }}
+  group: cf-pages-preview-${{ github.sha }}
   cancel-in-progress: false
 
 jobs:
@@ -51,7 +51,7 @@ jobs:
           done
 
           # Startup / Betta / PWA invariants.
-          grep -q "sindhorn-midtown-internal-pwa-v66-pwa-smoke-version-r1" site/sw.js
+          grep -q "sindhorn-midtown-internal-pwa-v67-concurrency-per-sha-r1" site/sw.js
           grep -q "PRECACHE_CONCURRENCY=8" site/sw.js
           grep -q "betta-runtime-full.js?v=1" site/betta-runtime.js
           grep -q "betta-runtime.js?v=2" site/index.html
