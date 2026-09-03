@@ -1,31 +1,35 @@
 html,body{min-height:100%;margin:0;background:var(--ui-color-vignette);color:var(--ui-color-white);}
-body{min-height:100dvh;padding-bottom:calc(var(--ui-footer-height) + 14px + var(--ui-safe-bottom));overflow-x:hidden;}
+body{min-height:100dvh;padding-bottom:calc(var(--ui-footer-height) + 8px + var(--ui-safe-bottom));overflow-x:hidden;}
 #environmentStage{position:fixed;inset:0;z-index:var(--ui-z-background);pointer-events:none;}
 #environmentCanvas{width:100%;height:100%;display:block;}
 #app-header,#route-view,#app-footer{position:relative;z-index:var(--ui-z-content);}
 #route-view{width:min(100%,var(--ui-max-content));min-height:calc(100dvh - 120px);margin-inline:auto;padding-inline:var(--ui-gutter);}
 
-.ui-shell-header{position:sticky;top:0;z-index:var(--ui-z-header);padding-top:var(--ui-safe-top);border-bottom:1px solid var(--ui-glass-border);background:var(--ui-glass-bg-soft);-webkit-backdrop-filter:blur(var(--ui-glass-blur)) saturate(var(--ui-glass-saturation));backdrop-filter:blur(var(--ui-glass-blur)) saturate(var(--ui-glass-saturation));}
-.ui-shell-header__inner{width:min(100%,var(--ui-max-content));min-height:54px;margin-inline:auto;padding:8px var(--ui-gutter);display:flex;align-items:center;gap:12px;}
+/* Persistent masthead geometry/material follows the approved preview CI specimen. */
+.ui-shell-header{position:sticky;top:0;z-index:var(--ui-z-header);padding-top:var(--ui-safe-top);border-bottom:1px solid var(--app-glass-border);background-color:var(--app-glass-fill);-webkit-backdrop-filter:var(--app-glass-filter);backdrop-filter:var(--app-glass-filter);}
+.ui-shell-header__inner{width:min(100%,var(--ui-max-content));min-height:54px;margin-inline:auto;padding:8px var(--ui-gutter);display:flex;align-items:center;justify-content:space-between;gap:14px;}
 .ui-shell-brand{display:block;width:clamp(108px,28vw,136px);flex:0 0 auto;}
 .ui-shell-brand img{display:block;width:100%;height:auto;}
 .ui-shell-user{min-width:0;margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:8px;color:var(--ui-color-white);text-decoration:none;}
-.ui-shell-user__name{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ui-color-muted-strong);font-size:11px;}
-.ui-shell-user__avatar{width:32px;height:32px;display:grid;place-items:center;border-radius:var(--ui-radius-control);border:1px solid var(--ui-glass-border);background:var(--ui-glass-bg);font-size:10px;font-weight:var(--ui-weight-regular);-webkit-backdrop-filter:blur(var(--ui-glass-blur)) saturate(var(--ui-glass-saturation));backdrop-filter:blur(var(--ui-glass-blur)) saturate(var(--ui-glass-saturation));}
+.ui-shell-user__name{display:block;max-width:154px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.72rem;font-weight:400;line-height:1.2;text-align:right;}
+.ui-shell-user__avatar{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border:1px solid rgba(var(--ui-color-sorbet-rgb),.52);border-radius:var(--ui-radius-control);background:rgba(var(--ui-color-sorbet-rgb),.12);color:var(--ui-color-sorbet);font-size:.68rem;font-weight:400;line-height:1;}
 
-.ui-shell-footer{position:fixed;left:0;right:0;bottom:0;z-index:var(--ui-z-footer);height:calc(var(--ui-footer-height) + var(--ui-safe-bottom));padding:6px max(10px,var(--ui-safe-right)) calc(6px + var(--ui-safe-bottom)) max(10px,var(--ui-safe-left));display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;border-top:1px solid var(--ui-glass-border);background:var(--ui-glass-bg-soft);-webkit-backdrop-filter:blur(var(--ui-glass-blur)) saturate(var(--ui-glass-saturation));backdrop-filter:blur(var(--ui-glass-blur)) saturate(var(--ui-glass-saturation));}
-.ui-shell-footer__item{position:relative;min-width:0;height:42px;display:flex;align-items:center;justify-content:center;padding:0 8px;border:0;border-radius:var(--ui-radius-footer);background:transparent;color:var(--ui-color-muted);text-decoration:none;font-size:.69rem;font-weight:var(--ui-weight-regular);line-height:1;transition:background var(--ui-duration-standard) var(--ui-ease-standard),color var(--ui-duration-standard) ease,transform var(--ui-duration-fast) var(--ui-ease-standard),opacity var(--ui-duration-fast) ease;}
+/* Full-width persistent footer: no floating outer card. */
+.ui-shell-footer{position:fixed;left:0;right:0;bottom:0;z-index:var(--ui-z-footer);height:calc(var(--ui-footer-height) + var(--ui-safe-bottom));padding:6px max(10px,var(--ui-safe-right)) calc(6px + var(--ui-safe-bottom)) max(10px,var(--ui-safe-left));display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:start;gap:4px;border-top:1px solid var(--app-glass-border);background-color:var(--app-glass-fill);box-shadow:0 -10px 30px rgba(12,9,18,.10),inset 0 1px 0 rgba(250,247,245,.025);-webkit-backdrop-filter:var(--app-glass-filter);backdrop-filter:var(--app-glass-filter);}
+.ui-shell-footer__item{position:relative;min-width:0;height:42px;display:flex;align-items:center;justify-content:center;padding:0 8px;border:0;border-radius:var(--ui-radius-footer);background:transparent;color:rgba(var(--ui-color-white-rgb),.52);text-decoration:none;font-size:.69rem;font-weight:400;line-height:1;transition:background var(--ui-duration-standard) var(--ui-ease-standard),box-shadow var(--ui-duration-standard) var(--ui-ease-standard),color 200ms ease,transform 120ms ease,opacity 120ms ease;}
 .ui-shell-footer__item:active{transform:scale(.98);opacity:.84;}
-.ui-shell-footer__item[aria-current="page"]{color:var(--ui-color-sorbet);background:rgba(var(--ui-color-sorbet-rgb),.08);box-shadow:inset 0 0 0 1px rgba(var(--ui-color-sorbet-rgb),.14);}
+.ui-shell-footer__item[aria-current="page"]{color:var(--ui-color-sorbet);background:linear-gradient(180deg,rgba(var(--ui-color-sorbet-rgb),.12),rgba(var(--ui-color-sorbet-rgb),.055));box-shadow:inset 0 0 0 1px rgba(var(--ui-color-sorbet-rgb),.14),0 6px 18px rgba(10,8,14,.10);}
 .ui-shell-footer__badge{position:absolute;top:6px;right:20%;width:6px;height:6px;border-radius:var(--ui-radius-badge);background:var(--ui-color-sorbet);}
 
 .ui-route-loading{padding:22px 0;}
 .ui-route-loading .ui-skeleton-stack{padding:0;}
 
-.ui-pull-refresh{position:fixed;z-index:var(--ui-z-toast);top:calc(var(--ui-safe-top) + 62px);left:50%;min-width:128px;min-height:40px;padding:7px 12px;transform:translate(-50%,-130%);opacity:0;display:flex;align-items:center;justify-content:center;gap:9px;border-radius:var(--ui-radius-control);background:var(--ui-glass-bg);border:1px solid var(--ui-glass-border);-webkit-backdrop-filter:blur(var(--ui-glass-blur)) saturate(var(--ui-glass-saturation));backdrop-filter:blur(var(--ui-glass-blur)) saturate(var(--ui-glass-saturation));transition:transform var(--ui-duration-standard) var(--ui-ease-standard),opacity var(--ui-duration-standard) var(--ui-ease-standard);pointer-events:none;}
+.ui-pull-refresh{position:fixed;z-index:var(--ui-z-toast);top:calc(var(--ui-safe-top) + 62px);left:50%;min-width:128px;min-height:40px;padding:7px 12px;transform:translate(-50%,-130%);opacity:0;display:flex;align-items:center;justify-content:center;gap:9px;border:1px solid var(--app-glass-border);border-radius:var(--ui-radius-control);background-color:var(--app-glass-fill);-webkit-backdrop-filter:var(--app-glass-filter);backdrop-filter:var(--app-glass-filter);transition:transform var(--ui-duration-standard) var(--ui-ease-standard),opacity var(--ui-duration-standard) var(--ui-ease-standard);pointer-events:none;}
 .ui-pull-refresh.is-visible{transform:translate(-50%,0);opacity:1;}
 .ui-pull-refresh__label{font-size:10px;white-space:nowrap;}
 .ui-pull-refresh .ui-spinner{width:18px;height:18px;display:none;}
 .ui-pull-refresh[data-state="reloading"] .ui-spinner{display:block;}
 
-@media(max-width:360px){.ui-shell-footer__item{padding-inline:5px;font-size:.65rem}.ui-shell-user__name{max-width:94px}}
+@media(max-width:430px){.ui-shell-user{gap:7px}.ui-shell-user__name{max-width:108px;font-size:.68rem}.ui-shell-user__avatar{width:32px;height:32px;flex-basis:32px;font-size:.64rem}}
+@media(max-width:360px){.ui-shell-footer__item{padding-inline:5px;font-size:.65rem}}
+@media(max-width:350px){.ui-shell-user__name{display:none}}
