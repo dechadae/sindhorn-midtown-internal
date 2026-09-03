@@ -25,7 +25,15 @@ final class BettaLivingGalleryView: NSView {
     private var favoriteButton: NSButton!
     private var evolveButton: NSButton!
     private var statusLabel: NSTextField!
-    private var imagineController: BettaImagineWindowController?
+    private var imagineOverlay: BettaImagineOverlayView?
+
+    override var isHidden: Bool {
+        didSet {
+            if isHidden {
+                imagineOverlay?.dismissAndRevertIfNeeded(notify: false)
+            }
+        }
+    }
 
     init(initialIndex: Int) {
         selectedIndex = min(7, max(0, initialIndex))
@@ -144,7 +152,7 @@ final class BettaLivingGalleryView: NSView {
         let imagineButton = NSButton(title: "Imagine…", target: self, action: #selector(imagine(_:)))
         imagineButton.bezelStyle = .rounded
         imagineButton.controlSize = .large
-        imagineButton.toolTip = "Describe the tail you want using Apple Intelligence on device."
+        imagineButton.toolTip = "Describe the Betta you want using Apple Intelligence on device."
 
         let useButton = NSButton(title: "Use on Desktop", target: self, action: #selector(useOnDesktop(_:)))
         useButton.bezelStyle = .rounded
@@ -227,6 +235,26 @@ final class BettaLivingGalleryView: NSView {
         favoriteButton?.title = presetStore.currentMatch(referenceId: id)?.isFavorite == true ? "★ Favorite" : "☆ Favorite"
     }
 
+    private func ensureImagineOverlay() -> BettaImagineOverlayView? {
+        if let imagineOverlay { return imagineOverlay }
+        guard let root = window?.contentView else { return nil }
+
+        let overlay = BettaImagineOverlayView()
+        overlay.onApplied = { [weak self] message in
+            self?.setEvolutionActive(false)
+            self?.refresh(message: message)
+        }
+        root.addSubview(overlay, positioned: .above, relativeTo: nil)
+        NSLayoutConstraint.activate([
+            overlay.leadingAnchor.constraint(equalTo: root.leadingAnchor),
+            overlay.trailingAnchor.constraint(equalTo: root.trailingAnchor),
+            overlay.topAnchor.constraint(equalTo: root.topAnchor),
+            overlay.bottomAnchor.constraint(equalTo: root.bottomAnchor)
+        ])
+        imagineOverlay = overlay
+        return overlay
+    }
+
     @objc private func originalSelected(_ sender: NSButton) {
         selectedIndex = min(7, max(0, sender.tag))
         onSelectOriginal?(selectedIndex)
@@ -241,13 +269,8 @@ final class BettaLivingGalleryView: NSView {
     @objc private func imagine(_ sender: Any?) {
         if evolveButton.state == .on { onToggleEvolution?() }
         setEvolutionActive(false)
-        let controller = imagineController ?? BettaImagineWindowController()
-        controller.onApplied = { [weak self] message in
-            self?.setEvolutionActive(false)
-            self?.refresh(message: message)
-        }
-        imagineController = controller
-        controller.show(referenceId: BettaPreset.all[selectedIndex].referenceId)
+        guard let overlay = ensureImagineOverlay() else { return }
+        overlay.present(referenceId: BettaPreset.all[selectedIndex].referenceId)
         refresh(message: "Imagine · describe your Betta with Apple Intelligence")
     }
 
