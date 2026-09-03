@@ -26,6 +26,9 @@ const FROSTED_WELL = { bg: 'rgba(250, 247, 245, 0.055)', filter: 'blur(18px) sat
 // same blur.
 const BADGE = { bg: 'rgba(229, 236, 190, 0.16)', filter: 'blur(18px) saturate(1.18)' };
 const BADGE_QUIET = { bg: 'rgba(250, 247, 245, 0.055)', filter: 'blur(18px) saturate(1.18)' };
+// A badge nested inside a card is glass inside glass - it must keep the tint
+// and drop the blur, same as any other nested surface.
+const BADGE_NESTED = { bg: 'rgba(250, 247, 245, 0.055)', filter: 'none' };
 // The sticky column carries the same weight as every other glass surface.
 const STICKY = CARD;
 const BARE = { bg: 'rgba(0, 0, 0, 0)', filter: 'none' };
@@ -48,7 +51,10 @@ const EXPECT = [
   ['.app-sheet', OVERLAY], ['.app-toast', OVERLAY],
   ['.app-list-row', BARE], ['.app-metric', BARE], ['.app-figure', BARE],
   ['.app-check-box', BARE],
-  ['.app-badge:not([data-tone])', BADGE], ['.app-badge[data-tone="quiet"]', BADGE_QUIET]
+  // Scoped to the Badge section itself: the List section also uses a quiet
+  // badge, nested inside .app-card, where it correctly renders with no blur.
+  ['#badge .app-badge:not([data-tone])', BADGE], ['#badge .app-badge[data-tone="quiet"]', BADGE_QUIET],
+  ['#list .app-badge', BADGE_NESTED]
 ];
 
 // Two durations, one easing, documented live in 04 Shape & Motion. A route

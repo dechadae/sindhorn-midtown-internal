@@ -142,10 +142,18 @@
 .app-card .app-surface,
 .app-card .app-disclosure,
 .app-card .app-control,
+.app-card .app-badge,
+.app-card .app-field input,
+.app-card .app-field textarea,
+.app-card .app-field select,
 .app-action-card .app-card,
 .app-disclosure .app-card,
 .app-overlay .app-card,
-.app-overlay .app-control{
+.app-overlay .app-control,
+.app-overlay .app-badge,
+.app-overlay .app-field input,
+.app-overlay .app-field textarea,
+.app-overlay .app-field select{
   backdrop-filter:none;
   -webkit-backdrop-filter:none;
 }
