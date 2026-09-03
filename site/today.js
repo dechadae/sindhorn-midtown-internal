@@ -197,7 +197,7 @@ function renderOutlook(data) {
   return `<section class="app-section" id="today-outlook"><p class="app-section-kicker">05 · Forward outlook</p><h2 class="app-section-title">Next Months</h2><p class="app-section-lede">OTB position against forecast; detailed market segments stay collapsed below.</p>
     <div class="app-metric-grid">${months.map(m => {
       const forecastLoaded = (num(m.forecast?.rns) || 0) > 0 || (num(m.forecast?.revenue) || 0) > 0;
-      return `<div class="app-card app-surface"><p class="app-surface-label">${esc(dateLabel(m.stayMonth, { monthOnly: true }))}</p><p class="app-metric-value">${esc(percent(m.otb?.occupancy))}</p><p class="app-metric-note">${forecastLoaded ? `${esc(percent(m.forecast?.occupancy))} forecast occupancy` : 'Forecast not loaded'}</p><p class="app-metric-note">OTB ${esc(money(m.otb?.revenue, { compact: true }))} · 24h ${esc(integer(m.pickup?.rns, { signed: true }))} RN</p></div>`;
+      return `<div class="app-card app-surface"><p class="app-surface-label">${esc(dateLabel(m.stayMonth, { monthOnly: true }))}</p><p class="app-metric-value">${esc(percent(m.otb?.occupancy))}</p><p class="app-metric-note">${forecastLoaded ? `${esc(percent(m.forecast?.occupancy))} forecast occupancy` : 'Forecast not loaded'}</p><p class="app-metric-note">OTB ${esc(money(m.otb?.revenue, { compact: true }))}</p><p class="app-metric-note">24h ${esc(integer(m.pickup?.rns, { signed: true }))} RN</p></div>`;
     }).join('')}</div>
   </section>`;
 }

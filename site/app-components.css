@@ -438,6 +438,8 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    aliases, and a duplicate token set. This is the clean form. Routes adopt it
    when they are rebuilt; until then the shim keeps them working. */
 .app-hero{padding:22px 0 20px;border-bottom:1px solid var(--app-line)}
+/* The first section after the hero reads as its continuation, not a new chapter. */
+.app-hero+.app-section{padding-top:24px}
 .app-hero-eyebrow{margin:0;color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
 .app-hero-title{margin:10px 0 0;font-size:var(--type-display);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
 .app-hero-copy{margin:12px 0 0;max-width:56ch;color:var(--app-muted);font-size:var(--type-lead);line-height:var(--leading-body)}
