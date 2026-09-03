@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-startup-enter="visible">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -41,6 +41,7 @@ h1{font-weight:700;font-size:20px;margin:0 0 4px}
 
 <div class="sheet">
   <h1>Glass compositing lab</h1>
+  <p class="note" id="bootnote" style="margin:0 0 10px">loading renderer…</p>
   <p class="sub">Every swatch below is the <strong>same</strong> element with the same canonical glass
      (<code>blur(18px) saturate(1.18)</code> over <code>rgba(46,39,59,.30)</code>).
      Only the <em>wrapper</em> around it differs. Tell me which ones blur the fish and which look flat.</p>
@@ -77,8 +78,14 @@ h1{font-weight:700;font-size:20px;margin:0 0 4px}
 </div>
 
 <script type="module">
-  const m = await import('/betta-runtime.js?v=2');
+  /* Load the FULL renderer directly. betta-runtime.js is only a bootstrap: it
+     paints a placeholder frame and defers the real engine behind
+     waitForStartupReveal(), a shell signal this standalone page never sends,
+     so the fish never appeared. */
+  const m = await import('/betta-runtime-full.js?v=1');
   await m.initEnvironment();
+  document.getElementById('bootnote').textContent =
+    'renderer: ' + (document.body.dataset.environmentRenderer || 'unknown');
 </script>
 </body>
 </html>
