@@ -252,7 +252,11 @@ jobs:
           # These need a deployed URL, so they necessarily verify after the fact.
           # A failure here means the live app regressed and must be rolled back.
           node scripts/nested-glass-smoke.mjs
-          node scripts/ci-glass-browser-smoke.mjs
+          # ci-glass-browser-smoke tested /ci as an SPA route: it waits for the shell
+          # masthead, tabbar and window.SindhornUiLibrary, none of which exist on a
+          # standalone page. Superseded by ci-page-render-smoke, which asserts 17
+          # components instead of a probe list and runs before the deploy, not after.
+          # The shell material it also covered is asserted by glass-route-browser-smoke.
           node scripts/glass-route-browser-smoke.mjs
           node scripts/utility-action-browser-smoke.mjs
           node scripts/pull-refresh-browser-smoke.mjs

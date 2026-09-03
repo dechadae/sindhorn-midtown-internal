@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v75-centralized-modules-r1';
+const VERSION='sindhorn-midtown-internal-pwa-v76-retire-spa-ci-guard-r1';
 // Preserve prior production release-family markers required by regression gates:
 // sindhorn-midtown-internal-pwa-v55-overlay-glass-r1
 // Preserve prior production release-family markers required by regression gates:
