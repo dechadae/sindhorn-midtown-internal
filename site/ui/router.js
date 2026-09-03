@@ -1,6 +1,6 @@
 const ROUTES=Object.freeze({
   today:{path:'/',title:'Today | Sindhorn Midtown Internal',module:'./routes/today.js',mount:'mountTodayRoute'},
-  fnb:{path:'/fnb',title:'F&B | Sindhorn Midtown Internal',module:'./routes/placeholder.js',mount:'mountPlaceholderRoute'},
+  fnb:{path:'/fnb',title:'F&B | Sindhorn Midtown Internal',module:'./routes/fnb.js',mount:'mountFnbRoute'},
   messages:{path:'/messages',title:'Messages | Sindhorn Midtown Internal',module:'./routes/placeholder.js',mount:'mountPlaceholderRoute'},
   brand:{path:'/brand',title:'Brand | Sindhorn Midtown Internal',module:'./routes/placeholder.js',mount:'mountPlaceholderRoute'},
   hotelFactsheet:{path:'/hotel-factsheet',title:'Hotel Factsheet | Sindhorn Midtown Internal',module:'./routes/placeholder.js',mount:'mountPlaceholderRoute'},
