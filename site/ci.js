@@ -1,3 +1,4 @@
+import {selectField,bindSelectField} from './app-select.js?v=1';
 import {loadSettingsAuthority,hasCapability} from './capabilities.js';
 import {openSettingsDialog,closeSettingsDialog} from './settings-dialog-standard.js?v=1';
 import {HOTEL_FACTSHEET_IMAGES} from './hotel-factsheet-data.js';
@@ -32,7 +33,6 @@ function ensureStyles(){
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const backIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>';
 const upIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M7 10l5-5 5 5"/></svg>';
-const selectIcon='<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5"/></svg>';
 
 function codeDetails(code,label='Canonical code'){
   return`<details class="ci-code-disclosure"><summary>${esc(label)}</summary><div class="ci-code-wrap"><button class="ci-copy-code" type="button" data-ci-copy>Copy</button><pre><code>${esc(code)}</code></pre></div></details>`;
@@ -63,7 +63,7 @@ function actionSection(){return section('actions','One Tactile Language','Compac
   </div>${codeDetails(COMPONENT_CODE.back+'\n\n'+COMPONENT_CODE.quiet)}</div>`)}
 function selectorSection(){return section('selectors','Filters and Chips','Use the proven F&B selector for compact finite choices. Chips are metadata or explicit filter controls—not decoration applied to every short label.',`
   <div class="ci-grid">
-    <div class="ci-specimen"><div class="ci-specimen-label"><span>Selector</span><span>F&B component</span></div><div class="ci-specimen-stage ci-select-demo"><div class="fnb-select" data-ci-select><button class="fnb-select-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" data-ci-select-trigger><span data-ci-select-value>All outlets</span>${selectIcon}</button><div class="fnb-select-menu" role="listbox" aria-hidden="true" data-ci-select-menu><button class="fnb-select-option is-selected" type="button" role="option" aria-selected="true" data-ci-option="All outlets"><span>All outlets</span><i aria-hidden="true"></i></button><button class="fnb-select-option" type="button" role="option" aria-selected="false" data-ci-option="Bangkok'78"><span>Bangkok'78</span><i aria-hidden="true"></i></button><button class="fnb-select-option" type="button" role="option" aria-selected="false" data-ci-option="ANJU"><span>ANJU</span><i aria-hidden="true"></i></button></div></div></div>${codeDetails(COMPONENT_CODE.select)}</div>
+    <div class="ci-specimen"><div class="ci-specimen-label"><span>Selector</span><span>F&B component</span></div><div class="ci-specimen-stage ci-select-demo">${selectField({kind:'ci-outlet',label:'Outlet',values:['All outlets',"Bangkok'78",'ANJU'],selected:'All outlets'})}</div>${codeDetails(COMPONENT_CODE.select)}</div>
     <div class="ci-specimen"><div class="ci-specimen-label"><span>Chips</span><span>Metadata / filters</span></div><div class="ci-chip-row"><button class="fnb-chip is-active" type="button">Active</button><button class="fnb-chip" type="button">Bangkok'78</button><button class="fnb-chip" type="button">September</button></div><p class="ci-note">Do not turn ordinary navigation, paragraphs or every category label into pills.</p></div>
   </div>`)}
 function disclosureSection(){return section('disclosures','Expandable Content Has One Rhythm','A disclosure keeps the full content in the DOM, exposes aria-expanded, rotates the same chevron language and uses the established 420ms rhythm.',`
@@ -171,11 +171,7 @@ export async function mountCiRoute(host){
   route.querySelectorAll('[data-ci-width]').forEach(button=>on(button,'click',()=>{const width=Number(button.dataset.ciWidth||390);route.style.setProperty('--ci-demo-width',`${width}px`);route.querySelector('[data-ci-viewport-label]').textContent=`${width}px`;route.querySelectorAll('[data-ci-width]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)))}));
   route.querySelectorAll('[data-ci-demo-action]').forEach(button=>on(button,'click',()=>{}));
 
-  const select=route.querySelector('[data-ci-select]'),selectTrigger=route.querySelector('[data-ci-select-trigger]'),selectMenu=route.querySelector('[data-ci-select-menu]');
-  const closeSelect=()=>{select?.classList.remove('is-open');selectTrigger?.setAttribute('aria-expanded','false');selectMenu?.setAttribute('aria-hidden','true')};
-  on(selectTrigger,'click',()=>{const open=!select.classList.contains('is-open');select.classList.toggle('is-open',open);selectTrigger.setAttribute('aria-expanded',String(open));selectMenu.setAttribute('aria-hidden',String(!open))});
-  route.querySelectorAll('[data-ci-option]').forEach(option=>on(option,'click',()=>{route.querySelector('[data-ci-select-value]').textContent=option.dataset.ciOption;route.querySelectorAll('[data-ci-option]').forEach(item=>{const active=item===option;item.classList.toggle('is-selected',active);item.setAttribute('aria-selected',String(active))});closeSelect();selectTrigger.focus({preventScroll:true})}));
-  on(document,'click',event=>{if(!event.target.closest?.('[data-ci-select]'))closeSelect()});
+  bindSelectField(route,'ci-outlet');
 
   const disclosure=route.querySelector('[data-ci-disclosure]'),disclosureButton=route.querySelector('[data-ci-disclosure-button]');
   on(disclosureButton,'click',()=>{const open=!disclosure.classList.contains('is-open');disclosure.classList.toggle('is-open',open);disclosureButton.setAttribute('aria-expanded',String(open))});
