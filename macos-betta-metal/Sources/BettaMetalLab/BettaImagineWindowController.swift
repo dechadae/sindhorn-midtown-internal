@@ -1,6 +1,16 @@
 import AppKit
 
 @MainActor
+private final class BettaImaginePanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+    override var canBecomeMain: Bool { false }
+
+    override func cancelOperation(_ sender: Any?) {
+        close()
+    }
+}
+
+@MainActor
 final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
     var onApplied: ((String) -> Void)?
 
@@ -9,6 +19,7 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
     private var baseline: BettaImagineSnapshot?
     private var kept = false
     private var isGenerating = false
+    private weak var presentingWindow: NSWindow?
 
     private var fishLabel: NSTextField!
     private var availabilityLabel: NSTextField!
@@ -19,17 +30,24 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
     private var revertButton: NSButton!
 
     convenience init() {
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 560),
-            styleMask: [.titled, .closable, .miniaturizable],
+        let panel = BettaImaginePanel(
+            contentRect: NSRect(x: 0, y: 0, width: 592, height: 580),
+            styleMask: [.borderless],
             backing: .buffered,
             defer: false
         )
-        window.title = "BETTA — Imagine"
-        window.isReleasedWhenClosed = false
-        window.center()
-        self.init(window: window)
-        window.delegate = self
+        panel.title = "BETTA — Imagine"
+        panel.isReleasedWhenClosed = false
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = true
+        panel.isFloatingPanel = true
+        panel.hidesOnDeactivate = false
+        panel.isMovableByWindowBackground = true
+        panel.animationBehavior = .utilityWindow
+        panel.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
+        self.init(window: panel)
+        panel.delegate = self
         buildContent()
     }
 
@@ -39,37 +57,85 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
             onApplied?("Previous Imagine preview reverted")
         }
 
+        if let candidate = NSApp.keyWindow, candidate !== window {
+            presentingWindow = candidate
+        }
+
         self.referenceId = min(8, max(1, referenceId))
         baseline = BettaImagineSnapshot.capture(referenceId: self.referenceId)
         kept = false
         isGenerating = false
         inputView.string = ""
-        noteLabel.stringValue = "Describe a tail, color mood, movement, or a change to the current Betta."
+        noteLabel.stringValue = "Describe a tail, color mood, movement, environment, or a change to the current Betta."
         refreshHeader()
         refreshAvailability()
         keepButton.isEnabled = false
         revertButton.isEnabled = false
-        window?.center()
+
+        positionOverPresentingWindow()
+        if let window, let presentingWindow, window.parent == nil {
+            presentingWindow.addChildWindow(window, ordered: .above)
+        }
+
         showWindow(nil)
         NSApp.activate(ignoringOtherApps: true)
         window?.makeKeyAndOrderFront(nil)
+        window?.makeFirstResponder(inputView)
     }
 
     func windowWillClose(_ notification: Notification) {
-        guard !kept, let baseline else { return }
+        if let window, let parent = window.parent {
+            parent.removeChildWindow(window)
+        }
+        guard !kept, let baseline else {
+            self.baseline = nil
+            presentingWindow = nil
+            return
+        }
         baseline.restore()
         onApplied?("Imagine preview reverted")
         self.baseline = nil
+        presentingWindow = nil
+    }
+
+    private func positionOverPresentingWindow() {
+        guard let window else { return }
+        guard let presentingWindow else {
+            window.center()
+            return
+        }
+        let parentFrame = presentingWindow.frame
+        let size = window.frame.size
+        let origin = NSPoint(
+            x: parentFrame.midX - size.width * 0.5,
+            y: parentFrame.midY - size.height * 0.5
+        )
+        window.setFrameOrigin(origin)
     }
 
     private func buildContent() {
         guard let content = window?.contentView else { return }
         content.wantsLayer = true
-        content.layer?.backgroundColor = NSColor.black.cgColor
+        content.layer?.backgroundColor = NSColor.clear.cgColor
 
         let eyebrow = NSTextField(labelWithString: "IMAGINE")
         eyebrow.font = .systemFont(ofSize: 10, weight: .semibold)
         eyebrow.textColor = .secondaryLabelColor
+
+        let spacer = NSView(frame: .zero)
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+
+        let closeButton = NSButton(title: "×", target: self, action: #selector(closePanel(_:)))
+        closeButton.isBordered = false
+        closeButton.font = .systemFont(ofSize: 20, weight: .regular)
+        closeButton.contentTintColor = .secondaryLabelColor
+        closeButton.toolTip = "Close Imagine and revert unkept preview"
+        closeButton.keyEquivalent = "\u{1b}"
+
+        let topRow = NSStackView(views: [eyebrow, spacer, closeButton])
+        topRow.orientation = .horizontal
+        topRow.alignment = .centerY
+        topRow.spacing = 8
 
         let title = NSTextField(labelWithString: "Describe your Betta")
         title.font = .systemFont(ofSize: 25, weight: .semibold)
@@ -92,7 +158,7 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
         inputView = NSTextView(frame: .zero)
         inputView.font = .systemFont(ofSize: 14)
         inputView.textColor = .labelColor
-        inputView.backgroundColor = .textBackgroundColor.withAlphaComponent(0.55)
+        inputView.backgroundColor = .textBackgroundColor.withAlphaComponent(0.42)
         inputView.isRichText = false
         inputView.isAutomaticQuoteSubstitutionEnabled = false
         inputView.isAutomaticDashSubstitutionEnabled = false
@@ -106,7 +172,7 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
         scroll.documentView = inputView
         scroll.heightAnchor.constraint(equalToConstant: 108).isActive = true
 
-        let examples = NSTextField(wrappingLabelWithString: "Try: “Enormous translucent silk, deep cobalt fading to electric blue, with a little orange only at the tips.”")
+        let examples = NSTextField(wrappingLabelWithString: "Try: “Ethereal and goddess-like, translucent pearl silk with a pure luminous white atmosphere.”")
         examples.font = .systemFont(ofSize: 10)
         examples.textColor = .tertiaryLabelColor
         examples.maximumNumberOfLines = 3
@@ -144,7 +210,7 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
         decisionRow.spacing = 8
 
         let stack = NSStackView(views: [
-            eyebrow, title, fishLabel, availabilityLabel, privacy,
+            topRow, title, fishLabel, availabilityLabel, privacy,
             promptLabel, scroll, examples, quickRow,
             generateButton, noteLabel, decisionRow
         ])
@@ -159,21 +225,22 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: host.leadingAnchor, constant: 22),
             stack.trailingAnchor.constraint(equalTo: host.trailingAnchor, constant: -22),
-            stack.topAnchor.constraint(equalTo: host.topAnchor, constant: 22),
+            stack.topAnchor.constraint(equalTo: host.topAnchor, constant: 20),
             stack.bottomAnchor.constraint(equalTo: host.bottomAnchor, constant: -22),
+            topRow.widthAnchor.constraint(equalTo: stack.widthAnchor),
             scroll.widthAnchor.constraint(equalTo: stack.widthAnchor),
             quickRow.widthAnchor.constraint(equalTo: stack.widthAnchor),
             generateButton.widthAnchor.constraint(equalTo: stack.widthAnchor),
             decisionRow.widthAnchor.constraint(equalTo: stack.widthAnchor)
         ])
 
-        let glass = BettaLiquidGlassSurface.make(content: host, cornerRadius: 24)
+        let glass = BettaLiquidGlassSurface.make(content: host, cornerRadius: 28)
         content.addSubview(glass)
         NSLayoutConstraint.activate([
-            glass.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 16),
-            glass.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -16),
-            glass.topAnchor.constraint(equalTo: content.topAnchor, constant: 16),
-            glass.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -16)
+            glass.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 8),
+            glass.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -8),
+            glass.topAnchor.constraint(equalTo: content.topAnchor, constant: 8),
+            glass.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -8)
         ])
     }
 
@@ -206,10 +273,10 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
     @objc private func quickDirection(_ sender: NSButton) {
         let text: String
         switch sender.tag {
-        case 1: text = "Keep everything else, but make the tail noticeably fuller and more expansive."
-        case 2: text = "Keep the color mood, but make the tail silkier, softer, broader, and more elegant with slower movement."
-        case 3: text = "Keep the form and colors, but make the membranes more transparent and glasslike with a clean rim light."
-        default: text = "Keep the identity, but make the tail more dramatic with deeper folds, stronger rays, and richer dimensional light."
+        case 1: text = "Keep everything else, but make the tail noticeably fuller and more expansive. Let the background keep supporting the same mood."
+        case 2: text = "Keep the color mood, but make the tail silkier, softer, broader, and more elegant with slower movement. Let the background become equally soft and atmospheric."
+        case 3: text = "Keep the form and colors, but make the membranes more transparent and glasslike with a clean rim light. Keep the environment clean and luminous if that suits the current mood."
+        default: text = "Keep the identity, but make the tail more dramatic with deeper folds, stronger rays, richer dimensional light, and a background with matching emotional intensity."
         }
         inputView.string = text
         generate(nil)
@@ -264,6 +331,10 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
         kept = true
         baseline = nil
         onApplied?("Imagine changes reverted")
+        window?.close()
+    }
+
+    @objc private func closePanel(_ sender: Any?) {
         window?.close()
     }
 }
