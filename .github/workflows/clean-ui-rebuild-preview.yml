@@ -1,4 +1,4 @@
-name: Clean UI Rebuild Preview
+name: Broken Rebuild Branch Warning
 
 on:
   push:
@@ -14,138 +14,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate-deploy-smoke:
+  deploy-warning:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Verify approved CI visual authority
+      - name: Verify branch is explicitly broken
         shell: bash
         run: |
           set -euo pipefail
-          APPROVED_CI_SHA='4ab3639f0dc18c87573578b95cd7c8f5c3d4122c'
-          test "$(git rev-parse origin/preview-ci-glass)" = "$APPROVED_CI_SHA"
-          git show "$APPROVED_CI_SHA:site/app-glass.css" > /tmp/approved-glass.css
-          git show "$APPROVED_CI_SHA:site/route-hero-standard.css" > /tmp/approved-hero.css
-          git show "$APPROVED_CI_SHA:site/app-controls.css" > /tmp/approved-controls.css
-          grep -q -- '--app-glass-fill:rgba(46,39,59,.30)' /tmp/approved-glass.css
-          grep -q -- '--app-glass-border:rgba(250,247,245,.14)' /tmp/approved-glass.css
-          grep -q -- '--app-glass-filter:blur(18px) saturate(1.18)' /tmp/approved-glass.css
-          grep -q -- '--route-hero-title-size:clamp(30px,8.5vw,44px)' /tmp/approved-hero.css
-          grep -q -- '--route-hero-copy-size:13px' /tmp/approved-hero.css
-          grep -q -- '--app-back-size:36px' /tmp/approved-controls.css
-          grep -q -- '--app-back-radius:12px' /tmp/approved-controls.css
-          grep -q "APPROVED_CI_SHA='$APPROVED_CI_SHA'" site/ui/approved-ci-authority.js
-          grep -q 'preview-ci-glass.sindhorn-midtown-internal.pages.dev' site/ui/approved-ci-authority.js
-
-      - name: Validate clean shell and recreated Today
-        shell: bash
-        run: |
-          set -euo pipefail
-          for file in \
-            site/ui/app.js \
-            site/ui/router.js \
-            site/ui/approved-ci-authority.js \
-            site/ui/routes/today.js \
-            site/ui/routes/placeholder.js \
-            site/ui/routes/ci-reference.js \
-            site/ui/shell/pull-to-reload.js; do
-            node --input-type=module --check < "$file"
-          done
-          grep -q -- '--app-glass-fill:rgba(46,39,59,.30)' site/ui/tokens.css
-          grep -q -- '--app-glass-border:rgba(250,247,245,.14)' site/ui/tokens.css
-          grep -q -- '--app-glass-filter:blur(18px) saturate(1.18)' site/ui/tokens.css
-          grep -q -- '--ui-route-hero-title-size:clamp(30px,8.5vw,44px)' site/ui/tokens.css
-          grep -q -- '--ui-radius-control:12px' site/ui/tokens.css
-          grep -q -- '--ui-radius-chip:9px' site/ui/tokens.css
-          grep -q -- '--ui-radius-card:14px' site/ui/tokens.css
-          grep -q "LINE Seed Sans TH" site/ui/tokens.css
-          grep -q "module:'./routes/today.js'" site/ui/router.js
-          grep -q "loadBusinessDashboard" site/ui/routes/today.js
-          grep -q '/ui/index.css' site/index.html
-          grep -q '/ui/app.js' site/index.html
-          if grep -R -n -E 'navigator\.vibrate|\.vibrate\(' site/ui; then
-            echo 'Haptics are forbidden in rebuilt UI foundation' >&2
-            exit 1
-          fi
-          if grep -R -n 'style=' site/ui --include='*.js'; then
-            echo 'Inline route styling is forbidden in rebuilt UI modules' >&2
-            exit 1
-          fi
-          python - <<'PY'
-          from pathlib import Path
-          css = '\n'.join(p.read_text(encoding='utf-8') for p in Path('site/ui').rglob('*.css'))
-          if '!important' in css:
-              raise SystemExit('New UI foundation must not use !important')
-          bad=[]
-          for p in Path('site/ui').rglob('*.css'):
-              for i,line in enumerate(p.read_text(encoding='utf-8').splitlines(),1):
-                  if 'letter-spacing:' in line and 'letter-spacing:0' not in line.replace(' ',''):
-                      bad.append(f'{p}:{i}:{line}')
-          if bad: raise SystemExit('\n'.join(bad))
-          index = Path('site/index.html').read_text(encoding='utf-8')
-          forbidden_index = ['footer-route-guard.css','route-hero-standard.css','app-controls.css','app-shapes.css','account.css','admin.css','business-dashboard.css','fnb.css','settings.css']
-          leaked = [name for name in forbidden_index if name in index]
-          if leaked: raise SystemExit('Clean shell still loads legacy presentation: '+', '.join(leaked))
-          ci = Path('site/ui/routes/ci-reference.js').read_text(encoding='utf-8')
-          if 'ci-day-cycle-route.js' in ci or 'ci.css' in ci or 'fnb.css' in ci or 'settings.css' in ci:
-              raise SystemExit('Clean branch must reference the approved CI preview, not recreate/load the wrong CI implementation')
-          today = Path('site/ui/routes/today.js').read_text(encoding='utf-8')
-          forbidden_today = ['business-dashboard.js','business-dashboard.css','business-dashboard-motion.css','hotel-factsheet.css','fnb.css','settings.css']
-          leaked = [name for name in forbidden_today if name in today]
-          if leaked: raise SystemExit('Recreated Today imports legacy presentation: '+', '.join(leaked))
-          required_sections = ['At a Glance','Needs Attention','F&B Today','Current Month','Next Months','Market Segment Detail','Operations Notes']
-          missing = [name for name in required_sections if name not in today]
-          if missing: raise SystemExit('Today structure incomplete: '+', '.join(missing))
-          PY
-
-      - name: Verify legacy routes and protected engines unchanged from main
-        shell: bash
-        run: |
-          set -euo pipefail
-          base="$(git merge-base origin/main HEAD)"
-          test -n "$base"
-          for file in \
-            site/route-registry.js \
-            site/ci.js site/ci.css site/ci-specimen-fixes.css site/ci-day-cycle-route.js site/ci-betta-day-cycle.js site/ui-system-registry.js \
-            site/business-dashboard.js site/business-dashboard.css site/business-dashboard-motion.js site/business-dashboard-motion.css \
-            site/fnb-route.js site/fnb.js site/fnb.css site/fnb-data.js \
-            site/settings-route-v3.js site/settings.js site/settings.css \
-            site/brand.js site/brand.css site/ihg-history.js site/ihg-history.css site/hotel-factsheet-route.js site/hotel-factsheet.js site/hotel-factsheet.css \
-            site/betta-environment.js site/betta-runtime.js site/betta-fin-presets.js site/betta-fin-shader.js site/betta-satellite.js \
-            site/location.js site/live-data.js site/rain-now.js \
-            site/auth-client.js site/auth-shell.js site/capabilities.js \
-            site/business-dashboard-data.js site/business-card-component.js \
-            site/manifest.webmanifest site/sw.js; do
-            git diff --exit-code "$base" HEAD -- "$file"
-          done
-
-      - name: Deploy Cloudflare branch preview
+          test -f BROKEN_BRANCH.md
+          grep -q 'BROKEN — DO NOT USE' BROKEN_BRANCH.md
+          grep -q 'BROKEN — DO NOT USE' site/index.html
+      - name: Deploy broken-branch warning
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
-
-      - name: Raw preview smoke
+      - name: Verify warning is live
         shell: bash
         run: |
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in \
-            / /ci /login.html \
-            /ui/app.js /ui/router.js /ui/approved-ci-authority.js /ui/index.css /ui/tokens.css /ui/materials.css /ui/components.css /ui/components/disclosure.css /ui/shell.css \
-            /ui/routes/today.js /ui/routes/today.css /ui/routes/ci-reference.js \
-            /business-dashboard-data.js /auth-client.js /betta-runtime.js /betta-environment.js /manifest.webmanifest /sw.js; do
-            curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
-            test -s /tmp/response
-          done
-          curl --fail --silent --show-error "${BASE_URL}/" -o /tmp/index.html
-          grep -q '/ui/app.js' /tmp/index.html
-          grep -q '/ui/index.css' /tmp/index.html
-          if grep -q 'footer-route-guard.css' /tmp/index.html; then exit 1; fi
-          curl --fail --silent --show-error "${BASE_URL}/ui/tokens.css" -o /tmp/tokens.css
-          grep -q -- '--app-glass-fill:rgba(46,39,59,.30)' /tmp/tokens.css
-          grep -q -- '--app-glass-filter:blur(18px) saturate(1.18)' /tmp/tokens.css
+          curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}/" -o /tmp/index.html
+          grep -q 'BROKEN — DO NOT USE' /tmp/index.html
