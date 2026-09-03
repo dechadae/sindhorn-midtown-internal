@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v70-ui-library-r1';
+const VERSION='sindhorn-midtown-internal-pwa-v71-components-critical-r1';
 // Preserve prior production release-family markers required by regression gates:
 // sindhorn-midtown-internal-pwa-v55-overlay-glass-r1
 // Preserve prior production release-family markers required by regression gates:
@@ -52,7 +52,7 @@ const SHELL=['/','/index.html','/route-registry.js','/business-dashboard.js','/b
    these are fatal. Everything else is best-effort: the fetch handler already
    caches on first use, so an asset missed here self-heals as soon as it is
    requested. Keep this list SMALL - it is the failure surface of every update. */
-const CRITICAL_SHELL=['/','/index.html','/shell.css','/fonts.css','/app-glass.css','/app-glass-runtime.js','/bootstrap.js','/route-registry.js','/auth-shell.js','/auth-client.js','/manifest.webmanifest'];
+const CRITICAL_SHELL=['/','/index.html','/shell.css','/fonts.css','/app-glass.css','/app-components.css','/app-glass-runtime.js','/bootstrap.js','/route-registry.js','/auth-shell.js','/auth-client.js','/manifest.webmanifest'];
 const PRECACHE_RETRIES=3;
 
 function validResponse(path,response){if(!response||!response.ok)return false;const type=(response.headers.get('content-type')||'').toLowerCase();if(path==='/'||path.endsWith('.html'))return type.includes('text/html');if(path.endsWith('.js'))return type.includes('javascript');if(path.endsWith('.css'))return type.includes('text/css');if(path.endsWith('.webmanifest')||path.endsWith('.json'))return type.includes('json')||type.includes('manifest');if(path.endsWith('.png'))return type.includes('image/png');if(path.endsWith('.woff')||path.endsWith('.woff2'))return!type.includes('text/html');return!type.includes('text/html')}
