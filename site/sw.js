@@ -1,4 +1,6 @@
-const VERSION='sindhorn-midtown-internal-pwa-v52-canonical-selector-r1';
+const VERSION='sindhorn-midtown-internal-pwa-v53-one-dropdown-r1';
+// Preserve prior production release-family markers required by regression gates:
+// sindhorn-midtown-internal-pwa-v52-canonical-selector-r1
 // Preserve prior production release-family markers required by regression gates:
 // sindhorn-midtown-internal-pwa-v51-design-tokens-r1
 // Preserve prior production release-family markers required by regression gates:

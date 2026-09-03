@@ -17,17 +17,18 @@
 const esc=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
 export function selectField({kind,label,values,selected,labelFor=v=>v}){
-  const menuId=`app-${kind}-menu`;
-  const options=values.map(value=>`<button class="fnb-select-option" type="button" role="option" data-filter-option data-value="${esc(value)}" aria-selected="${String(value===selected)}">${esc(labelFor(value))}</button>`).join('');
+  const menuId=`fnb-${kind}-menu`;
   return`<div class="fnb-select" data-filter-field="${esc(kind)}">`
     +`<span class="fnb-select-label">${esc(label)}</span>`
-    +`<button class="fnb-select-trigger" type="button" data-filter-trigger="${esc(kind)}" aria-label="${esc(label)}" aria-haspopup="listbox" aria-expanded="false" aria-controls="${menuId}">`
+    +`<button class="fnb-select-trigger" type="button" data-filter-trigger="${esc(kind)}" aria-label="${esc(label)} filter" aria-haspopup="listbox" aria-expanded="false" aria-controls="${menuId}">`
     +`<span data-filter-value>${esc(labelFor(selected))}</span>`
     +`<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5"/></svg></button>`
     +`<select data-${esc(kind)}-select hidden tabindex="-1" aria-hidden="true">`
-    +values.map(value=>`<option value="${esc(value)}"${value===selected?' selected':''}>${esc(labelFor(value))}</option>`).join('')
+    +values.map(value=>`<option value="${esc(value)}">${esc(labelFor(value))}</option>`).join('')
     +`</select>`
-    +`<div class="fnb-select-menu" id="${menuId}" role="listbox" aria-hidden="true">${options}</div></div>`;
+    +`<div class="fnb-select-menu" id="${menuId}" role="listbox" aria-label="${esc(label)}" aria-hidden="true">`
+    +values.map(value=>`<button class="fnb-select-option${value===selected?' is-selected':''}" type="button" role="option" aria-selected="${value===selected}" data-filter-option="${esc(kind)}" data-value="${esc(value)}"><span>${esc(labelFor(value))}</span><i aria-hidden="true"></i></button>`).join('')
+    +`</div></div>`;
 }
 
 export function bindSelectField(root,kind,onChange,labelFor=v=>v){

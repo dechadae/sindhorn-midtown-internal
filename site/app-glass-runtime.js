@@ -26,7 +26,7 @@ const CONTROL_SELECTORS=[
   /* shared/back */
   '.app-back-control','.fnb-back',
   /* F&B */
-  '.fnb-chip','.fnb-select select','.fnb-select-trigger','.fnb-select-menu','.fnb-expand','.fnb-link-field input','.fnb-action:not(.app-utility-action)',
+  '.fnb-chip','.fnb-select select','.fnb-select-trigger','.fnb-expand','.fnb-link-field input','.fnb-action:not(.app-utility-action)',
   /* Settings */
   '.settings-primary','.settings-quiet-action:not(.app-utility-action)','.settings-add','.settings-search','.settings-close','.settings-field input','.settings-status','.settings-dialog-actions button','.settings-code-actions button','.business-card-settings-actions button',
   /* Messages */

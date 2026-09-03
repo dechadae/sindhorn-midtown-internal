@@ -1,3 +1,4 @@
+import {selectField} from './app-select.js?v=1';
 import {FNB_PROMOTIONS as DATA} from './fnb-data.js';
 
 const STATE_KEY='sindhorn-midtown:fnb-local:v1';
@@ -19,8 +20,6 @@ function statusLabel(status){return status==='LIVE'?'Live':status==='ENDED'?'End
 function uniqueValue(values,fallback='Varies by outlet'){const unique=[...new Set(values)];return unique.length===1?unique[0]:fallback}
 function outletLabel(value){return value==='ALL'?'All outlets':value}
 function monthLabel(value){return value==='ALL'?'All months':value[0]+value.slice(1).toLowerCase()}
-function filterField(kind,label,values,selected,labelFor){const menuId=`fnb-${kind}-menu`;return`<div class="fnb-select" data-filter-field="${kind}"><span class="fnb-select-label">${esc(label)}</span><button class="fnb-select-trigger" type="button" data-filter-trigger="${kind}" aria-label="${esc(label)} filter" aria-haspopup="listbox" aria-expanded="false" aria-controls="${menuId}"><span data-filter-value>${esc(labelFor(selected))}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5"/></svg></button><select data-${kind}-select hidden tabindex="-1" aria-hidden="true">${values.map(value=>`<option value="${esc(value)}">${esc(labelFor(value))}</option>`).join('')}</select><div class="fnb-select-menu" id="${menuId}" role="listbox" aria-label="${esc(label)}" aria-hidden="true">${values.map(value=>`<button class="fnb-select-option${value===selected?' is-selected':''}" type="button" role="option" aria-selected="${value===selected}" data-filter-option="${kind}" data-value="${esc(value)}"><span>${esc(labelFor(value))}</span><i aria-hidden="true"></i></button>`).join('')}</div></div>`}
-
 const TEMPLATE=`
 <section class="fnb-route" aria-labelledby="fnbTitle">
   <div class="fnb-index" data-index>
@@ -31,8 +30,8 @@ const TEMPLATE=`
       <div class="fnb-summary" data-summary></div>
     </header>
     <div class="fnb-control">
-      ${filterField('outlet','Outlet',OUTLETS,'ALL',outletLabel)}
-      ${filterField('month','Month',MONTHS,'ALL',monthLabel)}
+      ${selectField({kind:'outlet',label:'Outlet',values:OUTLETS,selected:'ALL',labelFor:outletLabel})}
+      ${selectField({kind:'month',label:'Month',values:MONTHS,selected:'ALL',labelFor:monthLabel})}
     </div>
     <div class="fnb-card-list" data-cards></div>
   </div>
