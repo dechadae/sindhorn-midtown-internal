@@ -12,8 +12,16 @@
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 
+/* min-height:100% on body is a no-op without html{height:100%}, so a page
+   shorter than the viewport (a short route, or the frame before content
+   mounts) never actually reaches the bottom of the screen - a sticky footer
+   then floats right after the short content instead of pinning to view.
+   100dvh plus a flex column makes body itself always at least viewport-tall,
+   and .app-page.is-shell (below) grows to fill what's left, so the footer's
+   position:sticky always has real space to stick within. */
 body{
-  min-height:100%;margin:0;
+  min-height:100dvh;margin:0;
+  display:flex;flex-direction:column;
   background:#2E273B;color:var(--app-text);
   font-family:var(--font-ui);font-size:var(--type-body);font-weight:var(--weight-regular);
   letter-spacing:0;line-height:var(--leading-body);

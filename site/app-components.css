@@ -391,7 +391,11 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-navbar-button:disabled{cursor:default}
 
 /* A page inside the shell reserves room for the sticky footer. */
-.app-page.is-shell{padding-bottom:calc(var(--app-navbar-height) + 28px)}
+/* flex:1 0 auto is the other half of the sticky-footer fix in app-shell.css:
+   body is a flex column, so this is what actually consumes the leftover
+   viewport height instead of leaving the footer to float after short
+   content. */
+.app-page.is-shell{flex:1 0 auto;padding-bottom:calc(var(--app-navbar-height) + 28px)}
 
 /* ============================================================================
    LAYOUT — every page needs these, so no page should define them.

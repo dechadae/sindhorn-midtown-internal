@@ -15,6 +15,7 @@
    state below, not a fake success - which is the correct behaviour, not a
    bug to route around. */
 import { loadBusinessDashboard } from './business-dashboard-data.js';
+import { initAuth } from './auth-client.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const num = value => Number.isFinite(Number(value)) ? Number(value) : null;
@@ -87,11 +88,11 @@ function renderHero(data) {
   const fnbSource = sourceFor(data, 'fnb_xlsx'), roomsSource = sourceFor(data, 'rooms_pdf');
   const roomsCarried = Boolean(roomsSource?.metadata?.carriedForwardFromRun), pickupTo = roomsSource?.metadata?.pickupTo;
   return `<header class="app-hero"><p class="app-hero-eyebrow">Today</p><h1 class="app-hero-title">Hotel Business</h1><p class="app-hero-copy">${esc(dateLabel(data.businessDate))} · Daily operating pulse from approved F&amp;B and Rooms reports.</p></header>
-  <div class="app-card app-surface"><div class="app-list">
+  <section class="app-section"><div class="app-card app-surface"><div class="app-list">
     <div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">Data updated</span><span class="app-list-row-meta">${esc(data.validationStatus === 'passed_with_warnings' ? 'Validated with source warnings' : 'Validated')}</span></span><span class="app-list-row-end">${esc(dateTimeLabel(data.publishedAt || data.importedAt))}</span></div>
     <div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">F&amp;B report</span><span class="app-list-row-meta">Revision ${esc(data.revision)}</span></span><span class="app-list-row-end">${esc(shortDateLabel(fnbSource?.detectedReportDate || data.businessDate))}</span></div>
     <div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">Rooms report</span><span class="app-list-row-meta">${esc(`${pickupTo ? `Pickup through ${shortDateLabel(pickupTo)}` : 'Approved source'}${roomsCarried ? ' · carried forward unchanged' : ''}`)}</span></span><span class="app-list-row-end">${esc(shortDateLabel(roomsSource?.detectedReportDate || data.businessDate))}</span></div>
-  </div></div>`;
+  </div></div></section>`;
 }
 function renderGlance(data) {
   const f = data.fnb?.summary || {}, daily = f.daily || {}, mtd = f.mtd || {};
@@ -206,9 +207,11 @@ function render(data) {
 function skeletonMarkup() {
   const card = () => `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;
   return `<header class="app-hero"><p class="app-hero-eyebrow">Today</p><h1 class="app-hero-title">Hotel Business</h1><p class="app-hero-copy">Loading the latest approved daily business report…</p></header>
-  <div class="app-metric-grid">${Array.from({ length: 4 }, card).join('')}</div>
-  <div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-block"></div></div></div>
-  <div class="app-state app-card" data-tone="loading"><p class="app-state-label">Loading</p><p class="app-state-title">Loading today's approved business data…</p></div>`;
+  <section class="app-section"><div class="app-stack">
+    <div class="app-metric-grid">${Array.from({ length: 4 }, card).join('')}</div>
+    <div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-block"></div></div></div>
+    <div class="app-state app-card" data-tone="loading"><p class="app-state-label">Loading</p><p class="app-state-title">Loading today's approved business data…</p></div>
+  </div></section>`;
 }
 function errorMarkup(error) {
   const unauthorized = error?.status === 401 || error?.status === 403;
@@ -216,8 +219,10 @@ function errorMarkup(error) {
     ? 'Sign-in has not returned to this shell yet, so the approved report cannot be verified as yours to see.'
     : (error?.message || 'Try again when the connection is available.');
   return `<header class="app-hero"><p class="app-hero-eyebrow">Today</p><h1 class="app-hero-title">Hotel Business</h1><p class="app-hero-copy">Daily business data is temporarily unavailable.</p></header>
-  <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Unable to load the approved report</p><p class="app-state-copy">${esc(message)}</p></div>
-  <div class="app-row"><button class="app-primary app-control" type="button" data-today-retry>Try again</button></div>`;
+  <section class="app-section"><div class="app-stack">
+    <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Unable to load the approved report</p><p class="app-state-copy">${esc(message)}</p></div>
+    <div class="app-row"><button class="app-primary app-control" type="button" data-today-retry>Try again</button></div>
+  </div></section>`;
 }
 
 async function refresh(host, { force = false } = {}) {
@@ -230,7 +235,13 @@ async function refresh(host, { force = false } = {}) {
   }
 }
 
-export function mountToday(host) {
+export async function mountToday(host) {
+  host.innerHTML = skeletonMarkup();
+  // The shell has no sign-in UI of its own yet - this only recognizes a
+  // session that already exists in localStorage (e.g. from signing into the
+  // live app in this same browser), the same way every other authenticated
+  // route already does. It never lowers what the RPC itself requires.
+  await initAuth();
   refresh(host, { force: false });
   host.addEventListener('click', event => {
     if (event.target.closest('[data-today-retry]')) { refresh(host, { force: true }); return; }
