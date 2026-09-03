@@ -11,11 +11,11 @@ function glassSectionMarkup(){
       <p class="ci-section-lede">CI is the visual authority for every translucent surface in the authenticated app: 30% Vignette purple over the live atmosphere with the proven 18px blur and 1.18 saturation. Header, footer, cards, controls, chips and fields consume this same material. Fully transparent utility actions are exempt.</p>
     </header>
     <div class="ci-grid">
-      <div class="ci-specimen app-glass-surface">
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>Canonical surface</span><span>30% fill · 18px blur</span></div>
         <article class="fnb-text-card app-glass-surface"><p class="fnb-text-label">Frosted, not painted</p><div class="fnb-text-copy">The Betta remains visible through the surface, while its detail is softened by the same blur used everywhere else in the app.</div></article>
       </div>
-      <div class="ci-specimen app-glass-surface">
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>Canonical controls</span><span>same material</span></div>
         <div class="ci-actions">
           <button class="app-back-control app-glass-control" type="button" aria-label="Glass back control specimen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg></button>
@@ -24,11 +24,11 @@ function glassSectionMarkup(){
         </div>
         <p class="ci-note">Surface and control geometry stays component-owned. Pigment and backdrop treatment come only from app-glass.css.</p>
       </div>
-      <div class="ci-specimen app-glass-surface">
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>Persistent shell</span><span>same frost</span></div>
         <p class="ci-note">The hotel masthead and global footer are no longer separate opaque purple materials. app-glass-runtime.js assigns the same canonical surface material to both.</p>
       </div>
-      <div class="ci-specimen app-glass-surface">
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>Image frame</span><span>Factsheet authority</span></div>
         <figure class="factsheet-picture app-glass-surface" data-ci-glass-picture><div style="height:112px;background:linear-gradient(135deg,rgba(250,247,245,.16),rgba(229,236,190,.08))" aria-hidden="true"></div><figcaption>Official image · translucent frame</figcaption></figure>
       </div>
@@ -56,7 +56,7 @@ function hasCanonicalAlpha(node){const alpha=alphaOf(node);return Number.isFinit
 function glassChecks(route){
   const shellHeader=document.querySelector('.masthead');
   const shellFooter=document.querySelector('.app-tabbar,.shell-footer-rail');
-  const surface=route.querySelector('#ci-glass .ci-specimen');
+  const surface=route.querySelector('#ci-glass .fnb-text-card');
   const targets=[
     ['Canonical CI surface uses 18px blur',surface,hasBlur(surface)?styleValue(surface,'filter'):'missing 18px blur'],
     ['Canonical CI surface uses 30% fill',surface,styleValue(surface,'background')],

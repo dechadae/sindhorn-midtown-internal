@@ -43,7 +43,7 @@ async function runViewport(browser,width,height){
       probes.style.cssText='position:fixed;left:-10000px;top:0;width:390px;visibility:hidden;pointer-events:none';
       probes.innerHTML=`
         <div class="ci-status app-glass-surface" data-probe="ci-status"></div>
-        <article class="ci-specimen app-glass-surface" data-probe="ci-specimen"></article>
+        <article class="ci-specimen" data-probe="ci-specimen"></article>
         <article class="ci-token app-glass-surface" data-probe="ci-token"></article>
         <figure class="ci-image-demo app-glass-surface" data-probe="ci-image"></figure>
         <nav class="ci-index"><button class="app-glass-control" data-probe="ci-index">Index</button></nav>
@@ -61,7 +61,8 @@ async function runViewport(browser,width,height){
         version:window.SindhornUiLibrary?.version,
         tokens:{fill:rootStyle.getPropertyValue('--app-glass-fill').trim(),filter:rootStyle.getPropertyValue('--app-glass-filter').trim()},
         shell:{header:readNode(header),footer:readNode(footer),headerClass:header.classList.contains('app-glass-surface'),footerClass:footer.classList.contains('app-glass-surface')},
-        surfaces:['ci-status','ci-specimen','ci-token','ci-image'].map(read),
+        surfaces:['ci-status','ci-token','ci-image'].map(read),
+          specimenFrame:read('ci-specimen'),
         controls:['ci-index','ci-primary'].map(read),
         utilities:['legacy-utility','utility'].map(read),
         periodChip:read('period'),
@@ -75,6 +76,8 @@ async function runViewport(browser,width,height){
     assert(normalizedFilter(report.tokens.filter)===CI_FILTER,`${width}: CI filter token drift ${JSON.stringify(report.tokens)}`);
     assert(report.overflow<=1,`${width}: horizontal overflow ${report.overflow}`);
     for(const target of [...report.surfaces,...report.controls]){assert(normalizedFilter(target.filter)===CI_FILTER,`${width}: ${target.name} is not using CI blur (${target.filter})`);assert(target.background===CI_FILL,`${width}: ${target.name} fill ${target.background}`)}
+      assert(hasNoBlur(report.specimenFrame.filter),`${width}: ci-specimen is a demo frame and must not blur (${report.specimenFrame.filter})`);
+      assert(report.specimenFrame.background==='rgba(0, 0, 0, 0)',`${width}: ci-specimen frame must stay unpainted so specimens inside touch the atmosphere (${report.specimenFrame.background})`);
     for(const [name,target] of Object.entries({header:report.shell.header,footer:report.shell.footer})){assert(normalizedFilter(target.filter)===CI_FILTER,`${width}: ${name} filter ${target.filter}`);assert(target.background===CI_FILL,`${width}: ${name} fill ${target.background}`)}
     assert(report.shell.headerClass&&report.shell.footerClass,`${width}: persistent shell not assigned canonical glass classes`);
     for(const utility of report.utilities){assert(hasNoBlur(utility.filter),`${width}: ${utility.name} unexpectedly blurs (${utility.filter})`);assert(utility.background==='rgba(0, 0, 0, 0)',`${width}: ${utility.name} painted background ${utility.background}`);assert(utility.fontSize==='12px',`${width}: ${utility.name} font ${utility.fontSize}`)}
