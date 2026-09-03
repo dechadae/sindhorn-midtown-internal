@@ -14,6 +14,11 @@
    specific to a reference page.
 */
 
+/* No container rule existed here before - the links wrapped on default inline
+   whitespace, which is why the gap between them was inconsistent rather than
+   designed. A deliberate wrap with its own gap replaces that accident. */
+.ci-index{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px 10px}
+
 /* .app-control supplies the material - these draw a real edge for a real
    jump-link, so the glass membership rule applies to them same as anywhere
    else in the app. */
