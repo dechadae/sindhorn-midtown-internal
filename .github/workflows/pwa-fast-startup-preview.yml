@@ -46,7 +46,7 @@ jobs:
           done
 
           # Startup / Betta / PWA invariants.
-          grep -q "sindhorn-midtown-internal-pwa-v58-ci-card-glass-r1" site/sw.js
+          grep -q "sindhorn-midtown-internal-pwa-v59-card-primitive-r1" site/sw.js
           grep -q "PRECACHE_CONCURRENCY=8" site/sw.js
           grep -q "betta-runtime-full.js?v=1" site/betta-runtime.js
           grep -q "betta-runtime.js?v=2" site/index.html

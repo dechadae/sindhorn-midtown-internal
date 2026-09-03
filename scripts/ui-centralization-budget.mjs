@@ -33,7 +33,20 @@ const allCss=cssFiles.map(read).join(' ');
 const rulesWith=(text,prop)=>[...text.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(m=>m[2].includes(prop)).length;
 const distinct=prop=>new Set([...allCss.matchAll(new RegExp(prop+'\\s*:\\s*([^;}]+)','g'))]
   .map(m=>m[1].trim().replace('!important','').trim())).size;
-const implementations=suffix=>new Set(allCss.match(new RegExp('\\.[a-z]+-'+suffix+'\\b','g'))||[]).size;
+// Counts distinct component names that actually IMPLEMENT the appearance -
+// a rule declaring fill, edge or backdrop - not every class whose name happens
+// to end in the suffix. Once a route hands its material to .app-card and keeps
+// only padding/radius, its class stops being an implementation and stops
+// counting, which is the whole point of the migration. A newly painted card
+// still counts, so this stays strictly harder to regress past, not easier.
+const implementations=suffix=>{
+  const names=new Set();
+  for(const m of allCss.matchAll(/([^{}]+)\{([^{}]*)\}/g)){
+    if(!/(?:^|;|\s)(?:background|background-color|border|border-color|backdrop-filter)\s*:/.test(m[2]))continue;
+    for(const cls of m[1].match(new RegExp('\\.[a-z]+-'+suffix+'\\b','g'))||[])names.add(cls);
+  }
+  return names.size;
+};
 
 const measured={
   foundationCssFiles: cssFiles.filter(f=>FOUNDATION.has(f)).length,

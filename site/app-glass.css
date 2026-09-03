@@ -60,6 +60,54 @@
   -webkit-backdrop-filter:var(--app-glass-filter)!important;
 }
 
+/* THE MEMBERSHIP RULE - approved 3 September 2026.
+
+   A card is anything that draws an edge: a border or a fill. It sits on the
+   atmosphere, so the atmosphere must show through it. A layout container draws
+   no edge - it only arranges its children - so it is not a card and takes no
+   material. Sign out, Share and Back to top are frameless for that reason: no
+   edge, no glass. This is a rule, not a per-component exception list.
+
+   Three primitives, declared in markup by the component itself:
+     .app-card     a drawn boundary on the atmosphere
+     .app-control  an interactive drawn boundary
+     .app-overlay  a drawn boundary floating above content, not the atmosphere
+
+   Route stylesheets own geometry only - padding, radius, grid - and never
+   declare fill, border colour or backdrop-filter. They need no cascade override
+   precisely because nothing downstream is allowed to compete.
+
+   They replace a 61-name hand-maintained registry in app-glass-runtime.js.
+   Membership used to depend on someone remembering to add a class name, which
+   is how /ci sections 16 and 17 ended up in two different materials. */
+.app-card,
+.app-control{
+  border:1px solid var(--app-glass-border);
+  background-color:var(--app-glass-fill);
+  backdrop-filter:var(--app-glass-filter);
+  -webkit-backdrop-filter:var(--app-glass-filter);
+}
+
+/* Floating layers sit over arbitrary page content rather than the Betta, so
+   they take the heavier fill. Same blur - one material, two weights. */
+.app-overlay{
+  border:1px solid var(--app-glass-border);
+  background-color:var(--app-glass-overlay-fill);
+  backdrop-filter:var(--app-glass-filter);
+  -webkit-backdrop-filter:var(--app-glass-filter);
+}
+
+/* A card inside a card cannot sample the page - see THE RULE above - so it
+   keeps the tint and drops the blur. Structural, so no guard is needed to
+   notice it after the fact. */
+.app-card .app-card,
+.app-card .app-control,
+.app-overlay .app-card,
+.app-overlay .app-control{
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+}
+
 /* Frameless utilities are intentionally not glass even if a legacy page class
    once painted them. */
 .app-utility-action,

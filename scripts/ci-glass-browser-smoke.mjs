@@ -6,6 +6,7 @@ const BASE_URL=(process.env.BASE_URL||'http://127.0.0.1:8788').replace(/\/$/,'')
 const OUT_DIR=process.env.SCREENSHOT_DIR||'/tmp/ci-glass-preview';
 const CI_FILTER='blur(18px) saturate(1.18)';
 const CI_FILL='rgba(46, 39, 59, 0.3)';
+const OVERLAY_FILL='rgba(38, 32, 49, 0.72)';
 await fs.mkdir(OUT_DIR,{recursive:true});
 const assert=(value,message)=>{if(!value)throw new Error(message)};
 
@@ -50,7 +51,10 @@ async function runViewport(browser,width,height){
         <button class="ci-primary app-glass-control" data-probe="ci-primary">Primary</button>
         <button class="fnb-chip ci-betta-period-chip app-glass-control" data-betta-period="golden-hour" data-probe="period">Golden Hour</button>
         <button class="app-quiet-action" data-probe="legacy-utility">Back to top</button>
-        <button class="app-utility-action" data-probe="utility">Share</button>`;
+        <button class="app-utility-action" data-probe="utility">Share</button>
+          <div class="app-card" data-probe="primitive-card"><div class="app-card" data-probe="primitive-card-nested"></div></div>
+          <button class="app-control" data-probe="primitive-control">Control</button>
+          <div class="app-overlay" data-probe="primitive-overlay"></div>`;
       routeView.appendChild(probes);
       const readNode=node=>{const style=getComputedStyle(node);return{filter:String(style.backdropFilter||style.webkitBackdropFilter||'none'),background:style.backgroundColor,border:style.borderTopColor,fontSize:style.fontSize,paddingTop:style.paddingTop,paddingRight:style.paddingRight}};
       const read=name=>({name,...readNode(probes.querySelector(`[data-probe="${name}"]`))});
@@ -76,6 +80,14 @@ async function runViewport(browser,width,height){
     assert(normalizedFilter(report.tokens.filter)===CI_FILTER,`${width}: CI filter token drift ${JSON.stringify(report.tokens)}`);
     assert(report.overflow<=1,`${width}: horizontal overflow ${report.overflow}`);
     for(const target of [...report.surfaces,...report.controls]){assert(normalizedFilter(target.filter)===CI_FILTER,`${width}: ${target.name} is not using CI blur (${target.filter})`);assert(target.background===CI_FILL,`${width}: ${target.name} fill ${target.background}`)}
+      for(const target of report.primitives){
+        assert(normalizedFilter(target.filter)===CI_FILTER,`${width}: ${target.name} lost the canonical blur (${target.filter})`);
+        assert(target.background===CI_FILL,`${width}: ${target.name} fill ${target.background}`);
+      }
+      assert(report.primitiveOverlay.background===OVERLAY_FILL,`${width}: .app-overlay must carry the heavier floating fill (${report.primitiveOverlay.background})`);
+      assert(normalizedFilter(report.primitiveOverlay.filter)===CI_FILTER,`${width}: .app-overlay must keep the one blur (${report.primitiveOverlay.filter})`);
+      assert(hasNoBlur(report.primitiveNested.filter),`${width}: a card inside a card must drop the blur (${report.primitiveNested.filter})`);
+      assert(report.primitiveNested.background===CI_FILL,`${width}: a nested card keeps the tint (${report.primitiveNested.background})`);
       assert(hasNoBlur(report.specimenFrame.filter),`${width}: ci-specimen is a demo frame and must not blur (${report.specimenFrame.filter})`);
       assert(report.specimenFrame.background==='rgba(0, 0, 0, 0)',`${width}: ci-specimen frame must stay unpainted so specimens inside touch the atmosphere (${report.specimenFrame.background})`);
     for(const [name,target] of Object.entries({header:report.shell.header,footer:report.shell.footer})){assert(normalizedFilter(target.filter)===CI_FILTER,`${width}: ${name} filter ${target.filter}`);assert(target.background===CI_FILL,`${width}: ${name} fill ${target.background}`)}
