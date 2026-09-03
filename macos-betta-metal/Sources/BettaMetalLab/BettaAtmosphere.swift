@@ -194,7 +194,7 @@ final class BettaHimawariAtmosphereController {
     var statusText: String {
         if !isEnabled { return "Atmosphere · Still" }
         if isRefreshing { return "Atmosphere · Himawari updating…" }
-        if let error = store.lastError, store.lastObservation == nil {
+        if store.lastError != nil, store.lastObservation == nil {
             return "Atmosphere · Neutral fallback"
         }
         if let date = store.lastObservation {
@@ -210,15 +210,17 @@ final class BettaHimawariAtmosphereController {
         stopTimers()
         lastTick = ProcessInfo.processInfo.systemUptime
         smoothingTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            let now = ProcessInfo.processInfo.systemUptime
-            self.store.advance(deltaTime: now - self.lastTick)
-            self.lastTick = now
+            Task { @MainActor in
+                guard let self else { return }
+                let now = ProcessInfo.processInfo.systemUptime
+                self.store.advance(deltaTime: now - self.lastTick)
+                self.lastTick = now
+            }
         }
         if let smoothingTimer { RunLoop.main.add(smoothingTimer, forMode: .common) }
 
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 600, repeats: true) { [weak self] _ in
-            self?.refreshNow()
+            Task { @MainActor in self?.refreshNow() }
         }
         if let refreshTimer { RunLoop.main.add(refreshTimer, forMode: .common) }
 
@@ -302,7 +304,7 @@ final class BettaHimawariAtmosphereController {
         var request = URLRequest(url: url)
         request.timeoutInterval = 20
         request.cachePolicy = .reloadRevalidatingCacheData
-        request.setValue("BETTA/0.6 macOS ambient renderer", forHTTPHeaderField: "User-Agent")
+        request.setValue("BETTA/1.0 macOS living-art renderer", forHTTPHeaderField: "User-Agent")
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
             throw NSError(domain: "BETTA.Himawari", code: 3, userInfo: [NSLocalizedDescriptionKey: "Himawari request failed."])
