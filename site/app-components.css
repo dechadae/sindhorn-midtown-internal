@@ -1,15 +1,15 @@
 /* Sindhorn Midtown Internal - library-owned components.
 
-   These were defined inside route stylesheets, so building a new page meant
-   depending on F&B, Factsheet or Settings CSS. The library now owns the
+   These were defined inside route stylesheets,so building a new page meant
+   depending on F&B,Factsheet or Settings CSS. The library now owns the
    definition and each route class rides along as a co-selector until that route
-   is rebuilt, at which point its name is dropped from the selector here.
+   is rebuilt,at which point its name is dropped from the selector here.
 
    Material comes from app-glass.css (.app-card / .app-control / .app-overlay).
-   This file owns geometry and structure only - no fill, no blur.
+   This file owns geometry and structure only - no fill,no blur.
 
    .app-action-card   an actionable card with a full-width button face
-   .app-select        the canonical selector, behaviour in app-select.js
+   .app-select        the canonical selector,behaviour in app-select.js
    .app-disclosure    expandable content that stays in the DOM
    .app-field         a form field
    .app-dialog        a dialog / sheet
@@ -18,67 +18,10 @@
 
 
 /* ---- promoted from fnb.css ---- */
-.app-select,.fnb-select{display:grid;gap:6px;min-width:0}
-.fnb-select-label{color:var(--app-muted);font-size:9px;font-weight:400;letter-spacing:0!important;text-transform:uppercase}
-.app-select select,.fnb-select select{border:1px solid var(--app-line);background-color:var(--app-inset-fill);width:100%;height:40px;min-height:40px;padding:0 30px 0 12px;border-radius:10px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 8l5 5 5-5' fill='none' stroke='%23FAF7F5' stroke-opacity='.55' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-size:14px;color:var(--app-text);font:inherit;font-size:13px;-webkit-appearance:none;appearance:none;cursor:pointer}
-.app-select select:focus-visible,.fnb-select select:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
-.app-select select option,.fnb-select select option{color:var(--app-text)}
-/* ---- promotion list — compact panels,not heavy boxed cards -------------- */
-.fnb-card-list{display:grid;gap:9px;padding:18px 0 0}
-.app-action-card,.fnb-card{border-radius:14px;transition:border-color .22s ease}
-.fnb-card-button{width:100%;padding:16px 17px;text-align:left;cursor:pointer;color:inherit}
-.fnb-card-status{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
-.fnb-card-relative{color:var(--app-muted);font-size:11px}
-.fnb-card-title{margin:0;font-size:clamp(16px,3.6vw,19px);font-weight:400;line-height:1.25;letter-spacing:0!important}
-.fnb-card-outlets{margin:6px 0 0;color:var(--app-muted);font-size:12.5px}
-.fnb-card-date{margin:10px 0 0;font-size:12.5px;font-variant-numeric:tabular-nums}
-.fnb-card-foot{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin-top:12px;color:var(--app-muted);font-size:12.5px;line-height:1.5}
-.app-action-card.fnb-status-live,.fnb-card.fnb-status-live{border-color:rgba(114,167,93,.4)}
-.fnb-chip,.app-action-card,.fnb-card,.fnb-progress-track i,.fnb-text-copy,.fnb-sheet,.fnb-art-chevron,.fnb-task-list,.fnb-art-head{transition:none}
-
-/* ---- promoted from hotel-factsheet.css ---- */
-.app-disclosure,.factsheet-room-card{overflow:clip;border-radius:14px;box-shadow:inset 0 1px 0 rgba(250,247,245,.025);transition:transform 260ms var(--motion-ease),border-color 260ms ease,background 260ms ease,box-shadow 260ms var(--motion-ease)}
-.app-disclosure:focus-within,.factsheet-room-card:focus-within{border-color:rgba(var(--app-accent-rgb),.32);box-shadow:0 14px 34px rgba(12,9,18,.14)}
-.app-disclosure.is-open,.factsheet-room-card.is-open{border-color:rgba(var(--app-accent-rgb),.25)}
-.factsheet-room-card-button{width:100%;min-height:82px;margin:0;padding:16px 17px;display:flex;align-items:center;justify-content:space-between;gap:16px;border:0;border-radius:0;color:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity 160ms ease,transform 160ms var(--motion-ease)}
-.factsheet-room-card-button:active{transform:scale(.992);opacity:.88}
-.factsheet-room-card-button:focus-visible{outline:2px solid rgba(var(--app-accent-rgb),.72);outline-offset:-3px}
-.factsheet-room-card-copy{min-width:0;display:block}
-.factsheet-room-card-copy strong{display:block;color:var(--app-text);font-size:16px;font-weight:400;line-height:1.28}
-.app-disclosure.is-open .factsheet-room-chevron,.factsheet-room-card.is-open .factsheet-room-chevron{transform:rotate(90deg);stroke:var(--app-accent)}
-.app-disclosure-panel,.factsheet-room-panel{display:grid;grid-template-rows:0fr;opacity:0;pointer-events:none;transition:grid-template-rows var(--motion-ms) var(--motion-ease),opacity 300ms ease}
-.app-disclosure.is-open .app-disclosure-panel,.factsheet-room-card.is-open .factsheet-room-panel{grid-template-rows:1fr;opacity:1;pointer-events:auto}
-.factsheet-room-panel-inner{min-height:0;overflow:hidden}
-.factsheet-table-wrap{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
-.factsheet-table-wrap table{width:max(650px,100%);border-collapse:collapse;font-size:10.5px;font-variant-numeric:tabular-nums}
-.factsheet-table-wrap th,.factsheet-table-wrap td{padding:10px 8px;border-bottom:1px solid var(--app-line);text-align:center;white-space:nowrap}
-.factsheet-table-wrap thead th{color:var(--app-muted);font-size:9px;font-weight:400;text-transform:uppercase}
-.factsheet-table-wrap thead th:first-child{width:108px;min-width:108px;max-width:108px}
-.factsheet-table-wrap tbody th{position:sticky;left:0;z-index:1;width:108px;min-width:108px;max-width:108px;text-align:left;font-weight:400;white-space:normal;line-height:1.28}
-.factsheet-table-wrap tbody th small{display:block;margin-top:3px;color:var(--app-muted);font-size:8.5px;font-weight:400;line-height:1.35}
-.factsheet-room-card-copy strong{font-size:15.5px}
-
-/* ---- promoted from settings.css ---- */
-.app-dialog,.settings-dialog{width:min(94vw,620px);max-height:min(88dvh,760px);padding:0;border:1px solid rgba(250,247,245,.15);border-radius:24px;color:var(--app-text);box-shadow:0 28px 90px rgba(8,6,12,.42);overflow:auto;transform-origin:center bottom}
-/* A scrim is not a card: it dims the page behind a dialog rather than sitting on
-   the atmosphere, so it keeps its own values. */
-.app-dialog::backdrop,.settings-dialog::backdrop{background:rgba(14,11,19,.48);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
-.settings-dialog-body{padding:22px}
-.settings-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
-.settings-dialog-kicker{margin:0 0 4px;color:var(--app-accent);font-size:9px;text-transform:uppercase}
-.app-dialog h2,.settings-dialog h2{margin:0;font-size:24px;font-weight:100;line-height:1.15}
-.app-field,.settings-field{display:grid;gap:6px;min-width:0}
-.app-field label,.settings-field label{color:var(--app-muted);font-size:9px;text-transform:uppercase}
-.app-field label span,.settings-field label span{opacity:.72;text-transform:none}
-.app-field input,.settings-field input{width:100%;min-height:48px;border:1px solid var(--app-line);border-radius:12px;background:var(--app-inset-fill);padding:10px 12px;outline:none;font-size:13px;transition:border-color var(--motion-ms) ease,background var(--motion-ms) ease,box-shadow var(--motion-ms) var(--motion-ease)}
-.app-field input:focus,.settings-field input:focus{border-color:rgba(229,236,190,.55);box-shadow:0 0 0 3px rgba(229,236,190,.08)}
-.app-field input:disabled,.settings-field input:disabled{opacity:.45}
-.settings-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
-.settings-dialog-actions-split{justify-content:space-between;align-items:center}
-.settings-action-group,.settings-dialog-actions>div{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.settings-dialog-actions button,.settings-code-actions button{min-height:40px;padding:0 13px;border-radius:12px;font-size:12px;transition:background var(--motion-ms) ease,border-color var(--motion-ms) ease,color var(--motion-ms) ease,box-shadow var(--motion-ms) var(--motion-ease),transform var(--motion-fast) var(--motion-ease),opacity var(--motion-fast) ease}
-.settings-dialog-actions button:active,.settings-code-actions button:active{transform:scale(.975);opacity:.84}
-.app-dialog,.settings-dialog{width:calc(100vw - 16px);max-height:calc(100dvh - 28px);border-radius:22px}
-.settings-dialog-body{padding:18px}
-.settings-dialog-actions-split{align-items:stretch;flex-direction:column}
-.settings-dialog-actions-split>div,.settings-action-group{width:100%}
+.app-select,.app-select,.fnb-select{display:grid;gap:6px;min-width:0}.app-select-label,.fnb-select-label{color:var(--app-muted);font-size:9px;font-weight:400;letter-spacing:0!important;text-transform:uppercase}.app-select select,.fnb-select select{border:1px solid var(--app-line);background-color:var(--app-inset-fill);width:100%;height:40px;min-height:40px;padding:0 30px 0 12px;border-radius:10px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 8l5 5 5-5' fill='none' stroke='%23FAF7F5' stroke-opacity='.55' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-size:14px;color:var(--app-text);font:inherit;font-size:13px;-webkit-appearance:none;appearance:none;cursor:pointer}.app-select select:focus-visible,.fnb-select select:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}.app-select select option,.fnb-select select option{color:var(--app-text)}/* ---- promotion list — compact panels,not heavy boxed cards -------------- */
+.app-action-card-list,not heavy boxed cards -------------- */
+.fnb-card-list{display:grid;gap:9px;padding:18px 0 0}.app-action-card,.fnb-card{border-radius:14px;transition:border-color .22s ease}.app-action-card-button,.fnb-card-button{width:100%;padding:16px 17px;text-align:left;cursor:pointer;color:inherit}.app-action-card-status,.fnb-card-status{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}.app-action-card-relative,.fnb-card-relative{color:var(--app-muted);font-size:11px}.app-action-card-title,.fnb-card-title{margin:0;font-size:clamp(16px,3.6vw,19px);font-weight:400;line-height:1.25;letter-spacing:0!important}.app-action-card-outlets,.fnb-card-outlets{margin:6px 0 0;color:var(--app-muted);font-size:12.5px}.app-action-card-date,.fnb-card-date{margin:10px 0 0;font-size:12.5px;font-variant-numeric:tabular-nums}.app-action-card-foot,.fnb-card-foot{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin-top:12px;color:var(--app-muted);font-size:12.5px;line-height:1.5}.app-action-card.fnb-status-live,.fnb-card.fnb-status-live{border-color:rgba(114,167,93,.4)}.fnb-chip,.app-action-card,.fnb-card,.fnb-progress-track i,.fnb-text-copy,.fnb-sheet,.fnb-art-chevron,.fnb-task-list,.fnb-art-head{transition:none}/* ---- promoted from hotel-factsheet.css ---- */
+.app-disclosure,.app-disclosure,.factsheet-room-card{overflow:clip;border-radius:14px;box-shadow:inset 0 1px 0 rgba(250,247,245,.025);transition:transform 260ms var(--motion-ease),border-color 260ms ease,background 260ms ease,box-shadow 260ms var(--motion-ease)}.app-disclosure:focus-within,.factsheet-room-card:focus-within{border-color:rgba(var(--app-accent-rgb),.32);box-shadow:0 14px 34px rgba(12,9,18,.14)}.app-disclosure.is-open,.factsheet-room-card.is-open{border-color:rgba(var(--app-accent-rgb),.25)}.app-disclosure-button,.factsheet-room-card-button{width:100%;min-height:82px;margin:0;padding:16px 17px;display:flex;align-items:center;justify-content:space-between;gap:16px;border:0;border-radius:0;color:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity 160ms ease,transform 160ms var(--motion-ease)}.app-disclosure-button:active,.factsheet-room-card-button:active{transform:scale(.992);opacity:.88}.app-disclosure-button:focus-visible,.factsheet-room-card-button:focus-visible{outline:2px solid rgba(var(--app-accent-rgb),.72);outline-offset:-3px}.app-disclosure-copy,.factsheet-room-card-copy{min-width:0;display:block}.app-disclosure-copy strong,.factsheet-room-card-copy strong{display:block;color:var(--app-text);font-size:16px;font-weight:400;line-height:1.28}.app-disclosure.is-open .factsheet-room-chevron,.factsheet-room-card.is-open .factsheet-room-chevron{transform:rotate(90deg);stroke:var(--app-accent)}.app-disclosure-panel,.factsheet-room-panel{display:grid;grid-template-rows:0fr;opacity:0;pointer-events:none;transition:grid-template-rows var(--motion-ms) var(--motion-ease),opacity 300ms ease}.app-disclosure.is-open .app-disclosure-panel,.factsheet-room-card.is-open .factsheet-room-panel{grid-template-rows:1fr;opacity:1;pointer-events:auto}.app-disclosure-panel-inner,.factsheet-room-panel-inner{min-height:0;overflow:hidden}.app-table-wrap,.factsheet-table-wrap{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}.app-table-wrap table,.factsheet-table-wrap table{width:max(650px,100%);border-collapse:collapse;font-size:10.5px;font-variant-numeric:tabular-nums}.app-table-wrap th,.factsheet-table-wrap th,.app-table-wrap td,.factsheet-table-wrap td{padding:10px 8px;border-bottom:1px solid var(--app-line);text-align:center;white-space:nowrap}.app-table-wrap thead th,.factsheet-table-wrap thead th{color:var(--app-muted);font-size:9px;font-weight:400;text-transform:uppercase}.app-table-wrap thead th:first-child,.factsheet-table-wrap thead th:first-child{width:108px;min-width:108px;max-width:108px}.app-table-wrap tbody th,.factsheet-table-wrap tbody th{position:sticky;left:0;z-index:1;width:108px;min-width:108px;max-width:108px;text-align:left;font-weight:400;white-space:normal;line-height:1.28}.app-table-wrap tbody th small,.factsheet-table-wrap tbody th small{display:block;margin-top:3px;color:var(--app-muted);font-size:8.5px;font-weight:400;line-height:1.35}.app-disclosure-copy strong,.factsheet-room-card-copy strong{font-size:15.5px}/* ---- promoted from settings.css ---- */
+.app-dialog,.app-dialog,.settings-dialog{width:min(94vw,620px);max-height:min(88dvh,760px);padding:0;border:1px solid rgba(250,247,245,.15);border-radius:24px;color:var(--app-text);box-shadow:0 28px 90px rgba(8,6,12,.42);overflow:auto;transform-origin:center bottom}/* A scrim is not a card: it dims the page behind a dialog rather than sitting on
+   the atmosphere,so it keeps its own values. */
+.app-dialog::backdrop,.app-dialog::backdrop,.settings-dialog::backdrop{background:rgba(14,11,19,.48);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}.app-dialog-body,.settings-dialog-body{padding:22px}.app-dialog-head,.settings-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}.app-dialog-kicker,.settings-dialog-kicker{margin:0 0 4px;color:var(--app-accent);font-size:9px;text-transform:uppercase}.app-dialog h2,.settings-dialog h2{margin:0;font-size:24px;font-weight:100;line-height:1.15}.app-field,.settings-field{display:grid;gap:6px;min-width:0}.app-field label,.settings-field label{color:var(--app-muted);font-size:9px;text-transform:uppercase}.app-field label span,.settings-field label span{opacity:.72;text-transform:none}.app-field input,.settings-field input{width:100%;min-height:48px;border:1px solid var(--app-line);border-radius:12px;background:var(--app-inset-fill);padding:10px 12px;outline:none;font-size:13px;transition:border-color var(--motion-ms) ease,background var(--motion-ms) ease,box-shadow var(--motion-ms) var(--motion-ease)}.app-field input:focus,.settings-field input:focus{border-color:rgba(229,236,190,.55);box-shadow:0 0 0 3px rgba(229,236,190,.08)}.app-field input:disabled,.settings-field input:disabled{opacity:.45}.app-dialog-actions,.settings-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}.app-dialog-actions-split,.settings-dialog-actions-split{justify-content:space-between;align-items:center}.settings-action-group,.app-dialog-actions>div,.settings-dialog-actions>div{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.app-dialog-actions button,.settings-dialog-actions button,.settings-code-actions button{min-height:40px;padding:0 13px;border-radius:12px;font-size:12px;transition:background var(--motion-ms) ease,border-color var(--motion-ms) ease,color var(--motion-ms) ease,box-shadow var(--motion-ms) var(--motion-ease),transform var(--motion-fast) var(--motion-ease),opacity var(--motion-fast) ease}.app-dialog-actions button:active,.settings-dialog-actions button:active,.settings-code-actions button:active{transform:scale(.975);opacity:.84}.app-dialog,.settings-dialog{width:calc(100vw - 16px);max-height:calc(100dvh - 28px);border-radius:22px}.app-dialog-body,.settings-dialog-body{padding:18px}.app-dialog-actions-split,.settings-dialog-actions-split{align-items:stretch;flex-direction:column}.app-dialog-actions-split>div,.settings-dialog-actions-split>div,.settings-action-group{width:100%}

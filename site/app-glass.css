@@ -80,7 +80,13 @@
    They replace a 61-name hand-maintained registry in app-glass-runtime.js.
    Membership used to depend on someone remembering to add a class name, which
    is how /ci sections 16 and 17 ended up in two different materials. */
+/* Components that are cards by definition take the material without a second
+   class in markup. A consumer writes .app-action-card and gets glass, which is
+   what "reuse before creating" has to mean in practice - forgetting .app-card
+   is otherwise a silent, invisible failure. */
 .app-card,
+.app-action-card,
+.app-disclosure,
 .app-control{
   border:1px solid var(--app-glass-border);
   background-color:var(--app-glass-fill);
@@ -101,7 +107,11 @@
    keeps the tint and drops the blur. Structural, so no guard is needed to
    notice it after the fact. */
 .app-card .app-card,
+.app-card .app-action-card,
+.app-card .app-disclosure,
 .app-card .app-control,
+.app-action-card .app-card,
+.app-disclosure .app-card,
 .app-overlay .app-card,
 .app-overlay .app-control{
   backdrop-filter:none;
