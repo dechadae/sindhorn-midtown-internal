@@ -34,6 +34,10 @@ h1{font-weight:700;font-size:20px;margin:0 0 4px}
 .w-isolate{isolation:isolate}
 .w-containpaint{contain:paint}
 .w-opacity{opacity:.999}
+/* overflow scroll containers — what settings-refinements.css puts on #route-view */
+.w-routeview-real{position:relative;z-index:2;overflow-x:hidden;overflow-y:auto;height:150px}
+.w-overflowy{overflow-y:auto;height:150px}
+.w-overflowx{overflow-x:hidden}
 </style>
 </head>
 <body>
@@ -74,6 +78,18 @@ h1{font-weight:700;font-size:20px;margin:0 0 4px}
     <div class="case"><p class="label">G · opacity:.999</p>
       <div class="w-opacity"><div class="swatch">G</div></div>
       <p class="note">any opacity &lt; 1 creates a backdrop root</p></div>
+
+    <div class="case"><p class="label">H · relative; z-index:2; overflow-x:hidden; overflow-y:auto</p>
+      <div class="w-routeview-real"><div class="swatch">H</div></div>
+      <p class="note">EXACT #route-view on Settings today (settings-refinements.css) — the suspect</p></div>
+
+    <div class="case"><p class="label">I · overflow-y:auto only</p>
+      <div class="w-overflowy"><div class="swatch">I</div></div>
+      <p class="note">vertical scroll container alone</p></div>
+
+    <div class="case"><p class="label">J · overflow-x:hidden only</p>
+      <div class="w-overflowx"><div class="swatch">J</div></div>
+      <p class="note">horizontal clip alone (no scrolling)</p></div>
   </div>
 </div>
 
