@@ -31,6 +31,21 @@
   --app-glass-control-filter:var(--app-glass-filter);
 }
 
+/* THE RULE: glass only where it touches the atmosphere.
+
+   backdrop-filter samples what is painted behind an element, but an ancestor
+   that already has backdrop-filter becomes a backdrop root - so a glass element
+   inside a glass element can only sample its parent, never the page. It renders
+   as a flat tint whatever the CSS says.
+
+   Measured on the CI page: an identical dropdown blurred correctly on /fnb and
+   not at all on /ci, purely because the CI specimen container was itself glass.
+
+   So: a glass surface must never contain another glass surface. Anything inside
+   one takes a plain tint with no backdrop-filter - which is what it was already
+   rendering as. scripts/nested-glass-smoke.mjs fails the build if this is
+   reintroduced. */
+
 /* These classes are the material authority. !important is intentional here:
    they are explicitly assigned by app-glass-runtime.js, so a late route/UI-pack
    stylesheet cannot silently replace the shared material with a local tint. */

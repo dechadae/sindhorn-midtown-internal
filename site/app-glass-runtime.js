@@ -17,7 +17,7 @@ const SURFACE_SELECTORS=[
   /* Messages */
   '.message-card',
   /* CI / developer UI */
-  '.ci-status','.ci-specimen','.ci-doc-card','.ci-rule','.ci-state-card','.ci-owner-card','.ci-identity-lockup','.ci-token','.ci-image-demo','.ci-motion-step',
+  '.ci-status','.ci-identity-lockup','.ci-token','.ci-image-demo','.ci-motion-step',
   /* onboarding / admin */
   '.onboarding-complete','.signed-card','.admin-panel'
 ].join(',');
@@ -37,13 +37,32 @@ const CONTROL_SELECTORS=[
   '.onboarding-close','.onboarding-secondary','.onboarding-quiet','.field input','.field select','.chip-btn','.public-card-action'
 ].join(',');
 
+/* THE RULE: glass only where it touches the atmosphere.
+
+   backdrop-filter cannot sample past an ancestor that already has one, so a
+   glass element inside a glass element renders as a flat fill however it is
+   styled. Measured: an identical dropdown blurred on /fnb and not at all on
+   /ci, purely because the CI specimen container was itself glass.
+
+   The registry already decides who gets the material, so it is also the right
+   place to refuse it. Skipping the stamp here needs no CSS override and no
+   !important - and because nested glass was already rendering as its flat
+   fill, refusing it is visually identical. */
+function hasGlassAncestor(node){
+  for(let parent=node.parentElement;parent;parent=parent.parentElement){
+    if(parent.classList?.contains('app-glass-surface')||parent.classList?.contains('app-glass-control'))return true;
+  }
+  return false;
+}
+
 function assign(root){
   if(!root?.querySelectorAll)return;
-  if(root.matches?.(SURFACE_SELECTORS))root.classList.add('app-glass-surface');
-  if(root.matches?.(CONTROL_SELECTORS)&&!root.matches('.app-utility-action,.app-quiet-action'))root.classList.add('app-glass-control');
-  root.querySelectorAll(SURFACE_SELECTORS).forEach(node=>node.classList.add('app-glass-surface'));
+  if(root.matches?.(SURFACE_SELECTORS)&&!hasGlassAncestor(root))root.classList.add('app-glass-surface');
+  if(root.matches?.(CONTROL_SELECTORS)&&!root.matches('.app-utility-action,.app-quiet-action')&&!hasGlassAncestor(root))root.classList.add('app-glass-control');
+  root.querySelectorAll(SURFACE_SELECTORS).forEach(node=>{if(!hasGlassAncestor(node))node.classList.add('app-glass-surface')});
   root.querySelectorAll(CONTROL_SELECTORS).forEach(node=>{
     if(node.matches('.app-utility-action,.app-quiet-action'))return;
+    if(hasGlassAncestor(node))return;
     node.classList.add('app-glass-control');
   });
   root.querySelectorAll('.app-utility-action,.app-quiet-action').forEach(node=>{

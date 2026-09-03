@@ -60,7 +60,7 @@ body[data-route="ci"] #route-view{background:transparent;padding-bottom:96px}
 
 .ci-grid{display:grid;grid-template-columns:1fr;gap:9px}
 .ci-grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.ci-specimen,.ci-doc-card,.ci-rule,.ci-state-card,.ci-owner-card{min-width:0;border:1px solid var(--ci-border);border-radius:14px;background:var(--ci-glass);backdrop-filter:var(--app-glass-surface-filter);-webkit-backdrop-filter:var(--app-glass-surface-filter)}
+.ci-specimen,.ci-doc-card,.ci-rule,.ci-state-card,.ci-owner-card{min-width:0;border:1px solid var(--ci-border);border-radius:14px;background:var(--ci-glass)}
 .ci-specimen{padding:15px 16px}
 .ci-specimen-label,.ci-doc-label{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;color:var(--ci-accent);font-size:9px;text-transform:uppercase}
 .ci-specimen-label span:last-child,.ci-doc-label span:last-child{color:var(--ci-muted);text-align:right}

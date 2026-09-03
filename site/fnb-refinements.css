@@ -14,7 +14,7 @@ body[data-route="fnb"] .fnb-action-control:not(.app-utility-action){
   min-height:var(--fnb-action-h)!important;height:var(--fnb-action-h)!important;
   padding:0 14px!important;display:inline-flex;align-items:center;justify-content:center;gap:8px;
   border:1px solid var(--fnb-glass-brd);border-radius:var(--fnb-action-radius)!important;
-  background:var(--app-glass-control-fill);color:var(--sm-text);backdrop-filter:var(--app-glass-control-filter);-webkit-backdrop-filter:var(--app-glass-control-filter);font-family:var(--font-ui)!important;
+  background:var(--app-glass-control-fill);color:var(--sm-text);font-family:var(--font-ui)!important;
   font-size:12px!important;font-weight:400!important;line-height:1!important;letter-spacing:0!important;
   text-transform:none!important;cursor:pointer;
   transition:background var(--fnb-motion-base) ease,border-color var(--fnb-motion-base) ease,color var(--fnb-motion-base) ease,box-shadow var(--fnb-motion-base) var(--fnb-motion-ease),transform var(--fnb-motion-fast) var(--fnb-motion-ease),opacity var(--fnb-motion-fast) ease

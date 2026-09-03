@@ -68,7 +68,7 @@ body[data-route="settings"][data-settings-context="true"] #route-view{padding-bo
 .settings-planned span{display:block;margin-top:14px;padding-top:12px;border-top:1px solid var(--settings-line);font-size:10px;text-transform:uppercase}
 /* Route-owned context rail is a non-painted controller. Shell footer guard clones it into #app-footer. */
 #route-view .settings-route>.settings-section-rail{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
-.settings-dialog{width:min(94vw,620px);max-height:min(88dvh,760px);padding:0;border:1px solid rgba(250,247,245,.15);border-radius:24px;background:rgba(38,32,49,.92);color:var(--sm-text);box-shadow:0 28px 90px rgba(8,6,12,.42);backdrop-filter:blur(28px) saturate(1.2);-webkit-backdrop-filter:blur(28px) saturate(1.2);overflow:auto;transform-origin:center bottom}
+.settings-dialog{width:min(94vw,620px);max-height:min(88dvh,760px);padding:0;border:1px solid rgba(250,247,245,.15);border-radius:24px;background:var(--app-glass-overlay-fill,rgba(38,32,49,.72));color:var(--sm-text);box-shadow:0 28px 90px rgba(8,6,12,.42);backdrop-filter:blur(28px) saturate(1.2);-webkit-backdrop-filter:blur(28px) saturate(1.2);overflow:auto;transform-origin:center bottom}
 .settings-dialog::backdrop{background:rgba(14,11,19,.48);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 .settings-dialog-body{padding:22px}
 .settings-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}

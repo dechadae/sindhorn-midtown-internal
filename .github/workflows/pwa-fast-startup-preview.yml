@@ -15,6 +15,7 @@ on:
       - "scripts/pull-refresh-browser-smoke.mjs"
       - "scripts/shell-precache-parity-smoke.mjs"
       - "scripts/sw-install-resilience-smoke.mjs"
+      - "scripts/nested-glass-smoke.mjs"
       - "scripts/ui-centralization-budget.mjs"
       - "ui-centralization-budget.json"
       - ".github/workflows/pwa-fast-startup-preview.yml"
@@ -45,7 +46,7 @@ jobs:
           done
 
           # Startup / Betta / PWA invariants.
-          grep -q "sindhorn-midtown-internal-pwa-v55-overlay-glass-r1" site/sw.js
+          grep -q "sindhorn-midtown-internal-pwa-v56-no-nested-glass-r1" site/sw.js
           grep -q "PRECACHE_CONCURRENCY=8" site/sw.js
           grep -q "betta-runtime-full.js?v=1" site/betta-runtime.js
           grep -q "betta-runtime.js?v=2" site/index.html
@@ -208,6 +209,7 @@ jobs:
           node scripts/sw-install-resilience-smoke.mjs | tee /tmp/sw-resilience-report.json
           node scripts/ci-glass-browser-smoke.mjs | tee /tmp/ci-glass-report.json
           node scripts/glass-route-browser-smoke.mjs | tee /tmp/glass-route-report.json
+          node scripts/nested-glass-smoke.mjs | tee /tmp/nested-glass-report.json
           node scripts/utility-action-browser-smoke.mjs | tee /tmp/utility-action-report.json
           node scripts/pull-refresh-browser-smoke.mjs | tee /tmp/pull-refresh-report.json
 

@@ -175,3 +175,34 @@ Do not merge a visual atmosphere change that has unresolved genuine human visual
 - Never print, commit, or expose Cloudflare tokens, Supabase secrets, VAPID private keys, or other credentials.
 - The publishable Supabase key present in the client is intentional and must remain constrained by database policy; do not replace it with privileged credentials.
 - Do not weaken RLS or push-worker authorization to simplify testing.
+
+## Glass material rule — 3 September 2026
+
+**Glass only where it touches the atmosphere. Nothing inside a glass surface is glass.**
+
+`backdrop-filter` cannot sample past an ancestor that already has one, so a glass
+element inside a glass element renders as a flat fill however it is styled. This
+was measured, not reasoned: an identical dropdown blurred correctly on `/fnb` and
+not at all on `/ci`, purely because the CI specimen container was itself glass —
+meaning the specification page was showing every glass component falsely.
+
+Two weights of one material, both in `site/app-glass.css`:
+
+- `--app-glass-fill` `rgba(46,39,59,.30)` — surfaces sitting on the atmosphere:
+  masthead, footer, route cards.
+- `--app-glass-overlay-fill` `rgba(38,32,49,.72)` — surfaces floating above
+  content: dropdown menus, dialogs, sheets, toasts. They need more pigment to
+  stay legible. Do not push this past `.92`; at that opacity it reads as solid
+  black and stops being glass, which is how `.fnb-select-menu` ended up at `.98`.
+
+Both use the same `--app-glass-filter` `blur(18px) saturate(1.18)`. There is no
+third recipe.
+
+Anything inside a glass surface takes a plain tint with no `backdrop-filter`.
+That is not a downgrade: nested glass was already rendering as its flat fill, so
+removing the declaration is visually identical and merely makes the CSS honest.
+
+Enforced in two places. `app-glass-runtime.js` refuses to stamp the material on
+an element with a glass ancestor, and `scripts/nested-glass-smoke.mjs` fails the
+build if a route declares `backdrop-filter` directly inside a glass surface —
+which is exactly how `.fnb-action-control` acquired an inert blur.
