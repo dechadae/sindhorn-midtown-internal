@@ -2,6 +2,10 @@ import AppKit
 import MetalKit
 import simd
 
+extension Notification.Name {
+    static let bettaDisplayArtStateDidChange = Notification.Name("BETTA.DisplayArt.StateDidChange")
+}
+
 @MainActor
 private final class BettaDisplayArtWindow: NSWindow {
     override var canBecomeKey: Bool { true }
@@ -100,6 +104,7 @@ final class BettaDisplayArtController {
         // Seed the custom pointer at the current physical mouse location without
         // creating a strong disturbance until the user actually moves.
         updatePointer(globalPoint: NSEvent.mouseLocation, impulse: 0, allowStationaryPressure: false)
+        NotificationCenter.default.post(name: .bettaDisplayArtStateDidChange, object: self)
     }
 
     func stop() {
@@ -123,6 +128,7 @@ final class BettaDisplayArtController {
         surface = nil
         lastNDC = nil
         lastEventTime = nil
+        NotificationCenter.default.post(name: .bettaDisplayArtStateDidChange, object: self)
     }
 
     private func installEventMonitor() {
