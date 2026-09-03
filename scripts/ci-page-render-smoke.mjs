@@ -54,7 +54,10 @@ const EXPECT = [
   // Scoped to the Badge section itself: the List section also uses a quiet
   // badge, nested inside .app-card, where it correctly renders with no blur.
   ['#badge .app-badge:not([data-tone])', BADGE], ['#badge .app-badge[data-tone="quiet"]', BADGE_QUIET],
-  ['#list .app-badge', BADGE_NESTED]
+  ['#list .app-badge', BADGE_NESTED],
+  // The section-jump nav at the top of the page draws a real border for a
+  // real link, so it takes the material like anything else that does.
+  ['.ci-index a', CARD]
 ];
 
 // Two durations, one easing, documented live in 04 Shape & Motion. A route
