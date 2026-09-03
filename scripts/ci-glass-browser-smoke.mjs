@@ -70,6 +70,9 @@ async function runViewport(browser,width,height){
         controls:['ci-index','ci-primary'].map(read),
         utilities:['legacy-utility','utility'].map(read),
         periodChip:read('period'),
+        primitives:['primitive-card','primitive-control'].map(read),
+        primitiveNested:read('primitive-card-nested'),
+        primitiveOverlay:read('primitive-overlay'),
         overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth
       };
       probes.remove();
