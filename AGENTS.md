@@ -2,6 +2,36 @@
 
 This repository is the canonical executable shell for the Sindhorn Midtown internal environmental PWA. Treat GitHub, live Cloudflare Pages/Workers, and live Supabase as runtime truth; verify them before consequential changes.
 
+## THE REBUILD — read this before touching any UI code
+
+A from-scratch UI rebuild started 2 September 2026 on `land-baseline` →
+`main`. `site/ci.html` at `/ci` is the finished, locked master UI library —
+the only place a component is designed. `site/next.html` at `/next` is the
+new public app shell, being built one page at a time, which will eventually
+replace the legacy app at `/` without a reinstall.
+
+Full rules: **`docs/UI-CENTRALIZATION-RULES-20260903.md`** (library workflow,
+the ratchet, the glass membership rule, motion tokens) and
+**`docs/RELEASE-RULES-NO-REINSTALL-20260903.md`** (PWA identity, the
+shell-vs-Supabase-data split). Read both before writing a line of CSS or
+markup. The short version:
+
+1. No reinstall after release — PWA identity never changes.
+2. Centralized code and modules — one shared library, not per-route CSS.
+3. No inline CSS patches.
+4. No inline or per-page CSS at all.
+5. Consistent, real frosted-glass blur everywhere.
+6. The Betta WebGL engine stays intact.
+7. Fast launch.
+8. Skeleton loading on Today.
+
+Run `node scripts/ui-centralization-budget.mjs` and
+`node scripts/ci-page-render-smoke.mjs` before every push that touches
+shared UI. Where this section or the two docs above conflict with "Product
+state that must be preserved" below — e.g. the legacy three-button
+Today/F&B/Messages footer — that section describes the **legacy app at `/`
+only**, until the rebuild cuts over.
+
 ## Canonical production endpoints
 
 - Repository: `dechadae/sindhorn-midtown-internal`
@@ -15,18 +45,20 @@ Do not infer that a commit is live merely because it is on `main`. A production 
 ## Read authority in this order
 
 1. `AGENTS.md`
-2. `docs/BETTA-PRODUCTION-ATMOSPHERE-20260831.md` for the active persistent visual/background architecture
-3. `docs/WEATHER-AUTHORITY-OVERRIDE-20260829.md` for weather-source/current-rain data decisions
-4. `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md`
-5. `docs/SINGLE-SHELL-ROUTER-INVARIANT-20260828.md`
-6. `docs/FNB-SUPABASE-DATA-AUTHORITY-20260829.md` when working on F&B
-7. `docs/FNB-EXCEL-TO-SUPABASE-UPDATE-RUNBOOK.md` when the product owner supplies updated F&B Excel files
-8. `docs/BANGKOK-SEASONAL-SKY-AND-CLOUD-ARCHITECTURE-OVERRIDE-20260827.md` as legacy weather-background architecture
-9. `docs/PHASE8.2-BANGKOK-SEASONAL-CLOUD-MORPHOLOGY-PLAN-20260827.md` as legacy weather-background detail
-10. `docs/PHASE8.2-IMPLEMENTATION-20260827.md` as legacy weather-background implementation history
-11. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
-12. `docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md` only as historical/future-camera research
-13. earlier phase implementation notes as needed
+2. `docs/UI-CENTRALIZATION-RULES-20260903.md` for any UI/component/CSS work — the rebuild's library, ratchet and glass/motion rules
+3. `docs/RELEASE-RULES-NO-REINSTALL-20260903.md` for PWA identity and the shell-vs-Supabase-data split
+4. `docs/BETTA-PRODUCTION-ATMOSPHERE-20260831.md` for the active persistent visual/background architecture
+5. `docs/WEATHER-AUTHORITY-OVERRIDE-20260829.md` for weather-source/current-rain data decisions
+6. `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md`
+7. `docs/SINGLE-SHELL-ROUTER-INVARIANT-20260828.md`
+8. `docs/FNB-SUPABASE-DATA-AUTHORITY-20260829.md` when working on F&B
+9. `docs/FNB-EXCEL-TO-SUPABASE-UPDATE-RUNBOOK.md` when the product owner supplies updated F&B Excel files
+10. `docs/BANGKOK-SEASONAL-SKY-AND-CLOUD-ARCHITECTURE-OVERRIDE-20260827.md` as legacy weather-background architecture
+11. `docs/PHASE8.2-BANGKOK-SEASONAL-CLOUD-MORPHOLOGY-PLAN-20260827.md` as legacy weather-background detail
+12. `docs/PHASE8.2-IMPLEMENTATION-20260827.md` as legacy weather-background implementation history
+13. `docs/FINAL-APP-ARCHITECTURE-AND-RELEASE-PLAN.md`
+14. `docs/LIVE-BANGKOK-SKY-CALIBRATION-ARCHITECTURE-OVERRIDE-20260827.md` only as historical/future-camera research
+15. earlier phase implementation notes as needed
 
 The single-shell router invariant is mandatory for all authenticated app features. `docs/BETTA-PRODUCTION-ATMOSPHERE-20260831.md` supersedes the Phase 8.2 documents for the active visual background. `docs/WEATHER-AUTHORITY-OVERRIDE-20260829.md` remains authoritative for weather data/current-rain decisions and supersedes all earlier Open-Meteo/current-weather authority statements wherever they conflict.
 
