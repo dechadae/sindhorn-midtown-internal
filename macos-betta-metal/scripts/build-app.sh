@@ -8,8 +8,8 @@ swift build -c release
 BIN_DIR="$(swift build -c release --show-bin-path)"
 DIST="$ROOT/dist"
 APP="$DIST/BETTA.app"
-ZIP="$DIST/BETTA-1.2.0-macOS-arm64.zip"
-DMG="$DIST/BETTA-1.2.0-macOS-arm64.dmg"
+ZIP="$DIST/BETTA-1.2.1-macOS-arm64.zip"
+DMG="$DIST/BETTA-1.2.1-macOS-arm64.dmg"
 AIR="$DIST/BettaShaders.air"
 METALLIB="$APP/Contents/Resources/BettaShaders.metallib"
 SAFE_SHADER="$ROOT/Sources/BettaMetalLab/ShadersSafe.metal"
@@ -21,10 +21,9 @@ rm -rf "$DIST"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/BettaMetalLab" "$APP/Contents/MacOS/BettaMetalLab"
 
-# BETTA 1.2 keeps the approved procedural renderer and introduces Display Art:
-# a one-click borderless Metal presentation with a procedural water-touch cursor.
-# Mouse velocity drives a transient wave field in the membrane shader; the
-# interaction never changes or persists the user's Betta design state.
+# BETTA 1.2.1 recalibrates Display Art spatial response in normalized screen
+# fractions. The primary water field spans roughly 52% of display width on any
+# resolution or Retina scale; no pixel-sized interaction constants are used.
 xcrun -sdk macosx metal -mmacosx-version-min=13.0 -c "$SAFE_SHADER" -o "$AIR"
 xcrun -sdk macosx metallib "$AIR" -o "$METALLIB"
 rm -f "$AIR"
@@ -41,8 +40,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>BETTA</string>
 <key>CFBundleDisplayName</key><string>BETTA</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>1.2.0</string>
-<key>CFBundleVersion</key><string>26</string>
+<key>CFBundleShortVersionString</key><string>1.2.1</string>
+<key>CFBundleVersion</key><string>27</string>
 <key>BettaGitSHA</key><string>__BETTA_GIT_SHA__</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>LSApplicationCategoryType</key><string>public.app-category.entertainment</string>
@@ -75,7 +74,8 @@ if command -v hdiutil >/dev/null 2>&1; then
 fi
 
 echo "Built: $APP"
-echo "Version: 1.2.0 (26)"
+echo "Version: 1.2.1 (27)"
+echo "Display Art primary wave diameter: 52% of display width"
 echo "Metal library: $METALLIB"
 echo "Runtime kernel: ShadersSafe.metal"
 echo "Signing: $SIGNING_MODE"
