@@ -19,6 +19,41 @@ struct BettaSelfTest {
         expect(abs(smootherstep(0.5) - 0.5) < 0.0001, "Smootherstep easing must be symmetric at the midpoint")
         expect(smootherstep(0.1) < cubicOut(0.1), "Premium easing must start more gently than the legacy cubic-out morph")
 
+        let atmosphereMetrics = BettaAtmosphereMetrics(
+            infraredLuma: 0.72,
+            infraredContrast: 0.12,
+            vaporLuma: 0.64,
+            vaporContrast: 0.10,
+            trueColorLuma: 0.44,
+            trueColorRGB: SIMD3<Float>(0.28, 0.36, 0.52),
+            motionStrength: 0.22,
+            motion: SIMD2<Float>(0.18, -0.11),
+            fingerprint: SIMD3<Float>(0.61, 0.54, 0.68)
+        )
+        let atmosphereState = BettaAtmosphereMath.makeState(metrics: atmosphereMetrics)
+        expect(atmosphereState.cloud > 0.6, "Bright infrared cloud structure must raise the Himawari cloud mood")
+        expect(atmosphereState.vapor > 0.6, "Water-vapor signal must influence the atmosphere state")
+        expect(atmosphereState.motion.x > 0 && atmosphereState.motion.y < 0, "Satellite motion direction must survive normalized mood mapping")
+        expect(atmosphereState.color.z > atmosphereState.color.x, "Cool Bangkok satellite color should remain blue-biased after artistic clamping")
+        expect(BettaSettings.neutralSatelliteBaseline == BettaEnvironmentStore.shared.current, "Environment store must boot from the exact deterministic neutral baseline")
+
+        expect(
+            BettaEnergyPolicy.profile(desktopMode: false, windowVisible: false, occluded: true, lowPower: false, thermalState: .nominal) == .paused,
+            "Hidden non-desktop rendering must pause"
+        )
+        expect(
+            BettaEnergyPolicy.profile(desktopMode: false, windowVisible: true, occluded: false, lowPower: true, thermalState: .nominal) == .balanced,
+            "Visible Low Power Mode rendering must use the balanced 30 fps profile"
+        )
+        expect(
+            BettaEnergyPolicy.profile(desktopMode: true, windowVisible: true, occluded: true, lowPower: false, thermalState: .nominal) == .ambient,
+            "Fully occluded desktop rendering must drop to the ambient profile"
+        )
+        expect(
+            BettaEnergyPolicy.profile(desktopMode: true, windowVisible: true, occluded: false, lowPower: false, thermalState: .nominal) == .full,
+            "Visible healthy desktop rendering must retain full 60 fps quality"
+        )
+
         for preset in BettaPreset.all {
             expect(preset.layers.count == 2, "Fish #\(preset.referenceId) must keep two canonical membrane endpoints")
             expect(preset.palette.count == 4, "Fish #\(preset.referenceId) must keep four palette stops")
@@ -61,27 +96,15 @@ struct BettaSelfTest {
         expect(abs(BettaEvolutionController.defaultSegmentDuration - 45) < 0.001, "Continuous Evolution target duration must remain 45 seconds")
 
         expect(
-            !BettaDiagnostics.representsIncompleteLaunch(
-                completed: false,
-                lastStage: "random.generated",
-                log: ["startup.complete", "random.generated"]
-            ),
+            !BettaDiagnostics.representsIncompleteLaunch(completed: false, lastStage: "random.generated", log: ["startup.complete", "random.generated"]),
             "A healthy launch followed by Random Betta activity must never become a recovery failure"
         )
         expect(
-            !BettaDiagnostics.representsIncompleteLaunch(
-                completed: false,
-                lastStage: "evolution.started",
-                log: ["window.visible", "startup.complete", "evolution.started"]
-            ),
+            !BettaDiagnostics.representsIncompleteLaunch(completed: false, lastStage: "evolution.started", log: ["window.visible", "startup.complete", "evolution.started"]),
             "A healthy launch followed by Continuous Evolution must remain completed"
         )
         expect(
-            BettaDiagnostics.representsIncompleteLaunch(
-                completed: false,
-                lastStage: "renderer.init.begin",
-                log: ["diagnostics.begin", "renderer.init.begin"]
-            ),
+            BettaDiagnostics.representsIncompleteLaunch(completed: false, lastStage: "renderer.init.begin", log: ["diagnostics.begin", "renderer.init.begin"]),
             "A true startup interruption before startup.complete must still trigger recovery"
         )
 
@@ -115,7 +138,7 @@ struct BettaSelfTest {
 
         if failures.isEmpty {
             print("Betta Metal Lab self-test: PASS")
-            print("8 immutable originals · premium 18s/90s cinematic morphs · non-destructive color restore · 160×144 high-detail topology · 1–6 membrane stack · full XYZ rotation · presets/favorites · random + continuous evolution · recovery regression · Bangkok schedule")
+            print("8 immutable originals · premium morph pacing · live Himawari mood mapping · adaptive energy policy · non-destructive color restore · 160×144 topology · 1–6 membranes · presets/favorites · continuous evolution · recovery regression")
             return true
         }
         print("Betta Metal Lab self-test: FAIL")
