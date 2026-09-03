@@ -26,6 +26,14 @@ import simd
     return 1 - x * x * x
 }
 
+/// Symmetric fifth-order smoothstep. Zero velocity and zero acceleration at
+/// both ends make long Betta-to-Betta morphs feel continuous rather than like
+/// an animation that launches quickly and merely coasts to a stop.
+@inline(__always) func smootherstep(_ t: Float) -> Float {
+    let x = clamp01(t)
+    return x * x * x * (x * (x * 6 - 15) + 10)
+}
+
 func translationMatrix(_ v: SIMD3<Float>) -> simd_float4x4 {
     simd_float4x4(columns: (
         SIMD4<Float>(1, 0, 0, 0),
