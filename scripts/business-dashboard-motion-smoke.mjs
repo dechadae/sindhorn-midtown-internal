@@ -32,16 +32,19 @@ async function waitForStableRoute(page){
 async function waitForRefreshedMotionState(page){
   // A publication refresh may overlap with a shell/presentation remount. Assert the complete
   // post-refresh state on one currently connected Today root rather than sampling an older root.
+  // #151 replaced the publication-diff layer with a progress-only module, so there is no
+  // bdMotionValue dataset and no freshness sweep: settle on the rendered value instead.
   await page.waitForFunction(()=>{
     const root=document.querySelector('.business-dashboard-route');
     const occupancy=root?.querySelector('[data-bd-motion-key="rooms.current.occupancy"]');
-    return root?.dataset.bdMotionReady==='true'&&occupancy?.dataset.bdMotionValue==='0.902';
+    return root?.dataset.bdMotionReady==='true'&&occupancy?.textContent.trim()==='90.2%';
   });
-  await page.waitForFunction(()=>document.querySelector('.business-dashboard-route .bd-update-stamp')?.classList.contains('is-fresh'));
+  // #151 replaced the publication-diff layer with a progress-only module: no bdMotionValue
   await page.waitForTimeout(760);
   await page.waitForFunction(()=>{
     const root=document.querySelector('.business-dashboard-route');
-    return root?.dataset.bdMotionReady==='true'&&root.querySelector('[data-bd-motion-key="rooms.current.occupancy"]')?.dataset.bdMotionValue==='0.902';
+    const occupancy=root?.querySelector('[data-bd-motion-key="rooms.current.occupancy"]');
+    return root?.dataset.bdMotionReady==='true'&&occupancy?.textContent.trim()==='90.2%';
   });
 }
 
@@ -55,23 +58,22 @@ async function run(reducedMotion){
   try{
     await page.goto(`${BASE_URL}/`,{waitUntil:'domcontentloaded'});
     await waitForStableRoute(page);
-    const initial=await page.evaluate(()=>({groupOpacity:getComputedStyle(document.querySelector('.bd-glance-group[data-domain="fnb"]')).opacity,metricCount:document.querySelectorAll('[data-bd-motion-key]').length,varianceCount:document.querySelectorAll('.bd-variance-track').length,outlookCount:document.querySelectorAll('.bd-outlook-track').length,snapshot:localStorage.getItem('sindhorn-business-dashboard-motion-v2')}));
+    const initial=await page.evaluate(()=>({groupOpacity:getComputedStyle(document.querySelector('.bd-glance-group[data-domain="fnb"]')).opacity,metricCount:document.querySelectorAll('[data-bd-motion-key]').length,varianceCount:document.querySelectorAll('.bd-variance-track').length}));
     assert(Number.parseFloat(initial.groupOpacity)>.995,`${reducedMotion}: glance group did not settle ${JSON.stringify(initial)}`);
     assert(initial.metricCount>=10,`${reducedMotion}: motion metrics missing`);
     assert(initial.varianceCount>=5,`${reducedMotion}: variance indicators missing`);
-    assert(initial.outlookCount>=4,`${reducedMotion}: outlook indicators missing`);
-    assert(Boolean(initial.snapshot),`${reducedMotion}: motion snapshot missing`);
+    // Outlook tracks and the v2 publication snapshot went away with the v2 motion layer.
 
     current=dashboard({publishedAt:'2026-08-31T02:00:00Z',revision:2,fnbRevenue:445000,occupancy:.902,pickupRns:15,pickupRevenue:97034,newFlag:true});
     await page.evaluate(()=>window.SindhornBusinessDashboard.refresh());
     await waitForRefreshedMotionState(page);
-    const refreshed=await page.evaluate(()=>{const root=document.querySelector('.business-dashboard-route');return{occupancy:root?.querySelector('[data-bd-motion-key="rooms.current.occupancy"]')?.textContent.trim(),pickup:root?.querySelector('[data-bd-motion-key="rooms.current.pickup.rns"]')?.textContent.trim(),fnb:root?.querySelector('[data-bd-motion-key="fnb.daily.revenue"]')?.textContent.trim(),newFlag:root?.querySelectorAll('.bd-flag.is-new').length||0,ready:root?.dataset.bdMotionReady,activeAnimations:document.getAnimations().filter(animation=>animation.playState==='running').length}});
+    const refreshed=await page.evaluate(()=>{const root=document.querySelector('.business-dashboard-route');return{occupancy:root?.querySelector('[data-bd-motion-key="rooms.current.occupancy"]')?.textContent.trim(),pickup:root?.querySelector('[data-bd-motion-key="rooms.current.pickup.rns"]')?.textContent.trim(),fnb:root?.querySelector('[data-bd-motion-key="fnb.daily.revenue"]')?.textContent.trim(),progressReady:root?.dataset.bdProgressReady,ready:root?.dataset.bdMotionReady,activeAnimations:document.getAnimations().filter(animation=>animation.playState==='running').length}});
     assert(refreshed.occupancy==='90.2%',`${reducedMotion}: occupancy did not finish at new value ${JSON.stringify(refreshed)}`);
     assert(refreshed.pickup==='+15 RN',`${reducedMotion}: pickup did not finish at new value ${JSON.stringify(refreshed)}`);
     assert(refreshed.fnb==='฿445K',`${reducedMotion}: F&B value did not finish at new value ${JSON.stringify(refreshed)}`);
     assert(refreshed.ready==='true',`${reducedMotion}: motion-ready flag missing`);
     if(reducedMotion==='reduce')assert(refreshed.activeAnimations===0,`reduced motion still has active animations ${JSON.stringify(refreshed)}`);
-    else assert(refreshed.newFlag===1,`new exception did not receive one-time transition class ${JSON.stringify(refreshed)}`);
+    assert(refreshed.progressReady==='true',`${reducedMotion}: progress hairlines never reached their end state ${JSON.stringify(refreshed)}`);
     return{reducedMotion,initial,refreshed};
   }finally{await context.close();await browser.close()}
 }

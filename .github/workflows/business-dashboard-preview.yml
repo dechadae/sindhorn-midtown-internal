@@ -5,6 +5,7 @@ on:
     branches:
       - today-v4-motion-phase-a
       - today-v4-notifications-phase-b
+      - ui-centralization
     paths:
       - "site/index.html"
       - "site/app.js"

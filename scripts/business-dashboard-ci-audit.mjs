@@ -28,7 +28,7 @@ const ciRules=[
 ];
 for(const rule of ciRules)assert(registry.includes(rule),`ci-rule:${rule}`,'Current UI Library registry must still expose the audited rule.');
 
-assert(/today:Object\.freeze\(\{path:'\/',title:'Today \| Sindhorn Midtown Internal',kind:'local',module:'\.\/business-dashboard\.js\?v=4'/.test(routeRegistry),'router','Today is a local authenticated route in the shared shell with the v4 motion cache lineage.');
+assert(/today:Object\.freeze\(\{path:'\/',title:'Today \| Sindhorn Midtown Internal',kind:'local',module:'\.\/route-registry\.js',mount:'mountBusinessDashboardStartupRoute'/.test(routeRegistry),'router','Today is a local authenticated route in the shared shell, mounted from the registry startup path so first paint needs no extra module fetch.');
 assert(dashboardJs.includes('app-route-hero')&&dashboardJs.includes('app-route-eyebrow')&&dashboardJs.includes('app-route-title')&&dashboardJs.includes('app-route-copy'),'shared-hero','Dashboard consumes the semantic route-hero API.');
 assert(dashboardJs.includes('app-quiet-action'),'shared-control','Retry uses the centralized quiet-action control.');
 assert(dashboardJs.includes('factsheet-room-card')&&dashboardJs.includes('factsheet-room-card-button')&&dashboardJs.includes('factsheet-room-panel'),'shared-disclosure','Expandable dashboard data reuses the CI-listed Factsheet disclosure component.');
@@ -38,15 +38,15 @@ assert(dashboardCss.includes('font:400 14px/1.55 var(--font-ui)'),'font-authorit
 assert(dashboardCss.includes('letter-spacing:0!important'),'tracking','Dashboard enforces zero character tracking.');
 assert(!/border-radius\s*:\s*(?:50%|999px|9999px)/i.test(dashboardCss+motionCss),'shape-language','Dashboard adds no circular or capsule UI chrome.');
 assert(dashboardCss.includes('content:none!important')&&dashboardCss.includes('background:none!important'),'atmosphere','Dashboard paints no route-wide veil over the persistent WebGL atmosphere.');
-assert(dashboardCss.includes('--bd-glass:rgba(46,39,59,.48)')&&dashboardCss.includes('var(--app-control-border')&&dashboardCss.includes('var(--route-hero-accent')&&dashboardCss.includes('var(--app-control-motion-base'),'semantic-tokens','Information surfaces match the CI material while border, accent and motion remain tied to central UI authorities.');
+assert(dashboardCss.includes('--bd-glass:var(--app-glass-surface-fill)')&&dashboardCss.includes('var(--app-glass-surface-border')&&dashboardCss.includes('var(--route-hero-accent')&&dashboardCss.includes('var(--app-control-motion-base'),'semantic-tokens','Information surfaces match the CI material while border, accent and motion remain tied to central UI authorities.');
 assert(dashboardCss.includes('--fs-disclosure:420ms'),'disclosure-motion','Dashboard shared disclosures keep the established 420ms rhythm.');
 assert(ciSpecimenFixes.includes('--fs-ease:cubic-bezier(.22,1,.36,1)')&&ciSpecimenFixes.includes('--fs-disclosure:420ms')&&ciSpecimenFixes.includes('--fs-border:var(--ci-border)'),'ci-specimen-token-bridge','The UI Library host supplies canonical Factsheet tokens so its living disclosure specimen renders the real production interaction.');
 assert(/@media\(prefers-reduced-motion:reduce\)/.test(dashboardCss)&&/@media\(prefers-reduced-motion:reduce\)/.test(motionCss),'reduced-motion','Base dashboard and motion layer both suppress non-essential motion when reduced motion is requested.');
 assert(/@media\(min-width:700px\)/.test(dashboardCss)&&/@media\(max-width:359px\)/.test(dashboardCss),'responsive-contract','Dashboard includes explicit compact and wide responsive behavior for the 360/390/768 validation matrix.');
 assert(dashboardJs.includes('applyBusinessDashboardMotion')&&dashboardJs.includes('data-bd-motion-key'),'semantic-motion','Business motion is wired to actual business values rather than decorative looping effects.');
-assert(motionJs.includes('sindhorn-business-dashboard-motion-v2')&&motionJs.includes('publicationChanged')&&motionJs.includes('data-bd-flag-key'),'motion-state','Motion compares approved publication snapshots and only promotes newly appearing exception states.');
-assert(motionCss.includes('bdGroupReveal')&&motionCss.includes('bdFreshSweep'),'motion-language','Grouped reveal and one-time freshness confirmation are present.');
-assert(!motionCss.includes('.bd-variance-track{')&&!motionCss.includes('.bd-outlook-track{')&&!motionCss.includes('.bd-outlook-marker{'),'no-progress-tracks','Progress-style KPI and forward-outlook tracks are intentionally not rendered.');
+assert(motionJs.includes("mode:'progress-only'")&&motionJs.includes('--bd-progress-delay')&&motionJs.includes('Math.min(index,7)'),'motion-state','Today motion is the restrained progress-only layer from #151: a capped stagger, not a publication-diff animation system.');
+assert(motionCss.includes('[data-bd-progress-ready="true"]')&&!/@keyframes/.test(motionCss),'motion-language','The progress reveal is a readiness-gated transition; Today introduces no keyframe animation language.');
+assert(!motionCss.includes('.bd-outlook-track{')&&!motionCss.includes('.bd-outlook-marker{'),'no-progress-tracks','Forward-outlook progress tracks stay unrendered. The restrained variance hairline reinstated in #151 is the only progress affordance.');
 assert(!/animation\s*:[^;]*(infinite|linear\s+infinite)/i.test(motionCss),'no-looping-motion','Dashboard motion contains no perpetual animation loop.');
 
 console.log(JSON.stringify({ok:true,source:'site/ui-system-registry.js',checks},null,2));
