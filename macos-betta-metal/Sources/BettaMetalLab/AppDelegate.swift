@@ -1,6 +1,7 @@
 import AppKit
 import MetalKit
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var window: BettaDesktopWindow!
     private var metalView: MTKView!
@@ -10,9 +11,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var titleTimer: Timer?
     private var evolutionMenuItem: NSMenuItem?
     private var statusEvolutionMenuItem: NSMenuItem?
+    private var atmosphereMenuItem: NSMenuItem?
+    private var statusAtmosphereMenuItem: NSMenuItem?
+    private var energyStatusMenuItem: NSMenuItem?
+    private var statusEnergyMenuItem: NSMenuItem?
+    private var launchAtLoginMenuItem: NSMenuItem?
+    private var statusLaunchAtLoginMenuItem: NSMenuItem?
     private var statusItem: NSStatusItem?
     private let diagnostics = BettaDiagnostics.shared
     private let evolution = BettaEvolutionController()
+    private let atmosphere = BettaHimawariAtmosphereController()
+    private let energy = BettaEnergyController()
+    private let launchAtLogin = BettaLaunchAtLoginController()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let hadPreviousIncompleteLaunch = diagnostics.hasPreviousIncompleteLaunch
@@ -93,9 +103,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         diagnostics.checkpoint("gallery.init.begin", detail: "fish-index=\(currentIndex)")
         galleryView = BettaLivingGalleryView(initialIndex: currentIndex)
-        galleryView.onSelectOriginal = { [weak self] index in
-            self?.selectWorkingFish(index)
-        }
+        galleryView.onSelectOriginal = { [weak self] index in self?.selectWorkingFish(index) }
         galleryView.onUseOnDesktop = { [weak self] in self?.useCurrentOnDesktop() }
         galleryView.onCustomize = { [weak self] in self?.showStudio() }
         galleryView.onRandomize = { [weak self] in self?.randomizeBetta(nil) }
@@ -117,6 +125,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         NSApp.activate(ignoringOtherApps: true)
         diagnostics.checkpoint("window.visible")
 
+        diagnostics.checkpoint("ambient.start.begin")
+        atmosphere.start()
+        energy.start(view: metalView, window: window)
+        syncAmbientMenuItems()
+        diagnostics.checkpoint("ambient.start.complete", detail: "himawari=\(atmosphere.isEnabled) energy=\(energy.profile.rawValue)")
+
         titleTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             guard let self else { return }
             self.updatePresentationChrome()
@@ -127,6 +141,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         evolution.stop()
+        atmosphere.stop()
+        energy.stop()
         titleTimer?.invalidate()
         metalView?.isPaused = true
         if let statusItem { NSStatusBar.system.removeStatusItem(statusItem) }
@@ -135,13 +151,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 
     func windowWillClose(_ notification: Notification) {
-        // Premium menu-bar behavior: closing the consumer window hides the UI,
-        // but the app remains available from the status item.
+        DispatchQueue.main.async { [weak self] in self?.energy.evaluate() }
     }
 
-    @objc private func selectFish(_ sender: NSMenuItem) {
-        selectWorkingFish(sender.tag)
-    }
+    @objc private func selectFish(_ sender: NSMenuItem) { selectWorkingFish(sender.tag) }
 
     private func selectWorkingFish(_ index: Int) {
         let safe = min(7, max(0, index))
@@ -176,10 +189,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard let editorPanel, let style = editorPanel.randomizeCurrentBetta() else { return }
         galleryView?.selectFish(index: editorPanel.selectedFishIndex)
         galleryView?.refresh(message: "New organism generated · #\(style.shortSeed)")
-        diagnostics.checkpoint(
-            "random.generated",
-            detail: "fish-index=\(editorPanel.selectedFishIndex) seed=\(style.shortSeed)"
-        )
+        diagnostics.checkpoint("random.generated", detail: "fish-index=\(editorPanel.selectedFishIndex) seed=\(style.shortSeed)")
     }
 
     @objc private func restoreOriginalColorsOnly(_ sender: Any?) {
@@ -188,14 +198,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let index = editorPanel.selectedFishIndex
         let preset = BettaPreset.all[index]
         guard let style = BettaRandomStyleStore.shared.restoreOriginalColors(referenceId: preset.referenceId) else { return }
-
         editorPanel.selectFish(index: index, notifyRenderer: false)
         galleryView?.selectFish(index: index)
         galleryView?.refresh(message: "Original palette + gradient restored · form preserved")
-        diagnostics.checkpoint(
-            "original-colors.restored",
-            detail: "fish-index=\(index) reference-id=\(preset.referenceId) seed=\(style.shortSeed) palette+background-only"
-        )
+        diagnostics.checkpoint("original-colors.restored", detail: "fish-index=\(index) reference-id=\(preset.referenceId) seed=\(style.shortSeed) palette+background-only")
     }
 
     private func toggleGalleryFavorite() {
@@ -209,8 +215,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func loadFavorite(id: String) {
         stopEvolution(showEditor: false)
-        guard let saved = BettaUserPresetStore.shared.preset(id: id),
-              BettaUserPresetStore.shared.apply(saved) else { return }
+        guard let saved = BettaUserPresetStore.shared.preset(id: id), BettaUserPresetStore.shared.apply(saved) else { return }
         let index = min(7, max(0, saved.referenceId - 1))
         editorPanel?.selectFish(index: index)
         galleryView?.selectFish(index: index)
@@ -228,6 +233,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         galleryView?.refresh(message: "Continuous evolution running")
     }
 
+    @objc private func toggleAtmosphere(_ sender: Any?) {
+        let enabled = !atmosphere.isEnabled
+        atmosphere.setEnabled(enabled)
+        syncAmbientMenuItems()
+        galleryView?.refresh(message: enabled ? "Bangkok Live atmosphere · JMA Himawari" : "Still atmosphere · neutral environmental state")
+        diagnostics.checkpoint("atmosphere.toggle", detail: "enabled=\(enabled)")
+    }
+
+    @objc private func refreshAtmosphere(_ sender: Any?) {
+        atmosphere.refreshNow()
+        syncAmbientMenuItems()
+        galleryView?.refresh(message: "Refreshing Bangkok atmosphere from Himawari")
+        diagnostics.checkpoint("atmosphere.refresh.manual")
+    }
+
+    @objc private func toggleLaunchAtLogin(_ sender: Any?) {
+        let desired = !launchAtLogin.isEnabled
+        switch launchAtLogin.setEnabled(desired) {
+        case .success(let enabled):
+            galleryView?.refresh(message: enabled ? "Launch at Login enabled" : "Launch at Login disabled")
+            diagnostics.checkpoint("launch-at-login.toggle", detail: "enabled=\(enabled)")
+        case .failure(let error):
+            galleryView?.refresh(message: "Launch at Login unavailable in this build location")
+            diagnostics.checkpoint("launch-at-login.error", detail: error.localizedDescription)
+        }
+        syncAmbientMenuItems()
+    }
+
     @objc private func openGallery(_ sender: Any?) { showGallery() }
     @objc private func openStudio(_ sender: Any?) { showStudio() }
 
@@ -240,6 +273,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window?.title = "BETTA — Living Gallery"
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+        energy.evaluate()
     }
 
     private func showStudio() {
@@ -247,12 +281,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         stopEvolution(showEditor: false)
         galleryView?.isHidden = true
         editorPanel?.isHidden = false
-        if let editorPanel {
-            editorPanel.selectFish(index: editorPanel.selectedFishIndex, notifyRenderer: false)
-        }
+        if let editorPanel { editorPanel.selectFish(index: editorPanel.selectedFishIndex, notifyRenderer: false) }
         window?.title = "BETTA — Living Studio"
         window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+        energy.evaluate()
     }
 
     @objc private func toggleDesktop(_ sender: Any?) {
@@ -261,9 +294,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             stopEvolution(showEditor: false)
             window.setDesktopMode(false)
             galleryView?.isHidden = true
-            if let editorPanel {
-                editorPanel.selectFish(index: editorPanel.selectedFishIndex, notifyRenderer: false)
-            }
+            if let editorPanel { editorPanel.selectFish(index: editorPanel.selectedFishIndex, notifyRenderer: false) }
             editorPanel?.isHidden = false
         } else {
             _ = BettaCompositionStore.shared.save()
@@ -274,6 +305,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             editorPanel?.isHidden = true
             window.setDesktopMode(true)
         }
+        energy.evaluate()
     }
 
     private func useCurrentOnDesktop() {
@@ -285,6 +317,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         galleryView?.isHidden = true
         editorPanel.isHidden = true
         window.setDesktopMode(true)
+        energy.evaluate()
         diagnostics.checkpoint("gallery.use-on-desktop", detail: "fish-index=\(editorPanel.selectedFishIndex)")
     }
 
@@ -295,6 +328,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         galleryView?.isHidden = true
         editorPanel?.isHidden = true
         window.setDesktopMode(true)
+        energy.evaluate()
     }
 
     private func startEvolutionForSelected() {
@@ -302,15 +336,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let index = editorPanel.selectedFishIndex
         let referenceId = BettaPreset.all[index].referenceId
         renderer.setManualPreset(index)
-
         guard evolution.start(referenceId: referenceId) else { return }
         if editorPanel.isHidden == false { editorPanel.isHidden = true }
         syncEvolutionMenuItems()
         galleryView?.setEvolutionActive(true)
-        diagnostics.checkpoint(
-            "evolution.started",
-            detail: "fish-index=\(index) reference-id=\(referenceId) target=\(evolution.targetSeedShort ?? "unknown") duration=\(Int(BettaEvolutionController.defaultSegmentDuration))s"
-        )
+        diagnostics.checkpoint("evolution.started", detail: "fish-index=\(index) reference-id=\(referenceId) target=\(evolution.targetSeedShort ?? "unknown") duration=\(Int(BettaEvolutionController.defaultSegmentDuration))s")
     }
 
     private func stopEvolution(showEditor: Bool) {
@@ -320,11 +350,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         evolution.stop()
         syncEvolutionMenuItems()
         galleryView?.setEvolutionActive(false)
-        diagnostics.checkpoint(
-            "evolution.stopped",
-            detail: "reference-id=\(referenceId.map(String.init) ?? "unknown") target=\(targetSeed ?? "unknown")"
-        )
-
+        diagnostics.checkpoint("evolution.stopped", detail: "reference-id=\(referenceId.map(String.init) ?? "unknown") target=\(targetSeed ?? "unknown")")
         if showEditor, window?.desktopMode != true, let editorPanel {
             galleryView?.isHidden = true
             editorPanel.selectFish(index: editorPanel.selectedFishIndex, notifyRenderer: false)
@@ -340,29 +366,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         statusEvolutionMenuItem?.title = title
     }
 
+    private func syncAmbientMenuItems() {
+        atmosphereMenuItem?.state = atmosphere.isEnabled ? .on : .off
+        atmosphereMenuItem?.title = atmosphere.isEnabled ? "Bangkok Live · Himawari" : "Still Atmosphere"
+        statusAtmosphereMenuItem?.state = atmosphere.isEnabled ? .on : .off
+        statusAtmosphereMenuItem?.title = atmosphere.statusText
+        energyStatusMenuItem?.title = energy.statusText
+        statusEnergyMenuItem?.title = energy.statusText
+        let loginEnabled = launchAtLogin.isEnabled
+        launchAtLoginMenuItem?.state = loginEnabled ? .on : .off
+        statusLaunchAtLoginMenuItem?.state = loginEnabled ? .on : .off
+    }
+
     private func updatePresentationChrome() {
         guard let editorPanel else { return }
         let preset = BettaPreset.all[editorPanel.selectedFishIndex]
-        statusItem?.button?.toolTip = "\(preset.name) · \(evolution.isRunning ? "Evolving" : "Betta")"
+        statusItem?.button?.toolTip = "\(preset.name) · \(evolution.isRunning ? "Evolving" : "Betta") · \(energy.profile.rawValue)"
         galleryView?.setEvolutionActive(evolution.isRunning)
+        syncAmbientMenuItems()
 
         guard let window, !window.desktopMode else { return }
-        if galleryView?.isHidden == false {
-            window.title = "BETTA — Living Gallery"
-        } else if editorPanel.isHidden == false {
-            window.title = "BETTA — Living Studio"
-        } else {
-            window.title = "BETTA"
-        }
+        if galleryView?.isHidden == false { window.title = "BETTA — Living Gallery" }
+        else if editorPanel.isHidden == false { window.title = "BETTA — Living Studio" }
+        else { window.title = "BETTA" }
     }
 
     private func applyLaunchArguments() {
         guard let renderer else { return }
         let args = CommandLine.arguments
         if args.contains("--preview") { renderer.usePreviewMode() }
-        if let fishArg = args.first(where: { $0.hasPrefix("--fish=") }), let value = Int(fishArg.split(separator: "=").last ?? ""), (1...8).contains(value) {
-            selectWorkingFish(value - 1)
-        }
+        if let fishArg = args.first(where: { $0.hasPrefix("--fish=") }), let value = Int(fishArg.split(separator: "=").last ?? ""), (1...8).contains(value) { selectWorkingFish(value - 1) }
         if args.contains("--studio") { showStudio() }
         if args.contains("--evolve") { startEvolutionForSelected() }
         if args.contains("--desktop") {
@@ -378,6 +411,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let appItem = NSMenuItem(); main.addItem(appItem)
         let appMenu = NSMenu(title: "BETTA"); appItem.submenu = appMenu
         appMenu.addItem(withTitle: "About BETTA", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        appMenu.addItem(.separator())
+        let login = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLogin(_:)), keyEquivalent: "")
+        login.target = self; appMenu.addItem(login); launchAtLoginMenuItem = login
         appMenu.addItem(.separator())
         appMenu.addItem(withTitle: "Quit BETTA", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 
@@ -396,27 +432,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             item.target = self; item.tag = index; bettaMenu.addItem(item)
         }
         bettaMenu.addItem(.separator())
-
-        let random = NSMenuItem(title: "Random Betta + Matching Gradient", action: #selector(randomizeBetta(_:)), keyEquivalent: "r")
-        random.target = self
-        bettaMenu.addItem(random)
-
-        let restoreColors = NSMenuItem(title: "Restore Original Colors Only", action: #selector(restoreOriginalColorsOnly(_:)), keyEquivalent: "")
-        restoreColors.target = self
-        restoreColors.toolTip = "Restore the selected original palette + gradient without changing shape, camera, composition or membranes."
-        bettaMenu.addItem(restoreColors)
-
-        let evolutionItem = NSMenuItem(title: "Start Continuous Evolution", action: #selector(toggleEvolution(_:)), keyEquivalent: "e")
-        evolutionItem.target = self
-        evolutionItem.state = .off
-        bettaMenu.addItem(evolutionItem)
-        evolutionMenuItem = evolutionItem
-
+        let random = NSMenuItem(title: "Random Betta + Matching Gradient", action: #selector(randomizeBetta(_:)), keyEquivalent: "r"); random.target = self; bettaMenu.addItem(random)
+        let restoreColors = NSMenuItem(title: "Restore Original Colors Only", action: #selector(restoreOriginalColorsOnly(_:)), keyEquivalent: ""); restoreColors.target = self; restoreColors.toolTip = "Restore the selected original palette + gradient without changing shape, camera, composition or membranes."; bettaMenu.addItem(restoreColors)
+        let evolutionItem = NSMenuItem(title: "Start Continuous Evolution", action: #selector(toggleEvolution(_:)), keyEquivalent: "e"); evolutionItem.target = self; evolutionItem.state = .off; bettaMenu.addItem(evolutionItem); evolutionMenuItem = evolutionItem
         bettaMenu.addItem(.separator())
         let previous = NSMenuItem(title: "Previous Fish", action: #selector(previousFish(_:)), keyEquivalent: "["); previous.target = self; bettaMenu.addItem(previous)
         let next = NSMenuItem(title: "Next Fish", action: #selector(nextFish(_:)), keyEquivalent: "]"); next.target = self; bettaMenu.addItem(next)
         bettaMenu.addItem(.separator())
         let desktop = NSMenuItem(title: "Toggle Wallpaper / Studio", action: #selector(toggleDesktop(_:)), keyEquivalent: "d"); desktop.target = self; bettaMenu.addItem(desktop)
+
+        let atmosphereRoot = NSMenuItem(); main.addItem(atmosphereRoot)
+        let atmosphereMenu = NSMenu(title: "Atmosphere"); atmosphereRoot.submenu = atmosphereMenu
+        let atmosphereToggle = NSMenuItem(title: "Bangkok Live · Himawari", action: #selector(toggleAtmosphere(_:)), keyEquivalent: ""); atmosphereToggle.target = self; atmosphereMenu.addItem(atmosphereToggle); atmosphereMenuItem = atmosphereToggle
+        let refresh = NSMenuItem(title: "Refresh Himawari Now", action: #selector(refreshAtmosphere(_:)), keyEquivalent: ""); refresh.target = self; atmosphereMenu.addItem(refresh)
+        atmosphereMenu.addItem(.separator())
+        let energyStatus = NSMenuItem(title: energy.statusText, action: nil, keyEquivalent: ""); energyStatus.isEnabled = false; atmosphereMenu.addItem(energyStatus); energyStatusMenuItem = energyStatus
         NSApp.mainMenu = main
     }
 
@@ -424,36 +454,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem = item
         if let button = item.button {
-            if let image = NSImage(systemSymbolName: "fish.fill", accessibilityDescription: "BETTA") {
-                image.isTemplate = true
-                button.image = image
-            } else {
-                button.title = "β"
-            }
+            if let image = NSImage(systemSymbolName: "fish.fill", accessibilityDescription: "BETTA") { image.isTemplate = true; button.image = image }
+            else { button.title = "β" }
             button.toolTip = "BETTA"
         }
 
         let menu = NSMenu(title: "BETTA")
-        let gallery = NSMenuItem(title: "Open Living Gallery", action: #selector(openGallery(_:)), keyEquivalent: "")
-        gallery.target = self; menu.addItem(gallery)
-        let studio = NSMenuItem(title: "Open Living Studio", action: #selector(openStudio(_:)), keyEquivalent: "")
-        studio.target = self; menu.addItem(studio)
+        let gallery = NSMenuItem(title: "Open Living Gallery", action: #selector(openGallery(_:)), keyEquivalent: ""); gallery.target = self; menu.addItem(gallery)
+        let studio = NSMenuItem(title: "Open Living Studio", action: #selector(openStudio(_:)), keyEquivalent: ""); studio.target = self; menu.addItem(studio)
         menu.addItem(.separator())
-
-        let random = NSMenuItem(title: "Random Betta", action: #selector(randomizeBetta(_:)), keyEquivalent: "")
-        random.target = self; menu.addItem(random)
-        let evolutionItem = NSMenuItem(title: "Start Continuous Evolution", action: #selector(toggleEvolution(_:)), keyEquivalent: "")
-        evolutionItem.target = self; menu.addItem(evolutionItem)
-        statusEvolutionMenuItem = evolutionItem
-        let desktop = NSMenuItem(title: "Use Current on Desktop", action: #selector(useCurrentOnDesktopFromMenu(_:)), keyEquivalent: "")
-        desktop.target = self; menu.addItem(desktop)
+        let random = NSMenuItem(title: "Random Betta", action: #selector(randomizeBetta(_:)), keyEquivalent: ""); random.target = self; menu.addItem(random)
+        let evolutionItem = NSMenuItem(title: "Start Continuous Evolution", action: #selector(toggleEvolution(_:)), keyEquivalent: ""); evolutionItem.target = self; menu.addItem(evolutionItem); statusEvolutionMenuItem = evolutionItem
+        let desktop = NSMenuItem(title: "Use Current on Desktop", action: #selector(useCurrentOnDesktopFromMenu(_:)), keyEquivalent: ""); desktop.target = self; menu.addItem(desktop)
         menu.addItem(.separator())
-
-        let live = NSMenuItem(title: "Live Bangkok Cycle", action: #selector(useLive(_:)), keyEquivalent: "")
-        live.target = self; menu.addItem(live)
+        let atmosphereItem = NSMenuItem(title: atmosphere.statusText, action: #selector(toggleAtmosphere(_:)), keyEquivalent: ""); atmosphereItem.target = self; menu.addItem(atmosphereItem); statusAtmosphereMenuItem = atmosphereItem
+        let refresh = NSMenuItem(title: "Refresh Himawari Now", action: #selector(refreshAtmosphere(_:)), keyEquivalent: ""); refresh.target = self; menu.addItem(refresh)
+        let energyItem = NSMenuItem(title: energy.statusText, action: nil, keyEquivalent: ""); energyItem.isEnabled = false; menu.addItem(energyItem); statusEnergyMenuItem = energyItem
         menu.addItem(.separator())
-        let quit = NSMenuItem(title: "Quit BETTA", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
-        menu.addItem(quit)
+        let live = NSMenuItem(title: "Live Bangkok Cycle", action: #selector(useLive(_:)), keyEquivalent: ""); live.target = self; menu.addItem(live)
+        let login = NSMenuItem(title: "Launch at Login", action: #selector(toggleLaunchAtLogin(_:)), keyEquivalent: ""); login.target = self; menu.addItem(login); statusLaunchAtLoginMenuItem = login
+        menu.addItem(.separator())
+        let quit = NSMenuItem(title: "Quit BETTA", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"); menu.addItem(quit)
         item.menu = menu
     }
 
