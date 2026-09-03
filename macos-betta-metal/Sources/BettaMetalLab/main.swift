@@ -13,5 +13,6 @@ MainActor.assumeIsolated {
     app.delegate = delegate
     app.setActivationPolicy(.regular)
     BettaReleaseExperienceController.shared.start()
+    BettaDisplayArtMenuController.shared.start()
     app.run()
 }
