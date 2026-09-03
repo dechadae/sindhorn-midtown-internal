@@ -6,6 +6,7 @@ on:
       - fix-pwa-fast-startup
       - preview-ci-glass
       - ui-centralization-audit
+      - ui-centralization
     paths:
       - "site/**"
       - "scripts/ci-glass-browser-smoke.mjs"
@@ -14,6 +15,8 @@ on:
       - "scripts/pull-refresh-browser-smoke.mjs"
       - "scripts/shell-precache-parity-smoke.mjs"
       - "scripts/sw-install-resilience-smoke.mjs"
+      - "scripts/ui-centralization-budget.mjs"
+      - "ui-centralization-budget.json"
       - ".github/workflows/pwa-fast-startup-preview.yml"
   workflow_dispatch:
 
@@ -200,6 +203,7 @@ jobs:
           set -euo pipefail
           npm install --no-save playwright@1.55.0 >/dev/null 2>&1
           npx playwright install chromium >/dev/null 2>&1
+          node scripts/ui-centralization-budget.mjs
           node scripts/shell-precache-parity-smoke.mjs | tee /tmp/shell-precache-report.json
           node scripts/sw-install-resilience-smoke.mjs | tee /tmp/sw-resilience-report.json
           node scripts/ci-glass-browser-smoke.mjs | tee /tmp/ci-glass-report.json
