@@ -3,6 +3,7 @@ import AppKit
 /// Consumer-facing surface for the Betta app. The Metal renderer remains the
 /// hero artwork behind this compact native glass panel; no thumbnails or
 /// pre-rendered media are required.
+@MainActor
 final class BettaLivingGalleryView: NSView {
     var onSelectOriginal: ((Int) -> Void)?
     var onUseOnDesktop: (() -> Void)?
@@ -24,6 +25,7 @@ final class BettaLivingGalleryView: NSView {
     private var favoriteButton: NSButton!
     private var evolveButton: NSButton!
     private var statusLabel: NSTextField!
+    private var imagineController: BettaImagineWindowController?
 
     init(initialIndex: Int) {
         selectedIndex = min(7, max(0, initialIndex))
@@ -45,7 +47,8 @@ final class BettaLivingGalleryView: NSView {
 
         if let style = randomStore.style(for: preset.referenceId), style.seed != 0 {
             detailLabel?.stringValue = "Generated organism · #\(style.shortSeed)"
-        } else if advancedStore.adjustment(for: preset.referenceId) == .canonical(preset) {
+        } else if advancedStore.adjustment(for: preset.referenceId) == .canonical(preset),
+                  randomStore.style(for: preset.referenceId) == nil {
             detailLabel?.stringValue = "Original \(preset.number) · immutable source"
         } else {
             detailLabel?.stringValue = "Working copy · based on Original \(preset.number)"
@@ -138,6 +141,11 @@ final class BettaLivingGalleryView: NSView {
         quickActions.distribution = .fillEqually
         quickActions.spacing = 7
 
+        let imagineButton = NSButton(title: "Imagine…", target: self, action: #selector(imagine(_:)))
+        imagineButton.bezelStyle = .rounded
+        imagineButton.controlSize = .large
+        imagineButton.toolTip = "Describe the tail you want using Apple Intelligence on device."
+
         let useButton = NSButton(title: "Use on Desktop", target: self, action: #selector(useOnDesktop(_:)))
         useButton.bezelStyle = .rounded
         useButton.controlSize = .large
@@ -146,7 +154,7 @@ final class BettaLivingGalleryView: NSView {
         let customizeButton = NSButton(title: "Customize in Living Studio", target: self, action: #selector(customize(_:)))
         customizeButton.bezelStyle = .rounded
 
-        statusLabel = NSTextField(labelWithString: "Choose an Original, Favorite, or let it evolve.")
+        statusLabel = NSTextField(labelWithString: "Choose an Original, Favorite, describe one, or let it evolve.")
         statusLabel.font = .systemFont(ofSize: 10)
         statusLabel.textColor = .tertiaryLabelColor
         statusLabel.lineBreakMode = .byTruncatingTail
@@ -156,7 +164,7 @@ final class BettaLivingGalleryView: NSView {
             titleLabel, detailLabel,
             originalsLabel, originals,
             favoritesLabel, favoritesPopup,
-            quickActions,
+            quickActions, imagineButton,
             useButton, customizeButton,
             statusLabel
         ])
@@ -177,6 +185,7 @@ final class BettaLivingGalleryView: NSView {
             rowB.widthAnchor.constraint(equalTo: stack.widthAnchor),
             favoritesPopup.widthAnchor.constraint(equalTo: stack.widthAnchor),
             quickActions.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            imagineButton.widthAnchor.constraint(equalTo: stack.widthAnchor),
             useButton.widthAnchor.constraint(equalTo: stack.widthAnchor),
             customizeButton.widthAnchor.constraint(equalTo: stack.widthAnchor)
         ])
@@ -227,6 +236,19 @@ final class BettaLivingGalleryView: NSView {
     @objc private func favoriteSelected(_ sender: NSPopUpButton) {
         guard let id = sender.selectedItem?.representedObject as? String else { return }
         onLoadFavorite?(id)
+    }
+
+    @objc private func imagine(_ sender: Any?) {
+        BettaEvolutionController.stopActiveIfNeeded()
+        setEvolutionActive(false)
+        let controller = imagineController ?? BettaImagineWindowController()
+        controller.onApplied = { [weak self] message in
+            self?.setEvolutionActive(false)
+            self?.refresh(message: message)
+        }
+        imagineController = controller
+        controller.show(referenceId: BettaPreset.all[selectedIndex].referenceId)
+        refresh(message: "Imagine · describe your Betta with Apple Intelligence")
     }
 
     @objc private func toggleFavorite(_ sender: Any?) { onToggleFavorite?() }
