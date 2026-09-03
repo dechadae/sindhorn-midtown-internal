@@ -12,7 +12,11 @@ const STYLE_DEPS=Object.freeze([
   ['data-ci-fnb-style','/fnb.css?v=7'],
   ['data-ci-settings-style','/settings.css?v=2'],
   ['data-ci-settings-dialog-style','/settings-dialog-standard.css?v=1&r=6'],
-  ['data-ci-factsheet-style','/hotel-factsheet.css?v=2']
+  ['data-ci-factsheet-style','/hotel-factsheet.css?v=2'],
+  /* CI-only corrections. These used to load in the shell, so every employee
+     downloaded and applied developer-page CSS on every route. */
+  ['data-ci-specimen-fixes-style','/ci-specimen-fixes.css?v=2'],
+  ['data-ci-compact-fixes-style','/ci-compact-fixes.css?v=2']
 ]);
 function ensureStyles(){
   if(stylesPromise)return stylesPromise;
