@@ -18,8 +18,8 @@ const ROOT = 'site';
 const CARD = { bg: 'rgba(46, 39, 59, 0.3)', filter: 'blur(18px) saturate(1.18)' };
 const OVERLAY = { bg: 'rgba(38, 32, 49, 0.72)', filter: 'blur(18px) saturate(1.18)' };
 const WELL = { bg: 'rgba(250, 247, 245, 0.055)', filter: 'none' };
-// The sticky column floats over the scrolling cells, so it is overlay material.
-const STICKY = OVERLAY;
+// The sticky column carries the same weight as every other glass surface.
+const STICKY = CARD;
 const BARE = { bg: 'rgba(0, 0, 0, 0)', filter: 'none' };
 
 const EXPECT = [

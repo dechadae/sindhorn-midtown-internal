@@ -84,15 +84,27 @@
    class in markup. A consumer writes .app-action-card and gets glass, which is
    what "reuse before creating" has to mean in practice - forgetting .app-card
    is otherwise a silent, invisible failure. */
+/* Material is fill and blur. The edge is what makes something a card, so it is
+   declared separately: a table cell borrows the material without becoming a
+   box, and every card keeps its edge. */
+.app-card,
+.app-masthead,
+.app-navbar,
+.app-table tbody th,
+.app-action-card,
+.app-surface,
+.app-disclosure,
+.app-control{
+  background-color:var(--app-glass-fill);
+  backdrop-filter:var(--app-glass-filter);
+  -webkit-backdrop-filter:var(--app-glass-filter);
+}
 .app-card,
 .app-action-card,
 .app-surface,
 .app-disclosure,
 .app-control{
   border:1px solid var(--app-glass-border);
-  background-color:var(--app-glass-fill);
-  backdrop-filter:var(--app-glass-filter);
-  -webkit-backdrop-filter:var(--app-glass-filter);
 }
 
 /* Floating layers sit over arbitrary page content rather than the Betta, so
@@ -100,8 +112,7 @@
 /* A sticky table column is a layer floating over the cells scrolling beneath
    it, not a surface on the atmosphere — so it takes the overlay weight and the
    one blur, rather than an opaque fill of its own. */
-.app-overlay,
-.app-table tbody th{
+.app-overlay{
   background-color:var(--app-glass-overlay-fill);
   backdrop-filter:var(--app-glass-filter);
   -webkit-backdrop-filter:var(--app-glass-filter);
