@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v72-component-material-r1';
+const VERSION='sindhorn-midtown-internal-pwa-v73-frameless-specimens-r1';
 // Preserve prior production release-family markers required by regression gates:
 // sindhorn-midtown-internal-pwa-v55-overlay-glass-r1
 // Preserve prior production release-family markers required by regression gates:
