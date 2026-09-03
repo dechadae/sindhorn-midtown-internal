@@ -37,6 +37,8 @@ jobs:
           grep -q 'Display Art' Sources/BettaMetalLab/BettaLivingGalleryView.swift
           grep -q 'BettaWaterInteractionStore' Sources/BettaMetalLab/BettaRenderer.swift
           grep -q 'interactionStrength' Sources/BettaMetalLab/ShadersSafe.metal
+          grep -q 'primaryRadiusScreenWidth = .26' Sources/BettaMetalLab/ShadersSafe.metal
+          grep -q 'primaryRadiusScreenWidthFraction: Float = 0.26' Sources/BettaMetalLab/BettaWaterInteraction.swift
           grep -q 'Escape' Sources/BettaMetalLab/BettaDisplayArtController.swift
       - name: Compile runtime-safe Metal shader
         working-directory: macos-betta-metal
@@ -47,10 +49,10 @@ jobs:
       - name: Swift self-test
         working-directory: macos-betta-metal
         run: swift run BettaMetalLab --self-test
-      - name: Build BETTA 1.2.0 release
+      - name: Build BETTA 1.2.1 release
         working-directory: macos-betta-metal
         run: ./scripts/build-app.sh
-      - name: Inspect BETTA 1.2.0 app
+      - name: Inspect BETTA 1.2.1 app
         working-directory: macos-betta-metal
         run: |
           file "dist/BETTA.app/Contents/MacOS/BettaMetalLab"
@@ -58,15 +60,15 @@ jobs:
           codesign -dv --verbose=2 "dist/BETTA.app" 2>&1
           codesign --verify --deep --strict "dist/BETTA.app"
           plutil -lint "dist/BETTA.app/Contents/Info.plist"
-          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "dist/BETTA.app/Contents/Info.plist")" = "1.2.0"
-          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "dist/BETTA.app/Contents/Info.plist")" = "26"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "dist/BETTA.app/Contents/Info.plist")" = "1.2.1"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "dist/BETTA.app/Contents/Info.plist")" = "27"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "dist/BETTA.app/Contents/Info.plist")" = "BETTA"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "dist/BETTA.app/Contents/Info.plist")" = "com.sindhornmidtown.BettaMetalLab"
           /usr/libexec/PlistBuddy -c 'Print :BettaGitSHA' "dist/BETTA.app/Contents/Info.plist"
           test -s "dist/BETTA.app/Contents/Resources/BettaShaders.metallib"
           cmp Sources/BettaMetalLab/ShadersSafe.metal "dist/BETTA.app/Contents/Resources/Shaders.metal"
-          test -s "dist/BETTA-1.2.0-macOS-arm64.zip"
-          test -s "dist/BETTA-1.2.0-macOS-arm64.dmg"
+          test -s "dist/BETTA-1.2.1-macOS-arm64.zip"
+          test -s "dist/BETTA-1.2.1-macOS-arm64.dmg"
           ! strings "dist/BETTA.app/Contents/MacOS/BettaMetalLab" | grep -q 'Apple Intelligence'
           strings "dist/BETTA.app/Contents/MacOS/BettaMetalLab" | grep -q 'Display Art'
       - name: Runtime Metal pipeline smoke when GPU is exposed
@@ -108,12 +110,12 @@ jobs:
           print("Metal runtime smoke: PASS on \(device.name)")
           SWIFT
           xcrun swift "$RUNNER_TEMP/metal-smoke.swift" "dist/BETTA.app/Contents/Resources/BettaShaders.metallib"
-      - name: Upload BETTA 1.2.0 release
+      - name: Upload BETTA 1.2.1 release
         uses: actions/upload-artifact@v4
         with:
-          name: BETTA-1.2.0-macOS-arm64
+          name: BETTA-1.2.1-macOS-arm64
           path: |
-            macos-betta-metal/dist/BETTA-1.2.0-macOS-arm64.zip
-            macos-betta-metal/dist/BETTA-1.2.0-macOS-arm64.dmg
+            macos-betta-metal/dist/BETTA-1.2.1-macOS-arm64.zip
+            macos-betta-metal/dist/BETTA-1.2.1-macOS-arm64.dmg
           if-no-files-found: error
           retention-days: 30
