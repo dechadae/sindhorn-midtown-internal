@@ -3,8 +3,8 @@ const ROUTES=Object.freeze({
   fnb:{path:'/fnb',title:'F&B | Sindhorn Midtown Internal',module:'./routes/fnb.js',mount:'mountFnbRoute'},
   messages:{path:'/messages',title:'Messages | Sindhorn Midtown Internal',module:'./routes/messages.js',mount:'mountMessagesRoute'},
   brand:{path:'/brand',title:'Brand | Sindhorn Midtown Internal',module:'./routes/brand.js',mount:'mountBrandRoute'},
-  hotelFactsheet:{path:'/hotel-factsheet',title:'Hotel Factsheet | Sindhorn Midtown Internal',module:'./routes/placeholder.js',mount:'mountPlaceholderRoute'},
-  ihgHistory:{path:'/ihg-history',title:'Our History | Sindhorn Midtown Internal',module:'./routes/placeholder.js',mount:'mountPlaceholderRoute'},
+  hotelFactsheet:{path:'/hotel-factsheet',title:'Hotel Factsheet | Sindhorn Midtown Internal',module:'./routes/factsheet.js',mount:'mountHotelFactsheetRoute'},
+  ihgHistory:{path:'/ihg-history',title:'Our History | Sindhorn Midtown Internal',module:'./routes/history.js',mount:'mountIhgHistoryRoute'},
   settings:{path:'/settings',title:'Settings | Sindhorn Midtown Internal',module:'./routes/placeholder.js',mount:'mountPlaceholderRoute'},
   ci:{path:'/ci',title:'UI Library | Sindhorn Midtown Internal',module:'./routes/ci-reference.js',mount:'mountCiReferenceRoute'}
 });
