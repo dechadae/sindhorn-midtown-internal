@@ -5,7 +5,7 @@ const ROUTES=Object.freeze({
   brand:{path:'/brand',title:'Brand | Sindhorn Midtown Internal',module:'./routes/brand.js',mount:'mountBrandRoute'},
   hotelFactsheet:{path:'/hotel-factsheet',title:'Hotel Factsheet | Sindhorn Midtown Internal',module:'./routes/factsheet.js',mount:'mountHotelFactsheetRoute'},
   ihgHistory:{path:'/ihg-history',title:'Our History | Sindhorn Midtown Internal',module:'./routes/history.js',mount:'mountIhgHistoryRoute'},
-  settings:{path:'/settings',title:'Settings | Sindhorn Midtown Internal',module:'./routes/placeholder.js',mount:'mountPlaceholderRoute'},
+  settings:{path:'/settings',title:'Settings | Sindhorn Midtown Internal',module:'./routes/settings.js',mount:'mountSettingsRoute'},
   ci:{path:'/ci',title:'UI Library | Sindhorn Midtown Internal',module:'./routes/ci-reference.js',mount:'mountCiReferenceRoute'}
 });
 
