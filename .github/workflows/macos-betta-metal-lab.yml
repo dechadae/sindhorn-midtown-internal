@@ -13,14 +13,23 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Toolchain
+      - name: Toolchain + Foundation Models SDK gate
         run: |
           xcodebuild -version
           swift --version
+          SDK_VERSION="$(xcrun --sdk macosx --show-sdk-version)"
+          echo "macOS SDK: $SDK_VERSION"
+          [[ "$SDK_VERSION" == 26.* || "$SDK_VERSION" == 27.* ]]
+          cat > "$RUNNER_TEMP/foundation-models-sdk.swift" <<'SWIFT'
+          import FoundationModels
+          print("FoundationModels SDK: PASS")
+          print(SystemLanguageModel.self)
+          SWIFT
+          xcrun swift "$RUNNER_TEMP/foundation-models-sdk.swift"
       - name: Compile runtime-safe Metal shader
         working-directory: macos-betta-metal
         run: |
@@ -50,6 +59,7 @@ jobs:
           cmp Sources/BettaMetalLab/ShadersSafe.metal "dist/BETTA.app/Contents/Resources/Shaders.metal"
           test -s "dist/BETTA-1.1.0-macOS-arm64.zip"
           test -s "dist/BETTA-1.1.0-macOS-arm64.dmg"
+          nm -u "dist/BETTA.app/Contents/MacOS/BettaMetalLab" | grep -q 'FoundationModels' || strings "dist/BETTA.app/Contents/MacOS/BettaMetalLab" | grep -q 'Apple Intelligence'
       - name: Runtime Metal pipeline smoke when GPU is exposed
         working-directory: macos-betta-metal
         run: |
