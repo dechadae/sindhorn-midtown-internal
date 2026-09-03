@@ -9,12 +9,20 @@ final class BettaDisplayArtMenuController {
     static let shared = BettaDisplayArtMenuController()
 
     private var launchObserver: NSObjectProtocol?
+    private var stateObserver: NSObjectProtocol?
     private weak var displayItem: NSMenuItem?
 
     private init() {}
 
     func start() {
         guard launchObserver == nil else { return }
+        stateObserver = NotificationCenter.default.addObserver(
+            forName: .bettaDisplayArtStateDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.syncTitle() }
+        }
         launchObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didFinishLaunchingNotification,
             object: nil,
