@@ -43,13 +43,13 @@ export async function mountSettingsBusinessCard(root,{preload=null}={}){
   const on=(target,event,handler,options)=>{target?.addEventListener(event,handler,options);cleanup.push(()=>target?.removeEventListener(event,handler,options))};
 
   const presentDialog=document.createElement('dialog');
-  presentDialog.className='settings-dialog business-card-present-dialog';
+  presentDialog.className='settings-dialog app-overlay business-card-present-dialog';
   presentDialog.setAttribute('aria-label','Digital business card');
   route.append(presentDialog);
 
   const visibilityOptions=[{value:'true',label:'Shown'},{value:'false',label:'Hidden'}];
   const editDialog=document.createElement('dialog');
-  editDialog.className='settings-dialog business-card-edit-dialog';
+  editDialog.className='settings-dialog app-overlay business-card-edit-dialog';
   editDialog.innerHTML=`<form method="dialog" class="settings-dialog-body" data-bc-edit-form>
     <div class="settings-dialog-head"><div><p class="settings-dialog-kicker">My business card</p><h2>Edit card</h2></div>${standardCloseButton('data-bc-edit-close')}</div>
     <div class="settings-form-grid">

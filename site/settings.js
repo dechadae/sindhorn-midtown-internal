@@ -51,7 +51,7 @@ export async function mountSettingsRoute(root){
       </header>
       <div class="settings-panel-host" data-settings-panel></div>
       ${nav}
-      <dialog class="settings-dialog" data-user-dialog>
+      <dialog class="settings-dialog app-overlay" data-user-dialog>
         <form method="dialog" class="settings-dialog-body" data-user-form>
           <div class="settings-dialog-head"><div><p class="settings-dialog-kicker">People</p><h2 data-dialog-title>Employee</h2></div><button class="settings-close" type="button" data-dialog-close aria-label="Close">×</button></div>
           <input type="hidden" data-employee-id>
@@ -73,7 +73,7 @@ export async function mountSettingsRoute(root){
           <div class="settings-dialog-actions settings-dialog-actions-split"><div><button class="settings-danger" type="button" data-revoke hidden>Revoke access &amp; sessions</button></div><div class="settings-action-group"><button type="button" data-activation hidden>Issue first-login code</button><button type="button" data-cancel>Cancel</button><button class="settings-primary" type="submit" data-save>Save</button></div></div>
         </form>
       </dialog>
-      <dialog class="settings-dialog settings-code-dialog" data-code-dialog>
+      <dialog class="settings-dialog app-overlay settings-code-dialog" data-code-dialog>
         <div class="settings-dialog-body"><div class="settings-dialog-head"><div><p class="settings-dialog-kicker">Employee security</p><h2 data-code-title>One-time sign-in code</h2></div><button class="settings-close" type="button" data-code-close aria-label="Close">×</button></div><p class="settings-support">Give the code directly to the employee, or let them scan the QR. It expires after 15 minutes.</p><div class="settings-issued-code" data-issued-code></div><div class="settings-note" data-issued-meta></div><div class="settings-qr" data-invite-qr></div><div class="settings-code-actions"><button type="button" data-copy-code>Copy code</button><button type="button" data-copy-invite>Copy invitation link</button><button type="button" data-share-invite hidden>Share</button></div><div class="settings-dialog-actions"><button class="settings-primary" type="button" data-code-done>Done</button></div></div>
       </dialog>
     </section>`;

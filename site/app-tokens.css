@@ -42,6 +42,16 @@
      radii; these add the surface and geometric values it was missing.
      14px is the single most-used radius in the app (28 uses) and had no
      token at all. */
+  /* Colour. Every route had already converged on these three values under its own
+     names (--fnb-accent / --fs-accent / --settings-accent and so on). The library
+     owns them once so a component can leave its route and still resolve. */
+  --app-text:#FAF7F5;
+  --app-muted:rgba(250,247,245,.55);
+  --app-line:rgba(250,247,245,.09);
+  --app-inset-fill:rgba(250,247,245,.055);
+  --app-accent:#E5ECBE;
+  --app-accent-rgb:229,236,190;
+
   --radius-surface:14px;  /* cards, panels, sheets   —  28 uses */
   --radius-inset:10px;    /* nested surfaces         —  12 uses */
   --radius-pill:999px;    /* chips, rails            —  18 uses */
@@ -62,6 +72,7 @@
      Mirrors the existing app-transitions.css contract so there is one
      timing language, not two. */
   --motion-ms:280ms;
+  --motion-fast:160ms;
   --motion-ease:cubic-bezier(.22,1,.36,1);
   --motion-fade:linear;
 }
