@@ -23,18 +23,18 @@ final class BettaMorphState {
 
     func setManual(_ index: Int, now: TimeInterval) {
         mode = .manual(max(0, min(7, index)))
-        transition(to: max(0, min(7, index)), duration: BettaSettings.correctionMorphSeconds, now: now)
+        transition(to: max(0, min(7, index)), duration: BettaSettings.manualMorphSeconds, now: now)
     }
 
     func useLive(now: TimeInterval, date: Date = Date()) {
         mode = .live
-        transition(to: Self.bangkokIndex(for: date), duration: BettaSettings.correctionMorphSeconds, now: now)
+        transition(to: Self.bangkokIndex(for: date), duration: BettaSettings.manualMorphSeconds, now: now)
     }
 
     func usePreview(now: TimeInterval) {
         mode = .preview
         previewStart = now
-        transition(to: 0, duration: BettaSettings.correctionMorphSeconds, now: now)
+        transition(to: 0, duration: BettaSettings.previewMorphSeconds, now: now)
     }
 
     func cycle(direction: Int, now: TimeInterval) {
@@ -64,7 +64,7 @@ final class BettaMorphState {
             return BettaMorphFrame(fromIndex: toIndex, toIndex: toIndex, mix: 1)
         }
         let raw = Float(max(0, min(1, (now - transitionStart) / transitionDuration)))
-        let eased = cubicOut(raw)
+        let eased = smootherstep(raw)
         if raw >= 1 {
             fromIndex = toIndex
             transitionDuration = 0
