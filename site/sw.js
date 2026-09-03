@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v64-raw-route-pins-r1';
+const VERSION='sindhorn-midtown-internal-pwa-v65-serialise-deploys-r1';
 // Preserve prior production release-family markers required by regression gates:
 // sindhorn-midtown-internal-pwa-v55-overlay-glass-r1
 // Preserve prior production release-family markers required by regression gates:

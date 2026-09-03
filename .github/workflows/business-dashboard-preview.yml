@@ -41,9 +41,12 @@ permissions:
   contents: read
   deployments: write
 
+# Shared with pwa-fast-startup-preview: both publish the same Cloudflare Pages
+# branch preview, and two concurrent publishes to one branch fail the Function
+# upload with an opaque internal error. Serialise rather than race.
 concurrency:
-  group: today-v4-dashboard-${{ github.ref_name }}
-  cancel-in-progress: true
+  group: cf-pages-preview-${{ github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
   validate-deploy-smoke:
