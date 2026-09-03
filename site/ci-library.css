@@ -80,3 +80,11 @@
 .ci-type-.ci-type-small{font-size:var(--type-small)}
 .ci-type-caption{font-size:var(--type-caption);color:var(--app-accent);text-transform:uppercase}
 .ci-type-data{font-size:var(--type-title);font-variant-numeric:tabular-nums}
+
+/* ---- shell frame ---------------------------------------------------------
+   .app-masthead and .app-navbar are sticky by definition — that only reads on
+   this page inside a bounded, scrollable frame instead of the page itself, so
+   this frame is chrome specific to how the reference page shows them, not a
+   library component. */
+.ci-shell-frame{position:relative;height:280px;overflow:auto;border:1px solid var(--app-line);border-radius:var(--radius-inset)}
+.ci-shell-frame-body{padding:16px;display:grid;gap:12px}

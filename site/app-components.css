@@ -168,6 +168,127 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-utility-action:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
 .app-utility-action svg{width:14px;height:14px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.5}
 
+/* ---- Back / close control ---------------------------------------------------
+   A detail view needs a way out. app-controls.css carries these for the current
+   app behind cascade overrides; this is the clean form for pages built on the
+   library. .app-control supplies the material. */
+.app-back-control,.app-close-control{
+  width:38px;height:38px;flex:0 0 auto;
+  display:inline-grid;place-items:center;
+  border-radius:var(--radius-inset);
+  color:inherit;cursor:pointer;
+  transition:transform var(--motion-fast) var(--motion-ease),color var(--motion-ms) ease;
+}
+.app-back-control:active,.app-close-control:active{transform:scale(.94)}
+.app-back-control:focus-visible,.app-close-control:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
+.app-back-control svg,.app-close-control svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6}
+
+/* ---- Metric -----------------------------------------------------------------
+   A number that carries meaning: today's occupancy, an outlet's revenue. The
+   value is tabular so columns of them line up, and the delta states its own
+   direction rather than relying on colour alone. */
+.app-metric{min-width:0;display:grid;gap:4px}
+.app-metric-label{color:var(--app-muted);font-size:var(--type-caption);text-transform:uppercase}
+.app-metric-value{font-size:var(--type-title);font-weight:var(--weight-regular);line-height:1;font-variant-numeric:tabular-nums}
+.app-metric-note{color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-label)}
+.app-metric-delta{display:inline-flex;align-items:center;gap:4px;font-size:var(--type-caption);font-variant-numeric:tabular-nums}
+.app-metric-delta[data-direction="up"]{color:#72A75D}
+.app-metric-delta[data-direction="down"]{color:#E3A2A8}
+.app-metric-delta[data-direction="flat"]{color:var(--app-muted)}
+.app-metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:16px 18px}
+
+/* ---- Sheet ------------------------------------------------------------------
+   A bottom sheet, not a centred dialog: it belongs to the thumb. Same native
+   <dialog> element and the same overlay material, different geometry, so the
+   two cannot drift into separate scroll-lock or backdrop behaviour. */
+.app-sheet{
+  width:100%;max-width:100%;max-height:82dvh;
+  margin:auto auto 0;padding:0;
+  border-radius:var(--radius-surface) var(--radius-surface) 0 0;
+  color:var(--app-text);
+}
+.app-sheet-grip{width:38px;height:4px;margin:10px auto 0;border-radius:var(--radius-pill);background:var(--app-line)}
+.app-sheet-body{padding:16px max(20px,env(safe-area-inset-left)) calc(20px + env(safe-area-inset-bottom));overflow:auto}
+.app-sheet-title{margin:6px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight)}
+
+/* ---- Check ------------------------------------------------------------------
+   A task or artwork item that can be marked done. The label is the hit target,
+   so the whole row is tappable rather than just the box. */
+.app-check{
+  min-height:44px;padding:8px 0;
+  display:flex;align-items:center;gap:12px;
+  cursor:pointer;
+}
+.app-check input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.app-check-box{
+  width:20px;height:20px;flex:0 0 auto;
+  display:grid;place-items:center;
+  border:1px solid var(--app-line);border-radius:6px;
+  transition:border-color var(--motion-ms) ease,background-color var(--motion-ms) ease;
+}
+.app-check-box svg{width:12px;height:12px;fill:none;stroke:var(--app-accent);stroke-width:2.2;opacity:0;transition:opacity var(--motion-fast) ease}
+.app-check input:checked+.app-check-box{border-color:rgba(var(--app-accent-rgb),.55)}
+.app-check input:checked+.app-check-box svg{opacity:1}
+.app-check input:focus-visible+.app-check-box{outline:2px solid var(--app-accent);outline-offset:2px}
+.app-check-label{min-width:0;font-size:var(--type-body-s);line-height:var(--leading-label)}
+.app-check input:checked~.app-check-label{color:var(--app-muted);text-decoration:line-through}
+
+/* ---- Badge ------------------------------------------------------------------
+   A count or a status marker. Never the only carrier of meaning: pair it with
+   text a screen reader can read. */
+.app-badge{
+  min-width:18px;height:18px;padding:0 5px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:var(--radius-pill);
+  background:rgba(var(--app-accent-rgb),.16);
+  color:var(--app-accent);font-size:var(--type-caption);font-variant-numeric:tabular-nums;line-height:1;
+}
+.app-badge[data-tone="quiet"]{background:var(--app-inset-fill);color:var(--app-muted)}
+
+/* ---- List -------------------------------------------------------------------
+   Rows separated by a hairline, never by a gap that pretends to be a card each.
+   The separator sits between rows and never after the last. */
+.app-list{display:grid}
+.app-list-row{
+  min-height:52px;padding:12px 0;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.app-list-row+.app-list-row{border-top:1px solid var(--app-line)}
+.app-list-row-main{min-width:0;display:grid;gap:3px}
+.app-list-row-title{font-size:var(--type-body-s);line-height:var(--leading-label);overflow-wrap:anywhere}
+.app-list-row-meta{color:var(--app-muted);font-size:var(--type-micro)}
+.app-list-row-end{flex:0 0 auto;display:flex;align-items:center;gap:8px;color:var(--app-muted);font-size:var(--type-caption)}
+button.app-list-row{width:100%;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+button.app-list-row:active{opacity:.9}
+button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
+
+/* ---- Prose ------------------------------------------------------------------
+   Long-form editorial copy: the History and Brand narratives. Constrained
+   measure, because a full-width line of body text on a tablet is unreadable. */
+.app-prose{max-width:64ch;display:grid;gap:14px}
+.app-prose p{margin:0;font-size:var(--type-body);line-height:var(--leading-body)}
+.app-prose h3{margin:8px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight)}
+.app-prose ul,.app-prose ol{margin:0;padding-left:20px;display:grid;gap:6px;font-size:var(--type-body);line-height:var(--leading-body)}
+.app-prose strong{font-weight:var(--weight-bold)}
+.app-prose a{color:var(--app-accent);text-underline-offset:3px}
+
+/* ---- Divider ----------------------------------------------------------------
+   One hairline, one token. Pages were drawing their own. */
+.app-divider{height:1px;margin:0;border:0;background:var(--app-line)}
+
+/* ---- Toast ------------------------------------------------------------------
+   Transient confirmation. It floats above content, so it is overlay material,
+   declared in markup like every other overlay. */
+.app-toast{
+  position:fixed;z-index:160;left:50%;
+  bottom:calc(var(--app-navbar-height) + 16px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
+  max-width:calc(100vw - 32px);padding:10px 14px;
+  border-radius:var(--radius-inset);
+  font-size:var(--type-body-s);
+}
+.app-toast[hidden]{display:none}
+
 /* ---- Chip ------------------------------------------------------------------
    Metadata or an explicit filter, never decoration on a short label.
    .app-control supplies the material. */
@@ -185,13 +306,14 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 /* ---- Dialog ----------------------------------------------------------------
    The dialog declares .app-overlay in markup. The scrim is not a card: it dims
    the page behind rather than sitting on the atmosphere, so it owns its own
-   values. */
+   values. .app-sheet is the same native <dialog>, only the geometry differs,
+   so it shares this one scrim rather than declaring a second. */
 .app-dialog{
   width:min(94vw,620px);max-height:min(88dvh,760px);
   padding:0;border-radius:var(--radius-dialog);
   color:var(--app-text);
 }
-.app-dialog::backdrop{background:rgba(14,11,19,.48);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.app-dialog::backdrop,.app-sheet::backdrop{background:rgba(14,11,19,.48);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 .app-dialog-body{padding:22px}
 .app-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
 .app-dialog-kicker{margin:0 0 4px;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}

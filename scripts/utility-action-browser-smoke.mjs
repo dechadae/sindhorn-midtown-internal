@@ -51,10 +51,11 @@ try{
   const factsheetTop=await recipe(page,'.factsheet-route [data-route-back-to-top].app-utility-action','.factsheet-route');
   assertUtility(factsheetTop,'Factsheet Back to top');
 
-  await page.goto(`${BASE_URL}/ci`,{waitUntil:'domcontentloaded'});
-  await page.waitForSelector('.ci-route [data-ci-top].app-utility-action');
-  const ciTop=await recipe(page,'.ci-route [data-ci-top].app-utility-action','.ci-route');
-  assertUtility(ciTop,'CI Back to top');
+  // /ci used to be a route inside this SPA (`.ci-route`), which is why it was
+  // checked here. It is now the standalone UI Library page at site/ci.html —
+  // a different document, not authenticated, not part of this app's routing.
+  // ci-page-render-smoke.mjs asserts `.app-utility-action` stays BARE there
+  // instead, against the page it actually renders.
 
-  console.log(JSON.stringify({ok:true,baseUrl:BASE_URL,share,signout,factsheetTop,ciTop}));
+  console.log(JSON.stringify({ok:true,baseUrl:BASE_URL,share,signout,factsheetTop}));
 }finally{await context.close();await browser.close()}

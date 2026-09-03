@@ -41,9 +41,17 @@
       <a href="#actions">09 Actions</a>
       <a href="#dialog">10 Dialog</a>
       <a href="#table">11 Table</a>
-      <a href="#states">12 States</a>
-      <a href="#skeleton">13 Skeleton</a>
-      <a href="#rules">14 Rules</a>
+      <a href="#metrics">12 Metrics</a>
+      <a href="#list">13 List</a>
+      <a href="#check">14 Check</a>
+      <a href="#badge">15 Badge</a>
+      <a href="#prose">16 Prose &amp; Divider</a>
+      <a href="#toast">17 Toast</a>
+      <a href="#shell">18 Shell</a>
+      <a href="#figure">19 Figure</a>
+      <a href="#states">20 States</a>
+      <a href="#skeleton">21 Skeleton</a>
+      <a href="#rules">22 Rules</a>
     </nav>
   </header>
 
@@ -81,6 +89,17 @@
         </div>
       </div>
     </div>
+
+    <p class="app-note">Every specimen above is already frosting the thing this page is rendering over right now — it needs no showcase of its own, only an explanation.</p>
+    <table class="ci-ref ci-ref-table">
+      <tbody>
+        <tr><th>Inspiration</th><td>Eight real Betta fish morphs: Royal Blue Halfmoon (the production default), Super Red Halfmoon, Mustard Gas, Black Orchid, Copper Metallic, Turquoise Metallic, Nemo Galaxy Koi, Red Snow Dragon</td></tr>
+        <tr><th>Live input</th><td>Bangkok's own sky. JMA Himawari-9 satellite imagery — infrared, water-vapour and visible bands — biases the fish's movement, membrane lighting and iridescence between frames</td></tr>
+        <tr><th>Never an input</th><td>Local weather, forecast, time of day, device sensors and geolocation stay separate operational data. None of them reach the shader — only the satellite does</td></tr>
+        <tr><th>Renderer</th><td><code>sindhorn-betta-satellite-v1</code> — one persistent WebGL canvas, procedural GLSL, zero image textures, paused automatically when the tab is hidden</td></tr>
+        <tr><th>Page contract</th><td>A page carries <code>.environment-stage</code> + <code>.environment-canvas</code> and imports <code>betta-runtime-full.js</code> directly. Importing <code>betta-runtime.js</code> instead leaves a still 300×150 frame — that file only bootstraps the app shell's own startup signal, which a standalone page never sends</td></tr>
+      </tbody>
+    </table>
   </section>
 
   <!-- ========================= 02 COLOUR ========================= -->
@@ -118,7 +137,7 @@
   <section class="app-section" id="shape">
     <p class="app-section-kicker">04 · Shape &amp; Motion</p>
     <h2 class="app-section-title">Rounded, Never Circular</h2>
-    <p class="app-section-lede">Corners are soft; UI chrome is never a circle or a capsule. Motion explains state and settles with one easing family.</p>
+    <p class="app-section-lede">Corners are soft; UI chrome is never a circle or a capsule. Motion explains state and settles with one easing family — press the controls below to feel it.</p>
     <table class="ci-ref ci-ref-table">
       <tbody>
         <tr><th>Surface</th><td><code>--radius-surface</code> 14px — cards, disclosures, dialogs</td></tr>
@@ -129,6 +148,33 @@
         <tr><th>Reduced</th><td>Reduced motion removes transitions without hiding state</td></tr>
       </tbody>
     </table>
+
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Press</span><span>160ms · motion-ease · transform</span></div>
+        <div class="app-row">
+          <button class="app-primary app-control" type="button">Press and hold</button>
+          <button class="app-chip app-control" type="button">Filter</button>
+          <button class="app-back-control app-control" type="button" aria-label="Back"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button>
+        </div>
+        <p class="app-note">Every control scales down by the same amount, on the same curve, on press. This is the live <code>transform</code> transition declared in app-components.css, not a recording of it.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>State</span><span>280ms · motion-ease · height / rotation</span></div>
+        <p class="app-note">A component settling into a new state — a disclosure opening, a selector's chevron turning — uses <code>--motion-ms</code> with <code>--motion-ease</code>. See 06 Disclosure and 08 Selector: the same two tokens, never a second value invented in a route.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Animation</span><span>1.4s loop · motion-ease</span></div>
+        <div class="app-card app-surface">
+          <div class="app-skeleton"><div class="app-skeleton-line" data-width="medium"></div></div>
+        </div>
+        <p class="app-note">The one continuous animation in the system. See 21 Skeleton for the full placeholder this pulse belongs to.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Reduced motion</span><span>duration → .001ms, state unchanged</span></div>
+        <p class="app-note">A <code>prefers-reduced-motion: reduce</code> query resets these same selectors' transition and animation durations near zero. It is not a second, motion-safe copy of the component — the reduction is a media query on the one rule above.</p>
+      </div>
+    </div>
   </section>
 
   <!-- ========================= 05 CARDS ========================= -->
@@ -260,6 +306,14 @@
         </div>
         <p class="app-note">These draw no edge, so by the rule they are not cards and take no glass. That is a consequence of the definition, not an exception to it.</p>
       </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Back / close controls</span><span>.app-control · frame is the point</span></div>
+        <div class="app-row">
+          <button class="app-back-control app-control" type="button" aria-label="Back"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button>
+          <button class="app-close-control app-control" type="button" aria-label="Close"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
+        </div>
+        <p class="app-note">These do draw a frame, so unlike a utility action they take the material — the opposite reading of the same rule.</p>
+      </div>
     </div>
   </section>
 
@@ -273,6 +327,21 @@
         <div class="ci-specimen-label"><span>.app-dialog</span><span>native &lt;dialog&gt; · .app-overlay</span></div>
         <button class="app-primary app-control" type="button" data-dialog-open>Open dialog specimen</button>
         <p class="app-note">The scrim is not a card: it dims the page behind rather than sitting on the atmosphere, so it owns its own values.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-sheet</span><span>native &lt;dialog&gt; · bottom-anchored</span></div>
+        <button class="app-primary app-control" type="button" data-sheet-open>Open sheet specimen</button>
+        <p class="app-note">Same native &lt;dialog&gt; and overlay material as above; only the geometry changes, because this one belongs to the thumb.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-dialog-actions-split</span><span>destructive left · confirm right</span></div>
+        <div class="app-card ci-inset">
+          <div class="app-dialog-actions app-dialog-actions-split ci-flush">
+            <button class="app-utility-action" type="button">Delete</button>
+            <button class="app-primary app-control" type="button">Save changes</button>
+          </div>
+        </div>
+        <p class="app-note">A static preview — the modifier only changes justify-content, so it needs no dialog of its own to show.</p>
       </div>
     </div>
   </section>
@@ -300,9 +369,166 @@
     </div>
   </section>
 
-  <!-- ========================= 12 STATES ========================= -->
+  <!-- ========================= 12 METRICS ========================= -->
+  <section class="app-section" id="metrics">
+    <p class="app-section-kicker">12 · Metrics</p>
+    <h2 class="app-section-title">Numbers Read as Numbers</h2>
+    <p class="app-section-lede">Tabular figures line up in a column. A delta states its own direction as text, so the meaning does not depend on colour alone.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-metric-grid</span><span>tabular-nums</span></div>
+        <div class="app-card app-surface">
+          <div class="app-metric-grid">
+            <div class="app-metric"><p class="app-metric-label">Occupancy</p><p class="app-metric-value">86%</p><p class="app-metric-delta" data-direction="up">+4pt vs. yesterday</p></div>
+            <div class="app-metric"><p class="app-metric-label">ADR</p><p class="app-metric-value">4,920</p><p class="app-metric-delta" data-direction="down">&minus;260 vs. yesterday</p></div>
+            <div class="app-metric"><p class="app-metric-label">RevPAR</p><p class="app-metric-value">4,231</p><p class="app-metric-delta" data-direction="flat">No change</p><p class="app-metric-note">Rolling 24h</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 13 LIST ========================= -->
+  <section class="app-section" id="list">
+    <p class="app-section-kicker">13 · List</p>
+    <h2 class="app-section-title">Rows Share One Hairline, Not a Card Each</h2>
+    <p class="app-section-lede">A directory or an inbox is a list, not a stack of cards. The separator sits between rows and never after the last.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-list</span><span>row · button row</span></div>
+        <div class="app-card app-surface">
+          <div class="app-list">
+            <button class="app-list-row" type="button">
+              <span class="app-list-row-main"><span class="app-list-row-title">Marketing Communications</span><span class="app-list-row-meta">6 employees</span></span>
+              <span class="app-list-row-end"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4l6 6-6 6"/></svg></span>
+            </button>
+            <div class="app-list-row">
+              <span class="app-list-row-main"><span class="app-list-row-title">Front Office</span><span class="app-list-row-meta">14 employees</span></span>
+              <span class="app-list-row-end">Active</span>
+            </div>
+            <button class="app-list-row" type="button">
+              <span class="app-list-row-main"><span class="app-list-row-title">Housekeeping</span><span class="app-list-row-meta">22 employees</span></span>
+              <span class="app-list-row-end"><span class="app-badge" data-tone="quiet">New</span></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 14 CHECK ========================= -->
+  <section class="app-section" id="check">
+    <p class="app-section-kicker">14 · Check</p>
+    <h2 class="app-section-title">A Row You Can Mark Done</h2>
+    <p class="app-section-lede">The label is the hit target, not just the box, so the whole row responds rather than a 20px square.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-check</span><span>label strikes through when checked</span></div>
+        <div class="app-card app-surface">
+          <label class="app-check"><input type="checkbox" checked><span class="app-check-box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg></span><span class="app-check-label">Confirm banquet floor plan</span></label>
+          <label class="app-check"><input type="checkbox"><span class="app-check-box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg></span><span class="app-check-label">Send factsheet to sales</span></label>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 15 BADGE ========================= -->
+  <section class="app-section" id="badge">
+    <p class="app-section-kicker">15 · Badge</p>
+    <h2 class="app-section-title">A Count, Never the Only Signal</h2>
+    <p class="app-section-lede">A badge marks a count or a status. Pair it with text a screen reader can read — never rely on the badge alone.</p>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-badge</span><span>default · quiet</span></div>
+        <div class="app-row">
+          <span class="app-badge">3</span>
+          <span class="app-badge" data-tone="quiet">New</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 16 PROSE & DIVIDER ========================= -->
+  <section class="app-section" id="prose">
+    <p class="app-section-kicker">16 · Prose &amp; Divider</p>
+    <h2 class="app-section-title">Long-Form Copy Keeps a Measure</h2>
+    <p class="app-section-lede">History and brand narrative read as prose, not as a paragraph stretched across a tablet's full width.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-prose</span><span>64ch measure</span></div>
+        <div class="app-card app-surface">
+          <div class="app-prose">
+            <p>Sindhorn Midtown Hotel Bangkok, a Vignette Collection property, sits where the city's midtown meets Sindhorn Village.</p>
+            <h3>Heritage</h3>
+            <p>The property carries <strong>IHG</strong>'s Vignette Collection standard: independent character inside a global network.</p>
+            <ul><li>Guided by local craft</li><li>Anchored to Sindhorn Village</li></ul>
+          </div>
+          <hr class="app-divider">
+          <p class="app-note">.app-divider — one hairline, one token, instead of a route drawing its own.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 17 TOAST ========================= -->
+  <section class="app-section" id="toast">
+    <p class="app-section-kicker">17 · Toast</p>
+    <h2 class="app-section-title">A Transient Confirmation</h2>
+    <p class="app-section-lede">Floats above content on overlay material, above the footer's height, then gets out of the way on its own.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-toast</span><span>overlay · fixed above the navbar</span></div>
+        <button class="app-primary app-control" type="button" data-toast-open>Show toast</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 18 SHELL ========================= -->
+  <section class="app-section" id="shell">
+    <p class="app-section-kicker">18 · Shell</p>
+    <h2 class="app-section-title">A Sticky Header and Footer That Frost What Passes Under Them</h2>
+    <p class="app-section-lede">The public app shell is exactly these two elements: a masthead carrying the logo, and a four-button navbar. Scroll the frame below — this is the same markup /next uses.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-masthead / .app-navbar</span><span>scroll inside the frame</span></div>
+        <div class="ci-shell-frame">
+          <header class="app-masthead"><img class="app-masthead-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></header>
+          <div class="ci-shell-frame-body">
+            <div class="app-surface"><p class="app-surface-label">Scroll</p><div class="app-surface-copy">Content passes beneath the sticky header and footer, which is why both are glass rather than painted.</div></div>
+            <div class="app-surface"><p class="app-surface-label">Scroll</p><div class="app-surface-copy">Keep scrolling to watch the footer resolve different content behind it too.</div></div>
+            <div class="app-surface"><p class="app-surface-label">Scroll</p><div class="app-surface-copy">This frame exists only so the sticky behaviour has somewhere bounded to scroll — the classes are unchanged.</div></div>
+          </div>
+          <nav class="app-navbar" aria-label="Primary">
+            <button class="app-navbar-button" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M4 6h16M4 18h10"/></svg><span>Today</span></button>
+            <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v8a3 3 0 0 0 6 0V3M9 11v10M17 3c-1.5 2-1.5 5 0 7v11"/></svg><span>F&amp;B</span></button>
+            <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l2.4 5 5.6.7-4 3.9 1 5.4-5-2.7-5 2.7 1-5.4-4-3.9 5.6-.7z"/></svg><span>Brand</span></button>
+            <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16M9 10v9"/></svg><span>CI</span></button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 19 FIGURE ========================= -->
+  <section class="app-section" id="figure">
+    <p class="app-section-kicker">19 · Figure</p>
+    <h2 class="app-section-title">Official Imagery Keeps Its Ratio</h2>
+    <p class="app-section-lede">A figure crops to an intentional ratio and labels its provenance. It draws no edge, so by the rule it takes no material — the image is the content.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-figure</span><span>no material</span></div>
+        <figure class="app-figure">
+          <img src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection wordmark">
+          <figcaption>Sindhorn Midtown Hotel Bangkok — Vignette Collection wordmark</figcaption>
+        </figure>
+        <p class="app-note">Property and outlet photography is not shipped in this repo — Rule 6 loads it from Supabase at runtime, into a figure already laid out like this one.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 20 STATES ========================= -->
   <section class="app-section" id="states">
-    <p class="app-section-kicker">12 · States</p>
+    <p class="app-section-kicker">20 · States</p>
     <h2 class="app-section-title">Operational States Stay Calm</h2>
     <p class="app-section-lede">Loading, empty, success and error explain what happened and what the employee can do next, without changing the product's visual language.</p>
     <div class="ci-stack">
@@ -318,9 +544,9 @@
     </div>
   </section>
 
-  <!-- ========================= 13 SKELETON ========================= -->
+  <!-- ========================= 21 SKELETON ========================= -->
   <section class="app-section" id="skeleton">
-    <p class="app-section-kicker">13 · Skeleton</p>
+    <p class="app-section-kicker">21 · Skeleton</p>
     <h2 class="app-section-title">Reserve the Shape Before the Data</h2>
     <p class="app-section-lede">A skeleton holds the geometry the content will occupy, so the page does not reflow when it arrives. It is a placeholder, not a surface.</p>
     <div class="ci-stack">
@@ -339,9 +565,9 @@
     </div>
   </section>
 
-  <!-- ========================= 12 RULES ========================= -->
+  <!-- ========================= 22 RULES ========================= -->
   <section class="app-section" id="rules">
-    <p class="app-section-kicker">14 · Rules</p>
+    <p class="app-section-kicker">22 · Rules</p>
     <h2 class="app-section-title">What Holds the System Together</h2>
     <div class="ci-rule-list">
       <div class="ci-rule"><b>A card draws an edge.</b><span>If it draws a border or a fill it is a card and takes the material. If it only arranges children it is a layout container and takes nothing.</span></div>
@@ -372,6 +598,19 @@
     </div>
   </form>
 </dialog>
+
+<dialog class="app-sheet app-overlay" data-sheet>
+  <div class="app-sheet-grip"></div>
+  <div class="app-sheet-body">
+    <h2 class="app-sheet-title">Sheet Standard</h2>
+    <p class="app-dialog-copy">Bottom-anchored, thumb-reachable. Same material and the same native &lt;dialog&gt; behaviour as the centred dialog above — only the geometry is different.</p>
+    <div class="app-dialog-actions">
+      <button class="app-utility-action" type="button" data-sheet-close>Close</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="app-toast app-overlay" data-toast hidden>Saved.</div>
 
 <script type="module">
 /* The page's own behaviour. Three interactions, no framework, no shared state.
@@ -437,6 +676,21 @@ for (const chip of document.querySelectorAll('.app-chip')) {
 const dialog = document.querySelector('[data-dialog]');
 document.querySelector('[data-dialog-open]')?.addEventListener('click', () => dialog?.showModal());
 document.querySelector('[data-dialog-close]')?.addEventListener('click', () => dialog?.close());
+
+// Sheet — same native <dialog>, bottom-anchored geometry.
+const sheet = document.querySelector('[data-sheet]');
+document.querySelector('[data-sheet-open]')?.addEventListener('click', () => sheet?.showModal());
+document.querySelector('[data-sheet-close]')?.addEventListener('click', () => sheet?.close());
+
+// Toast — shows, then clears itself; a second tap restarts the timer.
+const toast = document.querySelector('[data-toast]');
+let toastTimer;
+document.querySelector('[data-toast-open]')?.addEventListener('click', () => {
+  if (!toast) return;
+  toast.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toast.hidden = true; }, 2200);
+});
 </script>
 
 </body>
