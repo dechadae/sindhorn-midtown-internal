@@ -175,14 +175,61 @@ vertex FinVertexOut finVertex(FinVertexIn in [[stage_in]], constant FinUniforms&
 
     float4 world = f.modelMatrix * float4(p, 1.0);
     float3x3 model3 = float3x3(f.modelMatrix[0].xyz, f.modelMatrix[1].xyz, f.modelMatrix[2].xyz);
+    float3 worldNormal = normalize(model3 * n);
+    float4 clip = f.viewProjectionMatrix * world;
+
+    // Display Art water-touch interaction. Swift writes normalized pointer NDC
+    // + velocity into fingerprint and transient strength/age/aspect into the
+    // currently-unused satelliteB.yzw channels. When strength is zero this is
+    // exactly the approved renderer path.
+    float interactionStrength = max(0.0, f.satelliteB.y);
+    if (interactionStrength > .0001) {
+        float invW = 1.0 / max(abs(clip.w), .0001);
+        float2 ndc = clip.xy * invW;
+        float2 delta = ndc - f.fingerprint.xy;
+        float aspect = max(.55, f.satelliteB.w);
+        delta.x *= aspect;
+        float dist = length(delta);
+        float age = max(0.0, f.satelliteB.z);
+        float2 velocity = f.fingerprint.zw;
+        float speed = clamp(length(velocity), 0.0, 3.0);
+        float2 vdir = speed > .001 ? velocity / speed : float2(0.0);
+        float2 towardPointer = dist > .0001 ? normalize(-delta) : vdir;
+
+        // A moving hand creates both local pressure and a directional wake.
+        // When the hand stops, the ring continues travelling outward while the
+        // CPU-side interaction strength decays, creating a natural settle.
+        float radius = .045 + age * .19 + speed * .014;
+        float ringWidth = .045 + speed * .008;
+        float ringEnvelope = exp(-pow((dist - radius) / max(.018, ringWidth), 2.0));
+        float ringOscillation = sin((radius - dist) * 31.0);
+        float ring = ringEnvelope * ringOscillation;
+        float coreRadius = .055 + speed * .020;
+        float core = exp(-(dist * dist) / max(.004, coreRadius * coreRadius));
+        float directional = .52 + .48 * max(0.0, dot(towardPointer, vdir));
+        float wake = exp(-dist * (4.8 - speed * .55)) * directional;
+        float pressure = core * .46 + ring * .40 + wake * .20;
+        float membraneEase = smoothstep(.055, .30, in.u) * (.36 + .64 * in.u);
+        float displacement = pressure * interactionStrength * membraneEase;
+
+        world.xyz += worldNormal * displacement * (.055 + .075 * in.u);
+        world.xy += vdir * wake * interactionStrength * membraneEase * .030;
+        clip = f.viewProjectionMatrix * world;
+
+        // Very small lighting-normal response keeps the disturbed membrane from
+        // looking like a flat card translating through space.
+        float2 slope = dist > .0001 ? normalize(delta) : float2(0.0);
+        worldNormal = normalize(worldNormal + float3(-slope.x, -slope.y, 0.0) * displacement * .10);
+    }
+
     out.worldPos = world.xyz;
-    out.normal = normalize(model3 * n);
+    out.normal = worldNormal;
     out.finUv = float2(in.u, in.v);
     out.ray = abs(sin((in.v * max(24.0, f.detail0.x) + in.rayJitter * .12) * 3.14159265));
     out.fold = clamp(abs(p.z) / max(f.shape1.y, .05) * .9, 0.0, 1.0);
     float sideEdge = pow(abs(in.v - .5) * 2.0, 6.0);
     out.edge = max(smoothstep(.78, 1.0, in.u), sideEdge);
-    out.position = f.viewProjectionMatrix * world;
+    out.position = clip;
     return out;
 }
 
