@@ -46,7 +46,7 @@ jobs:
           done
 
           # Startup / Betta / PWA invariants.
-          grep -q "sindhorn-midtown-internal-pwa-v59-card-primitive-r1" site/sw.js
+          grep -q "sindhorn-midtown-internal-pwa-v60-card-primitive-r2" site/sw.js
           grep -q "PRECACHE_CONCURRENCY=8" site/sw.js
           grep -q "betta-runtime-full.js?v=1" site/betta-runtime.js
           grep -q "betta-runtime.js?v=2" site/index.html
@@ -85,7 +85,11 @@ jobs:
           grep -q "\.factsheet-room-card" site/app-glass-runtime.js
           grep -q "\.ihg-history-card" site/app-glass-runtime.js
           grep -q "\.message-card" site/app-glass-runtime.js
-          grep -q "\.ci-status" site/app-glass-runtime.js
+          # /ci declares .app-card / .app-control in markup and owns no registry entries.
+          grep -q "app-card" site/ci.js
+          grep -qE "^\.app-card," site/app-glass.css
+          grep -qE "^\.app-overlay\{" site/app-glass.css
+          ! grep -q "'\.ci-" site/app-glass-runtime.js
           grep -q "1.4.0-preview" site/ui-system-registry.js
           grep -q "One glass material only" site/ui-system-registry.js
           grep -q "rgba(46,39,59,.30) + blur(18px) saturate(1.18)" site/ui-system-registry.js
