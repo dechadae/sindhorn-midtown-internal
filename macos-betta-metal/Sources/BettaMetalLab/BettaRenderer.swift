@@ -317,6 +317,7 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
         let rz = lerpAngle(from.params.rotation + la.rotation + ma.rotationZOffset, to.params.rotation + lb.rotation + mb.rotationZOffset, e)
         let model = translationMatrix(pos) * rotationYMatrix(ry) * rotationXMatrix(rx) * rotationZMatrix(rz) * uniformScaleMatrix(scale)
         let n = BettaSettings.neutralSatellite
+        let interaction = BettaWaterInteractionStore.shared.sample()
 
         return FinUniforms(
             modelMatrix: model,
@@ -330,9 +331,9 @@ final class BettaRenderer: NSObject, MTKViewDelegate {
             grading: SIMD4<Float>(p(ta.saturation, tb.saturation), p(ta.brightness, tb.brightness), p(ta.gradientPosition, tb.gradientPosition), p(la.alpha, lb.alpha)),
             modes: SIMD4<Float>(from.morphMode, to.morphMode, n.energy, n.cloud),
             satelliteA: SIMD4<Float>(n.cold, n.cooling, n.texture, n.vapor),
-            satelliteB: SIMD4<Float>(n.visible, n.motion.x, n.motion.y, n.motion.x),
+            satelliteB: SIMD4<Float>(n.visible, interaction.strength, interaction.age, aspect),
             satelliteC: SIMD4<Float>(n.motion.y, n.color.x, n.color.y, n.color.z),
-            fingerprint: SIMD4<Float>(n.fingerprint.x, n.fingerprint.y, n.fingerprint.z, 0),
+            fingerprint: SIMD4<Float>(interaction.position.x, interaction.position.y, interaction.velocity.x, interaction.velocity.y),
             detail0: SIMD4<Float>(p(ta.rayCount, tb.rayCount), p(ta.microFold, tb.microFold), p(ta.rayDefinition, tb.rayDefinition), p(ta.edgeRuffle, tb.edgeRuffle)),
             detail1: SIMD4<Float>(p(ta.veinStrength, tb.veinStrength), p(ta.membraneGrain, tb.membraneGrain), p(ta.fineFlutter, tb.fineFlutter), p(ta.normalDetail, tb.normalDetail)),
             color0From: rgba(fromPalette[0]),
