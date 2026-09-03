@@ -21,25 +21,35 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate central primitives and recreated routes
+      - name: Validate clean shell and recreated Today
         shell: bash
         run: |
           set -euo pipefail
           for file in \
-            site/route-registry.js \
+            site/ui/app.js \
+            site/ui/router.js \
             site/ui/routes/today.js \
-            site/ui/shell/init.js \
+            site/ui/routes/placeholder.js \
+            site/ui/routes/ci-reference.js \
             site/ui/shell/pull-to-reload.js; do
             node --input-type=module --check < "$file"
           done
           grep -q -- '--ui-glass-blur:18px' site/ui/tokens.css
           grep -q -- '--ui-glass-saturation:1.18' site/ui/tokens.css
-          grep -q -- '--ui-glass-bg:rgba(46,39,59,.55)' site/ui/tokens.css
+          grep -q -- '--ui-radius-control:12px' site/ui/tokens.css
+          grep -q -- '--ui-radius-chip:9px' site/ui/tokens.css
+          grep -q -- '--ui-radius-card:14px' site/ui/tokens.css
           grep -q "LINE Seed Sans TH" site/ui/tokens.css
-          grep -q "module:'./ui/routes/today.js'" site/route-registry.js
+          grep -q "module:'./routes/today.js'" site/ui/router.js
           grep -q "loadBusinessDashboard" site/ui/routes/today.js
+          grep -q '/ui/index.css' site/index.html
+          grep -q '/ui/app.js' site/index.html
           if grep -R -n -E 'navigator\.vibrate|\.vibrate\(' site/ui; then
             echo 'Haptics are forbidden in rebuilt UI foundation' >&2
+            exit 1
+          fi
+          if grep -R -n 'style=' site/ui --include='*.js'; then
+            echo 'Inline route styling is forbidden in rebuilt UI modules' >&2
             exit 1
           fi
           python - <<'PY'
@@ -53,26 +63,36 @@ jobs:
                   if 'letter-spacing:' in line and 'letter-spacing:0' not in line.replace(' ',''):
                       bad.append(f'{p}:{i}:{line}')
           if bad: raise SystemExit('\n'.join(bad))
+          index = Path('site/index.html').read_text(encoding='utf-8')
+          forbidden_index = ['footer-route-guard.css','route-hero-standard.css','app-controls.css','app-shapes.css','account.css','admin.css','business-dashboard.css','fnb.css','settings.css']
+          leaked = [name for name in forbidden_index if name in index]
+          if leaked: raise SystemExit('Clean shell still loads legacy presentation: '+', '.join(leaked))
           today = Path('site/ui/routes/today.js').read_text(encoding='utf-8')
-          forbidden = ['business-dashboard.css','business-dashboard-motion.css','hotel-factsheet.css','fnb.css','settings.css']
-          used = [name for name in forbidden if name in today]
-          if used: raise SystemExit('Recreated Today imports legacy presentation: '+', '.join(used))
+          forbidden_today = ['business-dashboard.js','business-dashboard.css','business-dashboard-motion.css','hotel-factsheet.css','fnb.css','settings.css']
+          leaked = [name for name in forbidden_today if name in today]
+          if leaked: raise SystemExit('Recreated Today imports legacy presentation: '+', '.join(leaked))
+          required_sections = ['At a Glance','Needs Attention','F&B Today','Current Month','Next Months','Market Segment Detail','Operations Notes']
+          missing = [name for name in required_sections if name not in today]
+          if missing: raise SystemExit('Today structure incomplete: '+', '.join(missing))
           PY
 
-      - name: Verify approved CI and protected systems unchanged
+      - name: Verify approved CI, old routes and protected engines unchanged
         shell: bash
         run: |
           set -euo pipefail
           base="$(git merge-base origin/main HEAD)"
           test -n "$base"
           for file in \
-            site/index.html \
+            site/route-registry.js \
             site/ci.js site/ci.css site/ci-specimen-fixes.css site/ci-day-cycle-route.js site/ci-betta-day-cycle.js site/ui-system-registry.js \
             site/business-dashboard.js site/business-dashboard.css site/business-dashboard-motion.js site/business-dashboard-motion.css \
+            site/fnb-route.js site/fnb.js site/fnb.css site/fnb-data.js \
+            site/settings-route-v3.js site/settings.js site/settings.css \
+            site/brand.js site/brand.css site/ihg-history.js site/ihg-history.css site/hotel-factsheet-route.js site/hotel-factsheet.js site/hotel-factsheet.css \
             site/betta-environment.js site/betta-runtime.js site/betta-fin-presets.js site/betta-fin-shader.js site/betta-satellite.js \
             site/location.js site/live-data.js site/rain-now.js \
             site/auth-client.js site/auth-shell.js site/capabilities.js \
-            site/fnb-data.js site/business-dashboard-data.js site/business-card-component.js \
+            site/business-dashboard-data.js site/business-card-component.js \
             site/manifest.webmanifest site/sw.js; do
             git diff --exit-code "$base" HEAD -- "$file"
           done
@@ -90,17 +110,19 @@ jobs:
           BASE_URL="https://${GITHUB_REF_NAME}.sindhorn-midtown-internal.pages.dev"
           sleep 8
           for path in \
-            / /ci /route-registry.js \
-            /ui/tokens.css /ui/materials.css /ui/components.css /ui/motion.css \
-            /ui/routes/today.js /ui/routes/today.css \
+            / /ci /login.html \
+            /ui/app.js /ui/router.js /ui/index.css /ui/tokens.css /ui/materials.css /ui/components.css /ui/components/disclosure.css /ui/shell.css \
+            /ui/routes/today.js /ui/routes/today.css /ui/routes/ci-reference.js \
             /ci.js /ci.css /ci-day-cycle-route.js \
-            /betta-runtime.js /betta-environment.js /manifest.webmanifest /sw.js; do
+            /business-dashboard-data.js /auth-client.js /betta-runtime.js /betta-environment.js /manifest.webmanifest /sw.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
-          curl --fail --silent --show-error "${BASE_URL}/route-registry.js" -o /tmp/routes.js
-          grep -q "module:'./ui/routes/today.js'" /tmp/routes.js
-          grep -q "module:'./ci-day-cycle-route.js?v=1'" /tmp/routes.js
+          curl --fail --silent --show-error "${BASE_URL}/" -o /tmp/index.html
+          grep -q '/ui/app.js' /tmp/index.html
+          grep -q '/ui/index.css' /tmp/index.html
+          if grep -q 'footer-route-guard.css' /tmp/index.html; then exit 1; fi
+          curl --fail --silent --show-error "${BASE_URL}/ui/router.js" -o /tmp/router.js
+          grep -q "module:'./routes/today.js'" /tmp/router.js
           curl --fail --silent --show-error "${BASE_URL}/ui/tokens.css" -o /tmp/tokens.css
           grep -q -- '--ui-glass-blur:18px' /tmp/tokens.css
-          grep -q -- '--ui-glass-bg:rgba(46,39,59,.55)' /tmp/tokens.css
