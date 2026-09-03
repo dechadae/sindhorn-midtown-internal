@@ -1,5 +1,5 @@
 :root{
-  /* Visual authority: current approved /ci page and its live specimens. */
+  /* Frozen visual authority: preview-ci-glass @ 4ab3639f0dc18c87573578b95cd7c8f5c3d4122c. */
   --ui-color-vignette:#2E273B;
   --ui-color-vignette-rgb:46,39,59;
   --ui-color-white:#FAF7F5;
@@ -8,7 +8,8 @@
   --ui-color-sorbet-rgb:229,236,190;
   --ui-color-muted:rgba(250,247,245,.55);
   --ui-color-muted-strong:rgba(250,247,245,.66);
-  --ui-color-line:rgba(250,247,245,.09);
+  --ui-color-soft:rgba(250,247,245,.74);
+  --ui-color-line:rgba(250,247,245,.11);
   --ui-color-line-strong:rgba(250,247,245,.14);
   --ui-color-success:#72A75D;
   --ui-color-warning:#D19B59;
@@ -30,7 +31,6 @@
   --ui-space-12:48px;
   --ui-space-16:64px;
 
-  /* Approved CI shape language: rounded rectangles, never circular UI chrome. */
   --ui-radius-indicator:2px;
   --ui-radius-badge:5px;
   --ui-radius-icon:8px;
@@ -43,19 +43,30 @@
   --ui-control-sm:36px;
   --ui-control-md:40px;
   --ui-control-field:48px;
+  --ui-footer-height:54px;
 
-  /* One blur authority. Opacity variants reproduce the already-approved CI specimens. */
-  --ui-glass-bg:rgba(46,39,59,.55);
-  --ui-glass-bg-soft:rgba(46,39,59,.48);
-  --ui-glass-border:rgba(250,247,245,.14);
+  /* Exact approved central glass contract. There are no opacity variants. */
+  --app-glass-fill:rgba(46,39,59,.30);
+  --app-glass-border:rgba(250,247,245,.14);
+  --app-glass-filter:blur(18px) saturate(1.18);
+  --ui-glass-bg:var(--app-glass-fill);
+  --ui-glass-bg-soft:var(--app-glass-fill);
+  --ui-glass-border:var(--app-glass-border);
   --ui-glass-blur:18px;
   --ui-glass-saturation:1.18;
   --ui-shadow-float:0 14px 34px rgba(12,9,18,.14);
+
+  --ui-route-hero-pad-top:22px;
+  --ui-route-hero-pad-bottom:20px;
+  --ui-route-hero-kicker-size:9px;
+  --ui-route-hero-title-size:clamp(30px,8.5vw,44px);
+  --ui-route-hero-copy-size:13px;
 
   --ui-ease-standard:cubic-bezier(.22,1,.36,1);
   --ui-duration-fast:160ms;
   --ui-duration-standard:260ms;
   --ui-duration-slow:420ms;
+  --ui-duration-route:280ms;
 
   --ui-max-content:720px;
   --ui-gutter:clamp(20px,4vw,48px);
