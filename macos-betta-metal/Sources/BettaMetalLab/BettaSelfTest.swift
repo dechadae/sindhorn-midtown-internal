@@ -8,9 +8,9 @@ struct BettaSelfTest {
         }
 
         expect(BettaReleaseInfo.productName == "BETTA", "Release product name must be BETTA")
-        expect(BettaReleaseInfo.version == "1.0.0", "Release semantic version must be 1.0.0")
-        expect(BettaReleaseInfo.build == "20", "Release build number must be 20")
-        expect(BettaReleaseInfo.persistenceBundleIdentifier == "com.sindhornmidtown.BettaMetalLab", "1.0 must preserve the existing persistence bundle identifier")
+        expect(BettaReleaseInfo.version == "1.1.0", "Release semantic version must be 1.1.0")
+        expect(BettaReleaseInfo.build == "21", "Release build number must be 21")
+        expect(BettaReleaseInfo.persistenceBundleIdentifier == "com.sindhornmidtown.BettaMetalLab", "1.1 must preserve the existing persistence bundle identifier")
 
         expect(BettaPreset.all.count == 8, "Expected exactly eight canonical Betta presets")
         expect(BettaGeometry.rays == 160, "Mac high-detail topology must use 160 circumferential samples")
@@ -83,6 +83,7 @@ struct BettaSelfTest {
         expect(immutableMustardStyle.seed == 0xBEE5, "Original-color restore must preserve the supplied organism seed metadata")
 
         let referenceId = BettaPreset.all[0].referenceId
+        let originalSnapshot = BettaImagineSnapshot.capture(referenceId: referenceId)
         let currentAdvanced = BettaAdvancedTuningStore.shared.adjustment(for: referenceId)
         let currentComposition = BettaCompositionStore.shared.adjustment(for: referenceId)
         if let generation = BettaRandomStyleStore.shared.makeGeneration(referenceId: referenceId) {
@@ -97,6 +98,48 @@ struct BettaSelfTest {
         _ = BettaRandomStyleStore.shared.restoreOriginalColors(referenceId: referenceId)
         expect(BettaAdvancedTuningStore.shared.adjustment(for: referenceId) == currentAdvanced, "Restoring original colors must not modify tail/camera/membrane settings")
         expect(BettaCompositionStore.shared.adjustment(for: referenceId) == currentComposition, "Restoring original colors must not modify scale/position/XYZ rotation")
+
+        // Imagine's deterministic contract is tested without invoking Apple
+        // Intelligence: model output may only enter this constrained apply path.
+        if var design = BettaImagineDesign.current(referenceId: referenceId) {
+            let beforeImagine = BettaAdvancedTuningStore.shared.adjustment(for: referenceId)
+            let beforeComposition = BettaCompositionStore.shared.adjustment(for: referenceId)
+            design.spread = 999
+            design.rayCount = 999
+            design.membraneCount = 99
+            design.palette = [
+                BettaImagineColor(r: 1.2, g: -0.1, b: 0.4),
+                BettaImagineColor(r: 0.2, g: 0.8, b: 1.4),
+                BettaImagineColor(r: 0.9, g: 0.3, b: 0.2),
+                BettaImagineColor(r: 1.0, g: 0.9, b: 0.1)
+            ]
+            design.background = [
+                BettaImagineColor(r: 0.7, g: 0.8, b: 0.9),
+                BettaImagineColor(r: 0.4, g: 0.3, b: 0.2),
+                BettaImagineColor(r: 0.2, g: 0.1, b: 0.5)
+            ]
+            expect(design.apply(referenceId: referenceId), "Imagine structured design must apply through the constrained state bridge")
+            let afterImagine = BettaAdvancedTuningStore.shared.adjustment(for: referenceId)
+            expect(abs(afterImagine.tail.spread - 4.8) < 0.001, "Imagine tail spread must pass through existing production clamps")
+            expect(abs(afterImagine.tail.rayCount - 160) < 0.001, "Imagine ray count must pass through existing production clamps")
+            expect(afterImagine.membraneCount == 6, "Imagine membrane count must clamp to six")
+            expect(afterImagine.camera == beforeImagine.camera, "Imagine must never change the camera")
+            expect(afterImagine.frontLayer == beforeImagine.frontLayer && afterImagine.backLayer == beforeImagine.backLayer, "Imagine must never change membrane endpoint placement")
+            expect(BettaCompositionStore.shared.adjustment(for: referenceId) == beforeComposition, "Imagine must never change scale/position/XYZ rotation")
+            if let style = BettaRandomStyleStore.shared.style(for: referenceId),
+               let colors = style.resolvedPalette,
+               let background = style.resolvedBackground {
+                expect(colors.count == 4 && background.count == 3, "Imagine must produce exactly four palette and three background stops")
+                expect(colors.allSatisfy { $0.x >= 0 && $0.x <= 1 && $0.y >= 0 && $0.y <= 1 && $0.z >= 0 && $0.z <= 1 }, "Imagine palette colors must be normalized")
+                expect(background.allSatisfy { $0.x <= 0.1601 && $0.y <= 0.1601 && $0.z <= 0.1601 }, "Imagine background colors must remain dark enough for the artwork")
+            } else {
+                failures.append("Imagine structured design did not store a valid palette/background")
+            }
+            expect(!design.promptJSON.isEmpty && design.promptJSON != "{}", "Imagine must serialize the current organism for conversational refinement")
+        } else {
+            failures.append("Imagine could not snapshot the current organism")
+        }
+        originalSnapshot?.restore()
 
         expect(abs(BettaEvolutionController.defaultSegmentDuration - 45) < 0.001, "Continuous Evolution target duration must remain 45 seconds")
 
@@ -143,7 +186,7 @@ struct BettaSelfTest {
 
         if failures.isEmpty {
             print("BETTA \(BettaReleaseInfo.version) (\(BettaReleaseInfo.build)) self-test: PASS")
-            print("8 immutable originals · premium morph pacing · live Himawari mood mapping · adaptive energy policy · multi-display release shell · onboarding/settings · non-destructive color restore · 160×144 topology · 1–6 membranes · presets/favorites · continuous evolution · recovery regression")
+            print("Imagine structured Tail Director · camera/composition isolation · 8 immutable originals · premium morph pacing · live Himawari mood mapping · adaptive energy policy · multi-display release shell · 160×144 topology · 1–6 membranes · presets/favorites · continuous evolution · recovery regression")
             return true
         }
         print("BETTA \(BettaReleaseInfo.version) self-test: FAIL")
