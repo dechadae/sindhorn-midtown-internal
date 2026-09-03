@@ -104,7 +104,7 @@ jobs:
         run: |
           set -euo pipefail
           base="$(git merge-base origin/main HEAD)"
-          for file in site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/weather-authority.js site/rain-now.js site/auth-client.js site/capabilities.js site/fnb.js site/fnb-data.js site/brand.js site/ihg-history.js site/hotel-factsheet-route.js; do
+          for file in site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/weather-authority.js site/rain-now.js site/auth-client.js site/capabilities.js site/fnb-data.js site/brand.js site/ihg-history.js site/hotel-factsheet-route.js; do
             git diff --exit-code "$base" HEAD -- "$file"
           done
           # auth-shell.js carries deliberate version pins on this branch, so byte-equality
@@ -117,6 +117,12 @@ jobs:
           grep -q "onboarding.js?v=1" site/auth-shell.js
           # the evicted-runtime routine now lives with the PWA cache lifecycle
           grep -q "evictStaleBootstrapRuntime" site/pwa-version-guard.js
+          # fnb.js gave up its private selector to the shared app-select.js, so it is no
+          # longer byte-equal to main. What must hold is that it did not take one back:
+          # no route may reimplement something centralized, or declare material itself.
+          ! grep -qE "function (filterField|selectField)\(" site/fnb.js
+          grep -q "from './app-select.js" site/fnb.js
+          ! grep -q "backdrop-filter" site/fnb.js
           grep -q "await import('./betta-runtime.js?v=1')" site/bootstrap.js
           grep -q "rain-now" site/weather-authority.js
           grep -q "rain-now.js" site/sw.js

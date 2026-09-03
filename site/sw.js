@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v62-auth-shell-clean-r1';
+const VERSION='sindhorn-midtown-internal-pwa-v63-fnb-select-guard-r1';
 // Preserve prior production release-family markers required by regression gates:
 // sindhorn-midtown-internal-pwa-v55-overlay-glass-r1
 // Preserve prior production release-family markers required by regression gates:
