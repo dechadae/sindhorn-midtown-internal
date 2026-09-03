@@ -1,4 +1,4 @@
-name: macOS Betta Metal Lab
+name: macOS BETTA Release
 
 on:
   push:
@@ -30,19 +30,26 @@ jobs:
       - name: Swift self-test
         working-directory: macos-betta-metal
         run: swift run BettaMetalLab --self-test
-      - name: Build release app
+      - name: Build BETTA 1.0 release
         working-directory: macos-betta-metal
         run: ./scripts/build-app.sh
-      - name: Inspect app
+      - name: Inspect BETTA 1.0 app
         working-directory: macos-betta-metal
         run: |
-          file "dist/Sindhorn Betta Metal Lab.app/Contents/MacOS/BettaMetalLab"
-          codesign -dv --verbose=2 "dist/Sindhorn Betta Metal Lab.app" 2>&1
-          plutil -lint "dist/Sindhorn Betta Metal Lab.app/Contents/Info.plist"
-          /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "dist/Sindhorn Betta Metal Lab.app/Contents/Info.plist"
-          /usr/libexec/PlistBuddy -c 'Print :BettaGitSHA' "dist/Sindhorn Betta Metal Lab.app/Contents/Info.plist"
-          test -s "dist/Sindhorn Betta Metal Lab.app/Contents/Resources/BettaShaders.metallib"
-          cmp Sources/BettaMetalLab/ShadersSafe.metal "dist/Sindhorn Betta Metal Lab.app/Contents/Resources/Shaders.metal"
+          file "dist/BETTA.app/Contents/MacOS/BettaMetalLab"
+          file "dist/BETTA.app/Contents/MacOS/BettaMetalLab" | grep -q 'arm64'
+          codesign -dv --verbose=2 "dist/BETTA.app" 2>&1
+          codesign --verify --deep --strict "dist/BETTA.app"
+          plutil -lint "dist/BETTA.app/Contents/Info.plist"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "dist/BETTA.app/Contents/Info.plist")" = "1.0.0"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "dist/BETTA.app/Contents/Info.plist")" = "20"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "dist/BETTA.app/Contents/Info.plist")" = "BETTA"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "dist/BETTA.app/Contents/Info.plist")" = "com.sindhornmidtown.BettaMetalLab"
+          /usr/libexec/PlistBuddy -c 'Print :BettaGitSHA' "dist/BETTA.app/Contents/Info.plist"
+          test -s "dist/BETTA.app/Contents/Resources/BettaShaders.metallib"
+          cmp Sources/BettaMetalLab/ShadersSafe.metal "dist/BETTA.app/Contents/Resources/Shaders.metal"
+          test -s "dist/BETTA-1.0.0-macOS-arm64.zip"
+          test -s "dist/BETTA-1.0.0-macOS-arm64.dmg"
       - name: Runtime Metal pipeline smoke when GPU is exposed
         working-directory: macos-betta-metal
         run: |
@@ -81,11 +88,13 @@ jobs:
           _ = try device.makeRenderPipelineState(descriptor: bg)
           print("Metal runtime smoke: PASS on \(device.name)")
           SWIFT
-          xcrun swift "$RUNNER_TEMP/metal-smoke.swift" "dist/Sindhorn Betta Metal Lab.app/Contents/Resources/BettaShaders.metallib"
-      - name: Upload runnable lab
+          xcrun swift "$RUNNER_TEMP/metal-smoke.swift" "dist/BETTA.app/Contents/Resources/BettaShaders.metallib"
+      - name: Upload BETTA 1.0 release
         uses: actions/upload-artifact@v4
         with:
-          name: Sindhorn-Betta-Metal-Lab-macOS
-          path: macos-betta-metal/dist/Sindhorn-Betta-Metal-Lab-macOS.zip
+          name: BETTA-1.0.0-macOS-arm64
+          path: |
+            macos-betta-metal/dist/BETTA-1.0.0-macOS-arm64.zip
+            macos-betta-metal/dist/BETTA-1.0.0-macOS-arm64.dmg
           if-no-files-found: error
           retention-days: 30
