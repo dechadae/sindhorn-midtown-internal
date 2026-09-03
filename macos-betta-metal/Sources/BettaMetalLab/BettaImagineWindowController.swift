@@ -1,17 +1,11 @@
 import AppKit
 
+/// Imagine is intentionally an in-window overlay rather than a second NSWindow
+/// or NSPanel. This keeps Apple Intelligence editing visually inside Living
+/// Gallery with no macOS title bar, traffic lights, window border or floating
+/// panel chrome around the Liquid Glass surface.
 @MainActor
-private final class BettaImaginePanel: NSPanel {
-    override var canBecomeKey: Bool { true }
-    override var canBecomeMain: Bool { false }
-
-    override func cancelOperation(_ sender: Any?) {
-        close()
-    }
-}
-
-@MainActor
-final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
+final class BettaImagineOverlayView: NSView {
     var onApplied: ((String) -> Void)?
 
     private let engine = BettaImagineEngine.shared
@@ -19,7 +13,6 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
     private var baseline: BettaImagineSnapshot?
     private var kept = false
     private var isGenerating = false
-    private weak var presentingWindow: NSWindow?
 
     private var fishLabel: NSTextField!
     private var availabilityLabel: NSTextField!
@@ -29,36 +22,25 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
     private var keepButton: NSButton!
     private var revertButton: NSButton!
 
-    convenience init() {
-        let panel = BettaImaginePanel(
-            contentRect: NSRect(x: 0, y: 0, width: 592, height: 580),
-            styleMask: [.borderless],
-            backing: .buffered,
-            defer: false
-        )
-        panel.title = "BETTA — Imagine"
-        panel.isReleasedWhenClosed = false
-        panel.isOpaque = false
-        panel.backgroundColor = .clear
-        panel.hasShadow = true
-        panel.isFloatingPanel = true
-        panel.hidesOnDeactivate = false
-        panel.isMovableByWindowBackground = true
-        panel.animationBehavior = .utilityWindow
-        panel.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
-        self.init(window: panel)
-        panel.delegate = self
+    override init(frame frameRect: NSRect) {
+        super.init(frame: frameRect)
+        translatesAutoresizingMaskIntoConstraints = false
+        wantsLayer = true
+        layer?.backgroundColor = NSColor.clear.cgColor
         buildContent()
+        isHidden = true
     }
 
-    func show(referenceId: Int) {
-        if window?.isVisible == true, self.referenceId != referenceId, !kept {
+    convenience init() {
+        self.init(frame: .zero)
+    }
+
+    required init?(coder: NSCoder) { nil }
+
+    func present(referenceId: Int) {
+        if !isHidden, self.referenceId != referenceId, !kept {
             baseline?.restore()
             onApplied?("Previous Imagine preview reverted")
-        }
-
-        if let candidate = NSApp.keyWindow, candidate !== window {
-            presentingWindow = candidate
         }
 
         self.referenceId = min(8, max(1, referenceId))
@@ -71,71 +53,35 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
         refreshAvailability()
         keepButton.isEnabled = false
         revertButton.isEnabled = false
+        isHidden = false
 
-        positionOverPresentingWindow()
-        if let window, let presentingWindow, window.parent == nil {
-            presentingWindow.addChildWindow(window, ordered: .above)
-        }
-
-        showWindow(nil)
-        NSApp.activate(ignoringOtherApps: true)
-        window?.makeKeyAndOrderFront(nil)
         window?.makeFirstResponder(inputView)
     }
 
-    func windowWillClose(_ notification: Notification) {
-        if let window, let parent = window.parent {
-            parent.removeChildWindow(window)
+    /// Used when Living Gallery itself is hidden through another app surface.
+    /// Any unkept preview remains non-destructive.
+    func dismissAndRevertIfNeeded(notify: Bool = true) {
+        guard !isHidden else { return }
+        if !kept, let baseline {
+            baseline.restore()
+            if notify { onApplied?("Imagine preview reverted") }
         }
-        guard !kept, let baseline else {
-            self.baseline = nil
-            presentingWindow = nil
-            return
-        }
-        baseline.restore()
-        onApplied?("Imagine preview reverted")
         self.baseline = nil
-        presentingWindow = nil
+        kept = false
+        isGenerating = false
+        isHidden = true
     }
 
-    private func positionOverPresentingWindow() {
-        guard let window else { return }
-        guard let presentingWindow else {
-            window.center()
-            return
-        }
-        let parentFrame = presentingWindow.frame
-        let size = window.frame.size
-        let origin = NSPoint(
-            x: parentFrame.midX - size.width * 0.5,
-            y: parentFrame.midY - size.height * 0.5
-        )
-        window.setFrameOrigin(origin)
+    private func finishAndHide() {
+        isGenerating = false
+        isHidden = true
+        window?.makeFirstResponder(nil)
     }
 
     private func buildContent() {
-        guard let content = window?.contentView else { return }
-        content.wantsLayer = true
-        content.layer?.backgroundColor = NSColor.clear.cgColor
-
         let eyebrow = NSTextField(labelWithString: "IMAGINE")
         eyebrow.font = .systemFont(ofSize: 10, weight: .semibold)
         eyebrow.textColor = .secondaryLabelColor
-
-        let spacer = NSView(frame: .zero)
-        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-
-        let closeButton = NSButton(title: "×", target: self, action: #selector(closePanel(_:)))
-        closeButton.isBordered = false
-        closeButton.font = .systemFont(ofSize: 20, weight: .regular)
-        closeButton.contentTintColor = .secondaryLabelColor
-        closeButton.toolTip = "Close Imagine and revert unkept preview"
-        closeButton.keyEquivalent = "\u{1b}"
-
-        let topRow = NSStackView(views: [eyebrow, spacer, closeButton])
-        topRow.orientation = .horizontal
-        topRow.alignment = .centerY
-        topRow.spacing = 8
 
         let title = NSTextField(labelWithString: "Describe your Betta")
         title.font = .systemFont(ofSize: 25, weight: .semibold)
@@ -158,7 +104,7 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
         inputView = NSTextView(frame: .zero)
         inputView.font = .systemFont(ofSize: 14)
         inputView.textColor = .labelColor
-        inputView.backgroundColor = .textBackgroundColor.withAlphaComponent(0.42)
+        inputView.backgroundColor = .textBackgroundColor.withAlphaComponent(0.48)
         inputView.isRichText = false
         inputView.isAutomaticQuoteSubstitutionEnabled = false
         inputView.isAutomaticDashSubstitutionEnabled = false
@@ -172,7 +118,7 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
         scroll.documentView = inputView
         scroll.heightAnchor.constraint(equalToConstant: 108).isActive = true
 
-        let examples = NSTextField(wrappingLabelWithString: "Try: “Ethereal and goddess-like, translucent pearl silk with a pure luminous white atmosphere.”")
+        let examples = NSTextField(wrappingLabelWithString: "Try: “Candy-unicorn pop culture: bubblegum pink, electric cyan, lavender and lemon with a playful luminous environment.”")
         examples.font = .systemFont(ofSize: 10)
         examples.textColor = .tertiaryLabelColor
         examples.maximumNumberOfLines = 3
@@ -210,7 +156,7 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
         decisionRow.spacing = 8
 
         let stack = NSStackView(views: [
-            topRow, title, fishLabel, availabilityLabel, privacy,
+            eyebrow, title, fishLabel, availabilityLabel, privacy,
             promptLabel, scroll, examples, quickRow,
             generateButton, noteLabel, decisionRow
         ])
@@ -222,25 +168,40 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
         let host = NSView(frame: .zero)
         host.translatesAutoresizingMaskIntoConstraints = false
         host.addSubview(stack)
+
+        let closeButton = NSButton(title: "×", target: self, action: #selector(closeOverlay(_:)))
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        closeButton.isBordered = false
+        closeButton.font = .systemFont(ofSize: 17, weight: .regular)
+        closeButton.contentTintColor = .secondaryLabelColor
+        closeButton.toolTip = "Close and revert unkept changes"
+        host.addSubview(closeButton)
+
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: host.leadingAnchor, constant: 22),
             stack.trailingAnchor.constraint(equalTo: host.trailingAnchor, constant: -22),
-            stack.topAnchor.constraint(equalTo: host.topAnchor, constant: 20),
+            stack.topAnchor.constraint(equalTo: host.topAnchor, constant: 22),
             stack.bottomAnchor.constraint(equalTo: host.bottomAnchor, constant: -22),
-            topRow.widthAnchor.constraint(equalTo: stack.widthAnchor),
             scroll.widthAnchor.constraint(equalTo: stack.widthAnchor),
             quickRow.widthAnchor.constraint(equalTo: stack.widthAnchor),
             generateButton.widthAnchor.constraint(equalTo: stack.widthAnchor),
-            decisionRow.widthAnchor.constraint(equalTo: stack.widthAnchor)
+            decisionRow.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            closeButton.trailingAnchor.constraint(equalTo: host.trailingAnchor, constant: -17),
+            closeButton.topAnchor.constraint(equalTo: host.topAnchor, constant: 13),
+            closeButton.widthAnchor.constraint(equalToConstant: 24),
+            closeButton.heightAnchor.constraint(equalToConstant: 24)
         ])
 
         let glass = BettaLiquidGlassSurface.make(content: host, cornerRadius: 28)
-        content.addSubview(glass)
+        addSubview(glass)
         NSLayoutConstraint.activate([
-            glass.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 8),
-            glass.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -8),
-            glass.topAnchor.constraint(equalTo: content.topAnchor, constant: 8),
-            glass.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -8)
+            glass.centerXAnchor.constraint(equalTo: centerXAnchor),
+            glass.centerYAnchor.constraint(equalTo: centerYAnchor),
+            glass.widthAnchor.constraint(equalToConstant: 592),
+            glass.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 24),
+            glass.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -24),
+            glass.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: 24),
+            glass.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -24)
         ])
     }
 
@@ -263,20 +224,24 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
         switch availability {
         case .available:
             availabilityLabel.textColor = .secondaryLabelColor
-            generateButton.isEnabled = true
+            generateButton.isEnabled = !isGenerating
         case .unavailable:
             availabilityLabel.textColor = .systemOrange
             generateButton.isEnabled = false
         }
     }
 
+    @objc private func closeOverlay(_ sender: Any?) {
+        dismissAndRevertIfNeeded()
+    }
+
     @objc private func quickDirection(_ sender: NSButton) {
         let text: String
         switch sender.tag {
-        case 1: text = "Keep everything else, but make the tail noticeably fuller and more expansive. Let the background keep supporting the same mood."
-        case 2: text = "Keep the color mood, but make the tail silkier, softer, broader, and more elegant with slower movement. Let the background become equally soft and atmospheric."
-        case 3: text = "Keep the form and colors, but make the membranes more transparent and glasslike with a clean rim light. Keep the environment clean and luminous if that suits the current mood."
-        default: text = "Keep the identity, but make the tail more dramatic with deeper folds, stronger rays, richer dimensional light, and a background with matching emotional intensity."
+        case 1: text = "Keep everything else, but make the tail noticeably fuller and more expansive."
+        case 2: text = "Keep the color mood, but make the tail silkier, softer, broader, and more elegant with slower movement."
+        case 3: text = "Keep the form and colors, but make the membranes more transparent and glasslike with a clean rim light."
+        default: text = "Keep the identity, but make the tail more dramatic with deeper folds, stronger rays, and richer dimensional light."
         }
         inputView.string = text
         generate(nil)
@@ -323,7 +288,7 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
         kept = true
         baseline = nil
         onApplied?("Imagine design kept")
-        window?.close()
+        finishAndHide()
     }
 
     @objc private func revert(_ sender: Any?) {
@@ -331,10 +296,6 @@ final class BettaImagineWindowController: NSWindowController, NSWindowDelegate {
         kept = true
         baseline = nil
         onApplied?("Imagine changes reverted")
-        window?.close()
-    }
-
-    @objc private func closePanel(_ sender: Any?) {
-        window?.close()
+        finishAndHide()
     }
 }
