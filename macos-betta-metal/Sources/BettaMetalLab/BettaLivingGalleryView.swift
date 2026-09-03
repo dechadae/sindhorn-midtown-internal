@@ -239,7 +239,7 @@ final class BettaLivingGalleryView: NSView {
     }
 
     @objc private func imagine(_ sender: Any?) {
-        BettaEvolutionController.stopActiveIfNeeded()
+        if evolveButton.state == .on { onToggleEvolution?() }
         setEvolutionActive(false)
         let controller = imagineController ?? BettaImagineWindowController()
         controller.onApplied = { [weak self] message in
