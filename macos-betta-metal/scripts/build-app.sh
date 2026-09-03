@@ -18,11 +18,12 @@ rm -rf "$DIST"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/BettaMetalLab" "$APP/Contents/MacOS/BettaMetalLab"
 
-# 0.5.0 is the first premium consumer-shell milestone. It preserves the
-# approved 0.4.2 Metal renderer, storage keys, Favorites, compositions and
-# cinematic morph pacing, while adding the renderer-as-hero Living Gallery,
-# deliberate Living Studio entry, persistent menu-bar controller and
-# non-terminating close-window behavior expected from a polished macOS utility.
+# 0.6.0 keeps the approved 0.5.0 Premium Shell and 0.4.x renderer/storage
+# architecture intact. It adds Bangkok Live atmosphere sourced from JMA
+# Himawari-9 through a strongly smoothed environment store, adaptive 60/30/15
+# fps scheduling with hidden-window pause, and opt-in Launch at Login.
+# Satellite imagery is sampled only into environmental mood values; no remote
+# image is displayed, persisted, or allowed to replace the procedural artwork.
 xcrun -sdk macosx metal -mmacosx-version-min=13.0 -c "$SAFE_SHADER" -o "$AIR"
 xcrun -sdk macosx metallib "$AIR" -o "$METALLIB"
 rm -f "$AIR"
@@ -41,8 +42,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>Sindhorn Betta Metal Lab</string>
 <key>CFBundleDisplayName</key><string>Sindhorn Betta Metal Lab</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.5.0</string>
-<key>CFBundleVersion</key><string>15</string>
+<key>CFBundleShortVersionString</key><string>0.6.0</string>
+<key>CFBundleVersion</key><string>16</string>
 <key>BettaGitSHA</key><string>__BETTA_GIT_SHA__</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>NSHighResolutionCapable</key><true/>
