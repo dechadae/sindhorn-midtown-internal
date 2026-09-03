@@ -12,6 +12,13 @@ struct BettaSelfTest {
         expect(BettaGeometry.radialSegments == 144, "Mac high-detail topology must use 144 radial samples")
         expect(abs(BettaCompositionAdjustment.landscapeDefault.rotationZ - 90) < 0.001, "Landscape default must preserve the approved 90° CW composition")
 
+        expect(abs(BettaSettings.manualMorphSeconds - 18) < 0.001, "Manual/original preset morph must use premium 18-second pacing")
+        expect(abs(BettaSettings.liveRolloverSeconds - 90) < 0.001, "Live Bangkok rollover must use premium 90-second pacing")
+        expect(abs(BettaSettings.previewMorphSeconds - 12) < 0.001, "Compressed preview morph must use 12-second pacing")
+        expect(abs(smootherstep(0)) < 0.0001 && abs(smootherstep(1) - 1) < 0.0001, "Smootherstep easing must preserve exact endpoints")
+        expect(abs(smootherstep(0.5) - 0.5) < 0.0001, "Smootherstep easing must be symmetric at the midpoint")
+        expect(smootherstep(0.1) < cubicOut(0.1), "Premium easing must start more gently than the legacy cubic-out morph")
+
         for preset in BettaPreset.all {
             expect(preset.layers.count == 2, "Fish #\(preset.referenceId) must keep two canonical membrane endpoints")
             expect(preset.palette.count == 4, "Fish #\(preset.referenceId) must keep four palette stops")
@@ -103,12 +110,12 @@ struct BettaSelfTest {
         expect(abs(landscape.position.y - source.y) < 0.0001, "Landscape mapper must preserve vertical art direction")
         expect(abs(landscape.rotationZOffset) > 1.0, "Landscape mapper must apply the saved full-axis Z rotation")
 
-        expect(abs(cubicOut(0) - 0) < 0.0001, "Cubic easing must start at zero")
-        expect(abs(cubicOut(1) - 1) < 0.0001, "Cubic easing must finish at one")
+        expect(abs(cubicOut(0) - 0) < 0.0001, "Legacy cubic easing helper must start at zero")
+        expect(abs(cubicOut(1) - 1) < 0.0001, "Legacy cubic easing helper must finish at one")
 
         if failures.isEmpty {
             print("Betta Metal Lab self-test: PASS")
-            print("8 immutable originals · non-destructive color restore · 160×144 high-detail topology · 1–6 membrane stack · full XYZ rotation · presets/favorites · random + continuous evolution · recovery regression · Bangkok schedule")
+            print("8 immutable originals · premium 18s/90s cinematic morphs · non-destructive color restore · 160×144 high-detail topology · 1–6 membrane stack · full XYZ rotation · presets/favorites · random + continuous evolution · recovery regression · Bangkok schedule")
             return true
         }
         print("Betta Metal Lab self-test: FAIL")
