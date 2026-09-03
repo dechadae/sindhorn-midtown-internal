@@ -29,7 +29,29 @@ export const UI_SYSTEM_TOKENS=Object.freeze([
   {name:'--app-radius-chip',label:'Compact tag radius',kind:'size',fallback:'9px'},
   {name:'--app-radius-indicator',label:'Status mark radius',kind:'size',fallback:'2px'},
   {name:'--sm-footer-height',label:'Footer rail height',kind:'size',fallback:'54px'},
-  {name:'--sm-footer-item-radius',label:'Footer item radius',kind:'size',fallback:'13px'}
+  {name:'--sm-footer-item-radius',label:'Footer item radius',kind:'size',fallback:'13px'},
+  /* Canonical scales — site/app-tokens.css. Derived from existing usage:
+     70 font sizes, 36 radii and 27 gap values collapse onto these. */
+  {name:'--type-caption',label:'Caption 9px',kind:'size',fallback:'9px'},
+  {name:'--type-micro',label:'Micro 10px',kind:'size',fallback:'10px'},
+  {name:'--type-small',label:'Small 11px',kind:'size',fallback:'11px'},
+  {name:'--type-body-s',label:'Body small 12px',kind:'size',fallback:'12px'},
+  {name:'--type-body',label:'Body 13px',kind:'size',fallback:'13px'},
+  {name:'--type-lead',label:'Lead 15px',kind:'size',fallback:'15px'},
+  {name:'--type-title',label:'Title 22px',kind:'size',fallback:'22px'},
+  {name:'--type-display',label:'Display',kind:'size',fallback:'clamp(30px,8.5vw,44px)'},
+  {name:'--weight-thin',label:'Thin 100',kind:'size',fallback:'100'},
+  {name:'--weight-regular',label:'Regular 400',kind:'size',fallback:'400'},
+  {name:'--weight-bold',label:'Bold 700',kind:'size',fallback:'700'},
+  {name:'--radius-surface',label:'Surface radius',kind:'size',fallback:'14px'},
+  {name:'--radius-inset',label:'Inset radius',kind:'size',fallback:'10px'},
+  {name:'--radius-pill',label:'Pill radius',kind:'size',fallback:'999px'},
+  {name:'--radius-circle',label:'Circle radius',kind:'size',fallback:'50%'},
+  {name:'--space-3',label:'Space 8px',kind:'size',fallback:'8px'},
+  {name:'--space-5',label:'Space 12px',kind:'size',fallback:'12px'},
+  {name:'--space-6',label:'Space 16px',kind:'size',fallback:'16px'},
+  {name:'--motion-ms',label:'Motion duration',kind:'motion',fallback:'280ms'},
+  {name:'--motion-ease',label:'Motion easing',kind:'motion',fallback:'cubic-bezier(.22,1,.36,1)'}
 ]);
 
 export const UI_SYSTEM_COMPONENTS=Object.freeze([
