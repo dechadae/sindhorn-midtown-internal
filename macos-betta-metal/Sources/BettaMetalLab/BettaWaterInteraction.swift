@@ -10,6 +10,13 @@ struct BettaWaterInteractionSample: Equatable {
 }
 
 enum BettaWaterInteractionMath {
+    /// Spatial calibration for the Metal interaction field. This is a fraction
+    /// of total display width, not a pixel count. The shader mirrors this value
+    /// so a primary wave reaches the same proportion on 1080p, 4K, 5K and
+    /// Retina displays.
+    static let primaryRadiusScreenWidthFraction: Float = 0.26
+    static let primaryDiameterScreenWidthFraction: Float = primaryRadiusScreenWidthFraction * 2
+
     static func strength(forNormalizedSpeed speed: Float, impulse: Float = 0) -> Float {
         let s = max(0, min(3, speed))
         return max(0, min(1.18, 0.10 + s * 0.29 + max(0, impulse) * 0.62))
@@ -103,6 +110,8 @@ final class BettaWaterInteractionStore: @unchecked Sendable {
 /// A tiny procedural pointer drawn by AppKit. The system arrow is hidden only
 /// during Display Art. This view deliberately contains no bitmap or generated
 /// image asset; it is a simple water-touch ring that expands subtly with speed.
+/// The pointer itself stays intentionally small even though the underwater
+/// pressure field now spans roughly half the display width.
 @MainActor
 final class BettaWaterCursorView: NSView {
     private var speed: CGFloat = 0
