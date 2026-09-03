@@ -2,13 +2,12 @@ import Foundation
 
 enum BettaReleaseInfo {
     static let productName = "BETTA"
-    static let version = "1.0.0"
-    static let build = "20"
+    static let version = "1.1.0"
+    static let build = "21"
 
-    // Deliberately retained for the first 1.0 technical release so every
-    // composition, Favorite, random organism and Studio adjustment created in
-    // 0.3–0.6 remains available without migration risk. A future commercial
-    // rebrand may migrate this domain explicitly after product ownership and
-    // signing identity are finalized.
+    // Deliberately retained from the approved 1.0 release so every composition,
+    // Favorite, random organism, Imagine design and Studio adjustment remains
+    // in the same persistence domain. A future commercial rebrand can migrate
+    // this explicitly after signing identity and ownership are finalized.
     static let persistenceBundleIdentifier = "com.sindhornmidtown.BettaMetalLab"
 }
