@@ -1,8 +1,8 @@
 import AppKit
 
-/// Consumer-facing surface for the Betta app. The Metal renderer remains the
-/// hero artwork behind this compact native glass panel; no thumbnails or
-/// pre-rendered media are required.
+/// Consumer-facing surface for BETTA. The live Metal renderer remains the hero
+/// artwork behind this compact native glass panel; no thumbnails or generated
+/// media are required.
 @MainActor
 final class BettaLivingGalleryView: NSView {
     var onSelectOriginal: ((Int) -> Void)?
@@ -25,15 +25,6 @@ final class BettaLivingGalleryView: NSView {
     private var favoriteButton: NSButton!
     private var evolveButton: NSButton!
     private var statusLabel: NSTextField!
-    private var imagineOverlay: BettaImagineOverlayView?
-
-    override var isHidden: Bool {
-        didSet {
-            if isHidden {
-                imagineOverlay?.dismissAndRevertIfNeeded(notify: false)
-            }
-        }
-    }
 
     init(initialIndex: Int) {
         selectedIndex = min(7, max(0, initialIndex))
@@ -149,11 +140,6 @@ final class BettaLivingGalleryView: NSView {
         quickActions.distribution = .fillEqually
         quickActions.spacing = 7
 
-        let imagineButton = NSButton(title: "Imagine…", target: self, action: #selector(imagine(_:)))
-        imagineButton.bezelStyle = .rounded
-        imagineButton.controlSize = .large
-        imagineButton.toolTip = "Describe the Betta you want using Apple Intelligence on device."
-
         let useButton = NSButton(title: "Use on Desktop", target: self, action: #selector(useOnDesktop(_:)))
         useButton.bezelStyle = .rounded
         useButton.controlSize = .large
@@ -162,7 +148,7 @@ final class BettaLivingGalleryView: NSView {
         let customizeButton = NSButton(title: "Customize in Living Studio", target: self, action: #selector(customize(_:)))
         customizeButton.bezelStyle = .rounded
 
-        statusLabel = NSTextField(labelWithString: "Choose an Original, Favorite, describe one, or let it evolve.")
+        statusLabel = NSTextField(labelWithString: "Choose an Original, Favorite, Random Betta, or let it evolve.")
         statusLabel.font = .systemFont(ofSize: 10)
         statusLabel.textColor = .tertiaryLabelColor
         statusLabel.lineBreakMode = .byTruncatingTail
@@ -172,7 +158,7 @@ final class BettaLivingGalleryView: NSView {
             titleLabel, detailLabel,
             originalsLabel, originals,
             favoritesLabel, favoritesPopup,
-            quickActions, imagineButton,
+            quickActions,
             useButton, customizeButton,
             statusLabel
         ])
@@ -193,7 +179,6 @@ final class BettaLivingGalleryView: NSView {
             rowB.widthAnchor.constraint(equalTo: stack.widthAnchor),
             favoritesPopup.widthAnchor.constraint(equalTo: stack.widthAnchor),
             quickActions.widthAnchor.constraint(equalTo: stack.widthAnchor),
-            imagineButton.widthAnchor.constraint(equalTo: stack.widthAnchor),
             useButton.widthAnchor.constraint(equalTo: stack.widthAnchor),
             customizeButton.widthAnchor.constraint(equalTo: stack.widthAnchor)
         ])
@@ -235,26 +220,6 @@ final class BettaLivingGalleryView: NSView {
         favoriteButton?.title = presetStore.currentMatch(referenceId: id)?.isFavorite == true ? "★ Favorite" : "☆ Favorite"
     }
 
-    private func ensureImagineOverlay() -> BettaImagineOverlayView? {
-        if let imagineOverlay { return imagineOverlay }
-        guard let root = window?.contentView else { return nil }
-
-        let overlay = BettaImagineOverlayView()
-        overlay.onApplied = { [weak self] message in
-            self?.setEvolutionActive(false)
-            self?.refresh(message: message)
-        }
-        root.addSubview(overlay, positioned: .above, relativeTo: nil)
-        NSLayoutConstraint.activate([
-            overlay.leadingAnchor.constraint(equalTo: root.leadingAnchor),
-            overlay.trailingAnchor.constraint(equalTo: root.trailingAnchor),
-            overlay.topAnchor.constraint(equalTo: root.topAnchor),
-            overlay.bottomAnchor.constraint(equalTo: root.bottomAnchor)
-        ])
-        imagineOverlay = overlay
-        return overlay
-    }
-
     @objc private func originalSelected(_ sender: NSButton) {
         selectedIndex = min(7, max(0, sender.tag))
         onSelectOriginal?(selectedIndex)
@@ -264,14 +229,6 @@ final class BettaLivingGalleryView: NSView {
     @objc private func favoriteSelected(_ sender: NSPopUpButton) {
         guard let id = sender.selectedItem?.representedObject as? String else { return }
         onLoadFavorite?(id)
-    }
-
-    @objc private func imagine(_ sender: Any?) {
-        if evolveButton.state == .on { onToggleEvolution?() }
-        setEvolutionActive(false)
-        guard let overlay = ensureImagineOverlay() else { return }
-        overlay.present(referenceId: BettaPreset.all[selectedIndex].referenceId)
-        refresh(message: "Imagine · describe your Betta with Apple Intelligence")
     }
 
     @objc private func toggleFavorite(_ sender: Any?) { onToggleFavorite?() }
