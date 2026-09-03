@@ -178,48 +178,56 @@ vertex FinVertexOut finVertex(FinVertexIn in [[stage_in]], constant FinUniforms&
     float3 worldNormal = normalize(model3 * n);
     float4 clip = f.viewProjectionMatrix * world;
 
-    // Display Art water-touch interaction. Swift writes normalized pointer NDC
-    // + velocity into fingerprint and transient strength/age/aspect into the
-    // currently-unused satelliteB.yzw channels. When strength is zero this is
-    // exactly the approved renderer path.
+    // Display Art water-touch interaction. Its spatial scale is expressed only
+    // as a fraction of display width — never pixels, drawable resolution, or
+    // Retina backing scale. A 0.26 primary radius therefore spans about 52% of
+    // any screen width from edge to edge of the core influence.
     float interactionStrength = max(0.0, f.satelliteB.y);
     if (interactionStrength > .0001) {
         float invW = 1.0 / max(abs(clip.w), .0001);
         float2 ndc = clip.xy * invW;
-        float2 delta = ndc - f.fingerprint.xy;
+        float2 deltaNDC = ndc - f.fingerprint.xy;
         float aspect = max(.55, f.satelliteB.w);
-        delta.x *= aspect;
-        float dist = length(delta);
+
+        // Convert NDC into fractions of screen width. X: 2 NDC == 100% width.
+        // Y is divided by aspect so one unit means the same physical distance.
+        float2 deltaScreen = float2(deltaNDC.x * .5, deltaNDC.y * .5 / aspect);
+        float dist = length(deltaScreen);
         float age = max(0.0, f.satelliteB.z);
         float2 velocity = f.fingerprint.zw;
         float speed = clamp(length(velocity), 0.0, 3.0);
         float2 vdir = speed > .001 ? velocity / speed : float2(0.0);
-        float2 towardPointer = dist > .0001 ? normalize(-delta) : vdir;
+        float2 towardPointer = dist > .0001 ? normalize(-deltaScreen) : vdir;
 
-        // A moving hand creates both local pressure and a directional wake.
-        // When the hand stops, the ring continues travelling outward while the
-        // CPU-side interaction strength decays, creating a natural settle.
-        float radius = .045 + age * .19 + speed * .014;
-        float ringWidth = .045 + speed * .008;
-        float ringEnvelope = exp(-pow((dist - radius) / max(.018, ringWidth), 2.0));
-        float ringOscillation = sin((radius - dist) * 31.0);
+        // Primary influence radius = 26% of display width, or roughly 52% in
+        // diameter. A fast sweep broadens it modestly and the travelling ring
+        // continues expanding after the hand passes.
+        const float primaryRadiusScreenWidth = .26;
+        float coreRadius = primaryRadiusScreenWidth + speed * .018;
+        float ringRadius = primaryRadiusScreenWidth * .72 + age * .12 + speed * .012;
+        float ringWidth = primaryRadiusScreenWidth * .25 + speed * .006;
+        float ringEnvelope = exp(-pow((dist - ringRadius) / max(.035, ringWidth), 2.0));
+        float ringOscillation = sin((ringRadius - dist) * 18.0);
         float ring = ringEnvelope * ringOscillation;
-        float coreRadius = .055 + speed * .020;
-        float core = exp(-(dist * dist) / max(.004, coreRadius * coreRadius));
-        float directional = .52 + .48 * max(0.0, dot(towardPointer, vdir));
-        float wake = exp(-dist * (4.8 - speed * .55)) * directional;
-        float pressure = core * .46 + ring * .40 + wake * .20;
+
+        // Broad pressure fills the whole half-screen interaction zone instead
+        // of behaving like a tiny cursor halo.
+        float core = exp(-(dist * dist) / max(.012, coreRadius * coreRadius * .82));
+        float directional = .50 + .50 * max(0.0, dot(towardPointer, vdir));
+        float wakeRadius = primaryRadiusScreenWidth * (1.12 + speed * .08);
+        float wake = exp(-dist / max(.08, wakeRadius)) * directional;
+        float pressure = core * .54 + ring * .30 + wake * .24;
         float membraneEase = smoothstep(.055, .30, in.u) * (.36 + .64 * in.u);
         float displacement = pressure * interactionStrength * membraneEase;
 
-        world.xyz += worldNormal * displacement * (.055 + .075 * in.u);
-        world.xy += vdir * wake * interactionStrength * membraneEase * .030;
+        world.xyz += worldNormal * displacement * (.070 + .090 * in.u);
+        world.xy += vdir * wake * interactionStrength * membraneEase * .038;
         clip = f.viewProjectionMatrix * world;
 
-        // Very small lighting-normal response keeps the disturbed membrane from
+        // Small lighting-normal response keeps the disturbed membrane from
         // looking like a flat card translating through space.
-        float2 slope = dist > .0001 ? normalize(delta) : float2(0.0);
-        worldNormal = normalize(worldNormal + float3(-slope.x, -slope.y, 0.0) * displacement * .10);
+        float2 slope = dist > .0001 ? normalize(deltaScreen) : float2(0.0);
+        worldNormal = normalize(worldNormal + float3(-slope.x, -slope.y, 0.0) * displacement * .12);
     }
 
     out.worldPos = world.xyz;
