@@ -50,10 +50,6 @@
   --app-muted:rgba(250,247,245,.55);
   --app-line:rgba(250,247,245,.09);
   --app-inset-fill:rgba(250,247,245,.055);
-  /* A sticky table column must cover the cells sliding beneath it. This is a
-     legibility requirement, not a surface: at the card's 30% the numbers show
-     through the row label. */
-  --app-sticky-fill:rgba(46,39,59,.92);
   --app-accent:#E5ECBE;
   --app-accent-rgb:229,236,190;
 

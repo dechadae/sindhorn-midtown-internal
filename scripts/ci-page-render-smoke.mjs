@@ -18,7 +18,8 @@ const ROOT = 'site';
 const CARD = { bg: 'rgba(46, 39, 59, 0.3)', filter: 'blur(18px) saturate(1.18)' };
 const OVERLAY = { bg: 'rgba(38, 32, 49, 0.72)', filter: 'blur(18px) saturate(1.18)' };
 const WELL = { bg: 'rgba(250, 247, 245, 0.055)', filter: 'none' };
-const STICKY = { bg: 'rgba(46, 39, 59, 0.92)', filter: 'none' };
+// The sticky column floats over the scrolling cells, so it is overlay material.
+const STICKY = OVERLAY;
 const BARE = { bg: 'rgba(0, 0, 0, 0)', filter: 'none' };
 
 const EXPECT = [
@@ -26,6 +27,7 @@ const EXPECT = [
   ['.app-disclosure', CARD], ['.app-primary', CARD], ['.app-chip', CARD],
   ['.app-select-trigger', CARD], ['.app-overlay', OVERLAY],
   ['.app-field input', WELL], ['.app-table tbody th', STICKY],
+  ['.app-select-option', BARE],
   ['.app-utility-action', BARE], ['.app-action-card-button', BARE],
   // Centralized layout and state modules: every page consumes these, so a
   // regression here breaks every page rather than one.
@@ -62,7 +64,7 @@ const report = await page.evaluate(expect => {
     const node = document.querySelector(selector);
     if (!node) return { selector, missing: true };
     const style = getComputedStyle(node);
-    return { selector, bg: style.backgroundColor, filter: String(style.backdropFilter || style.webkitBackdropFilter || 'none') };
+    return { selector, bg: style.backgroundColor, filter: String(style.backdropFilter || style.webkitBackdropFilter || 'none'), border: style.borderTopWidth+' '+style.borderTopStyle };
   };
   const canvas = document.getElementById('environmentCanvas');
   return {
@@ -89,6 +91,10 @@ if (report.specimens < 12) failures.push(`only ${report.specimens} specimens ren
 if (report.specimenPainted !== 'rgba(0, 0, 0, 0)') failures.push(`specimen rows must stay unpainted, got ${report.specimenPainted}`);
 if (report.canvas === '300x150') failures.push('atmosphere is the bootstrap preview, not the full runtime — import betta-runtime-full.js');
 if (report.canvas === 'none') failures.push('no atmosphere canvas on the page');
+const sticky=report.measured.find(e=>e.selector==='.app-table tbody th');
+if (sticky && !sticky.border.startsWith('0px')) failures.push(`sticky column must not be boxed on four sides, border is ${sticky.border}`);
+const overlay=report.measured.find(e=>e.selector==='.app-overlay');
+if (overlay && overlay.border.startsWith('0px')) failures.push('.app-overlay lost its edge');
 if (report.overflow > 1) failures.push(`horizontal overflow ${report.overflow}px`);
 
 await browser.close();

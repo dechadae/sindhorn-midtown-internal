@@ -97,12 +97,16 @@
 
 /* Floating layers sit over arbitrary page content rather than the Betta, so
    they take the heavier fill. Same blur - one material, two weights. */
-.app-overlay{
-  border:1px solid var(--app-glass-border);
+/* A sticky table column is a layer floating over the cells scrolling beneath
+   it, not a surface on the atmosphere — so it takes the overlay weight and the
+   one blur, rather than an opaque fill of its own. */
+.app-overlay,
+.app-table tbody th{
   background-color:var(--app-glass-overlay-fill);
   backdrop-filter:var(--app-glass-filter);
   -webkit-backdrop-filter:var(--app-glass-filter);
 }
+.app-overlay{border:1px solid var(--app-glass-border)}
 
 /* A card inside a card cannot sample the page - see THE RULE above - so it
    keeps the tint and drops the blur. Structural, so no guard is needed to

@@ -124,19 +124,39 @@
 .app-select[data-open="true"] .app-select-trigger svg{transform:rotate(180deg)}
 .app-select-menu{
   position:absolute;z-index:60;top:calc(100% + 6px);left:0;right:0;
-  max-height:260px;overflow:auto;padding:6px;
+  max-height:260px;overflow:auto;padding:0;
   border-radius:var(--radius-inset);
   display:none;
 }
 .app-select[data-open="true"] .app-select-menu{display:block}
 .app-select-option{
-  width:100%;min-height:38px;padding:0 10px;
+  width:100%;min-height:42px;padding:0 12px;
   display:flex;align-items:center;
-  border:0;border-radius:var(--radius-tight);background:transparent;
+  border:0;border-radius:0;background:transparent;
   color:inherit;font:inherit;font-size:var(--type-body-s);text-align:left;cursor:pointer;
 }
+/* A separator between options, never trailing after the last. */
+.app-select-option+.app-select-option{border-top:1px solid var(--app-line)}
 .app-select-option[aria-selected="true"]{color:var(--app-accent)}
 .app-select-option:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
+
+/* ---- Utility action ---------------------------------------------------------
+   Text and an optional icon. No frame, no border, no material: Sign out, Share
+   and Back to top are actions, not surfaces. app-controls.css carries the same
+   intent behind a pile of cascade overrides, and is not loaded outside the app
+   shell — which is why these rendered as bare browser buttons here. */
+.app-utility-action{
+  min-height:32px;padding:0;
+  display:inline-flex;align-items:center;gap:8px;
+  border:0;background:transparent;
+  color:var(--app-muted);font:inherit;font-size:var(--type-body-s);line-height:1;
+  cursor:pointer;
+  transition:color var(--motion-ms) ease,transform var(--motion-fast) var(--motion-ease);
+}
+.app-utility-action:active{transform:scale(.975)}
+.app-utility-action:hover,.app-utility-action:focus-visible{color:var(--app-accent)}
+.app-utility-action:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
+.app-utility-action svg{width:14px;height:14px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.5}
 
 /* ---- Chip ------------------------------------------------------------------
    Metadata or an explicit filter, never decoration on a short label.
@@ -182,7 +202,6 @@
 .app-table tbody th{
   position:sticky;left:0;z-index:1;
   width:108px;min-width:108px;max-width:108px;
-  background:var(--app-sticky-fill);
   text-align:left;font-weight:var(--weight-regular);white-space:normal;line-height:var(--leading-label);
 }
 .app-table tbody th small{display:block;margin-top:3px;color:var(--app-muted);font-size:var(--type-caption);font-weight:var(--weight-regular);line-height:var(--leading-label)}
