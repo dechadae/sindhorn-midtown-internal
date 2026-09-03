@@ -25,7 +25,9 @@ struct BettaSettings {
     static let preferredFPS = 60
 
     // Exact deterministic neutral satellite state from production betta-environment.js.
-    static let neutralSatellite = NeutralSatelliteState(
+    // It remains the boot/offline fallback. The renderer reads neutralSatellite,
+    // which is now backed by the smoothed atmosphere store.
+    static let neutralSatelliteBaseline = NeutralSatelliteState(
         energy: 0.58,
         cloud: 0.35,
         cold: 0.35,
@@ -37,9 +39,13 @@ struct BettaSettings {
         color: SIMD3<Float>(0.18, 0.23, 0.52),
         fingerprint: SIMD3<Float>(repeating: 0.5)
     )
+
+    static var neutralSatellite: NeutralSatelliteState {
+        BettaEnvironmentStore.shared.current
+    }
 }
 
-struct NeutralSatelliteState {
+struct NeutralSatelliteState: Equatable {
     var energy: Float
     var cloud: Float
     var cold: Float
