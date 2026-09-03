@@ -2,7 +2,7 @@ const ROUTES=Object.freeze({
   today:{path:'/',title:'Today | Sindhorn Midtown Internal',module:'./routes/today.js',mount:'mountTodayRoute'},
   fnb:{path:'/fnb',title:'F&B | Sindhorn Midtown Internal',module:'./routes/fnb.js',mount:'mountFnbRoute'},
   messages:{path:'/messages',title:'Messages | Sindhorn Midtown Internal',module:'./routes/messages.js',mount:'mountMessagesRoute'},
-  brand:{path:'/brand',title:'Brand | Sindhorn Midtown Internal',module:'./routes/placeholder.js',mount:'mountPlaceholderRoute'},
+  brand:{path:'/brand',title:'Brand | Sindhorn Midtown Internal',module:'./routes/brand.js',mount:'mountBrandRoute'},
   hotelFactsheet:{path:'/hotel-factsheet',title:'Hotel Factsheet | Sindhorn Midtown Internal',module:'./routes/placeholder.js',mount:'mountPlaceholderRoute'},
   ihgHistory:{path:'/ihg-history',title:'Our History | Sindhorn Midtown Internal',module:'./routes/placeholder.js',mount:'mountPlaceholderRoute'},
   settings:{path:'/settings',title:'Settings | Sindhorn Midtown Internal',module:'./routes/placeholder.js',mount:'mountPlaceholderRoute'},
