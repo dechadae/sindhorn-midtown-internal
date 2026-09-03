@@ -13,10 +13,15 @@ struct BettaSettings {
     static let farPlane: Float = 50
     static let cameraZ: Float = 9
     static let portraitReferenceAspect: Float = 9.0 / 16.0
-    static let liveRolloverSeconds: TimeInterval = 60
-    static let correctionMorphSeconds: TimeInterval = 0.9
+
+    // Premium pacing. Fish-to-fish changes should feel like one living organism
+    // slowly becoming another. Randomization and direct studio adjustments remain
+    // immediate because they mutate the current organism in place rather than
+    // entering this preset-to-preset morph path.
+    static let manualMorphSeconds: TimeInterval = 18
+    static let liveRolloverSeconds: TimeInterval = 90
     static let previewCycleSeconds: TimeInterval = 180
-    static let previewMorphSeconds: TimeInterval = 6
+    static let previewMorphSeconds: TimeInterval = 12
     static let preferredFPS = 60
 
     // Exact deterministic neutral satellite state from production betta-environment.js.
