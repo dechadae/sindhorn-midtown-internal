@@ -14,7 +14,7 @@ const aliases=new Map([
 ]);
 const byPath=new Map(Object.entries(ROUTES).map(([key,value])=>[value.path,key]));
 
-function normalize(pathname){let path=String(pathname||'/').split('?')[0].split('#')[0]||'/';if(path.length>1&&path.endsWith('/'))path=path.slice(0,-1);return path||='/'}
+function normalize(pathname){let path=String(pathname||'/').split('?')[0].split('#')[0]||'/';if(path.length>1&&path.endsWith('/'))path=path.slice(0,-1);return path||'/'}
 export function routeKeyForPath(pathname){const path=normalize(pathname);return byPath.get(path)||aliases.get(path)||'today'}
 export function routeDefinition(key){return ROUTES[key]||ROUTES.today}
 export function routePath(key){return routeDefinition(key).path}
