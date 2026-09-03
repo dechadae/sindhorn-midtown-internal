@@ -2,7 +2,7 @@ name: macOS BETTA Release
 
 on:
   push:
-    branches: [macos-betta-metal-lab, macos-betta-diagnostics, macos-betta-imagine-1.1, macos-betta-imagine-1.1.1, macos-betta-imagine-1.1.2, macos-betta-imagine-1.1.3]
+    branches: [macos-betta-metal-lab, macos-betta-diagnostics, macos-betta-imagine-1.1, macos-betta-imagine-1.1.1, macos-betta-imagine-1.1.2, macos-betta-imagine-1.1.3, macos-betta-display-1.2]
     paths:
       - 'macos-betta-metal/**'
       - '.github/workflows/macos-betta-metal-lab.yml'
@@ -17,19 +17,18 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Toolchain + Foundation Models SDK gate
+      - name: Toolchain
         run: |
           xcodebuild -version
           swift --version
-          SDK_VERSION="$(xcrun --sdk macosx --show-sdk-version)"
-          echo "macOS SDK: $SDK_VERSION"
-          [[ "$SDK_VERSION" == 26.* || "$SDK_VERSION" == 27.* ]]
-          cat > "$RUNNER_TEMP/foundation-models-sdk.swift" <<'SWIFT'
-          import FoundationModels
-          print("FoundationModels SDK: PASS")
-          print(SystemLanguageModel.self)
-          SWIFT
-          xcrun swift "$RUNNER_TEMP/foundation-models-sdk.swift"
+          xcrun --sdk macosx --show-sdk-version
+      - name: Verify experimental AI layer is removed
+        working-directory: macos-betta-metal
+        run: |
+          test ! -e Sources/BettaMetalLab/BettaImagineAppleIntelligence.swift
+          test ! -e Sources/BettaMetalLab/BettaImagineModels.swift
+          test ! -e Sources/BettaMetalLab/BettaImagineWindowController.swift
+          ! grep -R -n -E 'FoundationModels|Apple Intelligence|BettaImagine|Imagine…|Imagine\.\.\.' Sources/BettaMetalLab
       - name: Compile runtime-safe Metal shader
         working-directory: macos-betta-metal
         run: |
@@ -39,10 +38,10 @@ jobs:
       - name: Swift self-test
         working-directory: macos-betta-metal
         run: swift run BettaMetalLab --self-test
-      - name: Build BETTA 1.1.3 release
+      - name: Build BETTA 1.1.4 release
         working-directory: macos-betta-metal
         run: ./scripts/build-app.sh
-      - name: Inspect BETTA 1.1.3 app
+      - name: Inspect BETTA 1.1.4 app
         working-directory: macos-betta-metal
         run: |
           file "dist/BETTA.app/Contents/MacOS/BettaMetalLab"
@@ -50,22 +49,16 @@ jobs:
           codesign -dv --verbose=2 "dist/BETTA.app" 2>&1
           codesign --verify --deep --strict "dist/BETTA.app"
           plutil -lint "dist/BETTA.app/Contents/Info.plist"
-          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "dist/BETTA.app/Contents/Info.plist")" = "1.1.3"
-          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "dist/BETTA.app/Contents/Info.plist")" = "24"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "dist/BETTA.app/Contents/Info.plist")" = "1.1.4"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "dist/BETTA.app/Contents/Info.plist")" = "25"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "dist/BETTA.app/Contents/Info.plist")" = "BETTA"
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "dist/BETTA.app/Contents/Info.plist")" = "com.sindhornmidtown.BettaMetalLab"
           /usr/libexec/PlistBuddy -c 'Print :BettaGitSHA' "dist/BETTA.app/Contents/Info.plist"
           test -s "dist/BETTA.app/Contents/Resources/BettaShaders.metallib"
           cmp Sources/BettaMetalLab/ShadersSafe.metal "dist/BETTA.app/Contents/Resources/Shaders.metal"
-          test -s "dist/BETTA-1.1.3-macOS-arm64.zip"
-          test -s "dist/BETTA-1.1.3-macOS-arm64.dmg"
-          nm -u "dist/BETTA.app/Contents/MacOS/BettaMetalLab" | grep -q 'FoundationModels' || strings "dist/BETTA.app/Contents/MacOS/BettaMetalLab" | grep -q 'Apple Intelligence'
-          strings "dist/BETTA.app/Contents/MacOS/BettaMetalLab" | grep -q 'GLOBAL_RESTYLE'
-          strings "dist/BETTA.app/Contents/MacOS/BettaMetalLab" | grep -q '0...255'
-          grep -Fq '.range(0.0...1.0)' Sources/BettaMetalLab/BettaImagineAppleIntelligence.swift
-          grep -q 'fromModelRGB' Sources/BettaMetalLab/BettaImagineModels.swift
-          ! grep -q 'NSPanel' Sources/BettaMetalLab/BettaImagineWindowController.swift
-          grep -q 'BettaImagineOverlayView' Sources/BettaMetalLab/BettaImagineWindowController.swift
+          test -s "dist/BETTA-1.1.4-macOS-arm64.zip"
+          test -s "dist/BETTA-1.1.4-macOS-arm64.dmg"
+          ! strings "dist/BETTA.app/Contents/MacOS/BettaMetalLab" | grep -q 'Apple Intelligence'
       - name: Runtime Metal pipeline smoke when GPU is exposed
         working-directory: macos-betta-metal
         run: |
@@ -105,12 +98,12 @@ jobs:
           print("Metal runtime smoke: PASS on \(device.name)")
           SWIFT
           xcrun swift "$RUNNER_TEMP/metal-smoke.swift" "dist/BETTA.app/Contents/Resources/BettaShaders.metallib"
-      - name: Upload BETTA 1.1.3 release
+      - name: Upload BETTA 1.1.4 release
         uses: actions/upload-artifact@v4
         with:
-          name: BETTA-1.1.3-macOS-arm64
+          name: BETTA-1.1.4-macOS-arm64
           path: |
-            macos-betta-metal/dist/BETTA-1.1.3-macOS-arm64.zip
-            macos-betta-metal/dist/BETTA-1.1.3-macOS-arm64.dmg
+            macos-betta-metal/dist/BETTA-1.1.4-macOS-arm64.zip
+            macos-betta-metal/dist/BETTA-1.1.4-macOS-arm64.dmg
           if-no-files-found: error
           retention-days: 30
