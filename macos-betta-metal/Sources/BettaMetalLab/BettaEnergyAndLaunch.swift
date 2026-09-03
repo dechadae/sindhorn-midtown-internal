@@ -72,7 +72,8 @@ final class BettaEnergyController {
             lowPower: ProcessInfo.processInfo.isLowPowerModeEnabled,
             thermalState: ProcessInfo.processInfo.thermalState
         )
-        guard next != profile || view.isPaused == (next != .paused) else { return }
+        let pauseStateMatches = view.isPaused == (next == .paused)
+        if next == profile && pauseStateMatches { return }
         profile = next
 
         switch next {
