@@ -7,6 +7,11 @@ struct BettaSelfTest {
             if !condition() { failures.append(message) }
         }
 
+        expect(BettaReleaseInfo.productName == "BETTA", "Release product name must be BETTA")
+        expect(BettaReleaseInfo.version == "1.0.0", "Release semantic version must be 1.0.0")
+        expect(BettaReleaseInfo.build == "20", "Release build number must be 20")
+        expect(BettaReleaseInfo.persistenceBundleIdentifier == "com.sindhornmidtown.BettaMetalLab", "1.0 must preserve the existing persistence bundle identifier")
+
         expect(BettaPreset.all.count == 8, "Expected exactly eight canonical Betta presets")
         expect(BettaGeometry.rays == 160, "Mac high-detail topology must use 160 circumferential samples")
         expect(BettaGeometry.radialSegments == 144, "Mac high-detail topology must use 144 radial samples")
@@ -137,11 +142,11 @@ struct BettaSelfTest {
         expect(abs(cubicOut(1) - 1) < 0.0001, "Legacy cubic easing helper must finish at one")
 
         if failures.isEmpty {
-            print("Betta Metal Lab self-test: PASS")
-            print("8 immutable originals · premium morph pacing · live Himawari mood mapping · adaptive energy policy · non-destructive color restore · 160×144 topology · 1–6 membranes · presets/favorites · continuous evolution · recovery regression")
+            print("BETTA \(BettaReleaseInfo.version) (\(BettaReleaseInfo.build)) self-test: PASS")
+            print("8 immutable originals · premium morph pacing · live Himawari mood mapping · adaptive energy policy · multi-display release shell · onboarding/settings · non-destructive color restore · 160×144 topology · 1–6 membranes · presets/favorites · continuous evolution · recovery regression")
             return true
         }
-        print("Betta Metal Lab self-test: FAIL")
+        print("BETTA \(BettaReleaseInfo.version) self-test: FAIL")
         failures.forEach { print("- \($0)") }
         return false
     }
