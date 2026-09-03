@@ -1,5 +1,24 @@
-.ui-glass,.ui-glass-card,.ui-glass-control{background:var(--ui-glass-bg);border:1px solid var(--ui-glass-border);-webkit-backdrop-filter:blur(var(--ui-glass-blur)) saturate(var(--ui-glass-saturation));backdrop-filter:blur(var(--ui-glass-blur)) saturate(var(--ui-glass-saturation));}
+/* Exact material contract from approved preview-ci-glass. Geometry stays with components/routes. */
+.app-glass-surface,
+.app-glass-control,
+.ui-glass,
+.ui-glass-card,
+.ui-glass-control{
+  background-color:var(--app-glass-fill);
+  -webkit-backdrop-filter:var(--app-glass-filter);
+  backdrop-filter:var(--app-glass-filter);
+}
+.ui-glass,.ui-glass-card,.ui-glass-control{border:1px solid var(--app-glass-border);}
 .ui-glass-card{border-radius:var(--ui-radius-card);}
 .ui-glass-control{border-radius:var(--ui-radius-control);}
 .ui-surface-solid{background:var(--ui-color-vignette);border:1px solid var(--ui-color-line);}
-.ui-utility-action{background:transparent;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;}
+
+.app-utility-action,
+.app-quiet-action,
+.ui-utility-action{
+  background:transparent;
+  border:0;
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+}
