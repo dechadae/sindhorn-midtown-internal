@@ -18,8 +18,12 @@ struct BettaImagineColor: Codable, Equatable {
         SIMD3<Float>(Float(clamp(r, 0, 1)), Float(clamp(g, 0, 1)), Float(clamp(b, 0, 1)))
     }
 
+    /// Imagine backgrounds use the same full display-referred RGB range as the
+    /// tail palette. Earlier builds artificially capped every channel at 0.16,
+    /// which forced dark backgrounds even when the art direction called for
+    /// pearl, ivory, pastel or clean white atmosphere.
     var backgroundSIMD: SIMD3<Float> {
-        SIMD3<Float>(Float(clamp(r, 0.0005, 0.16)), Float(clamp(g, 0.0005, 0.16)), Float(clamp(b, 0.0005, 0.16)))
+        SIMD3<Float>(Float(clamp(r, 0, 1)), Float(clamp(g, 0, 1)), Float(clamp(b, 0, 1)))
     }
 
     private func clamp(_ value: Double, _ lower: Double, _ upper: Double) -> Double {
