@@ -14,6 +14,7 @@ final class BettaLivingGalleryView: NSView {
 
     private let presetStore = BettaUserPresetStore.shared
     private let randomStore = BettaRandomStyleStore.shared
+    private let advancedStore = BettaAdvancedTuningStore.shared
 
     private var selectedIndex: Int
     private var originalButtons: [NSButton] = []
@@ -44,8 +45,10 @@ final class BettaLivingGalleryView: NSView {
 
         if let style = randomStore.style(for: preset.referenceId), style.seed != 0 {
             detailLabel?.stringValue = "Generated organism · #\(style.shortSeed)"
-        } else {
+        } else if advancedStore.adjustment(for: preset.referenceId) == .canonical(preset) {
             detailLabel?.stringValue = "Original \(preset.number) · immutable source"
+        } else {
+            detailLabel?.stringValue = "Working copy · based on Original \(preset.number)"
         }
 
         for (index, button) in originalButtons.enumerated() {
@@ -218,7 +221,7 @@ final class BettaLivingGalleryView: NSView {
     @objc private func originalSelected(_ sender: NSButton) {
         selectedIndex = min(7, max(0, sender.tag))
         onSelectOriginal?(selectedIndex)
-        refresh(message: "Original selected · cinematic morph")
+        refresh(message: "Original family selected · cinematic morph")
     }
 
     @objc private func favoriteSelected(_ sender: NSPopUpButton) {
@@ -226,23 +229,9 @@ final class BettaLivingGalleryView: NSView {
         onLoadFavorite?(id)
     }
 
-    @objc private func toggleFavorite(_ sender: Any?) {
-        onToggleFavorite?()
-    }
-
-    @objc private func randomize(_ sender: Any?) {
-        onRandomize?()
-    }
-
-    @objc private func toggleEvolution(_ sender: Any?) {
-        onToggleEvolution?()
-    }
-
-    @objc private func useOnDesktop(_ sender: Any?) {
-        onUseOnDesktop?()
-    }
-
-    @objc private func customize(_ sender: Any?) {
-        onCustomize?()
-    }
+    @objc private func toggleFavorite(_ sender: Any?) { onToggleFavorite?() }
+    @objc private func randomize(_ sender: Any?) { onRandomize?() }
+    @objc private func toggleEvolution(_ sender: Any?) { onToggleEvolution?() }
+    @objc private func useOnDesktop(_ sender: Any?) { onUseOnDesktop?() }
+    @objc private func customize(_ sender: Any?) { onCustomize?() }
 }
