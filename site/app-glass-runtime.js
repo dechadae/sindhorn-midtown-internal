@@ -13,7 +13,7 @@ const SURFACE_SELECTORS=[
   /* Settings */
   '.settings-avatar','.settings-user-card','.settings-state','.settings-planned','.settings-system-library-card','.settings-guide-card',
   /* Brand / Factsheet / History */
-  '.brand-card','.factsheet-picture','.factsheet-card','.factsheet-room-card','.factsheet-disclosure','.ihg-history-card','.ihg-history-source','.ihg-history-visual',
+  '.brand-card','.factsheet-table-wrap tbody th','.factsheet-picture','.factsheet-card','.factsheet-room-card','.factsheet-disclosure','.ihg-history-card','.ihg-history-source','.ihg-history-visual',
   /* Messages */
   '.message-card',
   /* CI / developer UI */

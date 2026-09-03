@@ -10,6 +10,9 @@ let stylesPromise=null;
 const STYLE_DEPS=Object.freeze([
   ['data-ci-route-style','/ci.css?v=1'],
   ['data-ci-fnb-style','/fnb.css?v=7'],
+  /* Owns .fnb-select-trigger and hides the native <select>. Removed from the
+     shell by #147 for startup, which left the CI selector specimen unstyled. */
+  ['data-ci-fnb-polish-style','/fnb-approved-polish.css?v=2'],
   ['data-ci-settings-style','/settings.css?v=2'],
   ['data-ci-settings-dialog-style','/settings-dialog-standard.css?v=1&r=6'],
   ['data-ci-factsheet-style','/hotel-factsheet.css?v=2'],

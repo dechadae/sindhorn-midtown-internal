@@ -77,7 +77,7 @@ body[data-route="hotelFactsheet"] #route-view{background:transparent;padding-bot
 .factsheet-table-wrap th,.factsheet-table-wrap td{padding:10px 8px;border-bottom:1px solid var(--fs-line);text-align:center;white-space:nowrap}
 .factsheet-table-wrap thead th{color:var(--fs-muted);font-size:9px;font-weight:400;text-transform:uppercase}
 .factsheet-table-wrap thead th:first-child{width:108px;min-width:108px;max-width:108px}
-.factsheet-table-wrap tbody th{position:sticky;left:0;z-index:1;width:108px;min-width:108px;max-width:108px;background:rgba(46,39,59,.96);text-align:left;font-weight:400;white-space:normal;line-height:1.28}
+.factsheet-table-wrap tbody th{position:sticky;left:0;z-index:1;width:108px;min-width:108px;max-width:108px;background:transparent;text-align:left;font-weight:400;white-space:normal;line-height:1.28}
 .factsheet-table-wrap tbody th small{display:block;margin-top:3px;color:var(--fs-muted);font-size:8.5px;font-weight:400;line-height:1.35}
 .factsheet-private-events{margin-top:9px}
 .factsheet-included-card{margin-top:9px}
