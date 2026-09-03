@@ -141,7 +141,7 @@ jobs:
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /business-dashboard-motion.js /business-dashboard-motion.css /hotel-factsheet.css /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /rain-layer.js /rain-layer-legacy-weather.js /push-client.js /notification-inbox.js /app.js /sw.js /manifest.webmanifest; do
+          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /business-dashboard-motion.js /business-dashboard-motion.css /hotel-factsheet.css /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /rain-now.js /betta-runtime.js /betta-runtime-full.js /push-client.js /notification-inbox.js /app.js /sw.js /manifest.webmanifest; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
@@ -156,8 +156,8 @@ jobs:
           grep -q "business-dashboard-motion.js" /tmp/sw.js
           grep -q "business-dashboard-motion.css" /tmp/sw.js
           grep -q "hotel-factsheet.css" /tmp/sw.js
-          grep -q "betta-environment.js" /tmp/sw.js
-          grep -q "rain-layer-legacy-weather.js" /tmp/sw.js
+          grep -q "betta-runtime-full.js" /tmp/sw.js
+          grep -q "rain-now.js" /tmp/sw.js
           grep -q "self.addEventListener('push'" /tmp/sw.js
 
       - name: Mobile, motion, CI-parity and installed-PWA smoke
