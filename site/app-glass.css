@@ -119,6 +119,21 @@
 }
 .app-overlay{border:1px solid var(--app-glass-border)}
 
+/* A badge and a form well each draw a fill, so the glass membership rule
+   applies to them too - but each keeps its own tint (accent, inset) rather
+   than either weight above, so only the blur is shared here. Their fill and
+   border stay declared with the rest of the component in app-components.css;
+   backdrop-filter stays here because this file is the one place it may be
+   declared, so a route or a future component can never end up with a second,
+   slightly-different blur recipe. */
+.app-badge,
+.app-field input,
+.app-field textarea,
+.app-field select{
+  backdrop-filter:var(--app-glass-filter);
+  -webkit-backdrop-filter:var(--app-glass-filter);
+}
+
 /* A card inside a card cannot sample the page - see THE RULE above - so it
    keeps the tint and drops the blur. Structural, so no guard is needed to
    notice it after the fact. */

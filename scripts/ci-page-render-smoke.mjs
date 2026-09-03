@@ -17,7 +17,15 @@ import path from 'node:path';
 const ROOT = 'site';
 const CARD = { bg: 'rgba(46, 39, 59, 0.3)', filter: 'blur(18px) saturate(1.18)' };
 const OVERLAY = { bg: 'rgba(38, 32, 49, 0.72)', filter: 'blur(18px) saturate(1.18)' };
+// A skeleton line is a placeholder, not a surface — no edge, so no blur.
 const WELL = { bg: 'rgba(250, 247, 245, 0.055)', filter: 'none' };
+// A form well draws an edge too, so it frosts like everything else — it just
+// keeps its own quieter tint instead of the card's fill.
+const FROSTED_WELL = { bg: 'rgba(250, 247, 245, 0.055)', filter: 'blur(18px) saturate(1.18)' };
+// A badge's fill is its own tint, not the card's — same reasoning. Two tones,
+// same blur.
+const BADGE = { bg: 'rgba(229, 236, 190, 0.16)', filter: 'blur(18px) saturate(1.18)' };
+const BADGE_QUIET = { bg: 'rgba(250, 247, 245, 0.055)', filter: 'blur(18px) saturate(1.18)' };
 // The sticky column carries the same weight as every other glass surface.
 const STICKY = CARD;
 const BARE = { bg: 'rgba(0, 0, 0, 0)', filter: 'none' };
@@ -26,7 +34,7 @@ const EXPECT = [
   ['.app-card', CARD], ['.app-action-card', CARD], ['.app-surface', CARD],
   ['.app-disclosure', CARD], ['.app-primary', CARD], ['.app-chip', CARD],
   ['.app-select-trigger', CARD], ['.app-overlay', OVERLAY],
-  ['.app-field input', WELL], ['.app-table tbody th', STICKY],
+  ['.app-field input', FROSTED_WELL], ['.app-table tbody th', STICKY],
   ['.app-select-option', BARE],
   ['.app-utility-action', BARE], ['.app-action-card-button', BARE],
   // Centralized layout and state modules: every page consumes these, so a
@@ -39,7 +47,8 @@ const EXPECT = [
   ['.app-back-control', CARD], ['.app-masthead', CARD], ['.app-navbar', CARD],
   ['.app-sheet', OVERLAY], ['.app-toast', OVERLAY],
   ['.app-list-row', BARE], ['.app-metric', BARE], ['.app-figure', BARE],
-  ['.app-check-box', BARE]
+  ['.app-check-box', BARE],
+  ['.app-badge:not([data-tone])', BADGE], ['.app-badge[data-tone="quiet"]', BADGE_QUIET]
 ];
 
 // Two durations, one easing, documented live in 04 Shape & Motion. A route
@@ -87,7 +96,7 @@ const report = await page.evaluate(([expect, motionSelectors]) => {
     const node = document.querySelector(selector);
     if (!node) return { selector, missing: true };
     const style = getComputedStyle(node);
-    return { selector, bg: style.backgroundColor, filter: String(style.backdropFilter || style.webkitBackdropFilter || 'none'), border: style.borderTopWidth+' '+style.borderTopStyle };
+    return { selector, bg: style.backgroundColor, filter: String(style.backdropFilter || style.webkitBackdropFilter || 'none'), border: style.borderTopWidth+' '+style.borderTopStyle, borderColor: style.borderTopColor };
   };
   const readMotion = selector => {
     const node = document.querySelector(selector);
@@ -142,6 +151,10 @@ const sticky=report.measured.find(e=>e.selector==='.app-table tbody th');
 if (sticky && !sticky.border.startsWith('0px')) failures.push(`sticky column must not be boxed on four sides, border is ${sticky.border}`);
 const overlay=report.measured.find(e=>e.selector==='.app-overlay');
 if (overlay && overlay.border.startsWith('0px')) failures.push('.app-overlay lost its edge');
+// .app-chip used to declare its own border, which silently won the cascade
+// over .app-control's glass-border token and left the edge almost invisible.
+const chip=report.measured.find(e=>e.selector==='.app-chip');
+if (chip && norm(chip.borderColor) !== 'rgba(250, 247, 245, 0.14)') failures.push(`.app-chip: border-color ${chip.borderColor}, expected the glass border token rgba(250, 247, 245, 0.14) from .app-control`);
 if (report.overflow > 1) failures.push(`horizontal overflow ${report.overflow}px`);
 
 await browser.close();

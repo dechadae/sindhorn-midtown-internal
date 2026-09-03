@@ -235,7 +235,9 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 
 /* ---- Badge ------------------------------------------------------------------
    A count or a status marker. Never the only carrier of meaning: pair it with
-   text a screen reader can read. */
+   text a screen reader can read. It draws a fill, so by the glass membership
+   rule it needs the atmosphere behind it too — the tint stays its own, the
+   blur is the one everything else uses. */
 .app-badge{
   min-width:18px;height:18px;padding:0 5px;
   display:inline-flex;align-items:center;justify-content:center;
@@ -295,7 +297,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-chip{
   min-height:32px;padding:0 12px;
   display:inline-flex;align-items:center;gap:6px;
-  border:1px solid var(--app-line);border-radius:var(--radius-inset);
+  border-radius:var(--radius-inset);
   color:var(--app-muted);font:inherit;font-size:var(--type-small);cursor:pointer;
   transition:color var(--motion-ms) ease,border-color var(--motion-ms) ease,transform var(--motion-fast) var(--motion-ease);
 }
@@ -404,7 +406,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-section-kicker::after{content:"";flex:1 1 auto;height:1px;background:var(--app-line)}
 .app-section-title{margin:8px 0 0;font-size:var(--type-section);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
 .app-section-lede{margin:10px 0 0;max-width:60ch;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
-.app-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.app-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 .app-stack{display:grid;gap:10px}
 .app-section>.app-stack{margin-top:18px}
 .app-note{margin:12px 0 0;color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-body)}
