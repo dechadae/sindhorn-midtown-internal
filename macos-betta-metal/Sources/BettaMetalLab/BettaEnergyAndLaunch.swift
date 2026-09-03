@@ -51,7 +51,7 @@ final class BettaEnergyController {
         self.window = window
         timer?.invalidate()
         timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
-            self?.evaluate()
+            Task { @MainActor in self?.evaluate() }
         }
         if let timer { RunLoop.main.add(timer, forMode: .common) }
         evaluate()
