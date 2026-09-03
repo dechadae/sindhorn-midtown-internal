@@ -12,6 +12,16 @@
   --app-glass-border:rgba(250,247,245,.14);
   --app-glass-filter:blur(18px) saturate(1.18);
 
+  /* Floating surfaces - dropdown menus, dialogs, sheets, toasts - sit over
+     arbitrary content and must stay legible, so they carry more pigment than a
+     card. Same blur, heavier fill: one material, two weights, instead of the
+     .92 / .94 / .98 spread these surfaces had grown. The value is the app's own
+     --ci-glass-strong, not a new invention.
+
+     Do not push this to .92+ again. At that opacity it reads as solid black and
+     stops being glass at all. */
+  --app-glass-overlay-fill:rgba(38,32,49,.72);
+
   /* Backward-compatible aliases. There is still only one material value. */
   --app-glass-surface-fill:var(--app-glass-fill);
   --app-glass-surface-border:var(--app-glass-border);
