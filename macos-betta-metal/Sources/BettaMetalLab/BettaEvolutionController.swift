@@ -3,14 +3,6 @@ import simd
 
 final class BettaEvolutionController {
     static let defaultSegmentDuration: TimeInterval = 45
-    private static var activeController: BettaEvolutionController?
-
-    /// Imagine and other direct creative tools need a stable organism to edit.
-    /// Stopping through the active controller keeps AppDelegate's existing
-    /// instance authoritative without introducing a second evolution engine.
-    static func stopActiveIfNeeded() {
-        activeController?.stop()
-    }
 
     private let advancedStore = BettaAdvancedTuningStore.shared
     private let randomStore = BettaRandomStyleStore.shared
@@ -52,7 +44,6 @@ final class BettaEvolutionController {
         self.target = target
         segmentStart = ProcessInfo.processInfo.systemUptime
         isRunning = true
-        Self.activeController = self
 
         let timer = Timer(timeInterval: 1.0 / 60.0, repeats: true) { [weak self] _ in
             self?.tick()
@@ -70,7 +61,6 @@ final class BettaEvolutionController {
         referenceId = nil
         source = nil
         target = nil
-        if Self.activeController === self { Self.activeController = nil }
     }
 
     private func tick() {
