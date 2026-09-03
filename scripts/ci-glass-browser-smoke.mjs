@@ -31,13 +31,13 @@ async function runViewport(browser,width,height){
   page.on('console',message=>{if(message.type()==='error')errors.push(message.text())});
   try{
     await page.goto(`${BASE_URL}/ci`,{waitUntil:'domcontentloaded'});
-    await page.waitForSelector('.ci-page');
+    await page.waitForSelector('.app-page');
     await page.waitForFunction(()=>window.SindhornUiLibrary?.version==='1.4.0-preview');
     await page.waitForSelector('#ci-glass');
     await page.waitForSelector('.masthead.app-glass-surface');
     await page.waitForSelector('.app-tabbar.app-glass-surface,.shell-footer-rail.app-glass-surface');
     const report=await page.evaluate(()=>{
-      const routeView=document.querySelector('.ci-page');
+      const routeView=document.querySelector('.app-page');
       if(!routeView)throw new Error('UI Library page unavailable');
       const probes=document.createElement('div');
       probes.className='';

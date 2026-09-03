@@ -22,12 +22,12 @@
 
 <div class="environment-stage" id="environmentStage" aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
 
-<main class="ci-page">
+<main class="app-page">
 
-  <header class="ci-masthead">
-    <p class="ci-eyebrow">Sindhorn Midtown Internal</p>
-    <h1 class="ci-page-title">UI Library</h1>
-    <p class="ci-page-lede">Every component the app is allowed to use, rendered live over the real atmosphere. A page is built by consuming these; a page that needs something absent from here needs it added here first.</p>
+  <header class="app-hero">
+    <p class="app-hero-eyebrow">Sindhorn Midtown Internal</p>
+    <h1 class="app-hero-title">UI Library</h1>
+    <p class="app-hero-copy">Every component the app is allowed to use, rendered live over the real atmosphere. A page is built by consuming these; a page that needs something absent from here needs it added here first.</p>
     <nav class="ci-index" aria-label="Sections">
       <a href="#material">01 Material</a>
       <a href="#colour">02 Colour</a>
@@ -40,15 +40,17 @@
       <a href="#actions">09 Actions</a>
       <a href="#dialog">10 Dialog</a>
       <a href="#table">11 Table</a>
-      <a href="#rules">12 Rules</a>
+      <a href="#states">12 States</a>
+      <a href="#skeleton">13 Skeleton</a>
+      <a href="#rules">14 Rules</a>
     </nav>
   </header>
 
   <!-- ========================= 01 MATERIAL ========================= -->
-  <section class="ci-section" id="material">
-    <p class="ci-section-kicker">01 · Material</p>
-    <h2 class="ci-section-title">One Frosted Material</h2>
-    <p class="ci-section-lede">A card is anything that draws an edge, so it needs the atmosphere behind it. A layout container draws no edge and takes no material. Three primitives, declared in markup, defined once in app-glass.css.</p>
+  <section class="app-section" id="material">
+    <p class="app-section-kicker">01 · Material</p>
+    <h2 class="app-section-title">One Frosted Material</h2>
+    <p class="app-section-lede">A card is anything that draws an edge, so it needs the atmosphere behind it. A layout container draws no edge and takes no material. Three primitives, declared in markup, defined once in app-glass.css.</p>
 
     <div class="ci-stack">
       <div class="ci-specimen">
@@ -58,11 +60,11 @@
 
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-control</span><span>same material</span></div>
-        <div class="ci-row">
+        <div class="app-row">
           <button class="app-primary app-control" type="button">Primary action</button>
           <button class="app-chip app-control" type="button">Chip</button>
         </div>
-        <p class="ci-note">Controls share the material. Size and emphasis change by role; the interaction grammar does not.</p>
+        <p class="app-note">Controls share the material. Size and emphasis change by role; the interaction grammar does not.</p>
       </div>
 
       <div class="ci-specimen">
@@ -81,10 +83,10 @@
   </section>
 
   <!-- ========================= 02 COLOUR ========================= -->
-  <section class="ci-section" id="colour">
-    <p class="ci-section-kicker">02 · Colour</p>
-    <h2 class="ci-section-title">Five Values, Named Once</h2>
-    <p class="ci-section-lede">Every route had converged on the same values under its own names. The library owns them once so a component can leave its route and still resolve.</p>
+  <section class="app-section" id="colour">
+    <p class="app-section-kicker">02 · Colour</p>
+    <h2 class="app-section-title">Five Values, Named Once</h2>
+    <p class="app-section-lede">Every route had converged on the same values under its own names. The library owns them once so a component can leave its route and still resolve.</p>
     <div class="ci-swatches">
       <div class="ci-swatch app-card"><div class="ci-swatch-chip ci-swatch-text"></div><b>Text</b><code>--app-text</code></div>
       <div class="ci-swatch app-card"><div class="ci-swatch-chip ci-swatch-muted"></div><b>Muted</b><code>--app-muted</code></div>
@@ -92,17 +94,17 @@
       <div class="ci-swatch app-card"><div class="ci-swatch-chip ci-swatch-line"></div><b>Line</b><code>--app-line</code></div>
       <div class="ci-swatch app-card"><div class="ci-swatch-chip ci-swatch-inset"></div><b>Inset fill</b><code>--app-inset-fill</code></div>
     </div>
-    <p class="ci-note">Sorbet <code>#E5ECBE</code> is the only accent. A route never defines its own.</p>
+    <p class="app-note">Sorbet <code>#E5ECBE</code> is the only accent. A route never defines its own.</p>
   </section>
 
   <!-- ========================= 03 TYPE ========================= -->
-  <section class="ci-section" id="type">
-    <p class="ci-section-kicker">03 · Type</p>
-    <h2 class="ci-section-title">One Typeface, Clear Roles</h2>
-    <p class="ci-section-lede">LINE Seed Sans TH for English and Thai. Weights 100 / 400 / 700 only, and zero tracking everywhere in application chrome.</p>
+  <section class="app-section" id="type">
+    <p class="app-section-kicker">03 · Type</p>
+    <h2 class="app-section-title">One Typeface, Clear Roles</h2>
+    <p class="app-section-lede">LINE Seed Sans TH for English and Thai. Weights 100 / 400 / 700 only, and zero tracking everywhere in application chrome.</p>
     <div class="ci-type-stack">
-      <div class="ci-type-row"><span class="ci-type-meta">Display<br>100</span><span class="ci-type-display">Hotel Factsheet</span></div>
-      <div class="ci-type-row"><span class="ci-type-meta">Title<br>100</span><span class="ci-type-title">Rooms &amp; Suites</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Display<br>100</span><span class="app-hero-title">Hotel Factsheet</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Title<br>100</span><span class="app-section-title">Rooms &amp; Suites</span></div>
       <div class="ci-type-row"><span class="ci-type-meta">Lead<br>400</span><span class="ci-type-lead">Fried Chicken &amp; Waffles</span></div>
       <div class="ci-type-row"><span class="ci-type-meta">Body<br>400</span><span class="ci-type-body">Concise operational copy stays readable over the live atmosphere.</span></div>
       <div class="ci-type-row"><span class="ci-type-meta">Small<br>400</span><span class="ci-type-small">Supporting detail and metadata.</span></div>
@@ -112,10 +114,10 @@
   </section>
 
   <!-- ========================= 04 SHAPE & MOTION ========================= -->
-  <section class="ci-section" id="shape">
-    <p class="ci-section-kicker">04 · Shape &amp; Motion</p>
-    <h2 class="ci-section-title">Rounded, Never Circular</h2>
-    <p class="ci-section-lede">Corners are soft; UI chrome is never a circle or a capsule. Motion explains state and settles with one easing family.</p>
+  <section class="app-section" id="shape">
+    <p class="app-section-kicker">04 · Shape &amp; Motion</p>
+    <h2 class="app-section-title">Rounded, Never Circular</h2>
+    <p class="app-section-lede">Corners are soft; UI chrome is never a circle or a capsule. Motion explains state and settles with one easing family.</p>
     <table class="ci-ref ci-ref-table">
       <tbody>
         <tr><th>Surface</th><td><code>--radius-surface</code> 14px — cards, disclosures, dialogs</td></tr>
@@ -129,10 +131,10 @@
   </section>
 
   <!-- ========================= 05 CARDS ========================= -->
-  <section class="ci-section" id="cards">
-    <p class="ci-section-kicker">05 · Cards</p>
-    <h2 class="ci-section-title">Cards Communicate Role</h2>
-    <p class="ci-section-lede">A surface looks actionable only when it is actionable. Both take the same material; only the press promise differs.</p>
+  <section class="app-section" id="cards">
+    <p class="app-section-kicker">05 · Cards</p>
+    <h2 class="app-section-title">Cards Communicate Role</h2>
+    <p class="app-section-lede">A surface looks actionable only when it is actionable. Both take the same material; only the press promise differs.</p>
     <div class="ci-stack">
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-action-card</span><span>whole face is the button</span></div>
@@ -153,10 +155,10 @@
   </section>
 
   <!-- ========================= 06 DISCLOSURE ========================= -->
-  <section class="ci-section" id="disclosure">
-    <p class="ci-section-kicker">06 · Disclosure</p>
-    <h2 class="ci-section-title">Expandable Content Has One Rhythm</h2>
-    <p class="ci-section-lede">Content stays in the DOM when collapsed, so search and screen readers still find it. The control owns <code>aria-expanded</code>.</p>
+  <section class="app-section" id="disclosure">
+    <p class="app-section-kicker">06 · Disclosure</p>
+    <h2 class="app-section-title">Expandable Content Has One Rhythm</h2>
+    <p class="app-section-lede">Content stays in the DOM when collapsed, so search and screen readers still find it. The control owns <code>aria-expanded</code>.</p>
     <div class="ci-stack is-single">
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-disclosure</span><span>tap to expand</span></div>
@@ -187,10 +189,10 @@
   </section>
 
   <!-- ========================= 07 FORMS ========================= -->
-  <section class="ci-section" id="forms">
-    <p class="ci-section-kicker">07 · Forms</p>
-    <h2 class="ci-section-title">Forms Stay Quiet and Explicit</h2>
-    <p class="ci-section-lede">Labels stay visible. An input reads as a well rather than a raised surface, so it takes the inset fill instead of the card material.</p>
+  <section class="app-section" id="forms">
+    <p class="app-section-kicker">07 · Forms</p>
+    <h2 class="app-section-title">Forms Stay Quiet and Explicit</h2>
+    <p class="app-section-lede">Labels stay visible. An input reads as a well rather than a raised surface, so it takes the inset fill instead of the card material.</p>
     <div class="ci-stack is-single">
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-field</span><span>label · input · note</span></div>
@@ -205,10 +207,10 @@
   </section>
 
   <!-- ========================= 08 SELECTOR ========================= -->
-  <section class="ci-section" id="selector">
-    <p class="ci-section-kicker">08 · Selector</p>
-    <h2 class="ci-section-title">One Selector, One Menu</h2>
-    <p class="ci-section-lede">The trigger is a control; the menu floats above content, so it is an overlay. There is one selector in the app and this is it.</p>
+  <section class="app-section" id="selector">
+    <p class="app-section-kicker">08 · Selector</p>
+    <h2 class="app-section-title">One Selector, One Menu</h2>
+    <p class="app-section-lede">The trigger is a control; the menu floats above content, so it is an overlay. There is one selector in the app and this is it.</p>
     <div class="ci-stack">
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-select</span><span>tap to open</span></div>
@@ -224,61 +226,61 @@
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-chip</span><span>metadata / filter</span></div>
-        <div class="ci-row">
+        <div class="app-row">
           <button class="app-chip app-control is-active" type="button">Active</button>
           <button class="app-chip app-control" type="button">Filter</button>
           <button class="app-chip app-control" type="button">Metadata</button>
         </div>
-        <p class="ci-note">A chip is a filter or a piece of metadata, never decoration applied to a short label.</p>
+        <p class="app-note">A chip is a filter or a piece of metadata, never decoration applied to a short label.</p>
       </div>
     </div>
   </section>
 
   <!-- ========================= 09 ACTIONS ========================= -->
-  <section class="ci-section" id="actions">
-    <p class="ci-section-kicker">09 · Actions</p>
-    <h2 class="ci-section-title">One Tactile Language</h2>
-    <p class="ci-section-lede">Emphasis changes by role, not by inventing a new interaction. Utility actions are deliberately frameless: no edge, so no material.</p>
+  <section class="app-section" id="actions">
+    <p class="app-section-kicker">09 · Actions</p>
+    <h2 class="app-section-title">One Tactile Language</h2>
+    <p class="app-section-lede">Emphasis changes by role, not by inventing a new interaction. Utility actions are deliberately frameless: no edge, so no material.</p>
     <div class="ci-stack is-single">
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>Controls</span><span>material</span></div>
-        <div class="ci-row">
+        <div class="app-row">
           <button class="app-primary app-control" type="button">Primary action</button>
           <button class="app-primary app-control" type="button" disabled>Disabled</button>
         </div>
-        <p class="ci-note">Disabled dims the content, not the element. Fading a whole button with opacity fades its blur too, so it stops looking like the same material as everything around it.</p>
+        <p class="app-note">Disabled dims the content, not the element. Fading a whole button with opacity fades its blur too, so it stops looking like the same material as everything around it.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>Utility actions</span><span>no frame · no material</span></div>
-        <div class="ci-row">
+        <div class="app-row">
           <button class="app-utility-action" type="button">Share</button>
           <button class="app-utility-action" type="button">Back to top</button>
           <button class="app-utility-action" type="button">Sign out</button>
         </div>
-        <p class="ci-note">These draw no edge, so by the rule they are not cards and take no glass. That is a consequence of the definition, not an exception to it.</p>
+        <p class="app-note">These draw no edge, so by the rule they are not cards and take no glass. That is a consequence of the definition, not an exception to it.</p>
       </div>
     </div>
   </section>
 
   <!-- ========================= 10 DIALOG ========================= -->
-  <section class="ci-section" id="dialog">
-    <p class="ci-section-kicker">10 · Dialog</p>
-    <h2 class="ci-section-title">One Dialog Standard</h2>
-    <p class="ci-section-lede">Editing and bounded secondary tasks use a native dialog. Do not build a second scrim, scroll lock or open animation.</p>
+  <section class="app-section" id="dialog">
+    <p class="app-section-kicker">10 · Dialog</p>
+    <h2 class="app-section-title">One Dialog Standard</h2>
+    <p class="app-section-lede">Editing and bounded secondary tasks use a native dialog. Do not build a second scrim, scroll lock or open animation.</p>
     <div class="ci-stack is-single">
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-dialog</span><span>native &lt;dialog&gt; · .app-overlay</span></div>
         <button class="app-primary app-control" type="button" data-dialog-open>Open dialog specimen</button>
-        <p class="ci-note">The scrim is not a card: it dims the page behind rather than sitting on the atmosphere, so it owns its own values.</p>
+        <p class="app-note">The scrim is not a card: it dims the page behind rather than sitting on the atmosphere, so it owns its own values.</p>
       </div>
     </div>
   </section>
 
   <!-- ========================= 11 TABLE ========================= -->
-  <section class="ci-section" id="table">
-    <p class="ci-section-kicker">11 · Table</p>
-    <h2 class="ci-section-title">Dense Data Scrolls, It Does Not Collapse</h2>
-    <p class="ci-section-lede">On a narrow screen, horizontal scrolling beats illegible compression. The first column stays put so a row never loses its label.</p>
+  <section class="app-section" id="table">
+    <p class="app-section-kicker">11 · Table</p>
+    <h2 class="app-section-title">Dense Data Scrolls, It Does Not Collapse</h2>
+    <p class="app-section-lede">On a narrow screen, horizontal scrolling beats illegible compression. The first column stays put so a row never loses its label.</p>
     <div class="ci-stack is-single">
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-table</span><span>scroll sideways</span></div>
@@ -292,15 +294,54 @@
             </tbody>
           </table>
         </div>
-        <p class="ci-note">The sticky column carries an opaque fill. At the card's 30% the numbers slide visibly underneath the row label.</p>
+        <p class="app-note">The sticky column carries an opaque fill. At the card's 30% the numbers slide visibly underneath the row label.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 12 STATES ========================= -->
+  <section class="app-section" id="states">
+    <p class="app-section-kicker">12 · States</p>
+    <h2 class="app-section-title">Operational States Stay Calm</h2>
+    <p class="app-section-lede">Loading, empty, success and error explain what happened and what the employee can do next, without changing the product's visual language.</p>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-state</span><span>four tones</span></div>
+        <div class="app-stack">
+          <div class="app-state app-card" data-tone="loading"><p class="app-state-label">Loading</p><p class="app-state-title">Loading employees…</p><p class="app-state-copy">Reserve the final geometry where possible so nothing jumps.</p></div>
+          <div class="app-state app-card" data-tone="empty"><p class="app-state-label">Empty</p><p class="app-state-title">No messages yet</p><p class="app-state-copy">State the absence plainly. Do not manufacture decorative content.</p></div>
+          <div class="app-state app-card" data-tone="success"><p class="app-state-label">Success</p><p class="app-state-title">Saved</p><p class="app-state-copy">Confirm the meaningful result, then return control to the user.</p></div>
+          <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Could not save</p><p class="app-state-copy">Explain the recoverable action instead of exposing transport internals.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 13 SKELETON ========================= -->
+  <section class="app-section" id="skeleton">
+    <p class="app-section-kicker">13 · Skeleton</p>
+    <h2 class="app-section-title">Reserve the Shape Before the Data</h2>
+    <p class="app-section-lede">A skeleton holds the geometry the content will occupy, so the page does not reflow when it arrives. It is a placeholder, not a surface.</p>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-skeleton</span><span>placeholder, not a card</span></div>
+        <div class="app-card app-surface">
+          <div class="app-skeleton">
+            <div class="app-skeleton-line" data-width="short"></div>
+            <div class="app-skeleton-line"></div>
+            <div class="app-skeleton-line" data-width="medium"></div>
+            <div class="app-skeleton-block"></div>
+          </div>
+        </div>
+        <p class="app-note">Reduced motion stops the pulse without removing the reserved space.</p>
       </div>
     </div>
   </section>
 
   <!-- ========================= 12 RULES ========================= -->
-  <section class="ci-section" id="rules">
-    <p class="ci-section-kicker">12 · Rules</p>
-    <h2 class="ci-section-title">What Holds the System Together</h2>
+  <section class="app-section" id="rules">
+    <p class="app-section-kicker">14 · Rules</p>
+    <h2 class="app-section-title">What Holds the System Together</h2>
     <div class="ci-rule-list">
       <div class="ci-rule"><b>A card draws an edge.</b><span>If it draws a border or a fill it is a card and takes the material. If it only arranges children it is a layout container and takes nothing.</span></div>
       <div class="ci-rule"><b>Material is declared, never redefined.</b><span>A page consumes .app-card, .app-control or .app-overlay. No page declares fill, edge or blur of its own.</span></div>

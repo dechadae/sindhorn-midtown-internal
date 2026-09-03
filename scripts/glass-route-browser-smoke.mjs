@@ -21,7 +21,7 @@ const routes=[
   {path:'/brand',root:'.brand-route',target:'.brand-card',name:'Brand'},
   {path:'/hotel-factsheet',root:'.factsheet-route',target:'.factsheet-card,.factsheet-room-card',name:'Factsheet'},
   {path:'/ihg-history',root:'.ihg-history-route',target:'.ihg-history-card',name:'IHG History'},
-  {path:'/ci',root:'.ci-page',target:'.app-card',name:'UI Library',standalone:true}
+  {path:'/ci',root:'.app-page',target:'.app-card',name:'UI Library',standalone:true}
 ];
 const normalize=value=>String(value||'none').replace(/\s+/g,' ').trim();
 function alphaOf(value){

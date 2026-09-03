@@ -194,3 +194,62 @@
   .app-disclosure-panel,.app-field input,.app-field textarea,.app-field select,
   .app-select-trigger svg,.app-primary,.app-chip{transition-duration:.001ms}
 }
+
+/* ============================================================================
+   LAYOUT — every page needs these, so no page should define them.
+
+   These were sitting in the UI Library page's private stylesheet, which meant
+   the next page built would have re-invented a reading column, a section and a
+   heading. A module that every page needs is a library module by definition.
+   ========================================================================== */
+.app-page{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:28px max(20px,env(safe-area-inset-left)) calc(64px + env(safe-area-inset-bottom))}
+.app-section{padding:38px 0 0;scroll-margin-top:20px}
+.app-section-kicker{display:flex;align-items:center;gap:10px;margin:0;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-section-kicker::after{content:"";flex:1 1 auto;height:1px;background:var(--app-line)}
+.app-section-title{margin:8px 0 0;font-size:var(--type-section);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
+.app-section-lede{margin:10px 0 0;max-width:60ch;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.app-stack{display:grid;gap:10px}
+.app-note{margin:12px 0 0;color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-body)}
+
+/* ---- Route hero -------------------------------------------------------------
+   route-hero-standard.css is a compatibility shim: cascade overrides throughout, route
+   aliases, and a duplicate token set. This is the clean form. Routes adopt it
+   when they are rebuilt; until then the shim keeps them working. */
+.app-hero{padding:22px 0 20px;border-bottom:1px solid var(--app-line)}
+.app-hero-eyebrow{margin:0;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-hero-title{margin:10px 0 0;font-size:var(--type-display);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
+.app-hero-copy{margin:12px 0 0;max-width:56ch;color:var(--app-muted);font-size:var(--type-lead);line-height:var(--leading-body)}
+
+/* ---- Operational states -----------------------------------------------------
+   Loading, empty, success and error explain what happened and what the employee
+   can do next, without changing the product's visual language. One component,
+   four tones. */
+.app-state{padding:16px 17px;border-radius:var(--radius-surface)}
+.app-state-label{color:var(--app-muted);font-size:var(--type-caption);text-transform:uppercase}
+.app-state-title{margin:6px 0 0;font-size:var(--type-body);font-weight:var(--weight-regular);line-height:var(--leading-label)}
+.app-state-copy{margin:5px 0 0;color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-body)}
+.app-state[data-tone="success"] .app-state-label{color:#72A75D}
+.app-state[data-tone="error"] .app-state-label{color:#E3A2A8}
+.app-state[data-tone="loading"] .app-state-label{color:var(--app-accent)}
+
+/* ---- Skeleton ---------------------------------------------------------------
+   Reserve the final geometry so nothing jumps when the content arrives. A
+   skeleton is a placeholder, not a surface: it takes the inset fill. */
+.app-skeleton{display:grid;gap:8px}
+.app-skeleton-line,.app-skeleton-block{background:var(--app-inset-fill);border-radius:var(--radius-tight);animation:app-skeleton-pulse 1.4s var(--motion-ease) infinite}
+.app-skeleton-line{height:12px}
+.app-skeleton-line[data-width="short"]{width:38%}
+.app-skeleton-line[data-width="medium"]{width:64%}
+.app-skeleton-block{height:74px;border-radius:var(--radius-inset)}
+@keyframes app-skeleton-pulse{0%,100%{opacity:.5}50%{opacity:.9}}
+
+/* ---- Figure -----------------------------------------------------------------
+   Official imagery keeps an intentional aspect ratio and labels its provenance. */
+.app-figure{margin:0;overflow:hidden;border-radius:var(--radius-surface)}
+.app-figure img{display:block;width:100%;height:auto}
+.app-figure figcaption{padding:10px 14px;color:var(--app-muted);font-size:var(--type-caption)}
+
+@media(prefers-reduced-motion:reduce){
+  .app-skeleton-line,.app-skeleton-block{animation:none}
+}

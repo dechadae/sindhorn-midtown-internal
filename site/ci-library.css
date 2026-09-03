@@ -5,6 +5,10 @@
    app-components.css and app-glass.css exactly as a real route would render it,
    which is the only way the page can be trusted as a reference.
 
+   Page layout, headings, hero, states and skeletons are library modules in
+   app-components.css — every page needs them, so this page does not own them.
+   What remains here is only the way a reference page displays a specimen.
+
    The page loads five stylesheets and nothing else:
      fonts.css           the typeface
      app-tokens.css      the values
@@ -29,13 +33,6 @@ body{
 .environment-canvas{position:absolute;z-index:1;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity .32s var(--motion-ease)}
 .environment-stage[data-ready="true"] .environment-canvas{opacity:1}
 
-.ci-page{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:28px max(20px,env(safe-area-inset-left)) calc(64px + env(safe-area-inset-bottom))}
-
-/* ---- masthead --------------------------------------------------------------- */
-.ci-masthead{padding:0 0 24px;border-bottom:1px solid var(--app-line)}
-.ci-eyebrow{margin:0;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
-.ci-page-title{margin:10px 0 0;font-size:var(--type-display);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
-.ci-page-lede{margin:12px 0 0;max-width:56ch;color:var(--app-muted);font-size:var(--type-lead);line-height:var(--leading-body)}
 
 /* ---- index ------------------------------------------------------------------ */
 .ci-index{margin:22px 0 0;display:flex;flex-wrap:wrap;gap:6px}
@@ -46,12 +43,6 @@ body{
 }
 .ci-index a:hover,.ci-index a:focus-visible{color:var(--app-accent);border-color:rgba(var(--app-accent-rgb),.38);outline:none}
 
-/* ---- sections --------------------------------------------------------------- */
-.ci-section{padding:38px 0 0;scroll-margin-top:20px}
-.ci-section-kicker{display:flex;align-items:center;gap:10px;margin:0;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
-.ci-section-kicker::after{content:"";flex:1 1 auto;height:1px;background:var(--app-line)}
-.ci-section-title{margin:8px 0 0;font-size:var(--type-section);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
-.ci-section-lede{margin:10px 0 0;max-width:60ch;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 
 /* ---- specimen rows ----------------------------------------------------------
    A specimen is a caption above a live component, not a container. Drawing a
@@ -62,7 +53,6 @@ body{
 .ci-specimen-label{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
 .ci-specimen-label span:first-child{color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
 .ci-specimen-label span:last-child{color:var(--app-muted);font-size:var(--type-caption);text-align:right}
-.ci-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 
 /* ---- reference tables -------------------------------------------------------- */
 .ci-ref{width:100%;border-collapse:collapse;font-size:var(--type-body-s)}
@@ -81,7 +71,6 @@ body{
 .ci-type-row{display:grid;grid-template-columns:92px minmax(0,1fr);gap:14px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--app-line)}
 .ci-type-meta{color:var(--app-muted);font-size:var(--type-caption);text-transform:uppercase}
 
-.ci-note{margin:12px 0 0;color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-body)}
 .ci-rule-list{margin-top:18px;border-top:1px solid var(--app-line)}
 .ci-rule{padding:14px 0;border-bottom:1px solid var(--app-line)}
 .ci-rule b{display:block;font-size:var(--type-body-s);font-weight:var(--weight-regular)}
@@ -96,13 +85,7 @@ body{
    Classes rather than style attributes: the page that documents the system
    should not be the one place that reaches for inline CSS. */
 .ci-type-stack{margin-top:18px;border-top:1px solid var(--app-line)}
-.ci-type-display{font-size:var(--type-display);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
-.ci-type-title{font-size:var(--type-title);font-weight:var(--weight-thin)}
-.ci-type-lead{font-size:var(--type-lead)}
-.ci-type-body{font-size:var(--type-body)}
-.ci-type-small{font-size:var(--type-small)}
-.ci-type-caption{font-size:var(--type-caption);color:var(--app-accent);text-transform:uppercase}
-.ci-type-data{font-size:var(--type-title);font-variant-numeric:tabular-nums}
+
 .ci-inset{padding:15px 16px;border-radius:var(--radius-inset)}
 .ci-flush{margin:0}
 .ci-nested{margin-top:10px}
@@ -113,3 +96,11 @@ body{
 .ci-swatch-accent{background:var(--app-accent)}
 .ci-swatch-line{background:var(--app-line)}
 .ci-swatch-inset{background:var(--app-inset-fill)}
+
+/* Type-scale display. These exist to SHOW a size, so they belong to the
+   reference page rather than the library. */
+.ci-type-lead{font-size:var(--type-lead)}
+.ci-type-body{font-size:var(--type-body)}
+.ci-type-small{font-size:var(--type-small)}
+.ci-type-caption{font-size:var(--type-caption);color:var(--app-accent);text-transform:uppercase}
+.ci-type-data{font-size:var(--type-title);font-variant-numeric:tabular-nums}

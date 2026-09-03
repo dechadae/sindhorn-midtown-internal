@@ -26,7 +26,11 @@ const EXPECT = [
   ['.app-disclosure', CARD], ['.app-primary', CARD], ['.app-chip', CARD],
   ['.app-select-trigger', CARD], ['.app-overlay', OVERLAY],
   ['.app-field input', WELL], ['.app-table tbody th', STICKY],
-  ['.app-utility-action', BARE], ['.app-action-card-button', BARE]
+  ['.app-utility-action', BARE], ['.app-action-card-button', BARE],
+  // Centralized layout and state modules: every page consumes these, so a
+  // regression here breaks every page rather than one.
+  ['.app-state', CARD], ['.app-skeleton-line', WELL],
+  ['.app-hero', BARE], ['.app-section', BARE], ['.app-page', BARE]
 ];
 
 const TYPES = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.woff2': 'font/woff2', '.png': 'image/png', '.svg': 'image/svg+xml' };
@@ -50,7 +54,7 @@ const failures = [];
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 page.on('pageerror', error => failures.push(`page error: ${error.message}`));
 await page.goto(`http://127.0.0.1:${port}/ci`, { waitUntil: 'load' });
-await page.waitForSelector('.ci-page');
+await page.waitForSelector('.app-page');
 await page.waitForTimeout(3500);
 
 const report = await page.evaluate(expect => {
@@ -62,7 +66,7 @@ const report = await page.evaluate(expect => {
   };
   const canvas = document.getElementById('environmentCanvas');
   return {
-    sections: document.querySelectorAll('.ci-section').length,
+    sections: document.querySelectorAll('.app-section').length,
     specimens: document.querySelectorAll('.ci-specimen').length,
     measured: expect.map(([selector]) => read(selector)),
     // A frame around a specimen would make it glass inside glass.
@@ -80,7 +84,7 @@ for (const [selector, want] of EXPECT) {
   if (norm(got.bg) !== norm(want.bg)) failures.push(`${selector}: fill ${got.bg}, expected ${want.bg}`);
   if (norm(got.filter) !== norm(want.filter)) failures.push(`${selector}: filter ${got.filter}, expected ${want.filter}`);
 }
-if (report.sections < 12) failures.push(`only ${report.sections} sections rendered`);
+if (report.sections < 14) failures.push(`only ${report.sections} sections rendered`);
 if (report.specimens < 12) failures.push(`only ${report.specimens} specimens rendered`);
 if (report.specimenPainted !== 'rgba(0, 0, 0, 0)') failures.push(`specimen rows must stay unpainted, got ${report.specimenPainted}`);
 if (report.canvas === '300x150') failures.push('atmosphere is the bootstrap preview, not the full runtime — import betta-runtime-full.js');
