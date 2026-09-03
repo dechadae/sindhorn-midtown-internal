@@ -10,6 +10,10 @@
 #   /share/fnb/<slug>.html -> /share/fnb/<slug>
 # No rewrite is used, so the initial HTTP response is the crawler-ready HTML.
 
+# /ci is deliberately absent: the UI Library is a standalone page (site/ci.html)
+# served by Cloudflare Pages clean URLs. It depends on the library and nothing
+# else, so a route rebuild cannot break the reference the rebuild is based on.
+#
 # SPA fallback, one line per authenticated route or compatibility alias.
 #
 # The target MUST be "/" and not "/index.html": Cloudflare Pages canonicalises
@@ -26,4 +30,3 @@
 /settings / 200
 /account / 200
 /admin / 200
-/ci / 200

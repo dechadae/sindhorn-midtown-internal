@@ -17,7 +17,7 @@ import {chromium} from 'playwright';
 
 const BASE_URL=(process.env.BASE_URL||'http://127.0.0.1:8788').replace(/\/$/,'');
 const ROUTES=[['/', '.business-dashboard-route'],['/fnb','.fnb-route'],['/settings','.settings-route'],
-              ['/brand','.brand-route'],['/hotel-factsheet','.factsheet-route'],['/ci','.ci-route']];
+              ['/brand','.brand-route'],['/hotel-factsheet','.factsheet-route'],['/ci','.ci-page']];
 
 const manifest={ok:true,version:2,profile:{id:'00000000-0000-0000-0000-000000000001',employeeNumber:'10639',displayName:'CI Developer',role:'super_admin',accountType:'developer',preferredLanguage:'en',active:true,pinConfigured:true},capabilities:['account.read','settings.read','fnb.read','people.read','people.manage','system.manage','developer.ui_library'],sections:[{key:'account',label:'Account',navLabel:'Account',renderer:'account',sortOrder:10,config:{}}]};
 const authShim=`window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'CI Developer',pin_configured_at:new Date().toISOString()};

@@ -31,16 +31,16 @@ async function runViewport(browser,width,height){
   page.on('console',message=>{if(message.type()==='error')errors.push(message.text())});
   try{
     await page.goto(`${BASE_URL}/ci`,{waitUntil:'domcontentloaded'});
-    await page.waitForSelector('.ci-route');
+    await page.waitForSelector('.ci-page');
     await page.waitForFunction(()=>window.SindhornUiLibrary?.version==='1.4.0-preview');
     await page.waitForSelector('#ci-glass');
     await page.waitForSelector('.masthead.app-glass-surface');
     await page.waitForSelector('.app-tabbar.app-glass-surface,.shell-footer-rail.app-glass-surface');
     const report=await page.evaluate(()=>{
-      const routeView=document.getElementById('route-view');
-      if(!routeView)throw new Error('route-view unavailable');
+      const routeView=document.querySelector('.ci-page');
+      if(!routeView)throw new Error('UI Library page unavailable');
       const probes=document.createElement('div');
-      probes.className='ci-route';
+      probes.className='';
       probes.style.cssText='position:fixed;left:-10000px;top:0;width:390px;visibility:hidden;pointer-events:none';
       probes.innerHTML=`
         <div class="ci-status app-glass-surface" data-probe="ci-status"></div>

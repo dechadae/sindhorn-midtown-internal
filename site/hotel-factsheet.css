@@ -42,9 +42,21 @@ body[data-route="hotelFactsheet"] #route-view{background:transparent;padding-bot
 
 /* Room categories clone the proven Brand History disclosure component. */
 .factsheet-room-list{display:grid;gap:9px;overflow-anchor:none}
+.factsheet-room-card{overflow:clip;border:1px solid var(--fs-border);border-radius:14px;background:var(--fs-glass);box-shadow:inset 0 1px 0 rgba(250,247,245,.025);transition:transform 260ms var(--fs-ease),border-color 260ms ease,background 260ms ease,box-shadow 260ms var(--fs-ease);backdrop-filter:var(--app-glass-surface-filter);-webkit-backdrop-filter:var(--app-glass-surface-filter);}
+.factsheet-room-card:focus-within{border-color:rgba(var(--fs-accent-rgb),.32);box-shadow:0 14px 34px rgba(12,9,18,.14)}
+.factsheet-room-card.is-open{border-color:rgba(var(--fs-accent-rgb),.25)}
+.factsheet-room-card-button{width:100%;min-height:82px;margin:0;padding:16px 17px;display:flex;align-items:center;justify-content:space-between;gap:16px;border:0;border-radius:0;background:transparent;color:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity 160ms ease,transform 160ms var(--fs-ease)}
+.factsheet-room-card-button:active{transform:scale(.992);opacity:.88}
+.factsheet-room-card-button:focus-visible{outline:2px solid rgba(var(--fs-accent-rgb),.72);outline-offset:-3px}
+.factsheet-room-card-copy{min-width:0;display:block}
 .factsheet-room-index{display:block;margin:0 0 6px;color:var(--fs-accent);font-size:9px;font-weight:400;line-height:1.2;text-transform:uppercase}
+.factsheet-room-card-copy strong{display:block;color:var(--sm-text);font-size:16px;font-weight:400;line-height:1.28}
 .factsheet-room-bed{display:block;margin-top:6px;color:var(--fs-muted);font-size:12px;font-weight:400;line-height:1.35}
 .factsheet-room-chevron{flex:0 0 18px;width:18px;height:18px;fill:none;stroke:rgba(250,247,245,.62);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;transition:transform 260ms var(--fs-ease),stroke 260ms ease}
+.factsheet-room-card.is-open .factsheet-room-chevron{transform:rotate(90deg);stroke:var(--fs-accent)}
+.factsheet-room-panel{display:grid;grid-template-rows:0fr;opacity:0;pointer-events:none;transition:grid-template-rows var(--fs-disclosure) var(--fs-ease),opacity 300ms ease}
+.factsheet-room-card.is-open .factsheet-room-panel{grid-template-rows:1fr;opacity:1;pointer-events:auto}
+.factsheet-room-panel-inner{min-height:0;overflow:hidden}
 .factsheet-room-context{margin:0 17px;padding:14px 0 15px;border-top:1px solid var(--fs-line);color:var(--fs-muted);font-size:12.5px;line-height:1.58}
 .factsheet-room-context>span{display:block;color:rgba(250,247,245,.52);font-size:8.5px;font-weight:400;line-height:1.2;text-transform:uppercase}
 .factsheet-room-context ul{margin:9px 0 0;padding-left:18px}
@@ -60,6 +72,13 @@ body[data-route="hotelFactsheet"] #route-view{background:transparent;padding-bot
 .factsheet-disclosure summary strong{min-width:0;font-size:13px;font-weight:400;line-height:1.35}
 .factsheet-disclosure summary>b{color:var(--fs-muted);font-size:11px;font-weight:400;white-space:nowrap}
 .factsheet-disclosure[open] summary{border-bottom:1px solid var(--fs-line)}
+.factsheet-table-wrap{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+.factsheet-table-wrap table{width:max(650px,100%);border-collapse:collapse;font-size:10.5px;font-variant-numeric:tabular-nums}
+.factsheet-table-wrap th,.factsheet-table-wrap td{padding:10px 8px;border-bottom:1px solid var(--fs-line);text-align:center;white-space:nowrap}
+.factsheet-table-wrap thead th{color:var(--fs-muted);font-size:9px;font-weight:400;text-transform:uppercase}
+.factsheet-table-wrap thead th:first-child{width:108px;min-width:108px;max-width:108px}
+.factsheet-table-wrap tbody th{position:sticky;left:0;z-index:1;width:108px;min-width:108px;max-width:108px;background:transparent;text-align:left;font-weight:400;white-space:normal;line-height:1.28}
+.factsheet-table-wrap tbody th small{display:block;margin-top:3px;color:var(--fs-muted);font-size:8.5px;font-weight:400;line-height:1.35}
 .factsheet-private-events{margin-top:9px}
 .factsheet-included-card{margin-top:9px}
 .factsheet-included-list{margin:10px 0 0;padding:10px 0 0 18px;border-top:1px solid var(--fs-line);color:rgba(250,247,245,.72);font-size:12.5px;line-height:1.55}
@@ -76,5 +95,5 @@ body[data-route="hotelFactsheet"] #route-view{background:transparent;padding-bot
 
 @media(min-width:560px){.factsheet-summary{grid-template-columns:repeat(4,minmax(0,1fr))}.factsheet-card-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.factsheet-bts-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(min-width:760px){.factsheet-picture img{max-height:390px}.factsheet-facts{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(max-width:355px){.factsheet-room-card-button{min-height:78px;padding:15px 16px}}
+@media(max-width:355px){.factsheet-room-card-button{min-height:78px;padding:15px 16px}.factsheet-room-card-copy strong{font-size:15.5px}}
 @media(prefers-reduced-motion:reduce){.factsheet-room-card,.factsheet-room-card-button,.factsheet-room-chevron,.factsheet-room-panel{transition:none!important}}

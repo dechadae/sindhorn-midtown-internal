@@ -68,10 +68,22 @@ body[data-route="settings"][data-settings-context="true"] #route-view{padding-bo
 .settings-planned span{display:block;margin-top:14px;padding-top:12px;border-top:1px solid var(--settings-line);font-size:10px;text-transform:uppercase}
 /* Route-owned context rail is a non-painted controller. Shell footer guard clones it into #app-footer. */
 #route-view .settings-route>.settings-section-rail{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+.settings-dialog{width:min(94vw,620px);max-height:min(88dvh,760px);padding:0;border:1px solid rgba(250,247,245,.15);border-radius:24px;background:var(--app-glass-overlay-fill,rgba(38,32,49,.72));color:var(--sm-text);box-shadow:0 28px 90px rgba(8,6,12,.42);backdrop-filter:blur(28px) saturate(1.2);-webkit-backdrop-filter:blur(28px) saturate(1.2);overflow:auto;transform-origin:center bottom}
+.settings-dialog::backdrop{background:rgba(14,11,19,.48);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.settings-dialog-body{padding:22px}
+.settings-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.settings-dialog-kicker{margin:0 0 4px;color:var(--settings-accent);font-size:9px;text-transform:uppercase}
+.settings-dialog h2{margin:0;font-size:24px;font-weight:100;line-height:1.15}
 .settings-close{width:36px;height:36px;display:grid;place-items:center;flex:0 0 auto;border:1px solid var(--settings-glass-brd);border-radius:50%;background:rgba(250,247,245,.035);font-size:22px;font-weight:100;transition:background var(--settings-motion-base) ease,border-color var(--settings-motion-base) ease,color var(--settings-motion-base) ease,transform var(--settings-motion-fast) var(--settings-ease),opacity var(--settings-motion-fast) ease;backdrop-filter:var(--app-glass-control-filter);-webkit-backdrop-filter:var(--app-glass-control-filter);}
 .settings-close:active{transform:scale(.975);opacity:.84}
 .settings-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}
 .settings-full{grid-column:1/-1}
+.settings-field{display:grid;gap:6px;min-width:0}
+.settings-field label{color:var(--settings-muted);font-size:9px;text-transform:uppercase}
+.settings-field label span{opacity:.72;text-transform:none}
+.settings-field input{width:100%;min-height:48px;border:1px solid var(--settings-glass-brd);border-radius:12px;background:rgba(250,247,245,.055);padding:10px 12px;outline:none;font-size:13px;transition:border-color var(--settings-motion-base) ease,background var(--settings-motion-base) ease,box-shadow var(--settings-motion-base) var(--settings-ease);backdrop-filter:var(--app-glass-control-filter);-webkit-backdrop-filter:var(--app-glass-control-filter);}
+.settings-field input:focus{border-color:rgba(229,236,190,.55);box-shadow:0 0 0 3px rgba(229,236,190,.08)}
+.settings-field input:disabled{opacity:.45}
 /* The visible selector is exactly the F&B fnb-select component. The real select remains hidden for form semantics. */
 .settings-select{width:100%}
 .settings-select .fnb-select-trigger{height:40px;min-height:40px}
@@ -83,13 +95,16 @@ body[data-route="settings"][data-settings-context="true"] #route-view{padding-bo
 .settings-form-section small{display:block;margin-top:3px;color:var(--settings-muted);font-size:11px}
 .settings-status{display:none;margin-top:16px;padding:11px 12px;border:1px solid var(--settings-glass-brd);border-radius:12px;background:rgba(250,247,245,.035);color:var(--settings-muted);font-size:12px;backdrop-filter:var(--app-glass-control-filter);-webkit-backdrop-filter:var(--app-glass-control-filter);}
 .settings-status[data-show="true"]{display:block}.settings-status[data-tone="error"]{border-color:rgba(212,105,105,.26);color:#f0b6b6;background:rgba(172,55,55,.08)}
+.settings-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}.settings-dialog-actions-split{justify-content:space-between;align-items:center}.settings-action-group,.settings-dialog-actions>div{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.settings-dialog-actions button,.settings-code-actions button{min-height:40px;padding:0 13px;border:1px solid var(--settings-glass-brd);border-radius:12px;background:rgba(250,247,245,.055);font-size:12px;transition:background var(--settings-motion-base) ease,border-color var(--settings-motion-base) ease,color var(--settings-motion-base) ease,box-shadow var(--settings-motion-base) var(--settings-ease),transform var(--settings-motion-fast) var(--settings-ease),opacity var(--settings-motion-fast) ease;backdrop-filter:var(--app-glass-control-filter);-webkit-backdrop-filter:var(--app-glass-control-filter);}
+.settings-dialog-actions button:active,.settings-code-actions button:active{transform:scale(.975);opacity:.84}
 .settings-danger{color:#f0b6b6!important;border-color:rgba(212,105,105,.3)!important;background:rgba(172,55,55,.08)!important}
 .settings-support,.settings-note{color:var(--settings-muted);font-size:12px;line-height:1.55}.settings-support{margin:16px 0 0}.settings-note{margin:6px 0}
 .settings-issued-code{margin:20px 0 4px;color:var(--settings-accent);font-size:40px;font-weight:400;line-height:1;font-variant-numeric:tabular-nums}
 .settings-qr{width:min(250px,72vw);aspect-ratio:1;margin:18px auto 12px;padding:9px;border:1px solid var(--settings-glass-brd);border-radius:18px;background:#FAF7F5}.settings-qr svg{display:block;width:100%;height:100%}
 .settings-code-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
 @media(max-width:620px){
-  .settings-facts{grid-template-columns:1fr 1fr;gap:0 14px}.settings-section-head{align-items:flex-start}.settings-add{flex:0 0 auto}.settings-form-grid{grid-template-columns:1fr}.settings-full{grid-column:auto}.settings-action-group{justify-content:flex-end}.settings-danger{width:100%}.settings-issued-code{font-size:36px}
+  .settings-facts{grid-template-columns:1fr 1fr;gap:0 14px}.settings-section-head{align-items:flex-start}.settings-add{flex:0 0 auto}.settings-form-grid{grid-template-columns:1fr}.settings-full{grid-column:auto}.settings-dialog{width:calc(100vw - 16px);max-height:calc(100dvh - 28px);border-radius:22px}.settings-dialog-body{padding:18px}.settings-dialog-actions-split{align-items:stretch;flex-direction:column}.settings-dialog-actions-split>div,.settings-action-group{width:100%}.settings-action-group{justify-content:flex-end}.settings-danger{width:100%}.settings-issued-code{font-size:36px}
 }
 @media(max-width:360px){.settings-facts{grid-template-columns:1fr}.settings-identity-row{gap:11px}.settings-avatar{width:44px;height:44px}}
 @media(prefers-reduced-motion:reduce){.settings-panel-host,.settings-user-card,.settings-user-button,.settings-primary,.settings-quiet-action,.settings-close,.settings-dialog-actions button,.settings-code-actions button,.settings-search,.settings-select .fnb-select-trigger,.settings-select .fnb-select-menu,.settings-select .fnb-select-option{transition:none!important}}

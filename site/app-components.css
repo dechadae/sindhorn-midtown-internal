@@ -1,27 +1,196 @@
-/* Sindhorn Midtown Internal - library-owned components.
+/* Sindhorn Midtown Internal — library-owned components.
 
-   These were defined inside route stylesheets,so building a new page meant
-   depending on F&B,Factsheet or Settings CSS. The library now owns the
-   definition and each route class rides along as a co-selector until that route
-   is rebuilt,at which point its name is dropped from the selector here.
+   Written deliberately, not extracted. An earlier attempt lifted 57 rules out
+   of three route stylesheets with a script and bolted route names on as
+   co-selectors; it dropped resets, missed sub-elements and left components with
+   no material, and each repair was a patch on a patch. This file is authored
+   instead, and owns nothing but geometry and structure.
 
-   Material comes from app-glass.css (.app-card / .app-control / .app-overlay).
-   This file owns geometry and structure only - no fill,no blur.
+   Material comes from app-glass.css: .app-card, .app-control, .app-overlay.
+   Values come from app-tokens.css. No fill, no blur, no colour literals here.
 
-   .app-action-card   an actionable card with a full-width button face
-   .app-select        the canonical selector,behaviour in app-select.js
-   .app-disclosure    expandable content that stays in the DOM
-   .app-field         a form field
-   .app-dialog        a dialog / sheet
-   .app-table         dense data that scrolls rather than collapsing
+   Routes still own their own copies until each is rebuilt page by page. That
+   duplication is deliberate and temporary: a route keeps working untouched, and
+   deletes its copy the day it adopts these names. Nothing here references a
+   route class, so no route can break when this file changes.
 */
 
+/* ---- Actionable card -------------------------------------------------------
+   A card whose whole face is the button. The button itself must reset the user
+   agent's background, or it renders as a grey ButtonFace over the material. */
+.app-action-card{overflow:clip;border-radius:var(--radius-surface)}
+.app-action-card-button{
+  width:100%;margin:0;padding:16px 17px;
+  display:block;text-align:left;
+  border:0;background:transparent;
+  color:inherit;font:inherit;cursor:pointer;
+  transition:transform var(--motion-fast) var(--motion-ease),opacity var(--motion-fast) ease;
+}
+.app-action-card-button:active{transform:scale(.995);opacity:.9}
+.app-action-card-button:focus-visible{outline:2px solid var(--app-accent);outline-offset:-3px}
+.app-action-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.app-action-card-status{color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-action-card-date{color:var(--app-muted);font-size:var(--type-caption);white-space:nowrap}
+.app-action-card-title{margin:8px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight)}
+.app-action-card-copy{margin:5px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-action-card-foot{margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--app-muted);font-size:var(--type-small)}
+.app-action-card-foot svg{width:14px;height:14px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.5}
 
-/* ---- promoted from fnb.css ---- */
-.app-select,.app-select,.fnb-select{display:grid;gap:6px;min-width:0}.app-select-label,.fnb-select-label{color:var(--app-muted);font-size:9px;font-weight:400;letter-spacing:0!important;text-transform:uppercase}.app-select select,.fnb-select select{border:1px solid var(--app-line);background-color:var(--app-inset-fill);width:100%;height:40px;min-height:40px;padding:0 30px 0 12px;border-radius:10px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 8l5 5 5-5' fill='none' stroke='%23FAF7F5' stroke-opacity='.55' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-size:14px;color:var(--app-text);font:inherit;font-size:13px;-webkit-appearance:none;appearance:none;cursor:pointer}.app-select select:focus-visible,.fnb-select select:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}.app-select select option,.fnb-select select option{color:var(--app-text)}/* ---- promotion list — compact panels,not heavy boxed cards -------------- */
-.app-action-card-list,not heavy boxed cards -------------- */
-.fnb-card-list{display:grid;gap:9px;padding:18px 0 0}.app-action-card,.fnb-card{border-radius:14px;transition:border-color .22s ease}.app-action-card-button,.fnb-card-button{width:100%;padding:16px 17px;text-align:left;cursor:pointer;color:inherit}.app-action-card-status,.fnb-card-status{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}.app-action-card-relative,.fnb-card-relative{color:var(--app-muted);font-size:11px}.app-action-card-title,.fnb-card-title{margin:0;font-size:clamp(16px,3.6vw,19px);font-weight:400;line-height:1.25;letter-spacing:0!important}.app-action-card-outlets,.fnb-card-outlets{margin:6px 0 0;color:var(--app-muted);font-size:12.5px}.app-action-card-date,.fnb-card-date{margin:10px 0 0;font-size:12.5px;font-variant-numeric:tabular-nums}.app-action-card-foot,.fnb-card-foot{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin-top:12px;color:var(--app-muted);font-size:12.5px;line-height:1.5}.app-action-card.fnb-status-live,.fnb-card.fnb-status-live{border-color:rgba(114,167,93,.4)}.fnb-chip,.app-action-card,.fnb-card,.fnb-progress-track i,.fnb-text-copy,.fnb-sheet,.fnb-art-chevron,.fnb-task-list,.fnb-art-head{transition:none}/* ---- promoted from hotel-factsheet.css ---- */
-.app-disclosure,.app-disclosure,.factsheet-room-card{overflow:clip;border-radius:14px;box-shadow:inset 0 1px 0 rgba(250,247,245,.025);transition:transform 260ms var(--motion-ease),border-color 260ms ease,background 260ms ease,box-shadow 260ms var(--motion-ease)}.app-disclosure:focus-within,.factsheet-room-card:focus-within{border-color:rgba(var(--app-accent-rgb),.32);box-shadow:0 14px 34px rgba(12,9,18,.14)}.app-disclosure.is-open,.factsheet-room-card.is-open{border-color:rgba(var(--app-accent-rgb),.25)}.app-disclosure-button,.factsheet-room-card-button{width:100%;min-height:82px;margin:0;padding:16px 17px;display:flex;align-items:center;justify-content:space-between;gap:16px;border:0;border-radius:0;color:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity 160ms ease,transform 160ms var(--motion-ease)}.app-disclosure-button:active,.factsheet-room-card-button:active{transform:scale(.992);opacity:.88}.app-disclosure-button:focus-visible,.factsheet-room-card-button:focus-visible{outline:2px solid rgba(var(--app-accent-rgb),.72);outline-offset:-3px}.app-disclosure-copy,.factsheet-room-card-copy{min-width:0;display:block}.app-disclosure-copy strong,.factsheet-room-card-copy strong{display:block;color:var(--app-text);font-size:16px;font-weight:400;line-height:1.28}.app-disclosure.is-open .factsheet-room-chevron,.factsheet-room-card.is-open .factsheet-room-chevron{transform:rotate(90deg);stroke:var(--app-accent)}.app-disclosure-panel,.factsheet-room-panel{display:grid;grid-template-rows:0fr;opacity:0;pointer-events:none;transition:grid-template-rows var(--motion-ms) var(--motion-ease),opacity 300ms ease}.app-disclosure.is-open .app-disclosure-panel,.factsheet-room-card.is-open .factsheet-room-panel{grid-template-rows:1fr;opacity:1;pointer-events:auto}.app-disclosure-panel-inner,.factsheet-room-panel-inner{min-height:0;overflow:hidden}.app-table-wrap,.factsheet-table-wrap{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}.app-table-wrap table,.factsheet-table-wrap table{width:max(650px,100%);border-collapse:collapse;font-size:10.5px;font-variant-numeric:tabular-nums}.app-table-wrap th,.factsheet-table-wrap th,.app-table-wrap td,.factsheet-table-wrap td{padding:10px 8px;border-bottom:1px solid var(--app-line);text-align:center;white-space:nowrap}.app-table-wrap thead th,.factsheet-table-wrap thead th{color:var(--app-muted);font-size:9px;font-weight:400;text-transform:uppercase}.app-table-wrap thead th:first-child,.factsheet-table-wrap thead th:first-child{width:108px;min-width:108px;max-width:108px}.app-table-wrap tbody th,.factsheet-table-wrap tbody th{position:sticky;left:0;z-index:1;width:108px;min-width:108px;max-width:108px;text-align:left;font-weight:400;white-space:normal;line-height:1.28}.app-table-wrap tbody th small,.factsheet-table-wrap tbody th small{display:block;margin-top:3px;color:var(--app-muted);font-size:8.5px;font-weight:400;line-height:1.35}.app-disclosure-copy strong,.factsheet-room-card-copy strong{font-size:15.5px}/* ---- promoted from settings.css ---- */
-.app-dialog,.app-dialog,.settings-dialog{width:min(94vw,620px);max-height:min(88dvh,760px);padding:0;border:1px solid rgba(250,247,245,.15);border-radius:24px;color:var(--app-text);box-shadow:0 28px 90px rgba(8,6,12,.42);overflow:auto;transform-origin:center bottom}/* A scrim is not a card: it dims the page behind a dialog rather than sitting on
-   the atmosphere,so it keeps its own values. */
-.app-dialog::backdrop,.app-dialog::backdrop,.settings-dialog::backdrop{background:rgba(14,11,19,.48);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}.app-dialog-body,.settings-dialog-body{padding:22px}.app-dialog-head,.settings-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}.app-dialog-kicker,.settings-dialog-kicker{margin:0 0 4px;color:var(--app-accent);font-size:9px;text-transform:uppercase}.app-dialog h2,.settings-dialog h2{margin:0;font-size:24px;font-weight:100;line-height:1.15}.app-field,.settings-field{display:grid;gap:6px;min-width:0}.app-field label,.settings-field label{color:var(--app-muted);font-size:9px;text-transform:uppercase}.app-field label span,.settings-field label span{opacity:.72;text-transform:none}.app-field input,.settings-field input{width:100%;min-height:48px;border:1px solid var(--app-line);border-radius:12px;background:var(--app-inset-fill);padding:10px 12px;outline:none;font-size:13px;transition:border-color var(--motion-ms) ease,background var(--motion-ms) ease,box-shadow var(--motion-ms) var(--motion-ease)}.app-field input:focus,.settings-field input:focus{border-color:rgba(229,236,190,.55);box-shadow:0 0 0 3px rgba(229,236,190,.08)}.app-field input:disabled,.settings-field input:disabled{opacity:.45}.app-dialog-actions,.settings-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}.app-dialog-actions-split,.settings-dialog-actions-split{justify-content:space-between;align-items:center}.settings-action-group,.app-dialog-actions>div,.settings-dialog-actions>div{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.app-dialog-actions button,.settings-dialog-actions button,.settings-code-actions button{min-height:40px;padding:0 13px;border-radius:12px;font-size:12px;transition:background var(--motion-ms) ease,border-color var(--motion-ms) ease,color var(--motion-ms) ease,box-shadow var(--motion-ms) var(--motion-ease),transform var(--motion-fast) var(--motion-ease),opacity var(--motion-fast) ease}.app-dialog-actions button:active,.settings-dialog-actions button:active,.settings-code-actions button:active{transform:scale(.975);opacity:.84}.app-dialog,.settings-dialog{width:calc(100vw - 16px);max-height:calc(100dvh - 28px);border-radius:22px}.app-dialog-body,.settings-dialog-body{padding:18px}.app-dialog-actions-split,.settings-dialog-actions-split{align-items:stretch;flex-direction:column}.app-dialog-actions-split>div,.settings-dialog-actions-split>div,.settings-action-group{width:100%}
+/* ---- Primary action --------------------------------------------------------
+   The emphatic control on a page. .app-control supplies the material; the
+   accent edge marks emphasis.
+
+   Disabled dims the content, not the element. Fading the whole button with
+   opacity also fades its backdrop-filter, so a disabled control stops looking
+   like the same material as everything around it. */
+.app-primary{
+  min-height:40px;padding:0 16px;
+  border:1px solid rgba(var(--app-accent-rgb),.28);border-radius:var(--radius-inset);
+  color:inherit;font:inherit;font-size:var(--type-body-s);cursor:pointer;
+  transition:transform var(--motion-fast) var(--motion-ease),border-color var(--motion-ms) ease,color var(--motion-ms) ease;
+}
+.app-primary:active{transform:scale(.975)}
+.app-primary:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
+.app-primary:disabled{border-color:var(--app-line);color:var(--app-muted);cursor:default;transform:none}
+
+/* ---- Content surface -------------------------------------------------------
+   A card whose content is the destination. Same material as the actionable
+   card, deliberately without a press affordance. */
+.app-surface{padding:15px 16px;border-radius:var(--radius-surface)}
+.app-surface-label{color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-surface-copy{margin:8px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+
+/* ---- Disclosure ------------------------------------------------------------
+   Content stays in the DOM and the panel animates height, so a screen reader
+   and Find-in-page still see it when collapsed. */
+.app-disclosure{overflow:clip;border-radius:var(--radius-surface)}
+.app-disclosure-button{
+  width:100%;min-height:78px;margin:0;padding:15px 16px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  border:0;background:transparent;
+  color:inherit;font:inherit;text-align:left;cursor:pointer;
+  transition:opacity var(--motion-fast) ease;
+}
+.app-disclosure-button:active{opacity:.9}
+.app-disclosure-button:focus-visible{outline:2px solid var(--app-accent);outline-offset:-3px}
+.app-disclosure-head{min-width:0;display:grid;gap:0}
+.app-disclosure-kicker{color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-disclosure-title{margin:6px 0 0;font-size:var(--type-body);font-weight:var(--weight-regular);line-height:var(--leading-label)}
+.app-disclosure-copy{margin:4px 0 0;color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-body)}
+.app-disclosure-chevron{width:18px;height:18px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.5;transition:transform var(--motion-ms) var(--motion-ease)}
+.app-disclosure[data-open="true"] .app-disclosure-chevron{transform:rotate(90deg)}
+.app-disclosure-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--motion-ms) var(--motion-ease)}
+.app-disclosure[data-open="true"] .app-disclosure-panel{grid-template-rows:1fr}
+.app-disclosure-panel-inner{overflow:hidden}
+.app-disclosure-panel-inner>*{padding:0 16px 16px}
+.app-disclosure-detail{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-disclosure-detail span{display:block;margin-bottom:6px;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-disclosure-detail ul{margin:0;padding-left:18px;display:grid;gap:4px}
+
+/* ---- Form field ------------------------------------------------------------
+   An input reads as a well, not a raised surface, so it takes the inset fill
+   rather than the card material. */
+.app-field{display:grid;gap:6px;min-width:0}
+.app-field label{color:var(--app-muted);font-size:var(--type-caption);text-transform:uppercase}
+.app-field label span{opacity:.72;text-transform:none}
+.app-field input,.app-field textarea,.app-field select{
+  width:100%;min-height:48px;padding:10px 12px;
+  border:1px solid var(--app-line);border-radius:var(--radius-inset);
+  background:var(--app-inset-fill);
+  color:var(--app-text);font:inherit;font-size:var(--type-body);
+  outline:none;
+  transition:border-color var(--motion-ms) ease,box-shadow var(--motion-ms) var(--motion-ease);
+}
+.app-field input:focus,.app-field textarea:focus,.app-field select:focus{
+  border-color:rgba(var(--app-accent-rgb),.55);
+  box-shadow:0 0 0 3px rgba(var(--app-accent-rgb),.08);
+}
+.app-field input:disabled,.app-field textarea:disabled,.app-field select:disabled{opacity:.45;cursor:default}
+.app-field-note{color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-body)}
+.app-field[data-tone="error"] .app-field-note{color:#E3A2A8}
+
+/* ---- Selector --------------------------------------------------------------
+   Behaviour lives in app-select.js. The trigger is a control; the menu floats
+   above content, so it is an overlay rather than a card. */
+.app-select{position:relative;min-width:0;display:grid;gap:6px}
+.app-select-label{color:var(--app-muted);font-size:var(--type-caption);text-transform:uppercase}
+.app-select-trigger{
+  width:100%;min-height:40px;padding:0 12px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  border-radius:var(--radius-inset);
+  color:inherit;font:inherit;font-size:var(--type-body);text-align:left;cursor:pointer;
+}
+.app-select-trigger svg{width:14px;height:14px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.5;transition:transform var(--motion-fast) var(--motion-ease)}
+.app-select[data-open="true"] .app-select-trigger svg{transform:rotate(180deg)}
+.app-select-menu{
+  position:absolute;z-index:60;top:calc(100% + 6px);left:0;right:0;
+  max-height:260px;overflow:auto;padding:6px;
+  border-radius:var(--radius-inset);
+  display:none;
+}
+.app-select[data-open="true"] .app-select-menu{display:block}
+.app-select-option{
+  width:100%;min-height:38px;padding:0 10px;
+  display:flex;align-items:center;
+  border:0;border-radius:var(--radius-tight);background:transparent;
+  color:inherit;font:inherit;font-size:var(--type-body-s);text-align:left;cursor:pointer;
+}
+.app-select-option[aria-selected="true"]{color:var(--app-accent)}
+.app-select-option:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
+
+/* ---- Chip ------------------------------------------------------------------
+   Metadata or an explicit filter, never decoration on a short label.
+   .app-control supplies the material. */
+.app-chip{
+  min-height:32px;padding:0 12px;
+  display:inline-flex;align-items:center;gap:6px;
+  border:1px solid var(--app-line);border-radius:var(--radius-inset);
+  color:var(--app-muted);font:inherit;font-size:var(--type-small);cursor:pointer;
+  transition:color var(--motion-ms) ease,border-color var(--motion-ms) ease,transform var(--motion-fast) var(--motion-ease);
+}
+.app-chip:active{transform:scale(.97)}
+.app-chip[aria-pressed="true"],.app-chip.is-active{color:var(--app-accent);border-color:rgba(var(--app-accent-rgb),.38)}
+.app-chip:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
+
+/* ---- Dialog ----------------------------------------------------------------
+   The dialog declares .app-overlay in markup. The scrim is not a card: it dims
+   the page behind rather than sitting on the atmosphere, so it owns its own
+   values. */
+.app-dialog{
+  width:min(94vw,620px);max-height:min(88dvh,760px);
+  padding:0;border-radius:var(--radius-dialog);
+  color:var(--app-text);
+}
+.app-dialog::backdrop{background:rgba(14,11,19,.48);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.app-dialog-body{padding:22px}
+.app-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.app-dialog-kicker{margin:0 0 4px;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-dialog-title{margin:0;font-size:var(--type-title);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
+.app-dialog-copy{margin:8px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-dialog-actions{margin-top:22px;display:flex;align-items:center;justify-content:flex-end;gap:10px}
+.app-dialog-actions-split{justify-content:space-between}
+
+/* ---- Table -----------------------------------------------------------------
+   Dense data scrolls horizontally rather than compressing. The first column is
+   sticky, so it must be opaque enough to cover the cells passing beneath it —
+   a transparent sticky column lets numbers slide under the row label. */
+.app-table-wrap{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+.app-table{width:max(650px,100%);border-collapse:collapse;font-size:var(--type-micro);font-variant-numeric:tabular-nums}
+.app-table th,.app-table td{padding:10px 8px;border-bottom:1px solid var(--app-line);text-align:center;white-space:nowrap}
+.app-table thead th{color:var(--app-muted);font-size:var(--type-caption);font-weight:var(--weight-regular);text-transform:uppercase}
+.app-table thead th:first-child{width:108px;min-width:108px;max-width:108px}
+.app-table tbody th{
+  position:sticky;left:0;z-index:1;
+  width:108px;min-width:108px;max-width:108px;
+  background:var(--app-sticky-fill);
+  text-align:left;font-weight:var(--weight-regular);white-space:normal;line-height:var(--leading-label);
+}
+.app-table tbody th small{display:block;margin-top:3px;color:var(--app-muted);font-size:var(--type-caption);font-weight:var(--weight-regular);line-height:var(--leading-label)}
+
+/* Reduced motion belongs with the components that declare the motion. Equal
+   specificity later in the same file wins, so no cascade override is needed. */
+@media(prefers-reduced-motion:reduce){
+  .app-action-card-button,.app-disclosure-button,.app-disclosure-chevron,
+  .app-disclosure-panel,.app-field input,.app-field textarea,.app-field select,
+  .app-select-trigger svg,.app-primary,.app-chip{transition-duration:.001ms}
+}

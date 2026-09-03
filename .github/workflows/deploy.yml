@@ -167,6 +167,7 @@ jobs:
           node scripts/ui-centralization-budget.mjs
           node scripts/shell-precache-parity-smoke.mjs
           node scripts/sw-install-resilience-smoke.mjs
+          node scripts/ci-page-render-smoke.mjs
 
       - name: Deploy to Cloudflare Pages
         env:

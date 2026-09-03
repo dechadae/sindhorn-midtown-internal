@@ -21,7 +21,8 @@
   --type-body-s:12px;     /* absorbs 12 / 12.5       — ~59 uses */
   --type-body:13px;       /* the single most-used    —  50 uses */
   --type-lead:15px;       /* absorbs 14 / 15         — ~22 uses */
-  --type-title:22px;      /* absorbs 19-24           — ~14 uses */
+  --type-title:22px;
+  --type-section:clamp(21px,5.6vw,27px);      /* absorbs 19-24           — ~14 uses */
   --type-display:clamp(30px,8.5vw,44px);   /* existing hero clamp, unchanged */
 
   /* Line heights. Labels sit tight, running text breathes. */
@@ -49,11 +50,17 @@
   --app-muted:rgba(250,247,245,.55);
   --app-line:rgba(250,247,245,.09);
   --app-inset-fill:rgba(250,247,245,.055);
+  /* A sticky table column must cover the cells sliding beneath it. This is a
+     legibility requirement, not a surface: at the card's 30% the numbers show
+     through the row label. */
+  --app-sticky-fill:rgba(46,39,59,.92);
   --app-accent:#E5ECBE;
   --app-accent-rgb:229,236,190;
 
   --radius-surface:14px;  /* cards, panels, sheets   —  28 uses */
-  --radius-inset:10px;    /* nested surfaces         —  12 uses */
+  --radius-inset:10px;
+  --radius-tight:8px;
+  --radius-dialog:24px;    /* nested surfaces         —  12 uses */
   --radius-pill:999px;    /* chips, rails            —  18 uses */
   --radius-circle:50%;    /* avatars, dots           —  14 uses */
   --radius-none:0;

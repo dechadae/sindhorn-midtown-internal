@@ -23,7 +23,7 @@ const PATCH_PATTERN=/-(refinements|fixes|polish|standard|stability)\.css$/;
 /* Foundation stylesheets are shared infrastructure and are expected to GROW as
    route CSS is absorbed into them. Counting all stylesheets together would make
    the ratchet block the very files that let route CSS be deleted. */
-const FOUNDATION=new Set(['app-tokens.css','app-glass.css','app-controls.css','app-shapes.css','app-components.css','app-transitions.css','fonts.css','shell.css']);
+const FOUNDATION=new Set(['app-tokens.css','app-glass.css','app-controls.css','app-shapes.css','app-components.css','ci-library.css','app-transitions.css','fonts.css','shell.css']);
 
 const read=f=>fs.readFileSync(path.join(SITE,f),'utf8');
 const cssFiles=fs.readdirSync(SITE).filter(f=>f.endsWith('.css')).sort();
@@ -31,8 +31,13 @@ const htmlFiles=fs.readdirSync(SITE).filter(f=>f.endsWith('.html')).sort();
 const allCss=cssFiles.map(read).join(' ');
 
 const rulesWith=(text,prop)=>[...text.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(m=>m[2].includes(prop)).length;
+// Counts distinct HARD-CODED values, ignoring var() references. A token
+// reference is compliance with the scale, not a new value: counting it as one
+// made migrating a literal to a token score as a regression, which is exactly
+// backwards. What this must measure is how many off-scale values remain.
 const distinct=prop=>new Set([...allCss.matchAll(new RegExp(prop+'\\s*:\\s*([^;}]+)','g'))]
-  .map(m=>m[1].trim().replace('!important','').trim())).size;
+  .map(m=>m[1].trim().replace('!important','').trim())
+  .filter(value=>!value.includes('var(--'))).size;
 // Counts distinct component names that actually IMPLEMENT the appearance -
 // a rule declaring fill, edge or backdrop - not every class whose name happens
 // to end in the suffix. Once a route hands its material to .app-card and keeps

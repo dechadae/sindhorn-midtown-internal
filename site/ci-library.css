@@ -1,0 +1,115 @@
+/* Sindhorn Midtown Internal — UI Library page chrome.
+
+   This file styles the reference page itself: its sections, headings, index and
+   captions. It styles no components. Every specimen on the page is rendered by
+   app-components.css and app-glass.css exactly as a real route would render it,
+   which is the only way the page can be trusted as a reference.
+
+   The page loads five stylesheets and nothing else:
+     fonts.css           the typeface
+     app-tokens.css      the values
+     app-glass.css       the material
+     app-components.css  the components
+     ci-library.css      this page's own chrome
+*/
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  min-height:100%;margin:0;
+  background:#2E273B;color:var(--app-text);
+  font-family:var(--font-ui);font-size:var(--type-body);font-weight:var(--weight-regular);
+  letter-spacing:0;line-height:var(--leading-body);
+  overflow-x:hidden;
+}
+
+/* The live atmosphere. Specimens sit on it, so the frosted material is real
+   rather than simulated over a flat colour. */
+.environment-stage{position:fixed;z-index:0;inset:0 0 auto 0;width:100vw;height:100lvh;overflow:hidden;background:#2E273B;pointer-events:none}
+.environment-canvas{position:absolute;z-index:1;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity .32s var(--motion-ease)}
+.environment-stage[data-ready="true"] .environment-canvas{opacity:1}
+
+.ci-page{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:28px max(20px,env(safe-area-inset-left)) calc(64px + env(safe-area-inset-bottom))}
+
+/* ---- masthead --------------------------------------------------------------- */
+.ci-masthead{padding:0 0 24px;border-bottom:1px solid var(--app-line)}
+.ci-eyebrow{margin:0;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.ci-page-title{margin:10px 0 0;font-size:var(--type-display);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
+.ci-page-lede{margin:12px 0 0;max-width:56ch;color:var(--app-muted);font-size:var(--type-lead);line-height:var(--leading-body)}
+
+/* ---- index ------------------------------------------------------------------ */
+.ci-index{margin:22px 0 0;display:flex;flex-wrap:wrap;gap:6px}
+.ci-index a{
+  min-height:30px;padding:0 11px;display:inline-flex;align-items:center;
+  border:1px solid var(--app-line);border-radius:var(--radius-inset);
+  color:var(--app-muted);font-size:var(--type-caption);text-decoration:none;text-transform:uppercase;
+}
+.ci-index a:hover,.ci-index a:focus-visible{color:var(--app-accent);border-color:rgba(var(--app-accent-rgb),.38);outline:none}
+
+/* ---- sections --------------------------------------------------------------- */
+.ci-section{padding:38px 0 0;scroll-margin-top:20px}
+.ci-section-kicker{display:flex;align-items:center;gap:10px;margin:0;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.ci-section-kicker::after{content:"";flex:1 1 auto;height:1px;background:var(--app-line)}
+.ci-section-title{margin:8px 0 0;font-size:var(--type-section);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
+.ci-section-lede{margin:10px 0 0;max-width:60ch;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+
+/* ---- specimen rows ----------------------------------------------------------
+   A specimen is a caption above a live component, not a container. Drawing a
+   frame here would make every specimen glass inside glass, which renders as a
+   flat tint — the frame would silently break the thing it displays. */
+.ci-stack{margin-top:18px;border-top:1px solid var(--app-line)}
+.ci-specimen{padding:18px 0;border-bottom:1px solid var(--app-line)}
+.ci-specimen-label{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+.ci-specimen-label span:first-child{color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.ci-specimen-label span:last-child{color:var(--app-muted);font-size:var(--type-caption);text-align:right}
+.ci-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+
+/* ---- reference tables -------------------------------------------------------- */
+.ci-ref{width:100%;border-collapse:collapse;font-size:var(--type-body-s)}
+.ci-ref th,.ci-ref td{padding:9px 0;border-bottom:1px solid var(--app-line);text-align:left;vertical-align:top}
+.ci-ref th{width:132px;color:var(--app-muted);font-size:var(--type-caption);font-weight:var(--weight-regular);text-transform:uppercase}
+.ci-ref code{color:var(--app-accent);font-size:var(--type-small)}
+
+/* ---- token swatches ----------------------------------------------------------- */
+.ci-swatches{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(146px,1fr));gap:10px}
+.ci-swatch{padding:12px;border-radius:var(--radius-inset)}
+.ci-swatch-chip{height:42px;border:1px solid var(--app-line);border-radius:var(--radius-tight)}
+.ci-swatch b{display:block;margin-top:9px;font-size:var(--type-small);font-weight:var(--weight-regular)}
+.ci-swatch code{display:block;margin-top:3px;color:var(--app-muted);font-size:var(--type-caption)}
+
+/* ---- type scale --------------------------------------------------------------- */
+.ci-type-row{display:grid;grid-template-columns:92px minmax(0,1fr);gap:14px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--app-line)}
+.ci-type-meta{color:var(--app-muted);font-size:var(--type-caption);text-transform:uppercase}
+
+.ci-note{margin:12px 0 0;color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-body)}
+.ci-rule-list{margin-top:18px;border-top:1px solid var(--app-line)}
+.ci-rule{padding:14px 0;border-bottom:1px solid var(--app-line)}
+.ci-rule b{display:block;font-size:var(--type-body-s);font-weight:var(--weight-regular)}
+.ci-rule span{display:block;margin-top:4px;color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-body)}
+
+@media(min-width:700px){
+  .ci-stack{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px}
+  .ci-stack.is-single{grid-template-columns:1fr}
+}
+
+/* ---- specimen helpers -------------------------------------------------------
+   Classes rather than style attributes: the page that documents the system
+   should not be the one place that reaches for inline CSS. */
+.ci-type-stack{margin-top:18px;border-top:1px solid var(--app-line)}
+.ci-type-display{font-size:var(--type-display);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
+.ci-type-title{font-size:var(--type-title);font-weight:var(--weight-thin)}
+.ci-type-lead{font-size:var(--type-lead)}
+.ci-type-body{font-size:var(--type-body)}
+.ci-type-small{font-size:var(--type-small)}
+.ci-type-caption{font-size:var(--type-caption);color:var(--app-accent);text-transform:uppercase}
+.ci-type-data{font-size:var(--type-title);font-variant-numeric:tabular-nums}
+.ci-inset{padding:15px 16px;border-radius:var(--radius-inset)}
+.ci-flush{margin:0}
+.ci-nested{margin-top:10px}
+.ci-field-stack{display:grid;gap:14px}
+.ci-ref-table{margin-top:18px}
+.ci-swatch-text{background:var(--app-text)}
+.ci-swatch-muted{background:var(--app-muted)}
+.ci-swatch-accent{background:var(--app-accent)}
+.ci-swatch-line{background:var(--app-line)}
+.ci-swatch-inset{background:var(--app-inset-fill)}

@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2E273B">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>UI Library · Sindhorn Midtown Internal</title>
+
+<!-- This page depends on the library and nothing else. No route stylesheet, no
+     shell, no runtime class registry. If a specimen here renders correctly, a
+     new page built from the same four files will render the same way — that is
+     the only claim this page is allowed to make. -->
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
+<link rel="stylesheet" href="/fonts.css?v=1">
+<link rel="stylesheet" href="/app-tokens.css?v=1">
+<link rel="stylesheet" href="/app-glass.css?v=6">
+<link rel="stylesheet" href="/app-components.css?v=1">
+<link rel="stylesheet" href="/ci-library.css?v=1">
+</head>
+<body>
+
+<div class="environment-stage" id="environmentStage" aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
+
+<main class="ci-page">
+
+  <header class="ci-masthead">
+    <p class="ci-eyebrow">Sindhorn Midtown Internal</p>
+    <h1 class="ci-page-title">UI Library</h1>
+    <p class="ci-page-lede">Every component the app is allowed to use, rendered live over the real atmosphere. A page is built by consuming these; a page that needs something absent from here needs it added here first.</p>
+    <nav class="ci-index" aria-label="Sections">
+      <a href="#material">01 Material</a>
+      <a href="#colour">02 Colour</a>
+      <a href="#type">03 Type</a>
+      <a href="#shape">04 Shape &amp; Motion</a>
+      <a href="#cards">05 Cards</a>
+      <a href="#disclosure">06 Disclosure</a>
+      <a href="#forms">07 Forms</a>
+      <a href="#selector">08 Selector</a>
+      <a href="#actions">09 Actions</a>
+      <a href="#dialog">10 Dialog</a>
+      <a href="#table">11 Table</a>
+      <a href="#rules">12 Rules</a>
+    </nav>
+  </header>
+
+  <!-- ========================= 01 MATERIAL ========================= -->
+  <section class="ci-section" id="material">
+    <p class="ci-section-kicker">01 · Material</p>
+    <h2 class="ci-section-title">One Frosted Material</h2>
+    <p class="ci-section-lede">A card is anything that draws an edge, so it needs the atmosphere behind it. A layout container draws no edge and takes no material. Three primitives, declared in markup, defined once in app-glass.css.</p>
+
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-card</span><span>30% fill · 18px blur</span></div>
+        <div class="app-card app-surface"><p class="app-surface-label">Frosted, not painted</p><div class="app-surface-copy">The atmosphere stays visible through the surface while its detail is softened by the one blur used everywhere in the app.</div></div>
+      </div>
+
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-control</span><span>same material</span></div>
+        <div class="ci-row">
+          <button class="app-primary app-control" type="button">Primary action</button>
+          <button class="app-chip app-control" type="button">Chip</button>
+        </div>
+        <p class="ci-note">Controls share the material. Size and emphasis change by role; the interaction grammar does not.</p>
+      </div>
+
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-overlay</span><span>72% fill · floats above content</span></div>
+        <div class="app-overlay ci-inset"><div class="app-surface-copy ci-flush">A dialog, sheet or menu floats above page content rather than the atmosphere, so it carries more pigment. One material, two weights.</div></div>
+      </div>
+
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Nesting</span><span>enforced, not documented</span></div>
+        <div class="app-card app-surface">
+          <p class="app-surface-label">Outer card</p>
+          <div class="app-card app-surface ci-nested"><div class="app-surface-copy ci-flush">A card inside a card keeps the tint and loses the blur. It cannot sample the page — only its parent — so glass inside glass would render as a flat tint whatever the CSS asked for.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 02 COLOUR ========================= -->
+  <section class="ci-section" id="colour">
+    <p class="ci-section-kicker">02 · Colour</p>
+    <h2 class="ci-section-title">Five Values, Named Once</h2>
+    <p class="ci-section-lede">Every route had converged on the same values under its own names. The library owns them once so a component can leave its route and still resolve.</p>
+    <div class="ci-swatches">
+      <div class="ci-swatch app-card"><div class="ci-swatch-chip ci-swatch-text"></div><b>Text</b><code>--app-text</code></div>
+      <div class="ci-swatch app-card"><div class="ci-swatch-chip ci-swatch-muted"></div><b>Muted</b><code>--app-muted</code></div>
+      <div class="ci-swatch app-card"><div class="ci-swatch-chip ci-swatch-accent"></div><b>Accent</b><code>--app-accent</code></div>
+      <div class="ci-swatch app-card"><div class="ci-swatch-chip ci-swatch-line"></div><b>Line</b><code>--app-line</code></div>
+      <div class="ci-swatch app-card"><div class="ci-swatch-chip ci-swatch-inset"></div><b>Inset fill</b><code>--app-inset-fill</code></div>
+    </div>
+    <p class="ci-note">Sorbet <code>#E5ECBE</code> is the only accent. A route never defines its own.</p>
+  </section>
+
+  <!-- ========================= 03 TYPE ========================= -->
+  <section class="ci-section" id="type">
+    <p class="ci-section-kicker">03 · Type</p>
+    <h2 class="ci-section-title">One Typeface, Clear Roles</h2>
+    <p class="ci-section-lede">LINE Seed Sans TH for English and Thai. Weights 100 / 400 / 700 only, and zero tracking everywhere in application chrome.</p>
+    <div class="ci-type-stack">
+      <div class="ci-type-row"><span class="ci-type-meta">Display<br>100</span><span class="ci-type-display">Hotel Factsheet</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Title<br>100</span><span class="ci-type-title">Rooms &amp; Suites</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Lead<br>400</span><span class="ci-type-lead">Fried Chicken &amp; Waffles</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Body<br>400</span><span class="ci-type-body">Concise operational copy stays readable over the live atmosphere.</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Small<br>400</span><span class="ci-type-small">Supporting detail and metadata.</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Caption<br>400</span><span class="ci-type-caption">Meeting capacity</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Data<br>400</span><span class="ci-type-data">393</span></div>
+    </div>
+  </section>
+
+  <!-- ========================= 04 SHAPE & MOTION ========================= -->
+  <section class="ci-section" id="shape">
+    <p class="ci-section-kicker">04 · Shape &amp; Motion</p>
+    <h2 class="ci-section-title">Rounded, Never Circular</h2>
+    <p class="ci-section-lede">Corners are soft; UI chrome is never a circle or a capsule. Motion explains state and settles with one easing family.</p>
+    <table class="ci-ref ci-ref-table">
+      <tbody>
+        <tr><th>Surface</th><td><code>--radius-surface</code> 14px — cards, disclosures, dialogs</td></tr>
+        <tr><th>Inset</th><td><code>--radius-inset</code> 10px — fields, chips, menus</td></tr>
+        <tr><th>Press</th><td><code>--motion-fast</code> 160ms — immediate feedback</td></tr>
+        <tr><th>State</th><td><code>--motion-ms</code> 280ms — component settles</td></tr>
+        <tr><th>Easing</th><td><code>--motion-ease</code> cubic-bezier(.22, 1, .36, 1)</td></tr>
+        <tr><th>Reduced</th><td>Reduced motion removes transitions without hiding state</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ========================= 05 CARDS ========================= -->
+  <section class="ci-section" id="cards">
+    <p class="ci-section-kicker">05 · Cards</p>
+    <h2 class="ci-section-title">Cards Communicate Role</h2>
+    <p class="ci-section-lede">A surface looks actionable only when it is actionable. Both take the same material; only the press promise differs.</p>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-action-card</span><span>whole face is the button</span></div>
+        <article class="app-action-card">
+          <button class="app-action-card-button" type="button">
+            <span class="app-action-card-head"><span class="app-action-card-status">Upcoming</span><span class="app-action-card-date">Starts soon</span></span>
+            <span class="app-action-card-title">Actionable Card</span>
+            <span class="app-action-card-copy">The whole surface opens a detail or a route.</span>
+            <span class="app-action-card-foot"><span>Open detail</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></span>
+          </button>
+        </article>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-surface</span><span>no press state</span></div>
+        <article class="app-surface"><p class="app-surface-label">Reference</p><div class="app-surface-copy">Use a non-actionable surface when the content is the destination. Do not attach a chevron or a lift unless the whole object can be acted on.</div></article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 06 DISCLOSURE ========================= -->
+  <section class="ci-section" id="disclosure">
+    <p class="ci-section-kicker">06 · Disclosure</p>
+    <h2 class="ci-section-title">Expandable Content Has One Rhythm</h2>
+    <p class="ci-section-lede">Content stays in the DOM when collapsed, so search and screen readers still find it. The control owns <code>aria-expanded</code>.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-disclosure</span><span>tap to expand</span></div>
+        <article class="app-disclosure" data-disclosure>
+          <button class="app-disclosure-button" type="button" aria-expanded="false">
+            <span class="app-disclosure-head">
+              <span class="app-disclosure-kicker">01 · Example</span>
+              <span class="app-disclosure-title">Expandable Reference</span>
+              <span class="app-disclosure-copy">Tap to reveal structured detail</span>
+            </span>
+            <svg class="app-disclosure-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5l5 5-5 5"/></svg>
+          </button>
+          <div class="app-disclosure-panel">
+            <div class="app-disclosure-panel-inner">
+              <div class="app-disclosure-detail">
+                <span>Details</span>
+                <ul>
+                  <li>Content stays inside the same card.</li>
+                  <li>The button owns the expanded state.</li>
+                  <li>Reduced motion removes the transition, not the state.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 07 FORMS ========================= -->
+  <section class="ci-section" id="forms">
+    <p class="ci-section-kicker">07 · Forms</p>
+    <h2 class="ci-section-title">Forms Stay Quiet and Explicit</h2>
+    <p class="ci-section-lede">Labels stay visible. An input reads as a well rather than a raised surface, so it takes the inset fill instead of the card material.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-field</span><span>label · input · note</span></div>
+        <div class="ci-field-stack">
+          <div class="app-field"><label for="ci-name">Display name</label><input id="ci-name" type="text" value="Sindhorn Midtown"></div>
+          <div class="app-field"><label for="ci-mail">Work email <span>optional</span></label><input id="ci-mail" type="email" placeholder="name@ihg.com"></div>
+          <div class="app-field" data-tone="error"><label for="ci-val">Validation state</label><input id="ci-val" type="text" value="Needs attention"><p class="app-field-note">Explain what the user can correct.</p></div>
+          <div class="app-field"><label for="ci-off">Disabled</label><input id="ci-off" type="text" placeholder="Unavailable" disabled></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 08 SELECTOR ========================= -->
+  <section class="ci-section" id="selector">
+    <p class="ci-section-kicker">08 · Selector</p>
+    <h2 class="ci-section-title">One Selector, One Menu</h2>
+    <p class="ci-section-lede">The trigger is a control; the menu floats above content, so it is an overlay. There is one selector in the app and this is it.</p>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-select</span><span>tap to open</span></div>
+        <div class="app-select" data-select>
+          <span class="app-select-label">Outlet</span>
+          <button class="app-select-trigger app-control" type="button" aria-haspopup="listbox" aria-expanded="false"><span data-select-value>All outlets</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button>
+          <div class="app-select-menu app-overlay" role="listbox">
+            <button class="app-select-option" type="button" role="option" aria-selected="true">All outlets</button>
+            <button class="app-select-option" type="button" role="option" aria-selected="false">Bangkok&rsquo;78</button>
+            <button class="app-select-option" type="button" role="option" aria-selected="false">ANJU</button>
+          </div>
+        </div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-chip</span><span>metadata / filter</span></div>
+        <div class="ci-row">
+          <button class="app-chip app-control is-active" type="button">Active</button>
+          <button class="app-chip app-control" type="button">Filter</button>
+          <button class="app-chip app-control" type="button">Metadata</button>
+        </div>
+        <p class="ci-note">A chip is a filter or a piece of metadata, never decoration applied to a short label.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 09 ACTIONS ========================= -->
+  <section class="ci-section" id="actions">
+    <p class="ci-section-kicker">09 · Actions</p>
+    <h2 class="ci-section-title">One Tactile Language</h2>
+    <p class="ci-section-lede">Emphasis changes by role, not by inventing a new interaction. Utility actions are deliberately frameless: no edge, so no material.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Controls</span><span>material</span></div>
+        <div class="ci-row">
+          <button class="app-primary app-control" type="button">Primary action</button>
+          <button class="app-primary app-control" type="button" disabled>Disabled</button>
+        </div>
+        <p class="ci-note">Disabled dims the content, not the element. Fading a whole button with opacity fades its blur too, so it stops looking like the same material as everything around it.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Utility actions</span><span>no frame · no material</span></div>
+        <div class="ci-row">
+          <button class="app-utility-action" type="button">Share</button>
+          <button class="app-utility-action" type="button">Back to top</button>
+          <button class="app-utility-action" type="button">Sign out</button>
+        </div>
+        <p class="ci-note">These draw no edge, so by the rule they are not cards and take no glass. That is a consequence of the definition, not an exception to it.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 10 DIALOG ========================= -->
+  <section class="ci-section" id="dialog">
+    <p class="ci-section-kicker">10 · Dialog</p>
+    <h2 class="ci-section-title">One Dialog Standard</h2>
+    <p class="ci-section-lede">Editing and bounded secondary tasks use a native dialog. Do not build a second scrim, scroll lock or open animation.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-dialog</span><span>native &lt;dialog&gt; · .app-overlay</span></div>
+        <button class="app-primary app-control" type="button" data-dialog-open>Open dialog specimen</button>
+        <p class="ci-note">The scrim is not a card: it dims the page behind rather than sitting on the atmosphere, so it owns its own values.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 11 TABLE ========================= -->
+  <section class="ci-section" id="table">
+    <p class="ci-section-kicker">11 · Table</p>
+    <h2 class="ci-section-title">Dense Data Scrolls, It Does Not Collapse</h2>
+    <p class="ci-section-lede">On a narrow screen, horizontal scrolling beats illegible compression. The first column stays put so a row never loses its label.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-table</span><span>scroll sideways</span></div>
+        <div class="app-table-wrap">
+          <table class="app-table">
+            <thead><tr><th scope="col">Room</th><th scope="col">Class</th><th scope="col">Theatre</th><th scope="col">Banquet</th><th scope="col">Cocktail</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Veha<small>30th · 172.5 sqm</small></th><td>60</td><td>108</td><td>110</td><td>120</td></tr>
+              <tr><th scope="row">Midtown 1<small>2nd · 45 sqm</small></th><td>16</td><td>43</td><td>24</td><td>—</td></tr>
+              <tr><th scope="row">Midtown 2<small>2nd · 45 sqm</small></th><td>16</td><td>43</td><td>24</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="ci-note">The sticky column carries an opaque fill. At the card's 30% the numbers slide visibly underneath the row label.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 12 RULES ========================= -->
+  <section class="ci-section" id="rules">
+    <p class="ci-section-kicker">12 · Rules</p>
+    <h2 class="ci-section-title">What Holds the System Together</h2>
+    <div class="ci-rule-list">
+      <div class="ci-rule"><b>A card draws an edge.</b><span>If it draws a border or a fill it is a card and takes the material. If it only arranges children it is a layout container and takes nothing.</span></div>
+      <div class="ci-rule"><b>Material is declared, never redefined.</b><span>A page consumes .app-card, .app-control or .app-overlay. No page declares fill, edge or blur of its own.</span></div>
+      <div class="ci-rule"><b>Glass never nests.</b><span>A backdrop filter inside a backdrop filter samples its parent, not the page, and renders as a flat tint. The library handles this so a page cannot get it wrong.</span></div>
+      <div class="ci-rule"><b>Reuse before creating.</b><span>If a page needs something that is not here, it is added here first and then consumed. A component that exists only inside one route is not a component.</span></div>
+      <div class="ci-rule"><b>One typeface, zero tracking.</b><span>LINE Seed Sans TH at 100, 400 or 700. Application chrome never adjusts letter spacing.</span></div>
+      <div class="ci-rule"><b>Rounded, never circular.</b><span>Corners are soft. Circular and capsule chrome are not part of this system.</span></div>
+      <div class="ci-rule"><b>Motion explains state.</b><span>Press is immediate, state settles with one easing family, and reduced motion removes the transition without hiding what changed.</span></div>
+      <div class="ci-rule"><b>The atmosphere is never covered.</b><span>No route paints a full-bleed veil over the Betta. Legibility comes from the material, not from dimming the app.</span></div>
+    </div>
+  </section>
+
+</main>
+
+<dialog class="app-dialog app-overlay" data-dialog>
+  <form method="dialog" class="app-dialog-body">
+    <div class="app-dialog-head">
+      <div>
+        <p class="app-dialog-kicker">Specimen</p>
+        <h2 class="app-dialog-title">Dialog Standard</h2>
+      </div>
+    </div>
+    <p class="app-dialog-copy">A dialog floats above page content rather than the atmosphere, so it takes the heavier overlay fill. The scrim behind it dims the page and owns its own values.</p>
+    <div class="app-dialog-actions">
+      <button class="app-utility-action" type="button" data-dialog-close>Cancel</button>
+      <button class="app-primary app-control" value="ok">Confirm</button>
+    </div>
+  </form>
+</dialog>
+
+<script type="module">
+/* The page's own behaviour. Three interactions, no framework, no shared state.
+   Components that ship behaviour in the app (the selector) are demonstrated
+   here with the same markup contract so the two cannot drift apart. */
+
+// Live atmosphere. The library's material is only honest over the real thing,
+// so a failure here degrades to the flat brand colour rather than faking it.
+(async () => {
+  try {
+    // The full WebGL runtime directly, not betta-runtime.js. That module is a
+    // bootstrap: it paints a static preview frame and defers the real renderer
+    // behind a startup signal the app shell emits. A standalone page never sends
+    // it, so importing it here leaves a still image where the atmosphere should
+    // be — and the material would then be frosting a photograph.
+    const betta = await import('/betta-runtime-full.js?v=1');
+    await betta.initEnvironment();
+    document.getElementById('environmentStage')?.setAttribute('data-ready', 'true');
+  } catch (error) {
+    console.warn('Atmosphere unavailable; specimens render over the flat ground.', error);
+  }
+})();
+
+// Disclosure
+for (const root of document.querySelectorAll('[data-disclosure]')) {
+  const button = root.querySelector('.app-disclosure-button');
+  button?.addEventListener('click', () => {
+    const open = root.dataset.open === 'true';
+    root.dataset.open = String(!open);
+    button.setAttribute('aria-expanded', String(!open));
+  });
+}
+
+// Selector
+for (const root of document.querySelectorAll('[data-select]')) {
+  const trigger = root.querySelector('.app-select-trigger');
+  const value = root.querySelector('[data-select-value]');
+  const close = () => { root.dataset.open = 'false'; trigger?.setAttribute('aria-expanded', 'false'); };
+  trigger?.addEventListener('click', event => {
+    event.stopPropagation();
+    const open = root.dataset.open === 'true';
+    root.dataset.open = String(!open);
+    trigger.setAttribute('aria-expanded', String(!open));
+  });
+  for (const option of root.querySelectorAll('.app-select-option')) {
+    option.addEventListener('click', () => {
+      for (const other of root.querySelectorAll('.app-select-option')) other.setAttribute('aria-selected', 'false');
+      option.setAttribute('aria-selected', 'true');
+      if (value) value.textContent = option.textContent;
+      close();
+    });
+  }
+  document.addEventListener('click', event => { if (!root.contains(event.target)) close(); });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
+}
+
+// Chips
+for (const chip of document.querySelectorAll('.app-chip')) {
+  chip.addEventListener('click', () => chip.classList.toggle('is-active'));
+}
+
+// Dialog
+const dialog = document.querySelector('[data-dialog]');
+document.querySelector('[data-dialog-open]')?.addEventListener('click', () => dialog?.showModal());
+document.querySelector('[data-dialog-close]')?.addEventListener('click', () => dialog?.close());
+</script>
+
+</body>
+</html>
