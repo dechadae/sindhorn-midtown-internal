@@ -35,9 +35,12 @@ try{
       return response.text();
     });
     const keys=await caches.keys();
-    const key=keys.find(value=>value.includes('pwa-v38-today-motion-r1'));
+    // Derive the cache name from the worker itself. Pinning a version here meant
+    // every VERSION bump silently found no cache and read every asset as missing.
+    const swVersion=(swText.match(/VERSION\s*=\s*'([^']+)'/)||[])[1]||'';
+    const key=keys.find(value=>value===swVersion)||keys.find(value=>value.startsWith('sindhorn-midtown-internal-pwa-'));
     const cache=key?await caches.open(key):null;
-    const expected=['/','/index.html','/route-registry.js','/business-dashboard.js','/business-dashboard-data.js','/business-dashboard.css','/business-dashboard-motion.js','/business-dashboard-motion.css','/hotel-factsheet.css','/betta-environment.js','/betta-fin-presets.js','/betta-fin-shader.js','/betta-satellite.js','/rain-layer.js','/rain-layer-legacy-weather.js','/push-config.js','/push-client.js','/notification-inbox.js','/app.js','/manifest.webmanifest'];
+    const expected=['/','/index.html','/route-registry.js','/business-dashboard.js','/business-dashboard-data.js','/business-dashboard.css','/business-dashboard-motion.js','/business-dashboard-motion.css','/hotel-factsheet.css','/betta-runtime.js','/betta-runtime-full.js','/betta-fin-presets.js','/betta-fin-shader.js','/betta-satellite.js','/rain-now.js','/push-config.js','/push-client.js','/notification-inbox.js','/app.js','/manifest.webmanifest'];
     const cached={};
     for(const path of expected)cached[path]=Boolean(cache&&await cache.match(path));
     return{
@@ -47,7 +50,7 @@ try{
       cacheKey:key||null,
       cached,
       pushPreserved:swText.includes("self.addEventListener('push'")&&swText.includes("NOTIFICATION_DB='sindhorn-midtown-notification-inbox'"),
-      bettaPreserved:swText.includes("'/betta-environment.js'")&&swText.includes("'/betta-satellite.js'"),
+      bettaPreserved:swText.includes("'/betta-runtime-full.js'")&&swText.includes("'/betta-satellite.js'"),
       dashboardMotionPreserved:swText.includes("'/business-dashboard-motion.js'")&&swText.includes("'/business-dashboard-motion.css'")
     };
   });
