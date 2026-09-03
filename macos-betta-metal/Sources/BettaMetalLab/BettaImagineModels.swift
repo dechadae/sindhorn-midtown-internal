@@ -14,6 +14,20 @@ struct BettaImagineColor: Codable, Equatable {
         r = Double(value.x); g = Double(value.y); b = Double(value.z)
     }
 
+    /// Defensive bridge for model-produced RGB. Foundation Models is now guided
+    /// to emit normalized 0...1 channels, but if a model ever returns familiar
+    /// 0...255 RGB values we preserve their ratios instead of clamping every
+    /// channel above 1 to white.
+    static func fromModelRGB(r: Double, g: Double, b: Double) -> BettaImagineColor {
+        let values = [r, g, b]
+        let peak = values.max() ?? 0
+        let floor = values.min() ?? 0
+        if peak > 1.000_001, peak <= 255.0, floor >= 0 {
+            return BettaImagineColor(r: r / 255.0, g: g / 255.0, b: b / 255.0)
+        }
+        return BettaImagineColor(r: r, g: g, b: b)
+    }
+
     var paletteSIMD: SIMD3<Float> {
         SIMD3<Float>(Float(clamp(r, 0, 1)), Float(clamp(g, 0, 1)), Float(clamp(b, 0, 1)))
     }
