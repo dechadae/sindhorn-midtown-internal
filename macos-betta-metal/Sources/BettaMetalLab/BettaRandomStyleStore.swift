@@ -101,17 +101,8 @@ final class BettaRandomStyleStore {
     }
 
     func style(for referenceId: Int) -> BettaRandomStyle? {
-        lock.lock()
-        let style = values[referenceId]
-        lock.unlock()
-        guard let style else { return nil }
-
-        if let preset = BettaPreset.all.first(where: { $0.referenceId == referenceId }),
-           BettaAdvancedTuningStore.shared.adjustment(for: referenceId) == .canonical(preset) {
-            clear(referenceId: referenceId)
-            return nil
-        }
-        return style
+        lock.lock(); defer { lock.unlock() }
+        return values[referenceId]
     }
 
     func clear(referenceId: Int) {
@@ -243,7 +234,10 @@ final class BettaRandomStyleStore {
         var filtered: [Int: BettaRandomStyle] = [:]
         for (referenceId, style) in snapshot {
             guard let preset = BettaPreset.all.first(where: { $0.referenceId == referenceId }) else { continue }
-            if BettaAdvancedTuningStore.shared.adjustment(for: referenceId) != .canonical(preset) {
+            let original = Self.originalStyle(for: preset, seed: style.seed)
+            let hasCustomColors = style.palette != original.palette || style.background != original.background
+            let hasCustomForm = BettaAdvancedTuningStore.shared.adjustment(for: referenceId) != .canonical(preset)
+            if hasCustomColors || hasCustomForm {
                 filtered[referenceId] = style
             }
         }
