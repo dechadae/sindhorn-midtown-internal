@@ -165,7 +165,7 @@ document.documentElement.dataset.shellLoading='true';
 const initial=(await readCachedPack())||(await fallbackPack());await applyPack(initial,{mount:true});
 /* Betta is the first post-route startup task so Today and the persistent WebGL
    surface can enter together. Live air data continues immediately afterward. */
-const environment=await import('./betta-runtime.js?v=1');await environment.initEnvironment();
+const environment=await import('./betta-runtime.js?v=2');await environment.initEnvironment();
 const live=await import('./live-data.js');await live.initLiveData();
 /* The Betta environment schedules its first WebGL render on requestAnimationFrame.
    Keep the startup state for two paint opportunities so the GPU canvas is

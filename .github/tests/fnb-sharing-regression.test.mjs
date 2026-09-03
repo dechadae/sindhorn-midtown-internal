@@ -13,8 +13,13 @@ const fnb=await readFile('site/fnb.js','utf8');
 const adapter=await readFile('site/fnb-data.js','utf8');
 const manifest=JSON.parse(await readFile('site/manifest.webmanifest','utf8'));
 
-assert.match(base,/rgba\(24,20,32,\.72\)/,'fixture: previous dark overlay missing from base CSS');
-assert.match(refinements,/\.fnb-route::before\{content:none!important;background:none!important\}/,'heavy F&B route dimmer must be disabled');
+// The heavy route dimmer was painted in fnb.css and then switched back off by an
+// !important patch in fnb-refinements.css. It is no longer painted at all, so
+// assert the absence rather than the patch. This is the stronger test: it forbids
+// the dimmer returning, where the old pair required it to exist.
+assert.match(base,/\.fnb-route::before\{content:none\}/,'F&B route must not paint a dimmer over the atmosphere');
+assert.doesNotMatch(base,/\.fnb-route::before\{[^}]*background:/,'F&B route dimmer must not be reintroduced in base CSS');
+assert.doesNotMatch(refinements,/\.fnb-route::before/,'the dimmer-disabling patch is obsolete once the dimmer is gone');
 assert.match(refinements,/text-transform:none!important/,'action controls must preserve sentence/title case');
 assert.match(shareUi,/const SHARE_LABEL='Share'/,'Share label must be sentence case');
 assert.match(shareUi,/hero\.appendChild\(button\('page'\)\)/,'page Share must attach directly to the hero overlay host');

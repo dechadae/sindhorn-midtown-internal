@@ -40,6 +40,10 @@ async function waitForRefreshedMotionState(page){
     return root?.dataset.bdMotionReady==='true'&&occupancy?.textContent.trim()==='90.2%';
   });
   // #151 replaced the publication-diff layer with a progress-only module: no bdMotionValue
+  // stageProgressTracks deletes bdProgressReady and only restores it two animation
+  // frames later, so the flag must be waited for rather than sampled after the
+  // values settle - sampling raced the remount.
+  await page.waitForFunction(()=>document.querySelector('.business-dashboard-route')?.dataset.bdProgressReady==='true');
   await page.waitForTimeout(760);
   await page.waitForFunction(()=>{
     const root=document.querySelector('.business-dashboard-route');

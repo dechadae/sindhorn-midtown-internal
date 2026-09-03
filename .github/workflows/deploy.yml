@@ -114,8 +114,15 @@ jobs:
           assert (root/'vendor/three.module.js').exists(), 'Three source must remain available for reproducible Betta builds'
           assert (root/'vendor/html2canvas.min.js').exists(), 'Capture library source must remain available for lazy loading'
 
-          assert "await import('./betta-runtime.js?v=1')" in bootstrap
-          assert "import('./betta-runtime.js?v=1')" in auth_shell
+          # auth-shell.js warms Betta early and bootstrap.js imports it again later. They
+          # must be the SAME module URL or the browser evaluates two instances and
+          # initEnvironment runs twice. A literal version pin let these drift apart:
+          # auth-shell moved to ?v=2 while bootstrap stayed on ?v=1.
+          _boot=re.search(r"await import\('(\./betta-runtime\.js\?v=\d+)'\)",bootstrap)
+          _auth=re.search(r"import\('(\./betta-runtime\.js\?v=\d+)'\)",auth_shell)
+          assert _boot and _auth, 'betta-runtime import missing from bootstrap.js or auth-shell.js'
+          assert _boot.group(1)==_auth.group(1), f'betta-runtime module URL drift: bootstrap {_boot.group(1)} vs auth-shell {_auth.group(1)}'
+          assert _boot.group(1)[2:] in index, f'index.html must reference the same betta-runtime build as the shell: {_boot.group(1)}'
           assert "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" in betta
           assert "dataset.environmentInput='satellite-only'" in betta
           assert 'const DPR=2' in betta and 'preserveDrawingBuffer:false' in betta
