@@ -1,74 +1,110 @@
-# Sindhorn Betta Metal Lab for macOS
+# BETTA for macOS
 
-Native Swift + AppKit + Metal/MetalKit implementation of the Sindhorn procedural Betta renderer.
+**Living generative art for your Mac.**
 
-## Authority
+BETTA is a native Swift + AppKit + Metal/MetalKit living-art renderer built from the Sindhorn procedural Betta research project. The fish is generated and shaded in real time: there is no WebView, browser, WebGL runtime, video loop, GIF, generated image asset, or prerendered fish.
 
-- Production PWA main captured for this branch: `b5cf2b1e021d2bd9bc93dff7e28aaf6dd22e41ab`
-- Android implementation reference: `android-betta-wallpaper@7cbd44faca97f763065d194884be935ae95dd106`
-- The production PWA remains the canonical starting artwork. The macOS editor stores non-destructive per-fish overrides on top of those presets.
+## 1.0 experience
 
-The macOS implementation still uses the production neutral satellite driver state. Live Himawari/Bangkok environmental modulation remains a later phase after the native artwork is approved.
+BETTA 1.0 is organized around three layers:
 
-## High Detail Mac renderer
+- **Living Gallery** — the consumer-facing home for the eight immutable Originals, Favorites, Random Betta, Continuous Evolution and one-click desktop use.
+- **Living Studio** — the native Liquid Glass advanced editor with full camera, XYZ composition, 1–6 procedural membranes, form, motion, optics, color and fine-detail controls.
+- **Ambient Engine** — Bangkok live scheduling, JMA Himawari atmosphere, adaptive energy use, Launch at Login support, synchronized multi-display desktop rendering and an app-level Ambient Screen mode.
 
-There is no WebView, browser, WebGL, video, GIF, generated imagery, or prerendered fish asset. The fish is generated and shaded natively with Metal.
+First-run onboarding introduces the product as: **Meet your Betta → Make it yours → Let it live.** A native Settings window exposes the few system-level choices that should remain outside the creative Studio.
 
-The first parity build used the web/mobile 80 × 72 membrane topology. The Mac High Detail build now uses a **160 × 144** radial membrane surface, roughly four times the triangle density, while retaining two ordered translucent membrane layers.
+## Artistic authority and preservation
 
-The Metal shader adds tunable high-frequency structure for:
+- Production PWA source was the original visual authority for the port.
+- Android remained an implementation reference only.
+- The macOS high-detail renderer uses a **160 × 144** membrane topology.
+- The eight original fish definitions remain immutable source presets.
+- Existing 0.3–0.6 composition, Favorites, random-organism and Studio persistence remains compatible in 1.0.
+- Fish #5 **Mustard Galaxy Koi** keeps its original yellow/multicolor source palette and can restore original colors without resetting geometry or composition.
 
-- ray definition
-- micro folds
-- edge ruffle
-- vein emphasis
-- membrane grain
-- fine flutter
-- normal detail
+## Living behavior
 
-All of these controls default to neutral values so Reset returns to the production-inspired appearance.
+Normal fish-to-fish changes are intentionally cinematic rather than UI-fast:
 
-## Per-fish editor
+- Original/manual/saved-preset morph: **18 seconds**
+- Bangkok three-hour rollover: **90 seconds**
+- Three-minute day-preview morph: **12 seconds**
+- Random Betta and direct Studio customization: immediate
+- Continuous Evolution: continuously interpolated generative state
 
-Each Fish #1–#8 has its own saved state. The editor is split into these tabs:
+The normal morph uses symmetric smootherstep easing so the organism begins and settles gently.
 
-- **Layout** — 90° orientation, scale, X/Y/Z
-- **Camera** — FOV, camera X/Y/Z, pitch, yaw, roll
-- **Form** — spread, ray count, fold density, curl, twist, edge flutter, depth, current strength
-- **Motion** — speed, turbulence, amplitude
-- **Optics** — opacity, transmission, rim light, fold highlight, iridescence, bloom
-- **Color** — saturation, brightness, gradient position
-- **Detail** — Mac-only microstructure controls
-- **Front** — primary membrane layer scale/alpha/offset/rotation/phase
-- **Back** — secondary membrane layer scale/alpha/offset/rotation/phase
+## Bangkok Live · Himawari
 
-Changes preview live. **Save All 8 & Use as Wallpaper** persists layout, camera, tail and layer settings for all eight fish, returns to the Bangkok live cycle and switches to desktop mode. Camera and advanced tail settings morph smoothly between fish rather than crossfading rendered images.
+BETTA connects to public JMA Himawari imagery for the Bangkok region. Infrared, water-vapor and true-color tiles are sampled into normalized environmental signals; the remote satellite image itself is never displayed as artwork.
 
-Press `D` to switch between wallpaper and editor mode.
+The resulting cloud, vapor, coldness, texture, motion, atmospheric color and energy values are strongly smoothed before reaching the existing Metal environmental uniforms. Network failure falls back safely to the deterministic neutral atmosphere.
 
-## Run from source
+## Energy Intelligence
+
+Rendering quality is preserved while frame scheduling adapts to whether the art can actually be seen:
+
+- normal visible rendering: 60 fps target
+- visible Low Power Mode: 30 fps target in the primary app surface
+- occluded desktop or serious thermal pressure: 15 fps target
+- hidden non-desktop renderer: paused
+
+Mesh density, shader detail and saved organism state are never reduced by the energy policy.
+
+## Multi-display and Ambient Screen
+
+When **Mirror across displays** is enabled, additional connected displays receive native Metal desktop surfaces using the same organism stores and environmental state as the primary renderer. No duplicate Himawari feed or duplicated creative state is created.
+
+**Ambient Screen** is a full-screen in-app living-art presentation on every connected display. It exits on keyboard or mouse input. It is intentionally described as Ambient Screen rather than a registered macOS `.saver` extension; a system Screen Saver plug-in is a separate distribution artifact and is not falsely claimed by this build.
+
+The desktop mode itself uses public Core Graphics window levels and AppKit Spaces behavior. It is a wallpaper-style desktop window, not a private or undocumented system wallpaper API.
+
+## Controls
+
+Primary shortcuts include:
+
+- `1`…`8` — select an Original/working fish
+- `R` — Random Betta
+- `E` — start/stop Continuous Evolution
+- `L` — Bangkok live schedule
+- `P` — three-minute full-day preview
+- `[` / `]` — previous/next fish
+- `D` — toggle desktop/Studio behavior
+- `G` — Living Gallery
+- `S` — Living Studio
+- `A` — Ambient Screen
+- `⌘,` — Settings
+
+## Build BETTA 1.0
 
 Requires macOS 13 or newer and Xcode Command Line Tools.
 
 ```bash
 cd macos-betta-metal
-swift run BettaMetalLab
-```
-
-Launch options: `--fish=5`, `--preview`, `--desktop`, `--self-test`.
-
-Keyboard controls: `1`…`8` specific Betta, `L` live Bangkok schedule, `P` three-minute full-day preview, `[`/`]` previous/next, `D` wallpaper/editor.
-
-The desktop mode uses public Core Graphics desktop window levels and AppKit Spaces behavior; macOS does not expose a general third-party live-wallpaper API.
-
-## Build an app bundle
-
-```bash
 ./scripts/build-app.sh
 ```
 
-Creates `dist/Sindhorn Betta Metal Lab.app` and a ZIP with ad-hoc signing. Notarization and a polished installer are intentionally deferred.
+The default development build creates:
 
-Branch CI compiles the Metal shader, runs the Swift self-test, builds the release app, validates the app bundle/signature and publishes the runnable artifact on a native macOS runner.
+- `dist/BETTA.app`
+- `dist/BETTA-1.0.0-macOS-arm64.zip`
+- `dist/BETTA-1.0.0-macOS-arm64.dmg`
 
-See `docs/BETTA-METAL-PARITY.md` for the original port contract and acceptance checklist.
+CI uses ad-hoc signing so the build remains reproducible without private Apple credentials.
+
+For owner-controlled direct distribution, supply:
+
+```bash
+BETTA_CODESIGN_IDENTITY="Developer ID Application: …" \
+BETTA_NOTARY_PROFILE="your-notarytool-profile" \
+./scripts/build-app.sh
+```
+
+With those credentials present, the same script enables Hardened Runtime signing, submits the release ZIP with `notarytool`, staples the accepted ticket, and rebuilds the distributable archive. Credentials are never stored in this repository.
+
+## Release boundary
+
+BETTA 1.0 is the technical release build. Public commercial distribution still requires the product owner's Apple Developer credentials and final ownership/branding review. The bundle identifier intentionally remains `com.sindhornmidtown.BettaMetalLab` in this first release to preserve the user's existing local state without an automatic migration.
+
+See `docs/BETTA-METAL-PARITY.md` for the original port contract and `docs/BETTA-1.0-RELEASE.md` for the release checklist.
