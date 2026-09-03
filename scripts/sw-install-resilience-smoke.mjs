@@ -9,12 +9,12 @@
    Only CRITICAL_SHELL is fatal now. This test proves both halves of that
    contract, because a resilience fix that never fails is just a broken cache.
 
-   It serves ./site itself rather than testing a deployed preview. Playwright
-   route interception does not reliably reach service-worker-initiated fetches
-   on a remote origin - against the preview every trial reported the full 87
-   cached entries because nothing was actually blocked, which made the critical
-   trial silently pass. A local origin keeps the blocking real and the result
-   trustworthy.
+   Blocking happens in the local server, not in Playwright. context.route()
+   does not intercept service-worker-initiated fetches on the pinned
+   Playwright 1.55.0, so browser-side blocking silently did nothing: every
+   trial reported the full 87 cached entries and the critical trial "passed"
+   without ever blocking anything. Refusing the request at the origin is
+   engine- and version-independent, so the result means what it says.
 */
 import {chromium} from 'playwright';
 import http from 'node:http';
@@ -22,13 +22,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const SITE=path.resolve('site');
-const PORT=Number(process.env.SW_TEST_PORT||8799);
+const PORT=Number(process.env.SW_TEST_PORT||0);   // 0 = let the OS pick a free port
 const MIME={'.js':'application/javascript','.mjs':'application/javascript','.css':'text/css',
   '.html':'text/html','.json':'application/json','.webmanifest':'application/manifest+json',
   '.png':'image/png','.woff2':'font/woff2','.svg':'image/svg+xml','.ico':'image/x-icon'};
 
+let blocked=[];   // path substrings the server refuses, set per trial
 const server=http.createServer((req,res)=>{
-  const url=new URL(req.url,`http://127.0.0.1:${PORT}`);
+  const url=new URL(req.url,'http://127.0.0.1');
+  if(blocked.some(fragment=>url.pathname.includes(fragment))){res.writeHead(503).end();return}
   let file=path.join(SITE,decodeURIComponent(url.pathname));
   if(url.pathname==='/'||url.pathname.endsWith('/'))file=path.join(SITE,'index.html');
   if(!file.startsWith(SITE)||!fs.existsSync(file)||fs.statSync(file).isDirectory()){res.writeHead(404).end();return}
@@ -36,13 +38,13 @@ const server=http.createServer((req,res)=>{
   fs.createReadStream(file).pipe(res);
 });
 await new Promise(resolve=>server.listen(PORT,'127.0.0.1',resolve));
-const BASE=`http://127.0.0.1:${PORT}`;
+const BASE=`http://127.0.0.1:${server.address().port}`;
 
-async function trial(label,blockGlobs,expectInstalled){
+async function trial(label,blockFragments,expectInstalled){
+  blocked=blockFragments;
   const browser=await chromium.launch();
   const context=await browser.newContext({serviceWorkers:'allow'});
   const page=await context.newPage();
-  for(const glob of blockGlobs) await context.route(glob, route=>route.abort('failed'));
   await page.goto(`${BASE}/index.html`,{waitUntil:'domcontentloaded',timeout:45000});
   const result=await page.evaluate(async()=>{
     try{
@@ -70,11 +72,12 @@ async function trial(label,blockGlobs,expectInstalled){
 }
 
 let ok=true;
+try{
 const base=await trial('baseline installs',[],true); ok=base.ok&&ok;
-const font=await trial('optional font failure still installs',['**/assets/fonts/line-seed-sans-th-thin.woff2'],true); ok=font.ok&&ok;
-const betta=await trial('optional betta runtime failure still installs',['**/betta-runtime.js*'],true); ok=betta.ok&&ok;
-const many=await trial('many optional failures still install',['**/assets/fonts/*','**/icons/*','**/fallback/*'],true); ok=many.ok&&ok;
-const crit=await trial('critical asset failure correctly fails install',['**/shell.css*'],false); ok=crit.ok&&ok;
+const font=await trial('optional font failure still installs',['/assets/fonts/line-seed-sans-th-thin.woff2'],true); ok=font.ok&&ok;
+const betta=await trial('optional betta runtime failure still installs',['/betta-runtime.js'],true); ok=betta.ok&&ok;
+const many=await trial('many optional failures still install',['/assets/fonts/','/icons/','/fallback/'],true); ok=many.ok&&ok;
+const crit=await trial('critical asset failure correctly fails install',['/shell.css'],false); ok=crit.ok&&ok;
 
 /* Guard against the false pass this test itself produced against a remote
    origin: if blocking never reduced the cache, nothing was really blocked. */
@@ -83,6 +86,6 @@ if(!(font.cachedEntries<base.cachedEntries&&many.cachedEntries<font.cachedEntrie
   ok=false;
 }
 
-server.close();
-if(!ok){console.error('\nService worker install resilience regressed.');process.exit(1)}
-console.log(JSON.stringify({ok:true,origin:BASE,trials:5,baselineCached:base.cachedEntries}));
+if(!ok){console.error('\nService worker install resilience regressed.');process.exitCode=1}
+else console.log(JSON.stringify({ok:true,origin:BASE,trials:5,baselineCached:base.cachedEntries}));
+}finally{ server.close(); }
