@@ -1,4 +1,6 @@
-const VERSION='sindhorn-midtown-internal-pwa-v48-precache-design-system-r1';
+const VERSION='sindhorn-midtown-internal-pwa-v49-resilient-install-r1';
+// Preserve prior production release-family markers required by regression gates:
+// sindhorn-midtown-internal-pwa-v48-precache-design-system-r1
 // Preserve prior production release-family markers required by regression gates:
 // sindhorn-midtown-internal-pwa-v46-fast-startup-skeleton-r1
 // sindhorn-midtown-internal-pwa-v45-fast-startup-r2
@@ -24,9 +26,55 @@ const NOTIFICATION_STORE='messages';
 const NOTIFICATION_LIMIT=50;
 const PRECACHE_CONCURRENCY=8;
 const SHELL=['/','/index.html','/route-registry.js','/business-dashboard.js','/business-dashboard-data.js','/business-dashboard.css','/business-dashboard-motion.js','/business-dashboard-motion.css','/hotel-factsheet.css','/app-transitions.js','/app-transitions.css','/startup-skeleton.js','/startup-skeleton.js?v=1','/startup-skeleton.css','/startup-skeleton.css?v=1','/startup-skeleton.css?v=2','/pwa-version-guard.js','/pwa-version-guard.js?v=2','/footer-route-guard.js','/footer-route-guard.css','/auth-shell.js','/auth-shell.js?v=5','/auth-shell.css','/auth-client.js','/account.js','/account.css','/admin.js','/admin.css','/fnb-route.js','/fnb.js','/fnb-data.js','/fnb.css','/fnb-approved-polish.css','/qr-v6.js','/shell.css','/assets/fonts/line-seed-sans-th-bold.woff2','/assets/fonts/line-seed-sans-th-regular.woff2','/assets/fonts/line-seed-sans-th-thin.woff2','/fonts.css','/fonts.css?v=1','/environment.css','/environment.css?v=5','/pwa.css','/location.js','/bootstrap.js','/bootstrap.js?v=2','/live-data.js','/betta-runtime.js','/betta-runtime.js?v=1','/betta-runtime.js?v=2','/betta-runtime-full.js','/betta-runtime-full.js?v=1','/betta-fin-presets.js','/betta-fin-shader.js','/betta-satellite.js','/betta-day-periods.js','/push-config.js','/push-client.js','/notification-inbox.js','/screen-capture.js','/presentation-recovery.js','/app.js','/manifest.webmanifest','/fallback/manifest.json','/fallback/header.html','/fallback/today.html','/fallback/guidance.html','/fallback/details.html','/fallback/messages.html','/fallback/footer.html','/fallback/ui.css','/fallback/environment-config.json','/icons/app-192.png','/icons/app-512.png','/icons/maskable-512.png','/icons/apple-touch-icon.png','/assets/brand/sindhorn-midtown-vignette-white.png','/assets/brand/sindhorn-midtown-vignette-black.png','/app-glass-runtime.js','/app-glass.css','/app-controls.css','/app-shapes.css','/route-hero-standard.css','/brand-route-controls.js','/rain-now.js','/ci-specimen-fixes.css','/ci-compact-fixes.css'];
+/* Install resilience.
+
+   precacheShell used to be all-or-nothing across every SHELL entry: one bad
+   response - a flaky mobile connection, a CDN hiccup, one wrong MIME type -
+   rejected the install, so the new service worker never activated and the
+   client stayed on the old build forever. Every later update then failed the
+   same way, which is the state that ends in "delete and reinstall".
+
+   Only the entries below can actually prevent the app from opening, so only
+   these are fatal. Everything else is best-effort: the fetch handler already
+   caches on first use, so an asset missed here self-heals as soon as it is
+   requested. Keep this list SMALL - it is the failure surface of every update. */
+const CRITICAL_SHELL=['/','/index.html','/shell.css','/fonts.css','/app-glass.css','/app-glass-runtime.js','/bootstrap.js','/route-registry.js','/auth-shell.js','/auth-client.js','/manifest.webmanifest'];
+const PRECACHE_RETRIES=3;
+
 function validResponse(path,response){if(!response||!response.ok)return false;const type=(response.headers.get('content-type')||'').toLowerCase();if(path==='/'||path.endsWith('.html'))return type.includes('text/html');if(path.endsWith('.js'))return type.includes('javascript');if(path.endsWith('.css'))return type.includes('text/css');if(path.endsWith('.webmanifest')||path.endsWith('.json'))return type.includes('json')||type.includes('manifest');if(path.endsWith('.png'))return type.includes('image/png');if(path.endsWith('.woff')||path.endsWith('.woff2'))return!type.includes('text/html');return!type.includes('text/html')}
-async function cacheShellPath(cache,path){const response=await fetch(new Request(path,{cache:'reload'}));if(!validResponse(new URL(path,self.location.origin).pathname,response))throw new Error('Invalid app-shell response for '+path);await cache.put(path,response.clone())}
-async function precacheShell(){const cache=await caches.open(VERSION),queue=[...SHELL];const workers=Array.from({length:Math.min(PRECACHE_CONCURRENCY,queue.length)},async()=>{while(queue.length){const path=queue.shift();if(path)await cacheShellPath(cache,path)}});await Promise.all(workers)}
+async function cacheShellPath(cache,path){
+  let lastError=null;
+  for(let attempt=0;attempt<PRECACHE_RETRIES;attempt++){
+    if(attempt)await new Promise(resolve=>setTimeout(resolve,300*attempt));
+    try{
+      const response=await fetch(new Request(path,{cache:'reload'}));
+      if(!validResponse(new URL(path,self.location.origin).pathname,response))throw new Error('Invalid app-shell response for '+path);
+      await cache.put(path,response.clone());
+      return true;
+    }catch(error){lastError=error}
+  }
+  throw lastError||new Error('Unable to precache '+path);
+}
+async function precacheShell(){
+  const cache=await caches.open(VERSION);
+  const critical=new Set(CRITICAL_SHELL);
+  const queue=[...SHELL];
+  const optionalFailures=[];
+  const workers=Array.from({length:Math.min(PRECACHE_CONCURRENCY,queue.length)},async()=>{
+    while(queue.length){
+      const path=queue.shift();
+      if(!path)continue;
+      try{await cacheShellPath(cache,path)}
+      catch(error){
+        /* Fatal only for the handful of files the app cannot open without. */
+        if(critical.has(path.split('?')[0]))throw error;
+        optionalFailures.push(path);
+      }
+    }
+  });
+  await Promise.all(workers);
+  if(optionalFailures.length)console.warn('Service worker installed with '+optionalFailures.length+' optional asset(s) uncached; they will be fetched on demand.',optionalFailures);
+}
 async function activateShell(){const keys=await caches.keys();await Promise.all(keys.filter(key=>key!==VERSION&&key!==UI_PACK_CACHE).map(key=>caches.delete(key)));await self.clients.claim()}
 self.addEventListener('install',event=>event.waitUntil(precacheShell().then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(activateShell()));

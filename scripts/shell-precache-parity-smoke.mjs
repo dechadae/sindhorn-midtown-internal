@@ -35,6 +35,22 @@ if (missing.length) {
   process.exit(1);
 }
 
+// CRITICAL_SHELL is the only fatal part of an install, so it must stay small
+// and every entry must genuinely be in SHELL.
+const criticalMatch = sw.match(/const CRITICAL_SHELL=\[(.*?)\];/s);
+if (!criticalMatch) throw new Error('Could not locate CRITICAL_SHELL in site/sw.js');
+const critical = [...criticalMatch[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
+const criticalNotInShell = critical.filter(c => !precached.has(c.split('?')[0]));
+if (criticalNotInShell.length) {
+  console.error('CRITICAL_SHELL lists paths that are not in SHELL:');
+  for (const c of criticalNotInShell) console.error(`  ${c}`);
+  process.exit(1);
+}
+if (critical.length > 16) {
+  console.error(`CRITICAL_SHELL has ${critical.length} entries. Keep it under 16 - it is the failure surface of every update.`);
+  process.exit(1);
+}
+
 const onDisk = shellEntries.filter(p => p !== '/' && !fs.existsSync(path.join(siteDir, p.split('?')[0])));
 if (onDisk.length) {
   console.error('SHELL lists paths that do not exist on disk (precacheShell would throw and the SW would fail to install):');
@@ -45,6 +61,7 @@ if (onDisk.length) {
 console.log(JSON.stringify({
   ok: true,
   shellEntries: shellEntries.length,
+  criticalShell: critical.length,
   referencedShellAssets: [...new Set(referenced)].length,
   unprecached: 0,
   missingOnDisk: 0
