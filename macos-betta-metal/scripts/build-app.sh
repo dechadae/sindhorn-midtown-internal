@@ -8,8 +8,8 @@ swift build -c release
 BIN_DIR="$(swift build -c release --show-bin-path)"
 DIST="$ROOT/dist"
 APP="$DIST/BETTA.app"
-ZIP="$DIST/BETTA-1.1.3-macOS-arm64.zip"
-DMG="$DIST/BETTA-1.1.3-macOS-arm64.dmg"
+ZIP="$DIST/BETTA-1.1.4-macOS-arm64.zip"
+DMG="$DIST/BETTA-1.1.4-macOS-arm64.dmg"
 AIR="$DIST/BettaShaders.air"
 METALLIB="$APP/Contents/Resources/BettaShaders.metallib"
 SAFE_SHADER="$ROOT/Sources/BettaMetalLab/ShadersSafe.metal"
@@ -21,15 +21,13 @@ rm -rf "$DIST"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/BettaMetalLab" "$APP/Contents/MacOS/BettaMetalLab"
 
-# BETTA 1.1.3 keeps the 1.1.2 in-window Imagine overlay and corrects the
-# on-device color bridge: Foundation Models RGB channels are now structurally
-# constrained to 0...1, with defensive 0...255 normalization so colorful model
-# output can never collapse into white through channel clamping.
+# BETTA 1.1.4 removes the experimental Apple Intelligence / Imagine feature.
+# The approved procedural Metal renderer, Gallery, Studio, Favorites, Random,
+# Evolution, Himawari atmosphere, energy policy and persistence remain intact.
 xcrun -sdk macosx metal -mmacosx-version-min=13.0 -c "$SAFE_SHADER" -o "$AIR"
 xcrun -sdk macosx metallib "$AIR" -o "$METALLIB"
 rm -f "$AIR"
 
-# Precompiled and source fallback paths use the same runtime-safe kernel.
 cp "$SAFE_SHADER" "$APP/Contents/Resources/Shaders.metal"
 test -s "$METALLIB"
 
@@ -42,8 +40,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>BETTA</string>
 <key>CFBundleDisplayName</key><string>BETTA</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>1.1.3</string>
-<key>CFBundleVersion</key><string>24</string>
+<key>CFBundleShortVersionString</key><string>1.1.4</string>
+<key>CFBundleVersion</key><string>25</string>
 <key>BettaGitSHA</key><string>__BETTA_GIT_SHA__</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>LSApplicationCategoryType</key><string>public.app-category.entertainment</string>
@@ -76,7 +74,7 @@ if command -v hdiutil >/dev/null 2>&1; then
 fi
 
 echo "Built: $APP"
-echo "Version: 1.1.3 (24)"
+echo "Version: 1.1.4 (25)"
 echo "Metal library: $METALLIB"
 echo "Runtime kernel: ShadersSafe.metal"
 echo "Signing: $SIGNING_MODE"
