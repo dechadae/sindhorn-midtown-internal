@@ -7,30 +7,30 @@ swift run BettaMetalLab --self-test
 swift build -c release
 BIN_DIR="$(swift build -c release --show-bin-path)"
 DIST="$ROOT/dist"
-APP="$DIST/Sindhorn Betta Metal Lab.app"
-ZIP="$DIST/Sindhorn-Betta-Metal-Lab-macOS.zip"
+APP="$DIST/BETTA.app"
+ZIP="$DIST/BETTA-1.0.0-macOS-arm64.zip"
+DMG="$DIST/BETTA-1.0.0-macOS-arm64.dmg"
 AIR="$DIST/BettaShaders.air"
 METALLIB="$APP/Contents/Resources/BettaShaders.metallib"
 SAFE_SHADER="$ROOT/Sources/BettaMetalLab/ShadersSafe.metal"
 GIT_SHA="${GITHUB_SHA:-$(git rev-parse HEAD 2>/dev/null || echo unknown)}"
+SIGN_IDENTITY="${BETTA_CODESIGN_IDENTITY:--}"
+NOTARY_PROFILE="${BETTA_NOTARY_PROFILE:-}"
 
 rm -rf "$DIST"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/BettaMetalLab" "$APP/Contents/MacOS/BettaMetalLab"
 
-# 0.6.0 keeps the approved 0.5.0 Premium Shell and 0.4.x renderer/storage
-# architecture intact. It adds Bangkok Live atmosphere sourced from JMA
-# Himawari-9 through a strongly smoothed environment store, adaptive 60/30/15
-# fps scheduling with hidden-window pause, and opt-in Launch at Login.
-# Satellite imagery is sampled only into environmental mood values; no remote
-# image is displayed, persisted, or allowed to replace the procedural artwork.
+# BETTA 1.0 preserves the approved native Metal renderer and all 0.3–0.6
+# persistence domains. Release surfaces are native AppKit/MetalKit only:
+# Living Gallery, Living Studio, multi-display mirroring, Ambient Screen,
+# Himawari atmosphere, adaptive energy policy, onboarding and Settings.
 xcrun -sdk macosx metal -mmacosx-version-min=13.0 -c "$SAFE_SHADER" -o "$AIR"
 xcrun -sdk macosx metallib "$AIR" -o "$METALLIB"
 rm -f "$AIR"
 
 # Precompiled and source fallback paths use the same runtime-safe kernel.
 cp "$SAFE_SHADER" "$APP/Contents/Resources/Shaders.metal"
-
 test -s "$METALLIB"
 
 cat > "$APP/Contents/Info.plist" <<'PLIST'
@@ -39,22 +39,50 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <plist version="1.0"><dict>
 <key>CFBundleExecutable</key><string>BettaMetalLab</string>
 <key>CFBundleIdentifier</key><string>com.sindhornmidtown.BettaMetalLab</string>
-<key>CFBundleName</key><string>Sindhorn Betta Metal Lab</string>
-<key>CFBundleDisplayName</key><string>Sindhorn Betta Metal Lab</string>
+<key>CFBundleName</key><string>BETTA</string>
+<key>CFBundleDisplayName</key><string>BETTA</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>0.6.0</string>
-<key>CFBundleVersion</key><string>16</string>
+<key>CFBundleShortVersionString</key><string>1.0.0</string>
+<key>CFBundleVersion</key><string>20</string>
 <key>BettaGitSHA</key><string>__BETTA_GIT_SHA__</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
+<key>LSApplicationCategoryType</key><string>public.app-category.entertainment</string>
 <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
 PLIST
 /usr/bin/sed -i '' "s/__BETTA_GIT_SHA__/$GIT_SHA/" "$APP/Contents/Info.plist"
 
-codesign --force --deep --sign - "$APP"
+if [[ "$SIGN_IDENTITY" == "-" ]]; then
+  codesign --force --deep --sign - "$APP"
+  SIGNING_MODE="ad-hoc development"
+else
+  codesign --force --deep --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP"
+  SIGNING_MODE="Developer ID / Hardened Runtime"
+fi
+
+rm -f "$ZIP"
 ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
+
+# When the owner supplies an Apple Developer signing identity and a configured
+# notarytool keychain profile, the same release script produces a notarized and
+# stapled app. CI intentionally leaves these private credentials unset.
+if [[ -n "$NOTARY_PROFILE" && "$SIGN_IDENTITY" != "-" ]]; then
+  xcrun notarytool submit "$ZIP" --keychain-profile "$NOTARY_PROFILE" --wait
+  xcrun stapler staple "$APP"
+  rm -f "$ZIP"
+  ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
+fi
+
+if command -v hdiutil >/dev/null 2>&1; then
+  rm -f "$DMG"
+  hdiutil create -quiet -volname "BETTA" -srcfolder "$APP" -ov -format UDZO "$DMG"
+fi
+
 echo "Built: $APP"
+echo "Version: 1.0.0 (20)"
 echo "Metal library: $METALLIB"
 echo "Runtime kernel: ShadersSafe.metal"
+echo "Signing: $SIGNING_MODE"
 echo "Git SHA: $GIT_SHA"
 echo "Archive: $ZIP"
+[[ -f "$DMG" ]] && echo "Disk image: $DMG"
