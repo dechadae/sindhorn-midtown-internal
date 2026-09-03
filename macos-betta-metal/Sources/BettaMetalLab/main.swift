@@ -12,5 +12,6 @@ MainActor.assumeIsolated {
     let delegate = AppDelegate()
     app.delegate = delegate
     app.setActivationPolicy(.regular)
+    BettaReleaseExperienceController.shared.start()
     app.run()
 }
