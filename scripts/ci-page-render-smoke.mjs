@@ -50,6 +50,7 @@ const EXPECT = [
   ['.app-back-control', CARD], ['.app-masthead', CARD], ['.app-navbar', CARD],
   ['.app-sheet', OVERLAY], ['.app-toast', OVERLAY],
   ['.app-list-row', BARE], ['.app-metric', BARE], ['.app-figure', BARE],
+  ['.app-card-section', BARE], ['.app-section-subhead', BARE],
   ['.app-check-box', BARE],
   // Scoped to the Badge section itself: the List section also uses a quiet
   // badge, nested inside .app-card, where it correctly renders with no blur.
@@ -113,6 +114,11 @@ const report = await page.evaluate(([expect, motionSelectors]) => {
     const style = getComputedStyle(node);
     return { selector, duration: style.transitionDuration, timing: style.transitionTimingFunction };
   };
+  // Secondary text has to stay legible on a phone: every muted label, delta,
+  // meta and note in the library must sit at or above this floor.
+  const smallText = ['.app-metric-label','.app-metric-delta','.app-metric-note','.app-list-row-meta','.app-list-row-end','.app-surface-label','.app-section-kicker','.app-disclosure-kicker','.app-disclosure-copy','.app-note']
+    .map(selector => { const node = document.querySelector(selector); return { selector, size: node ? parseFloat(getComputedStyle(node).fontSize) : null }; });
+  const sectionDivider = (() => { const node = document.querySelector('.app-card-section+.app-card-section'); if (!node) return null; const style = getComputedStyle(node); return { border: `${style.borderTopWidth} ${style.borderTopStyle}`, color: style.borderTopColor }; })();
   const skeleton = document.querySelector('.app-skeleton-line');
   const skeletonStyle = skeleton && getComputedStyle(skeleton);
   const canvas = document.getElementById('environmentCanvas');
@@ -121,6 +127,7 @@ const report = await page.evaluate(([expect, motionSelectors]) => {
     specimens: document.querySelectorAll('.ci-specimen').length,
     measured: expect.map(([selector]) => read(selector)),
     motion: motionSelectors.map(([selector]) => readMotion(selector)),
+    smallText, sectionDivider,
     skeletonAnimation: skeletonStyle ? { name: skeletonStyle.animationName, duration: skeletonStyle.animationDuration, timing: skeletonStyle.animationTimingFunction, iteration: skeletonStyle.animationIterationCount } : null,
     // A frame around a specimen would make it glass inside glass.
     specimenPainted: getComputedStyle(document.querySelector('.ci-specimen')).backgroundColor,
@@ -151,6 +158,12 @@ else {
   if (norm(timing) !== norm(SKELETON_ANIMATION.timing)) failures.push(`.app-skeleton-line: animation-timing-function ${timing}, expected ${SKELETON_ANIMATION.timing}`);
   if (iteration !== SKELETON_ANIMATION.iteration) failures.push(`.app-skeleton-line: animation-iteration-count ${iteration}, expected ${SKELETON_ANIMATION.iteration}`);
 }
+for (const { selector, size } of report.smallText) {
+  if (size === null) failures.push(`${selector}: not present on the page for the type-floor check`);
+  else if (size < 11) failures.push(`${selector}: font-size ${size}px is below the 11px floor for secondary text`);
+}
+if (!report.sectionDivider) failures.push('.app-card-section+.app-card-section: not present on the page');
+else if (report.sectionDivider.border !== '1px solid' || norm(report.sectionDivider.color) !== 'rgba(250, 247, 245, 0.09)') failures.push(`.app-card-section: divider ${report.sectionDivider.border} ${report.sectionDivider.color}, expected 1px solid --app-line`);
 if (report.sections < 20) failures.push(`only ${report.sections} sections rendered`);
 if (report.specimens < 24) failures.push(`only ${report.specimens} specimens rendered`);
 if (report.specimenPainted !== 'rgba(0, 0, 0, 0)') failures.push(`specimen rows must stay unpainted, got ${report.specimenPainted}`);

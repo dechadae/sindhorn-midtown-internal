@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=1">
 <link rel="stylesheet" href="/app-glass.css?v=7">
-<link rel="stylesheet" href="/app-components.css?v=2">
+<link rel="stylesheet" href="/app-components.css?v=3">
 <link rel="stylesheet" href="/app-shell.css?v=1">
 <link rel="stylesheet" href="/ci-library.css?v=3">
 </head>
@@ -385,6 +385,25 @@
           </div>
         </div>
       </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-card-section</span><span>one card, several groups</span></div>
+        <div class="app-card app-surface">
+          <div class="app-card-section"><p class="app-surface-label">Rooms · 2 Sept</p></div>
+          <div class="app-card-section">
+            <div class="app-metric-grid">
+              <div class="app-metric"><p class="app-metric-label">Occupancy OTB</p><p class="app-metric-value">54.1%</p><p class="app-metric-delta" data-direction="down">&minus;13.9 pp vs forecast</p></div>
+              <div class="app-metric"><p class="app-metric-label">ADR</p><p class="app-metric-value">3,259</p><p class="app-metric-delta" data-direction="down">&minus;137 vs forecast</p></div>
+            </div>
+          </div>
+          <div class="app-card-section">
+            <div class="app-list">
+              <div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">RevPAR: 1,762</span><span class="app-list-row-meta">Forecast 2,310</span></span><span class="app-list-row-end">&minus;548</span></div>
+              <div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">Room nights: 6,373</span><span class="app-list-row-meta">Forecast 8,022</span></span><span class="app-list-row-end">&minus;1,649</span></div>
+            </div>
+          </div>
+        </div>
+        <p class="app-note">Groups inside one card share the list hairline. A card never nests another card to separate its parts, and a group that opens with a label sets its own space to the content below it.</p>
+      </div>
     </div>
   </section>
 
@@ -465,6 +484,13 @@
           </div>
           <hr class="app-divider">
           <p class="app-note">.app-divider — one hairline, one token, instead of a route drawing its own.</p>
+        </div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-section-subhead</span><span>a second heading inside one section</span></div>
+        <h3 class="app-section-subhead">Outlet Performance</h3>
+        <div class="app-stack">
+          <div class="app-surface app-card"><p class="app-surface-label">Bangkok'78</p><div class="app-surface-copy">Belongs to the section above it, so it does not restart the numbered kicker.</div></div>
         </div>
       </div>
     </div>

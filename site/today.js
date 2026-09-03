@@ -72,7 +72,7 @@ function currentRooms(data) {
 }
 
 function metric({ label, value, comparison = '', meta = '', direction = null }) {
-  return `<div class="app-metric"><p class="app-metric-label">${esc(label)}</p><p class="app-metric-value">${esc(value)}</p>${comparison ? `<p class="app-metric-delta"${direction ? ` data-direction="${esc(direction)}"` : ''}>${esc(comparison)}</p>` : ''}${meta ? `<p class="app-metric-note">${esc(meta)}</p>` : ''}</div>`;
+  return `<div class="app-metric">${label ? `<p class="app-metric-label">${esc(label)}</p>` : ''}<p class="app-metric-value">${esc(value)}</p>${comparison ? `<p class="app-metric-delta"${direction ? ` data-direction="${esc(direction)}"` : ''}>${esc(comparison)}</p>` : ''}${meta ? `<p class="app-metric-note">${esc(meta)}</p>` : ''}</div>`;
 }
 function comparisonRow(label, actual, reference, { kind = 'money', referenceLabel = 'Forecast' } = {}) {
   const a = num(actual), r = num(reference), diff = a !== null && r !== null ? a - r : null;
@@ -88,11 +88,11 @@ function renderHero(data) {
   const fnbSource = sourceFor(data, 'fnb_xlsx'), roomsSource = sourceFor(data, 'rooms_pdf');
   const roomsCarried = Boolean(roomsSource?.metadata?.carriedForwardFromRun), pickupTo = roomsSource?.metadata?.pickupTo;
   return `<header class="app-hero"><p class="app-hero-eyebrow">Today</p><h1 class="app-hero-title">Hotel Business</h1><p class="app-hero-copy">${esc(dateLabel(data.businessDate))} · Daily operating pulse from approved F&amp;B and Rooms reports.</p></header>
-  <section class="app-section"><div class="app-card app-surface"><div class="app-list">
+  <section class="app-section"><div class="app-card app-surface"><div class="app-card-section"><div class="app-list">
     <div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">Data updated</span><span class="app-list-row-meta">${esc(data.validationStatus === 'passed_with_warnings' ? 'Validated with source warnings' : 'Validated')}</span></span><span class="app-list-row-end">${esc(dateTimeLabel(data.publishedAt || data.importedAt))}</span></div>
     <div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">F&amp;B report</span><span class="app-list-row-meta">Revision ${esc(data.revision)}</span></span><span class="app-list-row-end">${esc(shortDateLabel(fnbSource?.detectedReportDate || data.businessDate))}</span></div>
     <div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">Rooms report</span><span class="app-list-row-meta">${esc(`${pickupTo ? `Pickup through ${shortDateLabel(pickupTo)}` : 'Approved source'}${roomsCarried ? ' · carried forward unchanged' : ''}`)}</span></span><span class="app-list-row-end">${esc(shortDateLabel(roomsSource?.detectedReportDate || data.businessDate))}</span></div>
-  </div></div></section>`;
+  </div></div></div></section>`;
 }
 function renderGlance(data) {
   const f = data.fnb?.summary || {}, daily = f.daily || {}, mtd = f.mtd || {};
@@ -103,16 +103,24 @@ function renderGlance(data) {
   const fnbSource = sourceFor(data, 'fnb_xlsx'), roomsSource = sourceFor(data, 'rooms_pdf');
   return `<section class="app-section" id="today-glance"><p class="app-section-kicker">01 · Business pulse</p><h2 class="app-section-title">At a Glance</h2>
     <div class="app-stack">
-      <div class="app-card app-surface"><p class="app-surface-label">Food &amp; Beverage · ${esc(shortDateLabel(fnbSource?.detectedReportDate || data.businessDate))}</p><div class="app-metric-grid">
-        ${metric({ label: 'Today Revenue', value: money(daily.revenue, { compact: true }), comparison: variance(daily.revenue, daily.forecast), direction: directionOf(num(daily.revenue) - num(daily.forecast)) })}
-        ${metric({ label: 'MTD Revenue', value: money(mtd.revenue, { compact: true }), comparison: variance(mtd.revenue, mtd.forecast), direction: directionOf(num(mtd.revenue) - num(mtd.forecast)) })}
-      </div></div>
-      <div class="app-card app-surface"><p class="app-surface-label">Rooms · ${esc(shortDateLabel(roomsSource?.detectedReportDate || data.businessDate))}</p><div class="app-metric-grid">
-        ${metric({ label: 'Occupancy OTB', value: percent(otb.occupancy), comparison: occDelta === null ? '' : `${occDelta >= 0 ? '+' : '−'}${Math.abs(occDelta * 100).toFixed(1)} pp vs forecast`, direction: directionOf(occDelta) })}
-        ${metric({ label: 'ADR', value: money(otb.adr), comparison: rooms ? `${money(adrDelta, { compact: true, signed: true })} vs forecast` : '', direction: directionOf(adrDelta) })}
-        ${metric({ label: 'RevPAR', value: money(otb.revpar), comparison: rooms ? `${money(revparDelta, { compact: true, signed: true })} vs forecast` : '', direction: directionOf(revparDelta) })}
-        ${metric({ label: '24h Pickup', value: `${integer(pickup.rns, { signed: true })} RN`, comparison: money(pickup.revenue, { compact: true, signed: true }), meta: pickup.adr ? `Pickup ADR ${money(pickup.adr)}` : '', direction: directionOf(num(pickup.rns)) })}
-      </div></div>
+      <div class="app-card app-surface">
+        <div class="app-card-section"><p class="app-surface-label">Food &amp; Beverage · ${esc(shortDateLabel(fnbSource?.detectedReportDate || data.businessDate))}</p></div>
+        <div class="app-card-section"><div class="app-metric-grid">
+          ${metric({ label: 'Today Revenue', value: money(daily.revenue, { compact: true }), comparison: variance(daily.revenue, daily.forecast), direction: directionOf(num(daily.revenue) - num(daily.forecast)) })}
+          ${metric({ label: 'MTD Revenue', value: money(mtd.revenue, { compact: true }), comparison: variance(mtd.revenue, mtd.forecast), direction: directionOf(num(mtd.revenue) - num(mtd.forecast)) })}
+        </div></div>
+      </div>
+      <div class="app-card app-surface">
+        <div class="app-card-section"><p class="app-surface-label">Rooms · ${esc(shortDateLabel(roomsSource?.detectedReportDate || data.businessDate))}</p></div>
+        <div class="app-card-section"><div class="app-metric-grid">
+          ${metric({ label: 'Occupancy OTB', value: percent(otb.occupancy), comparison: occDelta === null ? '' : `${occDelta >= 0 ? '+' : '−'}${Math.abs(occDelta * 100).toFixed(1)} pp vs forecast`, direction: directionOf(occDelta) })}
+          ${metric({ label: 'ADR', value: money(otb.adr), comparison: rooms ? `${money(adrDelta, { compact: true, signed: true })} vs forecast` : '', direction: directionOf(adrDelta) })}
+        </div></div>
+        <div class="app-card-section"><div class="app-metric-grid">
+          ${metric({ label: 'RevPAR', value: money(otb.revpar), comparison: rooms ? `${money(revparDelta, { compact: true, signed: true })} vs forecast` : '', direction: directionOf(revparDelta) })}
+          ${metric({ label: '24h Pickup', value: `${integer(pickup.rns, { signed: true })} RN`, comparison: money(pickup.revenue, { compact: true, signed: true }), meta: pickup.adr ? `Pickup ADR ${money(pickup.adr)}` : '', direction: directionOf(num(pickup.rns)) })}
+        </div></div>
+      </div>
     </div></section>`;
 }
 function renderFlags(data) {
@@ -122,30 +130,35 @@ function renderFlags(data) {
   for (const flag of flags) { const key = String(flag.domain || 'other').toLowerCase(); if (!groups.has(key)) groups.set(key, []); groups.get(key).push(flag); }
   const domainLabel = d => d === 'fnb' ? 'Food & Beverage' : d === 'rooms' ? 'Rooms' : d;
   return `<section class="app-section" id="today-flags"><p class="app-section-kicker">02 · Exceptions</p><h2 class="app-section-title">Needs Attention</h2><p class="app-section-lede">Rule-based exceptions from the approved daily dataset.</p>
-    <div class="app-stack">${[...groups.entries()].map(([domain, items]) => `<div class="app-card app-surface"><p class="app-surface-label">${esc(domainLabel(domain))} · ${items.length} exception${items.length === 1 ? '' : 's'}</p><div class="app-list">${items.map(flag => `<div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">${esc(flag.title)}</span><span class="app-list-row-meta">${esc(flag.detail)}</span></span><span class="app-list-row-end">${flag.payload?.variancePct !== undefined ? esc(percent(flag.payload.variancePct, { signed: true })) : ''}</span></div>`).join('')}</div></div>`).join('')}</div>
+    <div class="app-stack">${[...groups.entries()].map(([domain, items]) => `<div class="app-card app-surface"><div class="app-card-section"><p class="app-surface-label">${esc(domainLabel(domain))} · ${items.length} exception${items.length === 1 ? '' : 's'}</p></div><div class="app-card-section"><div class="app-list">${items.map(flag => `<div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">${esc(flag.title)}</span><span class="app-list-row-meta">${esc(flag.detail)}</span></span><span class="app-list-row-end">${flag.payload?.variancePct !== undefined ? esc(percent(flag.payload.variancePct, { signed: true })) : ''}</span></div>`).join('')}</div></div></div>`).join('')}</div>
   </section>`;
 }
 function renderOutlet(outlet) {
   const dayparts = Array.isArray(outlet.dayparts) ? outlet.dayparts : [];
-  const body = `<div class="app-metric-grid">
+  const body = `<div>
+    <div class="app-card-section"><div class="app-metric-grid">
       ${metric({ label: 'Forecast', value: num(outlet.forecast) > 0 ? money(outlet.forecast, { compact: true }) : '—' })}
       ${metric({ label: 'Covers', value: integer(outlet.covers) })}
+    </div></div>
+    <div class="app-card-section"><div class="app-metric-grid">
       ${metric({ label: 'Food', value: money(outlet.foodNet, { compact: true }) })}
       ${metric({ label: 'Beverage', value: money(outlet.beverageNet, { compact: true }) })}
-    </div>${dayparts.length ? `<div class="app-list">${dayparts.map(day => `<div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">${esc(day.label)}</span><span class="app-list-row-meta">${esc(integer(day.covers))} covers · Food ${esc(money(day.foodNet, { compact: true }))} · Beverage ${esc(money(day.beverageNet, { compact: true }))}</span></span><span class="app-list-row-end">${esc(money(day.revenue, { compact: true }))}</span></div>`).join('')}</div>` : ''}`;
+    </div></div>${dayparts.length ? `<div class="app-card-section"><div class="app-list">${dayparts.map(day => `<div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">${esc(day.label)}</span><span class="app-list-row-meta">${esc(integer(day.covers))} covers · Food ${esc(money(day.foodNet, { compact: true }))} · Beverage ${esc(money(day.beverageNet, { compact: true }))}</span></span><span class="app-list-row-end">${esc(money(day.revenue, { compact: true }))}</span></div>`).join('')}</div></div>` : ''}</div>`;
   return disclosure({ kicker: outlet.label, title: money(outlet.revenue, { compact: true }), copy: num(outlet.forecast) > 0 ? variance(outlet.revenue, outlet.forecast) : 'Forecast not loaded', body });
 }
 function renderFnb(data) {
   const s = data.fnb?.summary || {}, d = s.daily || {}, outlets = data.fnb?.outlets || [];
   return `<section class="app-section" id="today-fnb"><p class="app-section-kicker">03 · Food &amp; Beverage</p><h2 class="app-section-title">F&amp;B Today</h2><p class="app-section-lede">Daily actual against source forecast, then outlet detail on demand.</p>
-    <div class="app-card app-surface"><p class="app-surface-label">Total F&amp;B</p><p class="app-metric-value">${esc(money(d.revenue))}</p><p class="app-metric-delta" data-direction="${esc(directionOf(num(d.revenue) - num(d.forecast)))}">${esc(variance(d.revenue, d.forecast))}</p>
-      <div class="app-list">
+    <div class="app-card app-surface">
+      <div class="app-card-section"><p class="app-surface-label">Total F&amp;B</p>${metric({ value: money(d.revenue), comparison: variance(d.revenue, d.forecast), direction: directionOf(num(d.revenue) - num(d.forecast)) })}</div>
+      <div class="app-card-section"><div class="app-list">
         ${comparisonRow('Food', d.food, d.foodForecast)}
         ${comparisonRow('Beverage', d.beverage, d.beverageForecast)}
         ${comparisonRow('Other', d.other, d.otherForecast)}
         <div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">Discounts: ${esc(money(-Math.abs(num(d.otherDiscount) || 0), { compact: true }))}</span><span class="app-list-row-meta">Covers ${esc(integer(d.covers))}</span></span><span class="app-list-row-end">${esc(integer(d.coverForecast))} fcst</span></div>
       </div></div>
-    <p class="app-note">Outlet Performance</p>
+    </div>
+    <h3 class="app-section-subhead">Outlet Performance</h3>
     <div class="app-stack">${outlets.map(renderOutlet).join('')}</div>
   </section>`;
 }
@@ -153,19 +166,28 @@ function renderRooms(data) {
   const room = currentRooms(data); if (!room) return '';
   const o = room.otb || {}, f = room.forecast || {}, b = room.budget || {}, s = room.stly || {}, ly = room.lastYear || {}, p = room.pickup || {};
   return `<section class="app-section" id="today-rooms"><p class="app-section-kicker">04 · Rooms / Revenue</p><h2 class="app-section-title">Current Month</h2><p class="app-section-lede">${esc(dateLabel(room.stayMonth, { monthOnly: true }))} on-the-books position and 24-hour pickup.</p>
-    <div class="app-card app-surface"><p class="app-surface-label">Room Revenue OTB</p><p class="app-metric-value">${esc(money(o.revenue, { compact: true }))}</p><p class="app-metric-delta" data-direction="${esc(directionOf(num(o.revenue) - num(f.revenue)))}">${esc(variance(o.revenue, f.revenue))}</p>
-      <div class="app-list">
-        ${comparisonRow('Occupancy', o.occupancy, f.occupancy, { kind: 'percent' })}
-        ${comparisonRow('ADR', o.adr, f.adr)}
-        ${comparisonRow('RevPAR', o.revpar, f.revpar)}
-        ${comparisonRow('Room Nights', o.rns, f.rns, { kind: 'integer' })}
-      </div></div>
-    <div class="app-card app-surface"><div class="app-metric-grid">
-      ${metric({ label: 'Budget revenue', value: money(b.revenue, { compact: true }) })}
-      ${metric({ label: 'STLY revenue', value: money(s.revenue, { compact: true }) })}
-      ${metric({ label: 'Last year revenue', value: money(ly.revenue, { compact: true }) })}
-      ${metric({ label: '24h pickup', value: `${integer(p.rns, { signed: true })} RN`, comparison: money(p.revenue, { compact: true, signed: true }) })}
-    </div></div>
+    <div class="app-stack">
+      <div class="app-card app-surface">
+        <div class="app-card-section"><p class="app-surface-label">Room Revenue OTB</p>${metric({ value: money(o.revenue, { compact: true }), comparison: variance(o.revenue, f.revenue), direction: directionOf(num(o.revenue) - num(f.revenue)) })}</div>
+        <div class="app-card-section"><div class="app-list">
+          ${comparisonRow('Occupancy', o.occupancy, f.occupancy, { kind: 'percent' })}
+          ${comparisonRow('ADR', o.adr, f.adr)}
+          ${comparisonRow('RevPAR', o.revpar, f.revpar)}
+          ${comparisonRow('Room Nights', o.rns, f.rns, { kind: 'integer' })}
+        </div></div>
+      </div>
+      <div class="app-card app-surface">
+        <div class="app-card-section"><p class="app-surface-label">Benchmarks</p></div>
+        <div class="app-card-section"><div class="app-metric-grid">
+          ${metric({ label: 'Budget revenue', value: money(b.revenue, { compact: true }) })}
+          ${metric({ label: 'STLY revenue', value: money(s.revenue, { compact: true }) })}
+        </div></div>
+        <div class="app-card-section"><div class="app-metric-grid">
+          ${metric({ label: 'Last year revenue', value: money(ly.revenue, { compact: true }) })}
+          ${metric({ label: '24h pickup', value: `${integer(p.rns, { signed: true })} RN`, comparison: money(p.revenue, { compact: true, signed: true }) })}
+        </div></div>
+      </div>
+    </div>
   </section>`;
 }
 function renderOutlook(data) {

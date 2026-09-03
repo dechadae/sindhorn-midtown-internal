@@ -25,6 +25,11 @@
    user knows where they are. */
 a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlight-color:transparent}
 
+/* Text elements inside library structure carry no user-agent margin. Every
+   component states the space it needs; a paragraph must never add its own.
+   Zero-specificity so any component rule wins without a fight. */
+:where(.app-page,.app-card,.app-surface,.app-overlay) :where(p,h1,h2,h3,h4,figure){margin:0}
+
 /* ---- Actionable card -------------------------------------------------------
    A card whose whole face is the button. The button itself must reset the user
    agent's background, or it renders as a grey ButtonFace over the material. */
@@ -67,8 +72,16 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    A card whose content is the destination. Same material as the actionable
    card, deliberately without a press affordance. */
 .app-surface{padding:15px 16px;border-radius:var(--radius-surface)}
-.app-surface-label{color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-surface-label{color:var(--app-accent);font-size:var(--type-small);letter-spacing:.02em;text-transform:uppercase}
 .app-surface-copy{margin:8px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+
+/* Card sections: one card, several groups. Each group after the first opens
+   with the same hairline the list uses, so a card never needs a nested card
+   to separate its parts. */
+.app-card-section+.app-card-section{margin-top:16px;padding-top:16px;border-top:1px solid var(--app-line)}
+.app-card-section>.app-surface-label+*{margin-top:12px}
+.app-card-section>.app-list>.app-list-row:first-child{padding-top:0}
+.app-card-section>.app-list>.app-list-row:last-child{padding-bottom:0}
 
 /* ---- Disclosure ------------------------------------------------------------
    Content stays in the DOM and the panel animates height, so a screen reader
@@ -84,9 +97,9 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-disclosure-button:active{opacity:.9}
 .app-disclosure-button:focus-visible{outline:2px solid var(--app-accent);outline-offset:-3px}
 .app-disclosure-head{min-width:0;display:grid;gap:0}
-.app-disclosure-kicker{color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
-.app-disclosure-title{margin:6px 0 0;font-size:var(--type-body);font-weight:var(--weight-regular);line-height:var(--leading-label)}
-.app-disclosure-copy{margin:4px 0 0;color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-body)}
+.app-disclosure-kicker{color:var(--app-accent);font-size:var(--type-small);letter-spacing:.02em;text-transform:uppercase}
+.app-disclosure-title{margin:6px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-label)}
+.app-disclosure-copy{margin:4px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-disclosure-chevron{width:18px;height:18px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.5;transition:transform var(--motion-ms) var(--motion-ease)}
 .app-disclosure[data-open="true"] .app-disclosure-chevron{transform:rotate(90deg)}
 .app-disclosure-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--motion-ms) var(--motion-ease)}
@@ -94,7 +107,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-disclosure-panel-inner{overflow:hidden}
 .app-disclosure-panel-inner>*{padding:0 16px 16px}
 .app-disclosure-detail{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
-.app-disclosure-detail span{display:block;margin-bottom:6px;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-disclosure-detail span{display:block;margin-bottom:6px;color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
 .app-disclosure-detail ul{margin:0;padding-left:18px;display:grid;gap:4px}
 
 /* ---- Form field ------------------------------------------------------------
@@ -187,15 +200,15 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    A number that carries meaning: today's occupancy, an outlet's revenue. The
    value is tabular so columns of them line up, and the delta states its own
    direction rather than relying on colour alone. */
-.app-metric{min-width:0;display:grid;gap:4px}
-.app-metric-label{color:var(--app-muted);font-size:var(--type-caption);text-transform:uppercase}
+.app-metric{min-width:0;display:grid;gap:6px;align-content:start}
+.app-metric-label{color:var(--app-muted);font-size:var(--type-small);letter-spacing:.02em;text-transform:uppercase}
 .app-metric-value{font-size:var(--type-title);font-weight:var(--weight-regular);line-height:1;font-variant-numeric:tabular-nums}
-.app-metric-note{color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-label)}
-.app-metric-delta{display:inline-flex;align-items:center;gap:4px;font-size:var(--type-caption);font-variant-numeric:tabular-nums}
+.app-metric-note{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-label)}
+.app-metric-delta{display:inline-flex;align-items:center;gap:4px;font-size:var(--type-body-s);font-variant-numeric:tabular-nums}
 .app-metric-delta[data-direction="up"]{color:#72A75D}
 .app-metric-delta[data-direction="down"]{color:#E3A2A8}
 .app-metric-delta[data-direction="flat"]{color:var(--app-muted)}
-.app-metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:16px 18px}
+.app-metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:18px 20px}
 
 /* ---- Sheet ------------------------------------------------------------------
    A bottom sheet, not a centred dialog: it belongs to the thumb. Same native
@@ -257,9 +270,9 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 }
 .app-list-row+.app-list-row{border-top:1px solid var(--app-line)}
 .app-list-row-main{min-width:0;display:grid;gap:3px}
-.app-list-row-title{font-size:var(--type-body-s);line-height:var(--leading-label);overflow-wrap:anywhere}
-.app-list-row-meta{color:var(--app-muted);font-size:var(--type-micro)}
-.app-list-row-end{flex:0 0 auto;display:flex;align-items:center;gap:8px;color:var(--app-muted);font-size:var(--type-caption)}
+.app-list-row-title{font-size:var(--type-body);line-height:var(--leading-label);overflow-wrap:anywhere}
+.app-list-row-meta{color:var(--app-muted);font-size:var(--type-body-s)}
+.app-list-row-end{flex:0 0 auto;display:flex;align-items:center;gap:8px;color:var(--app-muted);font-size:var(--type-body-s);font-variant-numeric:tabular-nums}
 button.app-list-row{width:100%;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 button.app-list-row:active{opacity:.9}
 button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
@@ -405,22 +418,27 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    heading. A module that every page needs is a library module by definition.
    ========================================================================== */
 .app-page{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:28px max(20px,env(safe-area-inset-left)) calc(64px + env(safe-area-inset-bottom))}
-.app-section{padding:38px 0 0;scroll-margin-top:20px}
-.app-section-kicker{display:flex;align-items:center;gap:10px;margin:0;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-section{padding:44px 0 0;scroll-margin-top:20px}
+.app-section-kicker{display:flex;align-items:center;gap:10px;margin:0;color:var(--app-accent);font-size:var(--type-small);letter-spacing:.02em;text-transform:uppercase}
 .app-section-kicker::after{content:"";flex:1 1 auto;height:1px;background:var(--app-line)}
 .app-section-title{margin:8px 0 0;font-size:var(--type-section);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
-.app-section-lede{margin:10px 0 0;max-width:60ch;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-section-lede{margin:10px 0 0;max-width:60ch;color:var(--app-muted);font-size:var(--type-body);line-height:var(--leading-body)}
 .app-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
-.app-stack{display:grid;gap:10px}
-.app-section>.app-stack{margin-top:18px}
-.app-note{margin:12px 0 0;color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-body)}
+.app-stack{display:grid;gap:12px}
+.app-section>.app-stack,
+.app-section>.app-card,
+.app-section>.app-metric-grid,
+.app-section>.app-disclosure{margin-top:20px}
+.app-section-subhead{margin:28px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-label)}
+.app-section-subhead+.app-stack{margin-top:12px}
+.app-note{margin:12px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 
 /* ---- Route hero -------------------------------------------------------------
    route-hero-standard.css is a compatibility shim: cascade overrides throughout, route
    aliases, and a duplicate token set. This is the clean form. Routes adopt it
    when they are rebuilt; until then the shim keeps them working. */
 .app-hero{padding:22px 0 20px;border-bottom:1px solid var(--app-line)}
-.app-hero-eyebrow{margin:0;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-hero-eyebrow{margin:0;color:var(--app-accent);font-size:var(--type-small);letter-spacing:.02em;text-transform:uppercase}
 .app-hero-title{margin:10px 0 0;font-size:var(--type-display);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
 .app-hero-copy{margin:12px 0 0;max-width:56ch;color:var(--app-muted);font-size:var(--type-lead);line-height:var(--leading-body)}
 
