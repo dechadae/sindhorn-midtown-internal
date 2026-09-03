@@ -8,9 +8,9 @@ struct BettaSelfTest {
         }
 
         expect(BettaReleaseInfo.productName == "BETTA", "Release product name must be BETTA")
-        expect(BettaReleaseInfo.version == "1.1.1", "Release semantic version must be 1.1.1")
-        expect(BettaReleaseInfo.build == "22", "Release build number must be 22")
-        expect(BettaReleaseInfo.persistenceBundleIdentifier == "com.sindhornmidtown.BettaMetalLab", "1.1.1 must preserve the existing persistence bundle identifier")
+        expect(BettaReleaseInfo.version == "1.1.2", "Release semantic version must be 1.1.2")
+        expect(BettaReleaseInfo.build == "23", "Release build number must be 23")
+        expect(BettaReleaseInfo.persistenceBundleIdentifier == "com.sindhornmidtown.BettaMetalLab", "1.1.2 must preserve the existing persistence bundle identifier")
 
         expect(BettaPreset.all.count == 8, "Expected exactly eight canonical Betta presets")
         expect(BettaGeometry.rays == 160, "Mac high-detail topology must use 160 circumferential samples")
@@ -144,6 +144,9 @@ struct BettaSelfTest {
 
         let pureWhite = BettaImagineColor(r: 1, g: 1, b: 1).backgroundSIMD
         expect(abs(pureWhite.x - 1) < 0.0001 && abs(pureWhite.y - 1) < 0.0001 && abs(pureWhite.z - 1) < 0.0001, "Imagine backgrounds must permit clean white")
+        expect(BettaImagineInstructionMode.classify("Let's go with candy unicorn pop culture betta fish.") == .globalRestyle, "Broad theme prompts must use global-restyle semantics")
+        expect(BettaImagineInstructionMode.classify("Keep the colors, but make it fuller and slower.") == .refinement, "Explicit preservation prompts must use constrained-refinement semantics")
+        expect(BettaImagineInstructionMode.classify("Make it ethereal and goddess-like.") == .globalRestyle, "Broad mood prompts must be allowed to reinterpret the whole artwork")
 
         expect(abs(BettaEvolutionController.defaultSegmentDuration - 45) < 0.001, "Continuous Evolution target duration must remain 45 seconds")
 
@@ -190,7 +193,7 @@ struct BettaSelfTest {
 
         if failures.isEmpty {
             print("BETTA \(BettaReleaseInfo.version) (\(BettaReleaseInfo.build)) self-test: PASS")
-            print("Imagine frameless glass direction · full-range mood backgrounds · camera/composition isolation · 8 immutable originals · premium morph pacing · live Himawari mood mapping · adaptive energy policy · multi-display release shell · 160×144 topology · 1–6 membranes · presets/favorites · continuous evolution · recovery regression")
+            print("Imagine in-window overlay · decisive global restyles · constrained refinements · full-range mood backgrounds · camera/composition isolation · 8 immutable originals · premium morph pacing · live Himawari mood mapping · adaptive energy policy · multi-display release shell · 160×144 topology · 1–6 membranes · presets/favorites · continuous evolution · recovery regression")
             return true
         }
         print("BETTA \(BettaReleaseInfo.version) self-test: FAIL")
