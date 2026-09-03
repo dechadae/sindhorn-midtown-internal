@@ -63,13 +63,13 @@ jobs:
           for file in scripts/business-notification-messages-smoke.mjs scripts/business-notification-push-smoke.mjs scripts/business-notification-bridge-smoke.mjs; do if [ -f "$file" ]; then node --input-type=module --check < "$file"; fi; done
           node scripts/business-dashboard-schema-smoke.mjs
           grep -q "today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local'" site/route-registry.js
-          grep -q "module:'./business-dashboard.js?v=4'" site/route-registry.js
+          grep -q "mount:'mountBusinessDashboardStartupRoute'" site/route-registry.js
           grep -q "sindhorn_business_dashboard_read_model" site/business-dashboard-data.js
           grep -q "applyBusinessDashboardMotion" site/business-dashboard.js
           grep -q "data-bd-motion-key" site/business-dashboard.js
           grep -q "business-dashboard-motion.css" site/business-dashboard.js
           grep -q "prefers-reduced-motion:reduce" site/business-dashboard-motion.css
-          grep -q "sindhorn-business-dashboard-motion-v2" site/business-dashboard-motion.js
+          grep -q "mode:'progress-only'" site/business-dashboard-motion.js
           grep -q "SindhornBusinessDashboard.*refresh" site/app.js
           grep -q "sindhorn-midtown-internal-pwa-v38-today-motion-r1" site/sw.js
           grep -q "business-dashboard-motion.js" site/sw.js
@@ -107,10 +107,10 @@ jobs:
           for file in site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/weather-authority.js site/rain-now.js site/auth-shell.js site/auth-client.js site/capabilities.js site/fnb.js site/fnb-data.js site/brand.js site/ihg-history.js site/hotel-factsheet-route.js; do
             git diff --exit-code "$base" HEAD -- "$file"
           done
-          grep -q "await import('./betta-environment.js')" site/bootstrap.js
-          grep -q "compatibility no-op" site/rain-layer.js
-          grep -q "rain-layer-legacy-weather.js" site/sw.js
-          grep -q "betta-environment.js" site/sw.js
+          grep -q "await import('./betta-runtime.js?v=1')" site/bootstrap.js
+          grep -q "rain-now" site/weather-authority.js
+          grep -q "rain-now.js" site/sw.js
+          grep -q "betta-runtime-full.js" site/sw.js
           grep -q "url.pathname==='/api/betta-satellite'" site/sw.js
 
       - name: Deploy Cloudflare branch preview
@@ -130,7 +130,7 @@ jobs:
             test -s /tmp/response
           done
           curl --fail --silent --show-error "${BASE_URL}/route-registry.js" -o /tmp/routes.js
-          grep -q "kind:'local',module:'./business-dashboard.js?v=4'" /tmp/routes.js
+          grep -q "kind:'local',module:'./route-registry.js',mount:'mountBusinessDashboardStartupRoute'" /tmp/routes.js
           curl --fail --silent --show-error "${BASE_URL}/business-dashboard.js" -o /tmp/dashboard.js
           grep -q "business-dashboard-motion.js" /tmp/dashboard.js
           grep -q "business-dashboard-motion.css" /tmp/dashboard.js
