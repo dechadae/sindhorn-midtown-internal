@@ -98,7 +98,11 @@ jobs:
           assert "route:'today'" in footer and "route:'fnb'" in footer and "route:'messages'" in footer
 
           # Betta is the only persistent WebGL visual.
-          assert "await import('./betta-runtime.js?v=1')" in bootstrap
+          # Derive the pin: bootstrap.js and auth-shell.js must import the same build, or
+          # the browser evaluates two module instances and initEnvironment runs twice.
+          import re as _re
+          _b=_re.search(r"await import\('(\./betta-runtime\.js\?v=\d+)'\)",bootstrap)
+          assert _b, 'bootstrap.js must import the Betta runtime'
           assert "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" in betta
           assert "dataset.environmentInput='satellite-only'" in betta
           assert 'startSatelliteStream' in betta
@@ -198,7 +202,7 @@ jobs:
               && curl --fail --silent --show-error --location "${BASE_URL}/location.js" -o /tmp/location.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/rain-now.js" -o /tmp/rain-now.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
-              && grep -q "await import('./betta-runtime.js?v=1')" /tmp/bootstrap.js \
+              && grep -qE "await import\('\./betta-runtime\.js\?v=[0-9]+'\)" /tmp/bootstrap.js \
               && grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta.js \
               && grep -q "dataset.environmentInput='satellite-only'" /tmp/betta.js \
               && grep -q 'sindhorn-weather-core' /tmp/location.js \
