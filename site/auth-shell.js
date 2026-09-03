@@ -27,7 +27,7 @@ async function loadClassicScript(src){await new Promise((resolve,reject)=>{if(do
 /* Warm the approved Betta renderer underneath the existing logo/auth phase.
    bootstrap.js imports the same module URL later, so the browser reuses this
    in-flight/evaluated module and initEnvironment remains idempotent. */
-const earlyBetta=import('./betta-runtime.js?v=1').then(module=>module.initEnvironment()).catch(error=>{console.warn('Early Betta startup unavailable; bootstrap will retry.',error)});
+const earlyBetta=import('./betta-runtime.js?v=2').then(module=>module.initEnvironment()).catch(error=>{console.warn('Early Betta startup unavailable; bootstrap will retry.',error)});
 
 let state;try{state=await initAuth()}catch(_){state=getState()}
 if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
@@ -35,6 +35,9 @@ if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
   document.addEventListener('sindhorn:pack-updated',()=>applyEmployeeHeader());
   document.addEventListener('sindhorn:capabilities-updated',event=>applyEmployeeHeader(event.detail?.profile));
   document.addEventListener('sindhorn:auth-changed',event=>{const nextState=getState();if(!event.detail?.authenticated||!hasCompleteEmployeeAuth(nextState)){location.replace(loginUrl());return}window.__SINDHORN_AUTH_PROFILE__=event.detail.profile||nextState.profile;applyEmployeeHeader(window.__SINDHORN_AUTH_PROFILE__)});
-  await loadClassicScript('/location.js');await import('./bootstrap.js');await import('./onboarding.js?v=1');applyEmployeeHeader();
+  await loadClassicScript('/location.js');
+  await import('./bootstrap.js?v=4');
+  await import('./onboarding.js?v=1');
+  applyEmployeeHeader();
 }
 void earlyBetta;

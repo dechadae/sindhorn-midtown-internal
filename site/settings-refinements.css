@@ -22,6 +22,8 @@ body[data-route="settings"] .settings-add{
   border:1px solid rgba(229,236,190,.44)!important;
   border-radius:11px!important;
   background:rgba(229,236,190,.10)!important;
+  backdrop-filter:var(--app-glass-control-filter)!important;
+  -webkit-backdrop-filter:var(--app-glass-control-filter)!important;
   color:#E5ECBE!important;
   font-family:var(--font-ui)!important;
   font-size:12px!important;
@@ -50,7 +52,7 @@ body[data-route="settings"] .settings-quiet-action{
   justify-content:center!important;
   border:1px solid rgba(250,247,245,.14)!important;
   border-radius:11px!important;
-  background:rgba(46,39,59,.42)!important;
+  background:var(--app-glass-control-fill)!important;
   color:rgba(250,247,245,.72)!important;
   font-family:var(--font-ui)!important;
   font-size:12px!important;
@@ -59,8 +61,8 @@ body[data-route="settings"] .settings-quiet-action{
   letter-spacing:0!important;
   text-transform:none!important;
   box-shadow:none!important;
-  backdrop-filter:blur(18px) saturate(1.18)!important;
-  -webkit-backdrop-filter:blur(18px) saturate(1.18)!important;
+  backdrop-filter:var(--app-glass-control-filter)!important;
+  -webkit-backdrop-filter:var(--app-glass-control-filter)!important;
 }
 body[data-route="settings"] .settings-quiet-action:active{transform:scale(.975)!important;opacity:.84!important}
 body[data-route="settings"] .settings-quiet-action:focus-visible{outline:2px solid #E5ECBE!important;outline-offset:2px!important;box-shadow:0 0 0 4px rgba(229,236,190,.08)!important}

@@ -5,6 +5,7 @@ on:
     branches:
       - today-v4-motion-phase-a
       - today-v4-notifications-phase-b
+      - ui-centralization
     paths:
       - "site/index.html"
       - "site/app.js"
@@ -40,9 +41,14 @@ permissions:
   contents: read
   deployments: write
 
+# Shared with pwa-fast-startup-preview: both publish the same Cloudflare Pages
+# branch preview for a given commit, and two concurrent publishes fail the
+# Function upload with an opaque internal error. Keyed by SHA, not by branch:
+# a branch key also queues unrelated commits, and GitHub keeps only one pending
+# run per group, so the extra queueing silently cancelled real runs.
 concurrency:
-  group: today-v4-dashboard-${{ github.ref_name }}
-  cancel-in-progress: true
+  group: cf-pages-preview-${{ github.sha }}
+  cancel-in-progress: false
 
 jobs:
   validate-deploy-smoke:
@@ -62,13 +68,13 @@ jobs:
           for file in scripts/business-notification-messages-smoke.mjs scripts/business-notification-push-smoke.mjs scripts/business-notification-bridge-smoke.mjs; do if [ -f "$file" ]; then node --input-type=module --check < "$file"; fi; done
           node scripts/business-dashboard-schema-smoke.mjs
           grep -q "today:Object.freeze({path:'/',title:'Today | Sindhorn Midtown Internal',kind:'local'" site/route-registry.js
-          grep -q "module:'./business-dashboard.js?v=4'" site/route-registry.js
+          grep -q "mount:'mountBusinessDashboardStartupRoute'" site/route-registry.js
           grep -q "sindhorn_business_dashboard_read_model" site/business-dashboard-data.js
           grep -q "applyBusinessDashboardMotion" site/business-dashboard.js
           grep -q "data-bd-motion-key" site/business-dashboard.js
           grep -q "business-dashboard-motion.css" site/business-dashboard.js
           grep -q "prefers-reduced-motion:reduce" site/business-dashboard-motion.css
-          grep -q "sindhorn-business-dashboard-motion-v2" site/business-dashboard-motion.js
+          grep -q "mode:'progress-only'" site/business-dashboard-motion.js
           grep -q "SindhornBusinessDashboard.*refresh" site/app.js
           grep -q "sindhorn-midtown-internal-pwa-v38-today-motion-r1" site/sw.js
           grep -q "business-dashboard-motion.js" site/sw.js
@@ -103,13 +109,29 @@ jobs:
         run: |
           set -euo pipefail
           base="$(git merge-base origin/main HEAD)"
-          for file in site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/weather-authority.js site/rain-now.js site/auth-shell.js site/auth-client.js site/capabilities.js site/fnb.js site/fnb-data.js site/brand.js site/ihg-history.js site/hotel-factsheet-route.js; do
+          for file in site/environment.js site/atmosphere-shader.js site/seasonal-sky.js site/weather-authority.js site/rain-now.js site/auth-client.js site/capabilities.js site/fnb-data.js site/brand.js site/ihg-history.js site/hotel-factsheet-route.js; do
             git diff --exit-code "$base" HEAD -- "$file"
           done
-          grep -q "await import('./betta-environment.js')" site/bootstrap.js
-          grep -q "compatibility no-op" site/rain-layer.js
-          grep -q "rain-layer-legacy-weather.js" site/sw.js
-          grep -q "betta-environment.js" site/sw.js
+          # auth-shell.js carries deliberate version pins on this branch, so byte-equality
+          # with main is the wrong test. It must stay pure auth/startup orchestration:
+          # no cache, network or storage subsystem may reappear in it, and every module
+          # pin it holds must be explicit so a bump is a visible, deliberate edit.
+          ! grep -qE "caches\.|fetch\(|localStorage|indexedDB|navigator\.serviceWorker" site/auth-shell.js
+          grep -q "betta-runtime.js?v=2" site/auth-shell.js
+          grep -q "bootstrap.js?v=4" site/auth-shell.js
+          grep -q "onboarding.js?v=1" site/auth-shell.js
+          # the evicted-runtime routine now lives with the PWA cache lifecycle
+          grep -q "evictStaleBootstrapRuntime" site/pwa-version-guard.js
+          # fnb.js gave up its private selector to the shared app-select.js, so it is no
+          # longer byte-equal to main. What must hold is that it did not take one back:
+          # no route may reimplement something centralized, or declare material itself.
+          ! grep -qE "function (filterField|selectField)\(" site/fnb.js
+          grep -q "from './app-select.js" site/fnb.js
+          ! grep -q "backdrop-filter" site/fnb.js
+          grep -q "await import('./betta-runtime.js?v=1')" site/bootstrap.js
+          grep -q "rain-now" site/weather-authority.js
+          grep -q "rain-now.js" site/sw.js
+          grep -q "betta-runtime-full.js" site/sw.js
           grep -q "url.pathname==='/api/betta-satellite'" site/sw.js
 
       - name: Deploy Cloudflare branch preview
@@ -124,12 +146,12 @@ jobs:
           set -euo pipefail
           BASE_URL="https://${GITHUB_REF_NAME:0:28}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /business-dashboard-motion.js /business-dashboard-motion.css /hotel-factsheet.css /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /rain-layer.js /rain-layer-legacy-weather.js /push-client.js /notification-inbox.js /app.js /sw.js /manifest.webmanifest; do
+          for path in / /route-registry.js /business-dashboard.js /business-dashboard-data.js /business-dashboard.css /business-dashboard-motion.js /business-dashboard-motion.css /hotel-factsheet.css /betta-environment.js /betta-fin-presets.js /betta-fin-shader.js /betta-satellite.js /rain-now.js /betta-runtime.js /betta-runtime-full.js /push-client.js /notification-inbox.js /app.js /sw.js /manifest.webmanifest; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/response
             test -s /tmp/response
           done
           curl --fail --silent --show-error "${BASE_URL}/route-registry.js" -o /tmp/routes.js
-          grep -q "kind:'local',module:'./business-dashboard.js?v=4'" /tmp/routes.js
+          grep -q "kind:'local',module:'./route-registry.js',mount:'mountBusinessDashboardStartupRoute'" /tmp/routes.js
           curl --fail --silent --show-error "${BASE_URL}/business-dashboard.js" -o /tmp/dashboard.js
           grep -q "business-dashboard-motion.js" /tmp/dashboard.js
           grep -q "business-dashboard-motion.css" /tmp/dashboard.js
@@ -139,8 +161,8 @@ jobs:
           grep -q "business-dashboard-motion.js" /tmp/sw.js
           grep -q "business-dashboard-motion.css" /tmp/sw.js
           grep -q "hotel-factsheet.css" /tmp/sw.js
-          grep -q "betta-environment.js" /tmp/sw.js
-          grep -q "rain-layer-legacy-weather.js" /tmp/sw.js
+          grep -q "betta-runtime-full.js" /tmp/sw.js
+          grep -q "rain-now.js" /tmp/sw.js
           grep -q "self.addEventListener('push'" /tmp/sw.js
 
       - name: Mobile, motion, CI-parity and installed-PWA smoke

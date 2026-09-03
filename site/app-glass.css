@@ -1,0 +1,118 @@
+/* Sindhorn Midtown Internal — single canonical frosted-glass material.
+   CI is the visual authority. Every translucent app surface receives one of the
+   two semantic classes below; route styles own geometry/content only.
+
+   Material contract:
+   - keep the proven CI blur exactly at 18px / saturate(1.18)
+   - lower Vignette pigment to 30% so the live Betta remains visible through frost
+   - utility actions (Sign out / Share / Back to top) remain fully transparent
+*/
+:root{
+  --app-glass-fill:rgba(46,39,59,.30);
+  --app-glass-border:rgba(250,247,245,.14);
+  --app-glass-filter:blur(18px) saturate(1.18);
+
+  /* Floating surfaces - dropdown menus, dialogs, sheets, toasts - sit over
+     arbitrary content and must stay legible, so they carry more pigment than a
+     card. Same blur, heavier fill: one material, two weights, instead of the
+     .92 / .94 / .98 spread these surfaces had grown. The value is the app's own
+     --ci-glass-strong, not a new invention.
+
+     Do not push this to .92+ again. At that opacity it reads as solid black and
+     stops being glass at all. */
+  --app-glass-overlay-fill:rgba(38,32,49,.72);
+
+  /* Backward-compatible aliases. There is still only one material value. */
+  --app-glass-surface-fill:var(--app-glass-fill);
+  --app-glass-surface-border:var(--app-glass-border);
+  --app-glass-surface-filter:var(--app-glass-filter);
+  --app-glass-control-fill:var(--app-glass-fill);
+  --app-glass-control-border:var(--app-glass-border);
+  --app-glass-control-filter:var(--app-glass-filter);
+}
+
+/* THE RULE: glass only where it touches the atmosphere.
+
+   backdrop-filter samples what is painted behind an element, but an ancestor
+   that already has backdrop-filter becomes a backdrop root - so a glass element
+   inside a glass element can only sample its parent, never the page. It renders
+   as a flat tint whatever the CSS says.
+
+   Measured on the CI page: an identical dropdown blurred correctly on /fnb and
+   not at all on /ci, purely because the CI specimen container was itself glass.
+
+   So: a glass surface must never contain another glass surface. Anything inside
+   one takes a plain tint with no backdrop-filter - which is what it was already
+   rendering as. scripts/nested-glass-smoke.mjs fails the build if this is
+   reintroduced. */
+
+/* These classes are the material authority. !important is intentional here:
+   they are explicitly assigned by app-glass-runtime.js, so a late route/UI-pack
+   stylesheet cannot silently replace the shared material with a local tint. */
+.app-glass-surface{
+  background-color:var(--app-glass-fill)!important;
+  backdrop-filter:var(--app-glass-filter)!important;
+  -webkit-backdrop-filter:var(--app-glass-filter)!important;
+}
+.app-glass-control{
+  background-color:var(--app-glass-fill)!important;
+  backdrop-filter:var(--app-glass-filter)!important;
+  -webkit-backdrop-filter:var(--app-glass-filter)!important;
+}
+
+/* THE MEMBERSHIP RULE - approved 3 September 2026.
+
+   A card is anything that draws an edge: a border or a fill. It sits on the
+   atmosphere, so the atmosphere must show through it. A layout container draws
+   no edge - it only arranges its children - so it is not a card and takes no
+   material. Sign out, Share and Back to top are frameless for that reason: no
+   edge, no glass. This is a rule, not a per-component exception list.
+
+   Three primitives, declared in markup by the component itself:
+     .app-card     a drawn boundary on the atmosphere
+     .app-control  an interactive drawn boundary
+     .app-overlay  a drawn boundary floating above content, not the atmosphere
+
+   Route stylesheets own geometry only - padding, radius, grid - and never
+   declare fill, border colour or backdrop-filter. They need no cascade override
+   precisely because nothing downstream is allowed to compete.
+
+   They replace a 61-name hand-maintained registry in app-glass-runtime.js.
+   Membership used to depend on someone remembering to add a class name, which
+   is how /ci sections 16 and 17 ended up in two different materials. */
+.app-card,
+.app-control{
+  border:1px solid var(--app-glass-border);
+  background-color:var(--app-glass-fill);
+  backdrop-filter:var(--app-glass-filter);
+  -webkit-backdrop-filter:var(--app-glass-filter);
+}
+
+/* Floating layers sit over arbitrary page content rather than the Betta, so
+   they take the heavier fill. Same blur - one material, two weights. */
+.app-overlay{
+  border:1px solid var(--app-glass-border);
+  background-color:var(--app-glass-overlay-fill);
+  backdrop-filter:var(--app-glass-filter);
+  -webkit-backdrop-filter:var(--app-glass-filter);
+}
+
+/* A card inside a card cannot sample the page - see THE RULE above - so it
+   keeps the tint and drops the blur. Structural, so no guard is needed to
+   notice it after the fact. */
+.app-card .app-card,
+.app-card .app-control,
+.app-overlay .app-card,
+.app-overlay .app-control{
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+}
+
+/* Frameless utilities are intentionally not glass even if a legacy page class
+   once painted them. */
+.app-utility-action,
+.app-quiet-action{
+  background:transparent!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}

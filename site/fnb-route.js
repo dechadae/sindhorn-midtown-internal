@@ -1,9 +1,9 @@
 import {mountFnbRoute as mountBaseFnbRoute} from './fnb.js';
 
 const STYLES=[
-  ['link[data-fnb-style]','/fnb.css?v=2&ui=2','data-fnb-style'],
-  ['link[data-fnb-approved-polish]','/fnb-approved-polish.css?v=2','data-fnb-approved-polish'],
-  ['link[data-fnb-refinements]','/fnb-refinements.css?v=1','data-fnb-refinements'],
+  ['link[data-fnb-style]','/fnb.css?v=3&ui=3','data-fnb-style'],
+  ['link[data-fnb-approved-polish]','/fnb-approved-polish.css?v=3','data-fnb-approved-polish'],
+  ['link[data-fnb-refinements]','/fnb-refinements.css?v=2','data-fnb-refinements'],
   ['link[data-fnb-layout-stability]','/fnb-layout-stability.css?v=1','data-fnb-layout-stability']
 ];
 
@@ -24,7 +24,7 @@ function ensureStyle(selector,href,attribute){
 async function loadRouteHelpers(){
   const results=await Promise.allSettled([
     import('./fnb-timestamp-stability.js?v=1'),
-    import('./fnb-share-ui.js?v=3')
+    import('./fnb-share-ui.js?v=4')
   ]);
   for(const result of results)if(result.status==='rejected')console.warn('F&B route helper unavailable',result.reason);
 }

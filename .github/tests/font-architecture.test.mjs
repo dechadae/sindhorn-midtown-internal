@@ -42,11 +42,14 @@ for(const file of walk(site)){
     if(!['100','400','700'].includes(match[1]))errors.push(`${rel(file)} unsupported font weight ${match[1]}`);
   }
   if(path.basename(file)!=='fonts.css'){
-    for(const match of text.matchAll(/font-family\s*:\s*([^;}]+)/gi)){
+    for(const match of text.matchAll(/(?<![-\w])font-family\s*:\s*([^;}]+)/gi)){
       const value=match[1].replace(/!important/gi,'').trim();
       if(value!=='var(--font-ui)'&&value!=='inherit')errors.push(`${rel(file)} non-canonical font-family: ${value}`);
     }
-    for(const match of text.matchAll(/font\s*:\s*([^;}]+)/gi)){
+    // Anchor on a property boundary: without it these also match the tail of custom
+      // properties such as --app-utility-font, which is a font-size token, not a
+      // shorthand. That false positive nearly turned a valid token into invalid CSS.
+      for(const match of text.matchAll(/(?<![-\w])font\s*:\s*([^;}]+)/gi)){
       const value=match[1].trim();
       if(!value.startsWith('inherit')&&!value.includes('var(--font-ui)'))errors.push(`${rel(file)} font shorthand lacks canonical family: ${value}`);
     }

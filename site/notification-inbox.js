@@ -80,7 +80,7 @@ function kindLabel(kind){
 }
 
 function messageCard(row){
-  const article=document.createElement('article');article.className='message-card';article.dataset.read=row.read?'true':'false';
+  const article=document.createElement('article');article.className='message-card app-glass-surface';article.dataset.read=row.read?'true':'false';
   const meta=document.createElement('div');meta.className='message-meta';
   const kind=document.createElement('span');kind.className='message-kind';kind.textContent=kindLabel(row.kind);
   const time=document.createElement('time');time.dateTime=new Date(Number(row.receivedAt)||Date.now()).toISOString();time.textContent=stamp(row.receivedAt,'en-GB');
@@ -98,7 +98,7 @@ async function renderMessages(){
   let rows=[];try{rows=await allMessages()}catch(_){}
   list.replaceChildren(...rows.map(messageCard));
   if(empty)empty.hidden=rows.length>0;
-  if(clear)clear.hidden=rows.length===0;
+  if(clear){clear.classList.add('app-glass-control');clear.hidden=rows.length===0}
   if(document.body.dataset.route==='messages'&&rows.some(row=>!row.read)){
     try{await markAllRead()}catch(_){}
   }

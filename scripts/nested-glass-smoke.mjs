@@ -1,0 +1,75 @@
+/* THE RULE: glass only where it touches the atmosphere.
+
+   backdrop-filter cannot sample past an ancestor that already has one, so a
+   glass element inside a glass element renders as a flat fill however it is
+   styled. This was measured, not assumed: an identical dropdown blurred
+   correctly on /fnb and not at all on /ci, purely because the CI specimen
+   container was itself glass. The spec page was showing every glass component
+   falsely.
+
+   app-glass-runtime.js refuses to stamp glass inside glass, but a route can
+   still declare backdrop-filter directly in its own stylesheet, which is how
+   .fnb-action-control acquired an inert blur. This catches that.
+
+   Usage: BASE_URL=https://<preview>.pages.dev node scripts/nested-glass-smoke.mjs
+*/
+import {chromium} from 'playwright';
+
+const BASE_URL=(process.env.BASE_URL||'http://127.0.0.1:8788').replace(/\/$/,'');
+const ROUTES=[['/', '.business-dashboard-route'],['/fnb','.fnb-route'],['/settings','.settings-route'],
+              ['/brand','.brand-route'],['/hotel-factsheet','.factsheet-route'],['/ci','.ci-route']];
+
+const manifest={ok:true,version:2,profile:{id:'00000000-0000-0000-0000-000000000001',employeeNumber:'10639',displayName:'CI Developer',role:'super_admin',accountType:'developer',preferredLanguage:'en',active:true,pinConfigured:true},capabilities:['account.read','settings.read','fnb.read','people.read','people.manage','system.manage','developer.ui_library'],sections:[{key:'account',label:'Account',navLabel:'Account',renderer:'account',sortOrder:10,config:{}}]};
+const authShim=`window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'CI Developer',pin_configured_at:new Date().toISOString()};
+await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='/location.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});
+await import('/bootstrap.js?v=4');`;
+
+/* Bundled chromium on CI; the system channel locally, where the bundled
+   browsers can be missing. */
+async function launch(){
+  try{return await chromium.launch()}
+  catch(_){return await chromium.launch({channel:'chrome'})}
+}
+
+const scan=()=>{
+  const blur=v=>typeof v==='string'&&/blur\((?!0(px)?\))/.test(v);
+  const name=el=>(el.tagName.toLowerCase()+(el.className?'.'+String(el.className).trim().split(/\s+/).slice(0,2).join('.'):'')).slice(0,48);
+  const out=[];
+  for(const el of document.querySelectorAll('*')){
+    const cs=getComputedStyle(el);
+    if(!blur(cs.backdropFilter)&&!blur(cs.webkitBackdropFilter))continue;
+    const rect=el.getBoundingClientRect();
+    if(rect.width<20||rect.height<12)continue;
+    for(let parent=el.parentElement;parent;parent=parent.parentElement){
+      const pcs=getComputedStyle(parent);
+      if(blur(pcs.backdropFilter)||blur(pcs.webkitBackdropFilter)){out.push({el:name(el),inside:name(parent)});break}
+    }
+  }
+  const seen=new Set();
+  return out.filter(r=>{const k=r.el+'|'+r.inside;if(seen.has(k))return false;seen.add(k);return true});
+};
+
+const browser=await launch();
+const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
+const page=await context.newPage();
+await page.route('**/auth-shell.js*',route=>route.fulfill({status:200,contentType:'text/javascript',body:authShim}));
+await page.route('**/rest/v1/rpc/sindhorn_settings_manifest',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(manifest)}));
+
+const violations=[];
+for(const [path,selector] of ROUTES){
+  await page.goto(`${BASE_URL}${path}`,{waitUntil:'domcontentloaded',timeout:45000});
+  await page.waitForSelector(selector,{timeout:30000}).catch(()=>{});
+  await page.waitForTimeout(3000);
+  for(const row of await page.evaluate(scan)) violations.push({path,...row});
+}
+await browser.close();
+
+if(violations.length){
+  console.error('Nested glass found. These elements render as a flat fill, not glass:\n');
+  for(const v of violations) console.error(`  ${v.path.padEnd(18)} ${v.el.padEnd(46)} inside ${v.inside}`);
+  console.error('\nA glass surface must not contain another glass surface. Give the inner');
+  console.error('element a plain tint with no backdrop-filter - which is what it already');
+  console.error('renders as, so the change is visually identical.');
+  process.exit(1);
+}
+console.log(JSON.stringify({ok:true,baseUrl:BASE_URL,routes:ROUTES.length,nestedGlass:0}));

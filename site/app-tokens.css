@@ -1,0 +1,71 @@
+/* Sindhorn Midtown Internal — canonical design tokens.
+
+   Derived from what the app already uses, not from a new design. Every value
+   below is the most-used member of a cluster the codebase had already formed;
+   the neighbours it absorbs are listed so the choice is auditable.
+
+   Nothing consumes these yet. Routes migrate onto them one at a time, and each
+   migration deletes the local values it replaces. See the CI / UI Library page
+   for the rendered specification.
+
+   Typography: LINE Seed Sans TH only, three weights, zero tracking. */
+:root{
+
+  /* ---- Type scale -------------------------------------------------------
+     70 distinct font sizes across 380 uses, 47 of them used twice or less.
+     Eight steps replace them. Half-pixel neighbours are absorbed upward or
+     to the nearest step, which is invisible at 9-13px on a phone. */
+  --type-caption:9px;     /* absorbs 8.5 / 9 / 9.5   — ~79 uses */
+  --type-micro:10px;      /* absorbs 10 / 10.5       — ~35 uses */
+  --type-small:11px;      /* absorbs 11 / 11.5       — ~29 uses */
+  --type-body-s:12px;     /* absorbs 12 / 12.5       — ~59 uses */
+  --type-body:13px;       /* the single most-used    —  50 uses */
+  --type-lead:15px;       /* absorbs 14 / 15         — ~22 uses */
+  --type-title:22px;      /* absorbs 19-24           — ~14 uses */
+  --type-display:clamp(30px,8.5vw,44px);   /* existing hero clamp, unchanged */
+
+  /* Line heights. Labels sit tight, running text breathes. */
+  --leading-tight:1.15;
+  --leading-label:1.30;
+  --leading-body:1.50;
+
+  /* ---- Weight -----------------------------------------------------------
+     Already canonical: 3 values across 169 uses, nothing else in the app.
+     Tracking is zero everywhere and is a release invariant. */
+  --weight-thin:100;
+  --weight-regular:400;
+  --weight-bold:700;
+  --tracking:0;
+
+  /* ---- Shape ------------------------------------------------------------
+     36 distinct radii. app-shapes.css already owns the semantic control
+     radii; these add the surface and geometric values it was missing.
+     14px is the single most-used radius in the app (28 uses) and had no
+     token at all. */
+  --radius-surface:14px;  /* cards, panels, sheets   —  28 uses */
+  --radius-inset:10px;    /* nested surfaces         —  12 uses */
+  --radius-pill:999px;    /* chips, rails            —  18 uses */
+  --radius-circle:50%;    /* avatars, dots           —  14 uses */
+  --radius-none:0;
+
+  /* ---- Space ------------------------------------------------------------
+     27 distinct gap values, mostly 6-16px near-duplicates of each other. */
+  --space-2:4px;
+  --space-3:8px;
+  --space-4:10px;
+  --space-5:12px;
+  --space-6:16px;
+  --space-7:20px;
+  --space-8:24px;
+
+  /* ---- Motion -----------------------------------------------------------
+     Mirrors the existing app-transitions.css contract so there is one
+     timing language, not two. */
+  --motion-ms:280ms;
+  --motion-ease:cubic-bezier(.22,1,.36,1);
+  --motion-fade:linear;
+}
+
+@media (prefers-reduced-motion:reduce){
+  :root{ --motion-ms:1ms; }
+}

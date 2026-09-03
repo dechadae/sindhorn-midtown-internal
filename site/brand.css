@@ -1,6 +1,6 @@
 /* Brand landing — uses the final rendered F&B promotion-card recipe over the persistent atmosphere. */
 body[data-route="brand"] #route-view{background:transparent;padding-bottom:96px}
-.brand-route{--brand-muted:rgba(250,247,245,.55);--brand-accent:#E5ECBE;--brand-accent-rgb:229,236,190;--brand-line:rgba(250,247,245,.09);--brand-glass:rgba(46,39,59,.48);--brand-border:rgba(250,247,245,.14);--brand-motion-fast:160ms;--brand-motion-base:260ms;--brand-ease:cubic-bezier(.22,1,.36,1);position:relative;min-height:calc(100dvh - 120px);color:var(--sm-text);isolation:auto;font:400 15px/1.65 var(--font-ui)}
+.brand-route{--brand-muted:rgba(250,247,245,.55);--brand-accent:#E5ECBE;--brand-accent-rgb:229,236,190;--brand-line:rgba(250,247,245,.09);--brand-glass:var(--app-glass-surface-fill);--brand-border:var(--app-glass-surface-border);--brand-motion-fast:160ms;--brand-motion-base:260ms;--brand-ease:cubic-bezier(.22,1,.36,1);position:relative;min-height:calc(100dvh - 120px);color:var(--sm-text);isolation:auto;font:400 15px/1.65 var(--font-ui)}
 .brand-route::before{content:none}
 .brand-route,.brand-route *,.brand-route *::before,.brand-route *::after{box-sizing:border-box;letter-spacing:0!important}
 .brand-hero{padding:22px 0 20px;border-bottom:1px solid var(--brand-line)}
@@ -12,7 +12,7 @@ body[data-route="brand"] #route-view{background:transparent;padding-bottom:96px}
 .brand-stat span{display:block;margin:0 0 5px;color:var(--brand-muted);font-size:9px;font-weight:400;text-transform:uppercase}
 .brand-stat b{display:block;font-size:13.5px;font-weight:400;line-height:1.35}
 .brand-card-list{display:grid;gap:9px;padding:18px 0 0}
-.brand-card{display:block;padding:16px 17px;border:1px solid var(--brand-border);border-radius:14px;background:var(--brand-glass);backdrop-filter:blur(18px) saturate(1.18);-webkit-backdrop-filter:blur(18px) saturate(1.18);color:inherit;text-decoration:none;box-shadow:none;transition:transform var(--brand-motion-base) var(--brand-ease),border-color var(--brand-motion-base) ease,background var(--brand-motion-base) ease,box-shadow var(--brand-motion-base) var(--brand-ease),opacity var(--brand-motion-fast) ease}
+.brand-card{display:block;padding:16px 17px;border:1px solid var(--brand-border);border-radius:14px;background:var(--brand-glass);backdrop-filter:var(--app-glass-surface-filter);-webkit-backdrop-filter:var(--app-glass-surface-filter);color:inherit;text-decoration:none;box-shadow:none;transition:transform var(--brand-motion-base) var(--brand-ease),border-color var(--brand-motion-base) ease,background var(--brand-motion-base) ease,box-shadow var(--brand-motion-base) var(--brand-ease),opacity var(--brand-motion-fast) ease}
 .brand-card:focus-visible{outline:2px solid rgba(var(--brand-accent-rgb),.72);outline-offset:3px}
 .brand-card:focus-within{border-color:rgba(var(--brand-accent-rgb),.32);box-shadow:0 14px 34px rgba(12,9,18,.14)}
 .brand-card:active{transform:scale(.992);opacity:.88}

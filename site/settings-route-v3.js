@@ -14,7 +14,7 @@ function promoteSignOutToHero(root){
   const fresh=buttons.find(button=>!hero.contains(button))||buttons.find(button=>hero.contains(button));if(!fresh)return;
   buttons.forEach(button=>{if(button!==fresh)button.remove()});
   const oldHost=fresh.closest('.settings-account-actions');
-  fresh.className='fnb-action-control fnb-share-button settings-hero-signout';
+  fresh.className='app-utility-action settings-hero-signout';
   fresh.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H5v16h5M14 8l4 4-4 4M9 12h9"/></svg><span>Sign out</span>';
   hero.appendChild(fresh);
   if(oldHost&&!oldHost.children.length)oldHost.remove();
@@ -66,13 +66,13 @@ export async function mountSettingsRoute(root){
   let baseCleanup=null,systemLibraryCleanup=null,signOutCleanup=null,cardCleanup=null,viewportCleanup=null;
   try{
     await Promise.all([
-      ensureStyle('link[data-fnb-style]','/fnb.css?v=2&ui=2','data-fnb-style'),
-      ensureStyle('link[data-fnb-approved-polish]','/fnb-approved-polish.css?v=2','data-fnb-approved-polish'),
-      ensureStyle('link[data-settings-style]','/settings.css?v=2','data-settings-style'),
+      ensureStyle('link[data-fnb-style]','/fnb.css?v=3&ui=3','data-fnb-style'),
+      ensureStyle('link[data-fnb-approved-polish]','/fnb-approved-polish.css?v=3','data-fnb-approved-polish'),
+      ensureStyle('link[data-settings-style]','/settings.css?v=3','data-settings-style'),
       ensureStyle('link[data-settings-refinements]','/settings-refinements.css?v=2','data-settings-refinements'),
       ensureStyle('link[data-settings-dialog-standard]','/settings-dialog-standard.css?v=1&r=6','data-settings-dialog-standard'),
-      ensureStyle('link[data-business-card-component]','/business-card-component.css?v=1&r=3','data-business-card-component'),
-      ensureStyle('link[data-business-card-settings-style]','/business-card-settings.css?v=10','data-business-card-settings-style'),
+      ensureStyle('link[data-business-card-component]','/business-card-component.css?v=2&r=glass-1','data-business-card-component'),
+      ensureStyle('link[data-business-card-settings-style]','/business-card-settings.css?v=12','data-business-card-settings-style'),
       ensureStyle('link[data-settings-system-library-style]','/settings-system-library.css?v=1','data-settings-system-library-style')
     ]);
     baseCleanup=await mountBaseSettingsRoute(root);

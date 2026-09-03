@@ -114,8 +114,15 @@ jobs:
           assert (root/'vendor/three.module.js').exists(), 'Three source must remain available for reproducible Betta builds'
           assert (root/'vendor/html2canvas.min.js').exists(), 'Capture library source must remain available for lazy loading'
 
-          assert "await import('./betta-runtime.js?v=1')" in bootstrap
-          assert "import('./betta-runtime.js?v=1')" in auth_shell
+          # auth-shell.js warms Betta early and bootstrap.js imports it again later. They
+          # must be the SAME module URL or the browser evaluates two instances and
+          # initEnvironment runs twice. A literal version pin let these drift apart:
+          # auth-shell moved to ?v=2 while bootstrap stayed on ?v=1.
+          _boot=re.search(r"await import\('(\./betta-runtime\.js\?v=\d+)'\)",bootstrap)
+          _auth=re.search(r"import\('(\./betta-runtime\.js\?v=\d+)'\)",auth_shell)
+          assert _boot and _auth, 'betta-runtime import missing from bootstrap.js or auth-shell.js'
+          assert _boot.group(1)==_auth.group(1), f'betta-runtime module URL drift: bootstrap {_boot.group(1)} vs auth-shell {_auth.group(1)}'
+          assert _boot.group(1)[2:] in index, f'index.html must reference the same betta-runtime build as the shell: {_boot.group(1)}'
           assert "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" in betta
           assert "dataset.environmentInput='satellite-only'" in betta
           assert 'const DPR=2' in betta and 'preserveDrawingBuffer:false' in betta
@@ -148,6 +155,18 @@ jobs:
           assert 'enable row level security' in migration.lower()
           assert 'revoke all' in migration.lower()
           PY
+
+      - name: Guard the design system before shipping
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save playwright@1.55.0 >/dev/null 2>&1
+          npx playwright install chromium >/dev/null 2>&1
+          # These three need no deployed URL, so they block the deploy rather than
+          # reporting after production has already changed.
+          node scripts/ui-centralization-budget.mjs
+          node scripts/shell-precache-parity-smoke.mjs
+          node scripts/sw-install-resilience-smoke.mjs
 
       - name: Deploy to Cloudflare Pages
         env:
@@ -221,3 +240,18 @@ jobs:
           ! grep -q "'/vendor/html2canvas.min.js'" /tmp/sw.js
           grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta.js
           grep -q "dataset.environmentInput='satellite-only'" /tmp/betta.js
+
+
+      - name: Guard the glass material on the live app
+        shell: bash
+        env:
+          BASE_URL: https://sindhorn-midtown-internal.pages.dev
+        run: |
+          set -euo pipefail
+          # These need a deployed URL, so they necessarily verify after the fact.
+          # A failure here means the live app regressed and must be rolled back.
+          node scripts/nested-glass-smoke.mjs
+          node scripts/ci-glass-browser-smoke.mjs
+          node scripts/glass-route-browser-smoke.mjs
+          node scripts/utility-action-browser-smoke.mjs
+          node scripts/pull-refresh-browser-smoke.mjs

@@ -1,4 +1,5 @@
 import {ROUTES,canonicalRoute,routeForPath} from './route-registry.js';
+import {initGlassMaterial,applyGlassMaterial} from './app-glass-runtime.js?v=1';
 
 const SHELL_VERSION=17;
 const SUPABASE_URL='https://sjpvhgxacsiorrtijqua.supabase.co';
@@ -19,6 +20,7 @@ const headerHost=document.getElementById('app-header');
 const routeHost=document.getElementById('route-view');
 const footerHost=document.getElementById('app-footer');
 if(!headerHost||!routeHost||!footerHost)throw new Error('Sindhorn shell hosts unavailable');
+initGlassMaterial([headerHost,routeHost,footerHost]);
 
 async function digest(text){
   if(!crypto?.subtle)throw new Error('Web Crypto unavailable');
@@ -109,7 +111,7 @@ function normalizeFooterNavigation(){
 function applyPersistentPresentation(pack){
   let style=document.getElementById('sindhorn-ui-pack-style');
   if(!style){style=document.createElement('style');style.id='sindhorn-ui-pack-style';document.head.appendChild(style)}
-  style.textContent=pack.resources['ui.css'].content;headerHost.innerHTML=pack.resources['header.html'].content;footerHost.innerHTML=pack.resources['footer.html'].content;normalizeFooterNavigation();
+  style.textContent=pack.resources['ui.css'].content;headerHost.innerHTML=pack.resources['header.html'].content;footerHost.innerHTML=pack.resources['footer.html'].content;normalizeFooterNavigation();applyGlassMaterial(headerHost);applyGlassMaterial(footerHost);
 }
 async function cleanupRoute(){const cleanup=routeCleanup;routeCleanup=null;if(typeof cleanup==='function')try{await cleanup()}catch(_){}}
 async function mountLocalRoute(route,definition){
@@ -135,6 +137,7 @@ async function mountRoute(route=routeForPath(location.pathname)||'today',{animat
     if(markup===null)throw new Error('Today presentation resources unavailable');
     routeHost.innerHTML=markup;
   }else await mountLocalRoute(route,definition);
+  applyGlassMaterial(routeHost);
   routeHost.classList.toggle('route-enter',animate);if(animate)requestAnimationFrame(()=>setTimeout(()=>routeHost.classList.remove('route-enter'),280));
   document.body.dataset.route=route;footerHost.querySelectorAll('[data-app-route]').forEach(link=>link.toggleAttribute('aria-current',link.dataset.appRoute===route));
   document.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route,packId:activePack.manifest.appPack}}));
@@ -162,7 +165,7 @@ document.documentElement.dataset.shellLoading='true';
 const initial=(await readCachedPack())||(await fallbackPack());await applyPack(initial,{mount:true});
 /* Betta is the first post-route startup task so Today and the persistent WebGL
    surface can enter together. Live air data continues immediately afterward. */
-const environment=await import('./betta-runtime.js?v=1');await environment.initEnvironment();
+const environment=await import('./betta-runtime.js?v=2');await environment.initEnvironment();
 const live=await import('./live-data.js');await live.initLiveData();
 /* The Betta environment schedules its first WebGL render on requestAnimationFrame.
    Keep the startup state for two paint opportunities so the GPU canvas is
@@ -171,6 +174,6 @@ await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resol
 document.documentElement.dataset.shellLoading='false';
 presentationRecovery=await import('./presentation-recovery.js');
 const inbox=await import('./notification-inbox.js');await inbox.initNotificationInbox();
-const app=await import('./app.js');await app.initApp();
+const app=await import('./app.js?v=2');await app.initApp();
 const activeRoute=routeForPath(location.pathname)||'today';document.dispatchEvent(new CustomEvent('sindhorn:route-mounted',{detail:{route:activeRoute,packId:activePack.manifest.appPack}}));document.body.dataset.route=activeRoute;document.title=ROUTES[activeRoute]?.title||ROUTES.today.title;
 refreshPack().catch(error=>console.warn('Sindhorn UI pack update unavailable; using known-good pack.',error));

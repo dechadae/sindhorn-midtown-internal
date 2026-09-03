@@ -1,0 +1,26 @@
+{
+  "note": "Centralization ratchet. Values may only decrease. See scripts/ui-centralization-budget.mjs",
+  "metrics": {
+    "foundationCssFiles": 7,
+    "routeCssFiles": 30,
+    "important": 715,
+    "backdropOutsideCanonical": 71,
+    "patchLayerFiles": 8,
+    "inlineStyleBlocks": 3,
+    "inlineStyleAttrs": 11,
+    "distinctFontSizes": 70,
+    "distinctRadii": 36,
+    "cardImplementations": 10,
+    "heroImplementations": 1
+  },
+  "patchLayerFiles": [
+    "ci-compact-fixes.css",
+    "ci-specimen-fixes.css",
+    "fnb-approved-polish.css",
+    "fnb-layout-stability.css",
+    "fnb-refinements.css",
+    "route-hero-standard.css",
+    "settings-dialog-standard.css",
+    "settings-refinements.css"
+  ]
+}

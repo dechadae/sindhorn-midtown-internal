@@ -1,23 +1,20 @@
-/* F&B refinement layer — hierarchy, atmosphere continuity, centered modal and share controls. */
+/* F&B refinement layer — hierarchy, atmosphere continuity, centered modal and share placement. */
 :root{--fnb-action-h:40px;--fnb-action-radius:11px}
 
-/* One atmosphere: the F&B route must not dim the persistent WebGL scene. */
-.fnb-route{isolation:auto!important}
-.fnb-route::before{content:none!important;background:none!important}
-.fnb-card,.fnb-text-card,.fnb-art-card{background:rgba(46,39,59,.48)!important}
-.fnb-folder-empty{background:rgba(46,39,59,.46)!important}
+/* Atmosphere and glass material are owned by fnb.css + app-glass.css. */
 
 /* Artwork cards show outlet + completion only; reward/time metadata remains in Overview. */
 body[data-route="fnb"] #artwork .fnb-art-meta{display:none!important}
 
-/* Actions use sentence/title case and one quiet control system. */
+/* Framed F&B actions. Share is explicitly excluded because app-controls.css owns
+   the frameless utility-action recipe used by Share / Sign out / Back to top. */
 body[data-route="fnb"] .fnb-action,
 body[data-route="fnb"] .fnb-expand,
-body[data-route="fnb"] .fnb-action-control{
+body[data-route="fnb"] .fnb-action-control:not(.app-utility-action){
   min-height:var(--fnb-action-h)!important;height:var(--fnb-action-h)!important;
   padding:0 14px!important;display:inline-flex;align-items:center;justify-content:center;gap:8px;
   border:1px solid var(--fnb-glass-brd);border-radius:var(--fnb-action-radius)!important;
-  background:rgba(46,39,59,.44);color:var(--sm-text);font-family:var(--font-ui)!important;
+  background:var(--app-glass-control-fill);color:var(--sm-text);font-family:var(--font-ui)!important;
   font-size:12px!important;font-weight:400!important;line-height:1!important;letter-spacing:0!important;
   text-transform:none!important;cursor:pointer;
   transition:background var(--fnb-motion-base) ease,border-color var(--fnb-motion-base) ease,color var(--fnb-motion-base) ease,box-shadow var(--fnb-motion-base) var(--fnb-motion-ease),transform var(--fnb-motion-fast) var(--fnb-motion-ease),opacity var(--fnb-motion-fast) ease
@@ -27,26 +24,26 @@ body[data-route="fnb"] .fnb-expand{width:auto!important;margin-top:7px!important
 body[data-route="fnb"] .fnb-action.is-primary{background:rgba(var(--fnb-accent-rgb),.10);border-color:rgba(var(--fnb-accent-rgb),.44);color:var(--fnb-accent)}
 body[data-route="fnb"] .fnb-action:active,
 body[data-route="fnb"] .fnb-expand:active,
-body[data-route="fnb"] .fnb-action-control:active{transform:scale(.975);opacity:.82}
+body[data-route="fnb"] .fnb-action-control:not(.app-utility-action):active{transform:scale(.975);opacity:.82}
 body[data-route="fnb"] .fnb-action:focus-visible,
 body[data-route="fnb"] .fnb-expand:focus-visible,
-body[data-route="fnb"] .fnb-action-control:focus-visible{outline:2px solid var(--fnb-accent);outline-offset:2px;box-shadow:0 0 0 4px rgba(var(--fnb-accent-rgb),.08)}
+body[data-route="fnb"] .fnb-action-control:not(.app-utility-action):focus-visible{outline:2px solid var(--fnb-accent);outline-offset:2px;box-shadow:0 0 0 4px rgba(var(--fnb-accent-rgb),.08)}
 body[data-route="fnb"] .fnb-action:disabled,
 body[data-route="fnb"] .fnb-expand:disabled,
-body[data-route="fnb"] .fnb-action-control:disabled{opacity:.38;cursor:default;transform:none}
+body[data-route="fnb"] .fnb-action-control:not(.app-utility-action):disabled{opacity:.38;cursor:default;transform:none}
 .fnb-action-control svg,.fnb-share-button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 
-/* Quiet sharing affordances. Card share remains as approved. */
+/* Share placement only. Material and typography are canonical app-utility-action. */
+.fnb-hero>.fnb-share-button{display:flex!important;margin:12px 0 0 auto!important}
+.fnb-detail-head>.fnb-share-button{display:flex!important;margin:10px 0 0 auto!important}
 .fnb-hero-utility,.fnb-detail-utility{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .fnb-hero-utility{margin-bottom:18px}
 .fnb-hero-utility .fnb-eyebrow{margin:0}
-.fnb-hero-utility .fnb-share-button,.fnb-detail-utility .fnb-share-button{height:36px!important;min-height:36px!important;padding:0 8px!important;background:transparent;border-color:transparent;color:var(--fnb-muted)}
-.fnb-hero-utility .fnb-share-button:focus-visible,.fnb-detail-utility .fnb-share-button:focus-visible{border-color:var(--fnb-glass-brd)}
+.fnb-hero-utility .fnb-share-button,.fnb-detail-utility .fnb-share-button{margin-left:auto!important}
 .fnb-detail-utility{margin-bottom:22px}
 .fnb-detail-utility .fnb-back{position:static!important;margin:0!important}
 .fnb-card-actions{min-height:44px;padding:2px 10px 4px;display:flex;align-items:center;justify-content:flex-end;border-top:1px solid var(--fnb-line)}
-.fnb-card-actions .fnb-share-button{height:38px!important;min-height:38px!important;padding-inline:11px!important;background:transparent;border-color:transparent;color:var(--fnb-muted)}
-.fnb-card-actions .fnb-share-button:focus-visible{border-color:var(--fnb-glass-brd)}
+.fnb-card-actions .fnb-share-button{margin-left:auto!important}
 
 /* True centered modal. One full-viewport scrim covers header, atmosphere, route and footer. */
 body[data-route="fnb"] .fnb-sheet-layer{
@@ -73,5 +70,5 @@ body[data-route="fnb"] .fnb-sheet-layer.is-open .fnb-sheet{transform:none!import
 body[data-route="fnb"] .fnb-sheet-close{border-radius:10px!important}
 
 @media(prefers-reduced-motion:reduce){
-  body[data-route="fnb"] .fnb-action,body[data-route="fnb"] .fnb-expand,body[data-route="fnb"] .fnb-action-control,body[data-route="fnb"] .fnb-sheet-layer,body[data-route="fnb"] .fnb-sheet{transition:none!important}
+  body[data-route="fnb"] .fnb-action,body[data-route="fnb"] .fnb-expand,body[data-route="fnb"] .fnb-action-control:not(.app-utility-action),body[data-route="fnb"] .fnb-sheet-layer,body[data-route="fnb"] .fnb-sheet{transition:none!important}
 }
