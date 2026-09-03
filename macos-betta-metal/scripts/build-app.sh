@@ -8,8 +8,8 @@ swift build -c release
 BIN_DIR="$(swift build -c release --show-bin-path)"
 DIST="$ROOT/dist"
 APP="$DIST/BETTA.app"
-ZIP="$DIST/BETTA-1.0.0-macOS-arm64.zip"
-DMG="$DIST/BETTA-1.0.0-macOS-arm64.dmg"
+ZIP="$DIST/BETTA-1.1.0-macOS-arm64.zip"
+DMG="$DIST/BETTA-1.1.0-macOS-arm64.dmg"
 AIR="$DIST/BettaShaders.air"
 METALLIB="$APP/Contents/Resources/BettaShaders.metallib"
 SAFE_SHADER="$ROOT/Sources/BettaMetalLab/ShadersSafe.metal"
@@ -21,10 +21,10 @@ rm -rf "$DIST"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/BettaMetalLab" "$APP/Contents/MacOS/BettaMetalLab"
 
-# BETTA 1.0 preserves the approved native Metal renderer and all 0.3–0.6
-# persistence domains. Release surfaces are native AppKit/MetalKit only:
-# Living Gallery, Living Studio, multi-display mirroring, Ambient Screen,
-# Himawari atmosphere, adaptive energy policy, onboarding and Settings.
+# BETTA 1.1 preserves the approved 1.0 native Metal renderer and persistence
+# domains. Imagine is an optional Apple Intelligence art-direction layer that
+# generates only structured tail/membrane/palette/background parameters; it
+# never replaces the renderer, generates images, or mutates camera/composition.
 xcrun -sdk macosx metal -mmacosx-version-min=13.0 -c "$SAFE_SHADER" -o "$AIR"
 xcrun -sdk macosx metallib "$AIR" -o "$METALLIB"
 rm -f "$AIR"
@@ -42,8 +42,8 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
 <key>CFBundleName</key><string>BETTA</string>
 <key>CFBundleDisplayName</key><string>BETTA</string>
 <key>CFBundlePackageType</key><string>APPL</string>
-<key>CFBundleShortVersionString</key><string>1.0.0</string>
-<key>CFBundleVersion</key><string>20</string>
+<key>CFBundleShortVersionString</key><string>1.1.0</string>
+<key>CFBundleVersion</key><string>21</string>
 <key>BettaGitSHA</key><string>__BETTA_GIT_SHA__</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
 <key>LSApplicationCategoryType</key><string>public.app-category.entertainment</string>
@@ -63,9 +63,6 @@ fi
 rm -f "$ZIP"
 ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
 
-# When the owner supplies an Apple Developer signing identity and a configured
-# notarytool keychain profile, the same release script produces a notarized and
-# stapled app. CI intentionally leaves these private credentials unset.
 if [[ -n "$NOTARY_PROFILE" && "$SIGN_IDENTITY" != "-" ]]; then
   xcrun notarytool submit "$ZIP" --keychain-profile "$NOTARY_PROFILE" --wait
   xcrun stapler staple "$APP"
@@ -79,7 +76,7 @@ if command -v hdiutil >/dev/null 2>&1; then
 fi
 
 echo "Built: $APP"
-echo "Version: 1.0.0 (20)"
+echo "Version: 1.1.0 (21)"
 echo "Metal library: $METALLIB"
 echo "Runtime kernel: ShadersSafe.metal"
 echo "Signing: $SIGNING_MODE"
