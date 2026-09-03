@@ -140,15 +140,20 @@ final class BettaLivingGalleryView: NSView {
         quickActions.distribution = .fillEqually
         quickActions.spacing = 7
 
+        let displayButton = NSButton(title: "Display Art", target: self, action: #selector(displayArt(_:)))
+        displayButton.bezelStyle = .rounded
+        displayButton.controlSize = .large
+        displayButton.keyEquivalent = "\r"
+        displayButton.toolTip = "Fill this display with the current living Betta. Move the pointer like a hand under water; press Esc to exit."
+
         let useButton = NSButton(title: "Use on Desktop", target: self, action: #selector(useOnDesktop(_:)))
         useButton.bezelStyle = .rounded
-        useButton.controlSize = .large
-        useButton.keyEquivalent = "\r"
+        useButton.controlSize = .regular
 
         let customizeButton = NSButton(title: "Customize in Living Studio", target: self, action: #selector(customize(_:)))
         customizeButton.bezelStyle = .rounded
 
-        statusLabel = NSTextField(labelWithString: "Choose an Original, Favorite, Random Betta, or let it evolve.")
+        statusLabel = NSTextField(labelWithString: "Choose a Betta, then Display Art.")
         statusLabel.font = .systemFont(ofSize: 10)
         statusLabel.textColor = .tertiaryLabelColor
         statusLabel.lineBreakMode = .byTruncatingTail
@@ -159,7 +164,7 @@ final class BettaLivingGalleryView: NSView {
             originalsLabel, originals,
             favoritesLabel, favoritesPopup,
             quickActions,
-            useButton, customizeButton,
+            displayButton, useButton, customizeButton,
             statusLabel
         ])
         stack.orientation = .vertical
@@ -179,6 +184,7 @@ final class BettaLivingGalleryView: NSView {
             rowB.widthAnchor.constraint(equalTo: stack.widthAnchor),
             favoritesPopup.widthAnchor.constraint(equalTo: stack.widthAnchor),
             quickActions.widthAnchor.constraint(equalTo: stack.widthAnchor),
+            displayButton.widthAnchor.constraint(equalTo: stack.widthAnchor),
             useButton.widthAnchor.constraint(equalTo: stack.widthAnchor),
             customizeButton.widthAnchor.constraint(equalTo: stack.widthAnchor)
         ])
@@ -229,6 +235,11 @@ final class BettaLivingGalleryView: NSView {
     @objc private func favoriteSelected(_ sender: NSPopUpButton) {
         guard let id = sender.selectedItem?.representedObject as? String else { return }
         onLoadFavorite?(id)
+    }
+
+    @objc private func displayArt(_ sender: Any?) {
+        BettaDisplayArtController.shared.start(on: window?.screen)
+        refresh(message: "Display Art · move your hand to make a wave · Esc to exit")
     }
 
     @objc private func toggleFavorite(_ sender: Any?) { onToggleFavorite?() }
