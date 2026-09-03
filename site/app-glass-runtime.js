@@ -17,6 +17,9 @@ const SURFACE_SELECTORS=[
   /* Messages */
   '.message-card',
   /* CI / developer UI */
+  /* CI documentation cards sit directly on the route, so they touch the atmosphere and are
+     glass. .ci-specimen is deliberately absent: it is a frame that wraps glass specimens. */
+  '.ci-doc-card','.ci-rule','.ci-state-card','.ci-owner-card',
   '.ci-status','.ci-identity-lockup','.ci-token','.ci-image-demo','.ci-motion-step',
   /* onboarding / admin */
   '.onboarding-complete','.signed-card','.admin-panel'

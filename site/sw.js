@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v57-no-nested-glass-r2';
+const VERSION='sindhorn-midtown-internal-pwa-v58-ci-card-glass-r1';
 // Preserve prior production release-family markers required by regression gates:
 // sindhorn-midtown-internal-pwa-v55-overlay-glass-r1
 // Preserve prior production release-family markers required by regression gates:
