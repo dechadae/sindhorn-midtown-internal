@@ -23,31 +23,10 @@ function applyEmployeeHeader(profileInput=null){
   link.append(name,avatar);if(!existing)tools.prepend(link);
 }
 async function loadClassicScript(src){await new Promise((resolve,reject)=>{if(document.querySelector(`script[data-auth-shell-src="${src}"]`)){resolve();return}const script=document.createElement('script');script.src=src;script.dataset.authShellSrc=src;script.onload=resolve;script.onerror=()=>reject(new Error(`Unable to load ${src}`));document.head.appendChild(script)})}
-async function evictStaleBootstrapRuntime(){
-  if(!('caches'in window))return;
-  try{
-    const keys=await caches.keys();
-    await Promise.all(keys.map(async key=>{
-      const cache=await caches.open(key);
-      await Promise.all([
-        cache.delete('/betta-runtime.js?v=1'),
-        cache.delete('/betta-runtime.js'),
-        cache.delete('/route-registry.js'),
-        cache.delete('/settings-route-v3.js'),
-        cache.delete('/settings-route-v3.js?v=12&r=release-health-1'),
-        cache.delete('/business-card-settings.css?v=10'),
-        cache.delete('/bootstrap.js?v=2'),
-        cache.delete('/bootstrap.js?v=3'),
-        cache.delete('/app-glass-runtime.js'),
-        cache.delete('/app-glass-runtime.js?v=1'),
-        cache.delete('/app.js'),
-        cache.delete('/app.js?v=1'),
-        cache.delete('/pwa.css')
-      ]);
-    }));
-  }catch(_){}
-}
 
+/* Warm the approved Betta renderer underneath the existing logo/auth phase.
+   bootstrap.js imports the same module URL later, so the browser reuses this
+   in-flight/evaluated module and initEnvironment remains idempotent. */
 const earlyBetta=import('./betta-runtime.js?v=2').then(module=>module.initEnvironment()).catch(error=>{console.warn('Early Betta startup unavailable; bootstrap will retry.',error)});
 
 let state;try{state=await initAuth()}catch(_){state=getState()}
@@ -57,7 +36,6 @@ if(!hasCompleteEmployeeAuth(state)){location.replace(loginUrl())}else{
   document.addEventListener('sindhorn:capabilities-updated',event=>applyEmployeeHeader(event.detail?.profile));
   document.addEventListener('sindhorn:auth-changed',event=>{const nextState=getState();if(!event.detail?.authenticated||!hasCompleteEmployeeAuth(nextState)){location.replace(loginUrl());return}window.__SINDHORN_AUTH_PROFILE__=event.detail.profile||nextState.profile;applyEmployeeHeader(window.__SINDHORN_AUTH_PROFILE__)});
   await loadClassicScript('/location.js');
-  await evictStaleBootstrapRuntime();
   await import('./bootstrap.js?v=4');
   await import('./onboarding.js?v=1');
   applyEmployeeHeader();

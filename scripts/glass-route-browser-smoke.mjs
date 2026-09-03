@@ -3,6 +3,11 @@ import {chromium} from 'playwright';
 const BASE_URL=(process.env.BASE_URL||'http://127.0.0.1:8788').replace(/\/$/,'');
 const CI_FILTER='blur(18px) saturate(1.18)';
 const CI_FILL='rgba(46, 39, 59, 0.3)';
+// A surface carries the canonical material either by declaring a primitive in
+// markup (migrated routes) or by being stamped from the registry (routes still
+// awaiting migration). Both are the same material; only the mechanism differs.
+const MATERIAL_CLASSES=['app-card','app-control','app-glass-surface','app-glass-control'];
+const hasMaterial=className=>String(className||'').split(/\s+/).some(c=>MATERIAL_CLASSES.includes(c));
 const assert=(value,message)=>{if(!value)throw new Error(message)};
 const manifest={ok:true,version:2,profile:{id:'00000000-0000-0000-0000-000000000001',employeeNumber:'10639',displayName:'Glass Route Preview',departmentName:'Marketing Communications',positionTitle:'Senior Graphic Designer',role:'employee',accountType:'developer',preferredLanguage:'en',active:true,pinConfigured:true},capabilities:['account.read','settings.read','fnb.read','people.read','people.manage','broadcasts.manage','system.manage','audit.read','developer.ui_library'],sections:[{key:'account',label:'Account',navLabel:'Account',description:'Profile, preferences, security status and sign out',renderer:'account',sortOrder:10,config:{}},{key:'people',label:'People',navLabel:'People',description:'Employees, departments and groups',renderer:'people',sortOrder:20,config:{}},{key:'comms',label:'Comms',navLabel:'Comms',description:'Internal broadcasts and communication controls',renderer:'comms',sortOrder:30,config:{status:'planned'}},{key:'system',label:'System',navLabel:'System',description:'Audit and system configuration',renderer:'system',sortOrder:40,config:{includes:['audit','configuration']}}]};
 const authShim=`
@@ -53,7 +58,10 @@ try{
     await page.goto(`${BASE_URL}${spec.path}`,{waitUntil:'domcontentloaded'});
     await page.waitForSelector(spec.root,{state:'attached'});
     await page.waitForSelector(spec.target,{state:'attached'});
-    await page.waitForFunction(selector=>document.querySelector(selector)?.classList.contains('app-glass-surface'),spec.target);
+    await page.waitForFunction(({selector,classes})=>{
+      const node=document.querySelector(selector);
+      return !!node&&classes.some(name=>node.classList.contains(name));
+    },{selector:spec.target,classes:MATERIAL_CLASSES});
     await page.waitForSelector('.masthead.app-glass-surface',{state:'attached'});
     await page.waitForSelector('.app-tabbar.app-glass-surface',{state:'attached'});
     const report=await page.evaluate(({rootSelector,targetSelector,checkBackdropRoot})=>{
@@ -66,7 +74,7 @@ try{
     for(const [label,target] of Object.entries({target:report.target,header:report.header,globalFooter:report.globalFooter})){
       assert(normalize(target.filter)===CI_FILTER,`${spec.name} ${label}: filter drift ${JSON.stringify(report)}`);
       assert(target.background===CI_FILL,`${spec.name} ${label}: fill drift ${JSON.stringify(report)}`);
-      assert(target.className.includes('app-glass-surface'),`${spec.name} ${label}: canonical class missing ${JSON.stringify(report)}`);
+      assert(hasMaterial(target.className),`${spec.name} ${label}: canonical material class missing ${JSON.stringify(report)}`);
     }
     if(report.contextFooter){
       assert(normalize(report.contextFooter.filter)===CI_FILTER,`${spec.name} contextual footer: filter drift ${JSON.stringify(report)}`);

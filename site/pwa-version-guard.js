@@ -87,4 +87,36 @@ if('serviceWorker'in navigator){
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)void checkForUpdate(false)});
 }
 
-export {checkForUpdate};
+/* Stale runtime eviction. Lives here because this module owns PWA cache
+   lifecycle, and because it must complete before auth-shell.js imports the
+   bootstrap graph. index.html loads this module first and the top-level await
+   below holds the next module script until eviction finishes, which is the
+   ordering auth-shell.js used to guarantee by calling it inline. */
+async function evictStaleBootstrapRuntime(){
+  if(!('caches'in window))return;
+  try{
+    const keys=await caches.keys();
+    await Promise.all(keys.map(async key=>{
+      const cache=await caches.open(key);
+      await Promise.all([
+        cache.delete('/betta-runtime.js?v=1'),
+        cache.delete('/betta-runtime.js'),
+        cache.delete('/route-registry.js'),
+        cache.delete('/settings-route-v3.js'),
+        cache.delete('/settings-route-v3.js?v=12&r=release-health-1'),
+        cache.delete('/business-card-settings.css?v=10'),
+        cache.delete('/bootstrap.js?v=2'),
+        cache.delete('/bootstrap.js?v=3'),
+        cache.delete('/app-glass-runtime.js'),
+        cache.delete('/app-glass-runtime.js?v=1'),
+        cache.delete('/app.js'),
+        cache.delete('/app.js?v=1'),
+        cache.delete('/pwa.css')
+      ]);
+    }));
+  }catch(_){}
+}
+
+await evictStaleBootstrapRuntime();
+
+export {checkForUpdate,evictStaleBootstrapRuntime};
