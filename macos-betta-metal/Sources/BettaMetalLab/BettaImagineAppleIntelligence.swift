@@ -6,8 +6,11 @@ import FoundationModels
 @available(macOS 26.0, *)
 @Generable(description: "One normalized RGB color for BETTA procedural art")
 private struct AppleImagineColor {
+    @Guide(description: "Normalized red channel", .range(0.0...1.0))
     var r: Double
+    @Guide(description: "Normalized green channel", .range(0.0...1.0))
     var g: Double
+    @Guide(description: "Normalized blue channel", .range(0.0...1.0))
     var b: Double
 }
 
@@ -126,24 +129,35 @@ final class BettaImagineEngine {
             You are BETTA Tail Director. Translate the person's art direction into the complete next state of a procedural Siamese fighting-fish tail. Camera and landscape composition are intentionally outside your schema and must never be discussed as editable outputs.
 
             There are two instruction modes:
-            - GLOBAL_RESTYLE: the person gave a broad theme, mood, character, aesthetic, cultural reference, fantasy direction or overall visual identity without explicitly asking to preserve specific attributes. Make a decisive, unmistakable reinterpretation that is clearly different at a glance. Apply the idea across palette, background atmosphere, optical response, form and motion wherever semantically appropriate. Do not timidly preserve the current colors simply because they already exist.
+            - GLOBAL_RESTYLE: the person gave a broad theme, mood, character, aesthetic, cultural reference, fantasy direction or overall visual identity without explicitly asking to preserve specific attributes. Make a decisive, unmistakable reinterpretation that is clearly different at a glance. Apply the idea across palette, background atmosphere, optical response, form and motion wherever semantically appropriate. Do not preserve the current palette or background merely because they already exist.
             - CONSTRAINED_REFINEMENT: the person explicitly says keep, preserve, only, just, same, more/less, slightly, or otherwise asks for a localized adjustment. Preserve everything they did not ask to change as closely as possible.
 
             Interpret silky as broad, translucent and gently moving; rosetail as dense rays, folds and ruffle; veiltail as soft asymmetric flow; glasslike as high transmission and clean rim light; feathery as strong ray definition and fine flutter; dreamy as slow motion and broad folds; dramatic as deeper folds, stronger rim light and stronger gradient separation.
 
             Treat style and cultural prompts visually rather than merely naming them in the note. For example, candy / unicorn / playful pop-culture direction can justify a bold high-chroma or candy-pastel mix such as bubblegum pink, electric cyan, lavender, lemon, peach or opalescent accents, with a complementary lively environment. Ethereal / goddess-like / heavenly direction can justify pearl, ivory, opal, pale lavender, champagne, luminous white and gentle iridescent separation. These are vocabulary examples, not fixed palettes.
 
-            RGB values are 0...1. The three background colors are an equal part of the artwork, not a dark safety backdrop. The background may be black, dark, mid-tone, saturated, pastel, pearl, ivory or clean white. Keep the Betta silhouette readable: when both tail and environment are light, create subtle hue/value separation and stronger rim/fold definition rather than simply washing everything to the same white.
+            Every RGB channel is strictly normalized 0...1. Never use 0...255 RGB notation. The three background colors are an equal part of the artwork, not a dark safety backdrop. The background may be black, dark, mid-tone, saturated, pastel, pearl, ivory or clean white. Keep the Betta silhouette readable: when both tail and environment are light, create subtle hue/value separation and stronger rim/fold definition rather than simply washing everything to the same white.
 
             The note must describe what the returned numeric design actually does. Never claim "vibrant colors", "rainbow", "strong contrast" or similar if the palette/background values do not visibly contain that quality.
             """
         }
 
+        // A global restyle should keep the current form as useful context but not
+        // inherit the previous color state as an anchor. This is especially
+        // important after a white/pearl design: otherwise every later theme can
+        // collapse back toward the already-white working copy.
+        var promptState = current
+        if mode == .globalRestyle {
+            promptState.palette = []
+            promptState.background = []
+        }
+
         let prompt = """
         Instruction mode: \(mode.rawValue)
-        Current BETTA state: \(current.promptJSON)
+        Current BETTA state: \(promptState.promptJSON)
         Person's direction: \(direction)
 
+        \(mode == .globalRestyle ? "The current palette/background are intentionally omitted. Design all four tail colors and all three environment colors fresh from the person's direction." : "Preserve unspecified current attributes closely.")
         Return the complete next state and one concise truthful note.
         If mode is GLOBAL_RESTYLE, make the transformation visually obvious and coherent rather than merely tweaking the current state.
         If mode is CONSTRAINED_REFINEMENT, keep unspecified attributes close to their current values.
@@ -158,7 +172,7 @@ final class BettaImagineEngine {
         if mode == .globalRestyle && isVisuallyTooSimilar(current: current, candidate: result.design) {
             let strongerPrompt = """
             The first proposal is still too visually close to the current BETTA for a GLOBAL_RESTYLE.
-            Reinterpret the same direction more decisively. Make the result unmistakably different at a glance while remaining tasteful and coherent. If the direction implies a colorful or cultural theme, materially redesign the four tail colors and three background colors rather than only describing the theme in the note. Also use form, optics and motion where they support the direction. Return the complete revised state.
+            Reinterpret the same direction more decisively. The current palette/background are not constraints. Make the result unmistakably different at a glance while remaining tasteful and coherent. Materially redesign the four tail colors and three background colors, and use form, optics and motion where they support the direction. All RGB channels must remain normalized 0...1. Return the complete revised state.
             """
             response = try await session.respond(to: strongerPrompt, generating: AppleImagineResponse.self)
             result = makeResult(response.content)
@@ -180,8 +194,8 @@ final class BettaImagineEngine {
             gradientPosition: d.gradientPosition, microFold: d.microFold, rayDefinition: d.rayDefinition,
             edgeRuffle: d.edgeRuffle, veinStrength: d.veinStrength, membraneGrain: d.membraneGrain,
             fineFlutter: d.fineFlutter, normalDetail: d.normalDetail, membraneCount: d.membraneCount,
-            palette: d.palette.map { BettaImagineColor(r: $0.r, g: $0.g, b: $0.b) },
-            background: d.background.map { BettaImagineColor(r: $0.r, g: $0.g, b: $0.b) }
+            palette: d.palette.map { BettaImagineColor.fromModelRGB(r: $0.r, g: $0.g, b: $0.b) },
+            background: d.background.map { BettaImagineColor.fromModelRGB(r: $0.r, g: $0.g, b: $0.b) }
         )
         return BettaImagineResult(design: design, note: content.note)
     }
@@ -207,8 +221,8 @@ final class BettaImagineEngine {
             abs(Double(candidate.membraneCount - current.membraneCount)) / 5.0
         ]
         let scalarDelta = scalarTerms.reduce(0, +) / Double(max(1, scalarTerms.count))
-        let score = paletteDelta * 0.40 + backgroundDelta * 0.30 + min(1, scalarDelta * 2.5) * 0.30
-        return score < 0.115
+        let score = paletteDelta * 0.45 + backgroundDelta * 0.35 + min(1, scalarDelta * 2.5) * 0.20
+        return score < 0.15
     }
 
     private func averageColorDistance(_ a: [BettaImagineColor], _ b: [BettaImagineColor]) -> Double {
