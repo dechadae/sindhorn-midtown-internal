@@ -1,0 +1,59 @@
+.ui-today{min-height:calc(100dvh - 120px);padding-bottom:96px}
+.ui-today__hero-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px;margin-top:18px;border-top:1px solid var(--ui-color-line)}
+.ui-today__hero-meta>div{min-width:0;padding:12px 0;border-bottom:1px solid var(--ui-color-line)}
+.ui-today__hero-meta span,.ui-today__domain-head span,.ui-today__section-kicker,.ui-today__row span,.ui-today__mini span,.ui-today__benchmark span{display:block;color:var(--ui-color-muted);font-size:9px;text-transform:uppercase}
+.ui-today__hero-meta strong{display:block;font-size:13px;font-weight:400;line-height:1.35;overflow-wrap:anywhere}
+.ui-today__hero-meta small{display:block;margin-top:3px;color:var(--ui-color-muted);font-size:9px;line-height:1.4}
+.ui-today__section{padding:22px 0 6px;border-top:1px solid var(--ui-color-line)}
+.ui-today__section:first-of-type{border-top:0}
+.ui-today__section-head{margin-bottom:14px}
+.ui-today__section-kicker{display:flex;align-items:center;gap:9px;margin:0 0 5px;color:var(--ui-color-sorbet)}
+.ui-today__section-kicker::after{content:"";height:1px;flex:1;background:var(--ui-color-line)}
+.ui-today__section-head h2{margin:0;font-size:clamp(21px,5.6vw,27px);font-weight:400;line-height:1.15}
+.ui-today__section-head p{max-width:610px;margin:8px 0 0;color:var(--ui-color-muted);font-size:12.5px;line-height:1.6}
+.ui-today__domain{display:grid;gap:9px}
+.ui-today__domain+.ui-today__domain{margin-top:18px}
+.ui-today__domain-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ui-today__domain-head span{color:var(--ui-color-sorbet)}
+.ui-today__domain-head small{color:var(--ui-color-muted);font-size:9px}
+.ui-today__metric-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.ui-today__metric-grid--4{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ui-today__flag-list,.ui-today__disclosure-list,.ui-today__outlook-list{display:grid;gap:9px}
+.ui-today__flag{padding:14px 15px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start}
+.ui-today__flag strong{display:block;font-size:13px;font-weight:400;line-height:1.35}
+.ui-today__flag p{margin:5px 0 0;color:var(--ui-color-muted);font-size:11px;line-height:1.5}
+.ui-today__flag>b{color:var(--ui-color-sorbet);font-size:12px;font-weight:400;white-space:nowrap}
+.ui-today__summary{display:grid;gap:0}
+.ui-today__summary-main{padding:16px 17px;border-bottom:1px solid var(--ui-color-line)}
+.ui-today__summary-main>span{display:block;color:var(--ui-color-sorbet);font-size:9px;text-transform:uppercase}
+.ui-today__summary-main>strong{display:block;margin-top:8px;font-size:clamp(28px,8vw,42px);font-weight:400;line-height:1;font-variant-numeric:tabular-nums}
+.ui-today__summary-main>p{margin:8px 0 0;color:var(--ui-color-muted);font-size:11px}
+.ui-today__comparison{display:grid}
+.ui-today__row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:10px;align-items:end;padding:11px 15px;border-bottom:1px solid var(--ui-color-line)}
+.ui-today__row:last-child{border-bottom:0}
+.ui-today__row strong,.ui-today__row b{display:block;margin-top:4px;font-size:12.5px;font-weight:400;line-height:1.25;font-variant-numeric:tabular-nums}
+.ui-today__row>em{color:var(--ui-color-muted);font-size:10px;font-style:normal;text-align:right;font-variant-numeric:tabular-nums}
+.ui-today__subhead{margin:18px 0 9px;font-size:13px;font-weight:400}
+.ui-today__mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
+.ui-today__mini{padding:10px 0;border-bottom:1px solid var(--ui-color-line)}
+.ui-today__mini b{display:block;margin-top:4px;font-size:12.5px;font-weight:400}
+.ui-today__daypart{padding:10px 0;border-bottom:1px solid var(--ui-color-line)}
+.ui-today__daypart:last-child{border-bottom:0}
+.ui-today__daypart>div{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ui-today__daypart span{font-size:12px}
+.ui-today__daypart b{font-size:12px;font-weight:400}
+.ui-today__daypart small{display:block;margin-top:4px;color:var(--ui-color-muted);font-size:10px;line-height:1.45}
+.ui-today__benchmark-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:9px}
+.ui-today__benchmark{padding:13px 14px}
+.ui-today__benchmark b{display:block;margin-top:5px;font-size:13px;font-weight:400;font-variant-numeric:tabular-nums}
+.ui-today__outlook-card{padding:15px 16px}
+.ui-today__outlook-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.ui-today__outlook-top span{color:var(--ui-color-sorbet);font-size:9px;text-transform:uppercase}
+.ui-today__outlook-top strong{font-size:24px;font-weight:400;line-height:1;font-variant-numeric:tabular-nums}
+.ui-today__outlook-card p{margin:8px 0 0;color:var(--ui-color-muted);font-size:11px;line-height:1.5}
+.ui-today__state{margin-top:18px;padding:18px}
+.ui-today__state h2{margin:0;font-size:18px;font-weight:400}
+.ui-today__state p{margin:8px 0 0;color:var(--ui-color-muted);font-size:12px;line-height:1.55}
+.ui-today__state .ui-button{margin-top:14px}
+@media(min-width:620px){.ui-today__metric-grid--4{grid-template-columns:repeat(4,minmax(0,1fr))}.ui-today__benchmark-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.ui-today__outlook-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:355px){.ui-today__metric-grid{gap:6px}.ui-today__row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);}.ui-today__row>em{grid-column:1/-1;text-align:left}}
