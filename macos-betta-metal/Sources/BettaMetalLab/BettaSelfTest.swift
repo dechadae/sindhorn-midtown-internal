@@ -8,9 +8,9 @@ struct BettaSelfTest {
         }
 
         expect(BettaReleaseInfo.productName == "BETTA", "Release product name must be BETTA")
-        expect(BettaReleaseInfo.version == "1.1.2", "Release semantic version must be 1.1.2")
-        expect(BettaReleaseInfo.build == "23", "Release build number must be 23")
-        expect(BettaReleaseInfo.persistenceBundleIdentifier == "com.sindhornmidtown.BettaMetalLab", "1.1.2 must preserve the existing persistence bundle identifier")
+        expect(BettaReleaseInfo.version == "1.1.3", "Release semantic version must be 1.1.3")
+        expect(BettaReleaseInfo.build == "24", "Release build number must be 24")
+        expect(BettaReleaseInfo.persistenceBundleIdentifier == "com.sindhornmidtown.BettaMetalLab", "1.1.3 must preserve the existing persistence bundle identifier")
 
         expect(BettaPreset.all.count == 8, "Expected exactly eight canonical Betta presets")
         expect(BettaGeometry.rays == 160, "Mac high-detail topology must use 160 circumferential samples")
@@ -144,6 +144,19 @@ struct BettaSelfTest {
 
         let pureWhite = BettaImagineColor(r: 1, g: 1, b: 1).backgroundSIMD
         expect(abs(pureWhite.x - 1) < 0.0001 && abs(pureWhite.y - 1) < 0.0001 && abs(pureWhite.z - 1) < 0.0001, "Imagine backgrounds must permit clean white")
+
+        // Regression for the all-white Imagine failure seen on-device. If a
+        // foundation model supplies conventional 0...255 RGB despite guidance,
+        // BETTA must scale it instead of clamping every channel to 1.0.
+        let hotPink = BettaImagineColor.fromModelRGB(r: 255, g: 20, b: 147).paletteSIMD
+        expect(abs(hotPink.x - 1.0) < 0.0001, "255-based model red must normalize to 1")
+        expect(hotPink.y > 0.07 && hotPink.y < 0.09, "255-based model green must preserve the intended low channel")
+        expect(hotPink.z > 0.57 && hotPink.z < 0.59, "255-based model blue must preserve the intended magenta ratio")
+        expect(!(abs(hotPink.x - 1) < 0.0001 && abs(hotPink.y - 1) < 0.0001 && abs(hotPink.z - 1) < 0.0001), "255-based colorful model output must never collapse to white")
+
+        let normalizedCyan = BettaImagineColor.fromModelRGB(r: 0.1, g: 0.8, b: 1.0).paletteSIMD
+        expect(abs(normalizedCyan.x - 0.1) < 0.0001 && abs(normalizedCyan.y - 0.8) < 0.0001 && abs(normalizedCyan.z - 1.0) < 0.0001, "Already normalized model RGB must remain unchanged")
+
         expect(BettaImagineInstructionMode.classify("Let's go with candy unicorn pop culture betta fish.") == .globalRestyle, "Broad theme prompts must use global-restyle semantics")
         expect(BettaImagineInstructionMode.classify("Keep the colors, but make it fuller and slower.") == .refinement, "Explicit preservation prompts must use constrained-refinement semantics")
         expect(BettaImagineInstructionMode.classify("Make it ethereal and goddess-like.") == .globalRestyle, "Broad mood prompts must be allowed to reinterpret the whole artwork")
@@ -193,7 +206,7 @@ struct BettaSelfTest {
 
         if failures.isEmpty {
             print("BETTA \(BettaReleaseInfo.version) (\(BettaReleaseInfo.build)) self-test: PASS")
-            print("Imagine in-window overlay · decisive global restyles · constrained refinements · full-range mood backgrounds · camera/composition isolation · 8 immutable originals · premium morph pacing · live Himawari mood mapping · adaptive energy policy · multi-display release shell · 160×144 topology · 1–6 membranes · presets/favorites · continuous evolution · recovery regression")
+            print("Imagine RGB-scale hardening · in-window overlay · decisive global restyles · constrained refinements · full-range mood backgrounds · camera/composition isolation · 8 immutable originals · premium morph pacing · live Himawari mood mapping · adaptive energy policy · multi-display release shell · 160×144 topology · 1–6 membranes · presets/favorites · continuous evolution · recovery regression")
             return true
         }
         print("BETTA \(BettaReleaseInfo.version) self-test: FAIL")
