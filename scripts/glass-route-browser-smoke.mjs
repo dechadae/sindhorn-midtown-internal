@@ -63,9 +63,13 @@ try{
     },{selector:spec.target,classes:MATERIAL_CLASSES});
     await page.waitForSelector('.masthead.app-glass-surface',{state:'attached'});
     await page.waitForSelector('.app-tabbar.app-glass-surface',{state:'attached'});
+    // The waits above pass one node at a time, but a route can re-render its
+    // list between them (skeleton -> data), so the read waits for all four to
+    // be attached at the same instant instead of failing on a swapped node.
+    await page.waitForFunction(({rootSelector,targetSelector})=>['.masthead','.app-tabbar',rootSelector,targetSelector].every(selector=>document.querySelector(selector)),{rootSelector:spec.root,targetSelector:spec.target});
     const report=await page.evaluate(({rootSelector,targetSelector,checkBackdropRoot})=>{
       const root=document.querySelector(rootSelector),target=document.querySelector(targetSelector),header=document.querySelector('.masthead'),globalFooter=document.querySelector('.app-tabbar'),contextFooter=document.querySelector('.fnb-section-rail.shell-footer-rail,.settings-section-rail.shell-footer-rail');
-      if(!root||!target||!header||!globalFooter)throw new Error('Missing glass route target');
+      if(!root||!target||!header||!globalFooter)throw new Error(`Missing glass route target ${JSON.stringify({route:rootSelector,root:!!root,target:!!target,header:!!header,globalFooter:!!globalFooter})}`);
       const read=node=>{if(!node)return null;const style=getComputedStyle(node);return{filter:String(style.backdropFilter||style.webkitBackdropFilter||'none'),background:style.backgroundColor,className:node.className}};
       const rootStyle=getComputedStyle(root),before=getComputedStyle(root,'::before');
       return{target:read(target),header:read(header),globalFooter:read(globalFooter),contextFooter:read(contextFooter),isolation:rootStyle.isolation,beforeContent:before.content,beforeBackground:before.backgroundImage,checkBackdropRoot};
