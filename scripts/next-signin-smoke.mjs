@@ -44,7 +44,9 @@ try{
   if(await page.locator('.app-state[data-tone="error"]').count())failures.push('Today rendered its error state for a signed-in employee');
 
   await page.click('.app-masthead-account');
-  await page.waitForSelector('#routeView .app-metric',{timeout:30000});
+  // Today's own metric cards stay in the DOM until Settings mounts, so wait
+  // for Me itself: its hero title plus the sign-out row that renders with the facts.
+  await page.waitForFunction(()=>document.querySelector('.app-hero-title')?.textContent.trim()==='Me'&&document.querySelector('[data-settings-signout]')&&document.querySelector('#routeView .app-metric-value'),null,{timeout:30000});
   const me=await shell();
   if(me.mode!=='settings'||me.current.join()!=='settings/me'||me.title!=='Me')failures.push(`settings: mode=${me.mode} current=${me.current.join()} title=${me.title}`);
   const shown=await page.evaluate(()=>[...document.querySelectorAll('#routeView .app-metric-value')].map(n=>n.textContent.trim()));
