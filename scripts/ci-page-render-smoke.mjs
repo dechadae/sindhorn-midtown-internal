@@ -203,10 +203,15 @@ if (report.overflow > 1) failures.push(`horizontal overflow ${report.overflow}px
 // The host must be running the push-in keyframes over --motion-view, and
 // neither it nor the ghost may carry opacity, filter or clip-path - any of
 // those on an ancestor switches the glass beneath off.
-const VIEW = '0.38s';
+// The movement is read while it runs, so the specimen frame is slowed for the
+// tap (a test-only sheet - the token itself is asserted at its real value);
+// a CI runner otherwise finishes the 380ms before the read lands.
+const VIEW = '380ms';
 const view = await (async () => {
   const frame = page.locator('[data-view-demo]');
   if (!(await frame.count())) return null;
+  const token = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--motion-view').trim());
+  await page.addStyleTag({ content: '[data-view-demo]{--motion-view:8s}' });
   await frame.locator('[data-demo-route="fnb"]').click();
   // The ghost holds a clone of the host, so the live host is the frame's own child.
   await page.waitForFunction(() => document.querySelector('[data-view-demo] > [data-view-host][data-run]') && document.querySelector('.app-view-ghost[data-run]'), null, { timeout: 2000 }).catch(() => {});
@@ -214,23 +219,24 @@ const view = await (async () => {
     const host = document.querySelector('[data-view-demo] > [data-view-host]'), ghost = document.querySelector('.app-view-ghost'), scroll = ghost?.querySelector('.app-view-ghost-scroll');
     const read = node => { if (!node) return null; const s = getComputedStyle(node); return { name: s.animationName, duration: s.animationDuration, timing: s.animationTimingFunction, play: s.animationPlayState, opacity: s.opacity, filter: s.filter, clip: s.clipPath, transform: s.transform }; };
     return { kind: host?.dataset.view, host: read(host), ghost: read(scroll), ghostPosition: ghost && getComputedStyle(ghost).position, ghostZ: ghost && getComputedStyle(ghost).zIndex, title: host?.querySelector('.app-hero-title')?.textContent };
-  });
+  }).then(result => ({ ...result, token }));
 })();
 if (!view) failures.push('[data-view-demo]: view-transition specimen missing');
 else {
   if (view.kind !== 'push') failures.push(`view transition: Today → F&B should push, host has data-view="${view.kind}"`);
   if (view.title !== 'Promotions') failures.push(`view transition: the new page should be mounted beneath the ghost, host shows "${view.title}"`);
+  if (view.token !== VIEW) failures.push(`--motion-view is ${view.token}, expected ${VIEW}`);
   if (!view.host || view.host.name !== 'app-view-push-in-local') failures.push(`view transition: host animation ${view.host?.name}, expected app-view-push-in-local`);
   if (!view.ghost || view.ghost.name !== 'app-view-push-out') failures.push(`view transition: ghost animation ${view.ghost?.name}, expected app-view-push-out`);
   for (const [who, style] of [['host', view.host], ['ghost', view.ghost]]) {
     if (!style) continue;
-    if (norm(style.duration) !== VIEW) failures.push(`view transition: ${who} animation-duration ${style.duration}, expected ${VIEW} (--motion-view)`);
+    if (norm(style.duration) !== '8s') failures.push(`view transition: ${who} animation-duration ${style.duration} does not follow --motion-view`);
     if (norm(style.timing) !== EASE) failures.push(`view transition: ${who} animation-timing-function ${style.timing}, expected ${EASE}`);
     if (style.play !== 'running') failures.push(`view transition: ${who} animation is ${style.play}, expected running`);
     if (style.opacity !== '1' || style.filter !== 'none' || style.clip !== 'none') failures.push(`view transition: ${who} must move by transform only (opacity ${style.opacity}, filter ${style.filter}, clip-path ${style.clip})`);
   }
   if (view.ghostPosition !== 'absolute') failures.push(`view transition: a scoped ghost must be absolute inside its frame, got ${view.ghostPosition}`);
-  await page.waitForFunction(() => !document.querySelector('.app-view-ghost') && !document.querySelector('[data-view-demo] > [data-view-host][data-view]'), null, { timeout: 3000 })
+  await page.waitForFunction(() => !document.querySelector('.app-view-ghost') && !document.querySelector('[data-view-demo] > [data-view-host][data-view]'), null, { timeout: 12000 })
     .catch(() => failures.push('view transition: ghost or data-view left behind after the movement ended'));
 }
 
