@@ -167,6 +167,37 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-code{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
 .app-field .app-code input{padding-inline:0;text-align:center;font-size:var(--type-lead);font-variant-numeric:tabular-nums}
 
+/* A search is a field with a leading glass and a clear control, for a list
+   the employee filters as they type - the directory. The well is the same
+   input; only the padding makes room. The clear control appears once there
+   is something to clear, from the placeholder alone, so no script has to
+   watch the value. */
+.app-search{position:relative}
+/* The glyph and the clear control sit above the well: the input's blur makes
+   it a stacking context that would otherwise paint over them. */
+.app-search>svg{position:absolute;z-index:1;left:12px;bottom:15px;width:18px;height:18px;fill:none;stroke:var(--app-muted);stroke-width:1.6;pointer-events:none}
+.app-search input{padding-left:38px;padding-right:44px;-webkit-appearance:none;appearance:none}
+.app-search input::-webkit-search-cancel-button,.app-search input::-webkit-search-decoration{-webkit-appearance:none;appearance:none}
+.app-search-clear{
+  position:absolute;z-index:1;right:4px;bottom:4px;width:40px;height:40px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:0;border-radius:var(--radius-tight);background:transparent;
+  color:var(--app-muted);cursor:pointer;
+}
+.app-search-clear svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6}
+.app-search-clear:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
+.app-search input:placeholder-shown~.app-search-clear{display:none}
+
+/* A six-character code the app shows rather than asks for - a first-login
+   or recovery code an admin reads out or shares. The same six wells as the
+   input group, only static, so the two read as one thing. */
+.app-code-display{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:0}
+.app-code-display b{
+  min-height:52px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--app-line);border-radius:var(--radius-inset);background:var(--app-inset-fill);
+  font-size:var(--type-title);font-weight:var(--weight-regular);font-variant-numeric:tabular-nums;
+}
+
 /* ---- Selector --------------------------------------------------------------
    Behaviour lives in app-select.js. The trigger is a control; the menu floats
    above content, so it is an overlay rather than a card. */
@@ -221,6 +252,9 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    them is right-aligned by definition; a page never places them itself. */
 .app-utility-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:4px 20px}
 *+.app-utility-row{margin-top:16px}
+/* A count or a caption in the row - "42 employees" - reads at the left
+   edge while the actions keep the right; it is text, not a control. */
+.app-utility-note{margin-right:auto;color:var(--app-muted);font-size:var(--type-body-s);line-height:1;font-variant-numeric:tabular-nums}
 
 /* ---- Back / close control ---------------------------------------------------
    A detail view needs a way out. app-controls.css carries these for the current
@@ -317,6 +351,9 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-check input:focus-visible+.app-check-box{outline:2px solid var(--app-accent);outline-offset:2px}
 .app-check-label{min-width:0;font-size:var(--type-body-s);line-height:var(--leading-label)}
 .app-check input:checked~.app-check-label{color:var(--app-muted);text-decoration:line-through}
+/* A check that chooses rather than completes - "show this field" - keeps its
+   label upright when checked; only a task strikes through. */
+.app-check[data-mode="option"] input:checked~.app-check-label{color:inherit;text-decoration:none}
 
 /* ---- Badge ------------------------------------------------------------------
    A count or a status marker. Never the only carrier of meaning: pair it with
@@ -349,6 +386,18 @@ a.app-list-row{color:inherit;text-decoration:none}
 button.app-list-row{width:100%;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 button.app-list-row:active{opacity:.9}
 button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
+/* An avatar is the initials on the inset tint - rounded, never circular. It
+   leads a directory row; the row's text column keeps its own grid beside it.
+   The fill is the badge's tint, so like the badge it is a fill without an
+   edge: app-glass.css gives it the blur where it can sample the page. */
+.app-avatar{
+  flex:0 0 auto;width:38px;height:38px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:var(--radius-inset);background:var(--app-inset-fill);
+  color:var(--app-muted);font-size:var(--type-body-s);font-weight:var(--weight-bold);text-transform:uppercase;
+}
+.app-list-row-lead{min-width:0;flex:1 1 auto;display:flex;align-items:center;gap:12px}
+.app-list-row-lead>.app-list-row-main{flex:1 1 auto}
 
 /* ---- Prose ------------------------------------------------------------------
    Long-form editorial copy: the History and Brand narratives. Constrained
@@ -431,8 +480,26 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-dialog-kicker{margin:0 0 4px;color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
 .app-dialog-title{margin:0;font-size:var(--type-title);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
 .app-dialog-copy{margin:8px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-dialog-head+.app-stack,.app-dialog-copy+.app-stack{margin-top:18px}
 .app-dialog-actions{margin-top:22px;display:flex;align-items:center;justify-content:flex-end;gap:10px}
 .app-dialog-actions-split{justify-content:space-between}
+/* A form inside a dialog lays its fields on two columns; a field that needs
+   the width spans. Under a phone's width the columns collapse. A section
+   line groups fields the way a card section does, with the same hairline. */
+.app-dialog-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
+.app-dialog-grid>[data-span="full"]{grid-column:1/-1}
+.app-dialog-section{grid-column:1/-1;display:grid;gap:3px;margin-top:6px;padding-top:14px;border-top:1px solid var(--app-line)}
+.app-dialog-section>span{color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
+.app-dialog-section>small{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-dialog-status{min-height:18px;margin:14px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-dialog-status[data-tone="error"]{color:var(--app-danger)}
+.app-dialog-status:empty{margin:0;min-height:0}
+/* The dialog's body scrolls when a form outgrows the viewport; the head and
+   the actions stay in the flow so the whole form is one scroll. */
+.app-dialog{overflow:auto}
+.app-dialog-actions .app-utility-action[data-tone="danger"]{color:var(--app-danger)}
+.app-dialog-actions>.app-row{gap:10px}
+@media (max-width:480px){.app-dialog-grid{grid-template-columns:1fr}}
 
 /* ---- Table -----------------------------------------------------------------
    Dense data scrolls horizontally rather than compressing. The first column is
@@ -718,3 +785,28 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 @keyframes app-view-pop-in{from{transform:translateX(calc(-1 * var(--motion-view-travel)))}to{transform:none}}
 @keyframes app-view-cover-in{from{transform:translateY(var(--motion-view-travel))}to{transform:none}}
 @keyframes app-view-dismiss-in{from{transform:translateY(calc(-1 * var(--motion-view-travel)))}to{transform:none}}
+
+/* ---- Business card ----------------------------------------------------------
+   The employee's digital card as it appears on Settings › Me: the same shape
+   the public card page draws - name, position, hotel, the QR that opens the
+   public link - laid out on the card material the page already has. It is
+   layout only: the .app-card around it is the material, the details are a
+   text metric grid, the QR is a figure. The QR's paper is inside the SVG the
+   generator draws, so this rule paints no colour. */
+.app-business-card{display:grid;gap:18px;text-align:center}
+.app-business-card-kicker{margin:0;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-business-card-name{margin:6px 0 0;font-size:var(--type-display);font-weight:var(--weight-thin);line-height:.98;text-wrap:balance;overflow-wrap:anywhere}
+.app-business-card-position{margin:10px 0 0;font-size:var(--type-lead);line-height:var(--leading-label)}
+.app-business-card-hotel{max-width:36ch;margin:8px auto 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-business-card>.app-figure{width:min(72%,260px);margin-inline:auto;aspect-ratio:1;border-radius:var(--radius-surface)}
+.app-business-card>.app-figure svg{display:block;width:100%;height:100%}
+.app-business-card-logo{display:block;width:min(120px,32vw);height:auto;margin:0 auto}
+.app-business-card>.app-metric-grid .app-metric{text-align:center}
+.app-business-card>.app-metric-grid .app-metric-value{font-size:var(--type-body);line-height:var(--leading-label);overflow-wrap:anywhere}
+.app-business-card>.app-metric-grid .app-metric-value a{color:var(--app-accent);text-decoration:none}
+.app-business-card>.app-utility-row{justify-content:center}
+.app-business-card-link{margin:0;color:var(--app-muted);font-size:var(--type-small);overflow-wrap:anywhere}
+.app-business-card-link a{color:inherit;text-underline-offset:3px}
+/* Presented full-size for scanning across a desk: the same layout in the
+   dialog, the QR taking the width. */
+.app-dialog .app-business-card>.app-figure{width:min(100%,320px)}

@@ -42,3 +42,26 @@ export function confirmDialog({ kicker = '', title, copy = '', confirm = 'Confir
     dialog.querySelector('[data-dialog-cancel]').focus();
   });
 }
+
+/* A dialog with a body of the page's own - a form, a card, a code - still
+   opens, dismisses and cleans up the same way. openDialog() takes the body
+   markup, wires the scrim, Escape and any [data-dialog-close] control, and
+   removes the element after it closes. The page keeps the returned element
+   only as long as it is open. */
+export function openDialog(markup, { onClose } = {}) {
+  const dialog = document.createElement('dialog');
+  dialog.className = 'app-dialog app-overlay';
+  dialog.innerHTML = markup;
+  dialog.addEventListener('click', event => { if (event.target === dialog || event.target.closest('[data-dialog-close]')) dialog.close(''); });
+  dialog.addEventListener('close', () => { dialog.remove(); onClose?.(dialog.returnValue); }, { once: true });
+  document.body.append(dialog);
+  dialog.showModal();
+  return dialog;
+}
+
+const CLOSE_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>';
+
+/* The head every page dialog shares: kicker, title and the close control. */
+export function dialogHead(kicker, title) {
+  return `<div class="app-dialog-head"><div>${kicker ? `<p class="app-dialog-kicker">${text(kicker)}</p>` : ''}<h2 class="app-dialog-title">${text(title)}</h2></div><button class="app-close-control" type="button" data-dialog-close aria-label="Close">${CLOSE_ICON}</button></div>`;
+}

@@ -21,7 +21,7 @@ const ROUTES=[['/', '.business-dashboard-route'],['/fnb','.fnb-route'],['/settin
               ['/next.html#signin','[data-signin-form]'],
               ['/next','.app-page'],['/next.html#fnb','.app-action-card'],['/next.html#fnb/negroni-week','.app-rail'],
               ['/next.html#brand','.app-action-card'],['/next.html#brand/history','#periods'],['/next.html#brand/factsheet','.app-rail'],
-              ['/next.html#messages','.app-state'],['/next.html#settings/me','.app-metric'],['/next.html#settings/admin','.app-state'],['/next.html#settings/system','.app-metric']];
+              ['/next.html#messages','.app-state'],['/next.html#settings/me','.app-metric'],['/next.html#settings/admin','.app-search'],['/next.html#settings/system','.app-metric']];
 
 /* The shell gates every route behind sign-in. The sign-in route is scanned
    signed out; every /next route after it is scanned with a stand-in session

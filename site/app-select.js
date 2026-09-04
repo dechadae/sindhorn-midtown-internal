@@ -79,3 +79,65 @@ export function bindSelectField(root,kind,onChange,labelFor=v=>v){
     }
   };
 }
+
+/* ---- The library selector ------------------------------------------------
+   .app-select is the selector the UI Library specifies (08 Selector) and the
+   rebuilt pages consume. The markup is the library's: a trigger control, a
+   value span, an overlay menu of options. The root carries the chosen value
+   in data-value so a form can read it without a hidden <select>.
+
+   appSelect() writes one; bindAppSelects() makes every selector under a root
+   behave - one open at a time, outside tap and Escape close, a pick sets
+   aria-selected, the value text and data-value, then reports through
+   onChange(kind, value, root). Listeners hang on the AbortSignal the caller
+   already owns, so a page disposes them with everything else. */
+export function appSelect({kind,label,options,selected,disabled=false}){
+  const current=options.find(o=>String(o.value)===String(selected))||options[0]||{value:'',label:''};
+  return`<div class="app-select" data-select="${esc(kind)}" data-value="${esc(current.value)}">`
+    +`<span class="app-select-label">${esc(label)}</span>`
+    +`<button class="app-select-trigger app-control" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="${esc(label)}"${disabled?' disabled':''}><span data-select-value>${esc(current.label)}</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button>`
+    +`<div class="app-select-menu app-overlay" role="listbox" aria-label="${esc(label)}">`
+    +options.map(o=>`<button class="app-select-option" type="button" role="option" aria-selected="${String(o.value)===String(current.value)}" data-value="${esc(o.value)}"${o.disabled?' disabled':''}>${esc(o.label)}</button>`).join('')
+    +`</div></div>`;
+}
+
+export function appSelectValue(root,kind){return root.querySelector(`[data-select="${kind}"]`)?.dataset.value??''}
+
+export function setAppSelectValue(root,kind,value,{disabled}={}){
+  const field=root.querySelector(`[data-select="${kind}"]`);if(!field)return;
+  for(const option of field.querySelectorAll('.app-select-option')){
+    const on=option.dataset.value===String(value);
+    option.setAttribute('aria-selected',String(on));
+    if(on){field.dataset.value=option.dataset.value;const text=field.querySelector('[data-select-value]');if(text)text.textContent=option.textContent}
+  }
+  if(disabled!==undefined){const trigger=field.querySelector('.app-select-trigger');if(trigger)trigger.disabled=disabled}
+}
+
+export function bindAppSelects(root,{signal,onChange}={}){
+  const all=()=>root.querySelectorAll('[data-select]');
+  const close=field=>{field.dataset.open='false';field.querySelector('.app-select-trigger')?.setAttribute('aria-expanded','false')};
+  const closeAll=()=>{for(const field of all())if(field.dataset.open==='true')close(field)};
+  root.addEventListener('click',event=>{
+    const option=event.target.closest('.app-select-option');
+    if(option&&root.contains(option)){
+      const field=option.closest('[data-select]');
+      setAppSelectValue(root,field.dataset.select,option.dataset.value);
+      close(field);
+      onChange?.(field.dataset.select,option.dataset.value,field);
+      return;
+    }
+    const trigger=event.target.closest('.app-select-trigger');
+    if(trigger&&root.contains(trigger)){
+      const field=trigger.closest('[data-select]'),open=field.dataset.open==='true';
+      closeAll();
+      if(!open){field.dataset.open='true';trigger.setAttribute('aria-expanded','true')}
+      event.stopPropagation();
+      return;
+    }
+    closeAll();
+  },{signal});
+  // Escape closes an open menu and is consumed there, so a dialog around the
+  // selector does not close on the same key.
+  root.addEventListener('keydown',event=>{if(event.key!=='Escape')return;if(root.querySelector('[data-select][data-open="true"]')){event.preventDefault();event.stopPropagation()}closeAll()},{signal});
+  return closeAll;
+}

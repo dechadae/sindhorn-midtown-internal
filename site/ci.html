@@ -14,8 +14,8 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=8">
-<link rel="stylesheet" href="/app-glass.css?v=8">
-<link rel="stylesheet" href="/app-components.css?v=25">
+<link rel="stylesheet" href="/app-glass.css?v=9">
+<link rel="stylesheet" href="/app-components.css?v=26">
 <link rel="stylesheet" href="/app-shell.css?v=2">
 <link rel="stylesheet" href="/ci-library.css?v=10">
 </head>
@@ -51,7 +51,8 @@
       <a class="app-chip app-control" href="#figure">19 Figure</a>
       <a class="app-chip app-control" href="#states">20 States</a>
       <a class="app-chip app-control" href="#skeleton">21 Skeleton</a>
-      <a class="app-chip app-control" href="#rules">22 Rules</a>
+      <a class="app-chip app-control" href="#business-card">22 Business card</a>
+      <a class="app-chip app-control" href="#rules">23 Rules</a>
     </nav>
   </header>
 
@@ -314,6 +315,18 @@
           </div>
         </div>
       </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-field.app-search</span><span>glass · clear appears with text</span></div>
+        <div class="ci-field-stack">
+          <div class="app-field app-search"><label for="ci-search">Find an employee</label><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="M13.2 13.2L17 17"/></svg><input id="ci-search" type="search" placeholder="Name, Employee ID, position or email" autocomplete="off" data-search><button class="app-search-clear" type="button" aria-label="Clear search" data-search-clear><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button></div>
+        </div>
+        <p class="app-note">The same well as any field, with the glyph inside its left edge and a clear control inside its right that exists only while there is text to clear. Search is a field, not a card, so it draws no second frame.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-code-display</span><span>six wells · read only · shown once</span></div>
+        <p class="app-code-display" aria-label="One-time code 4 8 2 9 1 5"><b>4</b><b>8</b><b>2</b><b>9</b><b>1</b><b>5</b></p>
+        <p class="app-note">The read-only twin of the code field: the code an admin issues is shown in the same six wells the employee will type it into, at title size so it can be read across a desk.</p>
+      </div>
     </div>
   </section>
 
@@ -420,6 +433,11 @@
         <div class="ci-specimen-label"><span>confirmDialog()</span><span>app-dialog.js · asked from code</span></div>
         <button class="app-primary app-control" type="button" data-confirm-open>Ask before signing out</button>
         <p class="app-note" data-confirm-result>A page that needs a yes-or-no moment calls <code>confirmDialog({ kicker, title, copy, confirm, cancel, tone })</code> and awaits a boolean. It builds this same standard, focuses Cancel, and removes itself on close. <code>tone="danger"</code> gives the confirm button the danger ink; Settings › Me uses it for Sign out.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>openDialog() · .app-dialog-grid</span><span>a form in the standard · two columns, one on a phone</span></div>
+        <button class="app-primary app-control" type="button" data-form-dialog-open>Open form dialog specimen</button>
+        <p class="app-note">A page with a form to show - Edit card, Add employee - calls <code>openDialog(markup)</code> with a body of its own and gets the same scrim, Escape and clean-up. Inside, <code>.app-dialog-grid</code> lays fields and selectors two across, <code>data-span="full"</code> takes a row, <code>.app-dialog-section</code> opens a titled group above a hairline, and <code>.app-dialog-status</code> is the one line that says Saving… or explains the error - never a second toast, never an alert.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-sheet</span><span>native &lt;dialog&gt; · bottom-anchored</span></div>
@@ -549,6 +567,22 @@
           </div>
         </div>
       </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-list-row-lead · .app-avatar</span><span>a person's row · initials, never a photo</span></div>
+        <div class="app-card app-surface">
+          <div class="app-list">
+            <button class="app-list-row" type="button">
+              <span class="app-list-row-lead"><span class="app-avatar" aria-hidden="true">DD</span><span class="app-list-row-main"><span class="app-list-row-title">Decha Dae</span><span class="app-list-row-meta">SM-0142 · Senior Graphic Designer · Marketing Communications</span></span></span>
+              <span class="app-list-row-end"><span class="app-badge">Admin</span></span>
+            </button>
+            <button class="app-list-row" type="button">
+              <span class="app-list-row-lead"><span class="app-avatar" aria-hidden="true">NP</span><span class="app-list-row-main"><span class="app-list-row-title">Nattaya Prasert</span><span class="app-list-row-meta">SM-0207 · Front Office</span></span></span>
+              <span class="app-list-row-end"><span class="app-badge" data-tone="quiet">Not signed up</span></span>
+            </button>
+          </div>
+        </div>
+        <p class="app-note">The avatar is a small inset well with the employee's initials; it shares the badge's blur-only membership and, inside a card, drops it like everything else nested. The lead groups avatar and text so the row's end stays at the edge.</p>
+      </div>
     </div>
   </section>
 
@@ -564,6 +598,14 @@
           <label class="app-check"><input type="checkbox" checked><span class="app-check-box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg></span><span class="app-check-label">Confirm banquet floor plan</span></label>
           <label class="app-check"><input type="checkbox"><span class="app-check-box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg></span><span class="app-check-label">Send factsheet to sales</span></label>
         </div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-check[data-mode="option"]</span><span>chooses rather than completes · no strike-through</span></div>
+        <div class="app-card app-surface">
+          <label class="app-check" data-mode="option"><input type="checkbox" checked><span class="app-check-box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg></span><span class="app-check-label">Show work email on the public card</span></label>
+          <label class="app-check" data-mode="option"><input type="checkbox"><span class="app-check-box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg></span><span class="app-check-label">Show direct phone on the public card</span></label>
+        </div>
+        <p class="app-note">A ticked task is finished, so its label steps back. A ticked option is in force, so its label stays upright. Same box, same hit target; only what the tick means changes.</p>
       </div>
     </div>
   </section>
@@ -851,9 +893,42 @@ Ask the team about the pairing board: three small plates built for the three dri
     </div>
   </section>
 
-  <!-- ========================= 22 RULES ========================= -->
+  <!-- ========================= 22 BUSINESS CARD ========================= -->
+  <section class="app-section" id="business-card">
+    <p class="app-section-kicker">22 · Business card</p>
+    <h2 class="app-section-title">One Card, Presented or Printed</h2>
+    <p class="app-section-lede">An employee's digital business card is a layout on a plain surface, not a new material: name at display size, the QR as a figure, the reachable details as a text metric grid. Settings › Me previews it, presents it in a dialog and edits it; the public page at /&lt;slug&gt; prints the same.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-business-card</span><span>inside .app-card.app-surface · qrStyledSvg()</span></div>
+        <div class="app-card app-surface">
+          <div class="app-business-card">
+            <div>
+              <p class="app-business-card-kicker">Digital business card</p>
+              <h2 class="app-business-card-name">Decha Dae</h2>
+              <p class="app-business-card-position">Senior Graphic Designer</p>
+              <p class="app-business-card-hotel">Sindhorn Midtown Hotel Bangkok, Vignette Collection by IHG</p>
+            </div>
+            <figure class="app-figure" data-card-qr-specimen></figure>
+            <img class="app-business-card-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="">
+            <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">
+              <div class="app-metric"><span class="app-metric-label">Work email</span><span class="app-metric-value"><a href="mailto:decha.dae@sindhornmidtown.com">decha.dae@sindhornmidtown.com</a></span></div>
+              <div class="app-metric"><span class="app-metric-label">Business mobile</span><span class="app-metric-value"><a href="tel:+66800000000">+66 80 000 0000</a></span></div>
+              <div class="app-metric"><span class="app-metric-label">Hotel telephone</span><span class="app-metric-value"><a href="tel:+6627966888">+66 2 796 6888</a></span></div>
+              <div class="app-metric"><span class="app-metric-label">Hotel website</span><span class="app-metric-value"><a href="https://sindhornmidtown.com">sindhornmidtown.com</a></span></div>
+            </div>
+            <div class="app-utility-row"><button class="app-utility-action" type="button">Present QR</button><button class="app-utility-action" type="button">Share</button><button class="app-utility-action" type="button">Edit card</button></div>
+            <p class="app-business-card-link"><a href="#business-card">sindhorn-midtown-internal.pages.dev/decha-dae</a></p>
+          </div>
+        </div>
+        <p class="app-note">The QR carries its own paper inside the SVG - the one place the card's colour is not a token, because a scanner needs the paper white regardless of theme. Hidden fields are simply absent, exactly as the public page leaves them out.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 23 RULES ========================= -->
   <section class="app-section" id="rules">
-    <p class="app-section-kicker">22 · Rules</p>
+    <p class="app-section-kicker">23 · Rules</p>
     <h2 class="app-section-title">What Holds the System Together</h2>
     <div class="ci-rule-list">
       <div class="ci-rule"><b>A card draws an edge.</b><span>If it draws a border or a fill it is a card and takes the material. If it only arranges children it is a layout container and takes nothing.</span></div>

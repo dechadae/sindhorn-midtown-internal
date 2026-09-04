@@ -8,7 +8,9 @@
 
 import { bindCode } from './app-code.js';
 import { transitionView, viewKind } from './app-view.js';
-import { confirmDialog } from './app-dialog.js';
+import { confirmDialog, openDialog, dialogHead } from './app-dialog.js';
+import { appSelect, bindAppSelects } from './app-select.js';
+import { qrStyledSvg } from './qr-v6.js';
 
 /* The view-transition specimen's mock pages: the shell's vocabulary, small
    enough to sit inside a bounded frame. */
@@ -85,6 +87,53 @@ export function bindLibrary(root, { page = root } = {}) {
     if (confirmResult && !signal.aborted) confirmResult.textContent = yes ? 'Confirmed - the page would sign out now.' : 'Cancelled - nothing happened, which is the point of asking.';
   });
 
+  // Form dialog - openDialog() with a body of the page's own: the grid, a
+  // section, the shared selector, the status line. Saving only pretends.
+  const formOpen = root.querySelector('[data-form-dialog-open]');
+  let formDialog = null;
+  if (formOpen) on(formOpen, 'click', () => {
+    const check = (name, label, checked) => `<label class="app-check" data-mode="option"><input type="checkbox" name="${name}"${checked ? ' checked' : ''}><span class="app-check-box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg></span><span class="app-check-label">${label}</span></label>`;
+    formDialog = openDialog(`<form class="app-dialog-body" novalidate>
+      ${dialogHead('Specimen', 'Add employee')}
+      <div class="app-dialog-grid">
+        <div class="app-field"><label for="ci-f-number">Employee ID</label><input id="ci-f-number" type="text" value="SM-0311" autocomplete="off"></div>
+        <div class="app-field"><label for="ci-f-name">Display name</label><input id="ci-f-name" type="text" value="Nattaya Prasert" autocomplete="off"></div>
+        <div class="app-field" data-span="full"><label for="ci-f-mail">Hotel email</label><input id="ci-f-mail" type="email" value="nattaya.prasert@sindhornmidtown.com" autocomplete="off"></div>
+        ${appSelect({ kind: 'department', label: 'Department', options: [{ value: '', label: 'Unassigned' }, { value: 'fo', label: 'Front Office' }, { value: 'mc', label: 'Marketing Communications' }], selected: 'fo' })}
+        ${appSelect({ kind: 'role', label: 'Role', options: [{ value: 'employee', label: 'Employee' }, { value: 'supervisor', label: 'Supervisor' }, { value: 'manager', label: 'Manager' }, { value: 'admin', label: 'Admin' }], selected: 'employee' })}
+        <div data-span="full">${check('active', 'Access is active', true)}</div>
+        <div class="app-dialog-section"><span>Private contact</span><small>Where a first-login or recovery code can reach this employee. Private to admins.</small></div>
+        <div class="app-field"><label for="ci-f-personal">Personal email <span>optional</span></label><input id="ci-f-personal" type="email" autocomplete="off"></div>
+        <div class="app-field"><label for="ci-f-mobile">Mobile <span>optional · +66…</span></label><input id="ci-f-mobile" type="tel" autocomplete="off"></div>
+      </div>
+      <div class="app-utility-row"><button class="app-utility-action" type="button">Issue first-login code</button></div>
+      <p class="app-dialog-status" data-dialog-status role="status" aria-live="polite"></p>
+      <div class="app-dialog-actions app-dialog-actions-split">
+        <button class="app-utility-action" type="button" data-tone="danger">Revoke access</button>
+        <div class="app-row"><button class="app-utility-action" type="button" data-dialog-close>Cancel</button><button class="app-primary app-control" type="submit">Save</button></div>
+      </div>
+    </form>`, { onClose: () => { formDialog = null; } });
+    const form = formDialog.querySelector('form'), status = form.querySelector('[data-dialog-status]');
+    bindAppSelects(form, { signal });
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      status.dataset.tone = ''; status.textContent = 'Saving…';
+      setTimeout(() => { if (formDialog) { status.dataset.tone = 'error'; status.textContent = 'That Employee ID or hotel email is already assigned.'; } }, 700);
+    }, { signal });
+  });
+
+  // Search - the clear control exists only while there is text to clear (CSS);
+  // tapping it empties the well and returns focus to it.
+  for (const clear of root.querySelectorAll('[data-search-clear]')) on(clear, 'click', () => {
+    const input = clear.parentElement?.querySelector('input');
+    if (input) { input.value = ''; input.dispatchEvent(new Event('input', { bubbles: true })); input.focus(); }
+  });
+
+  // Business card - the QR is drawn by the same qrStyledSvg() Settings › Me uses.
+  for (const figure of root.querySelectorAll('[data-card-qr-specimen]')) {
+    try { figure.innerHTML = qrStyledSvg('https://sindhorn-midtown-internal.pages.dev/decha-dae'); } catch (_) {}
+  }
+
   // Disclosure
   for (const item of root.querySelectorAll('[data-disclosure]')) {
     const button = item.querySelector('.app-disclosure-button');
@@ -160,5 +209,5 @@ export function bindLibrary(root, { page = root } = {}) {
   // Tracks draw themselves in after first paint, the same way a page does it.
   requestAnimationFrame(() => requestAnimationFrame(() => { if (!signal.aborted) page.dataset.trackReady = 'true'; }));
 
-  return () => { controller.abort(); clearTimeout(toastTimer); dialog?.open && dialog.close(); sheet?.open && sheet.close(); };
+  return () => { controller.abort(); clearTimeout(toastTimer); dialog?.open && dialog.close(); sheet?.open && sheet.close(); formDialog?.close(''); };
 }

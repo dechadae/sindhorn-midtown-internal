@@ -3,9 +3,11 @@
    account chip is open. Every tab is visible to every employee; what a tab
    holds depends on the capabilities the settings manifest grants, and a
    tab the account cannot use says so in an ordinary state card rather than
-   disappearing. This release lays the frame and fills Me and System; Admin
-   and Broadcast arrive with their own data work. */
-import { getState, signOut } from './auth-client.js';
+   disappearing. The frame fills System itself; Me and Admin are modules it
+   loads only when their tab opens (settings-me.js, settings-admin.js), so
+   the shell pays for neither until an employee asks. Broadcast arrives with
+   its own data work. */
+import { signOut } from './auth-client.js';
 import { loadSettingsAuthority, hasCapability } from './capabilities.js';
 import { confirmDialog } from './app-dialog.js';
 
@@ -28,23 +30,6 @@ const hero = tab => `<header class="app-hero"><div class="app-hero-head"><p clas
 const state = (label, title, copy, tone = 'empty', attrs = '') => `<div class="app-state app-card" data-tone="${tone}"${attrs}><p class="app-state-label">${esc(label)}</p><p class="app-state-title">${esc(title)}</p>${copy ? `<p class="app-state-copy">${esc(copy)}</p>` : ''}</div>`;
 const fact = (label, value) => `<div class="app-metric"><span class="app-metric-label">${esc(label)}</span><span class="app-metric-value">${esc(value || '—')}</span></div>`;
 const skeleton = () => `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;
-
-const ROLE_LABEL = { super_admin: 'Super admin', admin: 'Admin', editor: 'Editor', employee: 'Employee' };
-const LANGUAGE_LABEL = { en: 'English', th: 'Thai' };
-
-function meMarkup(manifest) {
-  const p = manifest.profile || {}, auth = getState().profile || {};
-  return `<div class="app-card app-surface">
-      <div class="app-card-section"><p class="app-surface-label">Account</p>
-        <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">
-          ${fact('Name', p.displayName || auth.display_name)}${fact('Employee ID', p.employeeNumber || auth.employee_number)}
-          ${fact('Position', p.positionTitle)}${fact('Department', p.departmentName)}
-          ${fact('Role', ROLE_LABEL[p.role] || p.role)}${fact('Language', LANGUAGE_LABEL[p.preferredLanguage] || p.preferredLanguage)}
-        </div>
-      </div>
-    </div>
-    ${state('Coming next', 'Your digital business card', 'Edit how you appear, then share your card as a QR code or a link.')}`;
-}
 
 function systemMarkup(manifest, version) {
   const library = hasCapability('developer.ui_library', manifest) || hasCapability('system.manage', manifest);
@@ -69,9 +54,11 @@ async function appVersion() {
 }
 
 export async function mountSettings(host) {
-  let alive = true, tab = tabOf();
+  let alive = true, tab = tabOf(), tabDispose = null, tabController = null;
   const controller = new AbortController();
   const { signal } = controller;
+  /* A tab module's listeners and dialogs live only while its tab does. */
+  const disposeTab = () => { tabDispose?.(); tabDispose = null; tabController?.abort(); tabController = null; };
 
   /* A tab change is a new mount: the shell remounts Settings through its view
      transition so the tab arrives rather than repaints in place. */
@@ -79,6 +66,7 @@ export async function mountSettings(host) {
 
   async function render() {
     tab = tabOf();
+    disposeTab();
     paint(skeleton());
     let manifest;
     try { manifest = await loadSettingsAuthority(); }
@@ -90,10 +78,22 @@ export async function mountSettings(host) {
     if (!alive || tab !== tabOf()) return;
     const spec = TABS[tab];
     if (!hasCapability(spec.capability, manifest)) { paint(state(spec.gate, spec.gateTitle, spec.gateCopy, 'empty', ` data-gate="${esc(spec.capability)}"`)); return; }
-    if (tab === 'me') paint(meMarkup(manifest));
-    else if (tab === 'admin') paint(state('Coming next', 'Employees, access and codes', 'Add, edit and remove employees and issue one-time codes - this tab fills in the next release.'));
-    else if (tab === 'broadcast') paint(state('Coming next', 'Broadcast messages', 'Compose and publish messages to every employee or a department - this tab arrives with its data work.'));
+    if (tab === 'me' || tab === 'admin') { await mountTab(tab, manifest); return; }
+    if (tab === 'broadcast') paint(state('Coming next', 'Broadcast messages', 'Compose and publish messages to every employee or a department - this tab arrives with its data work.'));
     else paint(systemMarkup(manifest, await appVersion()));
+  }
+
+  /* The module gets the empty stack, the manifest already loaded, and a
+     signal that ends with the tab. */
+  async function mountTab(which, manifest) {
+    let module;
+    try { module = which === 'me' ? await import('./settings-me.js') : await import('./settings-admin.js'); }
+    catch (_) { paint(state('Error', 'This tab could not be loaded.', 'Check the connection and try again.', 'error') + `<div class="app-utility-row"><button class="app-utility-action" type="button" data-settings-retry>Try again</button></div>`); return; }
+    if (!alive || which !== tabOf()) return;
+    paint('');
+    tabController = new AbortController();
+    const stack = host.querySelector('.app-stack');
+    tabDispose = await (which === 'me' ? module.mountMe : module.mountAdmin)(stack, { manifest, signal: tabController.signal });
   }
 
   host.addEventListener('click', event => {
@@ -114,5 +114,5 @@ export async function mountSettings(host) {
   }
 
   render();
-  return () => { alive = false; controller.abort(); };
+  return () => { alive = false; disposeTab(); controller.abort(); };
 }
