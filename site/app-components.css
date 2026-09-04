@@ -381,7 +381,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
   min-height:32px;padding:0 12px;
   display:inline-flex;align-items:center;gap:6px;
   border-radius:var(--radius-inset);
-  color:var(--app-muted);font:inherit;font-size:var(--type-small);cursor:pointer;
+  color:var(--app-muted);font:inherit;font-size:var(--type-small);text-decoration:none;cursor:pointer;
   transition:color var(--motion-ms) ease,border-color var(--motion-ms) ease,transform var(--motion-fast) var(--motion-ease);
 }
 .app-chip:active{transform:scale(.97)}

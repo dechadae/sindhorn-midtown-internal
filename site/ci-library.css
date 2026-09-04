@@ -18,16 +18,8 @@
    whitespace, which is why the gap between them was inconsistent rather than
    designed. A deliberate wrap with its own gap replaces that accident. */
 .ci-index{margin-top:18px;display:flex;flex-wrap:wrap;gap:8px 10px}
-
-/* .app-control supplies the material - these draw a real edge for a real
-   jump-link, so the glass membership rule applies to them same as anywhere
-   else in the app. */
-.ci-index a{
-  min-height:30px;padding:0 11px;display:inline-flex;align-items:center;
-  border-radius:var(--radius-inset);
-  color:var(--app-muted);font-size:var(--type-caption);text-decoration:none;text-transform:uppercase;
-}
-.ci-index a:hover,.ci-index a:focus-visible{color:var(--app-accent);border-color:rgba(var(--app-accent-rgb),.38);outline:none}
+/* The jump-links are .app-chip.app-control from the library - size, type
+   and material come from there. This page only lays them out. */
 
 /* ---- specimen rows ----------------------------------------------------------
    A specimen is a caption above a live component, not a container. Drawing a
