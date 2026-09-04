@@ -557,6 +557,9 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 /* Hero head row: the eyebrow or the back control on the left, one frameless
    action on the right, so Share sits where the live routes keep it. */
 .app-hero-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+/* An action beside the eyebrow keeps its tap height without adding to the
+   row, so a hero with Share sits exactly where a hero without one does. */
+.app-hero-head>.app-hero-eyebrow+.app-utility-action{margin-block:-8px}
 .app-hero-head+.app-hero-eyebrow{margin-top:16px}
 .app-hero-head+.app-hero-title{margin-top:10px}
 .app-hero>.app-note{margin-top:6px}
