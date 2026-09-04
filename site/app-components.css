@@ -371,7 +371,8 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 
    --app-navbar-height is exposed so .app-page can reserve room for the footer
    instead of every page guessing at it. */
-:root{--app-masthead-height:56px;--app-navbar-height:64px}
+/* Header and footer are the same height: one band top, one band bottom. */
+:root{--app-shell-band:56px;--app-masthead-height:var(--app-shell-band);--app-navbar-height:var(--app-shell-band)}
 
 .app-masthead{
   position:sticky;top:0;z-index:80;
@@ -391,7 +392,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 }
 .app-navbar-button{
   min-height:44px;padding:0 4px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
   border:0;background:transparent;
   color:var(--app-muted);font:inherit;font-size:var(--type-small);line-height:1;
   cursor:pointer;
