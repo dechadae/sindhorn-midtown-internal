@@ -189,7 +189,7 @@ export async function mountFnb(host) {
       ? `<a class="app-utility-action" href="${esc(folders[0].url)}" target="_blank" rel="noopener" aria-label="Open artwork folder for ${esc(campaign.title)}">${FOLDER_ICON}Artwork folder</a>`
       : folders.length ? `<button class="app-utility-action" type="button" data-folders="${esc(campaign.id)}">${FOLDER_ICON}Artwork folders</button>` : '';
     return `<article class="app-action-card"${toneAttr(s)}>
-      <button class="app-action-card-button" type="button" data-open="${esc(campaign.id)}">
+      <button class="app-action-card-button" type="button" data-promotion="${esc(campaign.id)}">
         <span class="app-action-card-head"><span class="app-action-card-status"${toneAttr(s)}>${statusLabel(s)}</span><span class="app-action-card-date">${esc(relative(campaign, today))}</span></span>
         <span class="app-action-card-title">${esc(campaign.title)}</span>
         <span class="app-action-card-copy">${esc(outletsOf(campaign))}</span>
@@ -394,7 +394,9 @@ export async function mountFnb(host) {
     if (t.closest('[data-edit-links]')) { const c = promotions.find(p => p.id === currentId()); if (c) openLinkEditor(c); return; }
     if (t.closest('[data-save-links]')) { saveLinks(); return; }
     if (t.closest('[data-sheet-close]')) { sheet().close(); return; }
-    const open = t.closest('[data-open]'); if (open) { indexScroll = scrollY; location.hash = `#fnb/${encodeURIComponent(open.dataset.open)}`; return; }
+    // data-open is the open/closed state of a disclosure or clamp; a card
+    // navigates on data-promotion so a tap inside an open panel never routes.
+    const open = t.closest('[data-promotion]'); if (open) { indexScroll = scrollY; location.hash = `#fnb/${encodeURIComponent(open.dataset.promotion)}`; return; }
     if (t.closest('[data-back]')) { location.hash = '#fnb'; return; }
     const section = t.closest('[data-section]');
     if (section) { const el = q(`#${section.dataset.section}`); setActiveSection(section.dataset.section); el?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' }); return; }
