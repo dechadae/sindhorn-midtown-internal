@@ -43,7 +43,7 @@
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=3">
 <link rel="stylesheet" href="/app-glass.css?v=7">
-<link rel="stylesheet" href="/app-components.css?v=14">
+<link rel="stylesheet" href="/app-components.css?v=15">
 <link rel="stylesheet" href="/app-shell.css?v=1">
 </head>
 <body>
@@ -70,10 +70,10 @@
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l2.4 5 5.6.7-4 3.9 1 5.4-5-2.7-5 2.7 1-5.4-4-3.9 5.6-.7z"/></svg>
     <span>Brand</span>
   </button>
-  <a class="app-navbar-button" href="/ci">
+  <button class="app-navbar-button" type="button" data-route="ci">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16M9 10v9"/></svg>
     <span>CI</span>
-  </a>
+  </button>
 </nav>
 
 <script type="module">
@@ -93,11 +93,12 @@
 
 // Hash router. Each view is a module exporting mount(host) that returns a
 // dispose function; the shell swaps views on hashchange and the footer
-// button of the current view carries aria-current="page". Brand and CI stay
-// disabled placeholders until each is built.
+// button of the current view carries aria-current="page". Brand stays a
+// disabled placeholder until it is built.
 const ROUTES = {
   today: () => import('./today.js').then(m => m.mountToday),
-  fnb: () => import('./fnb-page.js').then(m => m.mountFnb)
+  fnb: () => import('./fnb-page.js').then(m => m.mountFnb),
+  ci: () => import('./ci-page.js').then(m => m.mountCi)
 };
 const host = document.getElementById('routeView');
 const navbar = document.querySelector('.app-navbar');

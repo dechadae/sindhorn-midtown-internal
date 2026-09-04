@@ -268,6 +268,7 @@ export async function mountFnb(host) {
     <section class="app-section" id="copy"><p class="app-section-kicker">02 · Copy</p>${copyMarkup(campaign)}</section>
     <section class="app-section" id="artwork"><p class="app-section-kicker">03 · Artwork<span class="app-section-kicker-end" data-artwork-count>${n.done} / ${n.total} complete</span></p>
       <div class="app-stack">${campaign.activations.map(activationMarkup).join('')}${folderMarkup(campaign)}</div>
+      <div class="app-utility-row"><button class="app-utility-action" type="button" data-fnb-top><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15V5M5 9l5-5 5 5"/></svg>Back to top</button></div>
     </section>`;
   }
 
@@ -398,6 +399,7 @@ export async function mountFnb(host) {
     // navigates on data-promotion so a tap inside an open panel never routes.
     const open = t.closest('[data-promotion]'); if (open) { indexScroll = scrollY; location.hash = `#fnb/${encodeURIComponent(open.dataset.promotion)}`; return; }
     if (t.closest('[data-back]')) { location.hash = '#fnb'; return; }
+    if (t.closest('[data-fnb-top]')) { window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); return; }
     const section = t.closest('[data-section]');
     if (section) { const el = q(`#${section.dataset.section}`); setActiveSection(section.dataset.section); el?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' }); return; }
     const clamp = t.closest('[data-clamp-toggle]');

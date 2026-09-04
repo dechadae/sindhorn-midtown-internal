@@ -393,7 +393,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-rail{position:sticky;top:calc(var(--app-masthead-height) + 10px);z-index:60;display:flex;gap:8px;margin-top:20px}
 .app-rail .app-chip{flex:1 1 0;min-width:0;justify-content:center;padding-inline:6px}
 /* A section reached through the rail lands below it, not under it. */
-.app-rail~.app-section{scroll-margin-top:calc(var(--app-masthead-height) + 62px)}
+.app-rail~.app-section,.app-page.is-shell>.app-rail~.app-section{scroll-margin-top:calc(var(--app-masthead-height) + 62px)}
 
 /* ---- Dialog ----------------------------------------------------------------
    The dialog declares .app-overlay in markup. The scrim is not a card: it dims
@@ -478,7 +478,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
   cursor:pointer;
   transition:color var(--motion-ms) ease,transform var(--motion-fast) var(--motion-ease);
 }
-/* A navbar item is a <button> for an in-shell route and an <a> for a separate page (the library at /ci); both read the same. */
+/* A navbar item is a <button> for a shell route or an <a> for a page outside the shell; both read the same. */
 .app-navbar-button:active{transform:scale(.96)}
 .app-navbar-button[aria-current="page"]{color:var(--app-accent)}
 .app-navbar-button:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
@@ -497,6 +497,8 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    hole; the hero starts one 28px band below the masthead instead. */
 .app-page.is-shell{padding-top:0}
 .app-page.is-shell>.app-hero:first-child{padding-top:28px}
+/* Under the sticky masthead a jumped-to section lands below it, not behind it. A rail-led section keeps its own, larger offset. */
+.app-page.is-shell>.app-section{scroll-margin-top:calc(var(--app-masthead-height) + 20px)}
 
 /* ============================================================================
    LAYOUT — every page needs these, so no page should define them.

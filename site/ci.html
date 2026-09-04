@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=3">
 <link rel="stylesheet" href="/app-glass.css?v=7">
-<link rel="stylesheet" href="/app-components.css?v=14">
+<link rel="stylesheet" href="/app-components.css?v=15">
 <link rel="stylesheet" href="/app-shell.css?v=1">
 <link rel="stylesheet" href="/ci-library.css?v=6">
 </head>
@@ -790,9 +790,7 @@ Ask the team about the pairing board: three small plates built for the three dri
 <div class="app-toast app-overlay" data-toast hidden>Saved.</div>
 
 <script type="module">
-/* The page's own behaviour. Three interactions, no framework, no shared state.
-   Components that ship behaviour in the app (the selector) are demonstrated
-   here with the same markup contract so the two cannot drift apart. */
+/* The page's own bootstrap: the atmosphere, then the shared library behaviour. */
 
 // Live atmosphere. The library's material is only honest over the real thing,
 // so a failure here degrades to the flat brand colour rather than faking it.
@@ -811,77 +809,10 @@ Ask the team about the pairing board: three small plates built for the three dri
   }
 })();
 
-// Disclosure
-for (const root of document.querySelectorAll('[data-disclosure]')) {
-  const button = root.querySelector('.app-disclosure-button');
-  button?.addEventListener('click', () => {
-    const open = root.dataset.open === 'true';
-    root.dataset.open = String(!open);
-    button.setAttribute('aria-expanded', String(!open));
-  });
-}
-
-// Selector
-for (const root of document.querySelectorAll('[data-select]')) {
-  const trigger = root.querySelector('.app-select-trigger');
-  const value = root.querySelector('[data-select-value]');
-  const close = () => { root.dataset.open = 'false'; trigger?.setAttribute('aria-expanded', 'false'); };
-  trigger?.addEventListener('click', event => {
-    event.stopPropagation();
-    const open = root.dataset.open === 'true';
-    root.dataset.open = String(!open);
-    trigger.setAttribute('aria-expanded', String(!open));
-  });
-  for (const option of root.querySelectorAll('.app-select-option')) {
-    option.addEventListener('click', () => {
-      for (const other of root.querySelectorAll('.app-select-option')) other.setAttribute('aria-selected', 'false');
-      option.setAttribute('aria-selected', 'true');
-      if (value) value.textContent = option.textContent;
-      close();
-    });
-  }
-  document.addEventListener('click', event => { if (!root.contains(event.target)) close(); });
-  document.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
-}
-
-// Chips
-for (const chip of document.querySelectorAll('.app-chip')) {
-  chip.addEventListener('click', () => chip.classList.toggle('is-active'));
-}
-
-// Clamp — the toggle owns the state; open removes the limit rather than measuring.
-for (const button of document.querySelectorAll('[data-clamp-toggle]')) {
-  button.addEventListener('click', () => {
-    const clamp = button.previousElementSibling;
-    const open = clamp?.dataset.open === 'true';
-    if (clamp) clamp.dataset.open = String(!open);
-    button.setAttribute('aria-expanded', String(!open));
-    button.textContent = open ? 'Show full' : 'Show less';
-  });
-}
-
-// Dialog
-const dialog = document.querySelector('[data-dialog]');
-document.querySelector('[data-dialog-open]')?.addEventListener('click', () => dialog?.showModal());
-document.querySelector('[data-dialog-close]')?.addEventListener('click', () => dialog?.close());
-
-// Tracks draw themselves in after first paint, the same way a page does it.
-requestAnimationFrame(() => requestAnimationFrame(() => { document.querySelector('.app-page').dataset.trackReady = 'true'; }));
-
-// Sheet — same native <dialog>, bottom-anchored geometry.
-const sheet = document.querySelector('[data-sheet]');
-document.querySelector('[data-sheet-open]')?.addEventListener('click', () => sheet?.showModal());
-document.querySelector('[data-sheet-close]')?.addEventListener('click', () => sheet?.close());
-
-// Toast — shows, then clears itself; a second tap restarts the timer.
-const toast = document.querySelector('[data-toast]');
-let toastTimer;
-document.querySelector('[data-toast-open]')?.addEventListener('click', () => {
-  if (!toast) return;
-  toast.hidden = false;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { toast.hidden = true; }, 2200);
-});
+// Every specimen's behaviour lives in ci-library.js, shared with the shell
+// route that mounts this same markup at /next#ci.
+const { bindLibrary } = await import('/ci-library.js');
+bindLibrary(document.body, { page: document.querySelector('.app-page') });
 </script>
 
 </body>
