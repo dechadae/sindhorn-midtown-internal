@@ -521,10 +521,12 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-section>.app-card,
 .app-section>.app-row,
 .app-section>.app-metric-grid,
+.app-section>.app-figure,
+.app-section>.app-table-wrap,
 .app-section>.app-disclosure{margin-top:20px}
 /* 20px is the distance from a title to its content; a section that opens
    straight into content has no title to be 20px from. */
-.app-section>.app-stack:first-child,.app-section>.app-card:first-child,.app-section>.app-metric-grid:first-child{margin-top:0}
+.app-section>.app-stack:first-child,.app-section>.app-card:first-child,.app-section>.app-metric-grid:first-child,.app-section>.app-figure:first-child{margin-top:0}
 /* Two selectors side by side share the row equally. */
 .app-row>.app-select{flex:1 1 140px}
 .app-section-subhead{margin:28px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-label)}

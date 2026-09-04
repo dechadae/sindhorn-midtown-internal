@@ -13,7 +13,7 @@ import fs from 'node:fs';
 
 const FOUNDATION = ['site/app-tokens.css', 'site/app-glass.css', 'site/app-components.css', 'site/app-shell.css'];
 const PAGES = [
-  { name: '/next (Today)', files: ['site/next.html', 'site/today.js', 'site/fnb-page.js', 'site/ci-page.js', 'site/ci-library.js'], css: FOUNDATION },
+  { name: '/next (Today)', files: ['site/next.html', 'site/today.js', 'site/fnb-page.js', 'site/ci-page.js', 'site/ci-library.js', 'site/brand-page.js'], css: FOUNDATION },
   { name: '/ci (UI Library)', files: ['site/ci.html'], css: [...FOUNDATION, 'site/ci-library.css'] }
 ];
 // Classes that are state hooks or belong to a runtime the page only hosts.
