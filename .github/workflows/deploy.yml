@@ -162,9 +162,10 @@ jobs:
           set -euo pipefail
           npm install --no-save playwright@1.55.0 >/dev/null 2>&1
           npx playwright install chromium >/dev/null 2>&1
-          # These three need no deployed URL, so they block the deploy rather than
+          # These need no deployed URL, so they block the deploy rather than
           # reporting after production has already changed.
           node scripts/ui-centralization-budget.mjs
+          node scripts/page-centralization-audit.mjs
           node scripts/shell-precache-parity-smoke.mjs
           node scripts/sw-install-resilience-smoke.mjs
           node scripts/ci-page-render-smoke.mjs
