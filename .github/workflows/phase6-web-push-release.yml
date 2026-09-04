@@ -57,15 +57,21 @@ jobs:
           node --check site/notification-inbox.js
           node --check site/sw.js
           node --check site/location.js
-          grep -q '/push-client.js?v=2' site/index.html
+          # r17: the shell at / registers the service worker; push-client.js is a
+          # module API (pushStatus/enablePush/disablePush) that Settings › Me
+          # consumes, and subscribing is the only permission prompt.
+          grep -q 'src="/shell.js"' site/index.html
+          grep -Fq "navigator.serviceWorker.register('/sw.js', { scope: '/' })" site/shell.js
           grep -q "pushManager.subscribe" site/push-client.js
-          grep -q "enableFromGesture" site/push-client.js
+          grep -q "export async function enablePush" site/push-client.js
+          grep -q "export async function disablePush" site/push-client.js
+          grep -q "export async function pushStatus" site/push-client.js
           ! grep -q "Notification.requestPermission" site/push-client.js
-          grep -q "navigator.serviceWorker.register('/sw.js',{scope:'/'})" site/push-client.js
-          grep -q "PREPARE_TIMEOUT_MS" site/push-client.js
-          grep -q "Retry alerts" site/push-client.js
+          ! grep -q "serviceWorker.register" site/push-client.js
+          grep -q "TIMEOUT_MS" site/push-client.js
+          grep -q "from './push-client.js'" site/settings-me.js
+          grep -q "Notifications on this phone" site/settings-me.js
           grep -q "const VERSION='sindhorn-midtown-internal-pwa-v" site/sw.js
-          grep -q "'/location.js'" site/sw.js
           grep -q "'/push-config.js'" site/sw.js
           grep -q "'/push-client.js'" site/sw.js
           grep -q "addEventListener('push'" site/sw.js
@@ -211,18 +217,17 @@ jobs:
           AIR_CLIENT="$(curl --fail --silent --show-error "${BASE_URL}/live-data.js")"
           INBOX="$(curl --fail --silent --show-error "${BASE_URL}/notification-inbox.js")"
           ROOT="$(curl --fail --silent --show-error "${BASE_URL}/")"
-          grep -q '/push-client.js?v=2' <<<"${ROOT}"
+          grep -q 'src="/shell.js"' <<<"${ROOT}"
           grep -q 'pushManager.subscribe' <<<"${CLIENT}"
-          grep -q "navigator.serviceWorker.register('/sw.js',{scope:'/'})" <<<"${CLIENT}"
-          grep -q 'PREPARE_TIMEOUT_MS' <<<"${CLIENT}"
-          grep -q 'Retry alerts' <<<"${CLIENT}"
+          grep -q 'export async function enablePush' <<<"${CLIENT}"
+          grep -q 'TIMEOUT_MS' <<<"${CLIENT}"
+          grep -Fq "navigator.serviceWorker.register('/sw.js', { scope: '/' })" <(curl --fail --silent --show-error "${BASE_URL}/shell.js")
           grep -q "PUSH_API_BASE+'/air-current'" <<<"${AIR_CLIENT}"
           ! grep -q 'stations.airbkk.com/api/web/data' <<<"${AIR_CLIENT}"
           grep -q 'sindhorn-midtown-alerts.decha-dae.workers.dev' <<<"${ROOT}"
           ! grep -q 'stations.airbkk.com' <<<"${ROOT}"
           grep -q 'Current device location' <(curl --fail --silent --show-error "${BASE_URL}/location.js")
           SW="$(curl --fail --silent --show-error "${BASE_URL}/sw.js")"
-          grep -q "'/location.js'" <<<"${SW}"
           grep -q "addEventListener('push'" <<<"${SW}"
           grep -q "addEventListener('notificationclick'" <<<"${SW}"
           if [ "${GITHUB_REF_NAME}" = "today-v4-notifications-phase-b" ]; then

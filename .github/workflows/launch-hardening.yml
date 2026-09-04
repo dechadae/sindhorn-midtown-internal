@@ -128,7 +128,9 @@ jobs:
           assert 'resolveWeatherAuthority' in rain
           assert 'effectiveWeatherSnapshot' in weather
 
-          assert "'/betta-satellite.js'" in sw
+          # r17: the shell imports the self-contained full runtime; the satellite
+          # module is bundled into it, so the precache lists the bundle only.
+          assert "'/betta-satellite.js'" not in sw
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw
 
           wrangler=json.loads(Path('sky-worker/wrangler.jsonc').read_text())
