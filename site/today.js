@@ -226,7 +226,11 @@ function renderNotes(data) {
   </section>`;
 }
 function renderSources(data) {
-  return `<p class="app-note">Updated ${esc(dateTimeLabel(data.publishedAt || data.importedAt))} · revision ${esc(data.revision)} · ${(data.sources || []).map(source => esc(source.filename)).join(' · ')}</p>`;
+  return `<section class="app-section"><p class="app-note">Updated ${esc(dateTimeLabel(data.publishedAt || data.importedAt))} · revision ${esc(data.revision)} · ${(data.sources || []).map(source => esc(source.filename)).join(' · ')}</p>
+    <div class="app-row">
+      <button class="app-utility-action" type="button" data-today-retry><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10a6 6 0 0 1 10.3-4.2M16 10a6 6 0 0 1-10.3 4.2M14.5 3v3h-3M5.5 17v-3h3"/></svg>Refresh</button>
+      <button class="app-utility-action" type="button" data-today-top><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15V5M5 9l5-5 5 5"/></svg>Back to top</button>
+    </div></section>`;
 }
 function render(data) {
   return `${renderHero(data)}${renderGlance(data)}${renderFlags(data)}${renderFnb(data)}${renderRooms(data)}${renderOutlook(data)}${renderSegments(data)}${renderNotes(data)}${renderSources(data)}`;
@@ -276,6 +280,7 @@ export async function mountToday(host) {
   refresh(host, { force: false });
   host.addEventListener('click', event => {
     if (event.target.closest('[data-today-retry]')) { refresh(host, { force: true }); return; }
+    if (event.target.closest('[data-today-top]')) { window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); return; }
     const button = event.target.closest('.app-disclosure-button');
     if (!button) return;
     const root = button.closest('[data-disclosure]');

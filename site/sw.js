@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v85-metric-track-r2';
+const VERSION='sindhorn-midtown-internal-pwa-v85-metric-track-r3';
 // v84: sindhorn-midtown-internal-pwa-v84-today-readability-r4
 // v83: sindhorn-midtown-internal-pwa-v83-sticky-footer-fix-r1
 // Preserve prior production release-family markers required by regression gates:
