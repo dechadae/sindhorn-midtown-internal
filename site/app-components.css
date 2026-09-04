@@ -47,6 +47,9 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-action-card-status{color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
 .app-action-card-date{color:var(--app-muted);font-size:var(--type-small);white-space:nowrap}
 .app-action-card-title{display:block;margin:8px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight)}
+.app-action-card-when{display:block;margin:6px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body);font-variant-numeric:tabular-nums}
+/* A live card's title and dates take the success tone, as on the live route. */
+.app-action-card[data-tone="success"] .app-action-card-title,.app-action-card[data-tone="success"] .app-action-card-when{color:var(--app-success)}
 .app-action-card-copy{display:block;margin:5px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-action-card-foot{margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--app-muted);font-size:var(--type-small)}
 .app-action-card-foot svg{width:14px;height:14px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.5}
@@ -59,7 +62,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-action-card-actions{min-height:44px;padding:2px 10px 4px;display:flex;align-items:center;justify-content:flex-end;gap:4px;border-top:1px solid var(--app-line)}
 .app-action-card-actions>:first-child:not(:last-child){margin-right:auto}
 /* Status reads as a tone, the same vocabulary a badge and a state use. */
-.app-action-card-status[data-tone="success"],.app-hero-eyebrow[data-tone="success"]{color:#72A75D}
+.app-action-card-status[data-tone="success"],.app-hero-eyebrow[data-tone="success"]{color:var(--app-success)}
 .app-action-card-status[data-tone="quiet"],.app-hero-eyebrow[data-tone="quiet"]{color:var(--app-muted)}
 
 /* ---- Primary action --------------------------------------------------------
@@ -75,6 +78,9 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
   color:inherit;font:inherit;font-size:var(--type-body-s);cursor:pointer;
   transition:transform var(--motion-fast) var(--motion-ease),border-color var(--motion-ms) ease,color var(--motion-ms) ease;
 }
+.app-primary{display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none}
+.app-primary svg{width:16px;height:16px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.5}
+.app-primary[data-width="full"]{width:100%;min-height:44px}
 .app-primary:active{transform:scale(.975)}
 .app-primary:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
 .app-primary:disabled{border-color:var(--app-line);color:var(--app-muted);cursor:default;transform:none}
@@ -111,6 +117,10 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-disclosure-kicker{color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
 .app-disclosure-title{margin:6px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-label)}
 .app-disclosure-copy{margin:4px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-disclosure-end{flex:0 0 auto;display:flex;align-items:center;gap:12px;color:var(--app-muted);font-size:var(--type-body-s);font-variant-numeric:tabular-nums}
+/* A completed disclosure carries the success tone on its leading edge and count. */
+.app-disclosure[data-tone="success"]{border-left:2px solid var(--app-success)}
+.app-disclosure[data-tone="success"] .app-disclosure-end{color:var(--app-success)}
 .app-disclosure-chevron{width:18px;height:18px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.5;transition:transform var(--motion-ms) var(--motion-ease)}
 .app-disclosure[data-open="true"] .app-disclosure-chevron{transform:rotate(90deg)}
 .app-disclosure-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--motion-ms) var(--motion-ease)}
@@ -141,7 +151,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 }
 .app-field input:disabled,.app-field textarea:disabled,.app-field select:disabled{opacity:.45;cursor:default}
 .app-field-note{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
-.app-field[data-tone="error"] .app-field-note{color:#E3A2A8}
+.app-field[data-tone="error"] .app-field-note{color:var(--app-danger)}
 
 /* ---- Selector --------------------------------------------------------------
    Behaviour lives in app-select.js. The trigger is a control; the menu floats
@@ -217,10 +227,17 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-metric-value{font-size:var(--type-title);font-weight:var(--weight-regular);line-height:1;font-variant-numeric:tabular-nums}
 .app-metric-note{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-label)}
 .app-metric-delta{display:inline-flex;align-items:center;gap:4px;font-size:var(--type-body-s);font-variant-numeric:tabular-nums}
-.app-metric-delta[data-direction="up"]{color:#72A75D}
-.app-metric-delta[data-direction="down"]{color:#E3A2A8}
+.app-metric-delta[data-direction="up"]{color:var(--app-success)}
+.app-metric-delta[data-direction="down"]{color:var(--app-danger)}
 .app-metric-delta[data-direction="flat"]{color:var(--app-muted)}
 .app-metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:18px 20px}
+/* Fixed columns keep a strip on one line at phone width; text-scale values
+   let the grid carry facts (an outlet, a time) as well as numbers; ruled
+   metrics close with the same hairline the list row uses. */
+.app-metric-grid[data-columns="2"]{grid-template-columns:repeat(2,1fr)}
+.app-metric-grid[data-columns="3"]{grid-template-columns:repeat(3,1fr);gap:18px 12px}
+.app-metric-grid[data-values="text"] .app-metric-value{font-size:var(--type-lead);line-height:var(--leading-tight);font-variant-numeric:tabular-nums}
+.app-metric-grid[data-rule="true"] .app-metric{padding-bottom:14px;border-bottom:1px solid var(--app-line)}
 
 /* ---- Track -------------------------------------------------------------------
    Actual against a reference, under a metric. A rail, a mark at 80% for the
@@ -329,7 +346,8 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    animating to a guessed height. */
 .app-clamp{position:relative;max-height:170px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent 100%)}
 .app-clamp[data-open="true"]{max-height:none;-webkit-mask-image:none;mask-image:none}
-.app-clamp+.app-utility-action{margin-top:4px}
+.app-clamp+.app-chip{margin-top:14px}
+.app-chip[data-scale="control"]{min-height:40px;padding-inline:22px;font-size:var(--type-body-s)}
 
 /* ---- Divider ----------------------------------------------------------------
    One hairline, one token. Pages were drawing their own. */
@@ -463,7 +481,9 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    body is a flex column, so this is what actually consumes the leftover
    viewport height instead of leaving the footer to float after short
    content. */
-.app-page.is-shell{flex:1 0 auto;padding-bottom:calc(var(--app-navbar-height) + 28px)}
+/* Auto margins in a column flex box shrink the page to its content, which
+   a skeleton of percentage-width lines makes visibly narrow. */
+.app-page.is-shell{flex:1 0 auto;width:100%;padding-bottom:calc(var(--app-navbar-height) + 28px)}
 
 /* ============================================================================
    LAYOUT — every page needs these, so no page should define them.
@@ -476,17 +496,20 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-section{padding:44px 0 0;scroll-margin-top:20px}
 .app-section-kicker{display:flex;align-items:center;gap:10px;margin:0;color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
 .app-section-kicker::after{content:"";flex:1 1 auto;height:1px;background:var(--app-line)}
+/* A count or status at the far end of the kicker rule, after the line. */
+.app-section-kicker-end{order:1;color:var(--app-muted);font-variant-numeric:tabular-nums}
 .app-section-title{margin:8px 0 0;font-size:var(--type-section);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
 .app-section-lede{margin:10px 0 0;max-width:60ch;color:var(--app-muted);font-size:var(--type-body);line-height:var(--leading-body)}
 .app-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 .app-stack{display:grid;gap:12px}
 .app-section>.app-stack,
 .app-section>.app-card,
+.app-section>.app-row,
 .app-section>.app-metric-grid,
 .app-section>.app-disclosure{margin-top:20px}
 /* 20px is the distance from a title to its content; a section that opens
    straight into content has no title to be 20px from. */
-.app-section>.app-stack:first-child,.app-section>.app-card:first-child{margin-top:0}
+.app-section>.app-stack:first-child,.app-section>.app-card:first-child,.app-section>.app-metric-grid:first-child{margin-top:0}
 /* Two selectors side by side share the row equally. */
 .app-row>.app-select{flex:1 1 140px}
 .app-section-subhead{margin:28px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-label)}
@@ -505,6 +528,13 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-hero-copy{margin:12px 0 0;max-width:56ch;color:var(--app-muted);font-size:var(--type-lead);line-height:var(--leading-body)}
 .app-hero>.app-back-control{margin-bottom:16px}
 .app-hero>.app-row{margin-top:16px}
+/* Hero head row: the eyebrow or the back control on the left, one frameless
+   action on the right, so Share sits where the live routes keep it. */
+.app-hero-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.app-hero-head+.app-hero-eyebrow{margin-top:16px}
+.app-hero-head+.app-hero-title{margin-top:10px}
+.app-hero>.app-note{margin-top:6px}
+.app-hero>.app-skeleton{margin-top:16px}
 
 /* ---- Operational states -----------------------------------------------------
    Loading, empty, success and error explain what happened and what the employee
@@ -514,8 +544,8 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-state-label{color:var(--app-muted);font-size:var(--type-small);text-transform:uppercase}
 .app-state-title{margin:6px 0 0;font-size:var(--type-body);font-weight:var(--weight-regular);line-height:var(--leading-label)}
 .app-state-copy{margin:5px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
-.app-state[data-tone="success"] .app-state-label{color:#72A75D}
-.app-state[data-tone="error"] .app-state-label{color:#E3A2A8}
+.app-state[data-tone="success"] .app-state-label{color:var(--app-success)}
+.app-state[data-tone="error"] .app-state-label{color:var(--app-danger)}
 .app-state[data-tone="loading"] .app-state-label{color:var(--app-accent)}
 
 /* ---- Skeleton ---------------------------------------------------------------
@@ -526,6 +556,17 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-skeleton-line{height:12px}
 .app-skeleton-line[data-width="short"]{width:38%}
 .app-skeleton-line[data-width="medium"]{width:64%}
+.app-skeleton-line[data-width="tiny"]{width:22%}
+.app-skeleton-line[data-width="half"]{width:50%}
+/* Sizes so a skeleton can take the exact shape of the page it stands in for. */
+.app-skeleton-line[data-size="title"]{height:30px}
+.app-skeleton-line[data-size="lead"]{height:16px}
+.app-skeleton-line[data-size="control"]{height:44px;border-radius:var(--radius-inset)}
+.app-skeleton-line[data-size="track"]{height:3px}
+.app-skeleton-line[data-size="square"]{width:44px;height:44px;border-radius:var(--radius-inset)}
+.app-skeleton[data-gap="tight"]{gap:6px}
+.app-action-card>.app-skeleton{padding:16px 17px}
+.app-row>.app-skeleton{flex:1 1 140px}
 .app-skeleton-block{height:74px;border-radius:var(--radius-inset)}
 @keyframes app-skeleton-pulse{0%,100%{opacity:.5}50%{opacity:.9}}
 

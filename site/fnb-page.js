@@ -18,6 +18,7 @@ const SHARE_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9
 const FOLDER_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h5l2 2h7v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>';
 const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
 const CHECK_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg>';
+const LINK_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 11.5l3-3M7 13l-1.5 1.5a2.5 2.5 0 0 1-3.5-3.5L4.5 8.5a2.5 2.5 0 0 1 3.5 0M13 7l1.5-1.5a2.5 2.5 0 0 1 3.5 3.5L15.5 11.5a2.5 2.5 0 0 1-3.5 0"/></svg>';
 
 function bangkokToday() {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()), map = {};
@@ -40,9 +41,10 @@ const statusTone = value => value === 'live' ? 'success' : value === 'ended' ? '
 const toneAttr = value => statusTone(value) ? ` data-tone="${statusTone(value)}"` : '';
 const outletsOf = campaign => campaign.activations.map(a => a.outlet).join(' + ');
 function uniqueValue(values, fallback = 'Varies by outlet') { const unique = [...new Set(values)]; return unique.length === 1 ? unique[0] : fallback; }
-function updatedLabel(value) {
+function updatedLabel(value, { withTime = true } = {}) {
   const date = parseUpdated(value); if (!date) return '';
   const day = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+  if (!withTime) return day;
   const time = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Bangkok', hour: 'numeric', minute: '2-digit', hour12: true }).format(date).toLowerCase();
   return `${day} · ${time}`;
 }
@@ -88,9 +90,7 @@ function select(kind, label, options, selected) {
 function metric(label, value) {
   return `<div class="app-metric"><span class="app-metric-label">${esc(label)}</span><span class="app-metric-value">${esc(value)}</span></div>`;
 }
-function fact(label, value) {
-  return `<div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-meta">${esc(label)}</span><span class="app-list-row-title">${esc(value)}</span></div></div>`;
-}
+const fact = metric;
 function shareButton(kind, id = '') {
   return `<button class="app-utility-action" type="button" data-share="${kind}"${id ? ` data-id="${esc(id)}"` : ''} aria-label="${kind === 'page' ? 'Share F&amp;B promotions' : 'Share this promotion'}">${SHARE_ICON}Share</button>`;
 }
@@ -99,14 +99,40 @@ function copyBlock(label, text, lang = '') {
   if (!text) return `<div class="app-card app-surface">${label ? `<p class="app-surface-label">${esc(label)}</p>` : ''}<div class="app-surface-copy"${langAttr}>${lang === 'th' ? 'Thai copy was not supplied in the source workbook.' : 'Not supplied in the source workbook.'}</div></div>`;
   const long = text.length > 380 || text.split('\n').length > 8;
   const prose = `<div class="app-prose" data-verbatim="true"${langAttr}><p>${esc(text)}</p></div>`;
-  return `<div class="app-card app-surface">${label ? `<p class="app-surface-label">${esc(label)}</p>` : ''}${long ? `<div class="app-clamp" data-clamp>${prose}</div><button class="app-utility-action" type="button" data-clamp-toggle aria-expanded="false">Show full</button>` : prose}</div>`;
+  return `<div class="app-card app-surface">${label ? `<p class="app-surface-label">${esc(label)}</p>` : ''}${long ? `<div class="app-clamp" data-clamp>${prose}</div><button class="app-chip app-control" type="button" data-scale="control" data-clamp-toggle aria-expanded="false">Show full</button>` : prose}</div>`;
 }
-function heroMarkup(copy, actions = '') {
-  return `<header class="app-hero"><p class="app-hero-eyebrow">Food &amp; Beverage</p><h1 class="app-hero-title">Promotions</h1><p class="app-hero-copy">${copy}</p>${actions}</header>`;
+function heroMarkup(copy, { action = '', note = '' } = {}) {
+  return `<header class="app-hero"><div class="app-hero-head"><p class="app-hero-eyebrow">Food &amp; Beverage</p>${action}</div><h1 class="app-hero-title">Promotions</h1><p class="app-hero-copy">${copy}</p>${note}</header>`;
+}
+/* The skeleton is the page with its text taken out: the same hero, strip,
+   filters and card anatomy, so nothing moves when the data lands. */
+const line = (width = '', size = '') => `<div class="app-skeleton-line"${width ? ` data-width="${width}"` : ''}${size ? ` data-size="${size}"` : ''}></div>`;
+function skeletonCard() {
+  return `<article class="app-action-card"><div class="app-skeleton" data-gap="tight">
+    <div class="app-action-card-head">${line('tiny')}${line('tiny')}</div>
+    ${line('medium', 'lead')}${line('half')}${line('short')}
+    <div class="app-action-card-meta">${line('tiny')}${line('tiny')}</div>${line('', 'track')}${line('')}
+  </div><div class="app-action-card-actions">${line('short')}${line('tiny')}</div></article>`;
 }
 function skeletonMarkup() {
-  const card = () => `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;
-  return `${heroMarkup('Loading this season’s promotions…')}<section class="app-section"><div class="app-stack">${card()}${card()}${card()}</div></section>`;
+  const metric = () => `<div class="app-metric"><div class="app-skeleton" data-gap="tight">${line('medium')}${line('short', 'lead')}</div></div>`;
+  return `${heroMarkup('Loading this season’s promotions…', { action: shareButton('page'), note: '<p class="app-note">Checking for the latest update…</p>' })}
+  <section class="app-section" aria-busy="true">
+    <div class="app-metric-grid" data-columns="3" data-values="text" data-rule="true">${metric()}${metric()}${metric()}</div>
+    <div class="app-row"><div class="app-skeleton">${line('short')}${line('', 'control')}</div><div class="app-skeleton">${line('short')}${line('', 'control')}</div></div>
+    <h3 class="app-section-subhead">Promotions</h3>
+    <div class="app-stack">${skeletonCard()}${skeletonCard()}${skeletonCard()}</div>
+  </section>`;
+}
+function detailSkeletonMarkup() {
+  const fact = () => `<div class="app-metric"><div class="app-skeleton" data-gap="tight">${line('medium')}${line('short', 'lead')}</div></div>`;
+  const block = () => `<div class="app-card app-surface"><div class="app-skeleton">${line('tiny')}${line('')}${line('')}${line('medium')}</div></div>`;
+  return `<header class="app-hero"><div class="app-hero-head"><button class="app-back-control app-control" type="button" data-back aria-label="Back to promotions"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button></div>
+    <div class="app-skeleton"><div class="app-skeleton-line" data-width="tiny"></div><div class="app-skeleton-line" data-width="medium" data-size="title"></div><div class="app-skeleton-line" data-width="half" data-size="lead"></div></div></header>
+  <nav class="app-rail" aria-label="Promotion sections" aria-busy="true">${SECTIONS.map(([id, label], i) => `<span class="app-chip app-control${i === 0 ? ' is-active' : ''}">${label}</span>`).join('')}</nav>
+  <section class="app-section" aria-busy="true"><div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${fact()}${fact()}${fact()}${fact()}</div></section>
+  <section class="app-section"><p class="app-section-kicker">01 · Promotion brief</p><div class="app-stack">${block()}</div></section>
+  <section class="app-section"><p class="app-section-kicker">02 · Copy</p><div class="app-stack">${block()}${block()}</div></section>`;
 }
 function errorMarkup(error) {
   return `${heroMarkup('Promotions are temporarily unavailable.')}<section class="app-section"><div class="app-stack">
@@ -116,7 +142,7 @@ function errorMarkup(error) {
 }
 
 export async function mountFnb(host) {
-  host.innerHTML = skeletonMarkup();
+  host.innerHTML = /^#fnb\/./.test(location.hash) ? detailSkeletonMarkup() : skeletonMarkup();
   await initAuth();
   const today = bangkokToday();
   const editor = isArtworkEditor();
@@ -162,11 +188,12 @@ export async function mountFnb(host) {
     const folder = folders.length === 1
       ? `<a class="app-utility-action" href="${esc(folders[0].url)}" target="_blank" rel="noopener" aria-label="Open artwork folder for ${esc(campaign.title)}">${FOLDER_ICON}Artwork folder</a>`
       : folders.length ? `<button class="app-utility-action" type="button" data-folders="${esc(campaign.id)}">${FOLDER_ICON}Artwork folders</button>` : '';
-    return `<article class="app-action-card">
+    return `<article class="app-action-card"${toneAttr(s)}>
       <button class="app-action-card-button" type="button" data-open="${esc(campaign.id)}">
         <span class="app-action-card-head"><span class="app-action-card-status"${toneAttr(s)}>${statusLabel(s)}</span><span class="app-action-card-date">${esc(relative(campaign, today))}</span></span>
         <span class="app-action-card-title">${esc(campaign.title)}</span>
-        <span class="app-action-card-copy">${esc(outletsOf(campaign))} · ${esc(campaign.dateLabel)}</span>
+        <span class="app-action-card-copy">${esc(outletsOf(campaign))}</span>
+        <span class="app-action-card-when">${esc(campaign.dateLabel)}</span>
         <span class="app-action-card-meta"><span>Artwork</span><b>${n.done} / ${n.total}</b></span>
         ${track(n.done, n.total)}
         <span class="app-action-card-foot"><span>${esc(campaign.summary)}</span>${CHEVRON}</span>
@@ -181,12 +208,10 @@ export async function mountFnb(host) {
     const note = source === 'cache' ? '<p class="app-note">Offline · showing the last saved promotions</p>' : updatedAt ? `<p class="app-note">Updated ${esc(updatedLabel(updatedAt))}</p>` : '';
     const outletOptions = [{ value: 'ALL', label: 'All outlets' }, ...outlets.map(o => ({ value: o, label: o }))];
     const monthOptions = [{ value: 'ALL', label: 'All months' }, ...months.map(m => ({ value: m.key, label: m.label }))];
-    return `${heroMarkup(esc(periodLabel(months)), `<div class="app-row">${shareButton('page')}</div>`)}
+    return `${heroMarkup(esc(periodLabel(months)), { action: shareButton('page'), note })}
     <section class="app-section">
-      <div class="app-stack">
-        <div class="app-card app-surface"><div class="app-metric-grid">${metric('Promotions', list.length)}${metric('Live now', live)}${metric('Artwork done', `${n}/${total}`)}</div>${note}</div>
-        <div class="app-row">${select('outlet', 'Outlet', outletOptions, filter)}${select('month', 'Month', monthOptions, month)}</div>
-      </div>
+      <div class="app-metric-grid" data-columns="3" data-values="text" data-rule="true">${metric('Promotions', list.length)}${metric('Live now', live)}${metric('Artwork done', `${n}/${total}`)}</div>
+      <div class="app-row">${select('outlet', 'Outlet', outletOptions, filter)}${select('month', 'Month', monthOptions, month)}</div>
       <h3 class="app-section-subhead">${list.length === 1 ? '1 promotion' : `${list.length} promotions`}</h3>
       <div class="app-stack">${list.length ? list.map(cardMarkup).join('') : '<div class="app-state app-card" data-tone="empty"><p class="app-state-label">Empty</p><p class="app-state-title">No promotions match these filters</p><p class="app-state-copy">Choose another outlet or month.</p></div>'}</div>
     </section>`;
@@ -196,12 +221,13 @@ export async function mountFnb(host) {
   function activationMarkup(activation) {
     const total = activation.artworks.length; if (!total) return '';
     const n = activation.artworks.filter(x => done.has(String(x.id))).length, open = openActivations.has(activation.id);
-    return `<article class="app-disclosure" data-disclosure data-activation="${esc(activation.id)}"${open ? ' data-open="true"' : ''}>
+    return `<article class="app-disclosure" data-disclosure data-activation="${esc(activation.id)}"${open ? ' data-open="true"' : ''}${n === total ? ' data-tone="success"' : ''}>
       <button class="app-disclosure-button" type="button" aria-expanded="${open}">
-        <span class="app-disclosure-head"><span class="app-disclosure-kicker">${esc(activation.time)} · IHG One Rewards ${esc(activation.discount)}</span><span class="app-disclosure-title">${esc(activation.outlet)}</span><span class="app-disclosure-copy">${n} / ${total} complete${n === total ? ' ✓' : ''}</span></span>
-        <svg class="app-disclosure-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5l5 5-5 5"/></svg>
+        <span class="app-disclosure-head"><span class="app-disclosure-title">${esc(activation.outlet)}</span></span>
+        <span class="app-disclosure-end"><span data-activation-count>${n}/${total}${n === total ? ' ✓' : ''}</span><svg class="app-disclosure-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5l5 5-5 5"/></svg></span>
       </button>
       <div class="app-disclosure-panel"><div class="app-disclosure-panel-inner"><div>
+        <p class="app-note">${esc(activation.time)} · IHG One Rewards ${esc(activation.discount)}</p>
         ${activation.artworks.map(x => `<label class="app-check"><input type="checkbox" data-task="${esc(x.id)}"${done.has(String(x.id)) ? ' checked' : ''}${editor ? '' : ' disabled'}><span class="app-check-box">${CHECK_SVG}</span><span class="app-check-label">${esc(x.name)}</span></label>`).join('')}
       </div></div></div>
     </article>`;
@@ -219,29 +245,28 @@ export async function mountFnb(host) {
   function folderMarkup(campaign) {
     const folders = folderLinks(campaign);
     const view = folders.length === 1
-      ? `<a class="app-primary app-control" href="${esc(folders[0].url)}" target="_blank" rel="noopener">View artwork folder</a>`
-      : folders.length ? `<button class="app-primary app-control" type="button" data-folders="${esc(campaign.id)}">View artwork folders</button>` : '';
-    const edit = editor ? `<button class="app-utility-action" type="button" data-edit-links><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17h7M13.5 3.5a1.8 1.8 0 0 1 2.5 2.5L7 15l-3.5 1 1-3.5z"/></svg>Add / change artwork link</button>` : '';
-    return `<div class="app-row">${view}${edit}</div>${folders.length ? '' : '<p class="app-note">Artwork folder · Not linked yet</p>'}`;
+      ? `<a class="app-primary app-control" data-width="full" href="${esc(folders[0].url)}" target="_blank" rel="noopener">${LINK_ICON}View artwork folder</a>`
+      : folders.length ? `<button class="app-primary app-control" data-width="full" type="button" data-folders="${esc(campaign.id)}">${LINK_ICON}View artwork folders</button>` : '<p class="app-note">Artwork folder · Not linked yet</p>';
+    const edit = editor ? `<div class="app-row"><button class="app-utility-action" type="button" data-edit-links><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17h7M13.5 3.5a1.8 1.8 0 0 1 2.5 2.5L7 15l-3.5 1 1-3.5z"/></svg>Add / change artwork link</button></div>` : '';
+    return `${view}${edit}`;
   }
   function detailMarkup(campaign) {
     const n = counts(campaign, false), s = status(campaign, today);
     const time = uniqueValue(campaign.activations.map(a => a.time)), discount = uniqueValue(campaign.activations.map(a => a.discount));
-    const updated = updatedLabel(campaign.updatedAt);
+    const updated = updatedLabel(campaign.updatedAt, { withTime: false });
     return `<header class="app-hero">
-      <button class="app-back-control app-control" type="button" data-back aria-label="Back to promotions"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button>
+      <div class="app-hero-head"><button class="app-back-control app-control" type="button" data-back aria-label="Back to promotions"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button>${shareButton('promotion', campaign.id)}</div>
       <p class="app-hero-eyebrow"${toneAttr(s)}>${statusLabel(s)}</p>
       <h1 class="app-hero-title">${esc(campaign.title)}</h1>
       <p class="app-hero-copy">${esc(campaign.dateLabel)}</p>
-      <div class="app-row">${shareButton('promotion', campaign.id)}</div>
     </header>
     <nav class="app-rail" aria-label="Promotion sections">${SECTIONS.map(([id, label], i) => `<button class="app-chip app-control${i === 0 ? ' is-active' : ''}" type="button" data-section="${id}"${i === 0 ? ' aria-current="true"' : ''}>${label}</button>`).join('')}</nav>
     <section class="app-section" id="overview">
-      <div class="app-card app-surface"><div class="app-list">${fact('Outlet', outletsOf(campaign))}${fact('Time', time)}${fact('IHG One Rewards', discount)}${updated ? fact('Updated', updated) : ''}</div></div>
+      <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${fact('Outlet', outletsOf(campaign))}${fact('Time', time)}${fact('IHG One Rewards', discount)}${updated ? fact('Updated', updated) : ''}</div>
     </section>
-    <section class="app-section" id="brief"><p class="app-section-kicker">01 · Promotion brief</p><h2 class="app-section-title">Brief</h2><div class="app-stack">${briefMarkup(campaign)}</div></section>
-    <section class="app-section" id="copy"><p class="app-section-kicker">02 · Copy</p><h2 class="app-section-title">Copy</h2>${copyMarkup(campaign)}</section>
-    <section class="app-section" id="artwork"><p class="app-section-kicker">03 · Artwork</p><h2 class="app-section-title">Artwork</h2><p class="app-section-lede" data-artwork-count>${n.done} / ${n.total} complete</p>
+    <section class="app-section" id="brief"><p class="app-section-kicker">01 · Promotion brief</p><div class="app-stack">${briefMarkup(campaign)}</div></section>
+    <section class="app-section" id="copy"><p class="app-section-kicker">02 · Copy</p>${copyMarkup(campaign)}</section>
+    <section class="app-section" id="artwork"><p class="app-section-kicker">03 · Artwork<span class="app-section-kicker-end" data-artwork-count>${n.done} / ${n.total} complete</span></p>
       <div class="app-stack">${campaign.activations.map(activationMarkup).join('')}${folderMarkup(campaign)}</div>
     </section>`;
   }
@@ -306,7 +331,8 @@ export async function mountFnb(host) {
     for (const card of qa('[data-activation]')) {
       const a = campaign.activations.find(x => x.id === card.dataset.activation); if (!a) continue;
       const n = a.artworks.filter(x => done.has(String(x.id))).length, total = a.artworks.length;
-      const copy = card.querySelector('.app-disclosure-copy'); if (copy) copy.textContent = `${n} / ${total} complete${n === total ? ' ✓' : ''}`;
+      const count = card.querySelector('[data-activation-count]'); if (count) count.textContent = `${n}/${total}${n === total ? ' ✓' : ''}`;
+      if (n === total) card.dataset.tone = 'success'; else delete card.dataset.tone;
     }
     const k = counts(campaign, false), lede = q('[data-artwork-count]'); if (lede) lede.textContent = `${k.done} / ${k.total} complete`;
   }
@@ -335,7 +361,7 @@ export async function mountFnb(host) {
     revealTracks();
   }
   async function load() {
-    host.innerHTML = skeletonMarkup();
+    host.innerHTML = currentId() ? detailSkeletonMarkup() : skeletonMarkup();
     try {
       const [model, shared] = await Promise.all([loadFnbPromotions(), readArtworkStatus().catch(() => new Set())]);
       if (disposed) return;

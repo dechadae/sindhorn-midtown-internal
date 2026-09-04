@@ -53,7 +53,7 @@ const EXPECT = [
   ['.app-card-section', BARE], ['.app-section-subhead', BARE],
   ['.app-track', BARE],
   ['.app-rail', BARE], ['.app-clamp', BARE],
-  ['.app-action-card-meta', BARE], ['.app-action-card-actions', BARE],
+  ['.app-action-card-meta', BARE], ['.app-action-card-actions', BARE], ['.app-hero-head', BARE], ['.app-action-card-when', BARE], ['.app-disclosure-end', BARE], ['.app-section-kicker-end', BARE], ['.app-metric-grid[data-columns="3"]', BARE],
   ['.app-check-box', BARE],
   // Scoped to the Badge section itself: the List section also uses a quiet
   // badge, nested inside .app-card, where it correctly renders with no blur.

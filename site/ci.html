@@ -13,9 +13,9 @@
      the only claim this page is allowed to make. -->
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="stylesheet" href="/fonts.css?v=1">
-<link rel="stylesheet" href="/app-tokens.css?v=2">
+<link rel="stylesheet" href="/app-tokens.css?v=3">
 <link rel="stylesheet" href="/app-glass.css?v=7">
-<link rel="stylesheet" href="/app-components.css?v=9">
+<link rel="stylesheet" href="/app-components.css?v=10">
 <link rel="stylesheet" href="/app-shell.css?v=1">
 <link rel="stylesheet" href="/ci-library.css?v=4">
 </head>
@@ -198,13 +198,14 @@
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-action-card-meta / -actions</span><span>progress inside · actions outside the button</span></div>
-        <article class="app-action-card">
+        <article class="app-action-card" data-tone="success">
           <button class="app-action-card-button" type="button">
             <span class="app-action-card-head"><span class="app-action-card-status" data-tone="success">Live</span><span class="app-action-card-date">Live now</span></span>
             <span class="app-action-card-title">Negroni Week</span>
-            <span class="app-action-card-copy">ANJU + The Lobby Lounge · 21 – 27 September 2026</span>
+            <span class="app-action-card-copy">ANJU + The Lobby Lounge</span>
+            <span class="app-action-card-when">21 – 27 September 2026</span>
             <span class="app-action-card-meta"><span>Artwork</span><b>3 / 5</b></span>
-            <svg class="app-track" aria-hidden="true"><rect class="app-track-rail" x="0" y="4" width="100%" height="2" rx="1"/><rect class="app-track-bar" x="0" y="4" width="60%" height="2" rx="1"/></svg>
+            <svg class="app-track" aria-hidden="true"><rect class="app-track-rail" x="0" y="3.5" width="100%" height="3" rx="1.5"/><rect class="app-track-bar" x="0" y="3.5" width="60%" height="3" rx="1.5"/></svg>
             <span class="app-action-card-foot"><span>Three Negroni creations inspired by familiar rituals.</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></span>
           </button>
           <div class="app-action-card-actions">
@@ -212,7 +213,7 @@
             <button class="app-utility-action" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9M7 6l3-3 3 3M5 11v4a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-4"/></svg>Share</button>
           </div>
         </article>
-        <p class="app-note">Status is a tone — <code>success</code> for live, <code>quiet</code> for ended, accent otherwise — the same vocabulary a badge and a state use. The track is the one from 12 Metrics without its reference mark: a completion, not a comparison.</p>
+        <p class="app-note">Status is a tone — <code>success</code> for live, <code>quiet</code> for ended, accent otherwise — the same vocabulary a badge and a state use. On the article, the tone also colours the title and the <code>-when</code> line, as the live route does. The track is the one from 12 Metrics without its reference mark: a completion, not a comparison.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-surface</span><span>no press state</span></div>
@@ -251,6 +252,31 @@
             </div>
           </div>
         </article>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-disclosure-end · data-tone</span><span>a count at the trailing edge · complete takes the success tone</span></div>
+        <div class="app-stack">
+          <article class="app-disclosure" data-disclosure data-tone="success">
+            <button class="app-disclosure-button" type="button" aria-expanded="false">
+              <span class="app-disclosure-head"><span class="app-disclosure-title">Sip &amp; Co.</span></span>
+              <span class="app-disclosure-end"><span>3/3 ✓</span><svg class="app-disclosure-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5l5 5-5 5"/></svg></span>
+            </button>
+            <div class="app-disclosure-panel"><div class="app-disclosure-panel-inner"><div>
+              <p class="app-note">7 AM – 10 PM · IHG One Rewards 20%</p>
+              <label class="app-check"><input type="checkbox" checked disabled><span class="app-check-box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg></span><span class="app-check-label">A4 Menu</span></label>
+            </div></div></div>
+          </article>
+          <article class="app-disclosure" data-disclosure>
+            <button class="app-disclosure-button" type="button" aria-expanded="false">
+              <span class="app-disclosure-head"><span class="app-disclosure-title">The Lobby Lounge</span></span>
+              <span class="app-disclosure-end"><span>1/3</span><svg class="app-disclosure-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5l5 5-5 5"/></svg></span>
+            </button>
+            <div class="app-disclosure-panel"><div class="app-disclosure-panel-inner"><div>
+              <p class="app-note">6:30 AM – 12 AM · IHG One Rewards 20%</p>
+            </div></div></div>
+          </article>
+        </div>
+        <p class="app-note">The end slot holds the chevron and one figure. <code>data-tone="success"</code> on the disclosure colours its leading edge and the figure: complete is read at a glance in a list of outlets.</p>
       </div>
     </div>
   </section>
@@ -314,6 +340,7 @@
         <div class="app-row">
           <button class="app-primary app-control" type="button">Primary action</button>
           <button class="app-primary app-control" type="button" disabled>Disabled</button>
+          <a class="app-primary app-control" data-width="full" href="#actions"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 11.5l3-3M7 13l-1.5 1.5a2.5 2.5 0 0 1-3.5-3.5L4.5 8.5a2.5 2.5 0 0 1 3.5 0M13 7l1.5-1.5a2.5 2.5 0 0 1 3.5 3.5L15.5 11.5a2.5 2.5 0 0 1-3.5 0"/></svg>View artwork folder</a>
         </div>
         <p class="app-note">Disabled dims the content, not the element. Fading a whole button with opacity fades its blur too, so it stops looking like the same material as everything around it.</p>
       </div>
@@ -415,6 +442,19 @@
             <div class="app-metric"><p class="app-metric-label">RevPAR</p><p class="app-metric-value">4,231</p><p class="app-metric-delta" data-direction="flat">No change</p><p class="app-metric-note">Rolling 24h</p></div>
           </div>
         </div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-metric-grid data-columns · data-values · data-rule</span><span>an open strip, no card</span></div>
+        <div class="app-metric-grid" data-columns="3" data-values="text" data-rule="true">
+          <div class="app-metric"><p class="app-metric-label">Promotions</p><p class="app-metric-value">18</p></div>
+          <div class="app-metric"><p class="app-metric-label">Live now</p><p class="app-metric-value">2</p></div>
+          <div class="app-metric"><p class="app-metric-label">Artwork done</p><p class="app-metric-value">12/61</p></div>
+        </div>
+        <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">
+          <div class="app-metric"><p class="app-metric-label">Outlet</p><p class="app-metric-value">The Lobby Lounge + Sip &amp; Co.</p></div>
+          <div class="app-metric"><p class="app-metric-label">Time</p><p class="app-metric-value">TBC</p></div>
+        </div>
+        <p class="app-note">Fixed columns keep a strip on one line at phone width; <code>data-values="text"</code> scales the value to lead so the grid can carry facts as well as figures; <code>data-rule</code> closes each cell with the list hairline. The strip sits on the ground — it draws no edge, so it takes no material.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-track</span><span>actual against a reference</span></div>
@@ -541,9 +581,14 @@ Available 21 – 27 September, 5 pm until late at ANJU and from 6:30 am at The L
 
 Ask the team about the pairing board: three small plates built for the three drinks.</p></div>
           </div>
-          <button class="app-utility-action" type="button" data-clamp-toggle aria-expanded="false">Show full</button>
+          <button class="app-chip app-control" type="button" data-scale="control" data-clamp-toggle aria-expanded="false">Show full</button>
         </div>
-        <p class="app-note">The copy keeps its source line breaks through <code>data-verbatim</code>. Open removes the limit rather than animating to a guessed height, so nothing jumps when the text is longer than expected.</p>
+        <p class="app-note">The toggle is a chip at control scale, flattened by the card it sits in. The copy keeps its source line breaks through <code>data-verbatim</code>. Open removes the limit rather than animating to a guessed height, so nothing jumps when the text is longer than expected.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-section-kicker-end</span><span>a figure after the rule</span></div>
+        <p class="app-section-kicker">03 · Artwork<span class="app-section-kicker-end">3 / 3 complete</span></p>
+        <p class="app-note">The kicker's rule runs between the label and the figure, so a section can carry its own count without a lede beneath it.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-section-subhead</span><span>a second heading inside one section</span></div>
@@ -577,13 +622,24 @@ Ask the team about the pairing board: three small plates built for the three dri
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-hero with .app-back-control</span><span>a detail inside a route</span></div>
         <header class="app-hero">
-          <button class="app-back-control app-control" type="button" aria-label="Back to promotions"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button>
+          <div class="app-hero-head">
+            <button class="app-back-control app-control" type="button" aria-label="Back to promotions"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button>
+            <button class="app-utility-action" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9M7 6l3-3 3 3M5 11v4a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-4"/></svg>Share</button>
+          </div>
           <p class="app-hero-eyebrow" data-tone="success">Live</p>
           <h1 class="app-hero-title">Negroni Week</h1>
           <p class="app-hero-copy">21 – 27 September 2026</p>
-          <div class="app-row"><button class="app-utility-action" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9M7 6l3-3 3 3M5 11v4a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-4"/></svg>Share</button></div>
         </header>
-        <p class="app-note">A detail is the same hero with a back control above the eyebrow and, when the object can be acted on, one row of utility actions below the copy. The eyebrow takes a status tone where the object has one.</p>
+        <header class="app-hero">
+          <div class="app-hero-head">
+            <p class="app-hero-eyebrow">Food &amp; Beverage</p>
+            <button class="app-utility-action" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9M7 6l3-3 3 3M5 11v4a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-4"/></svg>Share</button>
+          </div>
+          <h1 class="app-hero-title">Promotions</h1>
+          <p class="app-hero-copy">September – December 2026</p>
+          <p class="app-note">Updated 29 August 2026 · 2:07 pm</p>
+        </header>
+        <p class="app-note"><code>.app-hero-head</code> is the hero's first row: the eyebrow or the back control on the left, one frameless action on the right. A detail puts its eyebrow beneath the row; a route may close its hero with a note.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-masthead / .app-navbar</span><span>scroll inside the frame</span></div>
@@ -657,6 +713,22 @@ Ask the team about the pairing board: three small plates built for the three dri
           </div>
         </div>
         <p class="app-note">Reduced motion stops the pulse without removing the reserved space.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-skeleton in the page's own anatomy</span><span>data-size · data-gap</span></div>
+        <div class="app-metric-grid" data-columns="3" data-values="text" data-rule="true">
+          <div class="app-metric"><div class="app-skeleton" data-gap="tight"><div class="app-skeleton-line" data-width="medium"></div><div class="app-skeleton-line" data-width="short" data-size="lead"></div></div></div>
+          <div class="app-metric"><div class="app-skeleton" data-gap="tight"><div class="app-skeleton-line" data-width="medium"></div><div class="app-skeleton-line" data-width="short" data-size="lead"></div></div></div>
+          <div class="app-metric"><div class="app-skeleton" data-gap="tight"><div class="app-skeleton-line" data-width="medium"></div><div class="app-skeleton-line" data-width="short" data-size="lead"></div></div></div>
+        </div>
+        <div class="app-row"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line" data-size="control"></div></div><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line" data-size="control"></div></div></div>
+        <article class="app-action-card"><div class="app-skeleton" data-gap="tight">
+          <div class="app-action-card-head"><div class="app-skeleton-line" data-width="tiny"></div><div class="app-skeleton-line" data-width="tiny"></div></div>
+          <div class="app-skeleton-line" data-width="medium" data-size="lead"></div><div class="app-skeleton-line" data-width="half"></div><div class="app-skeleton-line" data-width="short"></div>
+          <div class="app-action-card-meta"><div class="app-skeleton-line" data-width="tiny"></div><div class="app-skeleton-line" data-width="tiny"></div></div>
+          <div class="app-skeleton-line" data-size="track"></div><div class="app-skeleton-line"></div>
+        </div><div class="app-action-card-actions"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line" data-width="tiny"></div></div></article>
+        <p class="app-note">A skeleton is the page with its text taken out. It stands inside the same hero, strip, row and card the data will fill, so nothing moves when the data lands: <code>data-size</code> gives a line the height of a title, a lead, a control or a track.</p>
       </div>
     </div>
   </section>
