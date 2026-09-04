@@ -199,46 +199,46 @@ const chip=report.measured.find(e=>e.selector==='.app-chip');
 if (chip && norm(chip.borderColor) !== 'rgba(250, 247, 245, 0.14)') failures.push(`.app-chip: border-color ${chip.borderColor}, expected the glass border token rgba(250, 247, 245, 0.14) from .app-control`);
 if (report.overflow > 1) failures.push(`horizontal overflow ${report.overflow}px`);
 
-// View transitions: tap F&B in the specimen frame and read the host mid-move.
-// The host must be fading up over --motion-view on the plain ease-in-out
-// curve - opacity is the one property a page may animate; transform, filter
-// and clip-path stay untouched, and no ghost of the outgoing page is built.
-// The movement is read while it runs, so the specimen frame is slowed for the
-// tap (a test-only sheet - the token itself is asserted at its real value);
-// a CI runner otherwise finishes the 300ms before the read lands.
-const VIEW = '300ms';
+// View transitions: tap F&B in the specimen frame and read the host during
+// its in beat. The host must be running app-view-push-in over --motion-view
+// on --motion-ease, fading (opacity below 1) while it slips (a translate,
+// never a scale), with no filter or clip-path and no ghost of the outgoing
+// page. The beat is read while it runs, so the specimen frame is slowed for
+// the tap (a test-only sheet - the tokens themselves are asserted at their
+// real values); a CI runner otherwise finishes the 300ms before the read.
+const VIEW = { view: '300ms', out: '180ms', travel: '18px', travelOut: '14px' };
 const view = await (async () => {
   const frame = page.locator('[data-view-demo]');
   if (!(await frame.count())) return null;
-  const token = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--motion-view').trim());
+  const token = await page.evaluate(() => { const s = getComputedStyle(document.documentElement); return { view: s.getPropertyValue('--motion-view').trim(), out: s.getPropertyValue('--motion-view-out').trim(), travel: s.getPropertyValue('--motion-view-travel').trim(), travelOut: s.getPropertyValue('--motion-view-travel-out').trim() }; });
   await page.addStyleTag({ content: '[data-view-demo]{--motion-view:8s}' });
   await frame.locator('[data-demo-route="fnb"]').click();
-  await page.waitForFunction(() => document.querySelector('[data-view-demo] > [data-view-host][data-run]'), null, { timeout: 2000 }).catch(() => {});
+  await page.waitForFunction(() => document.querySelector('[data-view-demo] > [data-view-host][data-view-phase="in"]'), null, { timeout: 3000 }).catch(() => {});
   return page.evaluate(() => {
     const host = document.querySelector('[data-view-demo] > [data-view-host]');
-    const read = node => { if (!node) return null; const s = getComputedStyle(node); return { name: s.animationName, duration: s.animationDuration, timing: s.animationTimingFunction, play: s.animationPlayState, visibility: s.visibility, opacity: s.opacity, filter: s.filter, clip: s.clipPath, transform: s.transform }; };
-    return { kind: host?.dataset.view, host: read(host), ghost: !!document.querySelector('.app-view-ghost'), title: host?.querySelector('.app-hero-title')?.textContent };
+    const read = node => { if (!node) return null; const s = getComputedStyle(node); return { name: s.animationName, duration: s.animationDuration, timing: s.animationTimingFunction, play: s.animationPlayState, opacity: s.opacity, filter: s.filter, clip: s.clipPath, transform: s.transform }; };
+    return { kind: host?.dataset.view, phase: host?.dataset.viewPhase, host: read(host), ghost: !!document.querySelector('.app-view-ghost'), title: host?.querySelector('.app-hero-title')?.textContent };
   }).then(result => ({ ...result, token }));
 })();
 if (!view) failures.push('[data-view-demo]: view-transition specimen missing');
 else {
-  if (view.kind !== 'push') failures.push(`view transition: Today → F&B should be named push, host has data-view="${view.kind}"`);
-  if (view.title !== 'Promotions') failures.push(`view transition: the new page should be mounted before the fade runs, host shows "${view.title}"`);
-  if (view.token !== VIEW) failures.push(`--motion-view is ${view.token}, expected ${VIEW}`);
-  if (view.ghost) failures.push('view transition: a ghost of the outgoing page was built; only the incoming page animates');
+  if (view.kind !== 'push' || view.phase !== 'in') failures.push(`view transition: Today → F&B should be in the push in-beat, host has data-view="${view.kind}" data-view-phase="${view.phase}"`);
+  if (view.title !== 'Promotions') failures.push(`view transition: the new page should be mounted before the in beat, host shows "${view.title}"`);
+  for (const key of Object.keys(VIEW)) if (view.token[key] !== VIEW[key]) failures.push(`view token ${key} is ${view.token[key]}, expected ${VIEW[key]}`);
+  if (view.ghost) failures.push('view transition: a ghost of the outgoing page was built; only the live host animates');
   const style = view.host;
-  if (!style || style.name !== 'app-view-fade-in') failures.push(`view transition: host animation ${style?.name}, expected app-view-fade-in`);
+  if (!style || style.name !== 'app-view-push-in') failures.push(`view transition: host animation ${style?.name}, expected app-view-push-in`);
   if (style) {
     if (norm(style.duration) !== '8s') failures.push(`view transition: host animation-duration ${style.duration} does not follow --motion-view`);
-    if (norm(style.timing) !== 'ease-in-out') failures.push(`view transition: host animation-timing-function ${style.timing}, expected ease-in-out`);
+    if (norm(style.timing) !== EASE) failures.push(`view transition: host animation-timing-function ${style.timing}, expected ${EASE}`);
     if (style.play !== 'running') failures.push(`view transition: host animation is ${style.play}, expected running`);
-    if (style.visibility !== 'visible') failures.push(`view transition: host is ${style.visibility} while running, expected visible`);
     const opacity = parseFloat(style.opacity);
-    if (!(opacity >= 0 && opacity < 1)) failures.push(`view transition: host should be mid-fade, opacity ${style.opacity}`);
-    if (style.transform !== 'none' || style.filter !== 'none' || style.clip !== 'none') failures.push(`view transition: host may only fade (transform ${style.transform}, filter ${style.filter}, clip-path ${style.clip})`);
+    if (!(opacity >= 0 && opacity < 1)) failures.push(`view transition: host should be fading up, opacity ${style.opacity}`);
+    if (!/^matrix\(1, 0, 0, 1, /.test(style.transform)) failures.push(`view transition: host should be slipping by translate only (${style.transform})`);
+    if (style.filter !== 'none' || style.clip !== 'none') failures.push(`view transition: host must not animate filter or clip-path (filter ${style.filter}, clip-path ${style.clip})`);
   }
   await page.waitForFunction(() => !document.querySelector('[data-view-demo] > [data-view-host][data-view]'), null, { timeout: 12000 })
-    .catch(() => failures.push('view transition: data-view left behind after the fade ended'));
+    .catch(() => failures.push('view transition: data-view left behind after the movement ended'));
 }
 
 // The confirm dialog builds the Dialog Standard from code: overlay material,

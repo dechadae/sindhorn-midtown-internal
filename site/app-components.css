@@ -689,24 +689,42 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 }
 
 /* ---- View transitions -------------------------------------------------------
-   One page gives way to the next with a cut and a fade: the outgoing page
-   leaves at once and the incoming page fades up in place over --motion-view
-   on the plain ease-in-out curve. Nothing moves, recedes or scales - a
-   single opacity ramp on one surface, the cheapest thing a phone can
-   composite over the live atmosphere. app-view.js still names the movement
-   (push, pop, cover, dismiss) so the navbar and anything else that wants a
-   direction can read it; the page itself treats all four alike.
+   One page gives way to the next in two beats, the way the F&B index and
+   detail have always changed places: the outgoing page fades as it slips a
+   little in the direction of travel (--motion-view-out), the swap happens
+   while nothing is visible, then the incoming page fades up as it slips
+   into place from the other side (--motion-view). Both beats run on
+   --motion-ease. No clone, no second surface.
 
-   This is the one place the shell animates opacity on a page. Chrome turns
-   the backdrop blur beneath the fading page off until it reaches full
-   opacity and back on as it lands (measured); the fade is short enough that
-   the material reads as arriving with the page. Filter, mask and clip-path
-   are still never animated.
+     push     out to the left, in from the right      (a tab to the right)
+     pop      out to the right, in from the left      (a tab to the left)
+     cover    out upward, in from below               (Settings, sign-in)
+     dismiss  out downward, in from above             (closing them)
 
-   The host holds its start pose hidden until the swap lands (data-view),
-   then runs (data-run). Attribute selectors only: the shell's host and the
-   library's specimen host share these without sharing a class. */
-[data-view]{visibility:hidden;animation:app-view-fade-in var(--motion-view) var(--motion-ease-inout) both paused}
-[data-view][data-run]{visibility:visible;animation-play-state:running}
+   Fade and slip together are what keep this smooth on a phone: while a
+   page's opacity is below 1 the backdrop blur beneath its cards is not
+   sampled, so the frosted material costs nothing mid-move and lands with
+   the page. Filter, mask and clip-path are still never animated.
 
-@keyframes app-view-fade-in{from{opacity:0}to{opacity:1}}
+   app-view.js drives the beats through data-view (the direction) and
+   data-view-phase (out, then in). Attribute selectors only: the shell's
+   host and the library's specimen host share these without a class. */
+[data-view][data-view-phase]{animation:var(--motion-view) var(--motion-ease) both}
+[data-view][data-view-phase="out"]{animation-duration:var(--motion-view-out)}
+[data-view="push"][data-view-phase="out"]{animation-name:app-view-push-out}
+[data-view="push"][data-view-phase="in"]{animation-name:app-view-push-in}
+[data-view="pop"][data-view-phase="out"]{animation-name:app-view-pop-out}
+[data-view="pop"][data-view-phase="in"]{animation-name:app-view-pop-in}
+[data-view="cover"][data-view-phase="out"]{animation-name:app-view-cover-out}
+[data-view="cover"][data-view-phase="in"]{animation-name:app-view-cover-in}
+[data-view="dismiss"][data-view-phase="out"]{animation-name:app-view-dismiss-out}
+[data-view="dismiss"][data-view-phase="in"]{animation-name:app-view-dismiss-in}
+
+@keyframes app-view-push-out{from{opacity:1;transform:none}to{opacity:0;transform:translateX(calc(-1 * var(--motion-view-travel-out)))}}
+@keyframes app-view-push-in{from{opacity:.02;transform:translateX(var(--motion-view-travel))}to{opacity:1;transform:none}}
+@keyframes app-view-pop-out{from{opacity:1;transform:none}to{opacity:0;transform:translateX(var(--motion-view-travel-out))}}
+@keyframes app-view-pop-in{from{opacity:.02;transform:translateX(calc(-1 * var(--motion-view-travel)))}to{opacity:1;transform:none}}
+@keyframes app-view-cover-out{from{opacity:1;transform:none}to{opacity:0;transform:translateY(calc(-1 * var(--motion-view-travel-out)))}}
+@keyframes app-view-cover-in{from{opacity:.02;transform:translateY(var(--motion-view-travel))}to{opacity:1;transform:none}}
+@keyframes app-view-dismiss-out{from{opacity:1;transform:none}to{opacity:0;transform:translateY(var(--motion-view-travel-out))}}
+@keyframes app-view-dismiss-in{from{opacity:.02;transform:translateY(calc(-1 * var(--motion-view-travel)))}to{opacity:1;transform:none}}
