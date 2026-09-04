@@ -73,6 +73,7 @@ function kindLabel(kind){
   if(value==='business-fnb-update')return'F&B update';
   if(value==='business-rooms-update')return'Rooms update';
   if(value==='business-dashboard-update')return'Business update';
+  if(value==='broadcast')return'Broadcast';
   if(value==='severe-weather')return'Weather alert';
   if(value.startsWith('air-quality'))return'Air quality';
   if(value==='air-data-delay')return'Data notice';

@@ -135,8 +135,7 @@ jobs:
       - name: Install Worker dependency
         run: npm install --prefix worker --no-audit --no-fund
 
-      - name: Validate business notification contract
-        if: github.ref_name == 'today-v4-notifications-phase-b'
+      - name: Validate business and broadcast push contracts
         run: node scripts/business-notification-worker-smoke.mjs
 
       - name: Validate Worker bundle

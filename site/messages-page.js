@@ -115,7 +115,7 @@ export async function mountMessages(host) {
     if (alert) { location.hash = alert.dataset.messageOpen; return; }
     if (event.target.closest('[data-messages-clear]')) clearAll().then(() => { changed(); return render({ fresh: false }); }).catch(() => {});
   }, { signal });
-  navigator.serviceWorker?.addEventListener?.('message', event => { if (event.data?.type === 'SINDHORN_NOTIFICATION_STORED') render({ fresh: false }); }, { signal });
+  navigator.serviceWorker?.addEventListener?.('message', event => { if (event.data?.type === 'SINDHORN_NOTIFICATION_STORED') render({ fresh: event.data.kind === 'broadcast' }); }, { signal });
   addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') render(); }, { signal });
 
   host.innerHTML = `${hero}<section class="app-section">${skeleton}</section>`;

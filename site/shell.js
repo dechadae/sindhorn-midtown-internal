@@ -141,7 +141,12 @@ account.addEventListener('click', () => {
    the Messages page changes something. */
 const badge = () => updateBadge(serverUnread()).catch(() => {});
 const refreshInbox = () => loadInbox({ force: false }).finally(badge);
-navigator.serviceWorker?.addEventListener?.('message', event => { if (event.data?.type === 'SINDHORN_NOTIFICATION_STORED') badge(); });
+/* A stored device alert only moves the badge; a broadcast push means the
+   server inbox has a row this phone has not seen, so fetch it now. */
+navigator.serviceWorker?.addEventListener?.('message', event => {
+  if (event.data?.type !== 'SINDHORN_NOTIFICATION_STORED') return;
+  if (event.data.kind === 'broadcast') loadInbox({ force: true }).finally(badge); else badge();
+});
 addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshInbox(); });
 document.addEventListener('sindhorn:messages-changed', badge);
 

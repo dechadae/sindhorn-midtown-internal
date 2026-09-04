@@ -33,6 +33,7 @@ function airLevel(pm){const index=levelForPm(pm);return{index,...AIR_LEVELS[inde
 async function ensureSchema(env){
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS push_subscriptions (endpoint TEXT PRIMARY KEY, p256dh TEXT NOT NULL, auth TEXT NOT NULL, expiration_time INTEGER, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)').run();
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS monitor_state (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT NOT NULL)').run();
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS broadcast_dispatches (id TEXT PRIMARY KEY, published_at TEXT NOT NULL, status TEXT NOT NULL, sent INTEGER NOT NULL DEFAULT 0, failed INTEGER NOT NULL DEFAULT 0, expired INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)').run();
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS business_notification_dispatches (id TEXT PRIMARY KEY, domain TEXT NOT NULL, business_date TEXT NOT NULL, revision INTEGER, published_at TEXT NOT NULL, summary_en TEXT, status TEXT NOT NULL, sent INTEGER NOT NULL DEFAULT 0, failed INTEGER NOT NULL DEFAULT 0, expired INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)').run();
 }
 async function stateGet(env,key){const row=await env.DB.prepare('SELECT value FROM monitor_state WHERE key=?').bind(key).first();if(!row?.value)return null;try{return JSON.parse(row.value)}catch(_){return null}}
@@ -125,6 +126,41 @@ async function handleBusinessUpdate(request,env){
   const status=delivery.failed>0?'partial':'sent';await finishBusinessDispatch(env,update.id,status,delivery);return json({ok:true,duplicate:false,id:update.id,domain:update.domain,delivery,status},200);
 }
 
+/* Broadcast push (r16b). The database bridge posts here once a broadcast
+   becomes published, already reduced to what a device may see: the title,
+   the body unless the broadcast is sensitive, and the priority. Subscriptions
+   are anonymous, so the bridge only sends broadcasts addressed to Everyone;
+   this endpoint does not know audiences and does not need to. Dedup is by
+   broadcast id, the same identity the database ledger keeps. */
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function normalizeBroadcastPush(value){
+  if(!value||typeof value!=='object')return null;
+  const id=String(value.id||'').trim().toLowerCase(),titleEn=String(value.titleEn||'').replace(/\s+/g,' ').trim(),bodyEn=value.bodyEn===null||value.bodyEn===undefined?'':String(value.bodyEn).replace(/\s+/g,' ').trim(),priority=String(value.priority||'normal').trim().toLowerCase(),publishedAt=String(value.publishedAt||'').trim();
+  if(!UUID.test(id)||!titleEn||titleEn.length>120||bodyEn.length>240||!['normal','high','urgent'].includes(priority)||!publishedAt||publishedAt.length>64||!Number.isFinite(Date.parse(publishedAt)))return null;
+  return{id,titleEn,bodyEn,sensitive:Boolean(value.sensitive),priority,publishedAt:new Date(publishedAt).toISOString()};
+}
+function broadcastPushPayload(update){
+  return{id:update.id,kind:'broadcast',tag:`broadcast:${update.id}`,route:'/messages',titleEn:update.titleEn,bodyEn:update.bodyEn||'Open Messages to read it.',renotify:false,requireInteraction:update.priority==='urgent'};
+}
+async function reserveBroadcastDispatch(env,update){
+  const now=new Date().toISOString(),result=await env.DB.prepare('INSERT OR IGNORE INTO broadcast_dispatches(id,published_at,status,created_at,updated_at) VALUES(?,?,\'sending\',?,?)').bind(update.id,update.publishedAt,now,now).run();
+  return Number(result?.meta?.changes||result?.changes||0)>0;
+}
+async function finishBroadcastDispatch(env,id,status,delivery){const now=new Date().toISOString();await env.DB.prepare('UPDATE broadcast_dispatches SET status=?,sent=?,failed=?,expired=?,updated_at=? WHERE id=?').bind(status,Number(delivery?.sent)||0,Number(delivery?.failed)||0,Number(delivery?.expired)||0,now,id).run()}
+async function releaseBroadcastDispatch(env,id){await env.DB.prepare('DELETE FROM broadcast_dispatches WHERE id=?').bind(id).run()}
+async function handleBroadcastPublished(request,env){
+  if(!env.BROADCAST_PUSH_TOKEN)return json({error:'broadcast_push_unavailable'},503);
+  const header=String(request.headers.get('authorization')||''),token=header.startsWith('Bearer ')?header.slice(7):'';if(!secureTokenEqual(token,env.BROADCAST_PUSH_TOKEN))return json({error:'unauthorized'},401);
+  let body;try{body=await request.json()}catch(_){return json({error:'invalid_json'},400)}
+  const update=normalizeBroadcastPush(body);if(!update)return json({error:'invalid_broadcast_push'},400);
+  const reserved=await reserveBroadcastDispatch(env,update);if(!reserved)return json({ok:true,duplicate:true,id:update.id},200);
+  const payload=broadcastPushPayload(update);
+  let delivery;try{delivery=await notifyAll(env,payload)}catch(error){await releaseBroadcastDispatch(env,update.id);throw error}
+  if(!delivery.configured){await releaseBroadcastDispatch(env,update.id);return json({error:'push_unavailable'},503)}
+  if(delivery.sent===0&&delivery.failed>0){await releaseBroadcastDispatch(env,update.id);return json({error:'push_delivery_failed',delivery},502)}
+  const status=delivery.failed>0?'partial':'sent';await finishBroadcastDispatch(env,update.id,status,delivery);return json({ok:true,duplicate:false,id:update.id,delivery,status},200);
+}
+
 async function evaluateAndNotify(env){
   await ensureSchema(env);const now=Date.now(),notifications=[];const [airResult,weatherResult]=await Promise.allSettled([fetchAir(),fetchWeather()]);
   if(airResult.status==='fulfilled'){
@@ -147,9 +183,10 @@ async function handleFetch(request,env){
   await ensureSchema(env);const url=new URL(request.url),origin=request.headers.get('origin')||'';
   if(request.method==='OPTIONS'){if(!allowedOrigin(origin,env))return new Response(null,{status:403});return new Response(null,{status:204,headers:corsHeaders(origin)})}
   if(request.method==='GET'&&url.pathname==='/health'){
-    const row=await env.DB.prepare('SELECT COUNT(*) AS count FROM push_subscriptions').first(),last=await stateGet(env,'last_evaluation');return json({ok:true,service:'sindhorn-midtown-alerts',subscriptions:Number(row?.count)||0,vapidConfigured:Boolean(env.VAPID_SERVER_PUBLIC_KEY&&env.VAPID_SERVER_PRIVATE_KEY),businessUpdateConfigured:Boolean(env.BUSINESS_UPDATE_TOKEN),lastEvaluation:last},200,allowedOrigin(origin,env)?origin:'');
+    const row=await env.DB.prepare('SELECT COUNT(*) AS count FROM push_subscriptions').first(),last=await stateGet(env,'last_evaluation');return json({ok:true,service:'sindhorn-midtown-alerts',subscriptions:Number(row?.count)||0,vapidConfigured:Boolean(env.VAPID_SERVER_PUBLIC_KEY&&env.VAPID_SERVER_PRIVATE_KEY),businessUpdateConfigured:Boolean(env.BUSINESS_UPDATE_TOKEN),broadcastPushConfigured:Boolean(env.BROADCAST_PUSH_TOKEN),lastEvaluation:last},200,allowedOrigin(origin,env)?origin:'');
   }
   if(request.method==='POST'&&url.pathname==='/business-update')return handleBusinessUpdate(request,env);
+  if(request.method==='POST'&&url.pathname==='/broadcast-published')return handleBroadcastPublished(request,env);
   if(request.method==='GET'&&url.pathname==='/air-current'){
     if(!allowedOrigin(origin,env))return json({error:'origin_not_allowed'},403);
     try{return json(await fetchAir(),200,origin)}catch(error){console.error('air-current failed',error);return json({error:'air_unavailable'},503,origin)}
@@ -168,7 +205,7 @@ async function handleFetch(request,env){
   return json({error:'not_found'},404,allowedOrigin(origin,env)?origin:'');
 }
 
-export {normalizeBusinessUpdate,businessUpdatePayload,secureTokenEqual};
+export {normalizeBusinessUpdate,businessUpdatePayload,normalizeBroadcastPush,broadcastPushPayload,secureTokenEqual};
 export default{
   fetch(request,env){return handleFetch(request,env).catch(error=>{console.error(error);return json({error:'internal_error'},500)})},
   scheduled(_controller,env,ctx){ctx.waitUntil(evaluateAndNotify(env).catch(error=>console.error('scheduled evaluation failed',error)))}

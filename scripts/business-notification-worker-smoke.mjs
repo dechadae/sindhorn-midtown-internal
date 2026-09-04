@@ -33,3 +33,24 @@ assert(secureTokenEqual('preview-secret','different-secret')===false,'Different 
 assert(secureTokenEqual('','')===false,'Empty secret must fail');
 
 console.log(JSON.stringify({ok:true,kinds:[fnbPayload.kind,roomsPayload.kind,bothPayload.kind],route:fnbPayload.route,dedupIdentity:fnbPayload.id}));
+
+/* Broadcast push (r16b): the database bridge posts a reduced broadcast; the
+   Worker accepts only a well-formed one and never invents content. */
+import {normalizeBroadcastPush,broadcastPushPayload} from '../worker/src/index.js';
+const id='6f1d2c3b-4a5e-4f60-8b7c-9d0e1f2a3b4c';
+const plain=normalizeBroadcastPush({id:id.toUpperCase(),titleEn:'  Lobby lifts serviced   Tuesday ',bodyEn:'Use the service lifts 09:00-11:00.',sensitive:false,priority:'high',publishedAt:'2026-09-05T02:00:00Z'});
+assert(plain&&plain.id===id&&plain.titleEn==='Lobby lifts serviced Tuesday','Broadcast should normalize id and whitespace');
+const plainPayload=broadcastPushPayload(plain);
+assert(plainPayload.kind==='broadcast'&&plainPayload.route==='/messages'&&plainPayload.tag===`broadcast:${id}`&&plainPayload.id===id,'Broadcast payload identity mismatch');
+assert(plainPayload.bodyEn==='Use the service lifts 09:00-11:00.'&&plainPayload.requireInteraction===false,'Broadcast body should pass through');
+const sensitive=normalizeBroadcastPush({id,titleEn:'Payroll timing',bodyEn:null,sensitive:true,priority:'urgent',publishedAt:'2026-09-05T02:00:00Z'});
+assert(sensitive&&sensitive.bodyEn===''&&sensitive.sensitive===true,'Sensitive broadcast arrives without a body');
+const sensitivePayload=broadcastPushPayload(sensitive);
+assert(sensitivePayload.bodyEn==='Open Messages to read it.'&&sensitivePayload.requireInteraction===true,'Sensitive broadcast pushes the title with a neutral body');
+assert(normalizeBroadcastPush({id:'not-a-uuid',titleEn:'x',publishedAt:'2026-09-05T02:00:00Z'})===null,'Broadcast id must be a uuid');
+assert(normalizeBroadcastPush({id,titleEn:'',publishedAt:'2026-09-05T02:00:00Z'})===null,'Broadcast title is required');
+assert(normalizeBroadcastPush({id,titleEn:'x'.repeat(121),publishedAt:'2026-09-05T02:00:00Z'})===null,'Broadcast title is capped');
+assert(normalizeBroadcastPush({id,titleEn:'x',bodyEn:'y'.repeat(241),publishedAt:'2026-09-05T02:00:00Z'})===null,'Broadcast body is capped');
+assert(normalizeBroadcastPush({id,titleEn:'x',priority:'loud',publishedAt:'2026-09-05T02:00:00Z'})===null,'Unknown priority must fail');
+assert(normalizeBroadcastPush({id,titleEn:'x',publishedAt:'yesterday'})===null,'Invalid broadcast timestamp must fail');
+console.log(JSON.stringify({ok:true,broadcast:{kind:plainPayload.kind,route:plainPayload.route,dedupIdentity:plainPayload.id}}));
