@@ -350,8 +350,11 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-chip[data-scale="control"]{min-height:40px;padding-inline:22px;font-size:var(--type-body-s)}
 
 /* ---- Divider ----------------------------------------------------------------
-   One hairline, one token. Pages were drawing their own. */
-.app-divider{height:1px;margin:0;border:0;background:var(--app-line)}
+   One hairline, one token. Pages were drawing their own. It separates groups
+   inside one card, so it carries the gap on both sides itself; a note that
+   follows it does not add its own on top. */
+.app-divider{height:1px;margin:16px 0;border:0;background:var(--app-line)}
+.app-divider+.app-note{margin-top:0}
 
 /* ---- Toast ------------------------------------------------------------------
    Transient confirmation. It floats above content, so it is overlay material,
@@ -484,6 +487,10 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 /* Auto margins in a column flex box shrink the page to its content, which
    a skeleton of percentage-width lines makes visibly narrow. */
 .app-page.is-shell{flex:1 0 auto;width:100%;padding-bottom:calc(var(--app-navbar-height) + 28px)}
+/* Under a masthead the page's own 28px top plus the hero's 22px read as a
+   hole; the hero starts one 28px band below the masthead instead. */
+.app-page.is-shell{padding-top:0}
+.app-page.is-shell>.app-hero:first-child{padding-top:28px}
 
 /* ============================================================================
    LAYOUT — every page needs these, so no page should define them.

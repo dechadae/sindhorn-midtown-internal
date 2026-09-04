@@ -35,6 +35,9 @@
    flat tint — the frame would silently break the thing it displays. */
 .ci-stack{margin-top:18px;border-top:1px solid var(--app-line)}
 .ci-specimen{padding:18px 0;border-bottom:1px solid var(--app-line)}
+/* A specimen may stand a real .app-section inside it so page rhythm applies
+   verbatim; only the section's offset from a previous section is dropped. */
+.ci-specimen>.app-section{padding-top:0}
 .ci-specimen-label{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
 .ci-specimen-label span:first-child{color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
 .ci-specimen-label span:last-child{color:var(--app-muted);font-size:var(--type-caption);text-align:right}
