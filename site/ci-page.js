@@ -7,7 +7,7 @@
 import { bindLibrary } from './ci-library.js';
 
 const LIBRARY_URL = '/ci.html';
-const LIBRARY_CSS = '/ci-library.css?v=9';
+const LIBRARY_CSS = '/ci-library.css?v=10';
 let markup = null;
 
 function ensureStylesheet() {

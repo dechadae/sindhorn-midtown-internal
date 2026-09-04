@@ -689,64 +689,32 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 }
 
 /* ---- View transitions -------------------------------------------------------
-   One page gives way to the next through the browser's own view transition:
-   the old page and the new page are captured as pictures - blur, fill and
-   edge already in the pixels - and the pictures move. Nothing re-samples
-   the atmosphere mid-move and the glass never goes flat, because what moves
-   is a picture of glass, not glass.
+   One page gives way to the next with a cut and a settle: the outgoing page
+   leaves at once, the incoming page arrives a short way off its place and
+   eases in over --motion-view on the plain ease-in-out curve. Nothing
+   recedes, scales or parallaxes - one moving surface, so the frosted cards
+   on it stay cheap to draw mid-move - and the direction still carries the
+   spatial meaning app-view.js chooses:
 
-   The choreography is the two beats the F&B index and a promotion have
-   always used: the old picture fades as it slips a little in the direction
-   of travel (--motion-view-out), then the new picture fades up as it slips
-   into place from the other side (--motion-view), both on --motion-ease.
+     push / pop      siblings on one layer arrive from the right / the left
+     cover / dismiss a deeper layer arrives from the foot; the page beneath
+                     returns from the head
 
-     push     out left, in from the right    (a tab to the right)
-     pop      out right, in from the left    (a tab to the left)
-     cover    out upward, in from below      (Settings, sign-in)
-     dismiss  out downward, in from above    (closing them)
+   Every keyframe is a transform. Opacity, filter, mask or clip-path on the
+   host or anything above it defeats backdrop-filter and the glass flashes
+   flat mid-move, so a crossfade is not an option here. The host holds its
+   start pose hidden until the swap lands (data-view), then runs (data-run).
 
-   Only the page host takes part: the root opts out, so the atmosphere, the
-   masthead and the navbar stay live beneath the pictures (the navbar's own
-   push runs at the same time). The pictures are clipped to the band between
-   the two bars. The old picture is a capture of the whole old page, so it is
-   shifted by how far that page was scrolled (--app-view-scroll, measured by
-   app-view.js) to stay where the reader was looking; the group itself does
-   not animate between the two boxes.
+   Attribute selectors only: the shell's host and the library's specimen host
+   share these without sharing a class. */
+[data-view]{visibility:hidden;animation:var(--motion-view) var(--motion-ease-inout) both paused}
+[data-view][data-run]{visibility:visible;animation-play-state:running}
+[data-view="push"]{animation-name:app-view-push-in}
+[data-view="pop"]{animation-name:app-view-pop-in}
+[data-view="cover"]{animation-name:app-view-cover-in}
+[data-view="dismiss"]{animation-name:app-view-dismiss-in}
 
-   app-view.js sets data-view-kind on the root for the direction and
-   data-view-scope for which host is moving (page or demo). Browsers
-   without startViewTransition, and reduced motion, get a plain swap. */
-:root{view-transition-name:none}
-.app-page.is-shell{view-transition-name:app-view}
-[data-view-host]{view-transition-name:app-view-demo}
-/* One move at a time: a page change leaves the library's specimen out of the
-   capture, and the specimen's own move leaves the page out. */
-:root[data-view-scope="page"] [data-view-host],:root[data-view-scope="demo"] .app-page.is-shell{view-transition-name:none}
-::view-transition{clip-path:inset(var(--app-masthead-height) 0 calc(var(--app-navbar-height) + env(safe-area-inset-bottom)) 0)}
-::view-transition-group(app-view),::view-transition-group(app-view-demo){animation:none}
-::view-transition-image-pair(app-view),::view-transition-image-pair(app-view-demo){isolation:auto}
-::view-transition-old(app-view),::view-transition-new(app-view),
-::view-transition-old(app-view-demo),::view-transition-new(app-view-demo){
-  mix-blend-mode:normal;
-  animation:var(--motion-view) var(--motion-ease) both;
-}
-::view-transition-old(app-view),::view-transition-old(app-view-demo){animation-duration:var(--motion-view-out)}
-::view-transition-new(app-view),::view-transition-new(app-view-demo){animation-delay:var(--motion-view-out)}
-::view-transition-old(app-view){translate:0 calc(-1 * var(--app-view-scroll,0px))}
-:root[data-view-kind="push"]::view-transition-old(app-view),:root[data-view-kind="push"]::view-transition-old(app-view-demo){animation-name:app-view-push-out}
-:root[data-view-kind="push"]::view-transition-new(app-view),:root[data-view-kind="push"]::view-transition-new(app-view-demo){animation-name:app-view-push-in}
-:root[data-view-kind="pop"]::view-transition-old(app-view),:root[data-view-kind="pop"]::view-transition-old(app-view-demo){animation-name:app-view-pop-out}
-:root[data-view-kind="pop"]::view-transition-new(app-view),:root[data-view-kind="pop"]::view-transition-new(app-view-demo){animation-name:app-view-pop-in}
-:root[data-view-kind="cover"]::view-transition-old(app-view),:root[data-view-kind="cover"]::view-transition-old(app-view-demo){animation-name:app-view-cover-out}
-:root[data-view-kind="cover"]::view-transition-new(app-view),:root[data-view-kind="cover"]::view-transition-new(app-view-demo){animation-name:app-view-cover-in}
-:root[data-view-kind="dismiss"]::view-transition-old(app-view),:root[data-view-kind="dismiss"]::view-transition-old(app-view-demo){animation-name:app-view-dismiss-out}
-:root[data-view-kind="dismiss"]::view-transition-new(app-view),:root[data-view-kind="dismiss"]::view-transition-new(app-view-demo){animation-name:app-view-dismiss-in}
-
-@keyframes app-view-push-out{from{opacity:1;transform:none}to{opacity:0;transform:translateX(calc(-1 * var(--motion-view-travel-out)))}}
-@keyframes app-view-push-in{from{opacity:.02;transform:translateX(var(--motion-view-travel))}to{opacity:1;transform:none}}
-@keyframes app-view-pop-out{from{opacity:1;transform:none}to{opacity:0;transform:translateX(var(--motion-view-travel-out))}}
-@keyframes app-view-pop-in{from{opacity:.02;transform:translateX(calc(-1 * var(--motion-view-travel)))}to{opacity:1;transform:none}}
-@keyframes app-view-cover-out{from{opacity:1;transform:none}to{opacity:0;transform:translateY(calc(-1 * var(--motion-view-travel-out)))}}
-@keyframes app-view-cover-in{from{opacity:.02;transform:translateY(var(--motion-view-travel))}to{opacity:1;transform:none}}
-@keyframes app-view-dismiss-out{from{opacity:1;transform:none}to{opacity:0;transform:translateY(var(--motion-view-travel-out))}}
-@keyframes app-view-dismiss-in{from{opacity:.02;transform:translateY(calc(-1 * var(--motion-view-travel)))}to{opacity:1;transform:none}}
+@keyframes app-view-push-in{from{transform:translateX(var(--motion-view-travel))}to{transform:none}}
+@keyframes app-view-pop-in{from{transform:translateX(calc(-1 * var(--motion-view-travel)))}to{transform:none}}
+@keyframes app-view-cover-in{from{transform:translateY(var(--motion-view-travel))}to{transform:none}}
+@keyframes app-view-dismiss-in{from{transform:translateY(calc(-1 * var(--motion-view-travel)))}to{transform:none}}

@@ -10,7 +10,6 @@
    line the legacy app draws. Data pages never see a signed-out host. */
 import { initAuth, getState } from './auth-client.js';
 import { updateBadge } from './notification-inbox.js';
-import { transitionView, viewKind } from './app-view.js';
 
 /* The full WebGL runtime directly. betta-runtime.js is a bootstrap that paints
    a still frame and waits for a startup signal the old app shell emits; a page
@@ -37,14 +36,10 @@ const ROUTES = {
 };
 const SETTINGS_TABS = ['me', 'admin', 'broadcast', 'system'];
 
-/* The shell's spatial model, which app-view.js turns into movement. The app
-   tabs are the ground; Settings and the library it opens sit one layer up
-   and rise over it; sign-in covers everything. Siblings on one layer are
-   ordered as the navbar orders them, so a tab to the right pushes in. */
-const APP_ORDER = ['today', 'fnb', 'messages', 'brand'];
-const SETTINGS_ORDER = ['settings/me', 'settings/admin', 'settings/broadcast', 'settings/system', 'ci'];
+/* The shell's layers: the app tabs are the ground; Settings and the library
+   it opens sit one layer up; sign-in covers everything. Closing a layer
+   returns to where the layer below was. */
 const layerOf = view => view === 'signin' ? 2 : (view.startsWith('settings') || view === 'ci') ? 1 : 0;
-const orderOf = view => layerOf(view) === 1 ? SETTINGS_ORDER.indexOf(view) : APP_ORDER.indexOf(view);
 
 const host = document.getElementById('routeView');
 const masthead = document.querySelector('.app-masthead');
@@ -91,10 +86,12 @@ function paintNavbar(name) {
   account.querySelector('span').textContent = initials(getState().profile?.display_name);
 }
 
-/* Every view change moves in two beats - the outgoing page slips away, the
-   next slips in - in the direction the spatial model gives it, and the
-   navbar pushes to match. Only the first paint and a same-view repeat stay
-   still. */
+/* A page change is a cut, the way r12 shipped it: the old page goes, the
+   new one is there. The navbar still pushes between its app and settings
+   sets (app-components.css). Earlier releases moved the page - slides,
+   settles, fades, the browser's own view transition - and each one either
+   stuttered on a phone (frosted cards re-sampling the atmosphere every
+   frame) or switched the glass off; the library keeps the specimen. */
 async function route() {
   const name = resolve();
   const view = viewOf(name);
@@ -105,18 +102,14 @@ async function route() {
      read the link; otherwise the same view stays put. */
   if (view === current && !(name === 'signin' && /^#signin\?/.test(location.hash))) return;
   const mine = ++generation;
-  const kind = viewKind(current, view, { layer: layerOf, order: orderOf });
   current = view;
-  /* The page module loads before the move starts, so the browser never holds
-     the old picture waiting on the network and the atmosphere keeps running. */
+  if (typeof dispose === 'function') dispose();
+  dispose = null;
   const mount = await ROUTES[name]();
   if (mine !== generation) return;
-  await transitionView(host, kind, async () => {
-    if (typeof dispose === 'function') dispose();
-    dispose = null;
-    dispose = await mount(host);
-    if (mine !== generation && typeof dispose === 'function') dispose();
-  });
+  scrollTo(0, 0);
+  dispose = await mount(host);
+  if (mine !== generation && typeof dispose === 'function') dispose();
 }
 
 navbar.addEventListener('click', event => {
