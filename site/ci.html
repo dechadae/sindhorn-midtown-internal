@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=7">
 <link rel="stylesheet" href="/app-glass.css?v=8">
-<link rel="stylesheet" href="/app-components.css?v=23">
+<link rel="stylesheet" href="/app-components.css?v=24">
 <link rel="stylesheet" href="/app-shell.css?v=2">
 <link rel="stylesheet" href="/ci-library.css?v=9">
 </head>
@@ -146,7 +146,7 @@
         <tr><th>Press</th><td><code>--motion-fast</code> 160ms — immediate feedback</td></tr>
         <tr><th>State</th><td><code>--motion-ms</code> 280ms — component settles</td></tr>
         <tr><th>Reveal</th><td><code>--motion-reveal</code> 920ms — data draws itself in (see 12 Metrics)</td></tr>
-        <tr><th>View</th><td><code>--motion-view-out</code> 180ms then <code>--motion-view</code> 300ms — one page gives way to the next, slipping <code>--motion-view-travel-out</code> 14px away and <code>--motion-view-travel</code> 18px in (see 18 Shell)</td></tr>
+        <tr><th>View</th><td><code>--motion-view-out</code> 180ms then <code>--motion-view</code> 300ms — one page gives way to the next as two pictures, the old slipping <code>--motion-view-travel-out</code> 14px away and the new <code>--motion-view-travel</code> 18px in (see 18 Shell)</td></tr>
         <tr><th>Easing</th><td><code>--motion-ease</code> cubic-bezier(.22, 1, .36, 1) for a control settling and a page changing; <code>--motion-ease-inout</code> ease-in-out for a navbar set moving into place</td></tr>
         <tr><th>Reduced</th><td>Reduced motion removes transitions without hiding state</td></tr>
       </tbody>
@@ -742,8 +742,8 @@ Ask the team about the pairing board: three small plates built for the three dri
             </div>
           </nav>
         </div>
-        <p class="app-note">Tap the tabs, the chip, then the tabs again. Two beats, the way the F&amp;B index and a promotion have always changed places: the old page fades as it slips <code>--motion-view-travel-out</code> in the direction of travel over <code>--motion-view-out</code>, the swap happens while nothing shows, then the new page fades up as it slips <code>--motion-view-travel</code> into place from the other side over <code>--motion-view</code>, both on <code>--motion-ease</code>. A tab to the right <b>pushes</b> (out left, in from the right); to the left it <b>pops</b>. The chip <b>covers</b>: the page slips up and away, Settings arrives from below, and the navbar's app set slides out left as the settings set slides in from the right; closing it <b>dismisses</b> and slides them back. The shell runs <code>transitionView(host, kind, swap)</code>; sign-in covers everything and dismisses on success.</p>
-        <p class="app-note">Only the live host animates — there is no clone of the outgoing page. Fade and slip together are what keep it smooth on a phone: while a page's opacity is below 1 the backdrop blur beneath its cards is not sampled, so the frosted material costs nothing mid-move and lands with the page. Filter and clip-path are still never animated. The host is held invisible between the beats through <code>data-view-phase</code>, so a new page never appears in place and then restarts.</p>
+        <p class="app-note">Tap the tabs, the chip, then the tabs again. The browser takes a picture of the page that is leaving and a picture of the page that is arriving — blur, fill and edge already in the pixels — and the pictures move in two beats, the way the F&amp;B index and a promotion have always changed places: the old picture fades as it slips <code>--motion-view-travel-out</code> in the direction of travel over <code>--motion-view-out</code>, then the new picture fades up as it slips <code>--motion-view-travel</code> into place from the other side over <code>--motion-view</code>, both on <code>--motion-ease</code>. A tab to the right <b>pushes</b> (out left, in from the right); to the left it <b>pops</b>. The chip <b>covers</b>: the page slips up and away, Settings arrives from below, and the navbar's app set slides out left as the settings set slides in from the right; closing it <b>dismisses</b> and slides them back. The shell runs <code>transitionView(host, kind, swap)</code>; sign-in covers everything and dismisses on success.</p>
+        <p class="app-note">Pictures are what keep it smooth on a phone and keep the glass real: nothing re-samples the atmosphere mid-move, and the live page is never faded or moved, so its frosted material is never switched off and never has to come back. Only the page host is captured (<code>view-transition-name: app-view</code>; this specimen's host is <code>app-view-demo</code>) — the atmosphere, the masthead and the navbar stay live beneath, and the pictures are clipped to the band between the bars. A page that was scrolled keeps its place: <code>app-view.js</code> measures the scroll and the old picture is shifted by it. Filter and clip-path are still never animated. A browser without view transitions, and reduced motion, gets a plain swap.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-navbar[data-locked]</span><span>signed out · routes visible, dormant</span></div>

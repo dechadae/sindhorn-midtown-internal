@@ -107,11 +107,13 @@ async function route() {
   const mine = ++generation;
   const kind = viewKind(current, view, { layer: layerOf, order: orderOf });
   current = view;
+  /* The page module loads before the move starts, so the browser never holds
+     the old picture waiting on the network and the atmosphere keeps running. */
+  const mount = await ROUTES[name]();
+  if (mine !== generation) return;
   await transitionView(host, kind, async () => {
     if (typeof dispose === 'function') dispose();
     dispose = null;
-    const mount = await ROUTES[name]();
-    if (mine !== generation) return;
     dispose = await mount(host);
     if (mine !== generation && typeof dispose === 'function') dispose();
   });
