@@ -81,10 +81,11 @@
   --motion-ms:280ms;
   --motion-fast:160ms;
   --motion-reveal:920ms;   /* a data track drawing itself in */
+  --motion-view:380ms;     /* one page giving way to the next */
   --motion-ease:cubic-bezier(.22,1,.36,1);
   --motion-fade:linear;
 }
 
 @media (prefers-reduced-motion:reduce){
-  :root{ --motion-ms:1ms; --motion-reveal:1ms; }
+  :root{ --motion-ms:1ms; --motion-reveal:1ms; --motion-view:1ms; }
 }

@@ -7,9 +7,11 @@
    and Broadcast arrive with their own data work. */
 import { getState, signOut } from './auth-client.js';
 import { loadSettingsAuthority, hasCapability } from './capabilities.js';
+import { confirmDialog } from './app-dialog.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
+const LOGOUT_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 3H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h3M13 6l4 4-4 4M17 10H8"/></svg>';
 
 const TABS = {
   me: { eyebrow: 'Settings', title: 'Me', copy: 'Your account and how you appear to colleagues.', capability: 'account.read', gate: 'Your account', gateTitle: 'This account cannot read its own profile yet.', gateCopy: 'Ask People & Culture to check your access.' },
@@ -19,7 +21,10 @@ const TABS = {
 };
 const tabOf = () => { const tab = (location.hash.match(/^#settings\/([a-z]+)/) || [])[1]; return TABS[tab] ? tab : 'me'; };
 
-const hero = tab => `<header class="app-hero"><p class="app-hero-eyebrow">${esc(TABS[tab].eyebrow)}</p><h1 class="app-hero-title">${esc(TABS[tab].title)}</h1><p class="app-hero-copy">${esc(TABS[tab].copy)}</p></header>`;
+/* Me carries Sign out in its hero head, where F&B carries Share: the page's
+   one utility sits beside the eyebrow rather than at the foot of the page. */
+const signOutButton = () => `<button class="app-utility-action" type="button" data-settings-signout>${LOGOUT_ICON}Sign out</button>`;
+const hero = tab => `<header class="app-hero"><div class="app-hero-head"><p class="app-hero-eyebrow">${esc(TABS[tab].eyebrow)}</p>${tab === 'me' ? signOutButton() : ''}</div><h1 class="app-hero-title">${esc(TABS[tab].title)}</h1><p class="app-hero-copy">${esc(TABS[tab].copy)}</p></header>`;
 const state = (label, title, copy, tone = 'empty', attrs = '') => `<div class="app-state app-card" data-tone="${tone}"${attrs}><p class="app-state-label">${esc(label)}</p><p class="app-state-title">${esc(title)}</p>${copy ? `<p class="app-state-copy">${esc(copy)}</p>` : ''}</div>`;
 const fact = (label, value) => `<div class="app-metric"><span class="app-metric-label">${esc(label)}</span><span class="app-metric-value">${esc(value || '—')}</span></div>`;
 const skeleton = () => `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;
@@ -38,8 +43,7 @@ function meMarkup(manifest) {
         </div>
       </div>
     </div>
-    ${state('Coming next', 'Your digital business card', 'Edit how you appear, then share your card as a QR code or a link.')}
-    <div class="app-utility-row"><button class="app-utility-action" type="button" data-settings-signout>Sign out</button></div>`;
+    ${state('Coming next', 'Your digital business card', 'Edit how you appear, then share your card as a QR code or a link.')}`;
 }
 
 function systemMarkup(manifest, version) {
@@ -69,6 +73,8 @@ export async function mountSettings(host) {
   const controller = new AbortController();
   const { signal } = controller;
 
+  /* A tab change is a new mount: the shell remounts Settings through its view
+     transition so the tab arrives rather than repaints in place. */
   const paint = body => { if (alive) host.innerHTML = `${hero(tab)}<section class="app-section"><div class="app-stack">${body}</div></section>`; };
 
   async function render() {
@@ -83,7 +89,7 @@ export async function mountSettings(host) {
     }
     if (!alive || tab !== tabOf()) return;
     const spec = TABS[tab];
-    if (!hasCapability(spec.capability, manifest)) { paint(state(spec.gate, spec.gateTitle, spec.gateCopy, 'empty', ` data-gate="${esc(spec.capability)}"`) + (tab === 'me' ? `<div class="app-utility-row"><button class="app-utility-action" type="button" data-settings-signout>Sign out</button></div>` : '')); return; }
+    if (!hasCapability(spec.capability, manifest)) { paint(state(spec.gate, spec.gateTitle, spec.gateCopy, 'empty', ` data-gate="${esc(spec.capability)}"`)); return; }
     if (tab === 'me') paint(meMarkup(manifest));
     else if (tab === 'admin') paint(state('Coming next', 'Employees, access and codes', 'Add, edit and remove employees and issue one-time codes - this tab fills in the next release.'));
     else if (tab === 'broadcast') paint(state('Coming next', 'Broadcast messages', 'Compose and publish messages to every employee or a department - this tab arrives with its data work.'));
@@ -95,9 +101,17 @@ export async function mountSettings(host) {
     if (go) { location.hash = go.dataset.settingsGo; return; }
     if (event.target.closest('[data-settings-retry]')) { render(); return; }
     const out = event.target.closest('[data-settings-signout]');
-    if (out) { out.disabled = true; signOut().catch(() => { out.disabled = false; }); }
+    if (out) askSignOut(out);
   }, { signal });
-  addEventListener('hashchange', () => { if (/^#settings(\/|$)/.test(location.hash) && tabOf() !== tab) render(); }, { signal });
+
+  /* Signing out is one tap away from the hero, so it asks first. The button
+     stays disabled while the session closes; if that fails it comes back. */
+  async function askSignOut(button) {
+    const yes = await confirmDialog({ kicker: 'Settings', title: 'Sign out of this device?', copy: 'You will need your Employee ID and permanent code to sign back in.', confirm: 'Sign out', cancel: 'Stay signed in', tone: 'danger' });
+    if (!yes || !alive) return;
+    button.disabled = true;
+    signOut().catch(() => { button.disabled = false; });
+  }
 
   render();
   return () => { alive = false; controller.abort(); };

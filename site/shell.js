@@ -10,6 +10,7 @@
    line the legacy app draws. Data pages never see a signed-out host. */
 import { initAuth, getState } from './auth-client.js';
 import { updateBadge } from './notification-inbox.js';
+import { transitionView, viewKind } from './app-view.js';
 
 /* The full WebGL runtime directly. betta-runtime.js is a bootstrap that paints
    a still frame and waits for a startup signal the old app shell emits; a page
@@ -36,6 +37,15 @@ const ROUTES = {
 };
 const SETTINGS_TABS = ['me', 'admin', 'broadcast', 'system'];
 
+/* The shell's spatial model, which app-view.js turns into movement. The app
+   tabs are the ground; Settings and the library it opens sit one layer up
+   and rise over it; sign-in covers everything. Siblings on one layer are
+   ordered as the navbar orders them, so a tab to the right pushes in. */
+const APP_ORDER = ['today', 'fnb', 'messages', 'brand'];
+const SETTINGS_ORDER = ['settings/me', 'settings/admin', 'settings/broadcast', 'settings/system', 'ci'];
+const layerOf = view => view === 'signin' ? 2 : (view.startsWith('settings') || view === 'ci') ? 1 : 0;
+const orderOf = view => layerOf(view) === 1 ? SETTINGS_ORDER.indexOf(view) : APP_ORDER.indexOf(view);
+
 const host = document.getElementById('routeView');
 const masthead = document.querySelector('.app-masthead');
 const navbar = document.querySelector('.app-navbar');
@@ -57,13 +67,17 @@ const initials = name => {
 const wantedName = () => { const name = (location.hash.match(/^#([a-z]+)/) || [])[1]; return ROUTES[name] ? name : 'today'; };
 const settingsTab = () => { const tab = (location.hash.match(/^#settings\/([a-z]+)/) || [])[1]; return SETTINGS_TABS.includes(tab) ? tab : 'me'; };
 const resolve = () => { const name = wantedName(); if (!signedIn()) return 'signin'; return name === 'signin' ? 'today' : name; };
+/* A view is a route plus, for Settings, its tab - so a tab change is a view change. */
+const viewOf = name => name === 'settings' ? `settings/${settingsTab()}` : name;
 
 let current = '', dispose = null, generation = 0, returnHash = '';
 
+/* The library is reached from Settings › System, so it keeps the settings
+   set beneath it with System still current. */
 function paintNavbar(name) {
   const locked = !signedIn();
-  const mode = name === 'settings' ? 'settings' : 'app';
-  const full = name === 'settings' ? `settings/${settingsTab()}` : name;
+  const mode = name === 'settings' || name === 'ci' ? 'settings' : 'app';
+  const full = name === 'ci' ? 'settings/system' : viewOf(name);
   navbar.dataset.mode = mode;
   if (locked) navbar.dataset.locked = ''; else delete navbar.dataset.locked;
   for (const set of navbar.querySelectorAll('.app-navbar-set')) set.inert = set.dataset.set !== mode;
@@ -77,22 +91,29 @@ function paintNavbar(name) {
   account.querySelector('span').textContent = initials(getState().profile?.display_name);
 }
 
+/* Every view change moves: the outgoing page is held as a picture while the
+   next mounts beneath it, then both travel in the direction the spatial
+   model gives them. Only the first paint and a same-view repeat stay still. */
 async function route() {
   const name = resolve();
-  if (name !== 'settings' && name !== 'signin') returnHash = location.hash;
+  const view = viewOf(name);
+  if (layerOf(view) === 0) returnHash = location.hash;
   if (name !== 'signin' && wantedName() === 'signin') history.replaceState(null, '', location.pathname + location.search);
   paintNavbar(name);
   /* An invitation link arriving as a hash change remounts sign-in so it can
      read the link; otherwise the same view stays put. */
-  if (name === current && !(name === 'signin' && /^#signin\?/.test(location.hash))) return;
+  if (view === current && !(name === 'signin' && /^#signin\?/.test(location.hash))) return;
   const mine = ++generation;
-  current = name;
-  if (typeof dispose === 'function') dispose();
-  dispose = null;
-  const mount = await ROUTES[name]();
-  if (mine !== generation) return;
-  dispose = await mount(host);
-  if (mine !== generation && typeof dispose === 'function') dispose();
+  const kind = viewKind(current, view, { layer: layerOf, order: orderOf });
+  current = view;
+  await transitionView(host, kind, async () => {
+    if (typeof dispose === 'function') dispose();
+    dispose = null;
+    const mount = await ROUTES[name]();
+    if (mine !== generation) return;
+    dispose = await mount(host);
+    if (mine !== generation && typeof dispose === 'function') dispose();
+  });
 }
 
 navbar.addEventListener('click', event => {
@@ -112,7 +133,7 @@ home.addEventListener('click', () => {
 /* The account chip opens Settings; while Settings is open it is the way back
    to wherever the employee came from. */
 account.addEventListener('click', () => {
-  if (current === 'settings') { const back = returnHash; returnHash = ''; location.hash = back; return; }
+  if (layerOf(current) === 1) { const back = returnHash; returnHash = ''; location.hash = back; return; }
   location.hash = '#settings/me';
 });
 
@@ -123,11 +144,10 @@ navigator.serviceWorker?.addEventListener?.('message', event => { if (event.data
 addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') badge(); });
 document.addEventListener('sindhorn:messages-changed', badge);
 
-/* Signing in or out re-runs the gate: current is cleared so the view is
-   rebuilt rather than compared by name. auth-client dispatches on document. */
+/* Signing in or out re-runs the gate. auth-client dispatches on document. */
 document.addEventListener('sindhorn:auth-changed', event => {
   if (event.detail?.reason === 'signed_out' && location.hash) history.replaceState(null, '', location.pathname + location.search);
-  if (resolve() !== current) { current = ''; route(); } else paintNavbar(current);
+  if (viewOf(resolve()) !== current) route(); else paintNavbar(resolve());
 });
 addEventListener('hashchange', route);
 

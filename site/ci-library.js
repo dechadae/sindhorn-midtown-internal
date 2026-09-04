@@ -7,6 +7,26 @@
    the two listeners the selector needs to close on an outside tap. */
 
 import { bindCode } from './app-code.js';
+import { transitionView, viewKind } from './app-view.js';
+import { confirmDialog } from './app-dialog.js';
+
+/* The view-transition specimen's mock pages: the shell's vocabulary, small
+   enough to sit inside a bounded frame. */
+const DEMO_PAGES = {
+  today: ['Today', 'Hotel Business', 'The day\u2019s numbers, drawn in as they arrive.'],
+  fnb: ['Food & Beverage', 'Promotions', 'This season\u2019s campaigns, ready to share.'],
+  messages: ['Messages', 'Inbox', 'What was sent to you, newest first.'],
+  brand: ['Brand', 'Standards', 'The marks, the type and how they are used.'],
+  'settings/me': ['Settings', 'Me', 'Your account and how you appear to colleagues.'],
+  'settings/admin': ['Settings', 'Admin', 'Employees, access and one-time codes.'],
+  'settings/broadcast': ['Settings', 'Broadcast', 'Messages sent to every employee or a department.'],
+  'settings/system': ['Settings', 'System', 'The app itself: version, library and diagnostics.']
+};
+const DEMO_APP = ['today', 'fnb', 'messages', 'brand'];
+const DEMO_SETTINGS = ['settings/me', 'settings/admin', 'settings/broadcast', 'settings/system'];
+const demoLayer = view => view.startsWith('settings') ? 1 : 0;
+const demoOrder = view => demoLayer(view) ? DEMO_SETTINGS.indexOf(view) : DEMO_APP.indexOf(view);
+const demoPage = view => { const [eyebrow, title, copy] = DEMO_PAGES[view]; return `<header class="app-hero"><p class="app-hero-eyebrow">${eyebrow}</p><h1 class="app-hero-title">${title}</h1></header><div class="app-surface"><p class="app-surface-label">${title}</p><div class="app-surface-copy">${copy}</div></div>`; };
 
 export function bindLibrary(root, { page = root } = {}) {
   const controller = new AbortController();
@@ -29,6 +49,41 @@ export function bindLibrary(root, { page = root } = {}) {
       for (const set of navbar.querySelectorAll('.app-navbar-set')) set.inert = set.dataset.set !== navbar.dataset.mode;
     });
   }
+
+  // View transitions - the shell's four movements, bounded to a frame. The
+  // frame keeps its own tiny router so the specimen and the shell share only
+  // transitionView() and viewKind(), which is the point.
+  for (const frame of root.querySelectorAll('[data-view-demo]')) {
+    const host = frame.querySelector('[data-view-host]'), navbar = frame.querySelector('.app-navbar'), account = frame.querySelector('[data-demo-account]');
+    if (!host || !navbar || !account) continue;
+    let current = 'today', back = 'today';
+    host.innerHTML = demoPage(current);
+    const go = view => {
+      if (view === current || !DEMO_PAGES[view]) return;
+      const kind = viewKind(current, view, { layer: demoLayer, order: demoOrder });
+      if (demoLayer(view) === 0) back = view;
+      current = view;
+      const settings = demoLayer(view) === 1;
+      navbar.dataset.mode = settings ? 'settings' : 'app';
+      account.dataset.mode = settings ? 'close' : 'initials';
+      account.setAttribute('aria-label', settings ? 'Close settings' : 'Settings');
+      for (const set of navbar.querySelectorAll('.app-navbar-set')) set.inert = set.dataset.set !== navbar.dataset.mode;
+      for (const button of navbar.querySelectorAll('[data-demo-route]')) { if (button.dataset.demoRoute === view) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current'); }
+      transitionView(host, kind, () => { host.innerHTML = demoPage(view); }, { within: frame });
+    };
+    on(frame, 'click', event => {
+      const button = event.target.closest('[data-demo-route]');
+      if (button) { go(button.dataset.demoRoute); return; }
+      if (event.target.closest('[data-demo-account]')) go(demoLayer(current) === 1 ? back : 'settings/me');
+    });
+  }
+
+  // Confirm - the dialog standard asked from code.
+  const confirmOpen = root.querySelector('[data-confirm-open]'), confirmResult = root.querySelector('[data-confirm-result]');
+  if (confirmOpen) on(confirmOpen, 'click', async () => {
+    const yes = await confirmDialog({ kicker: 'Specimen', title: 'Sign out of this device?', copy: 'You will need your Employee ID and permanent code to sign back in.', confirm: 'Sign out', cancel: 'Stay signed in', tone: 'danger' });
+    if (confirmResult && !signal.aborted) confirmResult.textContent = yes ? 'Confirmed - the page would sign out now.' : 'Cancelled - nothing happened, which is the point of asking.';
+  });
 
   // Disclosure
   for (const item of root.querySelectorAll('[data-disclosure]')) {

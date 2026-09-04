@@ -13,11 +13,11 @@
      the only claim this page is allowed to make. -->
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="stylesheet" href="/fonts.css?v=1">
-<link rel="stylesheet" href="/app-tokens.css?v=3">
+<link rel="stylesheet" href="/app-tokens.css?v=4">
 <link rel="stylesheet" href="/app-glass.css?v=8">
-<link rel="stylesheet" href="/app-components.css?v=19">
+<link rel="stylesheet" href="/app-components.css?v=20">
 <link rel="stylesheet" href="/app-shell.css?v=2">
-<link rel="stylesheet" href="/ci-library.css?v=6">
+<link rel="stylesheet" href="/ci-library.css?v=7">
 </head>
 <body>
 
@@ -146,6 +146,7 @@
         <tr><th>Press</th><td><code>--motion-fast</code> 160ms — immediate feedback</td></tr>
         <tr><th>State</th><td><code>--motion-ms</code> 280ms — component settles</td></tr>
         <tr><th>Reveal</th><td><code>--motion-reveal</code> 920ms — data draws itself in (see 12 Metrics)</td></tr>
+        <tr><th>View</th><td><code>--motion-view</code> 380ms — one page gives way to the next (see 18 Shell)</td></tr>
         <tr><th>Easing</th><td><code>--motion-ease</code> cubic-bezier(.22, 1, .36, 1)</td></tr>
         <tr><th>Reduced</th><td>Reduced motion removes transitions without hiding state</td></tr>
       </tbody>
@@ -414,6 +415,11 @@
         <div class="ci-specimen-label"><span>.app-dialog</span><span>native &lt;dialog&gt; · .app-overlay</span></div>
         <button class="app-primary app-control" type="button" data-dialog-open>Open dialog specimen</button>
         <p class="app-note">The scrim is not a card: it dims the page behind rather than sitting on the atmosphere, so it owns its own values.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>confirmDialog()</span><span>app-dialog.js · asked from code</span></div>
+        <button class="app-primary app-control" type="button" data-confirm-open>Ask before signing out</button>
+        <p class="app-note" data-confirm-result>A page that needs a yes-or-no moment calls <code>confirmDialog({ kicker, title, copy, confirm, cancel, tone })</code> and awaits a boolean. It builds this same standard, focuses Cancel, and removes itself on close. <code>tone="danger"</code> gives the confirm button the danger ink; Settings › Me uses it for Sign out.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-sheet</span><span>native &lt;dialog&gt; · bottom-anchored</span></div>
@@ -712,6 +718,32 @@ Ask the team about the pairing board: three small plates built for the three dri
           </nav>
         </div>
         <p class="app-note"><code>.app-masthead-home</code> wraps the logo and is frameless. <code>.app-masthead-account</code> is an <code>.app-control</code> inside the glass masthead, so it keeps the tint and drops the blur; <code>data-mode="close"</code> swaps the initials for a close mark. The navbar holds both <code>.app-navbar-set</code>s in one cell and <code>data-mode="settings"</code> chooses which one shows; the hidden set is <code>inert</code>.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>transitionView()</span><span>app-view.js · pages arrive, they do not reload</span></div>
+        <div class="ci-shell-frame" data-view-demo>
+          <header class="app-masthead">
+            <button class="app-masthead-home" type="button" aria-label="Home" data-demo-route="today"><img class="app-masthead-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></button>
+            <button class="app-masthead-account app-control" type="button" data-mode="initials" aria-label="Settings" data-demo-account><span>DT</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
+          </header>
+          <div class="ci-shell-frame-body" data-view-host></div>
+          <nav class="app-navbar" aria-label="Primary" data-mode="app">
+            <div class="app-navbar-set" data-set="app">
+              <button class="app-navbar-button" type="button" data-demo-route="today" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M4 6h16M4 18h10"/></svg><span>Today</span></button>
+              <button class="app-navbar-button" type="button" data-demo-route="fnb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v8a3 3 0 0 0 6 0V3M9 11v10M17 3c-1.5 2-1.5 5 0 7v11"/></svg><span>F&amp;B</span></button>
+              <button class="app-navbar-button" type="button" data-demo-route="messages"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v11H9l-5 4z"/></svg><span>Messages</span></button>
+              <button class="app-navbar-button" type="button" data-demo-route="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l2.4 5 5.6.7-4 3.9 1 5.4-5-2.7-5 2.7 1-5.4-4-3.9 5.6-.7z"/></svg><span>Brand</span></button>
+            </div>
+            <div class="app-navbar-set" data-set="settings" inert>
+              <button class="app-navbar-button" type="button" data-demo-route="settings/me"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"/></svg><span>Me</span></button>
+              <button class="app-navbar-button" type="button" data-demo-route="settings/admin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2 20a7 7 0 0 1 14 0M16 4a3.5 3.5 0 0 1 0 7M22 20a7 7 0 0 0-5-6.7"/></svg><span>Admin</span></button>
+              <button class="app-navbar-button" type="button" data-demo-route="settings/broadcast"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l7 4V6l-7 4zM18 9a4 4 0 0 1 0 6"/></svg><span>Broadcast</span></button>
+              <button class="app-navbar-button" type="button" data-demo-route="settings/system"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16M9 10v9"/></svg><span>System</span></button>
+            </div>
+          </nav>
+        </div>
+        <p class="app-note">Tap the tabs, the chip, then the tabs again. A tab to the right <b>pushes</b> in and the old page recedes; to the left it <b>pops</b>. The chip <b>covers</b>: Settings rises from the foot while the page beneath settles back; closing it <b>dismisses</b>. The shell runs <code>transitionView(host, kind, swap)</code> with exactly these four movements over <code>--motion-view</code>; sign-in covers everything and dismisses on success.</p>
+        <p class="app-note">Every keyframe is a transform. Nothing fades: opacity, filter or clip-path on the moving page — or on anything above it — switches off the backdrop blur beneath, and the glass would flash flat mid-move. The outgoing page is a cloned, inert picture in <code>.app-view-ghost</code>, held at the scroll offset it was read at; the live host takes its start pose through <code>data-view</code> before the swap, so a new page never appears in place and then jumps.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-navbar[data-locked]</span><span>signed out · routes visible, dormant</span></div>

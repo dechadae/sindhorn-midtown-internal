@@ -184,8 +184,8 @@ if (!report.trackDrawn) failures.push('.app-track-bar: not present on the page')
 else if (!report.trackDrawn.ready || report.trackDrawn.scaleX < 0.99) failures.push(`.app-track-bar: not drawn in after ready (ready=${report.trackDrawn.ready}, scaleX=${report.trackDrawn.scaleX})`);
 if (!report.sectionDivider) failures.push('.app-card-section+.app-card-section: not present on the page');
 else if (report.sectionDivider.border !== '1px solid' || norm(report.sectionDivider.color) !== 'rgba(250, 247, 245, 0.09)') failures.push(`.app-card-section: divider ${report.sectionDivider.border} ${report.sectionDivider.color}, expected 1px solid --app-line`);
-if (report.sections < 20) failures.push(`only ${report.sections} sections rendered`);
-if (report.specimens < 24) failures.push(`only ${report.specimens} specimens rendered`);
+if (report.sections < 23) failures.push(`only ${report.sections} sections rendered`);
+if (report.specimens < 50) failures.push(`only ${report.specimens} specimens rendered`);
 if (report.specimenPainted !== 'rgba(0, 0, 0, 0)') failures.push(`specimen rows must stay unpainted, got ${report.specimenPainted}`);
 if (report.canvas === '300x150') failures.push('atmosphere is the bootstrap preview, not the full runtime — import betta-runtime-full.js');
 if (report.canvas === 'none') failures.push('no atmosphere canvas on the page');
@@ -198,6 +198,73 @@ if (overlay && overlay.border.startsWith('0px')) failures.push('.app-overlay los
 const chip=report.measured.find(e=>e.selector==='.app-chip');
 if (chip && norm(chip.borderColor) !== 'rgba(250, 247, 245, 0.14)') failures.push(`.app-chip: border-color ${chip.borderColor}, expected the glass border token rgba(250, 247, 245, 0.14) from .app-control`);
 if (report.overflow > 1) failures.push(`horizontal overflow ${report.overflow}px`);
+
+// View transitions: tap F&B in the specimen frame and read the host mid-move.
+// The host must be running the push-in keyframes over --motion-view, and
+// neither it nor the ghost may carry opacity, filter or clip-path - any of
+// those on an ancestor switches the glass beneath off.
+const VIEW = '0.38s';
+const view = await (async () => {
+  const frame = page.locator('[data-view-demo]');
+  if (!(await frame.count())) return null;
+  await frame.locator('[data-demo-route="fnb"]').click();
+  // The ghost holds a clone of the host, so the live host is the frame's own child.
+  await page.waitForFunction(() => document.querySelector('[data-view-demo] > [data-view-host][data-run]') && document.querySelector('.app-view-ghost[data-run]'), null, { timeout: 2000 }).catch(() => {});
+  return page.evaluate(() => {
+    const host = document.querySelector('[data-view-demo] > [data-view-host]'), ghost = document.querySelector('.app-view-ghost'), scroll = ghost?.querySelector('.app-view-ghost-scroll');
+    const read = node => { if (!node) return null; const s = getComputedStyle(node); return { name: s.animationName, duration: s.animationDuration, timing: s.animationTimingFunction, play: s.animationPlayState, opacity: s.opacity, filter: s.filter, clip: s.clipPath, transform: s.transform }; };
+    return { kind: host?.dataset.view, host: read(host), ghost: read(scroll), ghostPosition: ghost && getComputedStyle(ghost).position, ghostZ: ghost && getComputedStyle(ghost).zIndex, title: host?.querySelector('.app-hero-title')?.textContent };
+  });
+})();
+if (!view) failures.push('[data-view-demo]: view-transition specimen missing');
+else {
+  if (view.kind !== 'push') failures.push(`view transition: Today → F&B should push, host has data-view="${view.kind}"`);
+  if (view.title !== 'Promotions') failures.push(`view transition: the new page should be mounted beneath the ghost, host shows "${view.title}"`);
+  if (!view.host || view.host.name !== 'app-view-push-in-local') failures.push(`view transition: host animation ${view.host?.name}, expected app-view-push-in-local`);
+  if (!view.ghost || view.ghost.name !== 'app-view-push-out') failures.push(`view transition: ghost animation ${view.ghost?.name}, expected app-view-push-out`);
+  for (const [who, style] of [['host', view.host], ['ghost', view.ghost]]) {
+    if (!style) continue;
+    if (norm(style.duration) !== VIEW) failures.push(`view transition: ${who} animation-duration ${style.duration}, expected ${VIEW} (--motion-view)`);
+    if (norm(style.timing) !== EASE) failures.push(`view transition: ${who} animation-timing-function ${style.timing}, expected ${EASE}`);
+    if (style.play !== 'running') failures.push(`view transition: ${who} animation is ${style.play}, expected running`);
+    if (style.opacity !== '1' || style.filter !== 'none' || style.clip !== 'none') failures.push(`view transition: ${who} must move by transform only (opacity ${style.opacity}, filter ${style.filter}, clip-path ${style.clip})`);
+  }
+  if (view.ghostPosition !== 'absolute') failures.push(`view transition: a scoped ghost must be absolute inside its frame, got ${view.ghostPosition}`);
+  await page.waitForFunction(() => !document.querySelector('.app-view-ghost') && !document.querySelector('[data-view-demo] > [data-view-host][data-view]'), null, { timeout: 3000 })
+    .catch(() => failures.push('view transition: ghost or data-view left behind after the movement ended'));
+}
+
+// The confirm dialog builds the Dialog Standard from code: overlay material,
+// danger ink on the confirm, Cancel focused, and nothing left behind on close.
+const confirm = await (async () => {
+  const open = page.locator('[data-confirm-open]');
+  if (!(await open.count())) return null;
+  await open.click();
+  await page.waitForSelector('dialog[data-confirm][open]', { timeout: 2000 }).catch(() => {});
+  const shown = await page.evaluate(() => {
+    const dialog = document.querySelector('dialog[data-confirm]');
+    if (!dialog) return null;
+    const s = getComputedStyle(dialog), confirmButton = dialog.querySelector('[data-dialog-confirm]');
+    return { open: dialog.open, bg: s.backgroundColor, filter: String(s.backdropFilter || s.webkitBackdropFilter || 'none'), title: dialog.querySelector('.app-dialog-title')?.textContent, confirmColor: confirmButton && getComputedStyle(confirmButton).color, focusedCancel: document.activeElement === dialog.querySelector('[data-dialog-cancel]') };
+  });
+  await page.locator('dialog[data-confirm] [data-dialog-cancel]').click().catch(() => {});
+  // close fires as a queued task after close(); give it one turn.
+  await page.waitForFunction(() => !document.querySelector('dialog[data-confirm]'), null, { timeout: 2000 }).catch(() => {});
+  const after = await page.evaluate(() => ({ remaining: document.querySelectorAll('dialog[data-confirm]').length, note: document.querySelector('[data-confirm-result]')?.textContent || '' }));
+  return { shown, after };
+})();
+if (!confirm) failures.push('[data-confirm-open]: confirm specimen missing');
+else if (!confirm.shown) failures.push('confirmDialog(): no dialog was built');
+else {
+  const { shown, after } = confirm;
+  if (!shown.open) failures.push('confirmDialog(): dialog built but not open');
+  if (norm(shown.bg) !== norm(OVERLAY.bg) || norm(shown.filter) !== norm(OVERLAY.filter)) failures.push(`confirmDialog(): material ${shown.bg} / ${shown.filter}, expected the overlay`);
+  if (shown.title !== 'Sign out of this device?') failures.push(`confirmDialog(): title "${shown.title}"`);
+  if (norm(shown.confirmColor) !== 'rgb(227, 162, 168)') failures.push(`confirmDialog(): danger confirm is ${shown.confirmColor}, expected --app-danger`);
+  if (!shown.focusedCancel) failures.push('confirmDialog(): Cancel should hold focus when the dialog opens');
+  if (after.remaining !== 0) failures.push(`confirmDialog(): ${after.remaining} dialog(s) left in the document after close`);
+  if (!/^Cancelled/.test(after.note)) failures.push(`confirmDialog(): cancel should resolve false, note reads "${after.note}"`);
+}
 
 await browser.close();
 server.close();

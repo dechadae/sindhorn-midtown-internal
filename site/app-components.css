@@ -84,6 +84,10 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-primary:active{transform:scale(.975)}
 .app-primary:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
 .app-primary:disabled{border-color:var(--app-line);color:var(--app-muted);cursor:default;transform:none}
+/* A destructive confirm keeps the primary's shape and takes the danger tone,
+   so the one button that removes something reads differently from the one
+   that saves. Its edge is the same ink, faded, so no second literal appears. */
+.app-primary[data-tone="danger"]{color:var(--app-danger);border-color:color-mix(in srgb,var(--app-danger) 32%,transparent)}
 
 /* ---- Content surface -------------------------------------------------------
    A card whose content is the destination. Same material as the actionable
@@ -679,3 +683,57 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 @media(prefers-reduced-motion:reduce){
   .app-skeleton-line,.app-skeleton-block{animation:none}
 }
+
+/* ---- View transitions -------------------------------------------------------
+   One page gives way to the next by moving, never by fading. app-view.js
+   clones the outgoing page into .app-view-ghost - a fixed layer between the
+   atmosphere and the shell bands - and gives the live host a start pose
+   through data-view. Both then run one choreography together:
+
+     push / pop      siblings on one layer slide sideways, the lower one
+                     receding a little so depth reads
+     cover / dismiss a deeper layer rises from the foot and drops back to it;
+                     the page beneath settles a few percent smaller
+
+   Every keyframe is a transform. Opacity, filter, mask or clip-path on the
+   ghost, the host, or anything above them defeats backdrop-filter and the
+   glass flashes flat mid-move, so none is used here. The ghost's own scroll
+   box carries the outgoing page at the exact offset it was read at, with
+   spacers standing in for the masthead and navbar the clone sits between.
+
+   Attribute selectors only: the shell's host and the library's specimen host
+   share these without sharing a class. data-scope / data-view-scope="local"
+   bounds the movement to a frame instead of the viewport. */
+.app-view-ghost{position:fixed;inset:0;z-index:1;overflow:hidden;pointer-events:none}
+.app-view-ghost[data-scope="local"]{position:absolute}
+.app-view-ghost[data-kind="pop"],.app-view-ghost[data-kind="dismiss"]{z-index:2}
+.app-view-ghost-scroll{height:100%;overflow:hidden;transform-origin:50% 50%;animation:var(--motion-view) var(--motion-ease) both paused}
+.app-view-ghost-scroll::before{content:"";display:block;height:var(--app-masthead-height)}
+.app-view-ghost-scroll::after{content:"";display:block;height:var(--app-navbar-height)}
+[data-view]{transform-origin:50% calc(50vh - var(--app-masthead-height));animation:var(--motion-view) var(--motion-ease) both paused}
+[data-view][data-view-scope="local"]{transform-origin:50% 50%}
+.app-view-ghost[data-run] .app-view-ghost-scroll,[data-view][data-run]{animation-play-state:running}
+
+.app-view-ghost[data-kind="push"] .app-view-ghost-scroll{animation-name:app-view-push-out}
+.app-view-ghost[data-kind="pop"] .app-view-ghost-scroll{animation-name:app-view-pop-out}
+.app-view-ghost[data-kind="cover"] .app-view-ghost-scroll{animation-name:app-view-cover-out}
+.app-view-ghost[data-kind="dismiss"] .app-view-ghost-scroll{animation-name:app-view-dismiss-out}
+[data-view="push"]{animation-name:app-view-push-in}
+[data-view="pop"]{animation-name:app-view-pop-in}
+[data-view="cover"]{animation-name:app-view-cover-in}
+[data-view="push"][data-view-scope="local"]{animation-name:app-view-push-in-local}
+[data-view="cover"][data-view-scope="local"]{animation-name:app-view-cover-in-local}
+.app-view-ghost[data-scope="local"][data-kind="pop"] .app-view-ghost-scroll{animation-name:app-view-pop-out-local}
+[data-view="dismiss"]{animation-name:app-view-dismiss-in}
+
+@keyframes app-view-push-in{from{transform:translateX(100vw)}to{transform:none}}
+@keyframes app-view-push-out{from{transform:none}to{transform:translateX(-28%)}}
+@keyframes app-view-pop-in{from{transform:translateX(-28%)}to{transform:none}}
+@keyframes app-view-pop-out{from{transform:none}to{transform:translateX(100vw)}}
+@keyframes app-view-push-in-local{from{transform:translateX(100%)}to{transform:none}}
+@keyframes app-view-pop-out-local{from{transform:none}to{transform:translateX(100%)}}
+@keyframes app-view-cover-in{from{transform:translateY(100vh)}to{transform:none}}
+@keyframes app-view-cover-in-local{from{transform:translateY(100%)}to{transform:none}}
+@keyframes app-view-cover-out{from{transform:none}to{transform:translateY(-6%) scale(.96)}}
+@keyframes app-view-dismiss-in{from{transform:translateY(-6%) scale(.96)}to{transform:none}}
+@keyframes app-view-dismiss-out{from{transform:none}to{transform:translateY(100%)}}
