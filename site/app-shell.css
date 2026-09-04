@@ -10,6 +10,10 @@
 */
 
 *{box-sizing:border-box}
+/* hidden is an instruction, not a hint. This sheet loads after the
+   components, so at equal specificity it wins over any component's display
+   rule, and a control the router hides stays hidden. */
+[hidden]{display:none}
 html{-webkit-text-size-adjust:100%}
 
 /* min-height:100% on body is a no-op without html{height:100%}, so a page

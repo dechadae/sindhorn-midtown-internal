@@ -244,6 +244,20 @@ jobs:
           grep -q "dataset.environmentInput='satellite-only'" /tmp/betta.js
 
 
+      - name: Sign into the live shell with the CI test account
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          BASE_URL: https://sindhorn-midtown-internal.pages.dev
+          CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
+          CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
+        run: |
+          set -euo pipefail
+          # The new shell gates every route behind sign-in, so its pages can
+          # only be proven on the live URL with a real session. Credentials
+          # come from repository secrets and are never echoed.
+          node scripts/next-signin-smoke.mjs
+
       - name: Guard the glass material on the live app
         shell: bash
         env:

@@ -29,6 +29,11 @@ const BADGE_QUIET = { bg: 'rgba(250, 247, 245, 0.055)', filter: 'blur(18px) satu
 // A badge nested inside a card is glass inside glass - it must keep the tint
 // and drop the blur, same as any other nested surface.
 const BADGE_NESTED = { bg: 'rgba(250, 247, 245, 0.055)', filter: 'none' };
+// The unread count on a navbar button: accent tint, no blur, because the
+// navbar under it is already glass.
+const BADGE_ON_NAVBAR = { bg: 'rgba(229, 236, 190, 0.16)', filter: 'none' };
+// A control inside the glass masthead: card tint, no blur, same rule.
+const CONTROL_ON_MASTHEAD = { bg: 'rgba(46, 39, 59, 0.3)', filter: 'none' };
 // The sticky column carries the same weight as every other glass surface.
 const STICKY = CARD;
 const BARE = { bg: 'rgba(0, 0, 0, 0)', filter: 'none' };
@@ -48,6 +53,11 @@ const EXPECT = [
   // finalizing the library: same rule either way — an edge takes the
   // material, a layout container takes nothing.
   ['.app-back-control', CARD], ['.app-masthead', CARD], ['.app-navbar', CARD],
+  // Shell chrome added with sign-in: the logo is Home and frameless, the
+  // account chip is a control on the masthead, the navbar sets are layout,
+  // the unread count is a badge on the navbar, and a code well is a field well.
+  ['.app-masthead-home', BARE], ['.app-masthead-account', CONTROL_ON_MASTHEAD], ['.app-navbar-set', BARE],
+  ['.app-navbar-badge', BADGE_ON_NAVBAR], ['.app-code input', FROSTED_WELL], ['.app-navbar[data-locked]', CARD],
   ['.app-sheet', OVERLAY], ['.app-toast', OVERLAY],
   ['.app-list-row', BARE], ['.app-metric', BARE], ['.app-figure', BARE],
   ['.app-card-section', BARE], ['.app-section-subhead', BARE],
@@ -76,6 +86,8 @@ const MOTION = [
   ['.app-chip', `${SETTLE}, ${SETTLE}, ${FAST}`, `${LINEAR}, ${LINEAR}, ${EASE}`],
   ['.app-back-control', `${FAST}, ${SETTLE}`, `${EASE}, ${LINEAR}`],
   ['.app-navbar-button', `${SETTLE}, ${FAST}`, `${LINEAR}, ${EASE}`],
+  ['.app-masthead-account', `${FAST}, ${SETTLE}`, `${EASE}, ${LINEAR}`],
+  ['.app-navbar-set', `${SETTLE}, ${SETTLE}, 0s`, `${LINEAR}, ${EASE}, linear`],
   ['.app-disclosure-chevron', SETTLE, EASE],
   ['.app-disclosure-panel', SETTLE, EASE],
   ['.app-select-trigger svg', FAST, EASE]

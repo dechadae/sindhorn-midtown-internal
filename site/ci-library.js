@@ -6,10 +6,29 @@
    dispose function; nothing here touches the document outside root except
    the two listeners the selector needs to close on an outside tap. */
 
+import { bindCode } from './app-code.js';
+
 export function bindLibrary(root, { page = root } = {}) {
   const controller = new AbortController();
   const { signal } = controller;
   const on = (target, type, handler) => target.addEventListener(type, handler, { signal });
+
+  // Code group - the same behaviour the sign-in page binds.
+  bindCode(root, { signal });
+
+  // Shell demo - the account chip switches the navbar between its two sets,
+  // exactly as the router does on /next.
+  for (const frame of root.querySelectorAll('[data-shell-demo]')) {
+    const account = frame.querySelector('.app-masthead-account'), navbar = frame.querySelector('.app-navbar');
+    if (!account || !navbar) continue;
+    on(account, 'click', () => {
+      const settings = navbar.dataset.mode !== 'settings';
+      navbar.dataset.mode = settings ? 'settings' : 'app';
+      account.dataset.mode = settings ? 'close' : 'initials';
+      account.setAttribute('aria-label', settings ? 'Close settings' : 'Settings');
+      for (const set of navbar.querySelectorAll('.app-navbar-set')) set.inert = set.dataset.set !== navbar.dataset.mode;
+    });
+  }
 
   // Disclosure
   for (const item of root.querySelectorAll('[data-disclosure]')) {

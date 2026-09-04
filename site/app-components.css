@@ -156,6 +156,13 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-field-note{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-field[data-tone="error"] .app-field-note{color:var(--app-danger)}
 
+/* A six-digit code is one field with six wells, one digit each, so what the
+   employee typed is visible at a glance. Each well is an ordinary field
+   input — same height, tint, focus and blur — only centred and larger. The
+   group's behaviour (advance, backspace, paste) lives in app-code.js. */
+.app-code{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.app-field .app-code input{padding-inline:0;text-align:center;font-size:var(--type-lead);font-variant-numeric:tabular-nums}
+
 /* ---- Selector --------------------------------------------------------------
    Behaviour lives in app-select.js. The trigger is a control; the menu floats
    above content, so it is an overlay rather than a card. */
@@ -446,7 +453,8 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 @media(prefers-reduced-motion:reduce){
   .app-action-card-button,.app-disclosure-button,.app-disclosure-chevron,
   .app-disclosure-panel,.app-field input,.app-field textarea,.app-field select,
-  .app-select-trigger svg,.app-primary,.app-chip{transition-duration:.001ms}
+  .app-select-trigger svg,.app-primary,.app-chip,
+  .app-masthead-home,.app-masthead-account,.app-navbar-set{transition-duration:.001ms;transition-delay:0s}
   .app-track-bar{transform:scaleX(1);transition:none}
 }
 
@@ -467,10 +475,41 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
   position:sticky;top:0;z-index:80;
   min-height:var(--app-masthead-height);
   padding:0 max(16px,env(safe-area-inset-left));
-  display:flex;align-items:center;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
   border-bottom:1px solid var(--app-glass-border);
 }
 .app-masthead-logo{display:block;height:30px;width:auto}
+
+/* The hotel logo is the Home button: wherever the employee is, one tap on
+   the masthead returns to Today. It is frameless — the mark is the control,
+   so it draws no edge and takes no material. */
+.app-masthead-home{
+  display:block;padding:0;border:0;background:transparent;color:inherit;
+  border-radius:var(--radius-tight);cursor:pointer;
+  transition:transform var(--motion-fast) var(--motion-ease);
+}
+.app-masthead-home:active{transform:scale(.96)}
+.app-masthead-home:focus-visible{outline:2px solid var(--app-accent);outline-offset:4px}
+
+/* The account chip carries the employee's initials and opens Settings; while
+   Settings is open it becomes the way back, so the same control shows a
+   close mark instead. Rounded, never circular. .app-control supplies the
+   material; it sits inside the glass masthead, so app-glass.css drops its
+   blur there. Hidden until an employee is signed in. */
+.app-masthead-account{
+  width:34px;height:34px;flex:0 0 auto;
+  display:inline-grid;place-items:center;
+  border-radius:var(--radius-inset);
+  color:var(--app-text);font:inherit;font-size:var(--type-small);font-weight:var(--weight-bold);line-height:1;text-transform:uppercase;
+  cursor:pointer;
+  transition:transform var(--motion-fast) var(--motion-ease),color var(--motion-ms) ease;
+}
+.app-masthead-account:active{transform:scale(.94)}
+.app-masthead-account:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
+.app-masthead-account svg{display:none;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6}
+.app-masthead-account[data-mode="close"]{color:var(--app-accent)}
+.app-masthead-account[data-mode="close"] span{display:none}
+.app-masthead-account[data-mode="close"] svg{display:block}
 
 .app-navbar{
   position:sticky;bottom:0;z-index:80;
@@ -493,6 +532,34 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-navbar-button:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
 .app-navbar-button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5}
 .app-navbar-button:disabled{cursor:default}
+
+/* The footer holds two sets of buttons in the same cell: the app set (Today,
+   F&B, Messages, Brand) and the settings set (Me, Admin, Broadcast, System).
+   The account chip switches the navbar's mode and one set cross-fades into
+   the other; the hidden set is invisible, untappable and inert, so the
+   navbar is only ever one row of four. Both sets sit at grid area 1/1 of the
+   navbar's own column grid, so a navbar holding bare buttons still lays out
+   as before. */
+.app-navbar-set{
+  grid-area:1/1;min-width:0;
+  display:grid;grid-auto-flow:column;grid-auto-columns:1fr;align-items:center;
+  opacity:0;visibility:hidden;transform:translateY(6px);
+  transition:opacity var(--motion-ms) ease,transform var(--motion-ms) var(--motion-ease),visibility 0s linear var(--motion-ms);
+}
+.app-navbar:not([data-mode="settings"]) .app-navbar-set[data-set="app"],
+.app-navbar[data-mode="settings"] .app-navbar-set[data-set="settings"]{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+
+/* Signed out, the routes stay visible but dormant: the shell shows where the
+   app goes without letting anyone go there. The router disables the
+   buttons; data-locked lets a specimen show the state without a script. */
+.app-navbar-button:disabled,.app-navbar[data-locked] .app-navbar-button{color:var(--app-muted);opacity:.4;cursor:default}
+.app-navbar-button:disabled:active,.app-navbar[data-locked] .app-navbar-button:active{transform:none}
+
+/* An unread count sits at the icon's top-right corner. It is a badge, so it
+   keeps the badge tint; the navbar beneath it is already glass, so
+   app-glass.css drops its blur. */
+.app-navbar-button{position:relative}
+.app-navbar-badge{position:absolute;top:3px;left:calc(50% + 6px)}
 
 /* A page inside the shell reserves room for the sticky footer. */
 /* flex:1 0 auto is the other half of the sticky-footer fix in app-shell.css:

@@ -42,7 +42,7 @@ const BASE=`http://127.0.0.1:${server.address().port}`;
 
 async function trial(label,blockFragments,expectInstalled){
   blocked=blockFragments;
-  const browser=await chromium.launch();
+  let browser;try{browser=await chromium.launch()}catch(_){browser=await chromium.launch({channel:'chrome'})}
   const context=await browser.newContext({serviceWorkers:'allow'});
   const page=await context.newPage();
   await page.goto(`${BASE}/index.html`,{waitUntil:'domcontentloaded',timeout:45000});

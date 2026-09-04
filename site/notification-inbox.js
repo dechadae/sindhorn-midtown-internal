@@ -131,3 +131,8 @@ export async function initNotificationInbox(){
 }
 
 window.SindhornNotificationInbox={list:allMessages,unreadCount,markAllRead,clearAll,refresh:refreshUi};
+
+/* The same store, read by the shell's Messages page. Named exports only;
+   nothing above changes for the legacy route, which keeps the window
+   object it already uses. */
+export{allMessages as listMessages,unreadCount,markAllRead,clearAll,updateBadge,kindLabel,stamp};

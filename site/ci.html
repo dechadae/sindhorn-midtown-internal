@@ -14,9 +14,9 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=3">
-<link rel="stylesheet" href="/app-glass.css?v=7">
-<link rel="stylesheet" href="/app-components.css?v=18">
-<link rel="stylesheet" href="/app-shell.css?v=1">
+<link rel="stylesheet" href="/app-glass.css?v=8">
+<link rel="stylesheet" href="/app-components.css?v=19">
+<link rel="stylesheet" href="/app-shell.css?v=2">
 <link rel="stylesheet" href="/ci-library.css?v=6">
 </head>
 <body>
@@ -294,6 +294,23 @@
           <div class="app-field"><label for="ci-mail">Work email <span>optional</span></label><input id="ci-mail" type="email" placeholder="name@ihg.com"></div>
           <div class="app-field" data-tone="error"><label for="ci-val">Validation state</label><input id="ci-val" type="text" value="Needs attention"><p class="app-field-note">Explain what the user can correct.</p></div>
           <div class="app-field"><label for="ci-off">Disabled</label><input id="ci-off" type="text" placeholder="Unavailable" disabled></div>
+        </div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-field &gt; .app-code</span><span>six wells · type, paste or autofill</span></div>
+        <div class="ci-field-stack">
+          <div class="app-field">
+            <label for="ci-code-1">Permanent code</label>
+            <div class="app-code" data-code>
+              <input id="ci-code-1" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-label="Digit 1 of 6">
+              <input type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 2 of 6">
+              <input type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 3 of 6">
+              <input type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 4 of 6">
+              <input type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 5 of 6">
+              <input type="text" inputmode="numeric" autocomplete="off" maxlength="1" aria-label="Digit 6 of 6">
+            </div>
+            <p class="app-field-note">A code is one field with six wells, so what was typed is visible at a glance. Typing advances, backspace retreats, a pasted code fills the group. The first well accepts a one-time-code autofill for the whole group.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -643,7 +660,7 @@ Ask the team about the pairing board: three small plates built for the three dri
   <section class="app-section" id="shell">
     <p class="app-section-kicker">18 · Shell</p>
     <h2 class="app-section-title">A Sticky Header and Footer That Frost What Passes Under Them</h2>
-    <p class="app-section-lede">The public app shell is exactly these two elements: a masthead carrying the logo, and a four-button navbar, both one band of <code>--app-shell-band</code> 56px so the top and bottom match. Scroll the frame below — this is the same markup /next uses.</p>
+    <p class="app-section-lede">The app shell is exactly these two elements: a masthead and a navbar, both one band of <code>--app-shell-band</code> 56px so the top and bottom match. The masthead's logo is Home; its account chip opens Settings, and the navbar's four buttons cross-fade to the settings set (Me, Admin, Broadcast, System) while it is open. Signed out, the shell stays visible but locked. Scroll the frame below — this is the same markup /next uses.</p>
     <div class="ci-stack is-single">
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-hero with .app-back-control</span><span>a detail inside a route</span></div>
@@ -668,21 +685,42 @@ Ask the team about the pairing board: three small plates built for the three dri
         <p class="app-note"><code>.app-hero-head</code> is the hero's first row: the eyebrow or the back control on the left, one frameless action on the right. A detail puts its eyebrow beneath the row; a route may close its hero with a note.</p>
       </div>
       <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-masthead / .app-navbar</span><span>scroll inside the frame · button = route, a = page</span></div>
-        <div class="ci-shell-frame">
-          <header class="app-masthead"><img class="app-masthead-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></header>
+        <div class="ci-specimen-label"><span>.app-masthead / .app-navbar</span><span>scroll inside the frame · tap the chip for settings</span></div>
+        <div class="ci-shell-frame" data-shell-demo>
+          <header class="app-masthead">
+            <button class="app-masthead-home" type="button" aria-label="Home"><img class="app-masthead-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></button>
+            <button class="app-masthead-account app-control" type="button" data-mode="initials" aria-label="Settings"><span>DT</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
+          </header>
           <div class="ci-shell-frame-body">
             <div class="app-surface"><p class="app-surface-label">Scroll</p><div class="app-surface-copy">Content passes beneath the sticky header and footer, which is why both are glass rather than painted.</div></div>
             <div class="app-surface"><p class="app-surface-label">Scroll</p><div class="app-surface-copy">Keep scrolling to watch the footer resolve different content behind it too.</div></div>
             <div class="app-surface"><p class="app-surface-label">Scroll</p><div class="app-surface-copy">This frame exists only so the sticky behaviour has somewhere bounded to scroll — the classes are unchanged.</div></div>
           </div>
-          <nav class="app-navbar" aria-label="Primary">
-            <button class="app-navbar-button" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M4 6h16M4 18h10"/></svg><span>Today</span></button>
-            <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v8a3 3 0 0 0 6 0V3M9 11v10M17 3c-1.5 2-1.5 5 0 7v11"/></svg><span>F&amp;B</span></button>
-            <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l2.4 5 5.6.7-4 3.9 1 5.4-5-2.7-5 2.7 1-5.4-4-3.9 5.6-.7z"/></svg><span>Brand</span></button>
-            <a class="app-navbar-button" href="#top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16M9 10v9"/></svg><span>CI</span></a>
+          <nav class="app-navbar" aria-label="Primary" data-mode="app">
+            <div class="app-navbar-set" data-set="app">
+              <button class="app-navbar-button" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M4 6h16M4 18h10"/></svg><span>Today</span></button>
+              <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v8a3 3 0 0 0 6 0V3M9 11v10M17 3c-1.5 2-1.5 5 0 7v11"/></svg><span>F&amp;B</span></button>
+              <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v11H9l-5 4z"/></svg><span>Messages</span><span class="app-badge app-navbar-badge" aria-label="3 unread">3</span></button>
+              <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l2.4 5 5.6.7-4 3.9 1 5.4-5-2.7-5 2.7 1-5.4-4-3.9 5.6-.7z"/></svg><span>Brand</span></button>
+            </div>
+            <div class="app-navbar-set" data-set="settings" inert>
+              <button class="app-navbar-button" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"/></svg><span>Me</span></button>
+              <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2 20a7 7 0 0 1 14 0M16 4a3.5 3.5 0 0 1 0 7M22 20a7 7 0 0 0-5-6.7"/></svg><span>Admin</span></button>
+              <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l7 4V6l-7 4zM18 9a4 4 0 0 1 0 6"/></svg><span>Broadcast</span></button>
+              <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16M9 10v9"/></svg><span>System</span></button>
+            </div>
           </nav>
         </div>
+        <p class="app-note"><code>.app-masthead-home</code> wraps the logo and is frameless. <code>.app-masthead-account</code> is an <code>.app-control</code> inside the glass masthead, so it keeps the tint and drops the blur; <code>data-mode="close"</code> swaps the initials for a close mark. The navbar holds both <code>.app-navbar-set</code>s in one cell and <code>data-mode="settings"</code> chooses which one shows; the hidden set is <code>inert</code>.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-navbar[data-locked]</span><span>signed out · routes visible, dormant</span></div>
+        <nav class="app-navbar" aria-label="Primary (locked)" data-locked>
+          <button class="app-navbar-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M4 6h16M4 18h10"/></svg><span>Today</span></button>
+          <button class="app-navbar-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v8a3 3 0 0 0 6 0V3M9 11v10M17 3c-1.5 2-1.5 5 0 7v11"/></svg><span>F&amp;B</span></button>
+          <button class="app-navbar-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v11H9l-5 4z"/></svg><span>Messages</span></button>
+          <button class="app-navbar-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l2.4 5 5.6.7-4 3.9 1 5.4-5-2.7-5 2.7 1-5.4-4-3.9 5.6-.7z"/></svg><span>Brand</span></button>
+        </nav>
       </div>
     </div>
   </section>
@@ -731,6 +769,10 @@ Ask the team about the pairing board: three small plates built for the three dri
           <div class="app-state app-card" data-tone="success"><p class="app-state-label">Success</p><p class="app-state-title">Saved</p><p class="app-state-copy">Confirm the meaningful result, then return control to the user.</p></div>
           <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Could not save</p><p class="app-state-copy">Explain the recoverable action instead of exposing transport internals.</p></div>
         </div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-state[data-gate]</span><span>a tab the employee can see but not use</span></div>
+        <div class="app-state app-card" data-tone="empty" data-gate="people.read"><p class="app-state-label">Admin only</p><p class="app-state-title">This tab is only for admins.</p><p class="app-state-copy">Every settings tab stays visible to every employee; what it shows depends on the capabilities the account holds. Ask People &amp; Culture if you need access.</p></div>
       </div>
     </div>
   </section>
