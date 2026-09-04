@@ -71,8 +71,14 @@ function currentRooms(data) {
   return data.rooms?.months?.find(item => String(item.stayMonth).slice(0, 7) === month) || data.rooms?.months?.[0] || null;
 }
 
-function metric({ label, value, comparison = '', meta = '', direction = null }) {
-  return `<div class="app-metric">${label ? `<p class="app-metric-label">${esc(label)}</p>` : ''}<p class="app-metric-value">${esc(value)}</p>${comparison ? `<p class="app-metric-delta"${direction ? ` data-direction="${esc(direction)}"` : ''}>${esc(comparison)}</p>` : ''}${meta ? `<p class="app-metric-note">${esc(meta)}</p>` : ''}</div>`;
+function track(actual, reference, stagger = 0) {
+  const a = num(actual), r = num(reference);
+  if (a === null || r === null || r <= 0) return '';
+  const width = Math.max(0, Math.min(100, (a / r) * 80)).toFixed(1);
+  return `<svg class="app-track"${stagger ? ` data-stagger="${Math.min(stagger, 7)}"` : ''} aria-hidden="true"><rect class="app-track-rail" x="0" y="3.5" width="100%" height="3" rx="1.5"/><rect class="app-track-bar" x="0" y="3.5" width="${width}%" height="3" rx="1.5"/><rect class="app-track-mark" x="80%" y="0" width="1.5" height="10" rx=".75"/></svg>`;
+}
+function metric({ label, value, comparison = '', meta = '', direction = null, track: trackMarkup = '' }) {
+  return `<div class="app-metric">${label ? `<p class="app-metric-label">${esc(label)}</p>` : ''}<p class="app-metric-value">${esc(value)}</p>${comparison ? `<p class="app-metric-delta"${direction ? ` data-direction="${esc(direction)}"` : ''}>${esc(comparison)}</p>` : ''}${meta ? `<p class="app-metric-note">${esc(meta)}</p>` : ''}${trackMarkup}</div>`;
 }
 function comparisonRow(label, actual, reference, { kind = 'money', referenceLabel = 'Forecast' } = {}) {
   const a = num(actual), r = num(reference), diff = a !== null && r !== null ? a - r : null;
@@ -106,18 +112,18 @@ function renderGlance(data) {
       <div class="app-card app-surface">
         <div class="app-card-section"><p class="app-surface-label">Food &amp; Beverage · ${esc(shortDateLabel(fnbSource?.detectedReportDate || data.businessDate))}</p></div>
         <div class="app-card-section"><div class="app-metric-grid">
-          ${metric({ label: 'Today Revenue', value: money(daily.revenue, { compact: true }), comparison: variance(daily.revenue, daily.forecast), direction: directionOf(num(daily.revenue) - num(daily.forecast)) })}
-          ${metric({ label: 'MTD Revenue', value: money(mtd.revenue, { compact: true }), comparison: variance(mtd.revenue, mtd.forecast), direction: directionOf(num(mtd.revenue) - num(mtd.forecast)) })}
+          ${metric({ label: 'Today Revenue', value: money(daily.revenue, { compact: true }), comparison: variance(daily.revenue, daily.forecast), direction: directionOf(num(daily.revenue) - num(daily.forecast)), track: track(daily.revenue, daily.forecast, 0) })}
+          ${metric({ label: 'MTD Revenue', value: money(mtd.revenue, { compact: true }), comparison: variance(mtd.revenue, mtd.forecast), direction: directionOf(num(mtd.revenue) - num(mtd.forecast)), track: track(mtd.revenue, mtd.forecast, 1) })}
         </div></div>
       </div>
       <div class="app-card app-surface">
         <div class="app-card-section"><p class="app-surface-label">Rooms · ${esc(shortDateLabel(roomsSource?.detectedReportDate || data.businessDate))}</p></div>
         <div class="app-card-section"><div class="app-metric-grid">
-          ${metric({ label: 'Occupancy OTB', value: percent(otb.occupancy), comparison: occDelta === null ? '' : `${occDelta >= 0 ? '+' : '−'}${Math.abs(occDelta * 100).toFixed(1)} pp vs forecast`, direction: directionOf(occDelta) })}
-          ${metric({ label: 'ADR', value: money(otb.adr), comparison: rooms ? `${money(adrDelta, { compact: true, signed: true })} vs forecast` : '', direction: directionOf(adrDelta) })}
+          ${metric({ label: 'Occupancy OTB', value: percent(otb.occupancy), comparison: occDelta === null ? '' : `${occDelta >= 0 ? '+' : '−'}${Math.abs(occDelta * 100).toFixed(1)} pp vs forecast`, direction: directionOf(occDelta), track: track(otb.occupancy, rooms?.forecast?.occupancy, 2) })}
+          ${metric({ label: 'ADR', value: money(otb.adr), comparison: rooms ? `${money(adrDelta, { compact: true, signed: true })} vs forecast` : '', direction: directionOf(adrDelta), track: track(otb.adr, rooms?.forecast?.adr, 3) })}
         </div></div>
         <div class="app-card-section"><div class="app-metric-grid">
-          ${metric({ label: 'RevPAR', value: money(otb.revpar), comparison: rooms ? `${money(revparDelta, { compact: true, signed: true })} vs forecast` : '', direction: directionOf(revparDelta) })}
+          ${metric({ label: 'RevPAR', value: money(otb.revpar), comparison: rooms ? `${money(revparDelta, { compact: true, signed: true })} vs forecast` : '', direction: directionOf(revparDelta), track: track(otb.revpar, rooms?.forecast?.revpar, 4) })}
           ${metric({ label: '24h Pickup', value: `${integer(pickup.rns, { signed: true })} RN`, comparison: money(pickup.revenue, { compact: true, signed: true }), meta: pickup.adr ? `Pickup ADR ${money(pickup.adr)}` : '', direction: directionOf(num(pickup.rns)) })}
         </div></div>
       </div>
@@ -150,7 +156,7 @@ function renderFnb(data) {
   const s = data.fnb?.summary || {}, d = s.daily || {}, outlets = data.fnb?.outlets || [];
   return `<section class="app-section" id="today-fnb"><p class="app-section-kicker">03 · Food &amp; Beverage</p><h2 class="app-section-title">F&amp;B Today</h2><p class="app-section-lede">Daily actual against source forecast, then outlet detail on demand.</p>
     <div class="app-card app-surface">
-      <div class="app-card-section"><p class="app-surface-label">Total F&amp;B</p>${metric({ value: money(d.revenue), comparison: variance(d.revenue, d.forecast), direction: directionOf(num(d.revenue) - num(d.forecast)) })}</div>
+      <div class="app-card-section"><p class="app-surface-label">Total F&amp;B</p>${metric({ value: money(d.revenue), comparison: variance(d.revenue, d.forecast), direction: directionOf(num(d.revenue) - num(d.forecast)), track: track(d.revenue, d.forecast) })}</div>
       <div class="app-card-section"><div class="app-list">
         ${comparisonRow('Food', d.food, d.foodForecast)}
         ${comparisonRow('Beverage', d.beverage, d.beverageForecast)}
@@ -168,7 +174,7 @@ function renderRooms(data) {
   return `<section class="app-section" id="today-rooms"><p class="app-section-kicker">04 · Rooms / Revenue</p><h2 class="app-section-title">Current Month</h2><p class="app-section-lede">${esc(dateLabel(room.stayMonth, { monthOnly: true }))} on-the-books position and 24-hour pickup.</p>
     <div class="app-stack">
       <div class="app-card app-surface">
-        <div class="app-card-section"><p class="app-surface-label">Room Revenue OTB</p>${metric({ value: money(o.revenue, { compact: true }), comparison: variance(o.revenue, f.revenue), direction: directionOf(num(o.revenue) - num(f.revenue)) })}</div>
+        <div class="app-card-section"><p class="app-surface-label">Room Revenue OTB</p>${metric({ value: money(o.revenue, { compact: true }), comparison: variance(o.revenue, f.revenue), direction: directionOf(num(o.revenue) - num(f.revenue)), track: track(o.revenue, f.revenue) })}</div>
         <div class="app-card-section"><div class="app-list">
           ${comparisonRow('Occupancy', o.occupancy, f.occupancy, { kind: 'percent' })}
           ${comparisonRow('ADR', o.adr, f.adr)}
@@ -252,6 +258,9 @@ async function refresh(host, { force = false } = {}) {
   try {
     const data = await loadBusinessDashboard({ force });
     host.innerHTML = render(data);
+    // Tracks draw themselves in after first paint; reduced motion arrives drawn.
+    delete host.dataset.trackReady;
+    requestAnimationFrame(() => requestAnimationFrame(() => { host.dataset.trackReady = 'true'; }));
   } catch (error) {
     host.innerHTML = errorMarkup(error);
   }

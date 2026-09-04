@@ -76,10 +76,11 @@
      timing language, not two. */
   --motion-ms:280ms;
   --motion-fast:160ms;
+  --motion-reveal:920ms;   /* a data track drawing itself in */
   --motion-ease:cubic-bezier(.22,1,.36,1);
   --motion-fade:linear;
 }
 
 @media (prefers-reduced-motion:reduce){
-  :root{ --motion-ms:1ms; }
+  :root{ --motion-ms:1ms; --motion-reveal:1ms; }
 }

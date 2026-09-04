@@ -13,9 +13,9 @@
      the only claim this page is allowed to make. -->
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="stylesheet" href="/fonts.css?v=1">
-<link rel="stylesheet" href="/app-tokens.css?v=1">
+<link rel="stylesheet" href="/app-tokens.css?v=2">
 <link rel="stylesheet" href="/app-glass.css?v=7">
-<link rel="stylesheet" href="/app-components.css?v=6">
+<link rel="stylesheet" href="/app-components.css?v=7">
 <link rel="stylesheet" href="/app-shell.css?v=1">
 <link rel="stylesheet" href="/ci-library.css?v=3">
 </head>
@@ -386,6 +386,17 @@
         </div>
       </div>
       <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-track</span><span>actual against a reference</span></div>
+        <div class="app-card app-surface">
+          <div class="app-metric-grid">
+            <div class="app-metric"><p class="app-metric-label">Today revenue</p><p class="app-metric-value">171K</p><p class="app-metric-delta" data-direction="down">&minus;43.7% vs forecast</p><svg class="app-track" aria-hidden="true"><rect class="app-track-rail" x="0" y="3.5" width="100%" height="3" rx="1.5"/><rect class="app-track-bar" x="0" y="3.5" width="45%" height="3" rx="1.5"/><rect class="app-track-mark" x="80%" y="0" width="1.5" height="10" rx=".75"/></svg></div>
+            <div class="app-metric"><p class="app-metric-label">Occupancy</p><p class="app-metric-value">68.0%</p><p class="app-metric-delta" data-direction="flat">On forecast</p><svg class="app-track" data-stagger="1" aria-hidden="true"><rect class="app-track-rail" x="0" y="3.5" width="100%" height="3" rx="1.5"/><rect class="app-track-bar" x="0" y="3.5" width="80%" height="3" rx="1.5"/><rect class="app-track-mark" x="80%" y="0" width="1.5" height="10" rx=".75"/></svg></div>
+            <div class="app-metric"><p class="app-metric-label">IRD</p><p class="app-metric-value">10,900</p><p class="app-metric-delta" data-direction="up">+21.2% vs forecast</p><svg class="app-track" data-stagger="2" aria-hidden="true"><rect class="app-track-rail" x="0" y="3.5" width="100%" height="3" rx="1.5"/><rect class="app-track-bar" x="0" y="3.5" width="97%" height="3" rx="1.5"/><rect class="app-track-mark" x="80%" y="0" width="1.5" height="10" rx=".75"/></svg></div>
+          </div>
+        </div>
+        <p class="app-note">The mark sits at 80% and is the reference. A bar that reaches it is on forecast; short of it, under; past it, over. Width is an SVG attribute, so no inline style. The bar draws in over <code>--motion-reveal</code> once the page sets <code>data-track-ready</code>, staggered 45ms per <code>data-stagger</code> step.</p>
+      </div>
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-card-section</span><span>one card, several groups</span></div>
         <div class="app-card app-surface">
           <div class="app-card-section"><p class="app-surface-label">Rooms · 2 Sept</p></div>
@@ -702,6 +713,9 @@ for (const chip of document.querySelectorAll('.app-chip')) {
 const dialog = document.querySelector('[data-dialog]');
 document.querySelector('[data-dialog-open]')?.addEventListener('click', () => dialog?.showModal());
 document.querySelector('[data-dialog-close]')?.addEventListener('click', () => dialog?.close());
+
+// Tracks draw themselves in after first paint, the same way a page does it.
+requestAnimationFrame(() => requestAnimationFrame(() => { document.querySelector('.app-page').dataset.trackReady = 'true'; }));
 
 // Sheet — same native <dialog>, bottom-anchored geometry.
 const sheet = document.querySelector('[data-sheet]');

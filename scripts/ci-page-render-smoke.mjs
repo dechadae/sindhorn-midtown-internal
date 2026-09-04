@@ -51,6 +51,7 @@ const EXPECT = [
   ['.app-sheet', OVERLAY], ['.app-toast', OVERLAY],
   ['.app-list-row', BARE], ['.app-metric', BARE], ['.app-figure', BARE],
   ['.app-card-section', BARE], ['.app-section-subhead', BARE],
+  ['.app-track', BARE],
   ['.app-check-box', BARE],
   // Scoped to the Badge section itself: the List section also uses a quiet
   // badge, nested inside .app-card, where it correctly renders with no blur.
@@ -66,7 +67,9 @@ const EXPECT = [
 // actually computed, not what a comment claims app-components.css declares.
 // getComputedStyle normalizes ms to s.
 const FAST = '0.16s', SETTLE = '0.28s', EASE = 'cubic-bezier(0.22, 1, 0.36, 1)', LINEAR = 'ease';
+const REVEAL = '0.92s';
 const MOTION = [
+  ['.app-track-bar', REVEAL, EASE],
   ['.app-primary', `${FAST}, ${SETTLE}, ${SETTLE}`, `${EASE}, ${LINEAR}, ${LINEAR}`],
   ['.app-chip', `${SETTLE}, ${SETTLE}, ${FAST}`, `${LINEAR}, ${LINEAR}, ${EASE}`],
   ['.app-back-control', `${FAST}, ${SETTLE}`, `${EASE}, ${LINEAR}`],
@@ -118,6 +121,7 @@ const report = await page.evaluate(([expect, motionSelectors]) => {
   // meta and note in the library must sit at or above this floor.
   const smallText = ['.app-metric-label','.app-metric-delta','.app-metric-note','.app-list-row-meta','.app-list-row-end','.app-surface-label','.app-section-kicker','.app-disclosure-kicker','.app-disclosure-copy','.app-note']
     .map(selector => { const node = document.querySelector(selector); return { selector, size: node ? parseFloat(getComputedStyle(node).fontSize) : null }; });
+  const trackDrawn = (() => { const bar = document.querySelector('.app-track-bar'); if (!bar) return null; const m = new DOMMatrix(getComputedStyle(bar).transform); return { ready: document.querySelector('.app-page').dataset.trackReady === 'true', scaleX: m.a }; })();
   const sectionDivider = (() => { const node = document.querySelector('.app-card-section+.app-card-section'); if (!node) return null; const style = getComputedStyle(node); return { border: `${style.borderTopWidth} ${style.borderTopStyle}`, color: style.borderTopColor }; })();
   const skeleton = document.querySelector('.app-skeleton-line');
   const skeletonStyle = skeleton && getComputedStyle(skeleton);
@@ -127,7 +131,7 @@ const report = await page.evaluate(([expect, motionSelectors]) => {
     specimens: document.querySelectorAll('.ci-specimen').length,
     measured: expect.map(([selector]) => read(selector)),
     motion: motionSelectors.map(([selector]) => readMotion(selector)),
-    smallText, sectionDivider,
+    smallText, sectionDivider, trackDrawn,
     skeletonAnimation: skeletonStyle ? { name: skeletonStyle.animationName, duration: skeletonStyle.animationDuration, timing: skeletonStyle.animationTimingFunction, iteration: skeletonStyle.animationIterationCount } : null,
     // A frame around a specimen would make it glass inside glass.
     specimenPainted: getComputedStyle(document.querySelector('.ci-specimen')).backgroundColor,
@@ -162,6 +166,8 @@ for (const { selector, size } of report.smallText) {
   if (size === null) failures.push(`${selector}: not present on the page for the type-floor check`);
   else if (size < 11) failures.push(`${selector}: font-size ${size}px is below the 11px floor for secondary text`);
 }
+if (!report.trackDrawn) failures.push('.app-track-bar: not present on the page');
+else if (!report.trackDrawn.ready || report.trackDrawn.scaleX < 0.99) failures.push(`.app-track-bar: not drawn in after ready (ready=${report.trackDrawn.ready}, scaleX=${report.trackDrawn.scaleX})`);
 if (!report.sectionDivider) failures.push('.app-card-section+.app-card-section: not present on the page');
 else if (report.sectionDivider.border !== '1px solid' || norm(report.sectionDivider.color) !== 'rgba(250, 247, 245, 0.09)') failures.push(`.app-card-section: divider ${report.sectionDivider.border} ${report.sectionDivider.color}, expected 1px solid --app-line`);
 if (report.sections < 20) failures.push(`only ${report.sections} sections rendered`);
