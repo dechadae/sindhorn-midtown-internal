@@ -52,7 +52,16 @@ try{
   const shown=await page.evaluate(()=>[...document.querySelectorAll('#routeView .app-metric-value')].map(n=>n.textContent.trim()));
   if(!shown.includes(employee))failures.push('Settings › Me does not show the signed-in Employee ID');
 
+  // Sign out sits in the Me hero head and asks first: the confirm must open,
+  // Cancel must keep the session, and Sign out must end it.
   await page.click('[data-settings-signout]');
+  await page.waitForSelector('dialog[data-confirm][open]',{timeout:10000});
+  await page.click('dialog[data-confirm] [data-dialog-cancel]');
+  await page.waitForFunction(()=>!document.querySelector('dialog[data-confirm]'),null,{timeout:10000});
+  if((await shell()).title!=='Me')failures.push('cancelling the sign-out confirm should keep Me open');
+  await page.click('[data-settings-signout]');
+  await page.waitForSelector('dialog[data-confirm][open]',{timeout:10000});
+  await page.click('dialog[data-confirm] [data-dialog-confirm]');
   await page.waitForSelector('[data-signin-form]',{timeout:30000});
   const after=await shell();
   if(!after.locked||!after.chipHidden)failures.push(`after sign-out: navbar locked=${after.locked} chip hidden=${after.chipHidden}`);
