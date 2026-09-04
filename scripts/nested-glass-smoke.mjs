@@ -21,7 +21,7 @@ const ROUTES=[['/', '.business-dashboard-route'],['/fnb','.fnb-route'],['/settin
               ['/next.html#signin','[data-signin-form]'],
               ['/next','.app-page'],['/next.html#fnb','.app-action-card'],['/next.html#fnb/negroni-week','.app-rail'],
               ['/next.html#brand','.app-action-card'],['/next.html#brand/history','#periods'],['/next.html#brand/factsheet','.app-rail'],
-              ['/next.html#messages','.app-state'],['/next.html#settings/me','.app-metric'],['/next.html#settings/admin','.app-search'],['/next.html#settings/system','.app-metric']];
+              ['/next.html#messages','.app-state'],['/next.html#settings/me','.app-metric'],['/next.html#settings/admin','.app-search'],['/next.html#settings/broadcast','.app-utility-action'],['/next.html#settings/system','.app-metric']];
 
 /* The shell gates every route behind sign-in. The sign-in route is scanned
    signed out; every /next route after it is scanned with a stand-in session
@@ -33,7 +33,7 @@ const fakeJwt=()=>{const b64=o=>Buffer.from(JSON.stringify(o)).toString('base64u
 const seedSession=token=>{localStorage.setItem('sindhorn-midtown-auth-session-v1',JSON.stringify({access_token:token,refresh_token:'smoke',expires_at:Math.floor(Date.now()/1000)+86400,token_type:'bearer',user:null}))};
 const authProfile={id:'00000000-0000-0000-0000-000000000001',employee_number:'10639',display_name:'CI Developer',role:'super_admin',work_email:null,pin_configured_at:new Date().toISOString(),active:true};
 
-const manifest={ok:true,version:2,profile:{id:'00000000-0000-0000-0000-000000000001',employeeNumber:'10639',displayName:'CI Developer',role:'super_admin',accountType:'developer',preferredLanguage:'en',active:true,pinConfigured:true},capabilities:['account.read','settings.read','fnb.read','people.read','people.manage','system.manage','developer.ui_library'],sections:[{key:'account',label:'Account',navLabel:'Account',renderer:'account',sortOrder:10,config:{}}]};
+const manifest={ok:true,version:2,profile:{id:'00000000-0000-0000-0000-000000000001',employeeNumber:'10639',displayName:'CI Developer',role:'super_admin',accountType:'developer',preferredLanguage:'en',active:true,pinConfigured:true},capabilities:['account.read','settings.read','fnb.read','people.read','people.manage','system.manage','developer.ui_library','broadcasts.manage'],sections:[{key:'account',label:'Account',navLabel:'Account',renderer:'account',sortOrder:10,config:{}}]};
 const authShim=`window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'CI Developer',pin_configured_at:new Date().toISOString()};
 await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='/location.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});
 await import('/bootstrap.js?v=4');`;

@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=8">
 <link rel="stylesheet" href="/app-glass.css?v=9">
-<link rel="stylesheet" href="/app-components.css?v=26">
+<link rel="stylesheet" href="/app-components.css?v=27">
 <link rel="stylesheet" href="/app-shell.css?v=2">
 <link rel="stylesheet" href="/ci-library.css?v=10">
 </head>
@@ -299,6 +299,14 @@
         </div>
       </div>
       <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-field textarea · datetime-local</span><span>a paragraph · a moment</span></div>
+        <div class="ci-field-stack">
+          <div class="app-field"><label for="ci-body">Message <span>English</span></label><textarea id="ci-body" rows="4">The lobby lifts are being serviced on Tuesday 9 September from 09:00 to 11:00. Please use the service lifts for guest luggage during that window.</textarea></div>
+          <div class="app-field"><label for="ci-when">Publish at <span>optional · leave empty to publish now</span></label><input id="ci-when" type="datetime-local" value="2026-09-09T08:30"></div>
+        </div>
+        <p class="app-note">A paragraph takes the same well as a line, tall enough to read what was written; the employee may grow it. A moment is typed into the well too — the browser's own picker opens from it, but the field keeps its edge and height. Times are the hotel's (Asia/Bangkok).</p>
+      </div>
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-field &gt; .app-code</span><span>six wells · type, paste or autofill</span></div>
         <div class="ci-field-stack">
           <div class="app-field">
@@ -356,6 +364,27 @@
           <button class="app-chip app-control" type="button">Metadata</button>
         </div>
         <p class="app-note">A chip is a filter or a piece of metadata, never decoration applied to a short label.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-field &gt; .app-chip-group</span><span>one of a few · several</span></div>
+        <div class="ci-field-stack">
+          <div class="app-field" role="group" aria-labelledby="ci-aud-label"><label id="ci-aud-label">Audience</label>
+            <div class="app-chip-group" data-chip-group="one">
+              <button class="app-chip app-control" type="button" aria-pressed="true">Everyone</button>
+              <button class="app-chip app-control" type="button" aria-pressed="false">Departments</button>
+              <button class="app-chip app-control" type="button" aria-pressed="false">Roles</button>
+            </div>
+          </div>
+          <div class="app-field" role="group" aria-labelledby="ci-dep-label"><label id="ci-dep-label">Departments <span>choose any</span></label>
+            <div class="app-chip-group" data-chip-group="many">
+              <button class="app-chip app-control" type="button" aria-pressed="true">Front Office</button>
+              <button class="app-chip app-control" type="button" aria-pressed="true">Housekeeping</button>
+              <button class="app-chip app-control" type="button" aria-pressed="false">Marketing Communications</button>
+              <button class="app-chip app-control" type="button" aria-pressed="false">Engineering</button>
+            </div>
+          </div>
+        </div>
+        <p class="app-note">When the answer is one of a few, or several from a short list, chips answer a field. The chip carries <code>aria-pressed</code>; a one-of group releases the others, a many-of group does not. Longer lists take the selector or a check list instead.</p>
       </div>
     </div>
   </section>
@@ -583,6 +612,26 @@
         </div>
         <p class="app-note">The avatar is a small inset well with the employee's initials; it shares the badge's blur-only membership and, inside a card, drops it like everything else nested. The lead groups avatar and text so the row's end stays at the edge.</p>
       </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-list-row-copy</span><span>an inbox row · two lines, then the dialog</span></div>
+        <div class="app-card app-surface">
+          <div class="app-list">
+            <button class="app-list-row" type="button">
+              <span class="app-list-row-main"><span class="app-list-row-title">Lobby lifts serviced Tuesday morning</span><span class="app-list-row-meta">Operations · 5 Sep 2026, 08:30</span><span class="app-list-row-copy">The lobby lifts are being serviced on Tuesday 9 September from 09:00 to 11:00. Please use the service lifts for guest luggage during that window.</span></span>
+              <span class="app-list-row-end"><span class="app-badge" data-tone="quiet">Pinned</span><span class="app-badge">New</span></span>
+            </button>
+            <button class="app-list-row" type="button">
+              <span class="app-list-row-main"><span class="app-list-row-title">Fire drill on 12 September</span><span class="app-list-row-meta">Safety · 4 Sep 2026, 16:10</span><span class="app-list-row-copy">All departments take part. Wardens meet at the Sindhorn Wellness deck at 14:45.</span></span>
+              <span class="app-list-row-end"></span>
+            </button>
+            <div class="app-list-row">
+              <span class="app-list-row-main"><span class="app-list-row-title">Staff canteen menu changes</span><span class="app-list-row-meta">Draft · Everyone · Housekeeping</span></span>
+              <span class="app-list-row-end"><span class="app-badge" data-tone="danger">Revoked</span></span>
+            </div>
+          </div>
+        </div>
+        <p class="app-note">A message row shows title, category and time, then the first two lines of its text; the whole message opens in the dialog. Pinned stays a quiet badge and unread keeps the accent badge, so the row's end reads the same as everywhere else.</p>
+      </div>
     </div>
   </section>
 
@@ -617,11 +666,13 @@
     <p class="app-section-lede">A badge marks a count or a status. Pair it with text a screen reader can read — never rely on the badge alone.</p>
     <div class="ci-stack">
       <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-badge</span><span>default · quiet</span></div>
+        <div class="ci-specimen-label"><span>.app-badge</span><span>default · quiet · danger</span></div>
         <div class="app-row">
           <span class="app-badge">3</span>
           <span class="app-badge" data-tone="quiet">New</span>
+          <span class="app-badge" data-tone="danger">Urgent</span>
         </div>
+        <p class="app-note">Three tones only: the accent for a count or something new, quiet for a plain status, danger for what was revoked or is urgent. The tone is the status's ink, so the text beside it must say the same thing.</p>
       </div>
     </div>
   </section>

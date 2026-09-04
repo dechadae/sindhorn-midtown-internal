@@ -122,6 +122,15 @@ export function bindLibrary(root, { page = root } = {}) {
     }, { signal });
   });
 
+  // Chip group - a field answered by chips. A one-of group releases the
+  // others when a chip is pressed; a many-of group toggles each on its own.
+  root.querySelectorAll('[data-chip-group]').forEach(group => on(group, 'click', event => {
+    const chip = event.target.closest('.app-chip'); if (!chip) return;
+    const pressed = chip.getAttribute('aria-pressed') === 'true';
+    if (group.dataset.chipGroup === 'one') { if (pressed) return; group.querySelectorAll('.app-chip').forEach(c => c.setAttribute('aria-pressed', String(c === chip))); }
+    else chip.setAttribute('aria-pressed', String(!pressed));
+  }));
+
   // Search - the clear control exists only while there is text to clear (CSS);
   // tapping it empties the well and returns focus to it.
   for (const clear of root.querySelectorAll('[data-search-clear]')) on(clear, 'click', () => {

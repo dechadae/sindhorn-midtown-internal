@@ -104,8 +104,11 @@ async function renderMessages(){
   }
 }
 
-async function updateBadge(){
+/* The count on the navbar. The legacy app passes nothing; the shell adds the
+   unread broadcasts it knows from the server (broadcast-inbox.js). */
+async function updateBadge(extra=0){
   let count=0;try{count=await unreadCount()}catch(_){}
+  count+=Math.max(0,Number(extra)||0);
   document.querySelectorAll('[data-message-badge]').forEach(node=>{
     node.hidden=count<1;
     node.textContent=count>99?'99+':String(count);

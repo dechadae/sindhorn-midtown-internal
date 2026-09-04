@@ -1,6 +1,7 @@
 /* Signs into the deployed shell with the CI test account and checks the
    shell does what sign-in promises: the navbar unlocks, Today loads its
-   real data, Settings › Me shows the account, sign out relocks. Runs after
+   real data, Messages reads the employee's broadcast inbox from the live
+   RPC, Settings › Me shows the account, sign out relocks. Runs after
    deploy against the live URL; the credentials come only from the
    CI_SMOKE_EMPLOYEE_NUMBER / CI_SMOKE_PIN secrets and are never printed.
 
@@ -43,6 +44,21 @@ try{
   if(today.chipHidden)failures.push('after sign-in: account chip still hidden');
   if(await page.locator('.app-state[data-tone="error"]').count())failures.push('Today rendered its error state for a signed-in employee');
 
+  // Messages calls sindhorn_broadcast_inbox_v1 as this employee. The page
+  // keeps its skeleton until the server answers, then shows the list or the
+  // honest empty state; an error-tone state means the RPC failed or is
+  // missing on the live project. Nothing is written - opening a broadcast
+  // is the only receipt, and the test account is sent none.
+  await page.click('[data-route="messages"]');
+  await page.waitForFunction(()=>document.querySelector('.app-hero-title')?.textContent.trim()==='Inbox'&&!document.querySelector('#routeView .app-skeleton'),null,{timeout:30000});
+  const inbox=await page.evaluate(()=>({
+    rows:document.querySelectorAll('#routeView [data-broadcast-open]').length,
+    state:document.querySelector('#routeView .app-state')?.dataset.tone||'',
+    note:document.querySelector('#routeView .app-utility-note')?.textContent||''
+  }));
+  if(inbox.state==='error'||/offline|saved on this phone/i.test(inbox.note))failures.push(`Messages could not read the live broadcast inbox (state=${inbox.state||'list'} note=${inbox.note||'-'})`);
+  if(!inbox.rows&&inbox.state!=='empty')failures.push(`Messages rendered neither broadcasts nor the empty state (state=${inbox.state||'-'})`);
+
   await page.click('.app-masthead-account');
   // Today's own metric cards stay in the DOM until Settings mounts, so wait
   // for Me itself: its hero title plus the sign-out row that renders with the facts.
@@ -73,4 +89,4 @@ if(failures.length){
   for(const f of failures)console.error(`  - ${f}`);
   process.exit(1);
 }
-console.log(JSON.stringify({ok:true,baseUrl:BASE_URL,checks:['locked-out','sign-in','today-data','settings-me','sign-out']}));
+console.log(JSON.stringify({ok:true,baseUrl:BASE_URL,checks:['locked-out','sign-in','today-data','messages-inbox','settings-me','sign-out']}));

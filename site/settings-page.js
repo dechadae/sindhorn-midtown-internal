@@ -3,10 +3,10 @@
    account chip is open. Every tab is visible to every employee; what a tab
    holds depends on the capabilities the settings manifest grants, and a
    tab the account cannot use says so in an ordinary state card rather than
-   disappearing. The frame fills System itself; Me and Admin are modules it
-   loads only when their tab opens (settings-me.js, settings-admin.js), so
-   the shell pays for neither until an employee asks. Broadcast arrives with
-   its own data work. */
+   disappearing. The frame fills System itself; Me, Admin and Broadcast are
+   modules it loads only when their tab opens (settings-me.js,
+   settings-admin.js, settings-broadcast.js), so the shell pays for none of
+   them until an employee asks. */
 import { signOut } from './auth-client.js';
 import { loadSettingsAuthority, hasCapability } from './capabilities.js';
 import { confirmDialog } from './app-dialog.js';
@@ -78,22 +78,21 @@ export async function mountSettings(host) {
     if (!alive || tab !== tabOf()) return;
     const spec = TABS[tab];
     if (!hasCapability(spec.capability, manifest)) { paint(state(spec.gate, spec.gateTitle, spec.gateCopy, 'empty', ` data-gate="${esc(spec.capability)}"`)); return; }
-    if (tab === 'me' || tab === 'admin') { await mountTab(tab, manifest); return; }
-    if (tab === 'broadcast') paint(state('Coming next', 'Broadcast messages', 'Compose and publish messages to every employee or a department - this tab arrives with its data work.'));
-    else paint(systemMarkup(manifest, await appVersion()));
+    if (tab === 'me' || tab === 'admin' || tab === 'broadcast') { await mountTab(tab, manifest); return; }
+    paint(systemMarkup(manifest, await appVersion()));
   }
 
   /* The module gets the empty stack, the manifest already loaded, and a
      signal that ends with the tab. */
   async function mountTab(which, manifest) {
     let module;
-    try { module = which === 'me' ? await import('./settings-me.js') : await import('./settings-admin.js'); }
+    try { module = which === 'me' ? await import('./settings-me.js') : which === 'admin' ? await import('./settings-admin.js') : await import('./settings-broadcast.js'); }
     catch (_) { paint(state('Error', 'This tab could not be loaded.', 'Check the connection and try again.', 'error') + `<div class="app-utility-row"><button class="app-utility-action" type="button" data-settings-retry>Try again</button></div>`); return; }
     if (!alive || which !== tabOf()) return;
     paint('');
     tabController = new AbortController();
     const stack = host.querySelector('.app-stack');
-    tabDispose = await (which === 'me' ? module.mountMe : module.mountAdmin)(stack, { manifest, signal: tabController.signal });
+    tabDispose = await (which === 'me' ? module.mountMe : which === 'admin' ? module.mountAdmin : module.mountBroadcast)(stack, { manifest, signal: tabController.signal });
   }
 
   host.addEventListener('click', event => {

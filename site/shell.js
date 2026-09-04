@@ -10,6 +10,7 @@
    line the legacy app draws. Data pages never see a signed-out host. */
 import { initAuth, getState } from './auth-client.js';
 import { updateBadge } from './notification-inbox.js';
+import { loadInbox, serverUnread } from './broadcast-inbox.js';
 
 /* The full WebGL runtime directly. betta-runtime.js is a bootstrap that paints
    a still frame and waits for a startup signal the old app shell emits; a page
@@ -133,17 +134,22 @@ account.addEventListener('click', () => {
   location.hash = '#settings/me';
 });
 
-/* Unread messages on the navbar: on launch, when the service worker stores a
-   push while the app is open, and whenever the app returns to the front. */
-const badge = () => updateBadge().catch(() => {});
+/* Unread messages on the navbar: device alerts from IndexedDB plus the
+   broadcasts the server last listed. Counted on launch, when the service
+   worker stores a push while the app is open, whenever the app returns to
+   the front (the inbox is refreshed then, at most once a minute), and when
+   the Messages page changes something. */
+const badge = () => updateBadge(serverUnread()).catch(() => {});
+const refreshInbox = () => loadInbox({ force: false }).finally(badge);
 navigator.serviceWorker?.addEventListener?.('message', event => { if (event.data?.type === 'SINDHORN_NOTIFICATION_STORED') badge(); });
-addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') badge(); });
+addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshInbox(); });
 document.addEventListener('sindhorn:messages-changed', badge);
 
 /* Signing in or out re-runs the gate. auth-client dispatches on document. */
 document.addEventListener('sindhorn:auth-changed', event => {
   if (event.detail?.reason === 'signed_out' && location.hash) history.replaceState(null, '', location.pathname + location.search);
   if (viewOf(resolve()) !== current) route(); else paintNavbar(resolve());
+  if (event.detail?.authenticated) refreshInbox(); else badge();
 });
 addEventListener('hashchange', route);
 
@@ -152,4 +158,4 @@ addEventListener('hashchange', route);
 host.innerHTML = `<header class="app-hero"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line" data-width="medium"></div></div></header>
 <section class="app-section"><div class="app-stack"><div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-block"></div></div></div></div></section>`;
 paintNavbar('signin');
-initAuth().finally(() => { route(); badge(); });
+initAuth().finally(() => { route(); refreshInbox(); });
