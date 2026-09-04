@@ -113,7 +113,7 @@ jobs:
 
           # Performance audit: no full Three.js or capture library in startup/install.
           assert "sindhorn-midtown-internal-pwa-v41-performance-r1" in sw
-          assert "'/betta-runtime.js'" in sw
+          assert "'/betta-runtime-full.js'" in sw and "'/betta-runtime.js'" not in sw  # r17: the shell imports the full runtime
           assert "'/vendor/three.module.js'" not in sw
           assert "'/vendor/html2canvas.min.js'" not in sw
           assert '/vendor/html2canvas.min.js' not in index
@@ -159,16 +159,21 @@ jobs:
             SAFE_BRANCH="${GITHUB_REF_NAME:0:28}"
             SAFE_BRANCH="${SAFE_BRANCH%-}"
             export PHASE82_BASE_URL="https://${SAFE_BRANCH}.sindhorn-midtown-internal.pages.dev"
-            ready=false
-            for attempt in $(seq 1 40); do
-              if curl --fail --silent --show-error --location "${PHASE82_BASE_URL}/sw.js" -o /tmp/preview-sw.js \
-                && grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/preview-sw.js; then
-                  ready=true; break
-              fi
-              sleep 3
-            done
-            test "$ready" = true
           fi
+          # Deploy runs in parallel with this workflow; the browser review must
+          # see the generation this checkout describes, never the one before it.
+          expected_version=$(grep -o "const VERSION='[^']*'" site/sw.js | head -1)
+          test -n "$expected_version"
+          ready=false
+          for attempt in $(seq 1 80); do
+            if curl --fail --silent --show-error --location "${PHASE82_BASE_URL}/sw.js" -o /tmp/preview-sw.js \
+              && grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/preview-sw.js \
+              && grep -qF "$expected_version" /tmp/preview-sw.js; then
+                ready=true; break
+            fi
+            sleep 10
+          done
+          test "$ready" = true
           node site/phase8-2-browser-smoke.mjs
 
       - name: Verify production shell and Environmental Alerts Worker
@@ -194,9 +199,12 @@ jobs:
             done
           }
 
+          expected_version=$(grep -o "const VERSION='[^']*'" site/sw.js | head -1)
+          test -n "$expected_version"
           promoted=false
           for attempt in $(seq 1 40); do
             if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
+              && grep -q 'src="/shell.js"' /tmp/root.html \
               && curl --fail --silent --show-error --location "${BASE_URL}/bootstrap.js" -o /tmp/bootstrap.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/betta-environment.js" -o /tmp/betta.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/location.js" -o /tmp/location.js \
@@ -208,6 +216,7 @@ jobs:
               && grep -q 'sindhorn-weather-core' /tmp/location.js \
               && grep -q 'sindhorn-weather-core' /tmp/rain-now.js \
               && grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/sw.js \
+              && grep -qF "$expected_version" /tmp/sw.js \
               && ! grep -q "'/vendor/three.module.js'" /tmp/sw.js \
               && ! grep -q "'/vendor/html2canvas.min.js'" /tmp/sw.js \
               && ! grep -q '/vendor/html2canvas.min.js' /tmp/root.html \

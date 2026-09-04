@@ -1,32 +1,23 @@
-# Legacy document aliases -> canonical SPA routes.
-/account.html /account 301
-/admin.html /admin 301
+# r17 shell cutover. / is the app; the hash names the page (#fnb, #messages,
+# #brand, #settings/me ...). Every address the legacy shell ever handed out
+# lands on its hash route so old bookmarks, push routes and shared links keep
+# working. Browsers carry a request fragment over a 301 whose Location has
+# none, which is how /next#signin?i=..&c=.. and /login.html#i=..&c=.. arrive
+# intact for shell.js to translate.
+/next / 301
+/next.html / 301
+/login.html / 301
+/login / 301
 /guidance / 301
 /details / 301
-
-# Public read-only F&B sharing is provided by physical HTML files using
-# Cloudflare Pages clean URLs:
-#   /share/fnb.html -> /share/fnb
-#   /share/fnb/<slug>.html -> /share/fnb/<slug>
-# No rewrite is used, so the initial HTTP response is the crawler-ready HTML.
-
-# /ci is deliberately absent: the UI Library is a standalone page (site/ci.html)
-# served by Cloudflare Pages clean URLs. It depends on the library and nothing
-# else, so a route rebuild cannot break the reference the rebuild is based on.
-#
-# SPA fallback, one line per authenticated route or compatibility alias.
-#
-# The target MUST be "/" and not "/index.html": Cloudflare Pages canonicalises
-# /index.html to / with a 308, so a rewrite pointing at /index.html stops being
-# a rewrite and becomes a real redirect. The SPA then loses the requested path
-# before its JavaScript runs.
-#
-# These MUST stay explicit. A catch-all ("/* / 200") shadows static assets.
-/fnb / 200
-/brand / 200
-/ihg-history / 200
-/hotel-factsheet / 200
-/messages / 200
-/settings / 200
-/account / 200
-/admin / 200
+/fnb/:slug /#fnb/:slug 301
+/fnb /#fnb 301
+/brand /#brand 301
+/hotel-factsheet /#brand/factsheet 301
+/ihg-history /#brand/history 301
+/messages /#messages 301
+/settings /#settings/me 301
+/account /#settings/me 301
+/account.html /#settings/me 301
+/admin /#settings/admin 301
+/admin.html /#settings/admin 301

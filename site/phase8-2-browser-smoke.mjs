@@ -45,23 +45,21 @@ async function sampleFrames(page,label,count=30,timeoutMs=15000){
   return{frameAverageMs:+avg.toFixed(2),frameP95Ms:+p95.toFixed(2),frameSamples:samples.length,timedOut:result.timedOut,label};
 }
 
+/* The shell (r17) mounts sign-in at / until the CI service employee has a
+   session; the navbar unlocking is the signal the app is in. The employee
+   number is typed, the six-digit code is typed on the keyboard so the code
+   field's own handler submits, exactly as a person does it. */
 async function signIn(page,name){
-  await page.goto(`${base}/login.html`,{waitUntil:'domcontentloaded',timeout:45000});
-  await page.waitForFunction(()=>Boolean(window.SindhornEmployeeAuth?.getState),null,{timeout:20000});
-  await page.fill('#employeeNumber',smokeEmployeeNumber);
-  for(let i=0;i<6;i++)await page.fill(`[data-pin-login-digit="${i}"]`,smokePin[i]);
-  /* CI_SMOKE_EMPLOYEE_NUMBER is a non-production synthetic identifier and may
-     intentionally not match the human-facing numeric Employee ID HTML pattern.
-     Dispatch the form submit event directly so this smoke exercises the same
-     login.js controller + Supabase RPC without weakening employee form rules. */
-  await page.evaluate(()=>document.querySelector('#employeeForm')?.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
+  await page.goto(`${base}/`,{waitUntil:'domcontentloaded',timeout:45000});
+  await page.waitForSelector('[data-signin-form]',{timeout:30000});
+  await page.fill('#signin-employee',smokeEmployeeNumber);
+  await page.click('#signin-code');
+  await page.keyboard.type(smokePin);
   try{
-    await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:45000,waitUntil:'commit'});
+    await page.waitForSelector('.app-navbar:not([data-locked])',{timeout:45000});
   }catch(error){
-    const status=(await page.locator('#status').textContent().catch(()=>''))?.trim()||'';
-    const tone=await page.locator('#status').getAttribute('data-tone').catch(()=>null);
-    const signed=await page.locator('#signedCard').getAttribute('data-show').catch(()=>null);
-    throw new Error(`${name}: CI service-employee sign-in did not reach the app${status?` · ${tone||'status'}: ${status}`:''}${signed==='true'?' · signed card was visible before redirect':''}`);
+    const status=(await page.locator('[data-signin-error] .app-field-note').textContent().catch(()=>''))?.trim()||'';
+    throw new Error(`${name}: CI service-employee sign-in did not reach the app${status?` · ${status}`:''}`);
   }
 }
 
@@ -121,7 +119,7 @@ async function resourcePerformance(page){
       sameOriginTransferBytes:total('transferSize'),
       sameOriginEncodedBytes:total('encodedBodySize'),
       sameOriginDecodedBytes:total('decodedBodySize'),
-      bettaRuntime:findPath('/betta-runtime.js'),
+      bettaRuntime:findPath('/betta-runtime-full.js'),
       html2canvasLoaded:Boolean(findPath('/vendor/html2canvas.min.js')),
       threeModuleLoaded:Boolean(findPath('/vendor/three.module.js')),
       largestSameOrigin:[...sameOrigin].sort((a,b)=>b.decodedBodySize-a.decodedBodySize).slice(0,8)
@@ -174,11 +172,9 @@ async function inspectLive(viewport,name){
   await page.waitForFunction(()=>window.SindhornEnvironment?.getState?.().renderer==='sindhorn-betta-satellite-v1',null,{timeout:30000});
   await page.waitForFunction(()=>window.SindhornEnvironment?.getState?.().betta?.satelliteStatus==='live',null,{timeout:60000});
   /* This is a Betta lifecycle/rendering smoke, not an external AirBKK SLA test.
-     Live-data initialization is still recorded below, but a transient upstream
-     air outage must not make current WebGL acceptance fail. Air service health
-     has its own operational checks and Today already supports cached/unavailable
-     delivery states by design. */
-  await page.waitForFunction(()=>Boolean(window.SindhornLiveData?.getState?.()),null,{timeout:20000});
+     The r17 shell reads air data inside Today's own page module and exposes
+     no window.SindhornLiveData; its state is recorded below only when a
+     legacy exposure exists, and never fails WebGL acceptance. */
   await page.waitForTimeout(800);
   const performanceData=await resourcePerformance(page);
   console.log(`SINDHORN_PERFORMANCE ${name} ${JSON.stringify(performanceData)}`);

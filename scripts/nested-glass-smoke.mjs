@@ -16,15 +16,14 @@
 import {chromium} from 'playwright';
 
 const BASE_URL=(process.env.BASE_URL||'http://127.0.0.1:8788').replace(/\/$/,'');
-const ROUTES=[['/', '.business-dashboard-route'],['/fnb','.fnb-route'],['/settings','.settings-route'],
-              ['/brand','.brand-route'],['/hotel-factsheet','.factsheet-route'],['/ci','.app-page'],
-              ['/next.html#signin','[data-signin-form]'],
-              ['/next','.app-page'],['/next.html#fnb','.app-action-card'],['/next.html#fnb/negroni-week','.app-rail'],
-              ['/next.html#brand','.app-action-card'],['/next.html#brand/history','#periods'],['/next.html#brand/factsheet','.app-rail'],
-              ['/next.html#messages','.app-state'],['/next.html#settings/me','.app-metric'],['/next.html#settings/admin','.app-search'],['/next.html#settings/broadcast','.app-utility-action'],['/next.html#settings/system','.app-metric']];
+const ROUTES=[['/#signin','[data-signin-form]'],
+              ['/','.app-page'],['/#fnb','.app-action-card'],['/#fnb/negroni-week','.app-rail'],
+              ['/#brand','.app-action-card'],['/#brand/history','#periods'],['/#brand/factsheet','.app-rail'],
+              ['/#messages','.app-state'],['/#settings/me','.app-metric'],['/#settings/admin','.app-search'],['/#settings/broadcast','.app-utility-action'],['/#settings/system','.app-metric'],
+              ['/ci','.app-page']];
 
 /* The shell gates every route behind sign-in. The sign-in route is scanned
-   signed out; every /next route after it is scanned with a stand-in session
+   signed out; every route after it is scanned with a stand-in session
    seeded into localStorage (a syntactically valid token that never reaches
    the database - the profile RPC is answered here) so the real pages mount.
    No credential is involved: the F&B read model is answered by forwarding
@@ -34,9 +33,6 @@ const seedSession=token=>{localStorage.setItem('sindhorn-midtown-auth-session-v1
 const authProfile={id:'00000000-0000-0000-0000-000000000001',employee_number:'10639',display_name:'CI Developer',role:'super_admin',work_email:null,pin_configured_at:new Date().toISOString(),active:true};
 
 const manifest={ok:true,version:2,profile:{id:'00000000-0000-0000-0000-000000000001',employeeNumber:'10639',displayName:'CI Developer',role:'super_admin',accountType:'developer',preferredLanguage:'en',active:true,pinConfigured:true},capabilities:['account.read','settings.read','fnb.read','people.read','people.manage','system.manage','developer.ui_library','broadcasts.manage'],sections:[{key:'account',label:'Account',navLabel:'Account',renderer:'account',sortOrder:10,config:{}}]};
-const authShim=`window.__SINDHORN_AUTH_PROFILE__={employee_number:'10639',display_name:'CI Developer',pin_configured_at:new Date().toISOString()};
-await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='/location.js';s.onload=resolve;s.onerror=reject;document.head.appendChild(s)});
-await import('/bootstrap.js?v=4');`;
 
 /* Bundled chromium on CI; the system channel locally, where the bundled
    browsers can be missing. */
@@ -66,7 +62,6 @@ const scan=()=>{
 const browser=await launch();
 const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'});
 const page=await context.newPage();
-await page.route('**/auth-shell.js*',route=>route.fulfill({status:200,contentType:'text/javascript',body:authShim}));
 await page.route('**/rest/v1/rpc/sindhorn_settings_manifest',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(manifest)}));
 await page.route('**/rest/v1/rpc/sindhorn_current_employee_profile',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(authProfile)}));
 await page.route('**/rest/v1/rpc/sindhorn_fnb_read_model',async route=>{
@@ -78,7 +73,9 @@ await page.route('**/rest/v1/rpc/sindhorn_fnb_read_model',async route=>{
 const violations=[];
 let signedIn=false;
 for(const [path,selector] of ROUTES){
-  if(path.startsWith('/next')&&path!=='/next.html#signin'&&!signedIn){await page.evaluate(seedSession,fakeJwt());signedIn=true}
+  /* Seeding the session needs one full load; every later route is a hash
+     change the shell's own router answers, as it does on the phone. */
+  if(path!=='/#signin'&&!signedIn){await page.evaluate(seedSession,fakeJwt());await page.goto('about:blank');signedIn=true}
   await page.goto(`${BASE_URL}${path}`,{waitUntil:'domcontentloaded',timeout:45000});
   await page.waitForSelector(selector,{timeout:30000}).catch(()=>{});
   await page.waitForTimeout(3000);

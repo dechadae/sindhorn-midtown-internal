@@ -6,7 +6,7 @@
    re-routes on its own when the session lands, so this page never
    navigates - it only finishes.
 
-   An invitation link is /next#signin?i=<employee>&c=<code>: the fields
+   An invitation link is /#signin?i=<employee>&c=<code>: the fields
    pre-fill, the one-time step opens, and the hash is scrubbed so the code
    is not left in the address bar or history. */
 import { getState, signInWithPin, activate, setPermanentPin } from './auth-client.js';

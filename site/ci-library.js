@@ -1,5 +1,5 @@
 /* The UI Library's behaviour, shared by the standalone page (/ci) and the
-   shell route (/next#ci). One binding for one markup contract, so the two
+   shell route (/#ci). One binding for one markup contract, so the two
    cannot drift apart: components that ship behaviour in the app (the
    selector, disclosure, clamp) are demonstrated with exactly the markup the
    pages use. bindLibrary(root) wires every specimen under root and returns a
@@ -39,7 +39,7 @@ export function bindLibrary(root, { page = root } = {}) {
   bindCode(root, { signal });
 
   // Shell demo - the account chip switches the navbar between its two sets,
-  // exactly as the router does on /next.
+  // exactly as the router does on /.
   for (const frame of root.querySelectorAll('[data-shell-demo]')) {
     const account = frame.querySelector('.app-masthead-account'), navbar = frame.querySelector('.app-navbar');
     if (!account || !navbar) continue;

@@ -108,7 +108,12 @@ jobs:
 
           # Performance audit: the tree-shaken Betta runtime is the only Three.js
           # payload in the install path, and capture tooling loads on demand.
-          assert "'/betta-runtime.js'" in sw
+          # Since r17 the shell at / imports the full runtime directly (shell.js);
+          # the bootstrap wrapper stays on disk for the legacy modules until r18.
+          shell_js=(root/'shell.js').read_text()
+          assert "'/betta-runtime-full.js'" in sw and "'/betta-runtime-full.js?v=1'" in sw
+          assert "import('/betta-runtime-full.js?v=1')" in shell_js
+          assert "'/betta-runtime.js'" not in sw, 'legacy Betta bootstrap must not be precached by the r17 shell'
           assert "'/vendor/three.module.js'" not in sw
           assert "'/vendor/html2canvas.min.js'" not in sw
           assert '/vendor/html2canvas.min.js' not in index
@@ -123,7 +128,13 @@ jobs:
           _auth=re.search(r"import\('(\./betta-runtime\.js\?v=\d+)'\)",auth_shell)
           assert _boot and _auth, 'betta-runtime import missing from bootstrap.js or auth-shell.js'
           assert _boot.group(1)==_auth.group(1), f'betta-runtime module URL drift: bootstrap {_boot.group(1)} vs auth-shell {_auth.group(1)}'
-          assert _boot.group(1)[2:] in index, f'index.html must reference the same betta-runtime build as the shell: {_boot.group(1)}'
+          # r17: index.html is the new shell and imports no legacy module.
+          for name in ('bootstrap.js','auth-shell.js','route-registry.js','betta-runtime.js','app.js','shell.css'):
+              assert f'/{name}' not in index, f'legacy module referenced by the r17 shell: {name}'
+          assert '/shell.js' in index and 'manifest.webmanifest?v=5' in index
+          redirects=(root/'_redirects').read_text()
+          for line in ('/next / 301','/login.html / 301','/fnb /#fnb 301','/messages /#messages 301','/settings /#settings/me 301','/admin /#settings/admin 301','/hotel-factsheet /#brand/factsheet 301'):
+              assert line in redirects, f'missing r17 redirect: {line}'
           assert "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" in betta
           assert "dataset.environmentInput='satellite-only'" in betta
           assert 'const DPR=2' in betta and 'preserveDrawingBuffer:false' in betta
@@ -208,10 +219,15 @@ jobs:
           # URL. Wait for the alias to expose this exact cache generation AND for
           # every retired source path to stop serving JavaScript; never accept a
           # stale deployment as success.
+          # The generation is the VERSION of the service worker in this checkout,
+          # so the post-deploy smokes never run against the previous shell.
+          expected_version=$(grep -o "const VERSION='[^']*'" site/sw.js | head -1)
+          test -n "$expected_version"
           promoted=false
           for attempt in $(seq 1 40); do
             if curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
               && grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/sw.js \
+              && grep -qF "$expected_version" /tmp/sw.js \
               && retired_clean; then
                 promoted=true
                 break
@@ -272,7 +288,6 @@ jobs:
           # masthead, tabbar and window.SindhornUiLibrary, none of which exist on a
           # standalone page. Superseded by ci-page-render-smoke, which asserts 17
           # components instead of a probe list and runs before the deploy, not after.
-          # The shell material it also covered is asserted by glass-route-browser-smoke.
-          node scripts/glass-route-browser-smoke.mjs
-          node scripts/utility-action-browser-smoke.mjs
-          node scripts/pull-refresh-browser-smoke.mjs
+          # glass-route, utility-action and pull-refresh browser smokes injected the
+          # legacy bootstrap into /fnb, /settings and /hotel-factsheet; those paths
+          # redirect to the r17 shell, whose material nested-glass-smoke now covers.

@@ -49,7 +49,7 @@ function explain(error) {
 
 /* The invitation link the new shell reads: Employee ID and code prefilled
    on the sign-in page. */
-const inviteUrl = (employeeNumber, code) => `${location.origin}/next#signin?i=${encodeURIComponent(employeeNumber)}&c=${encodeURIComponent(code)}`;
+const inviteUrl = (employeeNumber, code) => `${location.origin}/#signin?i=${encodeURIComponent(employeeNumber)}&c=${encodeURIComponent(code)}`;
 
 export async function mountAdmin(stack, { manifest, signal }) {
   let alive = true, dialog = null, users = [], departments = [], actor = null, query = '';

@@ -29,7 +29,7 @@ const shell=()=>page.evaluate(()=>({
 }));
 
 try{
-  await page.goto(`${BASE_URL}/next`,{waitUntil:'domcontentloaded',timeout:45000});
+  await page.goto(`${BASE_URL}/`,{waitUntil:'domcontentloaded',timeout:45000});
   await page.waitForSelector('[data-signin-form]',{timeout:30000});
   const before=await shell();
   if(!before.locked||!before.chipHidden)failures.push(`signed out: navbar locked=${before.locked} chip hidden=${before.chipHidden}`);

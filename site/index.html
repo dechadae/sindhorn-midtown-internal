@@ -1,69 +1,128 @@
 <!doctype html>
-<html lang="en" class="app-shell" data-shell-loading="true" data-startup-enter="pending">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#2E273B">
 <meta name="color-scheme" content="dark">
-<title>Today | Sindhorn Midtown Internal</title>
-<meta name="description" content="Authenticated employee dashboard for Sindhorn Midtown Hotel Bangkok.">
-<link rel="manifest" href="/manifest.webmanifest?v=4">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Sindhorn Midtown</title>
+<meta name="description" content="Authenticated employee app for Sindhorn Midtown Hotel Bangkok.">
+
+<!-- PWA identity. id, start_url and scope in manifest.webmanifest never change:
+     that is what lets an installed phone take every release in place. -->
+<link rel="manifest" href="/manifest.webmanifest?v=5">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Sindhorn Midtown">
 <meta name="application-name" content="Sindhorn Midtown">
 <meta name="format-detection" content="telephone=no">
-<link rel="canonical" href="https://sindhorn-midtown-internal.pages.dev/">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Sindhorn Midtown Hotel Bangkok">
-<meta property="og:title" content="Sindhorn Midtown Internal">
-<meta property="og:description" content="Authenticated employee app for Sindhorn Midtown Hotel Bangkok">
-<meta property="og:url" content="https://sindhorn-midtown-internal.pages.dev/">
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/app-192.png?v=2">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png?v=2">
 <link rel="preconnect" href="https://sjpvhgxacsiorrtijqua.supabase.co" crossorigin>
 <link rel="preconnect" href="https://sindhorn-midtown-alerts.decha-dae.workers.dev" crossorigin>
+
+<!-- The app shell, built on the UI Library and nothing else. Same
+     stylesheets the library page loads, so what /ci demonstrates is literally
+     what renders here. Served at / since r17; the legacy document and its
+     routes redirect here (site/_redirects) and the hash names the page.
+
+     Sign-in gates every route: shell.js mounts the sign-in page until an
+     employee with a permanent code has a session, and the navbar stays
+     visible but locked meanwhile. The hotel logo is Home; the account chip
+     opens Settings, whose four tabs replace the navbar's four while open.
+
+     THE SPLIT, so reinstall requirement 1 cannot regress by accident:
+
+     - Shell = markup, CSS, JS. Ships from this repo, deployed to Cloudflare
+       Pages, precached by sw.js, versioned by bumping VERSION in sw.js. A
+       shell update reaches an installed user the next time the app opens -
+       no reinstall, because the PWA identity (id/start_url/scope in
+       manifest.webmanifest) never changes.
+
+     - Data = whatever a page needs to display: today's numbers, F&B posts,
+       brand assets metadata. Loaded at runtime from Supabase as JSON over
+       fetch/RPC, never as HTML or CSS. It is not part of the precached
+       shell and is not versioned with it.
+
+     The previous production app violated this: header.html, today.html,
+     footer.html and ui.css were markup and CSS fetched from a Supabase
+     table (public.sindhorn_app_files) at boot. That is shell material
+     shipped as data, so the service worker could not precache it, first
+     launch depended on a network round trip, and the shell and that pack
+     could disagree - which is what produced the "solid purple bar" failure
+     documented elsewhere in this repo's history.
+
+     This shell does not do that. Nothing here is fetched from Supabase.
+     When a page needs Supabase data it fetches JSON into a shell that is
+     already fully painted - never markup or style. -->
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-thin.woff2">
 <link rel="preload" as="image" href="/assets/brand/sindhorn-midtown-vignette-white.png">
-<link rel="modulepreload" href="/bootstrap.js?v=4">
-<link rel="modulepreload" href="/app-glass-runtime.js?v=1">
-<link rel="modulepreload" href="/route-registry.js">
-<link rel="modulepreload" href="/betta-runtime.js?v=2">
-<link rel="stylesheet" href="/app-tokens.css?v=8">
+<link rel="modulepreload" href="/shell.js">
+<link rel="modulepreload" href="/auth-client.js">
+<link rel="modulepreload" href="/notification-inbox.js">
+<link rel="modulepreload" href="/broadcast-inbox.js">
 <link rel="stylesheet" href="/fonts.css?v=1">
-<link rel="stylesheet" href="/app-transitions.css">
-<link rel="stylesheet" href="/shell.css?v=5">
-<link rel="stylesheet" href="/startup-skeleton.css?v=2">
-<link rel="stylesheet" href="/environment.css?v=5">
-<link rel="stylesheet" href="/pwa.css?v=2">
-<link rel="stylesheet" href="/auth-shell.css?v=1">
-<link rel="stylesheet" href="/account.css?v=2">
-<link rel="stylesheet" href="/footer-route-guard.css?v=15">
-<link rel="stylesheet" href="/route-hero-standard.css?v=4">
-<link rel="stylesheet" href="/app-controls.css?v=2">
-<link rel="stylesheet" href="/app-shapes.css?v=1">
-<link rel="stylesheet" href="/app-glass.css?v=6">
- <link rel="stylesheet" href="/app-components.css?v=27">
-<style>[data-shell-loading="true"] #app-header,[data-shell-loading="true"] #route-view{opacity:1!important}[data-shell-loading="true"] #app-footer{display:block!important}html[data-startup-enter="pending"] #app-header,html[data-startup-enter="pending"] #route-view,html[data-startup-enter="pending"] #app-footer,html[data-startup-enter="visible"] #app-header,html[data-startup-enter="visible"] #route-view,html[data-startup-enter="visible"] #app-footer{opacity:1!important}#fullscreenToggle{display:none!important}</style>
+<link rel="stylesheet" href="/app-tokens.css?v=8">
+<link rel="stylesheet" href="/app-glass.css?v=9">
+<link rel="stylesheet" href="/app-components.css?v=27">
+<link rel="stylesheet" href="/app-shell.css?v=2">
 </head>
-<body data-level="very-good">
-<div class="environment-stage" id="environmentStage" hidden aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
-<a class="skip" href="#route-view">Skip to page content</a>
-<header id="app-header"></header>
-<main id="route-view" aria-live="polite"></main>
-<footer id="app-footer"></footer>
-<noscript><p style="padding:24px;color:#FAF7F5">JavaScript is required to load Sindhorn Midtown Internal.</p></noscript>
-<script>(()=>{const root=document.documentElement,body=document.body,route=document.getElementById('route-view');let released=false,queued=false;const ready=()=>body.classList.contains('environment-ready')&&route.childElementCount>0||root.dataset.shellLoading==='false';const release=()=>{if(released||queued)return;queued=true;requestAnimationFrame(()=>{if(released)return;released=true;root.dataset.startupEnter='visible';performance.mark?.('sindhorn-startup-enter-visible')})};if(ready())release();const observer=new MutationObserver(()=>{if(!ready())return;observer.disconnect();release()});observer.observe(body,{attributes:true,attributeFilter:['class']});observer.observe(root,{attributes:true,attributeFilter:['data-shell-loading']});observer.observe(route,{childList:true})})();</script>
-<script type="module" src="/startup-skeleton.js?v=1"></script>
-<script type="module" src="/pwa-version-guard.js?v=3"></script>
-<script type="module" src="/app-transitions.js"></script>
-<script type="module" src="/auth-shell.js?v=8"></script>
-<script type="module" src="/footer-route-guard.js?v=16"></script>
-<script type="module" src="/brand-route-controls.js?v=2"></script>
-<script type="module" src="/push-client.js?v=2"></script>
-<script type="module" src="/rain-now.js?v=3"></script>
-<script type="module" src="/screen-capture.js?v=3"></script>
+<body>
+
+<div class="environment-stage" id="environmentStage" aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
+
+<header class="app-masthead">
+  <button class="app-masthead-home" type="button" aria-label="Home"><img class="app-masthead-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></button>
+  <button class="app-masthead-account app-control" type="button" data-mode="initials" aria-label="Settings" hidden><span>—</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
+</header>
+
+<main class="app-page is-shell" id="routeView">
+</main>
+
+<nav class="app-navbar" aria-label="Primary" data-mode="app" data-locked>
+  <div class="app-navbar-set" data-set="app">
+    <button class="app-navbar-button" type="button" data-route="today" aria-current="page" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M4 6h16M4 18h10"/></svg>
+      <span>Today</span>
+    </button>
+    <button class="app-navbar-button" type="button" data-route="fnb" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v8a3 3 0 0 0 6 0V3M9 11v10M17 3c-1.5 2-1.5 5 0 7v11"/></svg>
+      <span>F&amp;B</span>
+    </button>
+    <button class="app-navbar-button" type="button" data-route="messages" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v11H9l-5 4z"/></svg>
+      <span>Messages</span>
+      <span class="app-badge app-navbar-badge" data-message-badge hidden></span>
+    </button>
+    <button class="app-navbar-button" type="button" data-route="brand" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l2.4 5 5.6.7-4 3.9 1 5.4-5-2.7-5 2.7 1-5.4-4-3.9 5.6-.7z"/></svg>
+      <span>Brand</span>
+    </button>
+  </div>
+  <div class="app-navbar-set" data-set="settings" inert>
+    <button class="app-navbar-button" type="button" data-route="settings/me" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"/></svg>
+      <span>Me</span>
+    </button>
+    <button class="app-navbar-button" type="button" data-route="settings/admin" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2 20a7 7 0 0 1 14 0M16 4a3.5 3.5 0 0 1 0 7M22 20a7 7 0 0 0-5-6.7"/></svg>
+      <span>Admin</span>
+    </button>
+    <button class="app-navbar-button" type="button" data-route="settings/broadcast" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10v4h4l7 4V6l-7 4zM18 9a4 4 0 0 1 0 6"/></svg>
+      <span>Broadcast</span>
+    </button>
+    <button class="app-navbar-button" type="button" data-route="settings/system" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16M9 10v9"/></svg>
+      <span>System</span>
+    </button>
+  </div>
+</nav>
+
+<script type="module" src="/shell.js"></script>
+
 </body>
 </html>

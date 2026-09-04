@@ -1,5 +1,5 @@
 /* The app shell's behaviour: atmosphere, sign-in gate, hash router, masthead
-   controls and the two-set navbar. next.html is markup only; everything
+   controls and the two-set navbar. index.html is markup only; everything
    that moves lives here, so a shell change is one file and one precache
    entry.
 
@@ -11,6 +11,42 @@
 import { initAuth, getState } from './auth-client.js';
 import { updateBadge } from './notification-inbox.js';
 import { loadInbox, serverUnread } from './broadcast-inbox.js';
+
+/* Addresses the app handed out before r17 (the legacy shell's paths and
+   next.html's hash) are rewritten to their hash route before the router
+   reads anything. Online, site/_redirects has already done this; offline the
+   service worker answers a legacy path with the cached shell and this is what
+   lands it on the right page. The invitation hash the old sign-in used
+   (#i=..&c=..) becomes #signin?i=..&c=.., which signin-page.js reads. */
+(() => {
+  const path = location.pathname.replace(/\/+$/, '') || '/';
+  const hash = location.hash;
+  const LEGACY = [
+    [/^\/fnb(\/[^/]+)?$/, m => `#fnb${m[1] || ''}`],
+    [/^\/brand$/, () => '#brand'],
+    [/^\/hotel-factsheet$/, () => '#brand/factsheet'],
+    [/^\/ihg-history$/, () => '#brand/history'],
+    [/^\/messages$/, () => '#messages'],
+    [/^\/(settings|account|account\.html)$/, () => '#settings/me'],
+    [/^\/(admin|admin\.html)$/, () => '#settings/admin'],
+    [/^\/(next|next\.html|login|login\.html|guidance|details)$/, () => hash]
+  ];
+  let next = null;
+  for (const [pattern, to] of LEGACY) { const m = path.match(pattern); if (m) { next = to(m); break } }
+  if (next === null && path !== '/') return;
+  const invited = (next ?? hash).match(/^#i=([^&]*)&c=([^&]*)$/);
+  if (invited) next = `#signin?i=${invited[1]}&c=${invited[2]}`;
+  if (next === null) return;
+  history.replaceState(null, '', `/${location.search}${next}`);
+})();
+
+/* The service worker is what makes every later release reach an installed
+   phone in place: same registration, same scope, a new VERSION precaches the
+   new shell and takes over on the next open. Registered after load so the
+   first paint never waits on it. */
+if ('serviceWorker' in navigator) {
+  addEventListener('load', () => { navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(error => console.warn('Service worker registration failed', error)); });
+}
 
 /* The full WebGL runtime directly. betta-runtime.js is a bootstrap that paints
    a still frame and waits for a startup signal the old app shell emits; a page

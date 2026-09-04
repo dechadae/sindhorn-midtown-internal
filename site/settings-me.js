@@ -10,8 +10,11 @@
    Everything here is library: the card is .app-card around
    .app-business-card, the QR is an .app-figure, the details are a text
    metric grid, editing is the dialog standard with option checks, "Copied"
-   is the toast asked from code. */
+   is the toast asked from code. Notifications are one list row with a badge
+   for the state and a utility action to change it (push-client.js does the
+   work); a subscription belongs to the phone, so the card says so. */
 import { getState, supabaseRpc } from './auth-client.js';
+import { pushStatus, enablePush, disablePush } from './push-client.js';
 import { hasCapability } from './capabilities.js';
 import { businessCardUrl, primaryPhone } from './business-card-core.js';
 import { qrStyledSvg } from './qr-v6.js';
@@ -52,6 +55,26 @@ export function factsMarkup(manifest) {
           ${fact('Role', ROLE_LABEL[p.role] || p.role)}${fact('Language', LANGUAGE_LABEL[p.preferredLanguage] || p.preferredLanguage)}
         </div>
       </div>
+    </div>`;
+}
+
+/* Notifications on this phone. The browser answers pushStatus() without a
+   network round trip, so the row paints its true state at once; enabling is
+   the one moment permission is asked, and it happens from the tap. */
+const PUSH_COPY = {
+  unconfigured: ['Not available', 'The notification service is not configured yet.', 'quiet'],
+  unsupported: ['Not available', 'This browser cannot receive Web Push. Install the app to your home screen if your phone requires it.', 'quiet'],
+  blocked: ['Blocked', 'Notifications are turned off for this app in the phone or browser settings.', 'danger'],
+  off: ['Off', 'Weather, air-quality, business and broadcast alerts arrive here when this is on.', 'quiet'],
+  on: ['On', 'Weather, air-quality, business and broadcast alerts reach this phone.', '']
+};
+function notificationsMarkup(status, note = '') {
+  const key = status.support !== 'ready' ? status.support : status.enabled ? 'on' : 'off';
+  const [label, copy, tone] = PUSH_COPY[key];
+  const action = status.support === 'ready' ? `<div class="app-utility-row">${note ? `<span class="app-utility-note">${esc(note)}</span>` : ''}<button class="app-utility-action" type="button" data-push-toggle${status.busy ? ' disabled' : ''}>${status.enabled ? 'Turn off' : 'Turn on'}</button></div>` : '';
+  return `<div class="app-card-section"><p class="app-surface-label">Notifications on this phone</p>
+      <div class="app-list"><div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">Device alerts</span><span class="app-list-row-meta">${esc(copy)}</span></span><span class="app-list-row-end"><span class="app-badge"${tone ? ` data-tone="${tone}"` : ''}>${esc(label)}</span></span></div></div>
+      ${action}
     </div>`;
 }
 
@@ -121,7 +144,28 @@ export async function mountMe(stack, { manifest, signal }) {
   const cardHost = document.createElement('div');
   cardHost.dataset.businessCard = '';
   stack.insertAdjacentHTML('beforeend', factsMarkup(manifest));
-  if (!canRead) return () => {};
+  const pushHost = document.createElement('div');
+  pushHost.className = 'app-card app-surface';
+  pushHost.dataset.notifications = '';
+  stack.append(pushHost);
+  const paintPush = (status, note) => { if (alive) pushHost.innerHTML = notificationsMarkup(status, note); };
+  pushStatus().then(status => paintPush(status)).catch(() => paintPush({ support: 'unsupported', enabled: false, busy: false }));
+  async function togglePush() {
+    const before = await pushStatus();
+    paintPush({ ...before, busy: true }, before.enabled ? 'Turning off…' : 'Waiting for permission…');
+    try {
+      const after = before.enabled ? await disablePush() : await enablePush();
+      paintPush(after);
+      showToast(after.enabled ? 'Notifications on' : 'Notifications off');
+    } catch (error) {
+      console.warn('Push toggle failed', error);
+      const after = await pushStatus().catch(() => before);
+      paintPush(after, after.support === 'blocked' ? '' : 'Could not change notifications. Try again.');
+    }
+  }
+  stack.addEventListener('click', event => { if (event.target.closest('[data-push-toggle]')) togglePush(); }, { signal });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pushStatus().then(status => paintPush(status)).catch(() => {}); }, { signal });
+  if (!canRead) return () => { alive = false; };
   stack.append(cardHost);
   cardHost.innerHTML = `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line" data-size="square"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;
 

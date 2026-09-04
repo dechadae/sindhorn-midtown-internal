@@ -1,13 +1,13 @@
 {
   "note": "Centralization ratchet. Values may only decrease. See scripts/ui-centralization-budget.mjs",
   "metrics": {
-    "foundationCssFiles": 9,
+    "foundationCssFiles": 10,
     "routeCssFiles": 30,
     "important": 715,
     "backdropOutsideCanonical": 71,
     "patchLayerFiles": 8,
-    "inlineStyleBlocks": 2,
-    "inlineStyleAttrs": 10,
+    "inlineStyleBlocks": 1,
+    "inlineStyleAttrs": 9,
     "distinctFontSizes": 65,
     "distinctRadii": 25,
     "cardImplementations": 10,

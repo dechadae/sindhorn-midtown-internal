@@ -1,3 +1,15 @@
+/* Typography gate for the r17 shell at /.
+
+   Signs in as the CI service employee and audits every visible text node on
+   the sign-in page, Today, F&B, Messages and Settings › Me: LINE Seed Sans
+   TH only, computed weights only 100/400/700, zero tracking everywhere, no
+   horizontal overflow, the three faces registered and loaded, no external
+   font host. The shell is one document - a navigation that replaced it would
+   be a regression - so a token set after sign-in must survive every route.
+
+   The legacy rule that Thin 100 never renders below 44px is gone: the UI
+   Library sets its section and title type Thin at --type-section and
+   --type-title by design. */
 import fs from 'node:fs';
 import {chromium} from 'playwright';
 
@@ -19,13 +31,13 @@ async function settleFonts(page){
   await page.evaluate(async()=>{
     await document.fonts.ready;
     await Promise.all([
-      document.fonts.load('100 48px "LINE Seed Sans TH"'),
+      document.fonts.load('100 24px "LINE Seed Sans TH"'),
       document.fonts.load('400 16px "LINE Seed Sans TH"'),
       document.fonts.load('700 16px "LINE Seed Sans TH"')
     ]);
   });
 }
-async function auditVisibleTypography(page,label,{requireThinSelectors=[]}={}){
+async function auditVisibleTypography(page,label){
   const state=await page.evaluate(()=>{
     const directText=el=>[...el.childNodes].some(n=>n.nodeType===Node.TEXT_NODE&&n.textContent.trim());
     const visible=el=>{const s=getComputedStyle(el),r=el.getBoundingClientRect();return s.display!=='none'&&s.visibility!=='hidden'&&Number(s.opacity)>0&&r.width>0&&r.height>0};
@@ -37,86 +49,53 @@ async function auditVisibleTypography(page,label,{requireThinSelectors=[]}={}){
     return{
       typography,faces,resources,overflowing,
       width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,
-      path:location.pathname,
+      path:location.pathname+location.hash,
       shellToken:document.__typographyShellToken||null
     };
   });
+  assert(state.typography.length>0,`${label} rendered no visible text`);
   const badFamily=state.typography.filter(x=>!familyOk(x.family));
   const badWeight=state.typography.filter(x=>!allowedWeights.has(x.weight));
   const badTracking=state.typography.filter(x=>!['normal','0px'].includes(x.letterSpacing));
-  const badThin=state.typography.filter(x=>x.weight==='100'&&x.size<44);
   assert(!badFamily.length,`${label} non-LINE Seed text: ${JSON.stringify(badFamily.slice(0,5))}`);
   assert(!badWeight.length,`${label} unsupported computed weights: ${JSON.stringify(badWeight.slice(0,5))}`);
   assert(!badTracking.length,`${label} nonzero tracking: ${JSON.stringify(badTracking.slice(0,5))}`);
-  assert(!badThin.length,`${label} Thin 100 used below 44px: ${JSON.stringify(badThin.slice(0,5))}`);
   assert(state.scrollWidth<=state.width+2,`${label} horizontal overflow ${state.scrollWidth}>${state.width}: ${JSON.stringify(state.overflowing)}`);
   const lineFaces=state.faces.filter(face=>familyOk(face.family));
   for(const weight of ['100','400','700'])assert(lineFaces.some(face=>String(face.weight)===weight),`${label} LINE Seed ${weight} face missing`);
   assert(!state.faces.some(face=>/poppins|noto|vignette sans|ibm plex/i.test(face.family)),`${label} retired face registered`);
   assert(!state.resources.some(url=>/fonts\.googleapis|fonts\.gstatic|raw\.githubusercontent|cdn\.jsdelivr/i.test(url)),`${label} external font resource requested`);
-  for(const selector of requireThinSelectors){
-    const v=await page.locator(selector).first().evaluate(el=>{const s=getComputedStyle(el);return{weight:s.fontWeight,size:parseFloat(s.fontSize)||0,family:s.fontFamily}}).catch(()=>null);
-    if(v){assert(v.weight==='100',`${label} ${selector} expected Thin 100, got ${v.weight}`);assert(v.size>=44,`${label} ${selector} Thin 100 used below 44px (${v.size}px)`);assert(familyOk(v.family),`${label} ${selector} wrong family ${v.family}`)}
-  }
   report.checks.push({label,path:state.path,textNodes:state.typography.length,width:state.width,height:state.height,scrollWidth:state.scrollWidth,shellToken:state.shellToken});
   return state;
 }
 async function signIn(page,label){
-  await page.goto(`${base}/login.html`,{waitUntil:'domcontentloaded',timeout:45000});
+  await page.goto(`${base}/`,{waitUntil:'domcontentloaded',timeout:45000});
+  await page.waitForSelector('[data-signin-form]',{timeout:30000});
   await settleFonts(page);
-  await auditVisibleTypography(page,`${label}-login`);
-  await page.screenshot({path:`typography-artifacts/${label}-login.png`,fullPage:true});
+  await auditVisibleTypography(page,`${label}-signin`);
+  await page.screenshot({path:`typography-artifacts/${label}-signin.png`,fullPage:true});
 
-  // Exercise the hidden first-time/recovery PIN surface with production markup and CSS.
-  await page.evaluate(()=>{
-    const login=document.querySelector('#loginControls');if(login)login.classList.add('hidden');
-    const setup=document.querySelector('#pinSetupStep');if(setup)setup.classList.remove('hidden');
-  });
-  await auditVisibleTypography(page,`${label}-pin-setup`);
-  await page.screenshot({path:`typography-artifacts/${label}-pin-setup.png`,fullPage:true});
-  await page.reload({waitUntil:'domcontentloaded'});await settleFonts(page);
-
-  await page.fill('#employeeNumber',employee);
-  for(let i=0;i<6;i++)await page.fill(`[data-pin-login-digit="${i}"]`,pin[i]);
-  /* The CI service employee is synthetic and may intentionally not satisfy the
-     human-facing employee-number HTML constraint. Dispatch the form submit
-     event directly so the smoke exercises login.js + the authenticated RPC,
-     matching the production Phase 8.2 browser test without weakening UI rules. */
-  await page.evaluate(()=>document.querySelector('#employeeForm')?.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));
-  await page.waitForURL(url=>new URL(url).pathname==='/',{timeout:45000,waitUntil:'commit'});
-  await page.waitForFunction(()=>document.documentElement.dataset.shellLoading==='false'&&document.querySelector('#route-view'),null,{timeout:30000});
   await page.evaluate(()=>{document.__typographyShellToken=`shell-${Date.now()}-${Math.random()}`});
+  await page.fill('#signin-employee',employee);
+  await page.click('#signin-code');
+  await page.keyboard.type(pin);
+  await page.waitForSelector('.app-navbar:not([data-locked])',{timeout:45000});
+  await page.waitForFunction(()=>document.querySelector('#routeView .app-metric-value')&&!document.querySelector('#routeView .app-skeleton'),null,{timeout:30000});
 }
-async function routeClick(page,route){
-  const href=route==='today'?'/':`/${route}`;
+/* A navbar tap is a hash change the shell's router answers inside the same
+   document; the page is mounted when its skeleton has gone. */
+async function routeClick(page,route,hash,ready){
   const token=await page.evaluate(()=>document.__typographyShellToken);
-  const transitioned=await page.evaluate(async route=>{
-    const nav=window.SindhornNavigation;
-    if(!nav?.transitionToRoute)return false;
-    await nav.transitionToRoute(route);
-    return true;
-  },route);
-  assert(transitioned,`navigation API unavailable for ${route}`);
-  await page.waitForURL(url=>new URL(url).pathname===href,{timeout:12000});
+  await page.click(`.app-navbar [data-route="${route}"]`);
+  await page.waitForFunction(hash=>location.hash===hash,hash,{timeout:12000});
+  await page.waitForFunction(ready,null,{timeout:30000});
   await page.waitForTimeout(350);await settleFonts(page);
-  const after=await page.evaluate(()=>document.__typographyShellToken);
-  assert(after===token,`${route} navigation replaced the authenticated document`);
-}
-async function syntheticAdminVisual(page,label){
-  await page.evaluate(()=>{
-    const host=document.querySelector('#route-view');
-    host.dataset.shellRoute='admin';
-    host.innerHTML=`<section class="admin-route"><div class="admin-shell"><header class="admin-header"><div><div class="admin-title">Employee administration</div><div class="admin-sub">จัดการบัญชีพนักงานและสิทธิ์การใช้งาน</div></div><button class="chip-btn">Close</button></header><nav class="admin-nav"><button aria-selected="true">Employees</button><button>Invitations</button></nav><section class="admin-panel"><div class="panel-head"><div><div class="panel-title">Employees</div><div class="panel-note">Active hotel accounts</div></div><div class="toolbar"><input class="search" placeholder="Search employee"><button class="add-btn">Add employee</button></div></div><div class="user-list"><div class="user-row"><div><div class="user-name">Long English Employee Name Example</div><div class="user-id">SM-000001</div></div><div>Front Office</div><div><span class="pill">Active</span></div><div class="thai" lang="th">พร้อมใช้งาน</div><button class="row-edit">Edit</button></div></div><div class="security-banner">Administrator one-time codes expire automatically. รหัสผู้ดูแลระบบใช้เพียงครั้งเดียว</div><div class="dialog-body"><div class="dialog-title">Create invitation</div><div class="form-grid"><label class="field"><span>Employee name</span><input value="Long English Employee Name Example"></label><label class="field"><span lang="th">ชื่อพนักงาน</span><input value="ตัวอย่างชื่อพนักงานภาษาไทยที่ยาว"></label></div><div class="dialog-actions"><button>Cancel</button><button class="save">Save</button></div></div></section></div></section>`;
-  });
-  await settleFonts(page);
-  await auditVisibleTypography(page,`${label}-admin-style`);
-  await page.screenshot({path:`typography-artifacts/${label}-admin-style.png`,fullPage:true});
+  assert(await page.evaluate(()=>document.__typographyShellToken)===token,`${route} navigation replaced the authenticated document`);
 }
 async function inspectAuthenticated(viewport,label){
-  // The browser typography gate validates the rendered SPA and persistent-document
-  // routing. Service-worker asset/update behavior is validated separately by the
-  // architecture + HTTP smoke steps. Blocking SW here prevents the intentional
-  // one-time release refresh from racing the in-document persistence assertion.
+  // Service-worker asset/update behaviour is validated by the architecture
+  // and HTTP smoke steps; blocking it here keeps the one-time release refresh
+  // from racing the same-document assertion.
   const context=await browser.newContext({viewport,screen:viewport,serviceWorkers:'block'});
   const page=await context.newPage();
   page.on('pageerror',e=>errors.push(`${label} pageerror: ${e.message}`));
@@ -127,29 +106,33 @@ async function inspectAuthenticated(viewport,label){
   });
   await signIn(page,label);
   await settleFonts(page);await page.waitForTimeout(250);
-  await auditVisibleTypography(page,`${label}-today`,{requireThinSelectors:['.intro h1','.pm-value','.aqi-value','.weather-temp']});
+  await auditVisibleTypography(page,`${label}-today`);
   await page.screenshot({path:`typography-artifacts/${label}-today.png`,fullPage:true});
 
-  await routeClick(page,'fnb');
+  await routeClick(page,'fnb','#fnb',()=>document.querySelector('#routeView .app-action-card, #routeView .app-state')&&!document.querySelector('#routeView .app-skeleton'));
   await auditVisibleTypography(page,`${label}-fnb`);
   await page.screenshot({path:`typography-artifacts/${label}-fnb.png`,fullPage:true});
 
-  await routeClick(page,'messages');
+  await routeClick(page,'messages','#messages',()=>document.querySelector('.app-hero-title')?.textContent.trim()==='Inbox'&&!document.querySelector('#routeView .app-skeleton'));
   await auditVisibleTypography(page,`${label}-messages`);
   await page.screenshot({path:`typography-artifacts/${label}-messages.png`,fullPage:true});
 
-  const account=page.locator('.masthead-user');
-  assert(await account.count(),'missing settings/account link');
+  const account=page.locator('.app-masthead-account');
+  assert(await account.count(),'missing account chip');
   const token=await page.evaluate(()=>document.__typographyShellToken);
   await account.click();
-  await page.waitForURL(url=>new URL(url).pathname==='/settings',{timeout:12000});
-  await page.waitForFunction(()=>document.body.dataset.route==='settings'&&document.querySelector('.settings-route'),null,{timeout:20000});
+  await page.waitForFunction(()=>location.hash==='#settings/me',null,{timeout:12000});
+  await page.waitForFunction(()=>document.querySelector('.app-hero-title')?.textContent.trim()==='Me'&&document.querySelector('[data-settings-signout]')&&document.querySelector('#routeView .app-metric-value'),null,{timeout:30000});
   await page.waitForTimeout(300);await settleFonts(page);
   assert(await page.evaluate(()=>document.__typographyShellToken)===token,'settings navigation replaced the authenticated document');
-  await auditVisibleTypography(page,`${label}-settings`);
-  await page.screenshot({path:`typography-artifacts/${label}-settings.png`,fullPage:true});
+  await auditVisibleTypography(page,`${label}-settings-me`);
+  await page.screenshot({path:`typography-artifacts/${label}-settings-me.png`,fullPage:true});
 
-  await syntheticAdminVisual(page,label);
+  // Leave the session as it was found: sign out through the confirm.
+  await page.click('[data-settings-signout]');
+  await page.waitForSelector('dialog[data-confirm][open]',{timeout:10000});
+  await page.click('dialog[data-confirm] [data-dialog-confirm]');
+  await page.waitForSelector('[data-signin-form]',{timeout:30000});
   await context.close();
 }
 

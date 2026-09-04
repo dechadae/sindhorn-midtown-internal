@@ -6,9 +6,12 @@ This repository is the canonical executable shell for the Sindhorn Midtown inter
 
 A from-scratch UI rebuild started 2 September 2026 on `land-baseline` →
 `main`. `site/ci.html` at `/ci` is the finished, locked master UI library —
-the only place a component is designed. `site/next.html` at `/next` is the
-new public app shell, being built one page at a time, which will eventually
-replace the legacy app at `/` without a reinstall.
+the only place a component is designed. `site/index.html` at `/` is the
+new app shell (r17, 5 September 2026): `shell.js` routes by hash, every
+legacy path redirects to its hash route (`site/_redirects`), and the installed
+PWA took it in place without a reinstall. Legacy sources (`login.html`,
+`bootstrap.js`, `route-registry.js`, `fallback/*` …) stay on disk unreachable
+until r18 deletes them and retunes the file-based gates.
 
 Full rules: **`docs/UI-CENTRALIZATION-RULES-20260903.md`** (library workflow,
 the ratchet, the glass membership rule, motion tokens) and

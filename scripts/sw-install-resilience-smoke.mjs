@@ -75,9 +75,9 @@ let ok=true;
 try{
 const base=await trial('baseline installs',[],true); ok=base.ok&&ok;
 const font=await trial('optional font failure still installs',['/assets/fonts/line-seed-sans-th-thin.woff2'],true); ok=font.ok&&ok;
-const betta=await trial('optional betta runtime failure still installs',['/betta-runtime.js'],true); ok=betta.ok&&ok;
-const many=await trial('many optional failures still install',['/assets/fonts/','/icons/','/fallback/'],true); ok=many.ok&&ok;
-const crit=await trial('critical asset failure correctly fails install',['/shell.css'],false); ok=crit.ok&&ok;
+const betta=await trial('optional betta runtime failure still installs',['/betta-runtime-full.js'],true); ok=betta.ok&&ok;
+const many=await trial('many optional failures still install',['/assets/fonts/','/icons/','/settings-'],true); ok=many.ok&&ok;
+const crit=await trial('critical asset failure correctly fails install',['/app-shell.css'],false); ok=crit.ok&&ok;
 
 /* Guard against the false pass this test itself produced against a remote
    origin: if blocking never reduced the cache, nothing was really blocked. */

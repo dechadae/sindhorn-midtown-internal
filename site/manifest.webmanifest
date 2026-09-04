@@ -18,7 +18,7 @@
   ],
   "shortcuts":[
     {"name":"Today","short_name":"Today","url":"/","icons":[{"src":"/icons/app-192.png?v=2","sizes":"192x192"}]},
-    {"name":"Guidance","short_name":"Guidance","url":"/guidance","icons":[{"src":"/icons/app-192.png?v=2","sizes":"192x192"}]},
-    {"name":"Details","short_name":"Details","url":"/details","icons":[{"src":"/icons/app-192.png?v=2","sizes":"192x192"}]}
+    {"name":"F&B","short_name":"F&B","url":"/#fnb","icons":[{"src":"/icons/app-192.png?v=2","sizes":"192x192"}]},
+    {"name":"Messages","short_name":"Messages","url":"/#messages","icons":[{"src":"/icons/app-192.png?v=2","sizes":"192x192"}]}
   ]
 }

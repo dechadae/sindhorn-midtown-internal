@@ -759,7 +759,7 @@ Ask the team about the pairing board: three small plates built for the three dri
   <section class="app-section" id="shell">
     <p class="app-section-kicker">18 · Shell</p>
     <h2 class="app-section-title">A Sticky Header and Footer That Frost What Passes Under Them</h2>
-    <p class="app-section-lede">The app shell is exactly these two elements: a masthead and a navbar, both one band of <code>--app-shell-band</code> 56px so the top and bottom match. The masthead's logo is Home; its account chip opens Settings, and the navbar's four buttons cross-fade to the settings set (Me, Admin, Broadcast, System) while it is open. Signed out, the shell stays visible but locked. Scroll the frame below — this is the same markup /next uses.</p>
+    <p class="app-section-lede">The app shell is exactly these two elements: a masthead and a navbar, both one band of <code>--app-shell-band</code> 56px so the top and bottom match. The masthead's logo is Home; its account chip opens Settings, and the navbar's four buttons cross-fade to the settings set (Me, Admin, Broadcast, System) while it is open. Signed out, the shell stays visible but locked. Scroll the frame below — this is the same markup the app at / uses.</p>
     <div class="ci-stack is-single">
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-hero with .app-back-control</span><span>a detail inside a route</span></div>
@@ -1049,7 +1049,7 @@ Ask the team about the pairing board: three small plates built for the three dri
 })();
 
 // Every specimen's behaviour lives in ci-library.js, shared with the shell
-// route that mounts this same markup at /next#ci.
+// route that mounts this same markup at /#ci.
 const { bindLibrary } = await import('/ci-library.js');
 bindLibrary(document.body, { page: document.querySelector('.app-page') });
 </script>
