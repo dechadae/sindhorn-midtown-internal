@@ -9,6 +9,7 @@ on:
       - "site/**"
       - "scripts/generate-fnb-share.mjs"
       - "scripts/generate-pwa-icons.mjs"
+      - "scripts/*-smoke.mjs"
       - ".github/tests/**"
       - ".github/workflows/deploy.yml"
       - "supabase/migrations/**"
