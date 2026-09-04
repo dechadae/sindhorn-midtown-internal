@@ -202,6 +202,11 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-utility-action:hover,.app-utility-action:focus-visible{color:var(--app-accent)}
 .app-utility-action:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
 .app-utility-action svg{width:14px;height:14px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.5}
+/* Utility actions stand at the end of the line. Sign out, Share, Refresh and
+   Back to top belong to the right edge wherever they appear, so a row of
+   them is right-aligned by definition; a page never places them itself. */
+.app-utility-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:4px 20px}
+*+.app-utility-row{margin-top:16px}
 
 /* ---- Back / close control ---------------------------------------------------
    A detail view needs a way out. app-controls.css carries these for the current

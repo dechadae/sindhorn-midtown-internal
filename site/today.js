@@ -78,7 +78,7 @@ function track(actual, reference, stagger = 0) {
   return `<svg class="app-track"${stagger ? ` data-stagger="${Math.min(stagger, 7)}"` : ''} aria-hidden="true"><rect class="app-track-rail" x="0" y="3.5" width="100%" height="3" rx="1.5"/><rect class="app-track-bar" x="0" y="3.5" width="${width}%" height="3" rx="1.5"/><rect class="app-track-mark" x="80%" y="0" width="1.5" height="10" rx=".75"/></svg>`;
 }
 function metric({ label, value, comparison = '', meta = '', direction = null, track: trackMarkup = '' }) {
-  return `<div class="app-metric">${label ? `<p class="app-metric-label">${esc(label)}</p>` : ''}<p class="app-metric-value">${esc(value)}</p>${comparison ? `<p class="app-metric-delta"${direction ? ` data-direction="${esc(direction)}"` : ''}>${esc(comparison)}</p>` : ''}${meta ? `<p class="app-metric-note">${esc(meta)}</p>` : ''}${trackMarkup}</div>`;
+  return `<div class="app-metric">${label ? `<p class="app-metric-label">${esc(label)}</p>` : ''}<p class="app-metric-value">${esc(value)}</p>${comparison ? `<p class="app-metric-delta"${direction ? ` data-direction="${esc(direction)}"` : ''}>${esc(comparison)}</p>` : ''}${trackMarkup}${meta ? `<p class="app-metric-note">${esc(meta)}</p>` : ''}</div>`;
 }
 function comparisonRow(label, actual, reference, { kind = 'money', referenceLabel = 'Forecast' } = {}) {
   const a = num(actual), r = num(reference), diff = a !== null && r !== null ? a - r : null;
@@ -200,11 +200,30 @@ function renderOutlook(data) {
   const current = String(data.businessDate).slice(0, 7);
   const months = (data.rooms?.months || []).filter(item => String(item.stayMonth).slice(0, 7) > current);
   if (!months.length) return '';
+  // The same anatomy as the Rooms card in At a Glance: a month is a metric
+  // with its OTB occupancy as the figure, forecast as the comparison and
+  // track, and revenue with pickup as the one-line note. Two months share a
+  // ruled section so the card reads as a calendar, not a list of numbers.
+  const monthMetric = (m, i) => {
+    const occ = num(m.otb?.occupancy), forecast = num(m.forecast?.occupancy);
+    const forecastLoaded = (num(m.forecast?.rns) || 0) > 0 || (num(m.forecast?.revenue) || 0) > 0;
+    const delta = forecastLoaded && occ !== null && forecast !== null ? occ - forecast : null;
+    return metric({
+      label: dateLabel(m.stayMonth, { monthOnly: true }),
+      value: percent(occ),
+      comparison: delta === null ? 'Forecast not loaded' : `${delta >= 0 ? '+' : '−'}${Math.abs(delta * 100).toFixed(1)} pp vs forecast`,
+      direction: delta === null ? 'flat' : directionOf(delta),
+      meta: `OTB ${money(m.otb?.revenue, { compact: true })} · 24h ${integer(m.pickup?.rns, { signed: true })} RN`,
+      track: forecastLoaded ? track(occ, forecast, i) : ''
+    });
+  };
+  const pairs = [];
+  for (let i = 0; i < months.length; i += 2) pairs.push(months.slice(i, i + 2).map((m, j) => monthMetric(m, i + j)));
   return `<section class="app-section" id="today-outlook"><p class="app-section-kicker">05 · Forward outlook</p><h2 class="app-section-title">Next Months</h2><p class="app-section-lede">OTB position against forecast; detailed market segments stay collapsed below.</p>
-    <div class="app-metric-grid">${months.map(m => {
-      const forecastLoaded = (num(m.forecast?.rns) || 0) > 0 || (num(m.forecast?.revenue) || 0) > 0;
-      return `<div class="app-card app-surface"><p class="app-surface-label">${esc(dateLabel(m.stayMonth, { monthOnly: true }))}</p><p class="app-metric-value">${esc(percent(m.otb?.occupancy))}</p><p class="app-metric-note">${forecastLoaded ? `${esc(percent(m.forecast?.occupancy))} forecast occupancy` : 'Forecast not loaded'}</p><p class="app-metric-note">OTB ${esc(money(m.otb?.revenue, { compact: true }))}</p><p class="app-metric-note">24h ${esc(integer(m.pickup?.rns, { signed: true }))} RN</p></div>`;
-    }).join('')}</div>
+    <div class="app-card app-surface">
+      <div class="app-card-section"><p class="app-surface-label">Rooms · occupancy on the books</p></div>
+      ${pairs.map(pair => `<div class="app-card-section"><div class="app-metric-grid">${pair.join('')}</div></div>`).join('')}
+    </div>
   </section>`;
 }
 function renderSegments(data) {
@@ -227,7 +246,7 @@ function renderNotes(data) {
 }
 function renderSources(data) {
   return `<section class="app-section"><p class="app-note">Updated ${esc(dateTimeLabel(data.publishedAt || data.importedAt))} · revision ${esc(data.revision)} · ${(data.sources || []).map(source => esc(source.filename)).join(' · ')}</p>
-    <div class="app-row">
+    <div class="app-utility-row">
       <button class="app-utility-action" type="button" data-today-retry><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10a6 6 0 0 1 10.3-4.2M16 10a6 6 0 0 1-10.3 4.2M14.5 3v3h-3M5.5 17v-3h3"/></svg>Refresh</button>
       <button class="app-utility-action" type="button" data-today-top><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15V5M5 9l5-5 5 5"/></svg>Back to top</button>
     </div></section>`;

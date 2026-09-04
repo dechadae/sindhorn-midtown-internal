@@ -137,7 +137,7 @@ function detailSkeletonMarkup() {
 function errorMarkup(error) {
   return `${heroMarkup('Promotions are temporarily unavailable.')}<section class="app-section"><div class="app-stack">
     <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Could not load promotions</p><p class="app-state-copy">${esc(error?.message || 'The F&B dataset did not answer and nothing is saved on this device yet.')}</p></div>
-    <div class="app-row"><button class="app-utility-action" type="button" data-retry><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10a6 6 0 0 1 10.3-4.2M16 10a6 6 0 0 1-10.3 4.2M14.5 3v3h-3M5.5 17v-3h3"/></svg>Try again</button></div>
+    <div class="app-utility-row"><button class="app-utility-action" type="button" data-retry><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10a6 6 0 0 1 10.3-4.2M16 10a6 6 0 0 1-10.3 4.2M14.5 3v3h-3M5.5 17v-3h3"/></svg>Try again</button></div>
   </div></section>`;
 }
 
@@ -247,7 +247,7 @@ export async function mountFnb(host) {
     const view = folders.length === 1
       ? `<a class="app-primary app-control" data-width="full" href="${esc(folders[0].url)}" target="_blank" rel="noopener">${LINK_ICON}View artwork folder</a>`
       : folders.length ? `<button class="app-primary app-control" data-width="full" type="button" data-folders="${esc(campaign.id)}">${LINK_ICON}View artwork folders</button>` : '<p class="app-note">Artwork folder · Not linked yet</p>';
-    const edit = editor ? `<div class="app-row"><button class="app-utility-action" type="button" data-edit-links><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17h7M13.5 3.5a1.8 1.8 0 0 1 2.5 2.5L7 15l-3.5 1 1-3.5z"/></svg>Add / change artwork link</button></div>` : '';
+    const edit = editor ? `<div class="app-utility-row"><button class="app-utility-action" type="button" data-edit-links><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17h7M13.5 3.5a1.8 1.8 0 0 1 2.5 2.5L7 15l-3.5 1 1-3.5z"/></svg>Add / change artwork link</button></div>` : '';
     return `${view}${edit}`;
   }
   function detailMarkup(campaign) {
