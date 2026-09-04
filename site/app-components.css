@@ -520,6 +520,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
   min-height:var(--app-navbar-height);
   padding:0 max(8px,env(safe-area-inset-left)) env(safe-area-inset-bottom);
   display:grid;grid-auto-flow:column;grid-auto-columns:1fr;align-items:center;
+  overflow:hidden;
   border-top:1px solid var(--app-glass-border);
 }
 .app-navbar-button{
@@ -539,19 +540,22 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 
 /* The footer holds two sets of buttons in the same cell: the app set (Today,
    F&B, Messages, Brand) and the settings set (Me, Admin, Broadcast, System).
-   The account chip switches the navbar's mode and one set cross-fades into
-   the other; the hidden set is invisible, untappable and inert, so the
-   navbar is only ever one row of four. Both sets sit at grid area 1/1 of the
-   navbar's own column grid, so a navbar holding bare buttons still lays out
-   as before. */
+   The account chip switches the navbar's mode and the sets push: the settings
+   set slides in from the right as the app set leaves to the left, and the
+   reverse on the way back - the same ease-in-out the page uses. The navbar
+   clips the set that is off to the side; the hidden set is invisible,
+   untappable and inert, so the navbar is only ever one row of four. Both
+   sets sit at grid area 1/1 of the navbar's own column grid, so a navbar
+   holding bare buttons still lays out as before. */
 .app-navbar-set{
   grid-area:1/1;min-width:0;
   display:grid;grid-auto-flow:column;grid-auto-columns:1fr;align-items:center;
-  opacity:0;visibility:hidden;transform:translateY(6px);
-  transition:opacity var(--motion-ms) ease,transform var(--motion-ms) var(--motion-ease),visibility 0s linear var(--motion-ms);
+  visibility:hidden;transform:translateX(100%);
+  transition:transform var(--motion-ms) var(--motion-ease-inout),visibility 0s linear var(--motion-ms);
 }
+.app-navbar[data-mode="settings"] .app-navbar-set[data-set="app"]{transform:translateX(-100%)}
 .app-navbar:not([data-mode="settings"]) .app-navbar-set[data-set="app"],
-.app-navbar[data-mode="settings"] .app-navbar-set[data-set="settings"]{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.app-navbar[data-mode="settings"] .app-navbar-set[data-set="settings"]{visibility:visible;transform:none;transition-delay:0s}
 
 /* Signed out, the routes stay visible but dormant: the shell shows where the
    app goes without letting anyone go there. The router disables the
@@ -685,55 +689,32 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 }
 
 /* ---- View transitions -------------------------------------------------------
-   One page gives way to the next by moving, never by fading. app-view.js
-   clones the outgoing page into .app-view-ghost - a fixed layer between the
-   atmosphere and the shell bands - and gives the live host a start pose
-   through data-view. Both then run one choreography together:
+   One page gives way to the next with a cut and a settle: the outgoing page
+   leaves at once, the incoming page arrives a short way off its place and
+   eases in over --motion-view on the plain ease-in-out curve. Nothing
+   recedes, scales or parallaxes - one moving surface, so the frosted cards
+   on it stay cheap to draw mid-move - and the direction still carries the
+   spatial meaning app-view.js chooses:
 
-     push / pop      siblings on one layer slide sideways, the lower one
-                     receding a little so depth reads
-     cover / dismiss a deeper layer rises from the foot and drops back to it;
-                     the page beneath settles a few percent smaller
+     push / pop      siblings on one layer arrive from the right / the left
+     cover / dismiss a deeper layer arrives from the foot; the page beneath
+                     returns from the head
 
    Every keyframe is a transform. Opacity, filter, mask or clip-path on the
-   ghost, the host, or anything above them defeats backdrop-filter and the
-   glass flashes flat mid-move, so none is used here. The ghost's own scroll
-   box carries the outgoing page at the exact offset it was read at, with
-   spacers standing in for the masthead and navbar the clone sits between.
+   host or anything above it defeats backdrop-filter and the glass flashes
+   flat mid-move, so a crossfade is not an option here. The host holds its
+   start pose hidden until the swap lands (data-view), then runs (data-run).
 
    Attribute selectors only: the shell's host and the library's specimen host
-   share these without sharing a class. data-scope / data-view-scope="local"
-   bounds the movement to a frame instead of the viewport. */
-.app-view-ghost{position:fixed;inset:0;z-index:1;overflow:hidden;pointer-events:none}
-.app-view-ghost[data-scope="local"]{position:absolute}
-.app-view-ghost[data-kind="pop"],.app-view-ghost[data-kind="dismiss"]{z-index:2}
-.app-view-ghost-scroll{height:100%;overflow:hidden;transform-origin:50% 50%;animation:var(--motion-view) var(--motion-ease) both paused}
-.app-view-ghost-scroll::before{content:"";display:block;height:var(--app-masthead-height)}
-.app-view-ghost-scroll::after{content:"";display:block;height:var(--app-navbar-height)}
-[data-view]{transform-origin:50% calc(50vh - var(--app-masthead-height));animation:var(--motion-view) var(--motion-ease) both paused}
-[data-view][data-view-scope="local"]{transform-origin:50% 50%}
-.app-view-ghost[data-run] .app-view-ghost-scroll,[data-view][data-run]{animation-play-state:running}
-
-.app-view-ghost[data-kind="push"] .app-view-ghost-scroll{animation-name:app-view-push-out}
-.app-view-ghost[data-kind="pop"] .app-view-ghost-scroll{animation-name:app-view-pop-out}
-.app-view-ghost[data-kind="cover"] .app-view-ghost-scroll{animation-name:app-view-cover-out}
-.app-view-ghost[data-kind="dismiss"] .app-view-ghost-scroll{animation-name:app-view-dismiss-out}
+   share these without sharing a class. */
+[data-view]{visibility:hidden;animation:var(--motion-view) var(--motion-ease-inout) both paused}
+[data-view][data-run]{visibility:visible;animation-play-state:running}
 [data-view="push"]{animation-name:app-view-push-in}
 [data-view="pop"]{animation-name:app-view-pop-in}
 [data-view="cover"]{animation-name:app-view-cover-in}
-[data-view="push"][data-view-scope="local"]{animation-name:app-view-push-in-local}
-[data-view="cover"][data-view-scope="local"]{animation-name:app-view-cover-in-local}
-.app-view-ghost[data-scope="local"][data-kind="pop"] .app-view-ghost-scroll{animation-name:app-view-pop-out-local}
 [data-view="dismiss"]{animation-name:app-view-dismiss-in}
 
-@keyframes app-view-push-in{from{transform:translateX(100vw)}to{transform:none}}
-@keyframes app-view-push-out{from{transform:none}to{transform:translateX(-28%)}}
-@keyframes app-view-pop-in{from{transform:translateX(-28%)}to{transform:none}}
-@keyframes app-view-pop-out{from{transform:none}to{transform:translateX(100vw)}}
-@keyframes app-view-push-in-local{from{transform:translateX(100%)}to{transform:none}}
-@keyframes app-view-pop-out-local{from{transform:none}to{transform:translateX(100%)}}
-@keyframes app-view-cover-in{from{transform:translateY(100vh)}to{transform:none}}
-@keyframes app-view-cover-in-local{from{transform:translateY(100%)}to{transform:none}}
-@keyframes app-view-cover-out{from{transform:none}to{transform:translateY(-6%) scale(.96)}}
-@keyframes app-view-dismiss-in{from{transform:translateY(-6%) scale(.96)}to{transform:none}}
-@keyframes app-view-dismiss-out{from{transform:none}to{transform:translateY(100%)}}
+@keyframes app-view-push-in{from{transform:translateX(var(--motion-view-travel))}to{transform:none}}
+@keyframes app-view-pop-in{from{transform:translateX(calc(-1 * var(--motion-view-travel)))}to{transform:none}}
+@keyframes app-view-cover-in{from{transform:translateY(var(--motion-view-travel))}to{transform:none}}
+@keyframes app-view-dismiss-in{from{transform:translateY(calc(-1 * var(--motion-view-travel)))}to{transform:none}}

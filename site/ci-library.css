@@ -93,8 +93,7 @@
 .ci-shell-frame{position:relative;height:280px;overflow:auto;border:1px solid var(--app-line);border-radius:var(--radius-inset)}
 .ci-shell-frame-body{padding:16px;display:grid;gap:12px}
 /* The view-transition frame is a bounded stage rather than a scroller: the
-   moving pages are clipped at its edge, the body host is positioned so the
-   ghost layers stack against it the way they do against the shell's host,
-   and it grows so the navbar keeps the foot. */
+   arriving page is clipped at its edge, and the body host grows so the
+   navbar keeps the foot. */
 .ci-shell-frame[data-view-demo]{display:flex;flex-direction:column;height:320px;overflow:hidden}
 .ci-shell-frame[data-view-demo]>.ci-shell-frame-body{position:relative;z-index:1;flex:1 0 auto;align-content:start}

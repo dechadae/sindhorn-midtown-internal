@@ -134,9 +134,12 @@ function detailSkeletonMarkup() {
   <section class="app-section"><p class="app-section-kicker">01 · Promotion brief</p><div class="app-stack">${block()}</div></section>
   <section class="app-section"><p class="app-section-kicker">02 · Copy</p><div class="app-stack">${block()}${block()}</div></section>`;
 }
+/* The error card speaks to the employee, not the console: whatever the
+   dataset threw is logged, and the card says what to do. */
 function errorMarkup(error) {
+  if (error) console.warn('F&B promotions did not load', error);
   return `${heroMarkup('Promotions are temporarily unavailable.')}<section class="app-section"><div class="app-stack">
-    <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Could not load promotions</p><p class="app-state-copy">${esc(error?.message || 'The F&B dataset did not answer and nothing is saved on this device yet.')}</p></div>
+    <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Could not load promotions</p><p class="app-state-copy">The F&amp;B data did not come through and nothing is saved on this device yet. Check the connection and try again.</p></div>
     <div class="app-utility-row"><button class="app-utility-action" type="button" data-retry><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10a6 6 0 0 1 10.3-4.2M16 10a6 6 0 0 1-10.3 4.2M14.5 3v3h-3M5.5 17v-3h3"/></svg>Try again</button></div>
   </div></section>`;
 }

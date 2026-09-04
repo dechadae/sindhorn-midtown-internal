@@ -91,9 +91,9 @@ function paintNavbar(name) {
   account.querySelector('span').textContent = initials(getState().profile?.display_name);
 }
 
-/* Every view change moves: the outgoing page is held as a picture while the
-   next mounts beneath it, then both travel in the direction the spatial
-   model gives them. Only the first paint and a same-view repeat stay still. */
+/* Every view change moves: the outgoing page cuts and the next settles in
+   from the direction the spatial model gives it. Only the first paint and a
+   same-view repeat stay still. */
 async function route() {
   const name = resolve();
   const view = viewOf(name);
