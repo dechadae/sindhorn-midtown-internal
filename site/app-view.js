@@ -2,23 +2,24 @@
 
    The shell swaps whole pages inside one host. Without this, a tab change is
    a cut: the old markup vanishes and the new markup appears. This module
-   keeps the cut and adds a settle: the new view arrives a short way off its
-   place and eases in, in the direction the shell chooses:
+   keeps the cut and adds a fade: the new view fades up in place, and the
+   shell names the movement it stands for so the navbar can push to match:
 
-     push     the new view arrives from the right (a tab to the right)
-     pop      the new view arrives from the left (a tab to the left)
-     cover    a deeper layer arrives from the foot (Settings, sign-in)
-     dismiss  the page beneath returns from the head (closing them)
+     push     a tab to the right
+     pop      a tab to the left
+     cover    a deeper layer arriving (Settings, sign-in)
+     dismiss  the page beneath returning (closing them)
      none     a plain swap (first paint, reduced motion, an empty host)
 
-   Only the incoming page moves, and only by a transform. Nothing recedes,
-   scales or fades: opacity, filter or mask on the moving page - or on
-   anything above it - defeats backdrop-filter and the frosted material
-   flashes flat mid-move, so a crossfade is not available to a glass shell.
-   Measured in Chrome: an ancestor at opacity .6 leaves the blur at 0; a
-   transformed ancestor leaves it intact.
+   Only the incoming page animates, and only its opacity. Tried before this:
+   a two-surface slide with the outgoing page held as a clone, then a short
+   transform-only settle; both stuttered on the phone, where every frosted
+   card re-samples the live atmosphere each frame it moves. A fade never
+   moves a card. Chrome switches the backdrop blur beneath a fading page off
+   until it lands (measured; the flash is the length of the fade), which is
+   the trade the shell makes for a smooth arrival.
 
-   Travel, duration and the curve live in app-tokens.css; the keyframes in
+   Duration and curve live in app-tokens.css; the keyframes in
    app-components.css under "View transitions". This file only sequences
    the swap. */
 
@@ -42,9 +43,9 @@ function finished(host) {
 /* transitionView(host, kind, swap, { within })
 
    swap() disposes the old view and mounts the new one into host; it may be
-   async (a route module still loading). The host takes its start pose,
-   hidden, before the swap - so neither the old page nor the new one is ever
-   seen off its place - and runs as soon as the swap lands. `within` names a
+   async (a route module still loading). The host goes hidden before the
+   swap - so the new page is never seen before its fade begins - and runs
+   as soon as the swap lands. `within` names a
    bounded frame whose scroll resets instead of the document's; the
    library's specimen uses it, the shell does not. */
 export async function transitionView(host, kind, swap, { within = null } = {}) {

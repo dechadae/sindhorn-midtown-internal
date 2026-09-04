@@ -689,32 +689,24 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 }
 
 /* ---- View transitions -------------------------------------------------------
-   One page gives way to the next with a cut and a settle: the outgoing page
-   leaves at once, the incoming page arrives a short way off its place and
-   eases in over --motion-view on the plain ease-in-out curve. Nothing
-   recedes, scales or parallaxes - one moving surface, so the frosted cards
-   on it stay cheap to draw mid-move - and the direction still carries the
-   spatial meaning app-view.js chooses:
+   One page gives way to the next with a cut and a fade: the outgoing page
+   leaves at once and the incoming page fades up in place over --motion-view
+   on the plain ease-in-out curve. Nothing moves, recedes or scales - a
+   single opacity ramp on one surface, the cheapest thing a phone can
+   composite over the live atmosphere. app-view.js still names the movement
+   (push, pop, cover, dismiss) so the navbar and anything else that wants a
+   direction can read it; the page itself treats all four alike.
 
-     push / pop      siblings on one layer arrive from the right / the left
-     cover / dismiss a deeper layer arrives from the foot; the page beneath
-                     returns from the head
+   This is the one place the shell animates opacity on a page. Chrome turns
+   the backdrop blur beneath the fading page off until it reaches full
+   opacity and back on as it lands (measured); the fade is short enough that
+   the material reads as arriving with the page. Filter, mask and clip-path
+   are still never animated.
 
-   Every keyframe is a transform. Opacity, filter, mask or clip-path on the
-   host or anything above it defeats backdrop-filter and the glass flashes
-   flat mid-move, so a crossfade is not an option here. The host holds its
-   start pose hidden until the swap lands (data-view), then runs (data-run).
-
-   Attribute selectors only: the shell's host and the library's specimen host
-   share these without sharing a class. */
-[data-view]{visibility:hidden;animation:var(--motion-view) var(--motion-ease-inout) both paused}
+   The host holds its start pose hidden until the swap lands (data-view),
+   then runs (data-run). Attribute selectors only: the shell's host and the
+   library's specimen host share these without sharing a class. */
+[data-view]{visibility:hidden;animation:app-view-fade-in var(--motion-view) var(--motion-ease-inout) both paused}
 [data-view][data-run]{visibility:visible;animation-play-state:running}
-[data-view="push"]{animation-name:app-view-push-in}
-[data-view="pop"]{animation-name:app-view-pop-in}
-[data-view="cover"]{animation-name:app-view-cover-in}
-[data-view="dismiss"]{animation-name:app-view-dismiss-in}
 
-@keyframes app-view-push-in{from{transform:translateX(var(--motion-view-travel))}to{transform:none}}
-@keyframes app-view-pop-in{from{transform:translateX(calc(-1 * var(--motion-view-travel)))}to{transform:none}}
-@keyframes app-view-cover-in{from{transform:translateY(var(--motion-view-travel))}to{transform:none}}
-@keyframes app-view-dismiss-in{from{transform:translateY(calc(-1 * var(--motion-view-travel)))}to{transform:none}}
+@keyframes app-view-fade-in{from{opacity:0}to{opacity:1}}

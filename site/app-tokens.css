@@ -82,9 +82,8 @@
   --motion-fast:160ms;
   --motion-reveal:920ms;   /* a data track drawing itself in */
   --motion-view:300ms;     /* one page giving way to the next */
-  --motion-view-travel:32px; /* how far off its place a page arrives from */
   --motion-ease:cubic-bezier(.22,1,.36,1);
-  --motion-ease-inout:ease-in-out; /* a page or a navbar set moving into place */
+  --motion-ease-inout:ease-in-out; /* a page fading up, a navbar set moving into place */
   --motion-fade:linear;
 }
 
