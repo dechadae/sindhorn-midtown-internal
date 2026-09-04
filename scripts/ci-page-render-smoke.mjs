@@ -119,7 +119,7 @@ const report = await page.evaluate(([expect, motionSelectors]) => {
   };
   // Secondary text has to stay legible on a phone: every muted label, delta,
   // meta and note in the library must sit at or above this floor.
-  const smallText = ['.app-metric-label','.app-metric-delta','.app-metric-note','.app-list-row-meta','.app-list-row-end','.app-surface-label','.app-section-kicker','.app-disclosure-kicker','.app-disclosure-copy','.app-note']
+  const smallText = ['.app-metric-label','.app-metric-delta','.app-metric-note','.app-list-row-meta','.app-list-row-end','.app-surface-label','.app-section-kicker','.app-disclosure-kicker','.app-disclosure-copy','.app-note','.app-field label','.app-field-note','.app-select-label','.app-dialog-kicker','.app-table','.app-table thead th','.app-state-label','.app-state-copy','.app-figure figcaption','.app-action-card-status','.app-action-card-date','.app-badge']
     .map(selector => { const node = document.querySelector(selector); return { selector, size: node ? parseFloat(getComputedStyle(node).fontSize) : null }; });
   const trackDrawn = (() => { const bar = document.querySelector('.app-track-bar'); if (!bar) return null; const m = new DOMMatrix(getComputedStyle(bar).transform); return { ready: document.querySelector('.app-page').dataset.trackReady === 'true', scaleX: m.a }; })();
   const sectionDivider = (() => { const node = document.querySelector('.app-card-section+.app-card-section'); if (!node) return null; const style = getComputedStyle(node); return { border: `${style.borderTopWidth} ${style.borderTopStyle}`, color: style.borderTopColor }; })();

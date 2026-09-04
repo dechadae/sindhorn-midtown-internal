@@ -44,8 +44,8 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-action-card-button:active{transform:scale(.995);opacity:.9}
 .app-action-card-button:focus-visible{outline:2px solid var(--app-accent);outline-offset:-3px}
 .app-action-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-.app-action-card-status{color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
-.app-action-card-date{color:var(--app-muted);font-size:var(--type-caption);white-space:nowrap}
+.app-action-card-status{color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
+.app-action-card-date{color:var(--app-muted);font-size:var(--type-small);white-space:nowrap}
 .app-action-card-title{margin:8px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight)}
 .app-action-card-copy{margin:5px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-action-card-foot{margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--app-muted);font-size:var(--type-small)}
@@ -114,7 +114,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    An input reads as a well, not a raised surface, so it takes the inset fill
    rather than the card material. */
 .app-field{display:grid;gap:6px;min-width:0}
-.app-field label{color:var(--app-muted);font-size:var(--type-caption);text-transform:uppercase}
+.app-field label{color:var(--app-muted);font-size:var(--type-small);text-transform:uppercase}
 .app-field label span{opacity:.72;text-transform:none}
 .app-field input,.app-field textarea,.app-field select{
   width:100%;min-height:48px;padding:10px 12px;
@@ -129,14 +129,14 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
   box-shadow:0 0 0 3px rgba(var(--app-accent-rgb),.08);
 }
 .app-field input:disabled,.app-field textarea:disabled,.app-field select:disabled{opacity:.45;cursor:default}
-.app-field-note{color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-body)}
+.app-field-note{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-field[data-tone="error"] .app-field-note{color:#E3A2A8}
 
 /* ---- Selector --------------------------------------------------------------
    Behaviour lives in app-select.js. The trigger is a control; the menu floats
    above content, so it is an overlay rather than a card. */
 .app-select{position:relative;min-width:0;display:grid;gap:6px}
-.app-select-label{color:var(--app-muted);font-size:var(--type-caption);text-transform:uppercase}
+.app-select-label{color:var(--app-muted);font-size:var(--type-small);text-transform:uppercase}
 .app-select-trigger{
   width:100%;min-height:40px;padding:0 12px;
   display:flex;align-items:center;justify-content:space-between;gap:10px;
@@ -279,7 +279,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
   display:inline-flex;align-items:center;justify-content:center;
   border-radius:var(--radius-pill);
   background:rgba(var(--app-accent-rgb),.16);
-  color:var(--app-accent);font-size:var(--type-caption);font-variant-numeric:tabular-nums;line-height:1;
+  color:var(--app-accent);font-size:var(--type-small);font-variant-numeric:tabular-nums;line-height:1;
 }
 .app-badge[data-tone="quiet"]{background:var(--app-inset-fill);color:var(--app-muted)}
 
@@ -354,7 +354,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-dialog::backdrop,.app-sheet::backdrop{background:rgba(14,11,19,.48);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
 .app-dialog-body{padding:22px}
 .app-dialog-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
-.app-dialog-kicker{margin:0 0 4px;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-dialog-kicker{margin:0 0 4px;color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
 .app-dialog-title{margin:0;font-size:var(--type-title);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
 .app-dialog-copy{margin:8px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-dialog-actions{margin-top:22px;display:flex;align-items:center;justify-content:flex-end;gap:10px}
@@ -364,17 +364,19 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    Dense data scrolls horizontally rather than compressing. The first column is
    sticky, so it must be opaque enough to cover the cells passing beneath it —
    a transparent sticky column lets numbers slide under the row label. */
-.app-table-wrap{overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
-.app-table{width:max(650px,100%);border-collapse:collapse;font-size:var(--type-micro);font-variant-numeric:tabular-nums}
+/* contain:inline-size — the wide table scrolls inside the wrap and never sizes
+   the page around it. */
+.app-table-wrap{overflow-x:auto;contain:inline-size;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+.app-table{width:max(650px,100%);border-collapse:collapse;font-size:var(--type-body-s);font-variant-numeric:tabular-nums}
 .app-table th,.app-table td{padding:10px 8px;border-bottom:1px solid var(--app-line);text-align:center;white-space:nowrap}
-.app-table thead th{color:var(--app-muted);font-size:var(--type-caption);font-weight:var(--weight-regular);text-transform:uppercase}
+.app-table thead th{color:var(--app-muted);font-size:var(--type-small);font-weight:var(--weight-regular);text-transform:uppercase}
 .app-table thead th:first-child{width:108px;min-width:108px;max-width:108px}
 .app-table tbody th{
   position:sticky;left:0;z-index:1;
   width:108px;min-width:108px;max-width:108px;
   text-align:left;font-weight:var(--weight-regular);white-space:normal;line-height:var(--leading-label);
 }
-.app-table tbody th small{display:block;margin-top:3px;color:var(--app-muted);font-size:var(--type-caption);font-weight:var(--weight-regular);line-height:var(--leading-label)}
+.app-table tbody th small{display:block;margin-top:3px;color:var(--app-muted);font-size:var(--type-small);font-weight:var(--weight-regular);line-height:var(--leading-label)}
 
 /* Reduced motion belongs with the components that declare the motion. Equal
    specificity later in the same file wins, so no cascade override is needed. */
@@ -474,9 +476,9 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    can do next, without changing the product's visual language. One component,
    four tones. */
 .app-state{padding:16px 17px;border-radius:var(--radius-surface)}
-.app-state-label{color:var(--app-muted);font-size:var(--type-caption);text-transform:uppercase}
+.app-state-label{color:var(--app-muted);font-size:var(--type-small);text-transform:uppercase}
 .app-state-title{margin:6px 0 0;font-size:var(--type-body);font-weight:var(--weight-regular);line-height:var(--leading-label)}
-.app-state-copy{margin:5px 0 0;color:var(--app-muted);font-size:var(--type-micro);line-height:var(--leading-body)}
+.app-state-copy{margin:5px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-state[data-tone="success"] .app-state-label{color:#72A75D}
 .app-state[data-tone="error"] .app-state-label{color:#E3A2A8}
 .app-state[data-tone="loading"] .app-state-label{color:var(--app-accent)}
@@ -496,7 +498,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    Official imagery keeps an intentional aspect ratio and labels its provenance. */
 .app-figure{margin:0;overflow:hidden;border-radius:var(--radius-surface)}
 .app-figure img{display:block;width:100%;height:auto}
-.app-figure figcaption{padding:10px 14px;color:var(--app-muted);font-size:var(--type-caption)}
+.app-figure figcaption{padding:10px 14px;color:var(--app-muted);font-size:var(--type-small)}
 
 @media(prefers-reduced-motion:reduce){
   .app-skeleton-line,.app-skeleton-block{animation:none}

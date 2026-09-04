@@ -15,9 +15,9 @@
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=2">
 <link rel="stylesheet" href="/app-glass.css?v=7">
-<link rel="stylesheet" href="/app-components.css?v=7">
+<link rel="stylesheet" href="/app-components.css?v=8">
 <link rel="stylesheet" href="/app-shell.css?v=1">
-<link rel="stylesheet" href="/ci-library.css?v=3">
+<link rel="stylesheet" href="/ci-library.css?v=4">
 </head>
 <body>
 
@@ -127,10 +127,11 @@
       <div class="ci-type-row"><span class="ci-type-meta">Title<br>100</span><span class="app-section-title">Rooms &amp; Suites</span></div>
       <div class="ci-type-row"><span class="ci-type-meta">Lead<br>400</span><span class="ci-type-lead">Fried Chicken &amp; Waffles</span></div>
       <div class="ci-type-row"><span class="ci-type-meta">Body<br>400</span><span class="ci-type-body">Concise operational copy stays readable over the live atmosphere.</span></div>
-      <div class="ci-type-row"><span class="ci-type-meta">Small<br>400</span><span class="ci-type-small">Supporting detail and metadata.</span></div>
-      <div class="ci-type-row"><span class="ci-type-meta">Caption<br>400</span><span class="ci-type-caption">Meeting capacity</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Small<br>400 · 12px</span><span class="ci-type-small">Supporting detail, deltas, metadata.</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Label<br>400 · 11px</span><span class="ci-type-label">Meeting capacity</span></div>
       <div class="ci-type-row"><span class="ci-type-meta">Data<br>400</span><span class="ci-type-data">393</span></div>
     </div>
+    <p class="app-note">11px is the floor. No library component sets secondary text below it — labels, kickers, deltas, notes, table cells and captions all sit at 11 or 12px — and the render gate fails the page if one does. The 9 and 10px tokens still exist for legacy routes only. Text inside library structure carries no user-agent margin: a component states the space it needs and a paragraph never adds its own.</p>
   </section>
 
   <!-- ========================= 04 SHAPE & MOTION ========================= -->
@@ -144,6 +145,7 @@
         <tr><th>Inset</th><td><code>--radius-inset</code> 10px — fields, chips, menus</td></tr>
         <tr><th>Press</th><td><code>--motion-fast</code> 160ms — immediate feedback</td></tr>
         <tr><th>State</th><td><code>--motion-ms</code> 280ms — component settles</td></tr>
+        <tr><th>Reveal</th><td><code>--motion-reveal</code> 920ms — data draws itself in (see 12 Metrics)</td></tr>
         <tr><th>Easing</th><td><code>--motion-ease</code> cubic-bezier(.22, 1, .36, 1)</td></tr>
         <tr><th>Reduced</th><td>Reduced motion removes transitions without hiding state</td></tr>
       </tbody>
@@ -524,7 +526,7 @@
   <section class="app-section" id="shell">
     <p class="app-section-kicker">18 · Shell</p>
     <h2 class="app-section-title">A Sticky Header and Footer That Frost What Passes Under Them</h2>
-    <p class="app-section-lede">The public app shell is exactly these two elements: a masthead carrying the logo, and a four-button navbar. Scroll the frame below — this is the same markup /next uses.</p>
+    <p class="app-section-lede">The public app shell is exactly these two elements: a masthead carrying the logo, and a four-button navbar, both one band of <code>--app-shell-band</code> 56px so the top and bottom match. Scroll the frame below — this is the same markup /next uses.</p>
     <div class="ci-stack is-single">
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-masthead / .app-navbar</span><span>scroll inside the frame</span></div>
@@ -611,6 +613,9 @@
       <div class="ci-rule"><b>Material is declared, never redefined.</b><span>A page consumes .app-card, .app-control or .app-overlay. No page declares fill, edge or blur of its own.</span></div>
       <div class="ci-rule"><b>Glass never nests.</b><span>A backdrop filter inside a backdrop filter samples its parent, not the page, and renders as a flat tint. The library handles this so a page cannot get it wrong.</span></div>
       <div class="ci-rule"><b>Reuse before creating.</b><span>If a page needs something that is not here, it is added here first and then consumed. A component that exists only inside one route is not a component.</span></div>
+      <div class="ci-rule"><b>One rhythm between sections.</b><span>44px between sections, 24px from the hero to the first one, 20px from a title to its content, 12px between cards in a stack, and a hairline between groups inside one card. A page never sets its own gaps.</span></div>
+      <div class="ci-rule"><b>Secondary text never drops below 11px.</b><span>Labels, deltas, notes and metadata are 11 or 12px. A rule that shrinks them fails the render gate.</span></div>
+      <div class="ci-rule"><b>Geometry is never inline.</b><span>A data-driven length is an SVG attribute or a data attribute the library maps, not a style attribute. The track in 12 Metrics is the pattern.</span></div>
       <div class="ci-rule"><b>One typeface, zero tracking.</b><span>LINE Seed Sans TH at 100, 400 or 700. Application chrome never adjusts letter spacing.</span></div>
       <div class="ci-rule"><b>Rounded, never circular.</b><span>Corners are soft. Circular and capsule chrome are not part of this system.</span></div>
       <div class="ci-rule"><b>Motion explains state.</b><span>Press is immediate, state settles with one easing family, and reduced motion removes the transition without hiding what changed.</span></div>

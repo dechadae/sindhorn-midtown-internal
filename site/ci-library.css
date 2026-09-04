@@ -85,8 +85,9 @@
 /* Type-scale display. These exist to SHOW a size, so they belong to the
    reference page rather than the library. */
 .ci-type-lead{font-size:var(--type-lead)}
-.ci-type-.ci-type-small{font-size:var(--type-small)}
-.ci-type-caption{font-size:var(--type-caption);color:var(--app-accent);text-transform:uppercase}
+.ci-type-body{font-size:var(--type-body)}
+.ci-type-small{font-size:var(--type-body-s);color:var(--app-muted)}
+.ci-type-label{font-size:var(--type-small);color:var(--app-accent);text-transform:uppercase}
 .ci-type-data{font-size:var(--type-title);font-variant-numeric:tabular-nums}
 
 /* ---- shell frame ---------------------------------------------------------
