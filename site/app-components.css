@@ -46,10 +46,21 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-action-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .app-action-card-status{color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
 .app-action-card-date{color:var(--app-muted);font-size:var(--type-small);white-space:nowrap}
-.app-action-card-title{margin:8px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight)}
-.app-action-card-copy{margin:5px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-action-card-title{display:block;margin:8px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight)}
+.app-action-card-copy{display:block;margin:5px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-action-card-foot{margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--app-muted);font-size:var(--type-small)}
 .app-action-card-foot svg{width:14px;height:14px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.5}
+/* A card can carry one line of progress above its foot (label left, tally
+   right, .app-track beneath) and a row of frameless secondary actions below
+   the press surface. The actions sit outside the button so a tap on Share
+   never also opens the detail. */
+.app-action-card-meta{margin-top:12px;padding-top:11px;border-top:1px solid var(--app-line);display:flex;align-items:baseline;justify-content:space-between;gap:12px;color:var(--app-muted);font-size:var(--type-small);text-transform:uppercase}
+.app-action-card-meta b{color:var(--app-text);font-weight:var(--weight-regular);font-size:var(--type-body-s);text-transform:none;font-variant-numeric:tabular-nums}
+.app-action-card-actions{min-height:44px;padding:2px 10px 4px;display:flex;align-items:center;justify-content:flex-end;gap:4px;border-top:1px solid var(--app-line)}
+.app-action-card-actions>:first-child:not(:last-child){margin-right:auto}
+/* Status reads as a tone, the same vocabulary a badge and a state use. */
+.app-action-card-status[data-tone="success"],.app-hero-eyebrow[data-tone="success"]{color:#72A75D}
+.app-action-card-status[data-tone="quiet"],.app-hero-eyebrow[data-tone="quiet"]{color:var(--app-muted)}
 
 /* ---- Primary action --------------------------------------------------------
    The emphatic control on a page. .app-control supplies the material; the
@@ -173,6 +184,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
   display:inline-flex;align-items:center;gap:8px;
   border:0;background:transparent;
   color:var(--app-muted);font:inherit;font-size:var(--type-body-s);line-height:1;
+  text-decoration:none;
   cursor:pointer;
   transition:color var(--motion-ms) ease,transform var(--motion-fast) var(--motion-ease);
 }
@@ -246,6 +258,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-sheet-grip{width:38px;height:4px;margin:10px auto 0;border-radius:var(--radius-pill);background:var(--app-line)}
 .app-sheet-body{padding:16px max(20px,env(safe-area-inset-left)) calc(20px + env(safe-area-inset-bottom));overflow:auto}
 .app-sheet-title{margin:6px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight)}
+.app-sheet-title+.app-list,.app-sheet-title+.app-stack,.app-sheet-title+.app-field{margin-top:14px}
 
 /* ---- Check ------------------------------------------------------------------
    A task or artwork item that can be marked done. The label is the hit target,
@@ -292,6 +305,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
   display:flex;align-items:center;justify-content:space-between;gap:14px;
 }
 .app-list-row+.app-list-row{border-top:1px solid var(--app-line)}
+a.app-list-row{color:inherit;text-decoration:none}
 .app-list-row-main{min-width:0;display:grid;gap:3px}
 .app-list-row-title{font-size:var(--type-body);line-height:var(--leading-label);overflow-wrap:anywhere}
 .app-list-row-meta{color:var(--app-muted);font-size:var(--type-body-s)}
@@ -309,6 +323,13 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-prose ul,.app-prose ol{margin:0;padding-left:20px;display:grid;gap:6px;font-size:var(--type-body);line-height:var(--leading-body)}
 .app-prose strong{font-weight:var(--weight-bold)}
 .app-prose a{color:var(--app-accent);text-underline-offset:3px}
+.app-prose[data-verbatim="true"]{white-space:pre-line}
+/* Long copy opens collapsed to a readable height and fades out at the bottom;
+   the toggle is a utility action, and open removes the limit rather than
+   animating to a guessed height. */
+.app-clamp{position:relative;max-height:170px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent 100%)}
+.app-clamp[data-open="true"]{max-height:none;-webkit-mask-image:none;mask-image:none}
+.app-clamp+.app-utility-action{margin-top:4px}
 
 /* ---- Divider ----------------------------------------------------------------
    One hairline, one token. Pages were drawing their own. */
@@ -340,6 +361,13 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-chip:active{transform:scale(.97)}
 .app-chip[aria-pressed="true"],.app-chip.is-active{color:var(--app-accent);border-color:rgba(var(--app-accent-rgb),.38)}
 .app-chip:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
+/* A rail is a row of chips that stays put under the masthead while a long
+   detail scrolls. The rail itself has no edge and no material — each chip
+   frosts what passes under it on its own, so nothing nests. */
+.app-rail{position:sticky;top:calc(var(--app-masthead-height) + 10px);z-index:60;display:flex;gap:8px;margin-top:20px}
+.app-rail .app-chip{flex:1 1 0;min-width:0;justify-content:center;padding-inline:6px}
+/* A section reached through the rail lands below it, not under it. */
+.app-rail~.app-section{scroll-margin-top:calc(var(--app-masthead-height) + 62px)}
 
 /* ---- Dialog ----------------------------------------------------------------
    The dialog declares .app-overlay in markup. The scrim is not a card: it dims
@@ -456,6 +484,11 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-section>.app-card,
 .app-section>.app-metric-grid,
 .app-section>.app-disclosure{margin-top:20px}
+/* 20px is the distance from a title to its content; a section that opens
+   straight into content has no title to be 20px from. */
+.app-section>.app-stack:first-child,.app-section>.app-card:first-child{margin-top:0}
+/* Two selectors side by side share the row equally. */
+.app-row>.app-select{flex:1 1 140px}
 .app-section-subhead{margin:28px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-label)}
 .app-section-subhead+.app-stack{margin-top:12px}
 .app-note{margin:12px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
@@ -466,10 +499,12 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    when they are rebuilt; until then the shim keeps them working. */
 .app-hero{padding:22px 0 20px;border-bottom:1px solid var(--app-line)}
 /* The first section after the hero reads as its continuation, not a new chapter. */
-.app-hero+.app-section{padding-top:24px}
+.app-hero+.app-section,.app-rail+.app-section{padding-top:24px}
 .app-hero-eyebrow{margin:0;color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
 .app-hero-title{margin:10px 0 0;font-size:var(--type-display);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
 .app-hero-copy{margin:12px 0 0;max-width:56ch;color:var(--app-muted);font-size:var(--type-lead);line-height:var(--leading-body)}
+.app-hero>.app-back-control{margin-bottom:16px}
+.app-hero>.app-row{margin-top:16px}
 
 /* ---- Operational states -----------------------------------------------------
    Loading, empty, success and error explain what happened and what the employee

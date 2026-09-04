@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=2">
 <link rel="stylesheet" href="/app-glass.css?v=7">
-<link rel="stylesheet" href="/app-components.css?v=8">
+<link rel="stylesheet" href="/app-components.css?v=9">
 <link rel="stylesheet" href="/app-shell.css?v=1">
 <link rel="stylesheet" href="/ci-library.css?v=4">
 </head>
@@ -197,6 +197,24 @@
         </article>
       </div>
       <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-action-card-meta / -actions</span><span>progress inside · actions outside the button</span></div>
+        <article class="app-action-card">
+          <button class="app-action-card-button" type="button">
+            <span class="app-action-card-head"><span class="app-action-card-status" data-tone="success">Live</span><span class="app-action-card-date">Live now</span></span>
+            <span class="app-action-card-title">Negroni Week</span>
+            <span class="app-action-card-copy">ANJU + The Lobby Lounge · 21 – 27 September 2026</span>
+            <span class="app-action-card-meta"><span>Artwork</span><b>3 / 5</b></span>
+            <svg class="app-track" aria-hidden="true"><rect class="app-track-rail" x="0" y="4" width="100%" height="2" rx="1"/><rect class="app-track-bar" x="0" y="4" width="60%" height="2" rx="1"/></svg>
+            <span class="app-action-card-foot"><span>Three Negroni creations inspired by familiar rituals.</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></span>
+          </button>
+          <div class="app-action-card-actions">
+            <a class="app-utility-action" href="#cards"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h5l2 2h7v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>Artwork folder</a>
+            <button class="app-utility-action" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9M7 6l3-3 3 3M5 11v4a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-4"/></svg>Share</button>
+          </div>
+        </article>
+        <p class="app-note">Status is a tone — <code>success</code> for live, <code>quiet</code> for ended, accent otherwise — the same vocabulary a badge and a state use. The track is the one from 12 Metrics without its reference mark: a completion, not a comparison.</p>
+      </div>
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-surface</span><span>no press state</span></div>
         <article class="app-surface"><p class="app-surface-label">Reference</p><div class="app-surface-copy">Use a non-actionable surface when the content is the destination. Do not attach a chevron or a lift unless the whole object can be acted on.</div></article>
       </div>
@@ -316,6 +334,16 @@
           <button class="app-close-control app-control" type="button" aria-label="Close"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
         </div>
         <p class="app-note">These do draw a frame, so unlike a utility action they take the material — the opposite reading of the same rule.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-rail</span><span>sticky under the masthead · chips jump within a detail</span></div>
+        <nav class="app-rail" aria-label="Sections">
+          <button class="app-chip app-control is-active" type="button">Overview</button>
+          <button class="app-chip app-control" type="button">Brief</button>
+          <button class="app-chip app-control" type="button">Copy</button>
+          <button class="app-chip app-control" type="button">Artwork</button>
+        </nav>
+        <p class="app-note">The rail has no edge and no material; each chip frosts on its own, so a sticky row never becomes glass over glass. It stays put at one band below the masthead while the section it belongs to scrolls.</p>
       </div>
     </div>
   </section>
@@ -501,6 +529,23 @@
         </div>
       </div>
       <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-clamp</span><span>long copy opens collapsed · verbatim line breaks</span></div>
+        <div class="app-card app-surface">
+          <p class="app-surface-label">English</p>
+          <div class="app-clamp" data-clamp>
+            <div class="app-prose" data-verbatim="true"><p>Negroni Week returns to ANJU and The Lobby Lounge with three creations that begin from a familiar ritual and travel somewhere else entirely.
+
+The Seoul Negroni folds toasted barley and a whisper of gochugaru into the classic build. The Lobby's version leans on Araksa tea and a bitter orange cordial made in house.
+
+Available 21 – 27 September, 5 pm until late at ANJU and from 6:30 am at The Lobby Lounge. IHG One Rewards members receive their usual recognition on the full Negroni list.
+
+Ask the team about the pairing board: three small plates built for the three drinks.</p></div>
+          </div>
+          <button class="app-utility-action" type="button" data-clamp-toggle aria-expanded="false">Show full</button>
+        </div>
+        <p class="app-note">The copy keeps its source line breaks through <code>data-verbatim</code>. Open removes the limit rather than animating to a guessed height, so nothing jumps when the text is longer than expected.</p>
+      </div>
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-section-subhead</span><span>a second heading inside one section</span></div>
         <h3 class="app-section-subhead">Outlet Performance</h3>
         <div class="app-stack">
@@ -529,6 +574,17 @@
     <h2 class="app-section-title">A Sticky Header and Footer That Frost What Passes Under Them</h2>
     <p class="app-section-lede">The public app shell is exactly these two elements: a masthead carrying the logo, and a four-button navbar, both one band of <code>--app-shell-band</code> 56px so the top and bottom match. Scroll the frame below — this is the same markup /next uses.</p>
     <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-hero with .app-back-control</span><span>a detail inside a route</span></div>
+        <header class="app-hero">
+          <button class="app-back-control app-control" type="button" aria-label="Back to promotions"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button>
+          <p class="app-hero-eyebrow" data-tone="success">Live</p>
+          <h1 class="app-hero-title">Negroni Week</h1>
+          <p class="app-hero-copy">21 – 27 September 2026</p>
+          <div class="app-row"><button class="app-utility-action" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9M7 6l3-3 3 3M5 11v4a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-4"/></svg>Share</button></div>
+        </header>
+        <p class="app-note">A detail is the same hero with a back control above the eyebrow and, when the object can be acted on, one row of utility actions below the copy. The eyebrow takes a status tone where the object has one.</p>
+      </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-masthead / .app-navbar</span><span>scroll inside the frame</span></div>
         <div class="ci-shell-frame">
@@ -617,6 +673,7 @@
       <div class="ci-rule"><b>One rhythm between sections.</b><span>44px between sections, 24px from the hero to the first one, 20px from a title to its content, 12px between cards in a stack, and a hairline between groups inside one card. A page never sets its own gaps.</span></div>
       <div class="ci-rule"><b>Secondary text never drops below 11px.</b><span>Labels, deltas, notes and metadata are 11 or 12px. A rule that shrinks them fails the render gate.</span></div>
       <div class="ci-rule"><b>Geometry is never inline.</b><span>A data-driven length is an SVG attribute or a data attribute the library maps, not a style attribute. The track in 12 Metrics is the pattern.</span></div>
+      <div class="ci-rule"><b>Status is a tone, not a colour.</b><span>A card's status, a hero's eyebrow, a badge and a state all speak the same two words — success, quiet — and the library maps them. A page never picks a colour for a state.</span></div>
       <div class="ci-rule"><b>One typeface, zero tracking.</b><span>LINE Seed Sans TH at 100, 400 or 700. Application chrome never adjusts letter spacing.</span></div>
       <div class="ci-rule"><b>Rounded, never circular.</b><span>Corners are soft. Circular and capsule chrome are not part of this system.</span></div>
       <div class="ci-rule"><b>Motion explains state.</b><span>Press is immediate, state settles with one easing family, and reduced motion removes the transition without hiding what changed.</span></div>
@@ -713,6 +770,17 @@ for (const root of document.querySelectorAll('[data-select]')) {
 // Chips
 for (const chip of document.querySelectorAll('.app-chip')) {
   chip.addEventListener('click', () => chip.classList.toggle('is-active'));
+}
+
+// Clamp — the toggle owns the state; open removes the limit rather than measuring.
+for (const button of document.querySelectorAll('[data-clamp-toggle]')) {
+  button.addEventListener('click', () => {
+    const clamp = button.previousElementSibling;
+    const open = clamp?.dataset.open === 'true';
+    if (clamp) clamp.dataset.open = String(!open);
+    button.setAttribute('aria-expanded', String(!open));
+    button.textContent = open ? 'Show full' : 'Show less';
+  });
 }
 
 // Dialog

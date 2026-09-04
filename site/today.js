@@ -257,16 +257,17 @@ function errorMarkup(error) {
   </div></section>`;
 }
 
-async function refresh(host, { force = false } = {}) {
+async function refresh(host, { force = false, alive = () => true } = {}) {
   host.innerHTML = skeletonMarkup();
   try {
     const data = await loadBusinessDashboard({ force });
+    if (!alive()) return;
     host.innerHTML = render(data);
     // Tracks draw themselves in after first paint; reduced motion arrives drawn.
     delete host.dataset.trackReady;
-    requestAnimationFrame(() => requestAnimationFrame(() => { host.dataset.trackReady = 'true'; }));
+    requestAnimationFrame(() => requestAnimationFrame(() => { if (alive()) host.dataset.trackReady = 'true'; }));
   } catch (error) {
-    host.innerHTML = errorMarkup(error);
+    if (alive()) host.innerHTML = errorMarkup(error);
   }
 }
 
@@ -277,9 +278,11 @@ export async function mountToday(host) {
   // live app in this same browser), the same way every other authenticated
   // route already does. It never lowers what the RPC itself requires.
   await initAuth();
-  refresh(host, { force: false });
-  host.addEventListener('click', event => {
-    if (event.target.closest('[data-today-retry]')) { refresh(host, { force: true }); return; }
+  let disposed = false;
+  const alive = () => !disposed;
+  refresh(host, { force: false, alive });
+  const onClick = event => {
+    if (event.target.closest('[data-today-retry]')) { refresh(host, { force: true, alive }); return; }
     if (event.target.closest('[data-today-top]')) { window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); return; }
     const button = event.target.closest('.app-disclosure-button');
     if (!button) return;
@@ -288,5 +291,9 @@ export async function mountToday(host) {
     const open = root.dataset.open === 'true';
     root.dataset.open = String(!open);
     button.setAttribute('aria-expanded', String(!open));
-  });
+  };
+  host.addEventListener('click', onClick);
+  // The shell calls this when it routes away, so a report that answers late
+  // never paints over the next view.
+  return () => { disposed = true; host.removeEventListener('click', onClick); delete host.dataset.trackReady; };
 }
