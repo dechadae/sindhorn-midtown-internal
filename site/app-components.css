@@ -126,7 +126,10 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-disclosure-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--motion-ms) var(--motion-ease)}
 .app-disclosure[data-open="true"] .app-disclosure-panel{grid-template-rows:1fr}
 .app-disclosure-panel-inner{overflow:hidden}
-.app-disclosure-panel-inner>*{padding:0 16px 16px}
+/* The open content sits under one hairline, so the head reads as a row of
+   its own; the hairline is inside the clipped panel, so a closed disclosure
+   shows none. */
+.app-disclosure-panel-inner>*{padding:14px 16px 16px;border-top:1px solid var(--app-line)}
 .app-disclosure-detail{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-disclosure-detail span{display:block;margin-bottom:6px;color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
 .app-disclosure-detail ul{margin:0;padding-left:18px;display:grid;gap:4px}
@@ -346,6 +349,9 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-prose strong{font-weight:var(--weight-bold)}
 .app-prose a{color:var(--app-accent);text-underline-offset:3px}
 .app-prose[data-verbatim="true"]{white-space:pre-line}
+/* A ruled prose closes each entry with the list hairline, so a run of
+   heading + paragraph pairs reads as a list, not one long column. */
+.app-prose[data-rule="true"]>p+h3{margin-top:0;padding-top:16px;border-top:1px solid var(--app-line)}
 /* Long copy opens collapsed to a readable height and fades out at the bottom;
    the toggle is a utility action, and open removes the limit rather than
    animating to a guessed height. */
@@ -392,8 +398,11 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    frosts what passes under it on its own, so nothing nests. */
 .app-rail{position:sticky;top:calc(var(--app-masthead-height) + 10px);z-index:60;display:flex;gap:8px;margin-top:20px}
 .app-rail .app-chip{flex:1 1 0;min-width:0;justify-content:center;padding-inline:6px}
+/* Fixed columns wrap a longer rail into rows of equal chips. */
+.app-rail[data-columns="3"]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
 /* A section reached through the rail lands below it, not under it. */
 .app-rail~.app-section,.app-page.is-shell>.app-rail~.app-section{scroll-margin-top:calc(var(--app-masthead-height) + 62px)}
+.app-rail[data-columns="3"]~.app-section,.app-page.is-shell>.app-rail[data-columns="3"]~.app-section{scroll-margin-top:calc(var(--app-masthead-height) + 102px)}
 
 /* ---- Dialog ----------------------------------------------------------------
    The dialog declares .app-overlay in markup. The scrim is not a card: it dims
@@ -592,6 +601,10 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-figure{margin:0;overflow:hidden;border-radius:var(--radius-surface)}
 .app-figure img{display:block;width:100%;height:auto}
 .app-figure figcaption{padding:10px 14px;color:var(--app-muted);font-size:var(--type-small)}
+/* Inside a card or disclosure the figure is an inset: it takes the inset
+   radius and its caption sits on the text column. */
+:where(.app-card,.app-disclosure) .app-figure{border-radius:var(--radius-inset)}
+:where(.app-card,.app-disclosure) .app-figure figcaption{padding-inline:0}
 
 @media(prefers-reduced-motion:reduce){
   .app-skeleton-line,.app-skeleton-block{animation:none}

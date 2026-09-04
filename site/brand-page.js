@@ -84,9 +84,9 @@ function historyMarkup() {
     const image = HISTORY_IMAGES[p.period];
     // Inside a disclosure nothing draws an edge (glass never nests), so
     // the context stands as a bare label and copy.
-    const body = `<div><p class="app-surface-label">At this time</p><div class="app-surface-copy">${esc(p.context)}</div></div>
-      ${image ? figure(HISTORY_IMAGE_BASE + image[0], '', image[1], { width: 750, height: image[2] }) : ''}
-      <div class="app-prose">${p.milestones.map(m => `<h3>${esc(m[0])} · ${esc(m[1])}</h3><p>${esc(m[2])}</p>`).join('')}</div>`;
+    const body = `${image ? figure(HISTORY_IMAGE_BASE + image[0], '', image[1], { width: 750, height: image[2] }) : ''}
+      <div><p class="app-surface-label">At this time</p><div class="app-surface-copy">${esc(p.context)}</div></div>
+      <div class="app-prose" data-rule="true">${p.milestones.map(m => `<h3>${esc(m[0])} · ${esc(m[1])}</h3><p>${esc(m[2])}</p>`).join('')}</div>`;
     return disclosure({ id: `period-${i}`, kicker: p.period, title: p.title, copy: `${p.milestones.length} milestone${p.milestones.length === 1 ? '' : 's'}`, body });
   };
   return `<header class="app-hero"><div class="app-hero-head">${BACK}</div><p class="app-hero-eyebrow">IHG Hotels &amp; Resorts</p><h1 class="app-hero-title">Our History</h1><p class="app-hero-copy">From a Burton-on-Trent brewery in 1777 to a global hospitality group.</p></header>
@@ -107,7 +107,7 @@ function factsheetMarkup() {
   const D = HOTEL_FACTSHEET, h = D.hotel, I = HOTEL_FACTSHEET_IMAGES, S = HOTEL_FACTSHEET_SOURCES;
   const num = value => value === null || value === undefined ? '—' : String(value);
   const verified = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${D.verifiedOn}T00:00:00+07:00`));
-  const rail = `<nav class="app-rail" aria-label="Factsheet sections">${FACTSHEET_SECTIONS.map(([id, label], i) => `<button class="app-chip app-control${i === 0 ? ' is-active' : ''}" type="button" data-section="${id}"${i === 0 ? ' aria-current="true"' : ''}>${label}</button>`).join('')}</nav>`;
+  const rail = `<nav class="app-rail" data-columns="3" aria-label="Factsheet sections">${FACTSHEET_SECTIONS.map(([id, label], i) => `<button class="app-chip app-control${i === 0 ? ' is-active' : ''}" type="button" data-section="${id}"${i === 0 ? ' aria-current="true"' : ''}>${label}</button>`).join('')}</nav>`;
   const roomBody = room => `<div class="app-prose"><ul>${room.highlights.map(item => `<li>${esc(item)}</li>`).join('')}</ul></div>`;
   const venueBody = venue => `<div><p class="app-surface-label">Hours</p><div class="app-surface-copy">${venue.hours.map(esc).join('<br>')}</div></div>`;
   const facilityBody = item => `<div class="app-prose"><p>${esc(item.detail)}</p></div>`;

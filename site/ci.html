@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=3">
 <link rel="stylesheet" href="/app-glass.css?v=7">
-<link rel="stylesheet" href="/app-components.css?v=16">
+<link rel="stylesheet" href="/app-components.css?v=17">
 <link rel="stylesheet" href="/app-shell.css?v=1">
 <link rel="stylesheet" href="/ci-library.css?v=6">
 </head>
@@ -372,6 +372,18 @@
         </nav>
         <p class="app-note">The rail has no edge and no material; each chip frosts on its own, so a sticky row never becomes glass over glass. It stays put at one band below the masthead while the section it belongs to scrolls.</p>
       </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-rail data-columns="3"</span><span>a longer rail wraps to rows of three</span></div>
+        <nav class="app-rail" data-columns="3" aria-label="Sections">
+          <button class="app-chip app-control is-active" type="button">Overview</button>
+          <button class="app-chip app-control" type="button">Stay</button>
+          <button class="app-chip app-control" type="button">Dine</button>
+          <button class="app-chip app-control" type="button">Facilities</button>
+          <button class="app-chip app-control" type="button">Meet</button>
+          <button class="app-chip app-control" type="button">Access</button>
+        </nav>
+        <p class="app-note">Fixed columns keep every chip readable at phone width; a section reached through a two-row rail lands below both rows.</p>
+      </div>
     </div>
   </section>
 
@@ -569,6 +581,20 @@
         </div>
       </div>
       <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-prose data-rule</span><span>heading + paragraph pairs read as a list</span></div>
+        <div class="app-card app-surface">
+          <div class="app-prose" data-rule="true">
+            <h3>1777 · A brewery in Burton-on-Trent</h3>
+            <p>William Bass opens the brewery that becomes the group's earliest thread.</p>
+            <h3>1946 · The InterContinental brand is founded</h3>
+            <p>Pan American Airways founder Juan Trippe creates InterContinental around international air travel.</p>
+            <h3>2003 · IHG is born</h3>
+            <p>Six Continents separates its hotels business into InterContinental Hotels Group.</p>
+          </div>
+        </div>
+        <p class="app-note">Each entry after the first opens on the list hairline, so a run of milestones is a list, not one long column.</p>
+      </div>
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-clamp</span><span>long copy opens collapsed · verbatim line breaks</span></div>
         <div class="app-card app-surface">
           <p class="app-surface-label">English</p>
@@ -674,6 +700,19 @@ Ask the team about the pairing board: three small plates built for the three dri
           <figcaption>Sindhorn Midtown Hotel Bangkok — Vignette Collection wordmark</figcaption>
         </figure>
         <p class="app-note">Property and outlet photography is not shipped in this repo — Rule 6 loads it from Supabase at runtime, into a figure already laid out like this one.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-card .app-figure</span><span>inset radius · caption on the text column</span></div>
+        <div class="app-card app-surface">
+          <p class="app-surface-label">Inside material</p>
+          <div class="app-stack">
+            <figure class="app-figure">
+              <img src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection wordmark">
+              <figcaption>Sindhorn Midtown Hotel Bangkok — Vignette Collection wordmark</figcaption>
+            </figure>
+            <div class="app-surface-copy">A figure inside a card or disclosure is an inset: it takes the inset radius and its caption aligns with the copy around it.</div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
