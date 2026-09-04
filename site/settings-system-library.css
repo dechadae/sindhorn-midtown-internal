@@ -1,6 +1,0 @@
-.settings-system-library-card{display:block;margin-top:9px;color:inherit;text-decoration:none;cursor:pointer;transition:transform var(--settings-motion-base) var(--settings-ease),border-color var(--settings-motion-base) ease,background var(--settings-motion-base) ease,box-shadow var(--settings-motion-base) var(--settings-ease),opacity var(--settings-motion-fast) ease}
-.settings-system-library-card h2{font-weight:400!important}
-.settings-system-library-card:active{transform:scale(.992);opacity:.88}
-.settings-system-library-card:focus-visible{outline:2px solid var(--settings-accent);outline-offset:3px;border-color:rgba(229,236,190,.32);box-shadow:0 14px 34px rgba(12,9,18,.14)}
-@media(hover:hover){.settings-system-library-card:hover{transform:translateY(-2px);border-color:rgba(229,236,190,.25)}}
-@media(prefers-reduced-motion:reduce){.settings-system-library-card{transition:none!important}}

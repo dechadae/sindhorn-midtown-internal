@@ -6,9 +6,9 @@
      - app-glass.css unavailable  -> the masthead falls back to the Supabase
        pack's own recipe, rgba(46,39,59,0.52) + saturate(1.3): a solid purple
        bar instead of canonical 0.30 frosted glass.
-     - app-glass-runtime.js unavailable -> bootstrap.js statically imports it,
-       so the module graph fails and the authenticated shell never boots at all
-       (0 children in #app-header and #route-view).
+     - a module shell.js statically imports being unavailable offline -> the
+       module graph fails and the shell never boots at all (a blank document
+       behind the atmosphere).
 */
 import fs from 'node:fs';
 import path from 'node:path';

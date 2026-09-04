@@ -69,11 +69,11 @@ if(!fonts.includes('--font-ui:"LINE Seed Sans TH"!important'))errors.push('canon
 if(!fonts.includes('*::before,*::after{letter-spacing:0!important}'))errors.push('global zero-tracking invariant missing');
 if(!fonts.includes('font-synthesis:none'))errors.push('font weight synthesis guard missing');
 
+// r18: the shell at / is the only internal document; sign-in is a route in it.
 const index=fs.readFileSync(path.join(site,'index.html'),'utf8');
-const login=fs.readFileSync(path.join(site,'login.html'),'utf8');
-for(const [name,text] of [['index.html',index],['login.html',login]])if(!text.includes('/fonts.css?v=1'))errors.push(`${name} does not load fonts.css`);
+if(!index.includes('/fonts.css?v=1'))errors.push('index.html does not load fonts.css');
 for(const name of ['line-seed-sans-th-regular.woff2','line-seed-sans-th-thin.woff2'])if(!index.includes(name))errors.push(`index.html does not preload ${name}`);
-if(!login.includes('line-seed-sans-th-regular.woff2'))errors.push('login.html does not preload Regular 400');
+if(fs.existsSync(path.join(site,'login.html')))errors.push('login.html is retired; sign-in renders inside the shell');
 
 const sw=fs.readFileSync(path.join(site,'sw.js'),'utf8');
 for(const required of ['/fonts.css','/fonts.css?v=1','/assets/fonts/line-seed-sans-th-thin.woff2','/assets/fonts/line-seed-sans-th-regular.woff2','/assets/fonts/line-seed-sans-th-bold.woff2'])if(!sw.includes(required))errors.push(`service worker missing ${required}`);

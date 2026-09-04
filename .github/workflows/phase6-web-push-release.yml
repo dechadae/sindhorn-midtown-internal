@@ -16,7 +16,8 @@ on:
       - main
     paths:
       - "worker/**"
-      - "site/live-data.js"
+      - "site/shell.js"
+      - "site/settings-me.js"
       - "site/push-config.js"
       - "site/push-client.js"
       - "site/notification-inbox.js"
@@ -51,12 +52,12 @@ jobs:
         run: |
           set -euo pipefail
           node --check worker/src/index.js
-          node --check site/live-data.js
           node --check site/push-client.js
           node --check site/push-config.js
           node --check site/notification-inbox.js
           node --check site/sw.js
-          node --check site/location.js
+          node --input-type=module --check < site/shell.js
+          node --input-type=module --check < site/settings-me.js
           # r17: the shell at / registers the service worker; push-client.js is a
           # module API (pushStatus/enablePush/disablePush) that Settings › Me
           # consumes, and subscribing is the only permission prompt.
@@ -76,11 +77,11 @@ jobs:
           grep -q "'/push-client.js'" site/sw.js
           grep -q "addEventListener('push'" site/sw.js
           grep -q "addEventListener('notificationclick'" site/sw.js
-          grep -q "Current device location" site/location.js
-          grep -q "weatherLocationEn" site/location.js
-          grep -q "import {PUSH_API_BASE} from './push-config.js'" site/live-data.js
-          grep -q "PUSH_API_BASE+'/air-current'" site/live-data.js
-          ! grep -q "stations.airbkk.com/api/web/data" site/live-data.js
+          # r18: the legacy weather/air client modules are retired; the shell
+          # never calls AirBKK directly, and the Worker keeps the proxy contract.
+          test ! -e site/live-data.js
+          test ! -e site/location.js
+          ! grep -Rq "stations.airbkk.com" site --include='*.js' --include='*.html'
           grep -Fq "sindhorn-midtown-alerts.decha-dae.workers.dev" site/index.html
           ! grep -Fq "stations.airbkk.com" site/index.html
           grep -q "buildPushPayload" worker/src/index.js
@@ -105,7 +106,7 @@ jobs:
             grep -q "business-fnb-update" site/notification-inbox.js
             grep -q "business-rooms-update" site/notification-inbox.js
             grep -q "business updates are on" site/push-client.js
-            ! grep -R "BUSINESS_UPDATE_TOKEN" site scripts/business-notification-messages-smoke.mjs
+            ! grep -R "BUSINESS_UPDATE_TOKEN" site scripts/business-notification-worker-smoke.mjs
           fi
 
       - name: Verify AirBKK upstream public-client contract
@@ -209,12 +210,11 @@ jobs:
           BRANCH_ALIAS="${GITHUB_REF_NAME:0:28}"
           BASE_URL="https://${BRANCH_ALIAS}.sindhorn-midtown-internal.pages.dev"
           sleep 8
-          for path in / /guidance /details /messages /location.js /live-data.js /push-config.js /push-client.js /notification-inbox.js /sw.js; do
+          for path in / /guidance /details /messages /shell.js /settings-me.js /push-config.js /push-client.js /notification-inbox.js /sw.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke
             test -s /tmp/smoke
           done
           CLIENT="$(curl --fail --silent --show-error "${BASE_URL}/push-client.js")"
-          AIR_CLIENT="$(curl --fail --silent --show-error "${BASE_URL}/live-data.js")"
           INBOX="$(curl --fail --silent --show-error "${BASE_URL}/notification-inbox.js")"
           ROOT="$(curl --fail --silent --show-error "${BASE_URL}/")"
           grep -q 'src="/shell.js"' <<<"${ROOT}"
@@ -222,11 +222,9 @@ jobs:
           grep -q 'export async function enablePush' <<<"${CLIENT}"
           grep -q 'TIMEOUT_MS' <<<"${CLIENT}"
           grep -Fq "navigator.serviceWorker.register('/sw.js', { scope: '/' })" <(curl --fail --silent --show-error "${BASE_URL}/shell.js")
-          grep -q "PUSH_API_BASE+'/air-current'" <<<"${AIR_CLIENT}"
-          ! grep -q 'stations.airbkk.com/api/web/data' <<<"${AIR_CLIENT}"
           grep -q 'sindhorn-midtown-alerts.decha-dae.workers.dev' <<<"${ROOT}"
           ! grep -q 'stations.airbkk.com' <<<"${ROOT}"
-          grep -q 'Current device location' <(curl --fail --silent --show-error "${BASE_URL}/location.js")
+          grep -q 'Notifications on this phone' <(curl --fail --silent --show-error "${BASE_URL}/settings-me.js")
           SW="$(curl --fail --silent --show-error "${BASE_URL}/sw.js")"
           grep -q "addEventListener('push'" <<<"${SW}"
           grep -q "addEventListener('notificationclick'" <<<"${SW}"

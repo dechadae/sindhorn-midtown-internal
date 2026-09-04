@@ -52,20 +52,29 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # r18: the shell at / and its lazy page modules, the public share's
+          # legacy F&B runtime (until Phase 7 rebuilds /share on the shell), the
+          # Betta sources, the service worker and the Workers.
           MODULES=(
-            site/route-registry.js site/business-dashboard-data.js site/business-dashboard.js
-            site/business-dashboard-motion.js site/app-transitions.js site/auth-shell.js site/auth-client.js
-            site/login.js site/account.js site/admin.js site/capabilities.js site/settings.js
-            site/settings-route-v3.js site/fnb.js site/fnb-data.js site/fnb-share-ui.js
-            site/location.js site/bootstrap.js site/live-data.js site/betta-environment.js
-            site/betta-satellite.js site/betta-day-periods.js site/rain-now.js site/weather-authority.js
-            site/screen-capture.js site/notification-inbox.js site/push-client.js site/presentation-recovery.js
-            site/app.js site/sw.js worker/src/index.js auth-worker/src/index.js
+            site/shell.js site/auth-client.js site/signin-page.js site/today.js site/fnb-page.js
+            site/fnb-read-model.js site/messages-page.js site/brand-page.js site/settings-page.js
+            site/settings-me.js site/settings-admin.js site/settings-broadcast.js site/capabilities.js
+            site/notification-inbox.js site/broadcast-inbox.js site/push-client.js site/push-config.js
+            site/app-view.js site/app-dialog.js site/app-select.js site/app-toast.js site/app-code.js
+            site/qr-v6.js site/business-dashboard-data.js site/business-card-core.js
+            site/business-card-public.js site/business-card-renderer.js site/settings-dialog-standard.js
+            site/ci-library.js site/ci-page.js
+            site/fnb.js site/fnb-data.js site/fnb-share-ui.js site/fnb-artwork-sync.js site/betta-runtime.js
+            site/betta-environment.js site/betta-satellite.js site/betta-day-periods.js
+            site/betta-fin-presets.js site/betta-fin-shader.js site/betta-vignette-palettes.js
+            site/sw.js site/_worker.js worker/src/index.js auth-worker/src/index.js
           )
           for file in "${MODULES[@]}"; do
             test -s "$file"
             node --input-type=module --check < "$file"
           done
+          # The committed Betta bundle must be a fresh build of its sources.
+          node scripts/build-betta-runtime.mjs --check
           node --input-type=module --check < scripts/generate-fnb-share.mjs
           node --input-type=module --check < scripts/generate-pwa-icons.mjs
           node --input-type=module --check < site/share/fnb-runtime.js
@@ -75,12 +84,11 @@ jobs:
           node .github/tests/font-architecture.test.mjs
           node site/betta-day-periods.test.mjs
           node site/betta-vignette-palettes.test.mjs
-          node site/weather-authority.test.mjs
 
           python3 - <<'PY'
           from pathlib import Path
           import hashlib, json, re
-          root=Path('site'); fallback=root/'fallback'
+          root=Path('site')
           retired=(
             'environment.js','environment.bundle.js','seasonal-sky.js','atmosphere-shader.js',
             'rain-layer-legacy-weather.js','rain-layer.js','sun-dimmer.js','storm-effects.js',
@@ -92,45 +100,41 @@ jobs:
 
           index=(root/'index.html').read_text()
           sw=(root/'sw.js').read_text()
-          bootstrap=(root/'bootstrap.js').read_text()
-          auth_shell=(root/'auth-shell.js').read_text()
           betta=(root/'betta-environment.js').read_text()
-          location=(root/'location.js').read_text()
-          rain_now=(root/'rain-now.js').read_text()
-          weather_authority=(root/'weather-authority.js').read_text()
-          registry=(root/'route-registry.js').read_text()
-          transitions=(root/'app-transitions.js').read_text()
+
+          # r18: the legacy shell, its pages, the fallback pack and the legacy
+          # weather modules are gone. Nothing may bring them back.
+          legacy=(
+            'login.html','login.js','bootstrap.js','auth-shell.js','app.js','route-registry.js',
+            'app-transitions.js','app-glass-runtime.js','footer-route-guard.js','startup-skeleton.js',
+            'pwa-version-guard.js','presentation-recovery.js','screen-capture.js','account.html','admin.html',
+            'settings.js','settings-route-v3.js','brand.js','hotel-factsheet.js','ihg-history.js','fnb-route.js',
+            'business-dashboard.js','onboarding.js','ci.js','ui-system-registry.js',
+            'location.js','live-data.js','rain-now.js','weather-authority.js','vendor/html2canvas.min.js'
+          )
+          precache=re.search(r"const SHELL=\[(.*?)\];",sw,re.S).group(1)
+          for name in legacy:
+              assert not (root/name).exists(), f'legacy source deleted in r18 is back: {name}'
+              assert f"'/{name}'" not in precache, f'legacy source in the service-worker precache: {name}'
+              assert f'/{name}' not in index, f'legacy source referenced by the shell: {name}'
+          assert not (root/'fallback').exists(), 'the fallback pack was retired in r18'
 
           assert "sindhorn-midtown-internal-pwa-v41-performance-r1" in sw
           for name in retired:
               assert f"'/{name}'" not in sw, f'retired file remains in service-worker cache: {name}'
               assert f'/{name}' not in index, f'retired file remains in app shell: {name}'
 
-          # Performance audit: the tree-shaken Betta runtime is the only Three.js
-          # payload in the install path, and capture tooling loads on demand.
-          # Since r17 the shell at / imports the full runtime directly (shell.js);
-          # the bootstrap wrapper stays on disk for the legacy modules until r18.
+          # Performance audit: the tree-shaken Betta bundle is the only Three.js
+          # payload in the install path. The shell imports it directly; the
+          # betta-runtime.js bootstrap wrapper serves only the public /share pages.
           shell_js=(root/'shell.js').read_text()
           assert "'/betta-runtime-full.js'" in sw and "'/betta-runtime-full.js?v=1'" in sw
           assert "import('/betta-runtime-full.js?v=1')" in shell_js
-          assert "'/betta-runtime.js'" not in sw, 'legacy Betta bootstrap must not be precached by the r17 shell'
+          assert "'/betta-runtime.js'" not in sw, 'the share-page Betta bootstrap must not be precached by the shell'
           assert "'/vendor/three.module.js'" not in sw
-          assert "'/vendor/html2canvas.min.js'" not in sw
-          assert '/vendor/html2canvas.min.js' not in index
           assert (root/'vendor/three.module.js').exists(), 'Three source must remain available for reproducible Betta builds'
-          assert (root/'vendor/html2canvas.min.js').exists(), 'Capture library source must remain available for lazy loading'
-
-          # auth-shell.js warms Betta early and bootstrap.js imports it again later. They
-          # must be the SAME module URL or the browser evaluates two instances and
-          # initEnvironment runs twice. A literal version pin let these drift apart:
-          # auth-shell moved to ?v=2 while bootstrap stayed on ?v=1.
-          _boot=re.search(r"await import\('(\./betta-runtime\.js\?v=\d+)'\)",bootstrap)
-          _auth=re.search(r"import\('(\./betta-runtime\.js\?v=\d+)'\)",auth_shell)
-          assert _boot and _auth, 'betta-runtime import missing from bootstrap.js or auth-shell.js'
-          assert _boot.group(1)==_auth.group(1), f'betta-runtime module URL drift: bootstrap {_boot.group(1)} vs auth-shell {_auth.group(1)}'
-          # r17: index.html is the new shell and imports no legacy module.
-          for name in ('bootstrap.js','auth-shell.js','route-registry.js','betta-runtime.js','app.js','shell.css'):
-              assert f'/{name}' not in index, f'legacy module referenced by the r17 shell: {name}'
+          for name in ('betta-runtime.js','shell.css','fnb.js','fnb.css','environment.css'):
+              assert f'/{name}' not in index, f'share-page-only file referenced by the shell: {name}'
           assert '/shell.js' in index and 'manifest.webmanifest?v=5' in index
           redirects=(root/'_redirects').read_text()
           for line in ('/next / 301','/login.html / 301','/fnb /#fnb 301','/messages /#messages 301','/settings /#settings/me 301','/admin /#settings/admin 301','/hotel-factsheet /#brand/factsheet 301'):
@@ -140,24 +144,10 @@ jobs:
           assert 'const DPR=2' in betta and 'preserveDrawingBuffer:false' in betta
           assert 'startSatelliteStream' in betta
 
-          # Weather and current-rain remain operational data/UI services, not WebGL visuals.
-          assert 'sindhorn-weather-core' in location
-          assert 'sindhorn-weather-core' in rain_now
-          assert 'resolveWeatherAuthority' in rain_now
-          assert 'effectiveWeatherSnapshot' in weather_authority
-          assert 'open_meteo_used:false' in location
-
-          assert "today:Object.freeze({path:'/'" in registry
-          assert "fnb:Object.freeze({path:'/fnb'" in registry
-          assert "messages:Object.freeze({path:'/messages'" in registry
-          assert "settings:Object.freeze({path:'/settings'" in registry
-          assert 'startViewTransition' not in transitions
-
-          manifest=json.loads((fallback/'manifest.json').read_text())
-          shell_version=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
-          assert manifest['minimumShell']==shell_version==17
-          for item in manifest['resources']:
-              assert hashlib.sha256((fallback/item['path']).read_bytes()).hexdigest()==item['sha256'], item['path']
+          # The shell routes by hash inside one document; no page movement API.
+          assert 'startViewTransition' not in shell_js
+          for name in ('today','fnb','messages','brand','settings','signin'):
+              assert f"{name}:" in shell_js, f'shell route missing: {name}'
 
           pwa=json.loads((root/'manifest.webmanifest').read_text())
           assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
@@ -237,12 +227,10 @@ jobs:
           test "$promoted" = true
 
           paths=(
-            / /fnb /messages /settings /account /admin /route-registry.js
-            /business-dashboard.js /business-dashboard-data.js /business-dashboard.css
-            /business-dashboard-motion.js /business-dashboard-motion.css /auth-shell.js /auth-client.js
-            /location.js /bootstrap.js /betta-runtime.js /betta-environment.js /betta-satellite.js
-            /rain-now.js /weather-authority.js /live-data.js /notification-inbox.js /push-client.js
-            /manifest.webmanifest /sw.js /share/fnb
+            / /fnb /messages /settings /account /admin /shell.js /auth-client.js
+            /today.js /business-dashboard-data.js /betta-runtime-full.js /betta-environment.js
+            /notification-inbox.js /broadcast-inbox.js /push-client.js
+            /manifest.webmanifest /sw.js /share/fnb /betta-runtime.js
           )
           for path in "${paths[@]}"; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response
@@ -253,10 +241,16 @@ jobs:
           curl --fail --silent --show-error --location "${BASE_URL}/betta-environment.js" -o /tmp/betta.js
           ! grep -q '/rain-layer.js' /tmp/root.html
           ! grep -q '/sun-dimmer.js' /tmp/root.html
-          ! grep -q '/vendor/html2canvas.min.js' /tmp/root.html
+          grep -q 'src="/shell.js"' /tmp/root.html
           grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/sw.js
           ! grep -q "'/vendor/three.module.js'" /tmp/sw.js
-          ! grep -q "'/vendor/html2canvas.min.js'" /tmp/sw.js
+          ! grep -q "'/bootstrap.js'" /tmp/sw.js
+          # r18: deleted sources must not be served as JavaScript.
+          for legacy in bootstrap.js route-registry.js auth-shell.js login.js location.js; do
+            code=$(curl --silent --show-error --location --output /dev/null --write-out '%{http_code}' "${BASE_URL}/${legacy}")
+            ctype=$(curl --silent --show-error --location --output /dev/null --write-out '%{content_type}' "${BASE_URL}/${legacy}")
+            case "$code:$ctype" in 404:*|200:text/html*) ;; *) echo "legacy ${legacy} still served (${code} ${ctype})"; exit 1 ;; esac
+          done
           grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta.js
           grep -q "dataset.environmentInput='satellite-only'" /tmp/betta.js
 

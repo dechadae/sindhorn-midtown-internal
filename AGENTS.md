@@ -9,9 +9,16 @@ A from-scratch UI rebuild started 2 September 2026 on `land-baseline` →
 the only place a component is designed. `site/index.html` at `/` is the
 new app shell (r17, 5 September 2026): `shell.js` routes by hash, every
 legacy path redirects to its hash route (`site/_redirects`), and the installed
-PWA took it in place without a reinstall. Legacy sources (`login.html`,
-`bootstrap.js`, `route-registry.js`, `fallback/*` …) stay on disk unreachable
-until r18 deletes them and retunes the file-based gates.
+PWA took it in place without a reinstall. r18 (5 September 2026) deleted the
+legacy sources (`login.html`, `bootstrap.js`, `route-registry.js`,
+`fallback/*`, the route modules, weather/location clients, capture library,
+their smoke scripts and preview workflows) and retuned every file-based gate.
+What remains of the old app is only what the public `/share/*` generator
+still needs (`fnb.js`, `fnb-data.js`, `fnb-share-ui.js`, `fnb-artwork-sync.js`,
+`fnb*.css`, `shell.css`, `environment.css`, `betta-runtime.js`,
+`app-select.js`) until Phase 7 rebuilds `/share` on the new shell. The shell
+imports `betta-runtime-full.js`, which `scripts/build-betta-runtime.mjs`
+rebuilds byte-for-byte from the Betta sources (`--check` runs in Deploy).
 
 Full rules: **`docs/UI-CENTRALIZATION-RULES-20260903.md`** (library workflow,
 the ratchet, the glass membership rule, motion tokens) and
@@ -70,22 +77,20 @@ The single-shell router invariant is mandatory for all authenticated app feature
 - **The interface is English-only (decided 2026-08-28).** Every label, heading, button, status line, alert and push notification is English. Do not reintroduce inline Thai in interface chrome, and do not rebuild the old English/Thai pairing markup — a proper language-switch feature is planned instead, and it will select a language rather than render both at once. This supersedes the earlier "English first, Thai immediately supports it" rule in `docs/LANGUAGE-ORDER-OVERRIDE-20260825.md`.
 - **Thai content is not the same as Thai interface.** F&B promotion copy stays bilingual in the canonical Supabase F&B operational rows: the Copy section exists to hand the designer both the English and Thai marketing text for artwork, so Thai copy is work product, not chrome. `site/fnb-data.js` is only the runtime data adapter/emergency fallback structure and must not become the business-content authority again.
 - **Typography invariant: `LINE Seed Sans TH` is the sole production font family for both English and Thai. Production ships only real weights 100 / 400 / 700. Every text treatment uses zero character tracking (`letter-spacing: 0`), with no exceptions. Do not reintroduce Poppins, Noto Sans, Noto Sans Thai, Vignette Sans, IBM Plex, split-language font logic, synthetic weights, or external runtime font hosting.**
-- **Single-shell navigation invariant: every authenticated current or future screen is an SPA route mounted inside the persistent `#route-view`. Header, footer, atmosphere, auth session and app document must never unload between authenticated screens. `/login.html` is the only intentional standalone document boundary. Never add another standalone authenticated HTML page or a full-document navigation to one.**
+- **Single-shell navigation invariant: every authenticated current or future screen is an SPA route mounted inside the persistent `#route-view`. Header, footer, atmosphere, auth session and app document must never unload between authenticated screens. Sign-in is the `#signin` route of the same document; there is no standalone authenticated or sign-in HTML page. Never add one, or a full-document navigation to one.**
 - **Transition invariant: authenticated navigation animates only `#route-view` with the shared opacity crossfade. Never animate the document root, header, footer or atmosphere, and never use browser-dependent cross-document View Transitions as the primary app navigation mechanism.**
 - **Footer navigation invariant: the authenticated footer is `Today / F&B / Messages`. Guidance and Details are not standalone footer routes; their existing presentation fragments are composed below Today in the same continuous page. F&B is a live in-shell route whose operational promotion content is read from Supabase at runtime.**
 - Messages remains a footer destination and its device-local inbox works offline.
 - Environmental Alerts / Web Push is user-gesture initiated only; never auto-prompt notification permission.
 - **The active persistent visual is the Sindhorn Betta WebGL organism. Its only real-time visual/environmental authority is current JMA Himawari-9 High-Resolution Asia 1 satellite imagery over Bangkok.** No TMD station data, MET model data, AirBKK, device geolocation/orientation, local clock, calculated astronomy, microphone/camera or other sensor may be introduced as a Betta form/colour driver without a new explicit product decision.
 - The eight canonical Betta baselines are Royal Blue Halfmoon, Super Red Halfmoon, Mustard Gas, Black Orchid, Copper Metallic, Turquoise Metallic, Nemo Galaxy Koi and Red Snow Dragon. Royal Blue Halfmoon is the default baseline.
-- Current device location still drives operational TMD AWS observed weather, MET Norway cloud/forecast support, rain-now evidence and sun/moon data after permission; fallback location is Sindhorn Midtown Bangkok. Those systems are data/UI only and do not drive the Betta renderer.
-- AirBKK remains authoritative for PM2.5 and Thai AQI as operational data/UI. It does not alter Betta optics or geometry.
-- TMD AWS remains authoritative for fresh observed current local weather. MET Norway is model support for cloud/forecast fields only and must never activate current rain by itself. Open-Meteo is not a production weather dependency; its URL string in the compatibility contract is intercepted by `site/location.js` and no production Open-Meteo network request is made.
+- The client-side weather/location modules (`location.js`, `live-data.js`, `rain-now.js`, `weather-authority.js`) were retired in r18; the new shell carries no weather panel and never asks for device location. Operational weather and air evaluation lives in the Environmental Alerts Worker (`worker/src/index.js`), whose data authorities are unchanged: TMD AWS for fresh observed current weather, AirBKK for PM2.5 and Thai AQI, MET Norway as model support only. None of it drives the Betta renderer. Open-Meteo is not a production dependency.
 - Current precipitation is observation-only: fresh observed dry releases rain immediately; model/base wet signals must not activate rain. This is a data/current-rain invariant, not a visual-background driver.
 - **2026-08-31 product decision: the former weather-driven WebGL background and its visual compatibility/rollback files were removed from the deployed app.** Exact source bytes are preserved privately in Supabase table `private.legacy_weather_webgl_archive` under archive key `legacy-weather-webgl-20260831`, sourced from immutable Git commit `29b0c99941163582b84d376982e459fdf6ead85b`. Do not restore those files to the app without a new explicit product decision.
 - PWA identity stays `id=/`, `start_url=/`, `scope=/`, `display=standalone`.
 - Normal releases require no reinstall and must preserve existing push subscriptions.
-- The visible **Save full page** action was explicitly removed on 2026-08-27 from live Pack 38 and the offline fallback. Do not restore that button/action bar without a new explicit product decision. Internal capture/export code may remain as non-visible infrastructure unless separately removed.
-- Offline shell, navigation and current-location behavior are release invariants. Legacy tilt/rain/storm visual effects are not active Betta invariants.
+- The visible **Save full page** action was explicitly removed on 2026-08-27 from live Pack 38 and the offline fallback, and r18 removed the capture infrastructure (`screen-capture.js`, `vendor/html2canvas.min.js`). Do not restore either without a new explicit product decision.
+- Offline shell and navigation are release invariants. Legacy tilt/rain/storm visual effects are not active Betta invariants.
 - Mobile atmosphere quality must remain desktop-equivalent. Do not lower DPR or biological membrane quality as a performance shortcut. The active Betta renderer keeps fixed DPR 2.
 - No static atmosphere background images.
 
@@ -171,7 +176,7 @@ The older Phase 8.2 architecture documents remain historical documentation; they
 
 The former live-camera calibration system is preserved for future rooftop/360-camera adaptation, not production atmosphere.
 
-- `site/sky-calibration.js` and `site/sky-color-renderer.js` remain in repository history/source for research but are not loaded by `site/index.html` and are not cached by `site/sw.js`.
+- `site/sky-calibration.js` and `site/sky-color-renderer.js` exist only in repository history (Launch Hardening asserts they are absent from `site/`).
 - `sky-worker/src/**` remains research code.
 - Production `sky-worker/wrangler.jsonc` explicitly has an empty cron list. Therefore normal operation consumes no scheduled Workers AI allocation after that configuration is deployed to main.
 - Historical Phase 8 camera workflows are manual-only research archives.
@@ -237,7 +242,8 @@ Anything inside a glass surface takes a plain tint with no `backdrop-filter`.
 That is not a downgrade: nested glass was already rendering as its flat fill, so
 removing the declaration is visually identical and merely makes the CSS honest.
 
-Enforced in two places. `app-glass-runtime.js` refuses to stamp the material on
-an element with a glass ancestor, and `scripts/nested-glass-smoke.mjs` fails the
-build if a route declares `backdrop-filter` directly inside a glass surface —
-which is exactly how `.fnb-action-control` acquired an inert blur.
+Enforced in two places. `scripts/page-centralization-audit.mjs` rejects a
+`backdrop-filter` in any module template (the material is declared in
+`app-glass.css` only), and `scripts/nested-glass-smoke.mjs` fails the build if
+a rendered route has a blurred element inside a glass surface — which is
+exactly how `.fnb-action-control` once acquired an inert blur.

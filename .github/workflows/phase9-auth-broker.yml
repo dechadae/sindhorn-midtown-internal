@@ -8,13 +8,11 @@ on:
       - main
     paths:
       - "site/auth-client.js"
-      - "site/login.html"
-      - "site/login.js"
-      - "site/admin.html"
-      - "site/admin.js"
+      - "site/shell.js"
+      - "site/signin-page.js"
+      - "site/settings-admin.js"
       - "site/qr-v6.js"
-      - "site/internal-auth.css"
-      - "site/auth-brand.css"
+      - "site/fonts.css"
       - "test/auth-client.test.mjs"
       - "supabase/migrations/*phase9*"
       - "docs/PHASE9-*"
@@ -23,13 +21,11 @@ on:
     branches: [main]
     paths:
       - "site/auth-client.js"
-      - "site/login.html"
-      - "site/login.js"
-      - "site/admin.html"
-      - "site/admin.js"
+      - "site/shell.js"
+      - "site/signin-page.js"
+      - "site/settings-admin.js"
       - "site/qr-v6.js"
-      - "site/internal-auth.css"
-      - "site/auth-brand.css"
+      - "site/fonts.css"
       - "test/auth-client.test.mjs"
       - "supabase/migrations/*phase9*"
       - "docs/PHASE9-*"
@@ -55,8 +51,9 @@ jobs:
         run: |
           set -euo pipefail
           node --check site/auth-client.js
-          node --check site/login.js
-          node --check site/admin.js
+          node --input-type=module --check < site/shell.js
+          node --input-type=module --check < site/signin-page.js
+          node --input-type=module --check < site/settings-admin.js
           node --check site/qr-v6.js
           node --check test/auth-client.test.mjs
 
@@ -70,17 +67,23 @@ jobs:
           grep -q "sindhorn_manual_activate" site/auth-client.js
           grep -q "authBackend:'supabase'" site/auth-client.js
           grep -q "token_hash:tokenHash,type:'email'" site/auth-client.js
-          grep -q "sindhorn_admin_list_users_v3" site/admin.js
-          grep -q "sindhorn_admin_upsert_contact_v2" site/admin.js
-          grep -q "sindhorn_admin_revoke_access_v2" site/admin.js
-          grep -q "sindhorn_admin_issue_activation_code_v2" site/admin.js
-          grep -q "#i=" site/admin.js
-          grep -q "history.replaceState" site/login.js
-          grep -q "letter-spacing:0!important" site/auth-brand.css
+          # r18: sign-in and admin live inside the shell (#signin, #settings/admin);
+          # an invitation is /#signin?i=<employee>&c=<code>, and the shell
+          # translates the legacy /login.html#i=..&c=.. form on arrival.
+          grep -q "sindhorn_admin_list_users_v3" site/settings-admin.js
+          grep -q "sindhorn_admin_upsert_contact_v2" site/settings-admin.js
+          grep -q "sindhorn_admin_revoke_access_v2" site/settings-admin.js
+          grep -q "sindhorn_admin_issue_activation_code_v2" site/settings-admin.js
+          grep -q "/#signin?i=" site/settings-admin.js
+          grep -q "history.replaceState" site/signin-page.js
+          grep -q "#signin?i=" site/shell.js
+          grep -q "letter-spacing:0!important" site/fonts.css
+          test ! -e site/login.html
+          test ! -e site/admin.html
           ! grep -R -q -E 'BREVO|TURNSTILE|/otp/request|/otp/verify|sindhorn-midtown-auth.*workers\.dev' \
-            site/login.html site/login.js site/admin.html site/admin.js site/auth-client.js
+            site/shell.js site/signin-page.js site/settings-admin.js site/auth-client.js
           ! grep -R -E 'sb_secret_|SUPABASE_(SERVICE_ROLE|SECRET)_KEY[[:space:]]*=' \
-            site/login.html site/login.js site/admin.html site/admin.js site/auth-client.js site/internal-auth.css site/auth-brand.css
+            site/shell.js site/signin-page.js site/settings-admin.js site/auth-client.js site/fonts.css
 
           latest_admin_migration="$(ls supabase/migrations/*phase9_post_acceptance_admin_users_and_retire_legacy_auth.sql)"
           grep -q "sindhorn_admin_list_users_v3" "$latest_admin_migration"
@@ -95,7 +98,7 @@ jobs:
         run: |
           node --input-type=module - <<'NODE'
           import {qrMatrix,qrSvg} from './site/qr-v6.js';
-          const url='https://phase9-contact-otp.sindhorn-midtown-internal.pages.dev/login.html#i=10639&c=123456';
+          const url='https://sindhorn-midtown-internal.pages.dev/#signin?i=10639&c=123456';
           const matrix=qrMatrix(url);
           if(!Array.isArray(matrix)||matrix.length!==41||matrix.some(row=>row.length!==41)) throw new Error('unexpected QR matrix shape');
           const dark=matrix.flat().filter(Boolean).length;

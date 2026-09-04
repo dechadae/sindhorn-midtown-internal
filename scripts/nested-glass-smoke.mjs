@@ -7,9 +7,9 @@
    container was itself glass. The spec page was showing every glass component
    falsely.
 
-   app-glass-runtime.js refuses to stamp glass inside glass, but a route can
-   still declare backdrop-filter directly in its own stylesheet, which is how
-   .fnb-action-control acquired an inert blur. This catches that.
+   app-glass.css is the only stylesheet allowed to declare backdrop-filter, but
+   a module can still set it on an element inside a glass card, which is how
+   .fnb-action-control once acquired an inert blur. This catches that.
 
    Usage: BASE_URL=https://<preview>.pages.dev node scripts/nested-glass-smoke.mjs
 */

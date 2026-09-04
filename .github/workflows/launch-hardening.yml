@@ -34,11 +34,9 @@ jobs:
         run: |
           set -euo pipefail
           files=(
-            site/bootstrap.js site/route-registry.js site/app-transitions.js site/footer-route-guard.js
-            site/business-dashboard.js site/business-dashboard-data.js site/business-dashboard-motion.js site/app.js
-            site/push-client.js site/notification-inbox.js site/betta-environment.js site/betta-satellite.js
-            site/betta-day-periods.js site/location.js site/rain-now.js site/weather-authority.js
-            site/live-data.js site/sw.js site/screen-capture.js
+            site/shell.js site/today.js site/business-dashboard-data.js site/push-client.js
+            site/notification-inbox.js site/broadcast-inbox.js site/betta-environment.js
+            site/betta-satellite.js site/betta-day-periods.js site/betta-runtime-full.js site/sw.js
           )
           for file in "${files[@]}"; do
             test -s "$file"
@@ -46,11 +44,10 @@ jobs:
           done
           node site/betta-day-periods.test.mjs
           node site/betta-vignette-palettes.test.mjs
-          node site/weather-authority.test.mjs
 
           python3 - <<'PY'
           from pathlib import Path
-          import hashlib, json, re
+          import json, re
           root=Path('site')
           retired=(
             'environment.js','environment.bundle.js','seasonal-sky.js','atmosphere-shader.js',
@@ -64,45 +61,26 @@ jobs:
           pwa=json.loads((root/'manifest.webmanifest').read_text())
           assert pwa['id']=='/' and pwa['start_url']=='/' and pwa['scope']=='/' and pwa['display']=='standalone'
 
-          bootstrap=(root/'bootstrap.js').read_text()
-          registry=(root/'route-registry.js').read_text()
-          transitions=(root/'app-transitions.js').read_text()
-          footer=(root/'footer-route-guard.js').read_text()
           index=(root/'index.html').read_text()
+          shell_js=(root/'shell.js').read_text()
           sw=(root/'sw.js').read_text()
           betta=(root/'betta-environment.js').read_text()
-          location=(root/'location.js').read_text()
-          rain=(root/'rain-now.js').read_text()
-          weather=(root/'weather-authority.js').read_text()
-          capture=(root/'screen-capture.js').read_text()
 
-          fallback=json.loads((root/'fallback/manifest.json').read_text())
-          shell=int(re.search(r'const SHELL_VERSION=(\d+);',bootstrap).group(1))
-          assert shell==17 and fallback['minimumShell']==shell
-          for item in fallback['resources']:
-              assert hashlib.sha256((root/'fallback'/item['path']).read_bytes()).hexdigest()==item['sha256'], item['path']
+          # r18: one shell at /, routed by hash inside one document. The legacy
+          # shell, its route registry, fallback pack and footer guard are gone.
+          for name in ('bootstrap.js','route-registry.js','auth-shell.js','app.js','login.html','fallback'):
+              assert not (root/name).exists(), f'legacy source is back: {name}'
+          assert 'src="/shell.js"' in index
+          for name in ('today','fnb','messages','brand','settings','signin','ci'):
+              assert f"{name}:" in shell_js, f'shell route missing: {name}'
+          assert 'startViewTransition' not in shell_js
+          redirects=(root/'_redirects').read_text()
+          for line in ('/guidance / 301','/details / 301','/account /#settings/me 301','/admin /#settings/admin 301'):
+              assert line in redirects, line
 
-          for token in (
-            "today:Object.freeze({path:'/'",
-            "fnb:Object.freeze({path:'/fnb'",
-            "messages:Object.freeze({path:'/messages'",
-            "brand:Object.freeze({path:'/brand'",
-            "hotelFactsheet:Object.freeze({path:'/hotel-factsheet'",
-            "settings:Object.freeze({path:'/settings'",
-            "ci:Object.freeze({path:'/ci'",
-          ):
-              assert token in registry, token
-          assert "['/guidance','today']" in registry and "['/details','today']" in registry
-          assert "['/account','settings']" in registry and "['/admin','settings']" in registry
-          assert 'startViewTransition' not in transitions
-          assert "route:'today'" in footer and "route:'fnb'" in footer and "route:'messages'" in footer
-
-          # Betta is the only persistent WebGL visual.
-          # Derive the pin: bootstrap.js and auth-shell.js must import the same build, or
-          # the browser evaluates two module instances and initEnvironment runs twice.
-          import re as _re
-          _b=_re.search(r"await import\('(\./betta-runtime\.js\?v=\d+)'\)",bootstrap)
-          assert _b, 'bootstrap.js must import the Betta runtime'
+          # Betta is the only persistent WebGL visual, and the shell imports one
+          # build of it: a second module instance would run initEnvironment twice.
+          assert shell_js.count("import('/betta-runtime-full.js?v=1')")==1, 'shell must import exactly one Betta runtime URL'
           assert "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" in betta
           assert "dataset.environmentInput='satellite-only'" in betta
           assert 'startSatelliteStream' in betta
@@ -111,26 +89,20 @@ jobs:
               assert f"'/{name}'" not in sw, name
               assert f'/{name}' not in index, name
 
-          # Performance audit: no full Three.js or capture library in startup/install.
+          # Performance audit: no full Three.js in startup/install; the shell
+          # imports the self-contained full runtime, so the precache lists the
+          # bundle only (betta-satellite.js is bundled into it).
           assert "sindhorn-midtown-internal-pwa-v41-performance-r1" in sw
-          assert "'/betta-runtime-full.js'" in sw and "'/betta-runtime.js'" not in sw  # r17: the shell imports the full runtime
+          assert "'/betta-runtime-full.js'" in sw and "'/betta-runtime.js'" not in sw
           assert "'/vendor/three.module.js'" not in sw
-          assert "'/vendor/html2canvas.min.js'" not in sw
-          assert '/vendor/html2canvas.min.js' not in index
-          assert "script.src='/vendor/html2canvas.min.js'" in capture
-          assert (root/'vendor/three.module.js').exists()
-          assert (root/'vendor/html2canvas.min.js').exists()
-
-          # Operational weather remains data/UI only.
-          assert 'sindhorn-weather-core' in location
-          assert 'open_meteo_used:false' in location
-          assert 'sindhorn-weather-core' in rain
-          assert 'resolveWeatherAuthority' in rain
-          assert 'effectiveWeatherSnapshot' in weather
-
-          # r17: the shell imports the self-contained full runtime; the satellite
-          # module is bundled into it, so the precache lists the bundle only.
           assert "'/betta-satellite.js'" not in sw
+          assert (root/'vendor/three.module.js').exists()
+          assert not (root/'vendor/html2canvas.min.js').exists(), 'capture library retired in r18'
+
+          # Operational weather and air data come from the alerts Worker; no
+          # legacy client weather module may return.
+          for name in ('location.js','live-data.js','rain-now.js','weather-authority.js'):
+              assert not (root/name).exists(), f'legacy weather module is back: {name}'
           assert "addEventListener('push'" in sw and "addEventListener('notificationclick'" in sw
 
           wrangler=json.loads(Path('sky-worker/wrangler.jsonc').read_text())
@@ -207,21 +179,16 @@ jobs:
           for attempt in $(seq 1 40); do
             if curl --fail --silent --show-error --location "${BASE_URL}/" -o /tmp/root.html \
               && grep -q 'src="/shell.js"' /tmp/root.html \
-              && curl --fail --silent --show-error --location "${BASE_URL}/bootstrap.js" -o /tmp/bootstrap.js \
+              && curl --fail --silent --show-error --location "${BASE_URL}/shell.js" -o /tmp/shell.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/betta-environment.js" -o /tmp/betta.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/location.js" -o /tmp/location.js \
-              && curl --fail --silent --show-error --location "${BASE_URL}/rain-now.js" -o /tmp/rain-now.js \
               && curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js \
-              && grep -qE "await import\('\./betta-runtime\.js\?v=[0-9]+'\)" /tmp/bootstrap.js \
+              && grep -qF "import('/betta-runtime-full.js?v=1')" /tmp/shell.js \
               && grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta.js \
               && grep -q "dataset.environmentInput='satellite-only'" /tmp/betta.js \
-              && grep -q 'sindhorn-weather-core' /tmp/location.js \
-              && grep -q 'sindhorn-weather-core' /tmp/rain-now.js \
               && grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/sw.js \
               && grep -qF "$expected_version" /tmp/sw.js \
               && ! grep -q "'/vendor/three.module.js'" /tmp/sw.js \
-              && ! grep -q "'/vendor/html2canvas.min.js'" /tmp/sw.js \
-              && ! grep -q '/vendor/html2canvas.min.js' /tmp/root.html \
+              && ! grep -q "'/bootstrap.js'" /tmp/sw.js \
               && ! grep -q '/rain-layer.js' /tmp/root.html \
               && ! grep -q '/sun-dimmer.js' /tmp/root.html \
               && retired_clean; then
