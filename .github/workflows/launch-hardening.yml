@@ -83,6 +83,10 @@ jobs:
           assert shell_js.count("import('/betta-runtime-full.js?v=1')")==1, 'shell must import exactly one Betta runtime URL'
           assert "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" in betta
           assert "dataset.environmentInput='satellite-only'" in betta
+          # The runtime's legacy Open-Meteo probe never leaves the phone: the
+          # shell answers it with Response.error() before the engine is imported.
+          assert "url.startsWith('https://api.open-meteo.com/')" in shell_js and 'Response.error()' in shell_js
+          assert shell_js.index('Response.error()') < shell_js.index("import('/betta-runtime-full.js?v=1')")
           assert 'startSatelliteStream' in betta
           assert 'const DPR=2' in betta and 'preserveDrawingBuffer:false' in betta
           for name in retired:

@@ -48,6 +48,22 @@ if ('serviceWorker' in navigator) {
   addEventListener('load', () => { navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(error => console.warn('Service worker registration failed', error)); });
 }
 
+/* The Betta runtime still carries the old app's weather probe: every ten
+   minutes it fetches api.open-meteo.com to fill a #weatherNow panel this
+   shell does not render. Open-Meteo is not a production dependency (AGENTS.md),
+   and the legacy location.js used to answer that request itself; the shell
+   now answers it with a network error before it leaves the phone. The
+   runtime treats the failure as "no weather" and renders exactly as before -
+   nothing in the render path reads it. The engine's own bytes stay intact. */
+{
+  const nativeFetch = window.fetch.bind(window);
+  window.fetch = (input, init) => {
+    const url = input instanceof Request ? input.url : String(input);
+    if (url.startsWith('https://api.open-meteo.com/')) return Promise.resolve(Response.error());
+    return nativeFetch(input, init);
+  };
+}
+
 /* The full WebGL runtime directly. betta-runtime.js is a bootstrap that paints
    a still frame and waits for a startup signal the old app shell emits; a page
    outside that shell never receives it, and the glass would be frosting a

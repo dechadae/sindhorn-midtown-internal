@@ -245,10 +245,13 @@ jobs:
           grep -q 'sindhorn-midtown-internal-pwa-v41-performance-r1' /tmp/sw.js
           ! grep -q "'/vendor/three.module.js'" /tmp/sw.js
           ! grep -q "'/bootstrap.js'" /tmp/sw.js
-          # r18: deleted sources must not be served as JavaScript.
+          # r18: deleted sources must not be served as JavaScript. The query
+          # string bypasses edge entries a colo may still hold from an older
+          # deployment (nothing references these paths, so they can only age
+          # out), so this proves the deployment rather than the cache.
           for legacy in bootstrap.js route-registry.js auth-shell.js login.js location.js; do
-            code=$(curl --silent --show-error --location --output /dev/null --write-out '%{http_code}' "${BASE_URL}/${legacy}")
-            ctype=$(curl --silent --show-error --location --output /dev/null --write-out '%{content_type}' "${BASE_URL}/${legacy}")
+            code=$(curl --silent --show-error --location --output /dev/null --write-out '%{http_code}' "${BASE_URL}/${legacy}?deploy=${GITHUB_SHA}")
+            ctype=$(curl --silent --show-error --location --output /dev/null --write-out '%{content_type}' "${BASE_URL}/${legacy}?deploy=${GITHUB_SHA}")
             case "$code:$ctype" in 404:*|200:text/html*) ;; *) echo "legacy ${legacy} still served (${code} ${ctype})"; exit 1 ;; esac
           done
           grep -q "dataset.environmentRenderer='sindhorn-betta-satellite-v1'" /tmp/betta.js
