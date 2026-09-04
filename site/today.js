@@ -77,8 +77,11 @@ function track(actual, reference, stagger = 0) {
   const width = Math.max(0, Math.min(100, (a / r) * 80)).toFixed(1);
   return `<svg class="app-track"${stagger ? ` data-stagger="${Math.min(stagger, 7)}"` : ''} aria-hidden="true"><rect class="app-track-rail" x="0" y="3.5" width="100%" height="3" rx="1.5"/><rect class="app-track-bar" x="0" y="3.5" width="${width}%" height="3" rx="1.5"/><rect class="app-track-mark" x="80%" y="0" width="1.5" height="10" rx=".75"/></svg>`;
 }
+// meta is one note or a list of notes; each note is its own line of the
+// library anatomy, so a metric never composes two facts on one line.
 function metric({ label, value, comparison = '', meta = '', direction = null, track: trackMarkup = '' }) {
-  return `<div class="app-metric">${label ? `<p class="app-metric-label">${esc(label)}</p>` : ''}<p class="app-metric-value">${esc(value)}</p>${comparison ? `<p class="app-metric-delta"${direction ? ` data-direction="${esc(direction)}"` : ''}>${esc(comparison)}</p>` : ''}${trackMarkup}${meta ? `<p class="app-metric-note">${esc(meta)}</p>` : ''}</div>`;
+  const notes = (Array.isArray(meta) ? meta : [meta]).filter(Boolean).map(note => `<p class="app-metric-note">${esc(note)}</p>`).join('');
+  return `<div class="app-metric">${label ? `<p class="app-metric-label">${esc(label)}</p>` : ''}<p class="app-metric-value">${esc(value)}</p>${comparison ? `<p class="app-metric-delta"${direction ? ` data-direction="${esc(direction)}"` : ''}>${esc(comparison)}</p>` : ''}${trackMarkup}${notes}</div>`;
 }
 function comparisonRow(label, actual, reference, { kind = 'money', referenceLabel = 'Forecast' } = {}) {
   const a = num(actual), r = num(reference), diff = a !== null && r !== null ? a - r : null;
@@ -213,7 +216,7 @@ function renderOutlook(data) {
       value: percent(occ),
       comparison: delta === null ? 'Forecast not loaded' : `${delta >= 0 ? '+' : '−'}${Math.abs(delta * 100).toFixed(1)} pp vs forecast`,
       direction: delta === null ? 'flat' : directionOf(delta),
-      meta: `OTB ${money(m.otb?.revenue, { compact: true })} · 24h ${integer(m.pickup?.rns, { signed: true })} RN`,
+      meta: [`OTB ${money(m.otb?.revenue, { compact: true })}`, `24h ${integer(m.pickup?.rns, { signed: true })} RN`],
       track: forecastLoaded ? track(occ, forecast, i) : ''
     });
   };

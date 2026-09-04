@@ -474,10 +474,11 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
   min-height:44px;padding:0 4px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
   border:0;background:transparent;
-  color:var(--app-muted);font:inherit;font-size:var(--type-small);line-height:1;
+  color:var(--app-muted);font:inherit;font-size:var(--type-small);line-height:1;text-decoration:none;
   cursor:pointer;
   transition:color var(--motion-ms) ease,transform var(--motion-fast) var(--motion-ease);
 }
+/* A navbar item is a <button> for an in-shell route and an <a> for a separate page (the library at /ci); both read the same. */
 .app-navbar-button:active{transform:scale(.96)}
 .app-navbar-button[aria-current="page"]{color:var(--app-accent)}
 .app-navbar-button:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
