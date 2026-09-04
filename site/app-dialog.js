@@ -63,5 +63,5 @@ const CLOSE_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10
 
 /* The head every page dialog shares: kicker, title and the close control. */
 export function dialogHead(kicker, title) {
-  return `<div class="app-dialog-head"><div>${kicker ? `<p class="app-dialog-kicker">${text(kicker)}</p>` : ''}<h2 class="app-dialog-title">${text(title)}</h2></div><button class="app-close-control" type="button" data-dialog-close aria-label="Close">${CLOSE_ICON}</button></div>`;
+  return `<div class="app-dialog-head"><div>${kicker ? `<p class="app-dialog-kicker">${text(kicker)}</p>` : ''}<h2 class="app-dialog-title">${text(title)}</h2></div><button class="app-close-control app-control" type="button" data-dialog-close aria-label="Close">${CLOSE_ICON}</button></div>`;
 }

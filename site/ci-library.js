@@ -38,6 +38,15 @@ export function bindLibrary(root, { page = root } = {}) {
   // Code group - the same behaviour the sign-in page binds.
   bindCode(root, { signal });
 
+  // The library is reached from Settings › System; Back returns there (on
+  // the standalone page too, through the shell). Back to top is the same
+  // utility every long page ends with.
+  const smooth = () => matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  on(root, 'click', event => {
+    if (event.target.closest('[data-ci-top]')) { window.scrollTo({ top: 0, behavior: smooth() }); return; }
+    if (event.target.closest('[data-ci-back]')) { if (location.pathname === '/') location.hash = '#settings/system'; else location.href = '/#settings/system'; }
+  });
+
   // Shell demo - the account chip switches the navbar between its two sets,
   // exactly as the router does on /.
   for (const frame of root.querySelectorAll('[data-shell-demo]')) {

@@ -197,7 +197,7 @@ export async function mountMe(stack, { manifest, signal }) {
     if (!view.published) return;
     open(`<div class="app-dialog-body">
         ${dialogHead('Settings › Me', 'Scan to save')}
-        <div class="app-stack">${businessCardMarkup({ ...view, workEmail: null, businessMobile: null, directPhone: null, hotelMainPhone: null, hotelAddress: null, hotelWebsite: null }, { url: url() })}</div>
+        <div class="app-stack">${businessCardMarkup(view, { url: url() })}</div>
         <div class="app-dialog-actions"><button class="app-utility-action" type="button" data-card-share>Share</button><button class="app-primary app-control" type="button" data-dialog-close>Done</button></div>
       </div>`);
   }
