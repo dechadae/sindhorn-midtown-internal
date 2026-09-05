@@ -401,6 +401,11 @@ a.app-list-row{color:inherit;text-decoration:none}
 button.app-list-row{width:100%;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 button.app-list-row:active{opacity:.9}
 button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
+/* A picker row (the status sheet): the chosen row carries the accent and a
+   check at its end; the others stay the text colour. */
+button.app-list-row[aria-pressed="true"]{color:var(--app-accent)}
+button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accent)}
+.app-list-row-end svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8}
 /* An avatar is the initials on the inset tint - rounded, never circular. It
    leads a directory row; the row's text column keeps its own grid beside it.
    The fill is the badge's tint, so like the badge it is a fill without an
@@ -497,7 +502,9 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-dialog-title{margin:0;font-size:var(--type-title);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
 .app-dialog-copy{margin:8px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-dialog-head+.app-stack,.app-dialog-copy+.app-stack{margin-top:18px}
-.app-dialog-actions{margin-top:22px;display:flex;align-items:center;justify-content:flex-end;gap:10px}
+/* 16px between actions (r23): a text action beside a filled button needs
+   the air, or Cancel reads as part of Save. */
+.app-dialog-actions{margin-top:22px;display:flex;align-items:center;justify-content:flex-end;gap:16px}
 .app-dialog-actions-split{justify-content:space-between}
 /* A form inside a dialog lays its fields on two columns; a field that needs
    the width spans. Under a phone's width the columns collapse. A section
@@ -514,7 +521,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    the actions stay in the flow so the whole form is one scroll. */
 .app-dialog{overflow:auto}
 .app-dialog-actions .app-utility-action[data-tone="danger"]{color:var(--app-danger)}
-.app-dialog-actions>.app-row{gap:10px}
+.app-dialog-actions>.app-row{gap:16px}
 @media (max-width:480px){.app-dialog-grid{grid-template-columns:1fr}}
 
 /* ---- Table -----------------------------------------------------------------
@@ -603,7 +610,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    is Jobs - and lives here as an icon-only control the same square as the
    chip, carrying the unread count. It is the only way into Messages; the
    page beneath keeps the app footer with no tab current, and the icon
-   itself reads current instead. Hidden with the chip until signed in. */
+   itself turns into the way back instead. Hidden with the chip until signed in. */
 .app-masthead-tools{display:flex;align-items:center;gap:8px}
 .app-masthead-action{
   position:relative;
@@ -616,7 +623,16 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-masthead-action:active{transform:scale(.94)}
 .app-masthead-action:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
 .app-masthead-action svg{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6}
-.app-masthead-action[aria-current="page"]{color:var(--app-accent)}
+/* Two states, exactly like the chip: data-mode="messages" shows the icon and
+   opens Messages; data-mode="close" (r23) shows a close mark in the accent
+   while Messages is open, and tapping it returns to the page beneath. The
+   unread count is not shown on the close mark - the employee is looking at
+   the list it counts. */
+.app-masthead-action svg[data-icon="close"]{display:none}
+.app-masthead-action[data-mode="close"]{color:var(--app-accent)}
+.app-masthead-action[data-mode="close"] svg[data-icon="messages"]{display:none}
+.app-masthead-action[data-mode="close"] svg[data-icon="close"]{display:block}
+.app-masthead-action[data-mode="close"] .app-masthead-badge{display:none}
 /* The unread count sits on the control's top-right corner. It is a badge, so
    it keeps the badge tint; the masthead beneath is already glass, so
    app-glass.css drops its blur. */
@@ -853,7 +869,25 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    deadline reads in the danger tone. Changing anything happens in the
    dialog, so the card itself draws no control of its own. */
 .app-job{display:grid;gap:12px}
+/* The card's groups - what was asked, then the facts, then the actions - are
+   separated by the hairline every card uses between groups (24 Rules), so a
+   long list reads as rows of the same shape rather than one run of text. */
+.app-job-section{padding-top:12px;border-top:1px solid var(--app-line)}
+.app-job>.app-utility-row{margin-top:0}
 .app-job-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+/* The status is the one control on the card: a badge grown to a tappable
+   height that opens the status sheet. It is a badge, so it keeps the badge
+   tones and the badge's glass membership (tint, no blur inside the card). */
+.app-job-status{
+  min-height:28px;padding:0 8px 0 10px;
+  gap:5px;
+  border:0;border-radius:var(--radius-inset);
+  font:inherit;font-size:var(--type-small);line-height:1;cursor:pointer;
+  transition:transform var(--motion-fast) var(--motion-ease);
+}
+.app-job-status svg{width:12px;height:12px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8}
+.app-job-status:active{transform:scale(.96)}
+.app-job-status:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
 .app-job-kicker{margin:0;color:var(--app-muted);font-size:var(--type-small);line-height:var(--leading-label);text-transform:uppercase}
 .app-job-title{margin:0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight);text-wrap:balance}
 .app-job-copy{margin:0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}

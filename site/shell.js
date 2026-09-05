@@ -120,11 +120,12 @@ const resolve = () => { const name = wantedName(); if (!signedIn()) return 'sign
 /* A view is a route plus, for Settings, its tab - so a tab change is a view change. */
 const viewOf = name => name === 'settings' ? `settings/${settingsTab()}` : name;
 
-let current = '', dispose = null, generation = 0, returnHash = '';
+let current = '', dispose = null, generation = 0, returnHash = '', messagesReturnHash = '';
 
 /* The library is reached from Settings › System, so it keeps the settings
    set beneath it with System still current. Messages has no footer tab: the
-   app set shows with nothing current and the masthead icon reads current. */
+   app set shows with nothing current and the masthead icon becomes the
+   close mark, the way the chip does for Settings. */
 function paintNavbar(name) {
   const locked = !signedIn();
   const mode = name === 'settings' || name === 'ci' ? 'settings' : 'app';
@@ -137,7 +138,8 @@ function paintNavbar(name) {
     if (button.dataset.route === full) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
   }
   messages.hidden = locked;
-  if (name === 'messages') messages.setAttribute('aria-current', 'page'); else messages.removeAttribute('aria-current');
+  messages.dataset.mode = name === 'messages' ? 'close' : 'messages';
+  messages.setAttribute('aria-label', name === 'messages' ? 'Close messages' : 'Messages');
   account.hidden = locked;
   account.dataset.mode = mode === 'settings' ? 'close' : 'initials';
   account.setAttribute('aria-label', mode === 'settings' ? 'Close settings' : 'Settings');
@@ -154,6 +156,7 @@ async function route() {
   const name = resolve();
   const view = viewOf(name);
   if (layerOf(view) === 0) returnHash = location.hash;
+  if (layerOf(view) === 0 && name !== 'messages') messagesReturnHash = location.hash;
   if (name !== 'signin' && wantedName() === 'signin') history.replaceState(null, '', location.pathname + location.search);
   paintNavbar(name);
   /* An invitation link arriving as a hash change remounts sign-in so it can
@@ -184,10 +187,11 @@ home.addEventListener('click', () => {
   location.hash = '';
 });
 
-/* The masthead icon is the only way into Messages; already there, it goes
-   to the top like a footer tab does. */
+/* The masthead icon is the only way into Messages; while Messages is open
+   it is the way back to the page beneath (the last page that was not
+   Messages - Today when there is none), the way the chip closes Settings. */
 messages.addEventListener('click', () => {
-  if (current === 'messages') { scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' }); return; }
+  if (current === 'messages') { const back = messagesReturnHash; messagesReturnHash = ''; location.hash = back; return; }
   location.hash = '#messages';
 });
 

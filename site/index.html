@@ -34,7 +34,9 @@
      opens Settings, whose four tabs replace the navbar's four while open.
      Messages is the masthead icon beside the chip (r20) - the footer's
      tabs are Today, F&B, Jobs and Brand, and Messages keeps that footer
-     beneath it with no tab current.
+     beneath it with no tab current. Like the chip, the icon has two states
+     (r23): while Messages is open it is a close mark that returns to the
+     page the employee came from.
 
      THE SPLIT, so reinstall requirement 1 cannot regress by accident:
 
@@ -70,7 +72,7 @@
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=9">
 <link rel="stylesheet" href="/app-glass.css?v=11">
-<link rel="stylesheet" href="/app-components.css?v=29">
+<link rel="stylesheet" href="/app-components.css?v=30">
 <link rel="stylesheet" href="/app-shell.css?v=2">
 </head>
 <body>
@@ -80,7 +82,7 @@
 <header class="app-masthead">
   <button class="app-masthead-home" type="button" aria-label="Home"><img class="app-masthead-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></button>
   <div class="app-masthead-tools">
-    <button class="app-masthead-action app-control" type="button" data-masthead-route="messages" aria-label="Messages" hidden><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14v10H8l-5 3z"/></svg><span class="app-badge app-masthead-badge" data-message-badge hidden></span></button>
+    <button class="app-masthead-action app-control" type="button" data-masthead-route="messages" data-mode="messages" aria-label="Messages" hidden><svg viewBox="0 0 20 20" aria-hidden="true" data-icon="messages"><path d="M3 5h14v10H8l-5 3z"/></svg><svg viewBox="0 0 20 20" aria-hidden="true" data-icon="close"><path d="M5 5l10 10M15 5L5 15"/></svg><span class="app-badge app-masthead-badge" data-message-badge hidden></span></button>
     <button class="app-masthead-account app-control" type="button" data-mode="initials" aria-label="Settings" hidden><span>—</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
   </div>
 </header>

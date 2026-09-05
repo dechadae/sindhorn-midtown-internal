@@ -69,7 +69,10 @@ const EXPECT = [
   ['.app-action-card-meta', BARE], ['.app-action-card-actions', BARE], ['.app-hero-head', BARE], ['.app-utility-row', BARE], ['.app-action-card-when', BARE], ['.app-disclosure-end', BARE], ['.app-section-kicker-end', BARE], ['.app-metric-grid[data-columns="3"]', BARE],
   ['.app-check-box', BARE],
   // A job is a layout inside a plain card, like the business card.
-  ['.app-job', BARE], ['.app-job-head', BARE], ['.app-job-deadline', BARE], ['#job .app-badge[data-tone="success"]', BADGE_SUCCESS_NESTED],
+  ['.app-job', BARE], ['.app-job-head', BARE], ['.app-job-deadline', BARE], ['.app-job-section', BARE], ['#job .app-badge[data-tone="success"]', BADGE_SUCCESS_NESTED],
+  // The status control is a badge grown to a control (r23): it keeps the
+  // badge's tint and, nested in the card, drops the blur like any badge.
+  ['#job .app-job-status:not([data-tone])', { bg: BADGE.bg, filter: 'none' }], ['#job .app-job-status[data-tone="quiet"]', BADGE_NESTED],
   // Scoped to the Badge section itself: the List section also uses a quiet
   // badge, nested inside .app-card, where it correctly renders with no blur.
   ['#badge .app-badge:not([data-tone])', BADGE], ['#badge .app-badge[data-tone="quiet"]', BADGE_QUIET],

@@ -17,7 +17,7 @@ import { qrStyledSvg } from './qr-v6.js';
 const DEMO_PAGES = {
   today: ['Today', 'Hotel Business', 'The day\u2019s numbers, drawn in as they arrive.'],
   fnb: ['Food & Beverage', 'Promotions', 'This season\u2019s campaigns, ready to share.'],
-  jobs: ['Jobs', 'Job tracker', 'What was asked, who sent it, the deadline and where it stands.'],
+  jobs: ['Jobs', 'Job Tracker', 'What was asked, who sent it, the deadline and where it stands.'],
   brand: ['Brand', 'Standards', 'The marks, the type and how they are used.'],
   messages: ['Messages', 'Inbox', 'What was sent to you, newest first.'],
   'settings/me': ['Settings', 'Me', 'Your account and how you appear to colleagues.'],
@@ -49,9 +49,10 @@ export function bindLibrary(root, { page = root } = {}) {
   });
 
   // Shell demo - the account chip switches the navbar between its two sets,
-  // exactly as the router does on /.
+  // exactly as the router does on /, and the Messages icon switches between
+  // its two states the same way.
   for (const frame of root.querySelectorAll('[data-shell-demo]')) {
-    const account = frame.querySelector('.app-masthead-account'), navbar = frame.querySelector('.app-navbar');
+    const account = frame.querySelector('.app-masthead-account'), navbar = frame.querySelector('.app-navbar'), messages = frame.querySelector('.app-masthead-action');
     if (!account || !navbar) continue;
     on(account, 'click', () => {
       const settings = navbar.dataset.mode !== 'settings';
@@ -60,32 +61,39 @@ export function bindLibrary(root, { page = root } = {}) {
       account.setAttribute('aria-label', settings ? 'Close settings' : 'Settings');
       for (const set of navbar.querySelectorAll('.app-navbar-set')) set.inert = set.dataset.set !== navbar.dataset.mode;
     });
+    if (messages) on(messages, 'click', () => {
+      const open = messages.dataset.mode !== 'close';
+      messages.dataset.mode = open ? 'close' : 'messages';
+      messages.setAttribute('aria-label', open ? 'Close messages' : 'Messages');
+    });
   }
 
   // View transitions - the shell's four movements, bounded to a frame. The
   // frame keeps its own tiny router so the specimen and the shell share only
   // transitionView() and viewKind(), which is the point.
   for (const frame of root.querySelectorAll('[data-view-demo]')) {
-    const host = frame.querySelector('[data-view-host]'), navbar = frame.querySelector('.app-navbar'), account = frame.querySelector('[data-demo-account]');
+    const host = frame.querySelector('[data-view-host]'), navbar = frame.querySelector('.app-navbar'), account = frame.querySelector('[data-demo-account]'), messages = frame.querySelector('[data-demo-route="messages"]');
     if (!host || !navbar || !account) continue;
-    let current = 'today', back = 'today';
+    let current = 'today', back = 'today', beneath = 'today';
     host.innerHTML = demoPage(current);
     const go = view => {
       if (view === current || !DEMO_PAGES[view]) return;
       const kind = viewKind(current, view, { layer: demoLayer, order: demoOrder });
       if (demoLayer(view) === 0) back = view;
+      if (demoLayer(view) === 0 && view !== 'messages') beneath = view;
       current = view;
       const settings = demoLayer(view) === 1;
       navbar.dataset.mode = settings ? 'settings' : 'app';
       account.dataset.mode = settings ? 'close' : 'initials';
       account.setAttribute('aria-label', settings ? 'Close settings' : 'Settings');
       for (const set of navbar.querySelectorAll('.app-navbar-set')) set.inert = set.dataset.set !== navbar.dataset.mode;
-      for (const button of frame.querySelectorAll('[data-demo-route]')) { if (button.dataset.demoRoute === view) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current'); }
+      for (const button of frame.querySelectorAll('.app-navbar [data-demo-route]')) { if (button.dataset.demoRoute === view) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current'); }
+      if (messages) { messages.dataset.mode = view === 'messages' ? 'close' : 'messages'; messages.setAttribute('aria-label', view === 'messages' ? 'Close messages' : 'Messages'); }
       transitionView(host, kind, () => { host.innerHTML = demoPage(view); }, { within: frame });
     };
     on(frame, 'click', event => {
       const button = event.target.closest('[data-demo-route]');
-      if (button) { go(button.dataset.demoRoute); return; }
+      if (button) { go(button.dataset.demoRoute === 'messages' && current === 'messages' ? beneath : button.dataset.demoRoute); return; }
       if (event.target.closest('[data-demo-account]')) go(demoLayer(current) === 1 ? back : 'settings/me');
     });
   }
@@ -213,6 +221,21 @@ export function bindLibrary(root, { page = root } = {}) {
   const sheetOpen = root.querySelector('[data-sheet-open]'), sheetClose = root.querySelector('[data-sheet-close]');
   if (sheetOpen) on(sheetOpen, 'click', () => sheet?.showModal());
   if (sheetClose) on(sheetClose, 'click', () => sheet?.close());
+
+  // Status sheet (23 Job) - a picker in the sheet: a tap on a row chooses it
+  // and closes, the way the Jobs page saves.
+  const statusSheet = root.querySelector('[data-status-sheet]');
+  const statusOpen = root.querySelector('[data-status-sheet-open]'), statusClose = root.querySelector('[data-status-sheet-close]');
+  if (statusOpen) on(statusOpen, 'click', () => statusSheet?.showModal());
+  if (statusClose) on(statusClose, 'click', () => statusSheet?.close());
+  if (statusSheet) on(statusSheet, 'click', event => {
+    if (event.target === statusSheet) { statusSheet.close(); return; }
+    const row = event.target.closest('button.app-list-row'); if (!row) return;
+    const check = statusSheet.querySelector('[aria-pressed="true"] .app-list-row-end')?.innerHTML || '';
+    for (const other of statusSheet.querySelectorAll('button.app-list-row')) { other.setAttribute('aria-pressed', 'false'); other.querySelector('.app-list-row-end').innerHTML = ''; }
+    row.setAttribute('aria-pressed', 'true'); row.querySelector('.app-list-row-end').innerHTML = check;
+    statusSheet.close();
+  });
 
   // Toast - shows, then clears itself; a second tap restarts the timer.
   const toast = root.querySelector('[data-toast]');

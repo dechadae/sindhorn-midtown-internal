@@ -9,7 +9,9 @@
    archive. Nothing is deleted - an archived job simply leaves the list.
 
    Everything here is library: a rail of filter chips, one .app-card per job
-   with the .app-job layout, the dialog standard with a form grid and the
+   with the .app-job layout and its hairline groups, the status control on
+   the card opening the sheet standard (r23 - a menu cannot open inside a
+   card without nesting glass), the dialog standard with a form grid and the
    shared selector for the status, the confirm dialog before archiving, the
    toast. No class of its own, no material of its own. */
 import { supabaseRpc } from './auth-client.js';
@@ -19,6 +21,8 @@ import { showToast } from './app-toast.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const PLUS_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>';
+const CHEVRON_ICON = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg>';
+const CHECK_ICON = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5"/></svg>';
 
 const STATUSES = [['not-started', 'Not started', 'quiet'], ['working', 'Working', ''], ['stuck', 'Stuck', 'danger'], ['done', 'Done', 'success']];
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(([key, label]) => [key, label]));
@@ -26,7 +30,7 @@ const STATUS_TONE = Object.fromEntries(STATUSES.map(([key, , tone]) => [key, ton
 const FILTERS = [['open', 'Open'], ['stuck', 'Stuck'], ['done', 'Done'], ['all', 'All']];
 const DAY = 86400000;
 
-const hero = action => `<header class="app-hero"><div class="app-hero-head"><p class="app-hero-eyebrow">Jobs</p>${action}</div><h1 class="app-hero-title">Job tracker</h1><p class="app-hero-copy">What was asked, who sent it, the deadline and where it stands.</p></header>`;
+const hero = action => `<header class="app-hero"><div class="app-hero-head"><p class="app-hero-eyebrow">Jobs</p>${action}</div><h1 class="app-hero-title">Job Tracker</h1><p class="app-hero-copy">What was asked, who sent it, the deadline and where it stands.</p></header>`;
 const addAction = `<button class="app-utility-action" type="button" data-job-add>${PLUS_ICON}Add job</button>`;
 const line = (width = '', size = '') => `<div class="app-skeleton-line"${width ? ` data-width="${width}"` : ''}${size ? ` data-size="${size}"` : ''}></div>`;
 const skeleton = `<article class="app-card app-surface"><div class="app-skeleton" data-gap="tight"><div class="app-job-head">${line('tiny')}${line('tiny')}</div>${line('medium', 'lead')}${line('')}${line('half')}<div class="app-metric-grid" data-columns="2"><div class="app-metric">${line('tiny')}${line('short')}</div><div class="app-metric">${line('tiny')}${line('short')}</div></div></div></article>`;
@@ -58,17 +62,27 @@ function explain(error) {
   return 'The change could not be saved. Please try again.';
 }
 
+/* The status on the card: a badge for a reader, the status control (a badge
+   grown to a tappable height, opening the status sheet) for an employee who
+   manages the list. */
+function statusMarkup(job, canManage) {
+  const label = esc(STATUS_LABEL[job.status] || job.status);
+  const tone = STATUS_TONE[job.status] ? ` data-tone="${STATUS_TONE[job.status]}"` : '';
+  if (!canManage) return `<span class="app-badge"${tone}>${label}</span>`;
+  return `<button class="app-badge app-job-status" type="button"${tone} data-job-status-for="${esc(job.id)}" aria-label="Status: ${label}. Change">${label}${CHEVRON_ICON}</button>`;
+}
+
 function cardMarkup(job, canManage) {
   const tight = isTight(job);
   return `<article class="app-card app-surface" data-job="${esc(job.id)}"><div class="app-job" data-status="${esc(job.status)}">
-    <div class="app-job-head"><p class="app-job-kicker">${job.receivedOn ? `Received ${esc(dayLabel(job.receivedOn))}` : 'Received'}</p><span class="app-badge"${STATUS_TONE[job.status] ? ` data-tone="${STATUS_TONE[job.status]}"` : ''}>${esc(STATUS_LABEL[job.status] || job.status)}</span></div>
+    <div class="app-job-head"><p class="app-job-kicker">${job.receivedOn ? `Received ${esc(dayLabel(job.receivedOn))}` : 'Received'}</p>${statusMarkup(job, canManage)}</div>
     <h3 class="app-job-title">${esc(job.title)}</h3>
     ${job.description ? `<p class="app-job-copy">${esc(job.description)}</p>` : ''}
-    <div class="app-metric-grid" data-columns="2" data-values="text">
+    <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
       <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">${esc(job.senderName || '—')}</span>${job.senderRole ? `<span class="app-metric-note">${esc(job.senderRole)}</span>` : ''}</div>
       <div class="app-metric app-job-deadline"${tight ? ' data-tight="true"' : ''}><span class="app-metric-label">Deadline</span><span class="app-metric-value">${esc(deadlineValue(job))}</span>${job.deadlineOn && job.deadlineNote ? `<span class="app-metric-note">${esc(job.deadlineNote)}</span>` : ''}</div>
     </div>
-    ${canManage ? `<div class="app-utility-row"><button class="app-utility-action" type="button" data-job-edit="${esc(job.id)}">Update</button></div>` : ''}
+    ${canManage ? `<div class="app-utility-row app-job-section"><button class="app-utility-action" type="button" data-job-edit="${esc(job.id)}">Update</button></div>` : ''}
   </div></article>`;
 }
 
@@ -100,7 +114,7 @@ function dialogMarkup(job) {
     <p class="app-dialog-status" data-job-status hidden></p>
     <div class="app-dialog-actions${editing ? ' app-dialog-actions-split' : ''}">
       ${editing ? '<button class="app-utility-action" type="button" data-job-archive>Archive</button>' : ''}
-      <span><button class="app-utility-action" type="button" data-dialog-close>Cancel</button> <button class="app-primary app-control" type="submit" data-job-save>${editing ? 'Save' : 'Add job'}</button></span>
+      <div class="app-row"><button class="app-utility-action" type="button" data-dialog-close>Cancel</button><button class="app-primary app-control" type="submit" data-job-save>${editing ? 'Save' : 'Add job'}</button></div>
     </div>
   </form></div>`;
 }
@@ -176,10 +190,48 @@ export async function mountJobs(host) {
     }, { signal });
   }
 
+  /* The status sheet: one row per status, the current one checked; a tap on
+     a row saves through set_status and closes. The sheet is a native
+     <dialog> on the page root, so it is an overlay over the page, never a
+     menu inside the card's glass. */
+  function sheet() {
+    let el = host.querySelector('[data-job-sheet]');
+    if (!el) { el = document.createElement('dialog'); el.className = 'app-sheet app-overlay'; el.dataset.jobSheet = 'true'; host.append(el); el.addEventListener('click', event => { if (event.target === el) el.close(); }, { signal }); }
+    return el;
+  }
+  function pickStatus(job) {
+    const el = sheet();
+    el.innerHTML = `<div class="app-sheet-grip"></div><div class="app-sheet-body"><h2 class="app-sheet-title">Status</h2><div class="app-list">${STATUSES.map(([key, label]) => {
+      const on = key === job.status;
+      return `<button class="app-list-row" type="button" data-job-set-status="${key}" aria-pressed="${on}"><span class="app-list-row-main"><span class="app-list-row-title">${esc(label)}</span></span><span class="app-list-row-end">${on ? CHECK_ICON : ''}</span></button>`;
+    }).join('')}</div><p class="app-dialog-status" data-job-sheet-status hidden></p><div class="app-dialog-actions"><button class="app-utility-action" type="button" data-job-sheet-close>Cancel</button></div></div>`;
+    el.onclick = async event => {
+      if (event.target.closest('[data-job-sheet-close]')) { el.close(); return; }
+      const row = event.target.closest('[data-job-set-status]'); if (!row) return;
+      const wanted = row.dataset.jobSetStatus;
+      if (wanted === job.status) { el.close(); return; }
+      for (const button of el.querySelectorAll('[data-job-set-status]')) button.disabled = true;
+      try {
+        const saved = (await supabaseRpc('sindhorn_jobs_set_status_v1', { p_id: job.id, p_status: wanted }))?.job;
+        if (!alive) return;
+        if (saved) { const at = jobs.findIndex(j => j.id === saved.id); if (at >= 0) jobs[at] = saved; updatedAt = saved.updatedAt || updatedAt; }
+        el.close();
+        paint();
+        showToast(`Marked ${STATUS_LABEL[wanted].toLowerCase()}`);
+      } catch (error) {
+        const status = el.querySelector('[data-job-sheet-status]'); status.hidden = false; status.textContent = explain(error); status.dataset.tone = 'error';
+        for (const button of el.querySelectorAll('[data-job-set-status]')) button.disabled = false;
+      }
+    };
+    el.showModal();
+  }
+
   host.addEventListener('click', event => {
     const chip = event.target.closest('[data-job-filter]');
     if (chip) { filter = chip.dataset.jobFilter; try { sessionStorage.setItem('sindhorn.jobs.filter', filter); } catch (_) {} paint(); return; }
     if (event.target.closest('[data-job-add]')) { edit({ id: null, title: '', description: '', senderName: '', senderRole: '', receivedOn: '', deadlineOn: '', deadlineNote: '', status: 'not-started' }); return; }
+    const statusButton = event.target.closest('[data-job-status-for]');
+    if (statusButton) { const job = jobs.find(j => j.id === statusButton.dataset.jobStatusFor); if (job) pickStatus(job); return; }
     const editButton = event.target.closest('[data-job-edit]');
     if (editButton) { const job = jobs.find(j => j.id === editButton.dataset.jobEdit); if (job) edit({ ...job }); }
   }, { signal });
@@ -187,5 +239,5 @@ export async function mountJobs(host) {
 
   host.innerHTML = `${hero('')}<section class="app-section"><div class="app-stack">${skeleton}${skeleton}</div></section>`;
   await load();
-  return () => { alive = false; controller.abort(); if (dialog) dialog.close(''); };
+  return () => { alive = false; controller.abort(); if (dialog) dialog.close(''); host.querySelector('[data-job-sheet]')?.close(); };
 }

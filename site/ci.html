@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=9">
 <link rel="stylesheet" href="/app-glass.css?v=11">
-<link rel="stylesheet" href="/app-components.css?v=29">
+<link rel="stylesheet" href="/app-components.css?v=30">
 <link rel="stylesheet" href="/app-shell.css?v=2">
 <link rel="stylesheet" href="/ci-library.css?v=10">
 </head>
@@ -787,12 +787,12 @@ Ask the team about the pairing board: three small plates built for the three dri
         <p class="app-note"><code>.app-hero-head</code> is the hero's first row: the eyebrow or the back control on the left, one frameless action on the right. A detail puts its eyebrow beneath the row; a route may close its hero with a note.</p>
       </div>
       <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-masthead / .app-navbar</span><span>scroll inside the frame · tap the chip for settings</span></div>
+        <div class="ci-specimen-label"><span>.app-masthead / .app-navbar</span><span>scroll inside the frame · tap the chip for settings · tap the icon for messages</span></div>
         <div class="ci-shell-frame" data-shell-demo>
           <header class="app-masthead">
             <button class="app-masthead-home" type="button" aria-label="Home"><img class="app-masthead-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></button>
             <div class="app-masthead-tools">
-              <button class="app-masthead-action app-control" type="button" aria-label="Messages"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14v10H8l-5 3z"/></svg><span class="app-badge app-masthead-badge" aria-label="3 unread">3</span></button>
+              <button class="app-masthead-action app-control" type="button" data-mode="messages" aria-label="Messages"><svg viewBox="0 0 20 20" aria-hidden="true" data-icon="messages"><path d="M3 5h14v10H8l-5 3z"/></svg><svg viewBox="0 0 20 20" aria-hidden="true" data-icon="close"><path d="M5 5l10 10M15 5L5 15"/></svg><span class="app-badge app-masthead-badge" aria-label="3 unread">3</span></button>
               <button class="app-masthead-account app-control" type="button" data-mode="initials" aria-label="Settings"><span>DT</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
             </div>
           </header>
@@ -816,7 +816,7 @@ Ask the team about the pairing board: three small plates built for the three dri
             </div>
           </nav>
         </div>
-        <p class="app-note"><code>.app-masthead-home</code> wraps the logo and is frameless. <code>.app-masthead-account</code> is an <code>.app-control</code> inside the glass masthead, so it keeps the tint and drops the blur; <code>data-mode="close"</code> swaps the initials for a close mark. <code>.app-masthead-action</code> beside it is Messages — the same <code>--size-icon-control</code> square, the unread count as <code>.app-masthead-badge</code> on its corner, <code>aria-current="page"</code> while Messages is open; it is the only way in, and the footer beneath stays the app set with no tab current. The footer tabs are Today, F&amp;B, Jobs and Brand. The navbar holds both <code>.app-navbar-set</code>s in one cell and <code>data-mode="settings"</code> chooses which one shows; the hidden set is <code>inert</code>.</p>
+        <p class="app-note"><code>.app-masthead-home</code> wraps the logo and is frameless. <code>.app-masthead-account</code> is an <code>.app-control</code> inside the glass masthead, so it keeps the tint and drops the blur; <code>data-mode="close"</code> swaps the initials for a close mark. <code>.app-masthead-action</code> beside it is Messages — the same <code>--size-icon-control</code> square, the unread count as <code>.app-masthead-badge</code> on its corner. It has the chip's two states: <code>data-mode="messages"</code> opens Messages, and <code>data-mode="close"</code> - the close mark in the accent, count hidden - while Messages is open returns to the page beneath. It is the only way in, and the footer beneath stays the app set with no tab current. The footer tabs are Today, F&amp;B, Jobs and Brand. The navbar holds both <code>.app-navbar-set</code>s in one cell and <code>data-mode="settings"</code> chooses which one shows; the hidden set is <code>inert</code>.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>transitionView()</span><span>app-view.js · pages arrive, they do not reload</span></div>
@@ -824,7 +824,7 @@ Ask the team about the pairing board: three small plates built for the three dri
           <header class="app-masthead">
             <button class="app-masthead-home" type="button" aria-label="Home" data-demo-route="today"><img class="app-masthead-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></button>
             <div class="app-masthead-tools">
-              <button class="app-masthead-action app-control" type="button" aria-label="Messages" data-demo-route="messages"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14v10H8l-5 3z"/></svg><span class="app-badge app-masthead-badge" hidden></span></button>
+              <button class="app-masthead-action app-control" type="button" data-mode="messages" aria-label="Messages" data-demo-route="messages"><svg viewBox="0 0 20 20" aria-hidden="true" data-icon="messages"><path d="M3 5h14v10H8l-5 3z"/></svg><svg viewBox="0 0 20 20" aria-hidden="true" data-icon="close"><path d="M5 5l10 10M15 5L5 15"/></svg><span class="app-badge app-masthead-badge" hidden></span></button>
               <button class="app-masthead-account app-control" type="button" data-mode="initials" aria-label="Settings" data-demo-account><span>DT</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
             </div>
           </header>
@@ -990,20 +990,20 @@ Ask the team about the pairing board: three small plates built for the three dri
   <section class="app-section" id="job">
     <p class="app-section-kicker">23 · Job</p>
     <h2 class="app-section-title">One Job, Where It Stands</h2>
-    <p class="app-section-lede">The Jobs tab lists what was asked of an employee: the task, who sent it and when, the deadline and the status. A job is a layout inside a plain card, the way the business card is - the status is a badge whose tone says the state, a tight deadline reads in the danger tone, and everything editable opens in the dialog.</p>
+    <p class="app-section-lede">The Jobs tab lists what was asked of an employee: the task, who sent it and when, the deadline and the status. A job is a layout inside a plain card, the way the business card is - the status is a badge whose tone says the state and, tapped, opens the status sheet; a tight deadline reads in the danger tone, and everything else editable opens in the dialog.</p>
     <div class="ci-stack">
       <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-job</span><span>inside .app-card.app-surface · data-status working · tight deadline</span></div>
+        <div class="ci-specimen-label"><span>.app-job</span><span>data-status working · tight deadline · hairline groups</span></div>
         <article class="app-card app-surface">
           <div class="app-job" data-status="working">
-            <div class="app-job-head"><p class="app-job-kicker">Received 4 Sep 2026</p><span class="app-badge">Working</span></div>
+            <div class="app-job-head"><p class="app-job-kicker">Received 4 Sep 2026</p><button class="app-badge app-job-status" type="button" aria-label="Status: Working. Change">Working<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg></button></div>
             <h3 class="app-job-title">ANJU Grab delivery review card</h3>
             <p class="app-job-copy">Artwork for the review card that goes out with Grab deliveries: QR to the Google review page, both languages, print-ready at 90 × 55 mm.</p>
-            <div class="app-metric-grid" data-columns="2" data-values="text">
+            <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Chanrutt Thayartsuwan</span><span class="app-metric-note">Director of Marketing Communications</span></div>
               <div class="app-metric app-job-deadline" data-tight="true"><span class="app-metric-label">Deadline</span><span class="app-metric-value">Mon 8 Sep 2026</span><span class="app-metric-note">Before the Grab listing goes live</span></div>
             </div>
-            <div class="app-utility-row"><button class="app-utility-action" type="button">Update</button></div>
+            <div class="app-utility-row app-job-section"><button class="app-utility-action" type="button">Update</button></div>
           </div>
         </article>
       </div>
@@ -1011,32 +1011,39 @@ Ask the team about the pairing board: three small plates built for the three dri
         <div class="ci-specimen-label"><span>.app-job</span><span>the four statuses</span></div>
         <div class="app-stack">
           <article class="app-card app-surface"><div class="app-job" data-status="not-started">
-            <div class="app-job-head"><p class="app-job-kicker">Received 3 Sep 2026</p><span class="app-badge" data-tone="quiet">Not started</span></div>
+            <div class="app-job-head"><p class="app-job-kicker">Received 3 Sep 2026</p><button class="app-badge app-job-status" type="button" data-tone="quiet" aria-label="Status: Not started. Change">Not started<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg></button></div>
             <h3 class="app-job-title">Lobby lift wrap, Loy Krathong</h3>
-            <div class="app-metric-grid" data-columns="2" data-values="text">
+            <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Rooms Division</span></div>
               <div class="app-metric app-job-deadline"><span class="app-metric-label">Deadline</span><span class="app-metric-value">24 Oct 2026</span></div>
             </div>
           </div></article>
           <article class="app-card app-surface"><div class="app-job" data-status="stuck">
-            <div class="app-job-head"><p class="app-job-kicker">Received 28 Aug 2026</p><span class="app-badge" data-tone="danger">Stuck</span></div>
+            <div class="app-job-head"><p class="app-job-kicker">Received 28 Aug 2026</p><button class="app-badge app-job-status" type="button" data-tone="danger" aria-label="Status: Stuck. Change">Stuck<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg></button></div>
             <h3 class="app-job-title">Sindhorn Wellness brochure reprint</h3>
             <p class="app-job-copy">Waiting on the revised treatment prices from Spa before the price page can be set.</p>
-            <div class="app-metric-grid" data-columns="2" data-values="text">
+            <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Spa Manager</span></div>
               <div class="app-metric app-job-deadline"><span class="app-metric-label">Deadline</span><span class="app-metric-value">No date</span><span class="app-metric-note">When the prices arrive</span></div>
             </div>
           </div></article>
           <article class="app-card app-surface"><div class="app-job" data-status="done">
-            <div class="app-job-head"><p class="app-job-kicker">Received 21 Aug 2026</p><span class="app-badge" data-tone="success">Done</span></div>
+            <div class="app-job-head"><p class="app-job-kicker">Received 21 Aug 2026</p><button class="app-badge app-job-status" type="button" data-tone="success" aria-label="Status: Done. Change">Done<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg></button></div>
             <h3 class="app-job-title">Mother's Day afternoon tea social set</h3>
-            <div class="app-metric-grid" data-columns="2" data-values="text">
+            <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">F&amp;B Marketing</span></div>
               <div class="app-metric app-job-deadline"><span class="app-metric-label">Deadline</span><span class="app-metric-value">1 Sep 2026</span></div>
             </div>
           </div></article>
         </div>
-        <p class="app-note"><code>data-status</code> on <code>.app-job</code> names the state for scripts and for the one visual it changes - a done job's title steps back to the muted colour. The badge tones are the badge's own: none for working, <code>quiet</code> for not started, <code>danger</code> for stuck, <code>success</code> for done. <code>.app-job-deadline[data-tight="true"]</code> is a deadline inside a week. The list is filtered by an <code>.app-rail</code> of chips above it and edited in the dialog standard; nothing on the card is a control except the utility action.</p>
+        <p class="app-note"><code>data-status</code> on <code>.app-job</code> names the state for scripts and for the one visual it changes - a done job's title steps back to the muted colour. The status is <code>.app-badge.app-job-status</code>, a button: the badge's tones (none for working, <code>quiet</code> for not started, <code>danger</code> for stuck, <code>success</code> for done) at a tappable height, and it opens the status sheet below. <code>.app-job-section</code> puts the hairline between the card's groups - the ask, the facts, the actions. <code>.app-job-deadline[data-tight="true"]</code> is a deadline inside a week. The list is filtered by an <code>.app-rail</code> of chips above it and edited in the dialog standard.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-sheet › .app-list</span><span>the status sheet · button.app-list-row[aria-pressed]</span></div>
+        <div class="app-stack">
+          <p class="app-note">A menu cannot open inside a card - an overlay inside the card's glass would sample the card, not the page (24 Rules) - so the status control opens the sheet standard from 10 Dialog with one row per status. The chosen row carries the accent and a check; a tap on any row saves and closes.</p>
+          <button class="app-utility-action" type="button" data-status-sheet-open>Open the status sheet</button>
+        </div>
       </div>
     </div>
   </section>
@@ -1088,6 +1095,22 @@ Ask the team about the pairing board: three small plates built for the three dri
     <p class="app-dialog-copy">Bottom-anchored, thumb-reachable. Same material and the same native &lt;dialog&gt; behaviour as the centred dialog above — only the geometry is different.</p>
     <div class="app-dialog-actions">
       <button class="app-utility-action" type="button" data-sheet-close>Close</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="app-sheet app-overlay" data-status-sheet>
+  <div class="app-sheet-grip"></div>
+  <div class="app-sheet-body">
+    <h2 class="app-sheet-title">Status</h2>
+    <div class="app-list">
+      <button class="app-list-row" type="button" aria-pressed="false"><span class="app-list-row-main"><span class="app-list-row-title">Not started</span></span><span class="app-list-row-end"></span></button>
+      <button class="app-list-row" type="button" aria-pressed="true"><span class="app-list-row-main"><span class="app-list-row-title">Working</span></span><span class="app-list-row-end"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></button>
+      <button class="app-list-row" type="button" aria-pressed="false"><span class="app-list-row-main"><span class="app-list-row-title">Stuck</span></span><span class="app-list-row-end"></span></button>
+      <button class="app-list-row" type="button" aria-pressed="false"><span class="app-list-row-main"><span class="app-list-row-title">Done</span></span><span class="app-list-row-end"></span></button>
+    </div>
+    <div class="app-dialog-actions">
+      <button class="app-utility-action" type="button" data-status-sheet-close>Cancel</button>
     </div>
   </div>
 </dialog>
