@@ -259,7 +259,7 @@ export async function mountFnb(host) {
     const view = folders.length === 1
       ? `<a class="app-primary app-control" href="${esc(folders[0].url)}" target="_blank" rel="noopener">${LINK_ICON}View artwork folder</a>`
       : folders.length ? `<button class="app-primary app-control" type="button" data-folders="${esc(campaign.id)}">${LINK_ICON}View artwork folders</button>` : '';
-    const edit = editor ? `<button class="app-utility-action" type="button" data-edit-links><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17h7M13.5 3.5a1.8 1.8 0 0 1 2.5 2.5L7 15l-3.5 1 1-3.5z"/></svg>${folders.length ? 'Add / change artwork link' : 'Add artwork link'}</button>` : '';
+    const edit = editor ? `<button class="app-primary app-control" type="button" data-edit-links><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17h7M13.5 3.5a1.8 1.8 0 0 1 2.5 2.5L7 15l-3.5 1 1-3.5z"/></svg>${folders.length ? 'Change link' : 'Add link'}</button>` : '';
     if (!view && !edit) return '<p class="app-note">Artwork folder · Not linked yet</p>';
     return `<div class="app-row">${view}${edit}</div>`;
   }
