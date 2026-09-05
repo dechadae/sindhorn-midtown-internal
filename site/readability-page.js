@@ -43,7 +43,10 @@ const PLAY_SECONDS = 30;
 const env = () => window.SindhornEnvironment || null;
 const hoursLabel = period => formatClock(`${period.startHour}:00–${period.endHour}:00`);
 
-const hero = () => `<header class="app-hero"><p class="app-hero-eyebrow">Settings · System</p><h1 class="app-hero-title">Readability Test</h1><p class="app-hero-copy">The Betta for each period of the day, and whether the app's ink stays readable on it.</p></header>`;
+/* The page opens from Settings › System and the back control (the library's
+   .app-back-control, as Brand and F&B carry it) returns there (r32b). */
+const BACK = '<button class="app-back-control app-control" type="button" data-back aria-label="Back to System"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button>';
+const hero = () => `<header class="app-hero"><div class="app-hero-head">${BACK}</div><p class="app-hero-eyebrow">Settings · System</p><h1 class="app-hero-title">Readability Test</h1><p class="app-hero-copy">The Betta for each period of the day, and whether the app's ink stays readable on it.</p></header>`;
 
 const rail = () => `<div class="app-rail" role="toolbar" aria-label="Atmosphere">
   <button class="app-chip app-control" type="button" data-transport="previous">Previous</button>
@@ -197,6 +200,7 @@ export async function mountReadability(host) {
   }
 
   host.addEventListener('click', event => {
+    if (event.target.closest('[data-back]')) { location.hash = '#settings/system'; return; }
     const transport = event.target.closest('[data-transport]');
     if (transport) {
       const key = shownKey();

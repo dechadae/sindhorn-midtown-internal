@@ -171,7 +171,7 @@ jobs:
           # The shell only registers its service worker in the app, never on a
           # public page, and the sky mode contract must hold in the engine.
           assert "['fnb', 'card'].includes(document.body.dataset.public)" in shell_js and '!PUBLIC' in shell_js
-          assert "setBettaMode" in betta and "prefers-reduced-motion: reduce" in betta and "'sindhorn-midtown:betta-mode:v1'" in betta
+          assert "setBettaMode" in betta and "setBettaPreference" in betta and "prefers-reduced-motion: reduce" in betta and "'sindhorn-midtown:betta-mode:v1'" in betta and "'sindhorn-midtown:betta-preference:v1'" in betta
           assert '/shell.js' in index and 'manifest.webmanifest?v=5' in index
           redirects=(root/'_redirects').read_text()
           for line in ('/next / 301','/login.html / 301','/fnb /#fnb 301','/messages /#messages 301','/settings /#settings/me 301','/admin /#settings/admin 301','/hotel-factsheet /#brand/factsheet 301'):

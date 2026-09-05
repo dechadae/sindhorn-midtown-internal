@@ -10,6 +10,7 @@
 import { signOut } from './auth-client.js';
 import { loadSettingsAuthority, hasCapability } from './capabilities.js';
 import { confirmDialog } from './app-dialog.js';
+import { appSelect, bindAppSelects } from './app-select.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
@@ -37,7 +38,11 @@ function systemMarkup(manifest, version) {
   const library = manifest?.profile?.accountType === 'developer';
   return `<div class="app-card app-surface">
       <div class="app-card-section"><p class="app-surface-label">This app</p>
-        <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${fact('Version', version)}${fact('Display', matchMedia('(display-mode: standalone)').matches ? 'Installed' : 'Browser')}${fact('Atmosphere', atmosphereLabel())}</div>
+        <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${fact('Version', version)}${fact('Display', matchMedia('(display-mode: standalone)').matches ? 'Installed' : 'Browser')}</div>
+      </div>
+      <div class="app-card-section">
+        <div class="app-row">${appSelect({ kind: 'atmosphere', label: 'Atmosphere', options: ATMOSPHERES, selected: window.SindhornEnvironment?.getState?.().betta?.preference || 'auto', disabled: !window.SindhornEnvironment?.setBettaPreference })}</div>
+        <p class="app-note" data-atmosphere-note>${esc(atmosphereNote())}</p>
       </div>
     </div>
     ${library ? `<article class="app-action-card"><button class="app-action-card-button" type="button" data-settings-go="#ci">
@@ -61,12 +66,22 @@ function systemMarkup(manifest, version) {
 }
 
 /* Which atmosphere this phone draws (r30): the fish, or the sky held still
-   for reduced motion, or the sky because this phone could not hold the fish. */
+   for reduced motion, or the sky because this phone could not hold the fish.
+   Since r32b the employee chooses: Automatic leaves it to the phone, Betta
+   or Sky is kept on this phone and wins over both (betta-environment.js,
+   setBettaPreference). The note says what is drawn right now and why. */
+const ATMOSPHERES = [{ value: 'auto', label: 'Automatic' }, { value: 'betta', label: 'Betta' }, { value: 'sky', label: 'Sky' }];
 function atmosphereLabel() {
   const betta = window.SindhornEnvironment?.getState?.().betta;
   if (!betta) return 'Unavailable';
   if (betta.mode !== 'sky') return 'Betta';
   return betta.modeReason === 'reduced-motion' ? 'Sky · reduced motion' : betta.modeReason === 'low-end' ? 'Sky · this phone' : 'Sky';
+}
+function atmosphereNote() {
+  const betta = window.SindhornEnvironment?.getState?.().betta;
+  if (!betta) return 'The atmosphere isn\'t available on this device.';
+  const now = `Now showing ${atmosphereLabel()}.`;
+  return betta.preference === 'auto' ? `${now} Automatic gives the sky to reduced motion and to a phone that couldn\'t hold the fish.` : `${now} Your choice is kept on this phone.`;
 }
 
 async function appVersion() {
@@ -103,6 +118,13 @@ export async function mountSettings(host) {
     if (!hasCapability(spec.capability, manifest)) { paint(state(spec.gate, spec.gateTitle, spec.gateCopy, 'empty', ` data-gate="${esc(spec.capability)}"`)); return; }
     if (tab === 'me' || tab === 'admin' || tab === 'broadcast') { await mountTab(tab, manifest); return; }
     paint(systemMarkup(manifest, await appVersion()));
+    tabController = new AbortController();
+    bindAppSelects(host, { signal: tabController.signal, onChange: (kind, value) => {
+      if (kind !== 'atmosphere') return;
+      window.SindhornEnvironment?.setBettaPreference?.(value);
+      const note = host.querySelector('[data-atmosphere-note]');
+      if (note) note.textContent = atmosphereNote();
+    } });
   }
 
   /* The module gets the empty stack, the manifest already loaded, and a
