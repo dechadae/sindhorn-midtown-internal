@@ -271,7 +271,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    app behind cascade overrides; this is the clean form for pages built on the
    library. .app-control supplies the material. */
 .app-back-control,.app-close-control{
-  width:38px;height:38px;flex:0 0 auto;
+  width:var(--size-icon-control);height:var(--size-icon-control);flex:0 0 auto;
   display:inline-grid;place-items:center;
   border-radius:var(--radius-inset);
   color:inherit;cursor:pointer;
@@ -583,7 +583,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    material; it sits inside the glass masthead, so app-glass.css drops its
    blur there. Hidden until an employee is signed in. */
 .app-masthead-account{
-  width:34px;height:34px;flex:0 0 auto;
+  width:var(--size-icon-control);height:var(--size-icon-control);flex:0 0 auto;
   display:inline-grid;place-items:center;
   border-radius:var(--radius-inset);
   color:var(--app-text);font:inherit;font-size:var(--type-small);font-weight:var(--weight-bold);line-height:1;text-transform:uppercase;
@@ -822,6 +822,5 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-business-card>.app-utility-row{justify-content:center}
 .app-business-card-link{margin:0;color:var(--app-muted);font-size:var(--type-small);overflow-wrap:anywhere}
 .app-business-card-link a{color:inherit;text-underline-offset:3px}
-/* Presented full-size for scanning across a desk: the same layout in the
-   dialog, the QR taking the width. */
-.app-dialog .app-business-card>.app-figure{width:min(100%,320px)}
+/* Presenting the card in a dialog changes nothing about the card: the same
+   markup, the same QR width, the same spacing as the page. */

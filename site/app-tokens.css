@@ -75,6 +75,12 @@
   --space-7:20px;
   --space-8:24px;
 
+  /* ---- Icon controls ----------------------------------------------------
+     One square for every icon-only control - back, close, the masthead
+     account chip - so a close mark is the same size in a dialog head, the
+     masthead and the library. The mark inside is always 18px. */
+  --size-icon-control:36px;
+
   /* ---- Motion -----------------------------------------------------------
      Mirrors the existing app-transitions.css contract so there is one
      timing language, not two. */
