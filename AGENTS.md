@@ -38,9 +38,8 @@ markup. The short version:
 Run `node scripts/ui-centralization-budget.mjs` and
 `node scripts/ci-page-render-smoke.mjs` before every push that touches
 shared UI. Where this section or the two docs above conflict with "Product
-state that must be preserved" below — e.g. the legacy three-button
-Today/F&B/Messages footer — that section describes the **legacy app at `/`
-only**, until the rebuild cuts over.
+state that must be preserved" below, that section wins; the footer it
+describes is the r20 one (Today / F&B / Jobs / Brand, Messages in the masthead).
 
 ## Canonical production endpoints
 
@@ -79,8 +78,8 @@ The single-shell router invariant is mandatory for all authenticated app feature
 - **Typography invariant: `LINE Seed Sans TH` is the sole production font family for both English and Thai. Production ships only real weights 100 / 400 / 700. Every text treatment uses zero character tracking (`letter-spacing: 0`), with no exceptions. Do not reintroduce Poppins, Noto Sans, Noto Sans Thai, Vignette Sans, IBM Plex, split-language font logic, synthetic weights, or external runtime font hosting.**
 - **Single-shell navigation invariant: every authenticated current or future screen is an SPA route mounted inside the persistent `#route-view`. Header, footer, atmosphere, auth session and app document must never unload between authenticated screens. Sign-in is the `#signin` route of the same document; there is no standalone authenticated or sign-in HTML page. Never add one, or a full-document navigation to one.**
 - **Transition invariant: authenticated navigation animates only `#route-view` with the shared opacity crossfade. Never animate the document root, header, footer or atmosphere, and never use browser-dependent cross-document View Transitions as the primary app navigation mechanism.**
-- **Footer navigation invariant: the authenticated footer is `Today / F&B / Messages`. Guidance and Details are not standalone footer routes; their existing presentation fragments are composed below Today in the same continuous page. F&B is a live in-shell route whose operational promotion content is read from Supabase at runtime.**
-- Messages remains a footer destination and its device-local inbox works offline.
+- **Footer navigation invariant (r20, 5 Sep 2026): the authenticated footer is `Today / F&B / Jobs / Brand`; the masthead carries the Messages icon control (with the unread count) beside the account chip, and that icon is the only way into `#messages`, which keeps the app footer beneath it with no tab current. Guidance and Details are not standalone footer routes; their existing presentation fragments are composed below Today in the same continuous page. F&B is a live in-shell route whose operational promotion content is read from Supabase at runtime.**
+- Messages is a masthead destination and its device-local inbox works offline. Jobs is each employee's own job tracker (`site/jobs-page.js`; list and RPCs land in r21).
 - Environmental Alerts / Web Push is user-gesture initiated only; never auto-prompt notification permission.
 - **The active persistent visual is the Sindhorn Betta WebGL organism. Its only real-time visual/environmental authority is current JMA Himawari-9 High-Resolution Asia 1 satellite imagery over Bangkok.** No TMD station data, MET model data, AirBKK, device geolocation/orientation, local clock, calculated astronomy, microphone/camera or other sensor may be introduced as a Betta form/colour driver without a new explicit product decision.
 - The eight canonical Betta baselines are Royal Blue Halfmoon, Super Red Halfmoon, Mustard Gas, Black Orchid, Copper Metallic, Turquoise Metallic, Nemo Galaxy Koi and Red Snow Dragon. Royal Blue Halfmoon is the default baseline.
