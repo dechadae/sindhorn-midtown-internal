@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=9">
 <link rel="stylesheet" href="/app-glass.css?v=11">
-<link rel="stylesheet" href="/app-components.css?v=32">
+<link rel="stylesheet" href="/app-components.css?v=33">
 <link rel="stylesheet" href="/app-shell.css?v=2">
 <link rel="stylesheet" href="/ci-library.css?v=10">
 </head>
@@ -80,13 +80,14 @@
   <!-- ========================= 02 REGISTERS ========================= -->
   <section class="app-section" id="registers">
     <p class="app-section-kicker">02 · Registers</p>
-    <h2 class="app-section-title">Two Ways of Speaking</h2>
-    <p class="app-section-lede">Who is reading decides the register. One voice, two volumes.</p>
+    <h2 class="app-section-title">Who Is Reading</h2>
+    <p class="app-section-lede">Who is reading decides the register. One voice; the volume and the vocabulary follow the reader.</p>
     <table class="ci-ref ci-ref-table">
       <tbody>
         <tr><th>Staff</th><td>Every signed-in page: Today, F&amp;B, Jobs, Brand, Messages, Settings. Plain, warm, brief. “You” is the employee; “we” and “the hotel” are Sindhorn Midtown. Facts first, feelings rarely, and never a pitch.</td></tr>
         <tr><th>Guest</th><td>The public share page and the business card (Phase 7). Full Vignette voice: a little more room, a little more story, the hotel's full name. Still no exclamation marks, still American English, still the same dates and times.</td></tr>
         <tr><th>Sourced</th><td>Text the hotel or IHG already published — F&amp;B promotion copy (17), the IHG history — is quoted as written, in whatever spelling it came with. Only a typo or a grammatical slip is corrected, in the data, with approval.</td></tr>
+        <tr><th>Artwork</th><td>The artwork copy of a promotion (17): what the designer sets on a menu, a standee or a screen. The title is sourced, word for word. The subtitle, the description and the facts are the record read back in the staff register — dates, hours, prices and the reservation line the way this page writes them — with the press release beside it as the reference.</td></tr>
       </tbody>
     </table>
     <div class="ci-stack">
@@ -157,6 +158,7 @@
       <div class="ci-rule"><b>tap · open</b><span>Not click, press, launch. Instructions.</span></div>
       <div class="ci-rule"><b>today's numbers · the report</b><span>Not data, dashboard, KPIs. Today.</span></div>
       <div class="ci-rule"><b>artwork</b><span>Not creative, design file, asset. F&amp;B.</span></div>
+      <div class="ci-rule"><b>artwork copy</b><span>The title, subtitle, description and facts that go on the artwork. Not tagline, blurb, key visual text. F&amp;B, 03 on a promotion.</span></div>
       <div class="ci-rule"><b>business card</b><span>Not e-card, digital card, profile. Me, Phase 7.</span></div>
       <div class="ci-rule"><b>the app</b><span>Not the PWA, the system, the platform, the portal. System, help.</span></div>
     </div>
@@ -245,6 +247,8 @@
         <tr><th>Date with weekday</th><td><code data-format="date:weekday:en">—</code> · <code data-format="date:weekday:th">—</code><br>Today's hero</td></tr>
         <tr><th>Day, short</th><td><code data-format="date:day:en">—</code> · <code data-format="date:day:th">—</code><br>Jobs “Received”, deadlines</td></tr>
         <tr><th>Month</th><td><code data-format="date:month:en">—</code> · <code data-format="date:month:th">—</code><br>Stay months on Today</td></tr>
+        <tr><th>Dates, a range</th><td><code data-format="range:en">—</code> · <code data-format="range:th">—</code><br>Artwork copy “When”; a span of days shares what it can</td></tr>
+        <tr><th>Dates, one month</th><td><code data-format="range2:en">—</code> · <code data-format="range2:th">—</code><br>The month and year once, the days joined</td></tr>
         <tr><th>Time, on the hour</th><td><code data-format="time:en">—</code> · <code data-format="time:th">—</code><br>“6 pm”, not “6:00 pm” or “18:00”</td></tr>
         <tr><th>Time, with minutes</th><td><code data-format="time2:en">—</code> · <code data-format="time2:th">—</code><br>“11:30 am”, not “11.30” or “11:30 AM”</td></tr>
         <tr><th>Noon · midnight</th><td><code data-format="noon:en">—</code> · <code data-format="noon:th">—</code><br>English says the word; Thai says 12:00 น. and 00:00 น.</td></tr>
@@ -263,6 +267,7 @@
         <tr><th>Order</th><td>Day, month, year in both languages: “5 Sep 2026”, “5 ก.ย. 2569”. Never “09/05” or “2026-09-05” on screen — ISO days are how dates travel, not how they read.</td></tr>
         <tr><th>Year</th><td>Four digits, always. English is Gregorian; Thai is Buddhist, as the hotel's Thai site and every Thai phone write it. No “พ.ศ.” prefix; the number is enough.</td></tr>
         <tr><th>Clock</th><td>English: 12-hour, lowercase am and pm, a space before them, no leading zero, no “:00” on the hour, “noon” and “midnight” for 12. Thai: 24-hour, leading zero, “น.” after. A range takes an en dash and one meridiem when it can: “6:30–11 am”, “5 pm–2 am”.</td></tr>
+        <tr><th>Range</th><td>One day: “12 September 2026”. One month: “21–27 September 2026”. One year: “1 September – 31 December 2026”. Across years, both dates in full. The en dash is unspaced unless a side carries a space of its own, and it is never a hyphen or the word “to”.</td></tr>
         <tr><th>Relative</th><td>“today”, “tomorrow”, “in 3 days”, “overdue” — lowercase after a middle dot (“Mon 8 Sep 2026 · today”), capitalized as a badge (“Starts tomorrow”). Never “yesterday at 6 pm”; a stamp is a stamp.</td></tr>
         <tr><th>Zone</th><td>Never shown. Everything is hotel time. “ICT”, “GMT+7” and “Bangkok time” do not appear.</td></tr>
         <tr><th>Numbers</th><td>Thousands separators from 1,000. Tabular figures in a column. Spell out one to nine in prose (“five failed attempts”), digits for everything with a unit (“6-digit code”, “15 minutes”, “3 sessions”). Units unspaced with symbols (72.4%, 172.5 sqm has a space because sqm is a word).</td></tr>
@@ -536,13 +541,27 @@
   <section class="app-section" id="promotions">
     <p class="app-section-kicker">17 · Promotion Copy</p>
     <h2 class="app-section-title">As Written by F&amp;B</h2>
-    <p class="app-section-lede">The English and Thai copy of a promotion is the F&amp;B team's, approved with the artwork. The app renders it verbatim and the voice stops at its edge.</p>
+    <p class="app-section-lede">The English and Thai copy of a promotion is the F&amp;B team's, approved with the artwork. The app renders it verbatim and the voice stops at its edge — then picks up again in the artwork copy, where the same record is read back for the designer.</p>
     <div class="ci-rule-list">
       <div class="ci-rule"><b>Verbatim.</b><span>Title, copy, terms, prices and dates appear exactly as provided. The app does not retitle, shorten, recase or rephrase them, and never adds a period, a dash or a badge inside them.</span></div>
       <div class="ci-rule"><b>Typos and grammar only.</b><span>A spelling slip or a broken sentence may be corrected. A word choice, a British spelling the team chose, a “Net” with a capital N, a “++” — these stay. When in doubt, it stays.</span></div>
       <div class="ci-rule"><b>Fixed in the data, with approval.</b><span>A correction is a change to the promotion record, proposed to the user with the before and after, and written only once approved. Never patched in the page.</span></div>
       <div class="ci-rule"><b>The frame follows the voice.</b><span>Everything around the copy — the status badge, “Starts tomorrow”, “Updated 5 September 2026 · 6 pm”, “Artwork done”, “Link copied”, the empty and error states — is the app's and follows this page.</span></div>
       <div class="ci-rule"><b>Both languages, as given.</b><span>The Thai and English halves are shown as written, the preferred one first. A half that was not provided is simply absent.</span></div>
+      <div class="ci-rule"><b>Artwork copy is read from the record, never stored.</b><span>Section 03 of a promotion is what the artwork says. The title is the record's, verbatim. The subtitle is the press headline with its venue clause taken off; the description is the promotion's one-line summary; the facts are the dates, outlets, hours, prices, IHG One Rewards, the enrollment link, the reservation line, the channels and the terms, each written by app-format.js. Nothing is retyped: fix the record and the artwork copy follows.</span></div>
+      <div class="ci-rule"><b>The subtitle keeps the writer's case.</b><span>“Taste the SPIRIT OF SEOUL, SOUL OF SIAM” stays as F&amp;B shouted it; only a trailing period or exclamation mark is dropped. Recasing a headline is a rewrite, and a rewrite is the designer's call on the artwork.</span></div>
+    </div>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Artwork copy</span><span>fnb-artwork-copy.js · from the Fried Chicken &amp; Waffles record</span></div>
+        <div class="app-card app-surface" data-artwork-copy>
+          <div class="app-card-section"><p class="app-surface-label">Title · As written</p><div class="app-prose" data-verbatim="true"><h3 data-artwork-title>—</h3></div></div>
+          <div class="app-card-section"><p class="app-surface-label">Subtitle</p><div class="app-prose"><p data-artwork-subtitle>—</p></div></div>
+          <div class="app-card-section"><p class="app-surface-label">Description</p><div class="app-prose"><p data-artwork-description>—</p></div></div>
+          <div class="app-card-section"><p class="app-surface-label">Key information</p><div class="app-list" data-artwork-facts></div></div>
+        </div>
+        <p class="app-note">The press release said “Where crispy meets fluffy in every bite at Sip &amp; Co.”, “Available throughout September – December 2026”, “please call 02-796-8888” and “IHG® One Rewards members enjoy an extra 20% savings”. The artwork copy says the same things this page's way, and the title has not moved.</p>
+      </div>
     </div>
   </section>
 
@@ -561,7 +580,7 @@
       <div class="ci-rule"><b>Dates and numbers come from app-format.js.</b><span>Day month year, four-digit year, no zone. English 12-hour with lowercase am and pm and no leading zero; Thai 24-hour with “น.” and the Buddhist year. No page formats a date of its own.</span></div>
       <div class="ci-rule"><b>Metadata joins with a middle dot.</b><span>“Operations · 5 Sep 2026 · 8:30 am”. A sentence uses commas and periods; a line of facts uses dots.</span></div>
       <div class="ci-rule"><b>The staff register is plain; the guest register is the brand.</b><span>Story, ritual and one-of-a-kind belong to the share page and the business card. Inside the hotel, the fact is the sentence.</span></div>
-      <div class="ci-rule"><b>Promotion copy is verbatim.</b><span>Typo and grammar fixes only, in the data, with approval. The frame around it follows this page.</span></div>
+      <div class="ci-rule"><b>Promotion copy is verbatim; artwork copy is derived.</b><span>Typo and grammar fixes only, in the data, with approval. The frame around the copy, and the artwork copy read from the record, follow this page.</span></div>
       <div class="ci-rule"><b>Copy is not inline.</b><span>Strings live in the page module that owns them or in the data they describe, never in a style, a script fragment or a patch. A string that appears on two pages is written once.</span></div>
     </div>
   </section>

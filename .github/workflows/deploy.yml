@@ -57,7 +57,7 @@ jobs:
           # Betta sources, the service worker and the Workers.
           MODULES=(
             site/shell.js site/auth-client.js site/signin-page.js site/today.js site/fnb-page.js
-            site/fnb-read-model.js site/messages-page.js site/brand-page.js site/settings-page.js
+            site/fnb-read-model.js site/fnb-artwork-copy.js site/messages-page.js site/brand-page.js site/settings-page.js
             site/settings-me.js site/settings-admin.js site/settings-broadcast.js site/capabilities.js
             site/notification-inbox.js site/broadcast-inbox.js site/push-client.js site/push-config.js
             site/app-view.js site/app-dialog.js site/app-select.js site/app-toast.js site/app-code.js

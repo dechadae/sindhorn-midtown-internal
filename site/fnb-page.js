@@ -10,11 +10,11 @@
 import { initAuth } from './auth-client.js';
 import { formatDate, formatDateTime } from './app-format.js';
 import { loadFnbPromotions, readArtworkStatus, writeArtworkStatus, isArtworkEditor, readLocalLinks, writeLocalLinks, safeFolderUrl, parseUpdated } from './fnb-read-model.js';
+import { OUTLET_ORDER, artworkCopy } from './fnb-artwork-copy.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
-const OUTLET_ORDER = ['ANJU', "Bangkok'78", 'Sip & Co.', 'Horizon Pool Bar', 'The Lobby Lounge', 'In-room Dining'];
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-const SECTIONS = [['overview', 'Overview'], ['brief', 'Brief'], ['copy', 'Copy'], ['artwork', 'Artwork']];
+const SECTIONS = [['overview', 'Overview'], ['brief', 'Brief'], ['copy', 'Copy'], ['artwork-copy', 'Artwork copy'], ['artwork', 'Artwork']];
 const SHARE_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9M7 6l3-3 3 3M5 11v4a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-4"/></svg>';
 const FOLDER_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h5l2 2h7v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg>';
 const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
@@ -40,7 +40,7 @@ function relative(campaign, today) {
 const statusLabel = value => value === 'live' ? 'Live' : value === 'ended' ? 'Ended' : 'Upcoming';
 const statusTone = value => value === 'live' ? 'success' : value === 'ended' ? 'quiet' : null;
 const toneAttr = value => statusTone(value) ? ` data-tone="${statusTone(value)}"` : '';
-const outletsOf = campaign => campaign.activations.map(a => a.outlet).join(' + ');
+const outletsOf = campaign => { const seen = new Set(campaign.activations.map(a => a.outlet)); return [...OUTLET_ORDER.filter(o => seen.has(o)), ...[...seen].filter(o => !OUTLET_ORDER.includes(o))].join(' + '); };
 function uniqueValue(values, fallback = 'Varies by outlet') { const unique = [...new Set(values)]; return unique.length === 1 ? unique[0] : fallback; }
 const updatedLabel = (value, { withTime = true } = {}) => { const date = parseUpdated(value); return date ? (withTime ? formatDateTime(date, { style: 'long' }) : formatDate(date, { style: 'long' })) : ''; };
 // The month filter and the hero's period both come from the dataset's span,
@@ -127,7 +127,8 @@ function detailSkeletonMarkup() {
   <nav class="app-rail" aria-label="Promotion sections" aria-busy="true">${SECTIONS.map(([id, label], i) => `<span class="app-chip app-control${i === 0 ? ' is-active' : ''}">${label}</span>`).join('')}</nav>
   <section class="app-section" aria-busy="true"><div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${fact()}${fact()}${fact()}${fact()}</div></section>
   <section class="app-section"><p class="app-section-kicker">01 · Promotion brief</p><div class="app-stack">${block()}</div></section>
-  <section class="app-section"><p class="app-section-kicker">02 · Copy</p><div class="app-stack">${block()}${block()}</div></section>`;
+  <section class="app-section"><p class="app-section-kicker">02 · Copy</p><div class="app-stack">${block()}${block()}</div></section>
+  <section class="app-section"><p class="app-section-kicker">03 · Artwork copy</p><div class="app-stack">${block()}</div></section>`;
 }
 /* The error card speaks to the employee, not the console: whatever the
    dataset threw is logged, and the card says what to do. */
@@ -240,6 +241,22 @@ export async function mountFnb(host) {
     if (specific) for (const a of campaign.activations.filter(a => a.copyEn || a.copyTh)) html += `<h3 class="app-section-subhead">${esc(a.outlet)}</h3><div class="app-stack">${copyBlock('English', a.copyEn)}${copyBlock('Thai', a.copyTh, 'th')}</div>`;
     return html;
   }
+  /* The artwork copy is one card the designer reads top to bottom: the
+     title as F&B wrote it, then the subtitle, description and facts the
+     record yields in the app's voice (fnb-artwork-copy.js). The press copy
+     in 02 stays the reference. */
+  function artworkCopyMarkup(campaign) {
+    const c = artworkCopy(campaign);
+    const main = f => `<span class="app-list-row-main"><span class="app-list-row-meta">${esc(f.label)}</span><span class="app-list-row-title">${esc(f.value)}</span></span>`;
+    const fact = f => f.link ? `<a class="app-list-row" href="${esc(f.value)}" target="_blank" rel="noopener">${main(f)}<span class="app-list-row-end">${LINK_ICON}</span></a>` : `<div class="app-list-row">${main(f)}</div>`;
+    return `<div class="app-card app-surface">
+      <div class="app-card-section"><p class="app-surface-label">Title · As written</p><div class="app-prose" data-verbatim="true"><h3>${esc(c.title)}</h3></div></div>
+      ${c.subtitle ? `<div class="app-card-section"><p class="app-surface-label">Subtitle</p><div class="app-prose"><p>${esc(c.subtitle)}</p></div></div>` : ''}
+      ${c.description ? `<div class="app-card-section"><p class="app-surface-label">Description</p><div class="app-prose"><p>${esc(c.description)}</p></div></div>` : ''}
+      <div class="app-card-section"><p class="app-surface-label">Key information</p><div class="app-list">${c.facts.map(fact).join('')}</div></div>
+    </div>
+    <p class="app-note">The title is F&amp;B's, word for word. The rest is the record read in the app's voice, ready for the artwork; the press release in 02 is the reference.</p>`;
+  }
   function folderMarkup(campaign) {
     const folders = folderLinks(campaign);
     const view = folders.length === 1
@@ -264,7 +281,8 @@ export async function mountFnb(host) {
     </section>
     <section class="app-section" id="brief"><p class="app-section-kicker">01 · Promotion brief</p><div class="app-stack">${briefMarkup(campaign)}</div></section>
     <section class="app-section" id="copy"><p class="app-section-kicker">02 · Copy</p>${copyMarkup(campaign)}</section>
-    <section class="app-section" id="artwork"><p class="app-section-kicker">03 · Artwork<span class="app-section-kicker-end" data-artwork-count>${n.done} / ${n.total} complete</span></p>
+    <section class="app-section" id="artwork-copy"><p class="app-section-kicker">03 · Artwork copy</p><div class="app-stack">${artworkCopyMarkup(campaign)}</div></section>
+    <section class="app-section" id="artwork"><p class="app-section-kicker">04 · Artwork<span class="app-section-kicker-end" data-artwork-count>${n.done} / ${n.total} complete</span></p>
       <div class="app-stack">${campaign.activations.map(activationMarkup).join('')}${folderMarkup(campaign)}</div>
       <div class="app-utility-row"><button class="app-utility-action" type="button" data-fnb-top><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15V5M5 9l5-5 5 5"/></svg>Back to top</button></div>
     </section>`;

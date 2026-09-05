@@ -46,6 +46,21 @@ export function formatDate(value, { style = 'short', lang = 'en' } = {}) {
   return `${th ? p.weekday.replace(/^วัน/, '') : p.weekday} ${day}`;
 }
 
+/* Two days as one span, sharing what they share: "12 September 2026" (one
+   day), "21–27 September 2026" (one month), "1 September – 31 December 2026"
+   (one year), "1 November 2026 – 3 January 2027". The en dash is spaced only
+   when a side carries a space of its own. Thai: "21–27 กันยายน 2569",
+   "1 กันยายน – 31 ธันวาคม 2569". */
+export function formatDateRange(from, to, { style = 'long', lang = 'en' } = {}) {
+  const a = toDate(from), b = toDate(to) || a; if (!a) return '';
+  const pa = parts(a, lang, { day: 'numeric', month: 'long', year: 'numeric' }), pb = parts(b, lang, { day: 'numeric', month: 'long', year: 'numeric' });
+  const whole = formatDate(a, { style, lang }), end = formatDate(b, { style, lang });
+  if (pa.day === pb.day && pa.month === pb.month && pa.year === pb.year) return whole;
+  if (pa.month === pb.month && pa.year === pb.year) return `${pa.day}–${end}`;
+  if (pa.year === pb.year) { const start = whole.slice(0, whole.length - pa.year.replace(/^พ\.ศ\.\s*/, '').length).trim(); return `${start} – ${end}`; }
+  return `${whole} – ${end}`;
+}
+
 /* "6 pm", "6:30 pm", "11:30 am", "noon", "midnight". Thai: "18:00 น." */
 export function formatTime(value, { lang = 'en' } = {}) {
   const date = toDate(value); if (!date) return '';

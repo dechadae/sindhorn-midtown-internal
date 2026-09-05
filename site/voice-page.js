@@ -7,7 +7,8 @@
    app-format.js at mount, so the specimens are the code's own output. */
 
 import { bindLibrary } from './ci-library.js';
-import { formatDate, formatTime, formatDateTime, formatClock, formatMoney, formatPercent, formatCount } from './app-format.js';
+import { formatDate, formatDateRange, formatTime, formatDateTime, formatClock, formatMoney, formatPercent, formatCount } from './app-format.js';
+import { artworkCopy } from './fnb-artwork-copy.js';
 
 const LIBRARY_URL = '/voice.html';
 const LIBRARY_CSS = '/ci-library.css?v=10';
@@ -29,6 +30,10 @@ const FORMATS = {
   'date:day:th': () => formatDate(EVENING, { style: 'day', lang: 'th' }),
   'date:month:en': () => formatDate(EVENING, { style: 'month' }),
   'date:month:th': () => formatDate(EVENING, { style: 'month', lang: 'th' }),
+  'range:en': () => formatDateRange('2026-09-01', '2026-12-31'),
+  'range:th': () => formatDateRange('2026-09-01', '2026-12-31', { lang: 'th' }),
+  'range2:en': () => formatDateRange('2026-09-21', '2026-09-27'),
+  'range2:th': () => formatDateRange('2026-09-21', '2026-09-27', { lang: 'th' }),
   'time:en': () => formatTime(EVENING),
   'time:th': () => formatTime(EVENING, { lang: 'th' }),
   'time2:en': () => formatTime(MORNING),
@@ -48,14 +53,41 @@ const FORMATS = {
   'count': () => `${formatCount(1, 'job')} · ${formatCount(3, 'job')} · ${formatCount(0, 'session')}`
 };
 
-/* Fill every [data-format] slot from app-format.js, then hand the rest of the
-   page to the UI Library's behavior. Shared by the standalone document and
-   the shell route. */
+/* The promotion record the artwork-copy specimen is read from: the Fried
+   Chicken & Waffles promotion as F&B supplied it, trimmed to the fields the
+   builder reads. */
+const SPECIMEN_PROMOTION = {
+  id: 'fried-chicken-waffles', title: 'Fried Chicken & Waffles', start: '2026-09-01', end: '2026-12-31',
+  dateLabel: '1 September – 31 December 2026',
+  summary: 'Crispy fried chicken and buttery waffles in four globally inspired styles.',
+  brief: 'Menu\n\n1. Original-Style Fried Chicken and Waffles (Gluten/Milk/Eggs)\nGolden crispy fried chicken, buttery waffles, finished with maple syrup.\nFull Portion: THB 490++ · Half Portion: THB 350++',
+  copyEn: 'Where crispy meets fluffy in every bite at Sip & Co.\n\nTake your taste buds on a flavor-packed journey with our Fried Chicken & Waffles collection.\n\nAvailable throughout September – December 2026 at Sip & Co. and The Lobby Lounge.\n\nIHG® One Rewards members enjoy an extra 20% savings. Become a member for FREE, please visit https://bit.ly/ihg-one-rewards-enrollment-2026-bkksn\n\nFor more information and reservations, please call 02-796-8888 or email eat.sindhornmidtown@ihg.com',
+  activations: [
+    { id: 'sip', outlet: 'Sip & Co.', time: 'TBC', discount: '20%', artworks: [] },
+    { id: 'lounge', outlet: 'The Lobby Lounge', time: 'TBC', discount: '20%', artworks: [] }
+  ]
+};
+const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+
+function writeArtworkCopy(root) {
+  const card = root.querySelector('[data-artwork-copy]'); if (!card) return;
+  const copy = artworkCopy(SPECIMEN_PROMOTION);
+  card.querySelector('[data-artwork-title]').textContent = copy.title;
+  card.querySelector('[data-artwork-subtitle]').textContent = copy.subtitle;
+  card.querySelector('[data-artwork-description]').textContent = copy.description;
+  card.querySelector('[data-artwork-facts]').innerHTML = copy.facts.map(f => `<div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-meta">${esc(f.label)}</span><span class="app-list-row-title">${esc(f.value)}</span></span></div>`).join('');
+}
+
+/* Fill every [data-format] slot from app-format.js and the artwork-copy
+   specimen from fnb-artwork-copy.js, then hand the rest of the page to the
+   UI Library's behavior. Shared by the standalone document and the shell
+   route. */
 export function bindVoice(root, options = {}) {
   for (const slot of root.querySelectorAll('[data-format]')) {
     const write = FORMATS[slot.dataset.format];
     if (write) slot.textContent = write();
   }
+  writeArtworkCopy(root);
   return bindLibrary(root, options);
 }
 
