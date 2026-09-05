@@ -902,7 +902,7 @@ body[data-public] .app-masthead-home:active{transform:none}
 .app-business-card-kicker{margin:0;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
 .app-business-card-name{margin:6px 0 0;font-size:var(--type-display);font-weight:var(--weight-thin);line-height:.98;text-wrap:balance;overflow-wrap:anywhere}
 .app-business-card-position{margin:10px 0 0;font-size:var(--type-lead);line-height:var(--leading-label)}
-.app-business-card-hotel{max-width:36ch;margin:8px auto 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-business-card-hotel{max-width:36ch;margin:8px auto 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body);text-wrap:balance}
 .app-business-card>.app-figure{width:min(72%,260px);margin-inline:auto;aspect-ratio:1;border-radius:var(--radius-surface)}
 .app-business-card>.app-figure svg{display:block;width:100%;height:100%}
 .app-business-card-logo{display:block;width:min(120px,32vw);height:auto;margin:0 auto}

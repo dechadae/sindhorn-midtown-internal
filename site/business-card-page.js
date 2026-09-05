@@ -68,9 +68,12 @@ export function publishedView(card) {
   };
 }
 
+/* A value that must wrap does so at its own seam: an email breaks before
+   the @ (a <wbr> the grid's overflow-wrap prefers to a mid-word cut). */
+const seam = text => esc(text).replace('@', '<wbr>@');
 function detail(label, value, href = '', text = value) {
   if (!value) return '';
-  return `<div class="app-metric"><span class="app-metric-label">${esc(label)}</span><span class="app-metric-value">${href ? `<a href="${esc(href)}">${esc(text)}</a>` : esc(text)}</span></div>`;
+  return `<div class="app-metric"><span class="app-metric-label">${esc(label)}</span><span class="app-metric-value">${href ? `<a href="${esc(href)}">${seam(text)}</a>` : esc(text)}</span></div>`;
 }
 
 /* The card body, shared by Settings › Me, its presenting dialog and the
