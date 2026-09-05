@@ -210,7 +210,11 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 
 /* ---- Selector --------------------------------------------------------------
    Behaviour lives in app-select.js. The trigger is a control; the menu floats
-   above content, so it is an overlay rather than a card. */
+   above content, so it is an overlay rather than a card. Inside a card the
+   library lifts the open menu to the document (glass never nests): the same
+   element as position:fixed, anchored to the trigger through the three
+   custom properties app-select.js sets - the one runtime geometry in the
+   library, and the library's, never a page's. */
 .app-select{position:relative;min-width:0;display:grid;gap:6px}
 .app-select-label{color:var(--app-muted);font-size:var(--type-small);text-transform:uppercase}
 .app-select-trigger{
@@ -228,6 +232,26 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
   display:none;
 }
 .app-select[data-open="true"] .app-select-menu{display:block}
+.app-select-menu[data-floating="true"]{
+  display:block;position:fixed;
+  top:var(--app-select-top);left:var(--app-select-left);right:auto;width:var(--app-select-width);
+}
+/* Compact: the same selector as a badge. No visible label, the trigger a
+   badge grown to a tappable height that carries the chosen option's tone,
+   the menu hanging from the trigger's right edge at a readable width. The
+   status on a job card (23 Job) is this. */
+.app-select[data-compact="true"]{display:inline-grid;gap:0}
+.app-select[data-compact="true"] .app-select-trigger{
+  width:auto;height:auto;min-height:28px;padding:0 8px 0 10px;
+  gap:5px;justify-content:center;
+  border:0;border-radius:var(--radius-inset);
+  font-size:var(--type-small);line-height:1;
+  transition:transform var(--motion-fast) var(--motion-ease);
+}
+.app-select[data-compact="true"] .app-select-trigger svg{width:12px;height:12px;stroke-width:1.8}
+.app-select[data-compact="true"] .app-select-trigger:active{transform:scale(.96)}
+.app-select[data-compact="true"] .app-select-trigger:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
+.app-select[data-compact="true"] .app-select-menu{min-width:200px;left:auto;right:0}
 .app-select-option{
   width:100%;min-height:42px;padding:0 12px;
   display:flex;align-items:center;
@@ -866,8 +890,9 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
    .app-card.app-surface, not a new material - the same way the business
    card is. The status is a badge whose tone says the state at a glance:
    not-started quiet, working accent, stuck danger, done success; a tight
-   deadline reads in the danger tone. Changing anything happens in the
-   dialog, so the card itself draws no control of its own. */
+   deadline reads in the danger tone. The status is the compact selector
+   (08 Selector) - its menu lifts out of the card while open - and
+   everything else changes in the dialog. */
 .app-job{display:grid;gap:10px}
 /* The card's groups - what was asked, then the facts, then the actions - are
    separated by the hairline every card uses between groups (24 Rules), so a
@@ -878,19 +903,6 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 .app-job>.app-utility-row{margin-top:6px;min-height:0}
 .app-job>.app-utility-row>.app-utility-action{min-height:24px}
 .app-job-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-/* The status is the one control on the card: a badge grown to a tappable
-   height that opens the status sheet. It is a badge, so it keeps the badge
-   tones and the badge's glass membership (tint, no blur inside the card). */
-.app-job-status{
-  min-height:28px;padding:0 8px 0 10px;
-  gap:5px;
-  border:0;border-radius:var(--radius-inset);
-  font:inherit;font-size:var(--type-small);line-height:1;cursor:pointer;
-  transition:transform var(--motion-fast) var(--motion-ease);
-}
-.app-job-status svg{width:12px;height:12px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8}
-.app-job-status:active{transform:scale(.96)}
-.app-job-status:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
 .app-job-kicker{margin:0;color:var(--app-muted);font-size:var(--type-small);line-height:var(--leading-label);text-transform:uppercase}
 .app-job-title{margin:0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight);text-wrap:balance}
 .app-job-copy{margin:0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}

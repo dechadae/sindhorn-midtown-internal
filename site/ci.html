@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=9">
 <link rel="stylesheet" href="/app-glass.css?v=11">
-<link rel="stylesheet" href="/app-components.css?v=31">
+<link rel="stylesheet" href="/app-components.css?v=32">
 <link rel="stylesheet" href="/app-shell.css?v=2">
 <link rel="stylesheet" href="/ci-library.css?v=10">
 </head>
@@ -344,19 +344,36 @@
   <section class="app-section" id="selector">
     <p class="app-section-kicker">08 · Selector</p>
     <h2 class="app-section-title">One Selector, One Menu</h2>
-    <p class="app-section-lede">The trigger is a control; the menu floats above content, so it is an overlay. There is one selector in the app and this is it.</p>
+    <p class="app-section-lede">The trigger is a control; the menu floats above content, so it is an overlay. There is one selector in the app and this is it - and one compact form of it, a badge that opens the same menu.</p>
     <div class="ci-stack">
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-select</span><span>tap to open</span></div>
-        <div class="app-select" data-select>
+        <div class="app-select" data-select="outlet" data-value="">
           <span class="app-select-label">Outlet</span>
-          <button class="app-select-trigger app-control" type="button" aria-haspopup="listbox" aria-expanded="false"><span data-select-value>All outlets</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button>
-          <div class="app-select-menu app-overlay" role="listbox">
-            <button class="app-select-option" type="button" role="option" aria-selected="true">All outlets</button>
-            <button class="app-select-option" type="button" role="option" aria-selected="false">Bangkok&rsquo;78</button>
-            <button class="app-select-option" type="button" role="option" aria-selected="false">ANJU</button>
+          <button class="app-select-trigger app-control" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Outlet"><span data-select-value>All outlets</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button>
+          <div class="app-select-menu app-overlay" role="listbox" aria-label="Outlet">
+            <button class="app-select-option" type="button" role="option" aria-selected="true" data-value="">All outlets</button>
+            <button class="app-select-option" type="button" role="option" aria-selected="false" data-value="bangkok-78">Bangkok&rsquo;78</button>
+            <button class="app-select-option" type="button" role="option" aria-selected="false" data-value="anju">ANJU</button>
           </div>
         </div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-select[data-compact]</span><span>in a card · the menu lifts</span></div>
+        <article class="app-card app-surface">
+          <div class="app-job-head"><p class="app-job-kicker">Compact, inside a card</p>
+            <div class="app-select" data-select="status" data-value="working" data-compact="true">
+              <button class="app-select-trigger app-badge" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Working</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button>
+              <div class="app-select-menu app-overlay" role="listbox" aria-label="Status">
+                <button class="app-select-option" type="button" role="option" aria-selected="false" data-value="not-started" data-tone="quiet">Not started</button>
+                <button class="app-select-option" type="button" role="option" aria-selected="true" data-value="working">Working</button>
+                <button class="app-select-option" type="button" role="option" aria-selected="false" data-value="stuck" data-tone="danger">Stuck</button>
+                <button class="app-select-option" type="button" role="option" aria-selected="false" data-value="done" data-tone="success">Done</button>
+              </div>
+            </div>
+          </div>
+        </article>
+        <p class="app-note"><code>data-compact="true"</code> drops the label and makes the trigger a badge at a tappable height; an option's <code>data-tone</code> travels to the trigger when chosen. Glass never nests, so while this menu is open the library lifts it out of the card to the document - the same element, fixed under the trigger, hanging from its right edge - and puts it back on close. It is the only runtime geometry in the library: three custom properties <code>app-select.js</code> sets, never a length a page writes. A selector inside a dialog stays put; the top layer already covers the page.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-chip</span><span>metadata / filter</span></div>
@@ -990,13 +1007,13 @@ Ask the team about the pairing board: three small plates built for the three dri
   <section class="app-section" id="job">
     <p class="app-section-kicker">23 · Job</p>
     <h2 class="app-section-title">One Job, Where It Stands</h2>
-    <p class="app-section-lede">The Jobs tab lists what was asked of an employee: the task, who sent it and when, the deadline and the status. A job is a layout inside a plain card, the way the business card is - the status is a badge whose tone says the state and, tapped, opens the status sheet; a tight deadline reads in the danger tone, and everything else editable opens in the dialog.</p>
+    <p class="app-section-lede">The Jobs tab lists what was asked of an employee: the task, who sent it and when, the deadline and the status. A job is a layout inside a plain card, the way the business card is - the status is the compact selector, a badge whose tone says the state and, tapped, drops its menu; a tight deadline reads in the danger tone, and everything else editable opens in the dialog.</p>
     <div class="ci-stack">
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-job</span><span>data-status working · tight deadline · hairline groups</span></div>
         <article class="app-card app-surface">
           <div class="app-job" data-status="working">
-            <div class="app-job-head"><p class="app-job-kicker">Received 4 Sep 2026</p><button class="app-badge app-job-status" type="button" aria-label="Status: Working. Change">Working<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg></button></div>
+            <div class="app-job-head"><p class="app-job-kicker">Received 4 Sep 2026</p><div class="app-select" data-select="status-working" data-value="working" data-compact="true"><button class="app-select-trigger app-badge" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Working</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="app-select-menu app-overlay" role="listbox" aria-label="Status"><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="not-started" data-tone="quiet">Not started</button><button class="app-select-option" type="button" role="option" aria-selected="true" data-value="working">Working</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="stuck" data-tone="danger">Stuck</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="done" data-tone="success">Done</button></div></div></div>
             <h3 class="app-job-title">ANJU Grab delivery review card</h3>
             <p class="app-job-copy">Artwork for the review card that goes out with Grab deliveries: QR to the Google review page, both languages, print-ready at 90 × 55 mm.</p>
             <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
@@ -1011,7 +1028,7 @@ Ask the team about the pairing board: three small plates built for the three dri
         <div class="ci-specimen-label"><span>.app-job</span><span>the four statuses</span></div>
         <div class="app-stack">
           <article class="app-card app-surface"><div class="app-job" data-status="not-started">
-            <div class="app-job-head"><p class="app-job-kicker">Received 3 Sep 2026</p><button class="app-badge app-job-status" type="button" data-tone="quiet" aria-label="Status: Not started. Change">Not started<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg></button></div>
+            <div class="app-job-head"><p class="app-job-kicker">Received 3 Sep 2026</p><div class="app-select" data-select="status-not-started" data-value="not-started" data-compact="true"><button class="app-select-trigger app-badge" type="button" data-tone="quiet" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Not started</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="app-select-menu app-overlay" role="listbox" aria-label="Status"><button class="app-select-option" type="button" role="option" aria-selected="true" data-value="not-started" data-tone="quiet">Not started</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="working">Working</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="stuck" data-tone="danger">Stuck</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="done" data-tone="success">Done</button></div></div></div>
             <h3 class="app-job-title">Lobby lift wrap, Loy Krathong</h3>
             <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Rooms Division</span></div>
@@ -1019,7 +1036,7 @@ Ask the team about the pairing board: three small plates built for the three dri
             </div>
           </div></article>
           <article class="app-card app-surface"><div class="app-job" data-status="stuck">
-            <div class="app-job-head"><p class="app-job-kicker">Received 28 Aug 2026</p><button class="app-badge app-job-status" type="button" data-tone="danger" aria-label="Status: Stuck. Change">Stuck<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg></button></div>
+            <div class="app-job-head"><p class="app-job-kicker">Received 28 Aug 2026</p><div class="app-select" data-select="status-stuck" data-value="stuck" data-compact="true"><button class="app-select-trigger app-badge" type="button" data-tone="danger" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Stuck</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="app-select-menu app-overlay" role="listbox" aria-label="Status"><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="not-started" data-tone="quiet">Not started</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="working">Working</button><button class="app-select-option" type="button" role="option" aria-selected="true" data-value="stuck" data-tone="danger">Stuck</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="done" data-tone="success">Done</button></div></div></div>
             <h3 class="app-job-title">Sindhorn Wellness brochure reprint</h3>
             <p class="app-job-copy">Waiting on the revised treatment prices from Spa before the price page can be set.</p>
             <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
@@ -1028,7 +1045,7 @@ Ask the team about the pairing board: three small plates built for the three dri
             </div>
           </div></article>
           <article class="app-card app-surface"><div class="app-job" data-status="done">
-            <div class="app-job-head"><p class="app-job-kicker">Received 21 Aug 2026</p><button class="app-badge app-job-status" type="button" data-tone="success" aria-label="Status: Done. Change">Done<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg></button></div>
+            <div class="app-job-head"><p class="app-job-kicker">Received 21 Aug 2026</p><div class="app-select" data-select="status-done" data-value="done" data-compact="true"><button class="app-select-trigger app-badge" type="button" data-tone="success" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Done</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="app-select-menu app-overlay" role="listbox" aria-label="Status"><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="not-started" data-tone="quiet">Not started</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="working">Working</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="stuck" data-tone="danger">Stuck</button><button class="app-select-option" type="button" role="option" aria-selected="true" data-value="done" data-tone="success">Done</button></div></div></div>
             <h3 class="app-job-title">Mother's Day afternoon tea social set</h3>
             <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">F&amp;B Marketing</span></div>
@@ -1036,14 +1053,7 @@ Ask the team about the pairing board: three small plates built for the three dri
             </div>
           </div></article>
         </div>
-        <p class="app-note"><code>data-status</code> on <code>.app-job</code> names the state for scripts and for the one visual it changes - a done job's title steps back to the muted colour. The status is <code>.app-badge.app-job-status</code>, a button: the badge's tones (none for working, <code>quiet</code> for not started, <code>danger</code> for stuck, <code>success</code> for done) at a tappable height, and it opens the status sheet below. <code>.app-job-section</code> puts the hairline between the card's groups - the ask, the facts, the actions. <code>.app-job-deadline[data-tight="true"]</code> is a deadline inside a week. The list is filtered by an <code>.app-rail</code> of chips above it and edited in the dialog standard.</p>
-      </div>
-      <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-sheet › .app-list</span><span>the status sheet · button.app-list-row[aria-pressed]</span></div>
-        <div class="app-stack">
-          <p class="app-note">A menu cannot open inside a card - an overlay inside the card's glass would sample the card, not the page (24 Rules) - so the status control opens the sheet standard from 10 Dialog with one row per status. The chosen row carries the accent and a check; a tap on any row saves and closes.</p>
-          <button class="app-utility-action" type="button" data-status-sheet-open>Open the status sheet</button>
-        </div>
+        <p class="app-note"><code>data-status</code> on <code>.app-job</code> names the state for scripts and for the one visual it changes - a done job's title steps back to the muted colour. The status is the compact selector from 08 - a badge in the status's tone (none for working, <code>quiet</code> for not started, <code>danger</code> for stuck, <code>success</code> for done) whose menu drops below it, lifted out of the card's glass while open; a pick saves at once. <code>.app-job-section</code> puts the hairline between the card's groups - the ask, the facts, the actions. <code>.app-job-deadline[data-tight="true"]</code> is a deadline inside a week. The list is filtered by an <code>.app-rail</code> of chips above it and edited in the dialog standard.</p>
       </div>
     </div>
   </section>
@@ -1059,7 +1069,7 @@ Ask the team about the pairing board: three small plates built for the three dri
       <div class="ci-rule"><b>Reuse before creating.</b><span>If a page needs something that is not here, it is added here first and then consumed. A component that exists only inside one route is not a component.</span></div>
       <div class="ci-rule"><b>One rhythm between sections.</b><span>44px between sections, 24px from the hero to the first one, 20px from a title to its content, 12px between cards in a stack, and a hairline between groups inside one card. A page never sets its own gaps.</span></div>
       <div class="ci-rule"><b>Secondary text never drops below 11px.</b><span>Labels, deltas, notes and metadata are 11 or 12px. A rule that shrinks them fails the render gate.</span></div>
-      <div class="ci-rule"><b>Geometry is never inline.</b><span>A data-driven length is an SVG attribute or a data attribute the library maps, not a style attribute. The track in 12 Metrics is the pattern.</span></div>
+      <div class="ci-rule"><b>Geometry is never inline.</b><span>A data-driven length is an SVG attribute or a data attribute the library maps, not a style attribute. The track in 12 Metrics is the pattern. The one runtime exception is the library's own: the anchor of a lifted selector menu, three custom properties app-select.js sets and clears.</span></div>
       <div class="ci-rule"><b>Status is a tone, not a colour.</b><span>A card's status, a hero's eyebrow, a badge and a state all speak the same two words — success, quiet — and the library maps them. A page never picks a colour for a state.</span></div>
       <div class="ci-rule"><b>One typeface, zero tracking.</b><span>LINE Seed Sans TH at 100, 400 or 700. Application chrome never adjusts letter spacing.</span></div>
       <div class="ci-rule"><b>Rounded, never circular.</b><span>Corners are soft. Circular and capsule chrome are not part of this system.</span></div>
@@ -1095,22 +1105,6 @@ Ask the team about the pairing board: three small plates built for the three dri
     <p class="app-dialog-copy">Bottom-anchored, thumb-reachable. Same material and the same native &lt;dialog&gt; behaviour as the centred dialog above — only the geometry is different.</p>
     <div class="app-dialog-actions">
       <button class="app-utility-action" type="button" data-sheet-close>Close</button>
-    </div>
-  </div>
-</dialog>
-
-<dialog class="app-sheet app-overlay" data-status-sheet>
-  <div class="app-sheet-grip"></div>
-  <div class="app-sheet-body">
-    <h2 class="app-sheet-title">Status</h2>
-    <div class="app-list">
-      <button class="app-list-row" type="button" aria-pressed="false"><span class="app-list-row-main"><span class="app-list-row-title">Not started</span></span><span class="app-list-row-end"></span></button>
-      <button class="app-list-row" type="button" aria-pressed="true"><span class="app-list-row-main"><span class="app-list-row-title">Working</span></span><span class="app-list-row-end"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5"/></svg></span></button>
-      <button class="app-list-row" type="button" aria-pressed="false"><span class="app-list-row-main"><span class="app-list-row-title">Stuck</span></span><span class="app-list-row-end"></span></button>
-      <button class="app-list-row" type="button" aria-pressed="false"><span class="app-list-row-main"><span class="app-list-row-title">Done</span></span><span class="app-list-row-end"></span></button>
-    </div>
-    <div class="app-dialog-actions">
-      <button class="app-utility-action" type="button" data-status-sheet-close>Cancel</button>
     </div>
   </div>
 </dialog>

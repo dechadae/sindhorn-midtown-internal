@@ -72,7 +72,7 @@ const EXPECT = [
   ['.app-job', BARE], ['.app-job-head', BARE], ['.app-job-deadline', BARE], ['.app-job-section', BARE], ['#job .app-badge[data-tone="success"]', BADGE_SUCCESS_NESTED],
   // The status control is a badge grown to a control (r23): it keeps the
   // badge's tint and, nested in the card, drops the blur like any badge.
-  ['#job .app-job-status:not([data-tone])', { bg: BADGE.bg, filter: 'none' }], ['#job .app-job-status[data-tone="quiet"]', BADGE_NESTED],
+  ['#job .app-select[data-compact="true"] .app-select-trigger:not([data-tone])', { bg: BADGE.bg, filter: 'none' }], ['#job .app-select[data-compact="true"] .app-select-trigger[data-tone="quiet"]', BADGE_NESTED],
   // Scoped to the Badge section itself: the List section also uses a quiet
   // badge, nested inside .app-card, where it correctly renders with no blur.
   ['#badge .app-badge:not([data-tone])', BADGE], ['#badge .app-badge[data-tone="quiet"]', BADGE_QUIET],

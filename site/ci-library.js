@@ -171,28 +171,9 @@ export function bindLibrary(root, { page = root } = {}) {
     });
   }
 
-  // Selector
-  for (const item of root.querySelectorAll('[data-select]')) {
-    const trigger = item.querySelector('.app-select-trigger');
-    const value = item.querySelector('[data-select-value]');
-    const close = () => { item.dataset.open = 'false'; trigger?.setAttribute('aria-expanded', 'false'); };
-    if (trigger) on(trigger, 'click', event => {
-      event.stopPropagation();
-      const open = item.dataset.open === 'true';
-      item.dataset.open = String(!open);
-      trigger.setAttribute('aria-expanded', String(!open));
-    });
-    for (const option of item.querySelectorAll('.app-select-option')) {
-      on(option, 'click', () => {
-        for (const other of item.querySelectorAll('.app-select-option')) other.setAttribute('aria-selected', 'false');
-        option.setAttribute('aria-selected', 'true');
-        if (value) value.textContent = option.textContent;
-        close();
-      });
-    }
-    on(document, 'click', event => { if (!item.contains(event.target)) close(); });
-    on(document, 'keydown', event => { if (event.key === 'Escape') close(); });
-  }
+  // Selector - the library's own binding, so the specimens behave exactly as
+  // a page's do, the compact one in a card lifting its menu out of the glass.
+  bindAppSelects(root, { signal });
 
   // Chips - a jump-link chip navigates; only a plain chip toggles.
   for (const chip of root.querySelectorAll('.app-chip:not(a)')) {
@@ -221,21 +202,6 @@ export function bindLibrary(root, { page = root } = {}) {
   const sheetOpen = root.querySelector('[data-sheet-open]'), sheetClose = root.querySelector('[data-sheet-close]');
   if (sheetOpen) on(sheetOpen, 'click', () => sheet?.showModal());
   if (sheetClose) on(sheetClose, 'click', () => sheet?.close());
-
-  // Status sheet (23 Job) - a picker in the sheet: a tap on a row chooses it
-  // and closes, the way the Jobs page saves.
-  const statusSheet = root.querySelector('[data-status-sheet]');
-  const statusOpen = root.querySelector('[data-status-sheet-open]'), statusClose = root.querySelector('[data-status-sheet-close]');
-  if (statusOpen) on(statusOpen, 'click', () => statusSheet?.showModal());
-  if (statusClose) on(statusClose, 'click', () => statusSheet?.close());
-  if (statusSheet) on(statusSheet, 'click', event => {
-    if (event.target === statusSheet) { statusSheet.close(); return; }
-    const row = event.target.closest('button.app-list-row'); if (!row) return;
-    const check = statusSheet.querySelector('[aria-pressed="true"] .app-list-row-end')?.innerHTML || '';
-    for (const other of statusSheet.querySelectorAll('button.app-list-row')) { other.setAttribute('aria-pressed', 'false'); other.querySelector('.app-list-row-end').innerHTML = ''; }
-    row.setAttribute('aria-pressed', 'true'); row.querySelector('.app-list-row-end').innerHTML = check;
-    statusSheet.close();
-  });
 
   // Toast - shows, then clears itself; a second tap restarts the timer.
   const toast = root.querySelector('[data-toast]');

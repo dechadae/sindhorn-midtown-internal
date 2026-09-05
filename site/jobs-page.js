@@ -9,20 +9,18 @@
    archive. Nothing is deleted - an archived job simply leaves the list.
 
    Everything here is library: a rail of filter chips, one .app-card per job
-   with the .app-job layout and its hairline groups, the status control on
-   the card opening the sheet standard (r23 - a menu cannot open inside a
-   card without nesting glass), the dialog standard with a form grid and the
-   shared selector for the status, the confirm dialog before archiving, the
-   toast. No class of its own, no material of its own. */
+   with the .app-job layout and its hairline groups, the compact selector as
+   the status on the card (r23c - a dropdown whose menu the library lifts out
+   of the card's glass while open), the dialog standard with a form grid and
+   the shared selector for the status, the confirm dialog before archiving,
+   the toast. No class of its own, no material of its own. */
 import { supabaseRpc } from './auth-client.js';
-import { appSelect, appSelectValue, bindAppSelects } from './app-select.js';
+import { appSelect, appSelectValue, setAppSelectValue, bindAppSelects } from './app-select.js';
 import { openDialog, dialogHead, confirmDialog } from './app-dialog.js';
 import { showToast } from './app-toast.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const PLUS_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>';
-const CHEVRON_ICON = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg>';
-const CHECK_ICON = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5"/></svg>';
 
 const STATUSES = [['not-started', 'Not started', 'quiet'], ['working', 'Working', ''], ['stuck', 'Stuck', 'danger'], ['done', 'Done', 'success']];
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(([key, label]) => [key, label]));
@@ -62,14 +60,15 @@ function explain(error) {
   return 'The change could not be saved. Please try again.';
 }
 
-/* The status on the card: a badge for a reader, the status control (a badge
-   grown to a tappable height, opening the status sheet) for an employee who
-   manages the list. */
+/* The status on the card: a badge for a reader, the compact selector for an
+   employee who manages the list - a dropdown of the four statuses, each in
+   its tone, keyed by the job so one handler serves the whole list. */
+const STATUS_OPTIONS = STATUSES.map(([value, label, tone]) => ({ value, label, tone }));
 function statusMarkup(job, canManage) {
   const label = esc(STATUS_LABEL[job.status] || job.status);
   const tone = STATUS_TONE[job.status] ? ` data-tone="${STATUS_TONE[job.status]}"` : '';
   if (!canManage) return `<span class="app-badge"${tone}>${label}</span>`;
-  return `<button class="app-badge app-job-status" type="button"${tone} data-job-status-for="${esc(job.id)}" aria-label="Status: ${label}. Change">${label}${CHEVRON_ICON}</button>`;
+  return appSelect({ kind: `status:${job.id}`, label: 'Status', options: STATUS_OPTIONS, selected: job.status, compact: true });
 }
 
 function cardMarkup(job, canManage) {
@@ -190,48 +189,30 @@ export async function mountJobs(host) {
     }, { signal });
   }
 
-  /* The status sheet: one row per status, the current one checked; a tap on
-     a row saves through set_status and closes. The sheet is a native
-     <dialog> on the page root, so it is an overlay over the page, never a
-     menu inside the card's glass. */
-  function sheet() {
-    let el = host.querySelector('[data-job-sheet]');
-    if (!el) { el = document.createElement('dialog'); el.className = 'app-sheet app-overlay'; el.dataset.jobSheet = 'true'; host.append(el); el.addEventListener('click', event => { if (event.target === el) el.close(); }, { signal }); }
-    return el;
-  }
-  function pickStatus(job) {
-    const el = sheet();
-    el.innerHTML = `<div class="app-sheet-grip"></div><div class="app-sheet-body"><h2 class="app-sheet-title">Status</h2><div class="app-list">${STATUSES.map(([key, label]) => {
-      const on = key === job.status;
-      return `<button class="app-list-row" type="button" data-job-set-status="${key}" aria-pressed="${on}"><span class="app-list-row-main"><span class="app-list-row-title">${esc(label)}</span></span><span class="app-list-row-end">${on ? CHECK_ICON : ''}</span></button>`;
-    }).join('')}</div><p class="app-dialog-status" data-job-sheet-status hidden></p><div class="app-dialog-actions"><button class="app-utility-action" type="button" data-job-sheet-close>Cancel</button></div></div>`;
-    el.onclick = async event => {
-      if (event.target.closest('[data-job-sheet-close]')) { el.close(); return; }
-      const row = event.target.closest('[data-job-set-status]'); if (!row) return;
-      const wanted = row.dataset.jobSetStatus;
-      if (wanted === job.status) { el.close(); return; }
-      for (const button of el.querySelectorAll('[data-job-set-status]')) button.disabled = true;
-      try {
-        const saved = (await supabaseRpc('sindhorn_jobs_set_status_v1', { p_id: job.id, p_status: wanted }))?.job;
-        if (!alive) return;
-        if (saved) { const at = jobs.findIndex(j => j.id === saved.id); if (at >= 0) jobs[at] = saved; updatedAt = saved.updatedAt || updatedAt; }
-        el.close();
-        paint();
-        showToast(`Marked ${STATUS_LABEL[wanted].toLowerCase()}`);
-      } catch (error) {
-        const status = el.querySelector('[data-job-sheet-status]'); status.hidden = false; status.textContent = explain(error); status.dataset.tone = 'error';
-        for (const button of el.querySelectorAll('[data-job-set-status]')) button.disabled = false;
-      }
-    };
-    el.showModal();
-  }
+  /* A pick on a card's status dropdown saves through set_status. The card
+     already shows the new status (the selector set it); a failure puts the
+     old one back and says why. */
+  bindAppSelects(host, { signal, onChange: async (kind, wanted, field) => {
+    if (!kind.startsWith('status:')) return;
+    const job = jobs.find(j => j.id === kind.slice('status:'.length)); if (!job || wanted === job.status) return;
+    setAppSelectValue(host, kind, wanted, { disabled: true });
+    try {
+      const saved = (await supabaseRpc('sindhorn_jobs_set_status_v1', { p_id: job.id, p_status: wanted }))?.job;
+      if (!alive) return;
+      if (saved) { const at = jobs.findIndex(j => j.id === saved.id); if (at >= 0) jobs[at] = saved; updatedAt = saved.updatedAt || updatedAt; }
+      paint();
+      showToast(`Marked ${STATUS_LABEL[wanted].toLowerCase()}`);
+    } catch (error) {
+      if (!alive) return;
+      if (field.isConnected) setAppSelectValue(host, kind, job.status, { disabled: false });
+      showToast(explain(error), { duration: 4000 });
+    }
+  } });
 
   host.addEventListener('click', event => {
     const chip = event.target.closest('[data-job-filter]');
     if (chip) { filter = chip.dataset.jobFilter; try { sessionStorage.setItem('sindhorn.jobs.filter', filter); } catch (_) {} paint(); return; }
     if (event.target.closest('[data-job-add]')) { edit({ id: null, title: '', description: '', senderName: '', senderRole: '', receivedOn: '', deadlineOn: '', deadlineNote: '', status: 'not-started' }); return; }
-    const statusButton = event.target.closest('[data-job-status-for]');
-    if (statusButton) { const job = jobs.find(j => j.id === statusButton.dataset.jobStatusFor); if (job) pickStatus(job); return; }
     const editButton = event.target.closest('[data-job-edit]');
     if (editButton) { const job = jobs.find(j => j.id === editButton.dataset.jobEdit); if (job) edit({ ...job }); }
   }, { signal });
@@ -239,5 +220,5 @@ export async function mountJobs(host) {
 
   host.innerHTML = `${hero('')}<section class="app-section"><div class="app-stack">${skeleton}${skeleton}</div></section>`;
   await load();
-  return () => { alive = false; controller.abort(); if (dialog) dialog.close(''); host.querySelector('[data-job-sheet]')?.close(); };
+  return () => { alive = false; controller.abort(); if (dialog) dialog.close(''); };
 }
