@@ -109,7 +109,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    and Find-in-page still see it when collapsed. */
 .app-disclosure{overflow:clip;border-radius:var(--radius-surface)}
 .app-disclosure-button{
-  width:100%;min-height:78px;margin:0;padding:15px 16px;
+  width:100%;min-height:52px;margin:0;padding:15px 16px;
   display:flex;align-items:center;justify-content:space-between;gap:16px;
   border:0;background:transparent;
   color:inherit;font:inherit;text-align:left;cursor:pointer;
@@ -119,8 +119,9 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-disclosure-button:focus-visible{outline:2px solid var(--app-accent);outline-offset:-3px}
 .app-disclosure-head{min-width:0;display:grid;gap:0}
 .app-disclosure-kicker{color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
-.app-disclosure-title{margin:6px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-label)}
+.app-disclosure-title{margin:0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-label)}
 .app-disclosure-copy{margin:4px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-disclosure-kicker+.app-disclosure-title{margin-top:6px}
 .app-disclosure-end{flex:0 0 auto;display:flex;align-items:center;gap:12px;color:var(--app-muted);font-size:var(--type-body-s);font-variant-numeric:tabular-nums}
 /* A completed disclosure carries the success tone on its leading edge and count. */
 .app-disclosure[data-tone="success"]{border-left:2px solid var(--app-success)}
