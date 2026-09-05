@@ -559,26 +559,26 @@
 <section class="app-section" id="metrics">
   <p class="app-section-kicker">04 · Metrics</p>
   <h2 class="app-section-title">What Moved, What Is Unknown</h2>
-  <p class="app-section-lede">Numbers are taken from the committed ratchet baseline of 3 September (<code>20e3361</code>), from measuring the working tree at <code>558ab67</code> on 5 September, and from the r30 baseline after Phase 7 the same night. "All" is every CSS file on disk; before r30 that included the legacy F&amp;B files kept only for the public <code>/share</code> generator, after r30 what remains outside the foundation is the public business card (three files, one of them a patch layer) - not yet rebuilt. "Shell" is the five foundation files the app actually loads.</p>
+  <p class="app-section-lede">Numbers are taken from the committed ratchet baseline of 3 September (<code>20e3361</code>), from measuring the working tree at <code>558ab67</code> on 5 September, from the r30 baseline after Phase 7 the same night, and from the r31 baseline after the business card, later that night. "All" is every CSS file on disk; before r30 that included the legacy F&amp;B files kept only for the public <code>/share</code> generator, after r30 the public business card's three files and its override sheet, and since r31 nothing but the foundation: the "all" and "shell" columns are the same six files (the five the shell loads and the library page's own sheet).</p>
 
   <div class="app-table-wrap">
     <table class="app-table">
-      <thead><tr><th>Metric</th><th>3 Sep</th><th>5 Sep · all</th><th>r30 · all</th><th>r30 · shell</th></tr></thead>
+      <thead><tr><th>Metric</th><th>3 Sep</th><th>5 Sep · all</th><th>r30 · all</th><th>r30 · shell</th><th>r31 · all</th></tr></thead>
       <tbody>
-        <tr><th>Route stylesheets</th><td>30</td><td>8</td><td>3</td><td>0</td></tr>
-        <tr><th><code>!important</code></th><td>715</td><td>271</td><td>87</td><td>16</td></tr>
-        <tr><th>Material rules outside <code>app-glass.css</code></th><td>71</td><td>23</td><td>6</td><td>1</td></tr>
-        <tr><th>Patch-layer stylesheets</th><td>8</td><td>4</td><td>1</td><td>0</td></tr>
-        <tr><th>Inline <code>&lt;style&gt;</code> blocks</th><td>3</td><td>1</td><td>1</td><td>0</td></tr>
-        <tr><th>Inline <code>style=</code> attributes</th><td>11</td><td>0</td><td>0</td><td>0</td></tr>
-        <tr><th>Distinct font-size literals</th><td>70</td><td>27</td><td>12</td><td>0</td></tr>
-        <tr><th>Distinct radius literals</th><td>36</td><td>18</td><td>13</td><td>2</td></tr>
-        <tr><th>Card implementations</th><td>10</td><td>3</td><td>2</td><td>1</td></tr>
-        <tr><th>Hero implementations</th><td>1</td><td>1</td><td>0</td><td>0</td></tr>
+        <tr><th>Route stylesheets</th><td>30</td><td>8</td><td>3</td><td>0</td><td>0</td></tr>
+        <tr><th><code>!important</code></th><td>715</td><td>271</td><td>87</td><td>17</td><td>17</td></tr>
+        <tr><th>Material rules outside <code>app-glass.css</code></th><td>71</td><td>23</td><td>6</td><td>1</td><td>1</td></tr>
+        <tr><th>Patch-layer stylesheets</th><td>8</td><td>4</td><td>1</td><td>0</td><td>0</td></tr>
+        <tr><th>Inline <code>&lt;style&gt;</code> blocks</th><td>3</td><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+        <tr><th>Inline <code>style=</code> attributes</th><td>11</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+        <tr><th>Distinct font-size literals</th><td>70</td><td>27</td><td>12</td><td>0</td><td>0</td></tr>
+        <tr><th>Distinct radius literals</th><td>36</td><td>18</td><td>13</td><td>2</td><td>2</td></tr>
+        <tr><th>Card implementations</th><td>10</td><td>3</td><td>2</td><td>1</td><td>1</td></tr>
+        <tr><th>Hero implementations</th><td>1</td><td>1</td><td>0</td><td>0</td><td>0</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="app-note">Shell-foundation residue, named so it is not mistaken for permission: 6 <code>!important</code> in <code>fonts.css</code> (the typeface lock; the legacy display rules it carried for <code>/share</code> left with r30) and 10 in <code>app-glass.css</code> (the legacy material aliases and the frameless-utility guard); the one material rule outside the canonical file is the dialog scrim's 7px kernel, kept on purpose in r28; no font-size literal; the radius literals are <code>0</code> and one 6px. Outside the shell, the business card's three files and <code>app-shapes.css</code> (loaded by the card page alone) hold the rest of the "all" column, and the one inline <code>&lt;style&gt;</code> is the Betta vignette test page.</p>
+  <p class="app-note">Foundation residue, named so it is not mistaken for permission: 7 <code>!important</code> in <code>fonts.css</code> (the typeface lock; the legacy display rules it carried for <code>/share</code> left with r30) and 10 in <code>app-glass.css</code> (the legacy material aliases and the frameless-utility guard); the one material rule outside the canonical file is the dialog scrim's 7px kernel, kept on purpose in r28; no font-size literal; the radius literals are <code>0</code> and one 6px. The one inline <code>&lt;style&gt;</code> is the Betta vignette test page, a developer instrument. Since r31 there is nothing outside the foundation to count.</p>
 
   <h3 class="app-section-subhead">Method metrics</h3>
   <div class="app-stack">
@@ -637,10 +637,12 @@
       <p>The owner could save the dark half of the day and none of the bright half, and asked whether light fin edges at the screen edge were the cause. Measuring instead of guessing: 40 fish on production, the worst sample mid-screen, the page gutters worth one fish, the glass worth nothing for muted - and the muted token itself unable to pass on any sky brighter than 25% grey. r29d raised <code>--app-muted</code> from .55 to .70 and nothing else; the owner then chose all eight fish in under an hour and locked them. The lesson the method keeps: when every candidate fails, suspect the rule's constant before the candidates.</p>
       <h3>5 September, night — the last of the old app leaves (Phase 7, r30)</h3>
       <p>The public <code>/share</code> pages had been the one place the old app still ran: eleven legacy files, 249 <code>!important</code>, a second Betta bootstrap and a second selector, all kept so a shared promotion would render for a guest. r30 replaces the pack with the shell itself in public mode - the same page module, the same five foundation files, one CSS rule (<code>body[data-public]</code>) - and deletes the pack, its test, its smoke scripts and its hotfix workflow. The ratchet baseline drops to the numbers above. In the same release the atmosphere gains its second mode: the sky, made from the saved fish's own colors, for reduced motion and for phones that cannot hold the fish - decided by measuring frames, not by guessing devices. The eight saved styles were not touched.</p>
+      <h3>5 September, late night — the last route joins the shell (r31)</h3>
+      <p>The public business card had been dead in production since 30 August: its page was a fourth document with its own three stylesheets and override sheet, and the function that was to serve it sat in a directory Cloudflare's advanced-mode worker never reads. r31 makes the card the shell in public mode, the way r30 made <code>/share</code>: the Pages worker cuts <code>index.html</code> per request with the same transformation the share generator runs (<code>public-page.js</code>, one module for both), stamps the card's own title and Open Graph tags and its data as a bootstrap script, and answers <code>/&lt;slug&gt;.vcf</code> from the same vCard builder Settings uses. The card body is one module (<code>business-card-page.js</code>) that Settings › Me, its presenting dialog and the public page all render; the slug, QR and vCard mechanisms were verified and kept unchanged. Nine files deleted, among them <code>app-shapes.css</code> - the last stylesheet outside the foundation. The ratchet's "all" column now equals its "shell" column.</p>
       <h3>Result</h3>
-      <p>The shell loads five foundation files and no route CSS. Eleven page modules contain no design literal. One material, two weights, one blur, three control floors, eight type steps, two durations. Twelve behaviors.</p>
+      <p>The shell loads five foundation files and no route CSS; no stylesheet exists outside the foundation. Twelve page modules contain no design literal. One material, two weights, one blur, three control floors, eight type steps, two durations. Twelve behaviors.</p>
       <h3>Remaining debt</h3>
-      <p>The public business card: three route files and <code>app-shapes.css</code>, the last CSS outside the foundation, not yet rebuilt on the library. Three disclosure toggles and a sheet opener in page code. <code>app-view.js</code> without a consumer. Control-height and action-weight rules with no check. The <code>/share</code> pack and its selector pair, and the muted-ink ceiling, are gone (r29d, r30).</p>
+      <p>Three disclosure toggles and a sheet opener in page code. <code>app-view.js</code> without a consumer. Control-height and action-weight rules with no check. The <code>/share</code> pack and its selector pair, the muted-ink ceiling and the business card's own documents are gone (r29d, r30, r31).</p>
       <h3>Lessons</h3>
       <p>Measure, don't reason — nested glass and the transition ladder were both settled by a device, not an argument. A ratchet beats a rule the code cannot yet satisfy. Land one page at a time, verified live. A rule can be vetoed; a list cannot. The specimen page must render the real material or it documents a fiction. Inventories are evidence to inspect, never architecture to preserve.</p>
     </div>
@@ -702,7 +704,7 @@
     <div class="app-list">
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>ui-centralization-budget.mjs</code></span><span class="app-list-row-meta">The ratchet · eleven metrics may only fall · run before every push touching shared UI</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>page-centralization-audit.mjs</code></span><span class="app-list-row-meta">Per page: no style attributes or blocks, no color or pixel literals, no undefined classes, no backdrop-filter outside the material file</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>ci-page-render-smoke.mjs</code></span><span class="app-list-row-meta">Headless render of <code>/ci</code>, <code>/voice</code> and, since r30, the generated <code>/share</code> index and one promotion against a local fixture · computed material of every canonical selector · computed motion · format specimens · public mode (no chrome, no service worker, no checklist)</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>ci-page-render-smoke.mjs</code></span><span class="app-list-row-meta">Headless render of <code>/ci</code>, <code>/voice</code>, since r30 the generated <code>/share</code> index and one promotion, and since r31 the business card and an unknown slug, cut locally by the worker's own transformation over a fixture · computed material of every canonical selector · computed motion · format specimens · public mode (no chrome, no service worker, no checklist; the card on glass with its QR, contact actions and vCard)</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>nested-glass-smoke.mjs</code></span><span class="app-list-row-meta">13 routes with a stand-in session · fails on a blurred element inside a glass surface</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Readability Test · <code>#readability</code></span><span class="app-list-row-meta">Authoring-time contract on the live atmosphere · Save gated on 4.5:1 for ink, muted, accent · human-driven, not in CI</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>font-architecture.test.mjs</code></span><span class="app-list-row-meta">One family, three weights, zero tracking</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
@@ -769,6 +771,7 @@
           <li>Check 2 in the nested-glass walk.</li>
           <li>Phase 7 retires <code>/share</code>'s legacy files; the ratchet baseline drops to the foundation numbers above and the legacy selector pair is deleted. <strong>Done, r30 (5 September, night).</strong></li>
           <li>The muted-ink decision, then r29b, then check 5.</li>
+          <li>The business card rebuilt as the shell in public mode, served by the Pages worker; the last stylesheet outside the foundation deleted. <strong>Done, r31 (5 September, late night).</strong></li>
         </ol>
         <p>Each step is reported before it is built. The method's own origin is the reason: no hour of classification or restructuring before the owner has challenged whether the problem needs to exist.</p>
       </div>

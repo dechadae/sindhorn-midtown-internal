@@ -39,10 +39,9 @@
   --tracking:0;
 
   /* ---- Shape ------------------------------------------------------------
-     36 distinct radii. app-shapes.css already owns the semantic control
-     radii; these add the surface and geometric values it was missing.
-     14px is the single most-used radius in the app (28 uses) and had no
-     token at all. */
+     Every radius in the app resolves to one of these; the legacy routes'
+     36 distinct values and the override sheet that policed them are gone
+     (r31). 14px, the single most-used radius, is --radius-surface. */
   /* Color. Every route had already converged on these three values under its own
      names (--fnb-accent / --fs-accent / --settings-accent and so on). The library
      owns them once so a component can leave its route and still resolve. */

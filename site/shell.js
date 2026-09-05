@@ -9,11 +9,13 @@
    sign-in until an employee with a permanent code has a session - the same
    line the legacy app draws. Data pages never see a signed-out host.
 
-   The public share (r30) is this same shell in public mode: the generated
-   /share/fnb pages carry <body data-public="fnb"> and no masthead tools or
-   navbar, and the shell then registers no service worker, opens no session,
-   counts no inbox and mounts the F&B page in its public mode on the one
-   route the page is. Same stylesheets, same atmosphere, same page. */
+   The public pages are this same shell in public mode: the generated
+   /share/fnb pages (r30) carry <body data-public="fnb"> and the business
+   card the worker cuts per request at /<slug> (r31) carries
+   data-public="card"; neither has masthead tools or a navbar, and the shell
+   then registers no service worker, opens no session, counts no inbox and
+   mounts the one page the document is. Same stylesheets, same atmosphere,
+   same page modules. */
 import { initAuth, getState, supabaseRpc } from './auth-client.js';
 import { updateBadge } from './notification-inbox.js';
 import { loadInbox, serverUnread } from './broadcast-inbox.js';
@@ -50,7 +52,9 @@ import { loadInbox, serverUnread } from './broadcast-inbox.js';
    phone in place: same registration, same scope, a new VERSION precaches the
    new shell and takes over on the next open. Registered after load so the
    first paint never waits on it. */
-const PUBLIC = document.body.dataset.public === 'fnb';
+/* Public mode is stamped on the body by the page generator or the worker;
+   a card path answered by a cached shell (no stamp) is still a card. */
+const PUBLIC = ['fnb', 'card'].includes(document.body.dataset.public) ? document.body.dataset.public : /^\/[a-z0-9]{6}$/.test(location.pathname) ? 'card' : '';
 if ('serviceWorker' in navigator && !PUBLIC) {
   addEventListener('load', () => { navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(error => console.warn('Service worker registration failed', error)); });
 }
@@ -117,7 +121,8 @@ const ROUTES = {
   signin: () => import('./signin-page.js').then(m => m.mountSignin),
   ci: () => import('./ci-page.js').then(m => m.mountCi),
   voice: () => import('./voice-page.js').then(m => m.mountVoice),
-  readability: () => import('./readability-page.js').then(m => m.mountReadability)
+  readability: () => import('./readability-page.js').then(m => m.mountReadability),
+  card: () => import('./business-card-page.js').then(m => m.mountCard)
 };
 /* The libraries and the Readability Test are part of building the app, not
    using it: they open for the developer account only. Anyone else asking
@@ -139,8 +144,9 @@ const account = masthead.querySelector('.app-masthead-account');
 const messages = masthead.querySelector('[data-masthead-route="messages"]');
 
 /* Public mode: the share page is the F&B page and nothing else - the path
-   names the promotion, and the hash the page routes by is set from it once. */
-if (PUBLIC) {
+   names the promotion, and the hash the page routes by is set from it once.
+   A card page routes by its path alone. */
+if (PUBLIC === 'fnb') {
   const id = decodeURIComponent((location.pathname.match(/^\/share\/fnb\/([^/]+)/) || [])[1] || document.body.dataset.publicId || '');
   if (id && !location.hash) history.replaceState(null, '', `${location.pathname}${location.search}#fnb/${encodeURIComponent(id)}`);
 }
@@ -159,7 +165,7 @@ const initials = name => {
 /* The hash names the wanted view; the gate decides what actually mounts. */
 const wantedName = () => { const name = (location.hash.match(/^#([a-z]+)/) || [])[1]; return ROUTES[name] ? name : 'today'; };
 const settingsTab = () => { const tab = (location.hash.match(/^#settings\/([a-z]+)/) || [])[1]; return SETTINGS_TABS.includes(tab) ? tab : 'me'; };
-const resolve = () => { if (PUBLIC) return 'fnb'; const name = wantedName(); if (!signedIn()) return 'signin'; if (DEVELOPER_ROUTES.has(name) && !isDeveloper()) { history.replaceState(null, '', '#settings/system'); return 'settings'; } return name === 'signin' ? 'today' : name; };
+const resolve = () => { if (PUBLIC) return PUBLIC; const name = wantedName(); if (!signedIn()) return 'signin'; if (DEVELOPER_ROUTES.has(name) && !isDeveloper()) { history.replaceState(null, '', '#settings/system'); return 'settings'; } return name === 'signin' ? 'today' : name; };
 /* A view is a route plus, for Settings, its tab - so a tab change is a view change. */
 const viewOf = name => name === 'settings' ? `settings/${settingsTab()}` : name;
 

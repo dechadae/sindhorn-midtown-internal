@@ -1,29 +1,26 @@
 /* The public F&B share, generated at deploy (r30): /share/fnb and
    /share/fnb/<id> are the app shell itself, in public mode.
 
-   Each page is site/index.html with three changes and nothing else: the
-   masthead tools and the navbar are gone (the logo stays as a mark, not a
-   button), the PWA identity is not offered (a shared page is not the app),
-   and the head carries the promotion's own title, description, canonical
-   and Open Graph tags, read from the public read model so a link unfurls
-   before any script runs. <body data-public="fnb"> is what shell.js reads
-   to run in public mode. The share therefore renders from the same
-   stylesheets, atmosphere and page module as the app, and a shell release
-   is a share release. Nothing is read from sindhorn_app_files any more;
-   that pack was the legacy presentation and is retired.
+   Each page is site/index.html cut by site/public-page.js - the one
+   transformation the business card worker (r31) also runs - with the
+   promotion's own title, description, canonical and Open Graph tags read
+   from the public read model, so a link unfurls before any script runs.
+   <body data-public="fnb"> is what shell.js reads to run in public mode.
+   The share therefore renders from the same stylesheets, atmosphere and
+   page module as the app, and a shell release is a share release. Nothing
+   is read from sindhorn_app_files any more; that table is gone.
 
      node scripts/generate-fnb-share.mjs [site/share]
      PUBLIC_ORIGIN=https://... to stamp another origin into the canonical URLs. */
 import {mkdir,rm,writeFile,readFile} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
+import {publicPage,PUBLIC_SITE_NAME as SITE} from '../site/public-page.js';
 
 const OUTPUT=resolve(process.argv[2]||'site/share');
 const ORIGIN=(process.env.PUBLIC_ORIGIN||'https://sindhorn-midtown-internal.pages.dev').replace(/\/$/,'');
-const SITE='Sindhorn Midtown';
 const SUPABASE_URL='https://sjpvhgxacsiorrtijqua.supabase.co';
 const SUPABASE_KEY='sb_publishable_NcIExScIXkqsK1ZNNu5a-Q_zZ4afIHz';
 const FNB_RPC='sindhorn_fnb_public_read_model';
-const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 function validIso(value){return /^\d{4}-\d{2}-\d{2}$/.test(String(value||''))&&!Number.isNaN(Date.parse(`${value}T00:00:00Z`))}
 function validate(data){
@@ -46,36 +43,7 @@ async function fetchPublic(){
 /* A promotion id is a path segment of the share URL and a file name here. */
 const safeId=id=>{const value=String(id);if(!/^[A-Za-z0-9][A-Za-z0-9._-]{0,120}$/.test(value))throw new Error(`Promotion id "${value}" cannot be a share path`);return value};
 
-const meta=(title,url,description)=>[
-  `<title>${esc(title)}</title>`,
-  `<meta name="description" content="${esc(description)}">`,
-  `<link rel="canonical" href="${esc(url)}">`,
-  `<meta property="og:site_name" content="${esc(SITE)}">`,
-  `<meta property="og:title" content="${esc(title)}">`,
-  `<meta property="og:type" content="website">`,
-  `<meta property="og:url" content="${esc(url)}">`,
-  `<meta property="og:description" content="${esc(description)}">`,
-  `<meta name="twitter:card" content="summary">`
-].join('\n');
-
-/* One transformation of the shell document, each step asserted so a shell
-   edit that moves what this relies on fails the build rather than shipping
-   a share page with the app's tools on it. */
-function cut(html,pattern,replacement,what){const next=html.replace(pattern,replacement);if(next===html)throw new Error(`index.html: ${what} not found`);return next}
-function sharePage(index,{title,url,description,id=''}){
-  let html=index;
-  html=cut(html,/<title>[^<]*<\/title>\n<meta name="description"[^>]*>/,meta(title,url,description),'title and description');
-  html=cut(html,/<meta name="robots"[^>]*>\n/,'','robots');
-  html=cut(html,/<!-- PWA identity[\s\S]*?<link rel="apple-touch-icon"[^>]*>\n/,`<link rel="icon" type="image/png" sizes="192x192" href="/icons/app-192.png?v=2">\n`,'PWA identity block');
-  html=cut(html,/<link rel="preconnect" href="https:\/\/sindhorn-midtown-alerts[^>]*>\n/,'','alerts preconnect');
-  html=cut(html,/<link rel="modulepreload" href="\/notification-inbox\.js">\n<link rel="modulepreload" href="\/broadcast-inbox\.js">\n/,'','inbox preloads');
-  html=cut(html,/<body>/,`<body data-public="fnb"${id?` data-public-id="${esc(id)}"`:''}>`,'body');
-  html=cut(html,/<button class="app-masthead-home" type="button" aria-label="Home">([\s\S]*?)<\/button>/,'<div class="app-masthead-home">$1</div>','masthead home');
-  html=cut(html,/\n  <div class="app-masthead-tools">[\s\S]*?\n  <\/div>\n/,'\n','masthead tools');
-  html=cut(html,/<nav class="app-navbar"[\s\S]*?<\/nav>\n\n/,'','navbar');
-  for(const forbidden of ['app-navbar','app-masthead-account','data-masthead-route','rel="manifest"','apple-mobile-web-app'])if(html.includes(forbidden))throw new Error(`share page still carries ${forbidden}`);
-  return html
-}
+const sharePage=(index,options)=>publicPage(index,{mode:'fnb',...options});
 
 const [PUBLIC,index]=await Promise.all([fetchPublic(),readFile('site/index.html','utf8')]);
 await rm(OUTPUT,{recursive:true,force:true});

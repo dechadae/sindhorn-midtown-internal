@@ -7,23 +7,20 @@
    sindhorn_business_card_update_self to save - so the two apps agree on
    what the public page at /<slug> shows.
 
-   Everything here is library: the card is .app-card around
-   .app-business-card, the QR is an .app-figure, the details are a text
-   metric grid, editing is the dialog standard with option checks, "Copied"
-   is the toast asked from code. Notifications are one list row with a badge
+   Everything here is library: the card body is business-card-page.js
+   (the same markup the public page renders), editing is the dialog
+   standard with option checks, "Copied" is the toast asked from code. Notifications are one list row with a badge
    for the state and a utility action to change it (push-client.js does the
    work); a subscription belongs to the phone, so the card says so. */
 import { getState, supabaseRpc } from './auth-client.js';
 import { pushStatus, enablePush, disablePush } from './push-client.js';
 import { hasCapability } from './capabilities.js';
-import { businessCardUrl, primaryPhone } from './business-card-core.js';
-import { qrStyledSvg } from './qr-v6.js';
+import { businessCardUrl } from './business-card-core.js';
+import { businessCardMarkup, publicView, shareCard } from './business-card-page.js';
 import { showToast } from './app-toast.js';
 import { openDialog, dialogHead } from './app-dialog.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
-const HOTEL_NAME = 'Sindhorn Midtown Hotel Bangkok, Vignette Collection by IHG';
-const HOTEL_LOGO = '/assets/brand/sindhorn-midtown-vignette-white.png';
 const ROLE_LABEL = { super_admin: 'Super admin', admin: 'Admin', manager: 'Manager', supervisor: 'Supervisor', editor: 'Editor', employee: 'Employee' };
 const LANGUAGE_LABEL = { en: 'English', th: 'Thai' };
 
@@ -42,8 +39,6 @@ const VISIBLE_FIELDS = [
 const fact = (label, value) => `<div class="app-metric"><span class="app-metric-label">${esc(label)}</span><span class="app-metric-value">${esc(value || '—')}</span></div>`;
 const state = (label, title, copy, tone = 'empty') => `<div class="app-state app-card" data-tone="${tone}"><p class="app-state-label">${esc(label)}</p><p class="app-state-title">${esc(title)}</p>${copy ? `<p class="app-state-copy">${esc(copy)}</p>` : ''}</div>`;
 const check = (name, label, checked) => `<label class="app-check" data-mode="option"><input type="checkbox" name="${esc(name)}"${checked ? ' checked' : ''}><span class="app-check-box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg></span><span class="app-check-label">${esc(label)}</span></label>`;
-const telHref = value => { const raw = String(value || '').trim(); return raw ? `tel:${raw.startsWith('+') ? '+' : ''}${raw.replace(/\D/g, '')}` : ''; };
-const hostOf = url => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch (_) { return url; } };
 
 export function factsMarkup(manifest) {
   const p = manifest.profile || {}, auth = getState().profile || {};
@@ -76,65 +71,6 @@ function notificationsMarkup(status, note = '') {
       <div class="app-list"><div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">Device alerts</span><span class="app-list-row-meta">${esc(copy)}</span></span><span class="app-list-row-end"><span class="app-badge"${tone ? ` data-tone="${tone}"` : ''}>${esc(label)}</span></span></div></div>
       ${action}
     </div>`;
-}
-
-/* What the public page would print for this card right now: a hidden field
-   is simply absent, exactly as the public RPC leaves it out. */
-function publicView(data) {
-  const card = data.card || {}, hotel = data.hotel || {}, vis = card.fieldVisibility || {};
-  const shown = key => vis[key] !== false;
-  return {
-    slug: card.publicSlug || '',
-    displayName: card.displayName || '',
-    positionTitle: shown('positionTitle') ? card.positionTitle : null,
-    workEmail: shown('workEmail') ? card.workEmail : null,
-    businessMobile: shown('businessMobile') ? card.businessMobile : null,
-    directPhone: shown('directPhone') ? card.directPhone : null,
-    hotelName: hotel.hotelName || HOTEL_NAME,
-    hotelMainPhone: shown('hotelPhone') ? hotel.hotelMainPhone : null,
-    hotelAddress: shown('hotelAddress') ? hotel.hotelAddress : null,
-    hotelWebsite: shown('hotelWebsite') ? hotel.hotelWebsite : null,
-    hotelLogo: /^\/assets\/brand\/[a-z0-9._-]+$/i.test(hotel.hotelLogoPath || '') ? hotel.hotelLogoPath : HOTEL_LOGO,
-    published: card.published === true
-  };
-}
-
-function detail(label, value, href = '', text = value) {
-  if (!value) return '';
-  return `<div class="app-metric"><span class="app-metric-label">${esc(label)}</span><span class="app-metric-value">${href ? `<a href="${esc(href)}">${esc(text)}</a>` : esc(text)}</span></div>`;
-}
-
-/* The card body, shared by the page and the presenting dialog. */
-export function businessCardMarkup(view, { url, qr = true, actions = '' } = {}) {
-  let figure = '';
-  if (qr && view.published && url) {
-    try { figure = `<figure class="app-figure" data-card-qr>${qrStyledSvg(url)}</figure>`; } catch (_) { figure = ''; }
-  }
-  const details = [
-    detail('Work email', view.workEmail, view.workEmail ? `mailto:${encodeURIComponent(view.workEmail)}` : ''),
-    detail('Business mobile', view.businessMobile, telHref(view.businessMobile)),
-    detail('Direct phone', view.directPhone, telHref(view.directPhone)),
-    detail('Hotel telephone', view.hotelMainPhone, telHref(view.hotelMainPhone)),
-    detail('Hotel address', view.hotelAddress),
-    detail('Hotel website', view.hotelWebsite, view.hotelWebsite, hostOf(view.hotelWebsite))
-  ].join('');
-  return `<div class="app-business-card">
-      <div>
-        <p class="app-business-card-kicker">Digital business card</p>
-        <h2 class="app-business-card-name">${esc(view.displayName)}</h2>
-        ${view.positionTitle ? `<p class="app-business-card-position">${esc(view.positionTitle)}</p>` : ''}
-        <p class="app-business-card-hotel">${esc(view.hotelName)}</p>
-      </div>
-      ${figure}
-      <img class="app-business-card-logo" src="${esc(view.hotelLogo)}" alt="">
-      ${details ? `<div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${details}</div>` : ''}
-      ${actions}
-      ${url ? `<p class="app-business-card-link">${view.published ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(url.replace(/^https?:\/\//, ''))}</a>` : 'Unpublished — the link and QR are off until you publish the card.'}</p>` : ''}
-    </div>`;
-}
-
-async function copyText(value) {
-  try { await navigator.clipboard.writeText(value); return true; } catch (_) { return false; }
 }
 
 export async function mountMe(stack, { manifest, signal }) {
@@ -170,12 +106,10 @@ export async function mountMe(stack, { manifest, signal }) {
   cardHost.innerHTML = `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line" data-size="square"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;
 
   const url = () => data?.card?.publicSlug ? businessCardUrl(location.origin, data.card.publicSlug) : '';
-  const share = async () => {
+  const share = () => {
     const view = publicView(data);
     if (!view.published) { showToast('Publish the card before sharing'); return; }
-    const payload = { title: `${view.displayName} | ${view.hotelName}`, text: [view.displayName, view.positionTitle, view.hotelName].filter(Boolean).join(' · '), url: url() };
-    if (typeof navigator.share === 'function') { try { await navigator.share(payload); return; } catch (error) { if (error?.name === 'AbortError') return; } }
-    showToast(await copyText(payload.url) ? 'Link copied' : 'Couldn\'t copy the link');
+    return shareCard(view, url());
   };
 
   function paint() {

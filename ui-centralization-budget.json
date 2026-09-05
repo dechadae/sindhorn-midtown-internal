@@ -1,19 +1,17 @@
 {
   "note": "Centralization ratchet. Values may only decrease. See scripts/ui-centralization-budget.mjs",
   "metrics": {
-    "foundationCssFiles": 7,
-    "routeCssFiles": 3,
-    "important": 87,
-    "backdropOutsideCanonical": 6,
-    "patchLayerFiles": 1,
+    "foundationCssFiles": 6,
+    "routeCssFiles": 0,
+    "important": 17,
+    "backdropOutsideCanonical": 1,
+    "patchLayerFiles": 0,
     "inlineStyleBlocks": 1,
     "inlineStyleAttrs": 0,
-    "distinctFontSizes": 12,
-    "distinctRadii": 13,
-    "cardImplementations": 2,
+    "distinctFontSizes": 0,
+    "distinctRadii": 2,
+    "cardImplementations": 1,
     "heroImplementations": 0
   },
-  "patchLayerFiles": [
-    "settings-dialog-standard.css"
-  ]
+  "patchLayerFiles": []
 }

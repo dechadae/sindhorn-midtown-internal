@@ -1,5 +1,5 @@
 {
   "version": 1,
-  "include": ["/api/betta-satellite*"],
-  "exclude": []
+  "include": ["/*"],
+  "exclude": ["/assets/*", "/icons/*", "/share/*", "/vendor/*"]
 }

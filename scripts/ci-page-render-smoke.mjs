@@ -15,11 +15,20 @@
    the gate never reaches the database. The pages are the generator's output
    (site/share, produced by scripts/generate-fnb-share.mjs before this runs).
 
+   r31: the public business card (/<slug>) is the same shell in card mode,
+   cut per request by site/_worker.js with site/public-page.js. The local
+   server here runs that same transformation on a fixture card, so the page
+   renders exactly as the worker would serve it: no chrome, the card on
+   glass, the QR, the contact actions, and the unavailable state for a slug
+   no card owns. /<slug>.vcf is the contact the worker would build.
+
    Usage: node scripts/ci-page-render-smoke.mjs
 */
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { publicPage } from '../site/public-page.js';
+import { buildVCard, vCardFilename } from '../site/business-card-core.js';
 
 const ROOT = 'site';
 const CARD = { bg: 'rgba(46, 39, 59, 0.3)', filter: 'blur(18px) saturate(1.18)' };
@@ -110,6 +119,14 @@ const MOTION = [
 ];
 const SKELETON_ANIMATION = { name: 'app-skeleton-pulse', duration: '1.4s', timing: EASE, iteration: 'infinite' };
 
+/* One published card, as public.sindhorn_public_business_card would answer. */
+const CARD_FIXTURE = { slug: 'smoke1', displayName: 'Smoke Employee', positionTitle: 'Guest Experience Manager', workEmail: 'smoke.employee@example.com', businessMobile: '+66812345678', directPhone: null,
+  hotelName: 'Sindhorn Midtown Hotel Bangkok, Vignette Collection by IHG', hotelMainPhone: '+66-2-7968888', hotelAddress: '68 Soi Langsuan, Lumpini, Pathumwan, Bangkok 10330, Thailand',
+  hotelWebsite: 'https://www.ihg.com/vignettecollection/hotels/us/en/bangkok/bkksn/hoteldetail', hotelLogoPath: '/assets/brand/sindhorn-midtown-vignette-white.png' };
+const cardPage = (slug, card) => publicPage(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'), card
+  ? { mode: 'card', id: slug, title: `${card.displayName} | ${card.hotelName}`, url: `https://example.test/${slug}`, description: `${card.positionTitle} · ${card.hotelName}`, robots: true, bootstrap: { id: 'businessCardBootstrap', data: card } }
+  : { mode: 'card', id: slug, title: 'Business card | Sindhorn Midtown', url: `https://example.test/${slug}`, description: 'Sindhorn Midtown', robots: true });
+
 const TYPES = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json', '.woff2': 'font/woff2', '.png': 'image/png', '.svg': 'image/svg+xml' };
 const server = http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0]);
@@ -119,6 +136,14 @@ const server = http.createServer((req, res) => {
   // Cloudflare Pages serves /share/fnb from share/fnb.html and
   // /share/fnb/<id> from share/fnb/<id>.html; mirror that here.
   if (/^\/share\/[^.]+$/.test(p)) p = `${p}.html`;
+  // The Pages worker answers /<slug> and /<slug>.vcf (r31); mirror it here
+  // with the fixture card so the page renders as it would be served.
+  const card = p.match(/^\/([a-z0-9]{6})(\.vcf)?$/);
+  if (card) {
+    const data = card[1] === CARD_FIXTURE.slug ? CARD_FIXTURE : null;
+    if (card[2]) { if (!data) { res.writeHead(404); res.end('not found'); return; } res.writeHead(200, { 'content-type': 'text/vcard; charset=UTF-8', 'content-disposition': `attachment; filename="${vCardFilename(data.displayName)}"` }); res.end(buildVCard(data)); return; }
+    res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }); res.end(cardPage(card[1], data)); return;
+  }
   const file = path.join(ROOT, p);
   if (!file.startsWith(ROOT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); res.end('not found'); return; }
   res.writeHead(200, { 'content-type': TYPES[path.extname(file)] || 'application/octet-stream' });
@@ -414,6 +439,72 @@ else {
   await share.close();
 }
 
+// The public business card: the shell in card mode. One card, one unknown slug.
+{
+  const card = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const cardErrors = [];
+  card.on('pageerror', error => cardErrors.push(error.message));
+  // The page only reads the database when the document carries no
+  // bootstrap; an unknown slug answers null, as the public function does.
+  await card.route('**/rest/v1/rpc/**', route => route.fulfill({ status: 403, contentType: 'application/json', body: '{}' }));
+  await card.route('**/rest/v1/rpc/sindhorn_public_business_card', route => route.fulfill({ status: 200, contentType: 'application/json', body: 'null' }));
+  const readCard = () => card.evaluate(() => {
+    const body = document.querySelector('.app-business-card');
+    const fill = node => node ? getComputedStyle(node).backgroundColor : '';
+    const filter = node => node ? String(getComputedStyle(node).backdropFilter || getComputedStyle(node).webkitBackdropFilter || 'none') : '';
+    return {
+      publicMode: document.body.dataset.public, publicId: document.body.dataset.publicId, navbar: !!document.querySelector('.app-navbar'), account: !!document.querySelector('.app-masthead-account'),
+      tools: !!document.querySelector('.app-masthead-tools'), homeIsLink: document.querySelector('.app-masthead-home')?.tagName, manifest: !!document.querySelector('link[rel="manifest"]'),
+      robots: document.querySelector('meta[name="robots"]')?.content || '', title: document.title, swController: !!navigator.serviceWorker?.controller,
+      card: !!body, name: document.querySelector('.app-business-card-name')?.textContent?.trim() || '', qr: !!document.querySelector('[data-card-qr] svg'),
+      surface: body ? { bg: fill(body.parentElement), filter: filter(body.parentElement), figure: fill(document.querySelector('[data-card-qr]')) } : null,
+      actions: [...document.querySelectorAll('.app-business-card .app-utility-action')].map(a => `${a.tagName}:${a.textContent.trim()}:${a.getAttribute('href') || ''}`),
+      disabled: document.querySelectorAll('.app-business-card [disabled]').length, metrics: document.querySelectorAll('.app-business-card .app-metric').length,
+      state: document.querySelector('.app-state')?.dataset.tone || '', stateTitle: document.querySelector('.app-state-title')?.textContent?.trim() || '',
+      bootstrap: !!document.getElementById('businessCardBootstrap'),
+      bettaMode: document.body.dataset.bettaMode || '', canvas: (() => { const c = document.getElementById('environmentCanvas'); return c ? `${c.width}x${c.height}` : 'none'; })(),
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
+    };
+  });
+  const settledCard = () => card.waitForFunction(() => !document.querySelector('.app-skeleton') && document.querySelector('.app-business-card, .app-state'), null, { timeout: 15000 });
+  await card.goto(`http://127.0.0.1:${port}/${CARD_FIXTURE.slug}`, { waitUntil: 'load' });
+  await settledCard().catch(() => failures.push('card: /smoke1 never left its skeleton'));
+  await card.waitForTimeout(1500);
+  const shown = await readCard();
+  if (shown.publicMode !== 'card' || shown.publicId !== CARD_FIXTURE.slug) failures.push(`card: body[data-public]/[data-public-id] is "${shown.publicMode}"/"${shown.publicId}"`);
+  if (shown.navbar || shown.account || shown.tools) failures.push(`card: page still carries app chrome (navbar ${shown.navbar}, account ${shown.account}, tools ${shown.tools})`);
+  if (shown.homeIsLink !== 'DIV') failures.push(`card: the masthead logo must be inert on a card page, it is a ${shown.homeIsLink}`);
+  if (shown.manifest) failures.push('card: a card page must not carry the PWA manifest');
+  if (!shown.robots.includes('noindex')) failures.push(`card: a card page keeps the noindex meta, got "${shown.robots}"`);
+  if (shown.swController) failures.push('card: a card page must not be controlled by the service worker');
+  if (!shown.bootstrap) failures.push('card: the worker\'s bootstrap script is missing from the document');
+  if (shown.title !== `${CARD_FIXTURE.displayName} | ${CARD_FIXTURE.hotelName}`) failures.push(`card: document title "${shown.title}"`);
+  if (!shown.card || shown.name !== CARD_FIXTURE.displayName) failures.push(`card: card not rendered (name "${shown.name}")`);
+  if (!shown.qr) failures.push('card: QR figure missing');
+  if (shown.surface && (norm(shown.surface.bg) !== norm(CARD.bg) || norm(shown.surface.filter) !== norm(CARD.filter))) failures.push(`card: the card surface is ${shown.surface.bg} / ${shown.surface.filter}, expected glass`);
+  const wantActions = [`A:Add to contacts:http://127.0.0.1:${port}/${CARD_FIXTURE.slug}.vcf`, 'A:Call:tel:+66812345678', `A:Email:mailto:${encodeURIComponent(CARD_FIXTURE.workEmail)}`, 'BUTTON:Share:'];
+  if (JSON.stringify(shown.actions) !== JSON.stringify(wantActions)) failures.push(`card: actions ${JSON.stringify(shown.actions)}, expected ${JSON.stringify(wantActions)}`);
+  if (shown.disabled) failures.push(`card: ${shown.disabled} disabled control(s) on a published card`);
+  if (shown.metrics !== 5) failures.push(`card: ${shown.metrics} detail rows for the fixture, expected 5`);
+  if (shown.canvas === 'none' || shown.canvas === '300x150') failures.push(`card: atmosphere canvas ${shown.canvas}`);
+  if (!['betta', 'sky'].includes(shown.bettaMode)) failures.push(`card: body[data-betta-mode] is "${shown.bettaMode}"`);
+  if (shown.overflow > 1) failures.push(`card: horizontal overflow ${shown.overflow}px`);
+
+  await card.goto(`http://127.0.0.1:${port}/zzzzz0`, { waitUntil: 'load' });
+  await settledCard().catch(() => failures.push('card: unknown slug never left its skeleton'));
+  await card.waitForTimeout(500);
+  const unknown = await readCard();
+  if (unknown.publicMode !== 'card' || unknown.navbar || unknown.account) failures.push(`card: unknown slug chrome (public ${unknown.publicMode}, navbar ${unknown.navbar}, account ${unknown.account})`);
+  if (unknown.card || unknown.state !== 'error') failures.push(`card: unknown slug must show the error state, got card ${unknown.card} / state "${unknown.state}"`);
+  if (!unknown.stateTitle) failures.push('card: the unavailable state has no title');
+  if (cardErrors.length) failures.push(`card: page errors: ${cardErrors.join(' | ')}`);
+
+  const vcf = await card.request.get(`http://127.0.0.1:${port}/${CARD_FIXTURE.slug}.vcf`);
+  const vcfText = await vcf.text();
+  if (!vcf.headers()['content-type']?.startsWith('text/vcard') || !vcfText.includes(`FN:${CARD_FIXTURE.displayName}`) || !vcfText.includes('TEL;TYPE=WORK,CELL:+66812345678')) failures.push('card: /smoke1.vcf is not the saved contact');
+  await card.close();
+}
+
 await browser.close();
 server.close();
 
@@ -422,4 +513,4 @@ if (failures.length) {
   for (const failure of failures) console.error(`  ${failure}`);
   process.exit(1);
 }
-console.log(JSON.stringify({ ok: true, sections: report.sections, specimens: report.specimens, canvas: report.canvas, components: EXPECT.length, voice: { sections: voice.sections, specimens: voice.specimens, formats: Object.keys(voice.samples).length }, share: sharePages ? sharePages.length + 1 : 0 }));
+console.log(JSON.stringify({ ok: true, sections: report.sections, specimens: report.specimens, canvas: report.canvas, components: EXPECT.length, voice: { sections: voice.sections, specimens: voice.specimens, formats: Object.keys(voice.samples).length }, share: sharePages ? sharePages.length + 1 : 0, card: 2 }));
