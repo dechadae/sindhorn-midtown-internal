@@ -83,10 +83,11 @@ async function signIn(page,label){
   await page.waitForFunction(()=>document.querySelector('#routeView .app-metric-value')&&!document.querySelector('#routeView .app-skeleton'),null,{timeout:30000});
 }
 /* A navbar tap is a hash change the shell's router answers inside the same
-   document; the page is mounted when its skeleton has gone. */
+   document; the page is mounted when its skeleton has gone. Messages left the
+   footer in r20: its only control is the masthead icon beside the chip. */
 async function routeClick(page,route,hash,ready){
   const token=await page.evaluate(()=>document.__typographyShellToken);
-  await page.click(`.app-navbar [data-route="${route}"]`);
+  await page.click(route==='messages'?'.app-masthead [data-masthead-route="messages"]':`.app-navbar [data-route="${route}"]`);
   await page.waitForFunction(hash=>location.hash===hash,hash,{timeout:12000});
   await page.waitForFunction(ready,null,{timeout:30000});
   await page.waitForTimeout(350);await settleFonts(page);
