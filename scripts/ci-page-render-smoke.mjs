@@ -124,6 +124,13 @@ try { browser = await chromium.launch(); } catch { browser = await chromium.laun
 const failures = [];
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 page.on('pageerror', error => failures.push(`page error: ${error.message}`));
+/* The libraries open for the developer account only (r29a). A stand-in
+   session - a syntactically valid token that never reaches the database -
+   is seeded before load and the profile RPC is answered here with a
+   developer account, so the specimens mount. No credential is involved. */
+const fakeJwt = () => { const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url'); return `${b64({ alg: 'none', typ: 'JWT' })}.${b64({ sub: '00000000-0000-0000-0000-000000000001', role: 'authenticated', exp: Math.floor(Date.now() / 1000) + 86400 })}.smoke`; };
+await page.addInitScript(token => { localStorage.setItem('sindhorn-midtown-auth-session-v1', JSON.stringify({ access_token: token, refresh_token: 'smoke', expires_at: Math.floor(Date.now() / 1000) + 86400, token_type: 'bearer', user: null })); }, fakeJwt());
+await page.route('**/rest/v1/rpc/sindhorn_current_employee_profile', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: '00000000-0000-0000-0000-000000000001', employee_number: '10639', display_name: 'CI Developer', role: 'super_admin', account_type: 'developer', work_email: null, pin_configured_at: new Date().toISOString(), active: true }) }));
 await page.goto(`http://127.0.0.1:${port}/ci`, { waitUntil: 'load' });
 await page.waitForSelector('.app-page');
 await page.waitForTimeout(3500);

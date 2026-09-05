@@ -8,6 +8,7 @@ const DPR=2;
 const RADIAL_SEGMENTS=72;
 const WEATHER_ENDPOINT='https://api.open-meteo.com/v1/forecast?latitude=13.74135&longitude=100.54274&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,rain,showers,snowfall,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,is_day&timezone=Asia%2FBangkok';
 const WEATHER_CACHE_KEY='sindhorn-midtown:weather:v2';
+const STYLES_CACHE_KEY='sindhorn-midtown:betta-styles:v1';
 const WEATHER_CACHE_MAX_AGE=45*60*1000;
 const BASELINE_KEYS=Object.freeze(Object.keys(BETTA_PRESETS));
 const MAX_RAYS=Math.max(...BASELINE_KEYS.map(key=>BETTA_PRESETS[key].params.rayCount));
@@ -88,7 +89,56 @@ function applyPresetFrame(from,to,t){
 }
 function applySatelliteUniforms(){const s=satellite.current;for(const material of materials){const u=material.uniforms;u.uCurrent.value.set(s.motion[0],s.motion[1]);u.uSatelliteEnergy.value=s.energy;u.uSatelliteCloud.value=s.cloud;u.uSatelliteCold.value=s.cold;u.uSatelliteCooling.value=s.cooling;u.uSatelliteTexture.value=s.texture;u.uSatelliteVapor.value=s.vapor;u.uSatelliteVisible.value=s.visible;u.uSatelliteMotion.value.set(s.motion[0],s.motion[1]);u.uSatelliteColor.value.set(s.color[0],s.color[1],s.color[2]);u.uSatelliteFingerprint.value.set(s.fingerprint[0],s.fingerprint[1],s.fingerprint[2])}if(backgroundMaterial){backgroundMaterial.uniforms.uSatelliteColor.value.set(s.color[0],s.color[1],s.color[2]);backgroundMaterial.uniforms.uSatelliteMix.value=.025+.025*s.cloud+.018*s.visible}}
 function easeSatellite(deltaMs){const seconds=deltaMs*.001,boost=satellite.transitionBoost,response=1-Math.exp(-seconds*(.13+boost*.22)),c=satellite.current,t=satellite.target;for(const key of ['energy','cloud','cold','cooling','texture','vapor','visible'])c[key]=lerp(c[key],t[key],response);for(let i=0;i<2;i++)c.motion[i]=lerp(c.motion[i],t.motion[i],response);for(let i=0;i<3;i++){c.color[i]=lerp(c.color[i],t.color[i],response);c.fingerprint[i]=lerp(c.fingerprint[i],t.fingerprint[i],response)}satellite.transitionBoost=Math.max(0,boost-seconds*.055)}
-function presetFor(key){const preset=clonePreset(key);preset.__key=key;return preset}
+/* Styles override a period's colors and form - a generated Betta from
+   betta-random.js, or one saved on the server - and never its camera: the
+   composition keys, ray count and tilt stay the preset's own. Keyed by
+   baseline, applied wherever a preset is read, so every transition, pin,
+   preview and export sees the styled fish. */
+const styles=new Map();
+function styled(preset,style){
+  if(!style)return preset;
+  if(Array.isArray(style.palette)&&style.palette.length>=4)preset.palette=style.palette.slice(0,4).map(String);
+  if(Array.isArray(style.backgroundGradient)&&style.backgroundGradient.length>=3){preset.backgroundGradient=style.backgroundGradient.slice(0,3).map(String);preset.background=String(style.background||style.backgroundGradient[0])}
+  if(style.params&&typeof style.params==='object')for(const key of Object.keys(preset.params)){if(COMPOSITION_KEYS.includes(key)||key==='rayCount'||key==='tiltStrength')continue;const value=Number(style.params[key]);if(Number.isFinite(value))preset.params[key]=value}
+  if(Array.isArray(style.layers)&&style.layers.length)preset.layers=style.layers.map((layer,index)=>{const base=preset.layers[index]||preset.layers[0]||{};return{...base,...layer,offset:[...(layer.offset||base.offset||[0,0,0])]}});
+  preset.__seed=style.seed==null?null:String(style.seed);
+  return preset;
+}
+function presetFor(key){const preset=styled(clonePreset(key),styles.get(key));preset.__key=key;return preset}
+/* Re-aim the current period at its (re)styled preset with a cross-fade. */
+function retarget(duration=DAY_CYCLE_CORRECTION_MS,reason='style'){
+  const period=dayCycle.targetPeriod;if(!period||!BETTA_PRESETS[period.baseline])return false;
+  const source=dayCycle.to||presetFor(activeKey),target=presetFor(period.baseline);
+  dayCycle.from=source;dayCycle.to=target;dayCycle.period=period;dayCycle.t0=performance.now();dayCycle.duration=Math.max(0,duration);dayCycle.rawMix=duration>0?0:1;dayCycle.mix=dayCycle.rawMix;dayCycle.reason=reason;
+  if(duration<=0)applyPresetFrame(target,target,1);
+  requestRender();return true;
+}
+function setBettaStyle(periodKey,style,duration=DAY_CYCLE_CORRECTION_MS){const period=periodByKey(periodKey);if(!period)return false;if(style&&typeof style==='object')styles.set(period.baseline,style);else styles.delete(period.baseline);if(dayCycle.targetPeriod?.key===period.key)retarget(duration,'style');return true}
+function setBettaStyles(map,duration=DAY_CYCLE_CORRECTION_MS){styles.clear();for(const [key,style] of Object.entries(map||{})){const period=periodByKey(key);if(period&&style&&typeof style==='object')styles.set(period.baseline,style)}if(dayCycle.targetPeriod)retarget(duration,'styles');return true}
+function bettaStyleState(){return Object.fromEntries(BETTA_DAY_PERIODS.map(period=>[period.key,styles.get(period.baseline)||null]))}
+/* Saved styles live on this device (Settings › System › Readability Test)
+   and are read before the first frame so the launch paints the saved fish,
+   not the bundled one and then a swap. Styles are configuration, never a
+   live input: the atmosphere still follows the satellite alone. */
+function loadSavedStyles(){try{const saved=JSON.parse(localStorage.getItem(STYLES_CACHE_KEY)||'null');if(!saved||typeof saved!=='object')return;for(const [key,style] of Object.entries(saved)){const period=periodByKey(key);if(period&&style&&typeof style==='object')styles.set(period.baseline,style)}}catch(_){}}
+function saveBettaStyles(){try{const map=bettaStyleState();const kept=Object.fromEntries(Object.entries(map).filter(([,style])=>style));if(Object.keys(kept).length)localStorage.setItem(STYLES_CACHE_KEY,JSON.stringify(kept));else localStorage.removeItem(STYLES_CACHE_KEY);return true}catch(_){return false}}
+
+/* A small second view of the same scene for measuring what the glass will
+   show: the Readability Test reads its pixels. It is its own context so the
+   page canvas is never read back, and it is dropped when the test closes. */
+let sampler=null;
+function sampleBettaFrame(width=64){
+  if(!scene||!camera||webglContextLost)return null;
+  try{
+    const w=Math.max(8,Math.round(width)),h=Math.max(8,Math.round(w*(stage?.clientHeight||innerHeight)/Math.max(1,stage?.clientWidth||innerWidth)));
+    if(!sampler){const r=new THREE.WebGLRenderer({antialias:false,alpha:false,powerPreference:'low-power',precision:'highp',preserveDrawingBuffer:true});r.outputColorSpace=THREE.SRGBColorSpace;r.toneMapping=THREE.ACESFilmicToneMapping;r.toneMappingExposure=1.05;r.setPixelRatio(1);sampler={renderer:r,w:0,h:0}}
+    if(sampler.w!==w||sampler.h!==h){sampler.renderer.setSize(w,h,false);sampler.w=w;sampler.h=h}
+    sampler.renderer.render(scene,camera);
+    const gl=sampler.renderer.getContext(),data=new Uint8Array(w*h*4);gl.readPixels(0,0,w,h,gl.RGBA,gl.UNSIGNED_BYTE,data);
+    return{width:w,height:h,data};
+  }catch(_){return null}
+}
+function disposeBettaSampler(){if(!sampler)return;try{sampler.renderer.dispose();sampler.renderer.forceContextLoss?.()}catch(_){}sampler=null}
 function updateDayCycleDatasets(){document.body.dataset.bettaBaseline=dayCycle.targetPeriod?.baseline||activeKey;document.body.dataset.bettaPeriod=dayCycle.targetPeriod?.key||'';document.body.dataset.bettaCycleMode=dayCycle.mode}
 function transitionToPeriod(period,duration=DAY_CYCLE_CORRECTION_MS,reason='correction'){
   if(!period||!BETTA_PRESETS[period.baseline])return false;
@@ -156,10 +206,10 @@ function dayCycleState(){const clock=bangkokClock(new Date());return{mode:dayCyc
 
 export async function initEnvironment(){
   if(initialized)return;initialized=true;stage=document.getElementById('environmentStage');canvas=document.getElementById('environmentCanvas');if(!stage||!canvas||!window.WebGLRenderingContext){document.body.dataset.environmentWeather='unavailable';return}
-  const initialPeriod=periodForBangkokTime(new Date());activeKey=initialPeriod.baseline;active=presetFor(activeKey);dayCycle.period=initialPeriod;dayCycle.targetPeriod=initialPeriod;dayCycle.from=active;dayCycle.to=active;
+  loadSavedStyles();const initialPeriod=periodForBangkokTime(new Date());activeKey=initialPeriod.baseline;active=presetFor(activeKey);dayCycle.period=initialPeriod;dayCycle.targetPeriod=initialPeriod;dayCycle.from=active;dayCycle.to=active;
   scene=new THREE.Scene();camera=new THREE.PerspectiveCamera(32,1,.1,50);camera.position.set(0,0,9);renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:false,powerPreference:'high-performance',precision:'highp',preserveDrawingBuffer:false});renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;renderer.setPixelRatio(DPR);
   stage.hidden=false;resize();scene.background=color('#010103');buildBackground(active);buildFins();updateDayCycleDatasets();document.body.dataset.bettaFirstFrame='pending';document.body.dataset.environmentRenderer='sindhorn-betta-satellite-v1';document.body.dataset.environmentInput='satellite-only';document.body.dataset.bettaBaselineAuthority='bangkok-day-cycle';document.body.dataset.bettaContext='active';document.body.dataset.bettaTilt=tilt.supported?'available':'unsupported';setLifecycle(pageVisible?'active':'suspended','initial');if(tilt.supported&&typeof globalThis.DeviceOrientationEvent?.requestPermission!=='function')enableTilt().catch(()=>{});
   new ResizeObserver(()=>resize()).observe(stage);document.addEventListener('visibilitychange',()=>{if(document.hidden)suspendEnvironment('visibilitychange');else resumeEnvironment('visibilitychange')});addEventListener('pagehide',()=>suspendEnvironment('pagehide'));addEventListener('pageshow',()=>resumeEnvironment('pageshow'));addEventListener('focus',()=>resumeEnvironment('focus'));document.addEventListener('freeze',()=>suspendEnvironment('freeze'));document.addEventListener('resume',()=>resumeEnvironment('resume'));canvas.addEventListener('webglcontextlost',handleContextLost,false);canvas.addEventListener('webglcontextrestored',handleContextRestored,false);document.addEventListener('sindhorn:route-mounted',renderWeather);document.addEventListener('sindhorn:location-updated',()=>fetchWeather().catch(()=>{}));startSatellite();
-  window.SindhornEnvironment={refreshWeather:()=>fetchWeather().catch(()=>weather),renderExport,setBettaBaseline:setBaseline,setBettaPeriod,useLiveBettaDayCycle,previewBettaDayCycle,previewBettaComposition,enableBettaTilt:enableTilt,recenterBettaTilt:recenterTilt,getState:()=>({weather:{...weather,visual:normalizedWeather(weather)},air:{...(window.SindhornLiveData?.getState?.().air||{})},solar:null,lunar:null,location:{...(window.SindhornLocation?.getState?.()||{})},quality:DPR,config:null,seasonal:null,renderer:'sindhorn-betta-satellite-v1',inputMode:'satellite-only',betta:{baseline:dayCycle.targetPeriod?.baseline||activeKey,baselineAuthority:'bangkok-day-cycle',availableBaselines:[...BASELINE_KEYS],dayCycle:dayCycleState(),satelliteSource:SATELLITE_SOURCE,satelliteStatus:satellite.status,observedAt:satellite.state?.observedAt||null,metrics:satellite.state?.metrics?{...satellite.state.metrics}:null,lifecycle:lifecycleState,lifecycleReason:lastLifecycleReason,contextLost:webglContextLost,satelliteStreaming:Boolean(stopSatellite),rendering:Boolean(raf),firstFrameRendered,tilt:{supported:tilt.supported,enabled:tilt.enabled,listening:tilt.listening,permission:tilt.permission,calibrated:tilt.calibrated,x:tilt.currentX,y:tilt.currentY}}}),applyConfig:()=>{}};
+  window.SindhornEnvironment={refreshWeather:()=>fetchWeather().catch(()=>weather),renderExport,setBettaBaseline:setBaseline,setBettaPeriod,useLiveBettaDayCycle,previewBettaDayCycle,previewBettaComposition,setBettaStyle,setBettaStyles,saveBettaStyles,sampleBettaFrame,disposeBettaSampler,enableBettaTilt:enableTilt,recenterBettaTilt:recenterTilt,getState:()=>({weather:{...weather,visual:normalizedWeather(weather)},air:{...(window.SindhornLiveData?.getState?.().air||{})},solar:null,lunar:null,location:{...(window.SindhornLocation?.getState?.()||{})},quality:DPR,config:null,seasonal:null,renderer:'sindhorn-betta-satellite-v1',inputMode:'satellite-only',betta:{baseline:dayCycle.targetPeriod?.baseline||activeKey,baselineAuthority:'bangkok-day-cycle',availableBaselines:[...BASELINE_KEYS],dayCycle:dayCycleState(),styles:bettaStyleState(),satelliteSource:SATELLITE_SOURCE,satelliteStatus:satellite.status,observedAt:satellite.state?.observedAt||null,metrics:satellite.state?.metrics?{...satellite.state.metrics}:null,lifecycle:lifecycleState,lifecycleReason:lastLifecycleReason,contextLost:webglContextLost,satelliteStreaming:Boolean(stopSatellite),rendering:Boolean(raf),firstFrameRendered,tilt:{supported:tilt.supported,enabled:tilt.enabled,listening:tilt.listening,permission:tilt.permission,calibrated:tilt.calibrated,x:tilt.currentX,y:tilt.currentY}}}),applyConfig:()=>{}};
   requestRender();fetchWeather().catch(()=>{});setInterval(()=>fetchWeather().catch(()=>{}),10*60*1000);setInterval(()=>{if(dayCycle.mode==='live'&&!document.hidden)syncDayCycle(performance.now())},DAY_CYCLE_CHECK_MS);setInterval(()=>{if(!document.hidden&&!webglContextLost&&!raf)resumeEnvironment('watchdog')},2000);
 }

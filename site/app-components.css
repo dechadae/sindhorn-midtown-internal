@@ -334,6 +334,16 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-metric-grid[data-values="text"] .app-metric-value{font-size:var(--type-lead);line-height:var(--leading-tight);font-variant-numeric:tabular-nums}
 .app-metric-grid[data-rule="true"] .app-metric{padding-bottom:14px;border-bottom:1px solid var(--app-line)}
 
+/* ---- Swatches ------------------------------------------------------------
+   A swatch is a sample of a color, not a surface: it draws no edge of its
+   own and is never glass. A strip shares its row equally, one swatch per
+   color, at the inline control height so it sits in a card the way a badge
+   row does. The color is the swatch's own SVG fill - data the page sets as an
+   attribute, never a style. */
+.app-swatches{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+.app-swatch{display:block;width:100%;height:var(--control-inline);border-radius:var(--radius-tight);overflow:hidden}
+.app-card-section>.app-surface-title+.app-swatches{margin-top:12px}
+
 /* ---- Track -------------------------------------------------------------------
    Actual against a reference, under a metric. A rail, a mark at 80% for the
    reference, and a bar that reaches the mark when actual meets the reference

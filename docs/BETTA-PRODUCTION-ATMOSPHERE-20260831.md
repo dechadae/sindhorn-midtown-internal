@@ -32,11 +32,19 @@ Royal Blue Halfmoon is the production default. Satellite observations continuous
 
 ## Satellite-only live influence
 
-The Betta renderer must not use TMD station observations, MET Norway model fields, Open-Meteo, AirBKK, device geolocation, device orientation, calculated astronomy, local clock time, microphone, camera or other device sensors as live visual inputs.
+The Betta renderer must not use TMD station observations, MET Norway model fields, Open-Meteo, AirBKK, device geolocation, device orientation, calculated astronomy, microphone, camera or other device sensors as live visual inputs.
 
 Its satellite controls are derived from JMA Himawari-9 HA1 B13 infrared, B08 water-vapour and B03 visible imagery, including consecutive-frame cloud-field change/motion, image structure, visible spectral bias and a deterministic observation fingerprint.
 
 Procedural GLSL noise is the organism's internal continuous motion between satellite observations and is not represented as external evidence.
+
+## Day cycle and period styles — amended 5 September 2026
+
+Since the Bangkok day cycle was promoted (#135), `site/betta-day-periods.js` names eight periods of the hotel day and `betta-environment.js` cross-fades between their baselines on hotel time. The clock is a schedule, not a sensor: it chooses which configured fish is on screen and never modulates the render.
+
+Each period may carry a style (r29a): the output of `site/betta-random.js`, a verbatim port of the Mac Betta Metal Lab randomizer (SplitMix64; colours and fin form only; camera and composition are never randomized). Styles are chosen and judged on the Readability Test (`#readability`, developer account only) and are configuration: the runtime reads them at boot (`localStorage` in r29a, the server from r29b) and `setBettaStyle` / `setBettaStyles` / `saveBettaStyles` are the only writers. A period without a style renders its bundled baseline.
+
+`sampleBettaFrame(width)` renders the live `scene` and `camera` once through a second, 64px-wide `THREE.WebGLRenderer` (same colour space, tone mapping and exposure as the stage; `preserveDrawingBuffer:true`) and reads its pixels back. The main renderer stays `preserveDrawingBuffer:false`. The sampler exists only while the Readability Test is mounted (`disposeBettaSampler()` on unmount) and is the one place the app reads the Betta's pixels.
 
 ## Weather and air-quality remain data/UI
 

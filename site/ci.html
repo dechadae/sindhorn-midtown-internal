@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=10">
 <link rel="stylesheet" href="/app-glass.css?v=11">
-<link rel="stylesheet" href="/app-components.css?v=35">
+<link rel="stylesheet" href="/app-components.css?v=36">
 <link rel="stylesheet" href="/app-shell.css?v=2">
 <link rel="stylesheet" href="/ci-library.css?v=10">
 </head>
@@ -589,7 +589,22 @@
         <p class="app-note">Groups inside one card share the list hairline. A card never nests another card to separate its parts, and a group that opens with a label sets its own space to the content below it.</p>
       </div>
     </div>
-  </section>
+      <div class="ci-specimen">
+      <div class="ci-specimen-label"><span>.app-swatches + .app-metric-grid</span><span>a reading: colors for the eye, numbers for the rule</span></div>
+      <div class="app-card app-surface">
+        <div class="app-card-section"><div class="app-row" data-split="true"><p class="app-surface-label">Golden Hour · 6–9 pm</p><span class="app-badge">On screen</span></div>
+          <h3 class="app-surface-title">Golden Hour</h3>
+          <div class="app-swatches" role="img" aria-label="Three sky colors and four fish colors"><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#0b0708"/></svg><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#1a0c0a"/></svg><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#0c0a0f"/></svg><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#7a2f16"/></svg><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#d8642a"/></svg><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#f6c98a"/></svg><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#ffe9c9"/></svg></div>
+        </div>
+        <div class="app-metric-grid app-card-section" data-columns="3" data-values="text">
+          <div class="app-metric"><span class="app-metric-label">Ink</span><span class="app-metric-value">9.8:1</span></div>
+          <div class="app-metric"><span class="app-metric-label">Muted</span><span class="app-metric-value">4.7:1</span></div>
+          <div class="app-metric" data-tone="danger"><span class="app-metric-label">Accent</span><span class="app-metric-value">4.1:1</span></div>
+        </div>
+      </div>
+      <p class="app-note">A swatch is a sample, not a surface: no edge, no glass, its color an SVG fill. A strip of them shares the row equally. The numbers beside it are metrics like any other, a failing one in the danger tone, so a reading needs nothing of its own.</p>
+    </div>
+</section>
 
   <!-- ========================= 13 LIST ========================= -->
   <section class="app-section" id="list">
@@ -1146,8 +1161,19 @@ Ask the team about the pairing board: three small plates built for the three dri
 
 // Every specimen's behavior lives in ci-library.js, shared with the shell
 // route that mounts this same markup at /#ci.
+
+// The library is for the developer account only. The page is static and
+// precached with the shell, so the gate is the same check the shell makes
+// on its /#ci route: an account that is not the developer's - or no
+// account - sees who the page is for, and the way back.
+const { initAuth, getState } = await import('/auth-client.js');
+await initAuth();
+if (getState().profile?.account_type !== 'developer') {
+  document.querySelector('.app-page').innerHTML = '<header class="app-hero"><p class="app-hero-eyebrow">Settings · System</p><h1 class="app-hero-title">UI Library</h1></header><section class="app-section"><div class="app-state app-card" data-tone="empty"><p class="app-state-label">Developer only</p><p class="app-state-title">This page is for the developer account</p><p class="app-state-copy">The libraries and the Readability Test are part of building the app, not using it.</p></div><div class="app-utility-row"><a class="app-utility-action" href="/#settings/system">Back to System</a></div></section>';
+} else {
 const { bindLibrary } = await import('/ci-library.js');
-bindLibrary(document.body, { page: document.querySelector('.app-page') });
+  bindLibrary(document.body, { page: document.querySelector('.app-page') });
+}
 </script>
 
 </body>

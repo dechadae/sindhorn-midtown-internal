@@ -32,7 +32,9 @@ const fact = (label, value) => `<div class="app-metric"><span class="app-metric-
 const skeleton = () => `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;
 
 function systemMarkup(manifest, version) {
-  const library = hasCapability('developer.ui_library', manifest) || hasCapability('system.manage', manifest);
+  /* The libraries and the Readability Test open for the developer account
+     only - the shell gates their routes the same way. */
+  const library = manifest?.profile?.accountType === 'developer';
   return `<div class="app-card app-surface">
       <div class="app-card-section"><p class="app-surface-label">This app</p>
         <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${fact('Version', version)}${fact('Display', matchMedia('(display-mode: standalone)').matches ? 'Installed' : 'Browser')}</div>
@@ -49,6 +51,12 @@ function systemMarkup(manifest, version) {
       <span class="app-action-card-title">Voice</span>
       <span class="app-action-card-copy">How the app speaks: words, case, marks, dates and numbers, in English and Thai.</span>
       <span class="app-action-card-foot"><span>/voice</span>${CHEVRON}</span>
+    </button></article>
+    <article class="app-action-card"><button class="app-action-card-button" type="button" data-settings-go="#readability">
+      <span class="app-action-card-head"><span class="app-action-card-status">Developer</span></span>
+      <span class="app-action-card-title">Readability Test</span>
+      <span class="app-action-card-copy">The Betta for each period of the day, and whether the app's ink stays readable on it.</span>
+      <span class="app-action-card-foot"><span>#readability</span>${CHEVRON}</span>
     </button></article>` : ''}`;
 }
 

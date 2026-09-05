@@ -30,7 +30,7 @@ const ROUTES=[['/#signin','[data-signin-form]'],
    to its public twin, and everything else renders its honest error state. */
 const fakeJwt=()=>{const b64=o=>Buffer.from(JSON.stringify(o)).toString('base64url');return `${b64({alg:'none',typ:'JWT'})}.${b64({sub:'00000000-0000-0000-0000-000000000001',role:'authenticated',exp:Math.floor(Date.now()/1000)+86400})}.smoke`};
 const seedSession=token=>{localStorage.setItem('sindhorn-midtown-auth-session-v1',JSON.stringify({access_token:token,refresh_token:'smoke',expires_at:Math.floor(Date.now()/1000)+86400,token_type:'bearer',user:null}))};
-const authProfile={id:'00000000-0000-0000-0000-000000000001',employee_number:'10639',display_name:'CI Developer',role:'super_admin',work_email:null,pin_configured_at:new Date().toISOString(),active:true};
+const authProfile={id:'00000000-0000-0000-0000-000000000001',employee_number:'10639',display_name:'CI Developer',role:'super_admin',account_type:'developer',work_email:null,pin_configured_at:new Date().toISOString(),active:true};
 
 const manifest={ok:true,version:2,profile:{id:'00000000-0000-0000-0000-000000000001',employeeNumber:'10639',displayName:'CI Developer',role:'super_admin',accountType:'developer',preferredLanguage:'en',active:true,pinConfigured:true},capabilities:['account.read','settings.read','fnb.read','people.read','people.manage','system.manage','developer.ui_library','broadcasts.manage'],sections:[{key:'account',label:'Account',navLabel:'Account',renderer:'account',sortOrder:10,config:{}}]};
 

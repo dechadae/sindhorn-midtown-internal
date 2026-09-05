@@ -87,14 +87,20 @@ const ROUTES = {
   settings: () => import('./settings-page.js').then(m => m.mountSettings),
   signin: () => import('./signin-page.js').then(m => m.mountSignin),
   ci: () => import('./ci-page.js').then(m => m.mountCi),
-  voice: () => import('./voice-page.js').then(m => m.mountVoice)
+  voice: () => import('./voice-page.js').then(m => m.mountVoice),
+  readability: () => import('./readability-page.js').then(m => m.mountReadability)
 };
+/* The libraries and the Readability Test are part of building the app, not
+   using it: they open for the developer account only. Anyone else asking
+   for one lands on Settings › System, where no card offers them. */
+const DEVELOPER_ROUTES = new Set(['ci', 'voice', 'readability']);
+const isDeveloper = () => getState().profile?.account_type === 'developer';
 const SETTINGS_TABS = ['me', 'admin', 'broadcast', 'system'];
 
 /* The shell's layers: the app tabs are the ground; Settings and the library
    it opens sit one layer up; sign-in covers everything. Closing a layer
    returns to where the layer below was. */
-const layerOf = view => view === 'signin' ? 2 : (view.startsWith('settings') || view === 'ci' || view === 'voice') ? 1 : 0;
+const layerOf = view => view === 'signin' ? 2 : (view.startsWith('settings') || DEVELOPER_ROUTES.has(view)) ? 1 : 0;
 
 const host = document.getElementById('routeView');
 const masthead = document.querySelector('.app-masthead');
@@ -117,7 +123,7 @@ const initials = name => {
 /* The hash names the wanted view; the gate decides what actually mounts. */
 const wantedName = () => { const name = (location.hash.match(/^#([a-z]+)/) || [])[1]; return ROUTES[name] ? name : 'today'; };
 const settingsTab = () => { const tab = (location.hash.match(/^#settings\/([a-z]+)/) || [])[1]; return SETTINGS_TABS.includes(tab) ? tab : 'me'; };
-const resolve = () => { const name = wantedName(); if (!signedIn()) return 'signin'; return name === 'signin' ? 'today' : name; };
+const resolve = () => { const name = wantedName(); if (!signedIn()) return 'signin'; if (DEVELOPER_ROUTES.has(name) && !isDeveloper()) { history.replaceState(null, '', '#settings/system'); return 'settings'; } return name === 'signin' ? 'today' : name; };
 /* A view is a route plus, for Settings, its tab - so a tab change is a view change. */
 const viewOf = name => name === 'settings' ? `settings/${settingsTab()}` : name;
 
@@ -129,8 +135,8 @@ let current = '', dispose = null, generation = 0, returnHash = '', messagesRetur
    close mark, the way the chip does for Settings. */
 function paintNavbar(name) {
   const locked = !signedIn();
-  const mode = name === 'settings' || name === 'ci' || name === 'voice' ? 'settings' : 'app';
-  const full = name === 'ci' || name === 'voice' ? 'settings/system' : viewOf(name);
+  const mode = name === 'settings' || DEVELOPER_ROUTES.has(name) ? 'settings' : 'app';
+  const full = DEVELOPER_ROUTES.has(name) ? 'settings/system' : viewOf(name);
   navbar.dataset.mode = mode;
   if (locked) navbar.dataset.locked = ''; else delete navbar.dataset.locked;
   for (const set of navbar.querySelectorAll('.app-navbar-set')) set.inert = set.dataset.set !== mode;
