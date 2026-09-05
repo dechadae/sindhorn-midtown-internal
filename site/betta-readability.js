@@ -14,7 +14,7 @@ import {rgbToHex} from './betta-random.js';
 
 const GLASS={rgb:[46/255,39/255,59/255],alpha:.30};
 const INK={rgb:[250/255,247/255,245/255],alpha:1};
-const MUTED={rgb:[250/255,247/255,245/255],alpha:.55};
+const MUTED={rgb:[250/255,247/255,245/255],alpha:.70};/* --app-muted; the alpha is the contract's ceiling, see app-tokens.css */
 const ACCENT={rgb:[229/255,236/255,190/255],alpha:1};
 export const READABILITY_ROLES=Object.freeze([
   {key:'ink',label:'Ink',color:INK},

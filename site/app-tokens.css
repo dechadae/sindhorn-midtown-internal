@@ -47,7 +47,12 @@
      names (--fnb-accent / --fs-accent / --settings-accent and so on). The library
      owns them once so a component can leave its route and still resolve. */
   --app-text:#FAF7F5;
-  --app-muted:rgba(250,247,245,.55);
+  /* Muted is translucent ink, so its contrast has a ceiling: at .55 it could
+     reach 4.5:1 only over a sky darker than 25% grey, which left the bright
+     half of the day with no passing Betta at all. .70 (5 Sep 2026) is the
+     lowest alpha at which a chosen fish clears 4.5:1 with a margin;
+     betta-readability.js measures the same value. */
+  --app-muted:rgba(250,247,245,.70);
   --app-line:rgba(250,247,245,.09);
   --app-inset-fill:rgba(250,247,245,.055);
   --app-accent:#E5ECBE;

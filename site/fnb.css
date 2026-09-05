@@ -10,7 +10,7 @@
 :root{
   --fnb-bg-rgb:46,39,59;
   --fnb-text-rgb:250,247,245;
-  --fnb-muted:rgba(250,247,245,.55);
+  --fnb-muted:var(--app-muted);
   --fnb-accent:#E5ECBE;--fnb-accent-rgb:229,236,190;
   --fnb-success:#72A75D;
   --fnb-line:rgba(250,247,245,.09);
