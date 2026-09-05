@@ -171,6 +171,10 @@ jobs:
           node scripts/shell-precache-parity-smoke.mjs
           node scripts/sw-install-resilience-smoke.mjs
           node scripts/ci-page-render-smoke.mjs
+          # Every saved Betta period must still be drawn by its seed under the
+          # code about to ship (anon read, no credential). Add --require-all
+          # once all eight periods are saved.
+          node scripts/betta-periods-release-smoke.mjs
 
       - name: Deploy to Cloudflare Pages
         env:
