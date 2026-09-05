@@ -293,8 +293,26 @@ else {
 
 // The Voice library renders on the same chrome: every [data-format] slot is
 // written by app-format.js at load, its cards frost, nothing errors.
+// The bootstrap is initAuth (one stubbed RPC) then bindVoice; locally it is
+// done within a second even on SwiftShader. CI has twice left every slot
+// unwritten with no page error, so the wait is generous and a timeout
+// reports what the page was doing instead of only what it was not.
+const voiceStarted = Date.now();
+const voiceProfileCalls = [];
+page.on('request', request => { if (request.url().includes('sindhorn_current_employee_profile')) voiceProfileCalls.push(Date.now() - voiceStarted); });
 await page.goto(`http://127.0.0.1:${port}/voice`, { waitUntil: 'load' });
-await page.waitForFunction(() => document.querySelector('[data-format]')?.textContent !== '—', null, { timeout: 8000 }).catch(() => {});
+const voiceBound = await page.waitForFunction(() => document.querySelector('[data-format]')?.textContent !== '—', null, { timeout: 30000 }).then(() => true).catch(() => false);
+if (!voiceBound) {
+  const diagnosis = await page.evaluate(() => ({
+    gate: !!document.querySelector('.app-state[data-tone="empty"]'),
+    auth: window.SindhornEmployeeAuth?.getState?.() ?? 'auth-client not loaded',
+    library: !!window.SindhornUiLibrary,
+    bettaReady: document.getElementById('environmentStage')?.dataset.ready ?? null,
+    readyState: document.readyState
+  })).catch(error => ({ evaluateFailed: error.message }));
+  failures.push(`voice: bootstrap did not bind within 30s (profile RPC requests at ${JSON.stringify(voiceProfileCalls)}ms): ${JSON.stringify(diagnosis)}`);
+}
+console.log(JSON.stringify({ voiceBoundMs: voiceBound ? Date.now() - voiceStarted : null }));
 const voice = await page.evaluate(() => {
   const slots = [...document.querySelectorAll('[data-format]')];
   const card = document.querySelector('.ci-specimen .app-card');
