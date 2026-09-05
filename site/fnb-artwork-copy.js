@@ -7,11 +7,14 @@
                   off ("Where crispy meets fluffy in every bite at Sip & Co."
                   becomes "Where crispy meets fluffy in every bite"), or the
                   brief's opening line when the headline is only the title
-     description  the promotion's summary, the one-line version the index
-                  already shows
-     facts        dates, outlets, hours, prices, IHG One Rewards, the
-                  enrollment link, reservations, channels and terms, each
-                  written the way app-format.js writes it
+     body         one paragraph, the way it sits on the artwork: the
+                  promotion's summary, then the dates, outlets and hours,
+                  the prices, the terms, IHG One Rewards, the reservation
+                  line and the enrollment link, sentence after sentence,
+                  each written the way app-format.js writes it. Never a
+                  table: the designer sets it as running copy
+     channel      the distribution note ("In-hotel collaterals and screens
+                  only") when the press copy carries one; it is not copy
 
    Nothing here is stored. Change the record and the artwork copy follows;
    the English and Thai press copy beside it stays the reference. */
@@ -94,23 +97,52 @@ function termsOf(campaign) {
   return out.join(' ');
 }
 
+const sentence = text => { const t = String(text ?? '').trim(); return t ? (/[.!?]$/.test(t) ? t : `${t}.`) : ''; };
+
+/* "Available 21–27 September 2026 at ANJU (5 pm–2 am) and The Lobby Lounge
+   (6:30 am–midnight)." Outlets that share their hours share the clause;
+   hours the record has not confirmed are left out rather than promised. */
+function availabilityOf(campaign, live, outlets) {
+  const when = formatDateRange(campaign.start, campaign.end) || campaign.dateLabel || '';
+  const hours = outlets.map(outlet => ({ outlet, hours: hoursOf(live.find(a => a.outlet === outlet)?.time) }));
+  const unique = [...new Set(hours.map(h => h.hours).filter(Boolean))];
+  let where = '';
+  const at = outlets.length === 1 && outlets[0] === 'In-room Dining' ? 'through' : 'at';
+  if (outlets.length) where = unique.length === 1 && hours.every(h => h.hours) ? `${at} ${list(outlets)}, ${unique[0]}` : `${at} ${list(hours.map(h => h.hours ? `${h.outlet} (${h.hours})` : h.outlet))}`;
+  if (!when && !where) return '';
+  return sentence(['Available', when, where].filter(Boolean).join(' '));
+}
+
+function priceSentence(campaign) {
+  const price = pricesOf(campaign);
+  if (!price) return '';
+  if (price.includes(' · ')) return sentence(list(price.split(' · ')));
+  if (/–/.test(price)) { const [lo, hi] = price.replace(/^THB /, '').split('–'); const unit = hi.match(/\+\+| net$/)[0]; return `From THB ${lo}${unit} to THB ${hi}.`; }
+  return sentence(price);
+}
+
+function rewardsSentence(live) {
+  const rewarded = live.filter(a => a.discount && !/^n\/a$/i.test(a.discount));
+  const discounts = [...new Set(rewarded.map(a => a.discount))];
+  if (!discounts.length) return '';
+  return discounts.length === 1 ? `IHG One Rewards members save an extra ${discounts[0]}.` : `IHG One Rewards members save an extra ${list(rewarded.map(a => `${a.discount} at ${a.outlet}`))}.`;
+}
+
 export function artworkCopy(campaign) {
   const live = (campaign.activations || []).filter(a => !a.display);
   const seen = new Set(live.map(a => a.outlet)), outlets = [...OUTLET_ORDER.filter(o => seen.has(o)), ...[...seen].filter(o => !OUTLET_ORDER.includes(o))];
-  const subtitle = subtitleOf(campaign), description = descriptionOf(campaign, subtitle);
-  const facts = [];
-  facts.push({ label: 'When', value: formatDateRange(campaign.start, campaign.end) || campaign.dateLabel || '' });
-  if (outlets.length) facts.push({ label: 'Where', value: list(outlets) });
-  const hours = outlets.map(outlet => ({ outlet, hours: hoursOf(live.find(a => a.outlet === outlet)?.time) })).filter(h => h.hours);
-  if (hours.length) { const unique = [...new Set(hours.map(h => h.hours))]; facts.push({ label: 'Hours', value: unique.length === 1 ? unique[0] : hours.map(h => `${h.outlet} ${h.hours}`).join(' · ') }); }
-  else facts.push({ label: 'Hours', value: 'To be confirmed' });
-  const price = pricesOf(campaign); if (price) facts.push({ label: 'Price', value: price });
-  const discounts = [...new Set(live.map(a => a.discount).filter(d => d && !/^n\/a$/i.test(d)))];
-  if (discounts.length) facts.push({ label: 'IHG One Rewards', value: discounts.length === 1 ? `Members save an extra ${discounts[0]}` : live.filter(a => a.discount && !/^n\/a$/i.test(a.discount)).map(a => `${a.outlet} ${a.discount}`).join(' · ') });
-  const enroll = String(campaign.copyEn ?? '').match(ENROLL); if (enroll) facts.push({ label: 'Join IHG One Rewards', value: enroll[0].replace(/[.,)]+$/, ''), link: true });
-  const contact = []; if (PHONE.test(campaign.copyEn ?? '')) contact.push('+66 2 796 8888'); const email = String(campaign.copyEn ?? '').match(EMAIL); if (email) contact.push(email[0].toLowerCase());
-  if (contact.length) facts.push({ label: 'Reservations', value: contact.join(' · ') });
-  const channel = lines(campaign.copyEn).find(l => l.startsWith('*')); if (channel) facts.push({ label: 'Channels', value: channel.replace(/^\*\s*/, '').replace(/^only\s+(.*)$/i, '$1 only').replace(/^./, c => c.toUpperCase()) });
-  const terms = termsOf(campaign); if (terms) facts.push({ label: 'Terms', value: terms });
-  return { title: String(campaign.title ?? ''), subtitle, description, facts };
+  const subtitle = subtitleOf(campaign), copyEn = String(campaign.copyEn ?? '');
+  const contact = []; if (PHONE.test(copyEn)) contact.push('+66 2 796 8888'); const email = copyEn.match(EMAIL); if (email) contact.push(email[0].toLowerCase());
+  const enroll = copyEn.match(ENROLL);
+  const body = [
+    sentence(descriptionOf(campaign, subtitle)),
+    availabilityOf(campaign, live, outlets),
+    priceSentence(campaign),
+    termsOf(campaign),
+    rewardsSentence(live),
+    contact.length ? `Reserve at ${contact.join(' or ')}.` : '',
+    enroll ? `Join IHG One Rewards at ${enroll[0].replace(/[.,)]+$/, '')}.` : ''
+  ].filter(Boolean).join(' ');
+  const channel = lines(campaign.copyEn).find(l => l.startsWith('*'));
+  return { title: String(campaign.title ?? ''), subtitle, body, channel: channel ? channel.replace(/^\*\s*/, '').replace(/^only\s+(.*)$/i, '$1 only').replace(/^./, c => c.toUpperCase()) : '' };
 }

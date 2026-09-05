@@ -74,8 +74,7 @@ function writeArtworkCopy(root) {
   const copy = artworkCopy(SPECIMEN_PROMOTION);
   card.querySelector('[data-artwork-title]').textContent = copy.title;
   card.querySelector('[data-artwork-subtitle]').textContent = copy.subtitle;
-  card.querySelector('[data-artwork-description]').textContent = copy.description;
-  card.querySelector('[data-artwork-facts]').innerHTML = copy.facts.map(f => `<div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-meta">${esc(f.label)}</span><span class="app-list-row-title">${esc(f.value)}</span></span></div>`).join('');
+  card.querySelector('[data-artwork-body]').textContent = copy.body;
 }
 
 /* Fill every [data-format] slot from app-format.js and the artwork-copy

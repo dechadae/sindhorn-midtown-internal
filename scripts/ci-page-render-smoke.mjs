@@ -300,7 +300,7 @@ const voice = await page.evaluate(() => {
     card: s && { bg: s.backgroundColor, filter: String(s.backdropFilter || s.webkitBackdropFilter || 'none') },
     toast: !!document.querySelector('[data-toast]'),
     range: document.querySelector('[data-format="range:en"]')?.textContent,
-    artwork: { title: document.querySelector('[data-artwork-title]')?.textContent, subtitle: document.querySelector('[data-artwork-subtitle]')?.textContent, facts: document.querySelectorAll('[data-artwork-facts] .app-list-row').length }
+    artwork: { title: document.querySelector('[data-artwork-title]')?.textContent, subtitle: document.querySelector('[data-artwork-subtitle]')?.textContent, body: document.querySelector('[data-artwork-body]')?.textContent }
   };
 });
 if (voice.sections < 18) failures.push(`voice: only ${voice.sections} sections rendered`);
@@ -310,7 +310,7 @@ if (!voice.card || norm(voice.card.bg) !== norm(CARD.bg) || norm(voice.card.filt
 if (voice.samples['date:short:en'] !== '5 Sep 2026') failures.push(`voice: date:short:en reads "${voice.samples['date:short:en']}"`);
 if (voice.samples['date:short:th'] !== '5 ก.ย. 2569') failures.push(`voice: date:short:th reads "${voice.samples['date:short:th']}"`);
 if (voice.range !== '1 September – 31 December 2026') failures.push(`voice: range:en reads "${voice.range}"`);
-if (voice.artwork.title !== 'Fried Chicken & Waffles' || voice.artwork.subtitle !== 'Where crispy meets fluffy in every bite' || voice.artwork.facts < 6) failures.push(`voice: artwork-copy specimen ${JSON.stringify(voice.artwork)}`);
+if (voice.artwork.title !== 'Fried Chicken & Waffles' || voice.artwork.subtitle !== 'Where crispy meets fluffy in every bite' || !/^Crispy fried chicken .* Available 1 September – 31 December 2026 at Sip & Co\. and The Lobby Lounge\. THB 490\+\+ and THB 350\+\+\. IHG One Rewards members save an extra 20%\. Reserve at \+66 2 796 8888/.test(voice.artwork.body || '')) failures.push(`voice: artwork-copy specimen ${JSON.stringify(voice.artwork)}`);
 
 await browser.close();
 server.close();

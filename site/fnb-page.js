@@ -242,20 +242,17 @@ export async function mountFnb(host) {
     return html;
   }
   /* The artwork copy is one card the designer reads top to bottom: the
-     title as F&B wrote it, then the subtitle, description and facts the
-     record yields in the app's voice (fnb-artwork-copy.js). The press copy
+     title as F&B wrote it, the subtitle, then the body as one paragraph,
+     the way it sits on the artwork (fnb-artwork-copy.js). The press copy
      in 02 stays the reference. */
   function artworkCopyMarkup(campaign) {
     const c = artworkCopy(campaign);
-    const main = f => `<span class="app-list-row-main"><span class="app-list-row-meta">${esc(f.label)}</span><span class="app-list-row-title">${esc(f.value)}</span></span>`;
-    const fact = f => f.link ? `<a class="app-list-row" href="${esc(f.value)}" target="_blank" rel="noopener">${main(f)}<span class="app-list-row-end">${LINK_ICON}</span></a>` : `<div class="app-list-row">${main(f)}</div>`;
     return `<div class="app-card app-surface">
       <div class="app-card-section"><p class="app-surface-label">Title · As written</p><div class="app-prose" data-verbatim="true"><h3>${esc(c.title)}</h3></div></div>
       ${c.subtitle ? `<div class="app-card-section"><p class="app-surface-label">Subtitle</p><div class="app-prose"><p>${esc(c.subtitle)}</p></div></div>` : ''}
-      ${c.description ? `<div class="app-card-section"><p class="app-surface-label">Description</p><div class="app-prose"><p>${esc(c.description)}</p></div></div>` : ''}
-      <div class="app-card-section"><p class="app-surface-label">Key information</p><div class="app-list">${c.facts.map(fact).join('')}</div></div>
+      <div class="app-card-section"><p class="app-surface-label">Body</p><div class="app-prose"><p>${esc(c.body)}</p></div></div>
     </div>
-    <p class="app-note">The title is F&amp;B's, word for word. The rest is the record read in the app's voice, ready for the artwork; the press release in 02 is the reference.</p>`;
+    <p class="app-note">${c.channel ? `${esc(c.channel)}. ` : ''}The title is F&amp;B's, word for word. The rest is the record read in the app's voice, ready for the artwork; the press release in 02 is the reference.</p>`;
   }
   function folderMarkup(campaign) {
     const folders = folderLinks(campaign);
