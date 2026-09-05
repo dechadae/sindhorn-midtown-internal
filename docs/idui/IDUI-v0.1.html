@@ -1485,9 +1485,11 @@ body{
   <h3 class="app-section-subhead">Three concerns, kept apart</h3>
   <div class="app-stack">
     <article class="app-card app-surface">
-      <p class="app-surface-label">Composition</p>
-      <h3 class="app-surface-title">What exists on this page, and in what order?</h3>
-      <p class="app-surface-copy">Belongs to page code and is authored on purpose. Today has a hero, business metrics, F&amp;B, rooms, outlook and notes; Jobs has filters, job records, status and actions; Brand has hotel facts and a business card. IDUI never generates information architecture.</p>
+      <div class="app-card-section">
+        <p class="app-surface-label">Composition</p>
+        <h3 class="app-surface-title">What exists on this page, and in what order?</h3>
+        <p class="app-surface-copy">Belongs to page code and is authored on purpose. Today has a hero, business metrics, F&amp;B, rooms, outlook and notes; Jobs has filters, job records, status and actions; Brand has hotel facts and a business card. IDUI never generates information architecture.</p>
+      </div>
       <div class="app-card-section">
         <p class="app-surface-label">A page author decides</p>
         <p class="app-surface-copy">Content and its meaning. Hierarchy, order and grouping. Domain semantics. Which behavioral primitive a thing needs. Semantic tone or state where it cannot be derived.</p>
@@ -1538,11 +1540,13 @@ body{
       <p class="app-note">Rules define the valid design space. People and generators are free to explore inside it. The rules are hard; the result is not. This is what separates the method from a component library: a library offers approved parts, a contract refuses disallowed outcomes whatever parts produced them.</p>
     </article>
     <article class="app-card app-surface">
+      <div class="app-card-section">
       <p class="app-surface-label">Invariant maturity</p>
       <div class="app-metric-grid" data-values="text">
         <div class="app-metric"><span class="app-metric-label">Level 1 · Documented</span><span class="app-metric-value">A written rule</span><span class="app-metric-note">"Glass must not nest." Followed by discipline; broken politely.</span></div>
         <div class="app-metric"><span class="app-metric-label">Level 2 · Machine-enforced</span><span class="app-metric-value">A check rejects violations</span><span class="app-metric-note">The nested-glass smoke fails the build on a blurred element inside glass.</span></div>
         <div class="app-metric"><span class="app-metric-label">Level 3 · Adversarially exercised</span><span class="app-metric-value">The system searches for violations</span><span class="app-metric-note">Conditions that might break the rule are generated on purpose, and the rule must survive them. The Betta contract validator (05) is the one Sindhorn example.</span></div>
+      </div>
       </div>
     </article>
   </div>
@@ -1550,8 +1554,10 @@ body{
   <h3 class="app-section-subhead">Either, or, neither</h3>
   <div class="app-stack">
     <article class="app-card app-surface">
-      <p class="app-surface-label">The shape of a rule</p>
-      <h3 class="app-surface-title">Does this element draw a bounded foreground surface?</h3>
+      <div class="app-card-section">
+        <p class="app-surface-label">The shape of a rule</p>
+        <h3 class="app-surface-title">Does this element draw a bounded foreground surface?</h3>
+      </div>
       <div class="app-card-section">
         <div class="app-metric-grid" data-values="text">
           <div class="app-metric"><span class="app-metric-label">Either</span><span class="app-metric-value">Surface</span><span class="app-metric-note">It draws an edge, a border or a fill. It takes the canonical material.</span></div>
@@ -2036,6 +2042,7 @@ body{
   <h3 class="app-section-subhead">The clearest specimen: the Betta contract validator</h3>
   <div class="app-stack">
     <article class="app-card app-surface">
+      <div class="app-card-section">
       <p class="app-surface-label">What the tool does · r29a, 5 September 2026</p>
       <div class="app-prose">
         <h3>A generative atmosphere, a fixed contract</h3>
@@ -2050,8 +2057,10 @@ body{
         <tr><th>Contract</th><td>ink ≥ 4.5 and muted ≥ 4.5 and accent ≥ 4.5, on the worst frame observed → the candidate may become canonical; otherwise it is rejected.</td></tr>
         <tr><th>Judgment</th><td>Among valid candidates, the designer chooses. The contract constrains the space; it does not pick inside it.</td></tr>
       </tbody></table>
+      </div>
     </article>
     <article class="app-card app-surface">
+      <div class="app-card-section">
       <p class="app-surface-label">Why it matters to the method</p>
       <div class="app-prose">
         <h3>Variation is made safe, not removed</h3>
@@ -2063,13 +2072,14 @@ body{
         <h3>Two validation layers</h3>
         <p>The formal layer rejects objectively invalid candidates. The perceptual layer — real production composition on the real atmosphere — lets the designer reject a valid candidate that is unpleasant. Both stay. Invariants constrain the valid design space; they do not replace design judgment inside it.</p>
         <h3>What the contract already found</h3>
-        <p>The bundled presets predate the contract. Measured against it, muted ink fails on every one of the eight periods (2.7–3.9:1) while ink and accent pass. The contract rejects the current production atmosphere before any opinion about it has been offered. That result, unresolved as of this draft, is the best evidence in the project that a contract outranks taste.</p>
+        <p>The bundled presets predate the contract. Measured against it, muted ink fails on every one of the eight periods (2.7–3.9:1) while ink and accent pass. The contract rejected the production atmosphere before any opinion about it had been offered, and the resolution went through the token rather than the fish: the failing reading was the ceiling of a translucent muted ink, raised to <code>.70</code> in r29d, after which all eight periods were chosen against the contract and locked on 5 September. That sequence is the best evidence in the project that a contract outranks taste.</p>
+      </div>
       </div>
     </article>
     <article class="app-card app-surface" data-tone="quiet">
       <p class="app-surface-label">Positioning</p>
       <h3 class="app-surface-title">Invariant validation harness</h3>
-      <p class="app-surface-copy">The methodology-level name for this class of tool. In Sindhorn it is the Betta contract validator. The principle generalizes to whatever varies: responsive widths, long translated strings, extreme data values, dynamic imagery, focus order, animation budgets — generate the variation and prove the invariants survive it. Only the Sindhorn instance is observed; the generalization is a hypothesis (07). Its limits are also plain: it is driven by a person at authoring time, not by CI at release, and it runs on real WebGL where a headless gate would be brittle.</p>
+      <p class="app-surface-copy">The methodology-level name for this class of tool. In Sindhorn it is the Betta contract validator. The principle generalizes to whatever varies: responsive widths, long translated strings, extreme data values, dynamic imagery, focus order, animation budgets — generate the variation and prove the invariants survive it. Only the Sindhorn instance is observed; the generalization is a hypothesis (07). Its limits are also plain: the measurement itself is driven by a person at authoring time and runs on real WebGL, where a headless gate would be brittle; what release CI checks (r29c) is that every saved seed still draws the fish that was measured, not the reading itself.</p>
     </article>
   </div>
 </section>
