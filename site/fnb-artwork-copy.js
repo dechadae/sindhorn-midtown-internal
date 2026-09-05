@@ -35,27 +35,65 @@ const bare = text => String(text ?? '').toLowerCase().replace(/[^a-z0-9ก-๙]+
 const words = text => new Set(bare(text).split(' ').filter(w => w.length > 2));
 const firstSentence = text => String(text).split(/(?<=[.!?])\s+/)[0];
 const unshout = text => String(text).replace(/[.!]+$/, '').trim();
+const sentence = text => { const t = String(text ?? '').trim(); return t ? (/[.!?]$/.test(t) ? t : `${t}.`) : ''; };
 
-/* The line the artwork leads with, after the title. */
+/* A sentence that is a fact, not a line: a price, a date, hours, a phone
+   number, a link, the availability sentence. Those belong to the body's
+   fact sentences, never to the subtitle or the description. */
+const FACTY = /THB|\d\s*(?:\+\+|net\b)|\d{1,2}(?::\d{2})?\s*(?:am|pm)\b|\b20\d\d\b|https?:|@|796[\s-]?8888|^available\b|^save the date/i;
+const STOP = new Set(['the', 'and', 'with', 'for', 'our', 'your', 'from', 'this', 'that', 'special']);
+const titleWords = title => [...words(title)].filter(w => !STOP.has(w));
+const sameWord = (a, b) => a === b || (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a)));
+/* How much of a line is the title over again: 1 when every title word is
+   there and they run together in order (“Celebrate Father's Day with a
+   Thai Feast” for “Father's Day”); a fraction when the line only borrows
+   from it (“Where Festive Flavors Meet Afternoon Elegance” for “Festive
+   Afternoon Tea”). */
+function titleShare(line, title) {
+  const tw = titleWords(title), lw = bare(line).split(' ').filter(Boolean);
+  if (!tw.length || !lw.length) return 0;
+  const present = tw.filter(t => lw.some(l => sameWord(l, t)));
+  if (present.length < tw.length) return present.length / tw.length * 0.5;
+  const run = tw.every((t, i) => i === 0 || lw.findIndex(l => sameWord(l, t)) > lw.findIndex(l => sameWord(l, tw[i - 1])));
+  return run || tw.length / lw.length >= 0.5 ? 1 : tw.length / lw.length;
+}
+const pieces = line => [line, ...line.split(/(?<=[.!?])\s+|\s+—\s+|(?<!\d)\s+–\s+(?!\d)/)].map(p => p.trim()).filter(Boolean);
+
+/* The line the artwork leads with, after the title. The press headline
+   with its venue clause taken off, unless it is the title said again — then
+   the next line, or sentence, that is neither the title nor a fact. */
 function subtitleOf(campaign) {
   const title = bare(campaign.title);
-  const candidates = [...lines(campaign.copyEn).filter(l => !l.startsWith('*')), ...lines(campaign.brief)];
+  const candidates = [...lines(campaign.copyEn).filter(l => !l.startsWith('*')), ...lines(campaign.brief), String(campaign.summary ?? '').trim()];
+  const seen = [];
   for (let line of candidates) {
     line = line.replace(VENUE_TAIL, '').trim();
     if (line.includes(': ')) { const [head, ...rest] = line.split(': '); const shared = [...words(head)].filter(w => words(campaign.title).has(w)); if (shared.length) line = rest.join(': '); }
-    if (!line || bare(line) === title || /^menu\b/i.test(line)) continue;
-    if (line.length > 90) line = firstSentence(line);
-    if (line.length > 90 || line.length < 12) continue;
-    return unshout(line);
+    if (!line || bare(line) === title || /^menu\b|^[•\-\d]/i.test(line)) continue;
+    for (const piece of pieces(line)) {
+      const clean = unshout(piece.replace(VENUE_TAIL, ''));
+      if (clean.length < 12 || clean.length > 100 || FACTY.test(clean) || bare(clean) === title) continue;
+      seen.push({ clean, share: titleShare(clean, campaign.title) });
+    }
   }
-  return '';
+  return (seen.find(s => s.share < 1 && s.clean.length <= 90) || seen.find(s => s.share < 0.5))?.clean || '';
 }
 
+/* The summary, then the press release's own sentences until the paragraph
+   has some weight — no facts, nothing already said. */
 function descriptionOf(campaign, subtitle) {
-  const summary = String(campaign.summary ?? '').trim();
-  if (summary && bare(summary) !== bare(subtitle)) return summary;
-  const body = lines(campaign.copyEn).filter(l => !l.startsWith('*')).slice(1).find(l => l.length > 40);
-  return body ? firstSentence(body) : summary;
+  const summary = String(campaign.summary ?? '').trim(), said = new Set([bare(summary), bare(subtitle), bare(campaign.title)]);
+  const out = summary && bare(summary) !== bare(subtitle) ? [sentence(summary)] : [];
+  const body = lines(campaign.copyEn).filter(l => !l.startsWith('*') && !/^menu\b|^[•\-\d]/i.test(l)).slice(1);
+  for (const line of body) for (const raw of line.split(/(?<=[.!?])\s+/)) {
+    const s = raw.trim(); if (!s) continue;
+    if (FACTY.test(s) || s.length > 220 || said.has(bare(s))) continue;
+    if (bare(subtitle) && (bare(s).includes(bare(subtitle)) || bare(subtitle).includes(bare(s)))) continue;
+    if (out.length > 1 && out.join(' ').length + s.length > 360) return out.join(' ');
+    out.push(sentence(s)); said.add(bare(s));
+    if (out.join(' ').length >= 200 || out.length >= 4) return out.join(' ');
+  }
+  return out.join(' ');
 }
 
 /* "5 pm – 2 am" as the record keeps it, read through the clock formatter:
@@ -88,16 +126,16 @@ function pricesOf(campaign) {
   return `THB ${Math.min(...values).toLocaleString('en-US')}–${Math.max(...values).toLocaleString('en-US')}${found[0].unit}`;
 }
 
-function termsOf(campaign) {
-  const out = [];
+/* Up to two sentences of conditions, skipping any the description already
+   carries. */
+function termsOf(campaign, already = '') {
+  const out = [], said = bare(already);
   for (const line of lines(campaign.copyEn).slice(1)) for (const sentence of line.split(/(?<=[.!?])\s+/)) {
-    if (TERMS.test(sentence) && sentence.length <= 110 && !PHONE.test(sentence) && !ENROLL.test(sentence)) out.push(`${unshout(sentence)}.`);
+    if (TERMS.test(sentence) && sentence.length <= 110 && !PHONE.test(sentence) && !ENROLL.test(sentence) && !said.includes(bare(sentence))) out.push(`${unshout(sentence)}.`);
     if (out.length === 2) return out.join(' ');
   }
   return out.join(' ');
 }
-
-const sentence = text => { const t = String(text ?? '').trim(); return t ? (/[.!?]$/.test(t) ? t : `${t}.`) : ''; };
 
 /* "Available 21–27 September 2026 at ANJU (5 pm–2 am) and The Lobby Lounge
    (6:30 am–midnight)." Outlets that share their hours share the clause;
@@ -131,14 +169,14 @@ function rewardsSentence(live) {
 export function artworkCopy(campaign) {
   const live = (campaign.activations || []).filter(a => !a.display);
   const seen = new Set(live.map(a => a.outlet)), outlets = [...OUTLET_ORDER.filter(o => seen.has(o)), ...[...seen].filter(o => !OUTLET_ORDER.includes(o))];
-  const subtitle = subtitleOf(campaign), copyEn = String(campaign.copyEn ?? '');
+  const subtitle = subtitleOf(campaign), description = descriptionOf(campaign, subtitle), copyEn = String(campaign.copyEn ?? '');
   const contact = []; if (PHONE.test(copyEn)) contact.push('+66 2 796 8888'); const email = copyEn.match(EMAIL); if (email) contact.push(email[0].toLowerCase());
   const enroll = copyEn.match(ENROLL);
   const body = [
-    sentence(descriptionOf(campaign, subtitle)),
+    description,
     availabilityOf(campaign, live, outlets),
     priceSentence(campaign),
-    termsOf(campaign),
+    termsOf(campaign, description),
     rewardsSentence(live),
     contact.length ? `Reserve at ${contact.join(' or ')}.` : '',
     enroll ? `Join IHG One Rewards at ${enroll[0].replace(/[.,)]+$/, '')}.` : ''
