@@ -172,9 +172,10 @@ jobs:
           node scripts/sw-install-resilience-smoke.mjs
           node scripts/ci-page-render-smoke.mjs
           # Every saved Betta period must still be drawn by its seed under the
-          # code about to ship (anon read, no credential). Add --require-all
-          # once all eight periods are saved.
-          node scripts/betta-periods-release-smoke.mjs
+          # code about to ship (anon read, no credential). All eight periods
+          # have been saved since 5 Sep 2026, so an unsaved period is a
+          # regression too: --require-all.
+          node scripts/betta-periods-release-smoke.mjs --require-all
 
       - name: Deploy to Cloudflare Pages
         env:
