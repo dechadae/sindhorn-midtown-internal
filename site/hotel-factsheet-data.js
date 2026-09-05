@@ -66,7 +66,7 @@ export const HOTEL_FACTSHEET = Object.freeze({
       Object.freeze({name:'ANJU Korean Rooftop Restaurant & Bar',capacity:'Up to 120 guests'}),
       Object.freeze({name:"Bangkok'78",capacity:'Up to 190 banquet / 200 cocktail'})
     ]),
-    included:Object.freeze(['Audio/visual system','LCD projector and projection screen','Microphone and Hi-Fi sound equipment','Flipcharts and markers','Customisable catering','Free parking','Free high-speed Wi-Fi'])
+    included:Object.freeze(['Audio/visual system','LCD projector and projection screen','Microphone and Hi-Fi sound equipment','Flipcharts and markers','Customizable catering','Free parking','Free high-speed Wi-Fi'])
   }),
   access:Object.freeze({
     bts:Object.freeze([
@@ -108,5 +108,5 @@ export const HOTEL_FACTSHEET_SOURCE_NOTES = Object.freeze([
   Object.freeze({topic:'Studio size',selected:'33 sqm',authority:'Dedicated Studio page and Rooms & Suites page',note:'The hotel homepage currently also exposes a 32 sqm Studio value in one content block. The room-specific page and room matrix both publish 33 sqm, so 33 sqm is canonical here.',urls:Object.freeze([HOTEL_FACTSHEET_SOURCES.studio,HOTEL_FACTSHEET_SOURCES.rooms,HOTEL_FACTSHEET_SOURCES.overview])}),
   Object.freeze({topic:'Studio air purifiers',selected:'No in-room air purifier in Studio or One Bedroom Urban Studio',authority:'Dedicated Facilities & Services page',note:'The Rooms & Suites matrix currently lists air purifiers for these categories, while the Facilities page explicitly excludes them. The dedicated facilities statement is treated as higher-specificity authority.',urls:Object.freeze([HOTEL_FACTSHEET_SOURCES.facilities,HOTEL_FACTSHEET_SOURCES.rooms])}),
   Object.freeze({topic:'The Lobby Lounge hours',selected:'06:00–00:00',authority:'Dedicated The Lobby Lounge page',note:'Older promotional subpages may show a later closing time. The current dedicated outlet page states day service 06:00–14:00 and evening service 14:00–00:00.',urls:Object.freeze([HOTEL_FACTSHEET_SOURCES.lobby])}),
-  Object.freeze({topic:'Midtown 2+3 capacity',selected:'Use the published setup table by seating style',authority:'Conference & Meeting Rooms capacity table',note:'The page prose says the combined room hosts up to 44 guests, while its table publishes 54 theatre and 40 cocktail. This factsheet retains the setup-by-setup table instead of inventing a single maximum.',urls:Object.freeze([HOTEL_FACTSHEET_SOURCES.meetings])})
+  Object.freeze({topic:'Midtown 2+3 capacity',selected:'Use the published setup table by seating style',authority:'Conference & Meeting Rooms capacity table',note:'The page prose says the combined room hosts up to 44 guests, while its table publishes 54 theater and 40 cocktail. This factsheet retains the setup-by-setup table instead of inventing a single maximum.',urls:Object.freeze([HOTEL_FACTSHEET_SOURCES.meetings])})
 ]);

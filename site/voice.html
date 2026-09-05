@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2E273B">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Voice · Sindhorn Midtown Internal</title>
+
+<!-- The Voice library: how the app speaks, the way /ci is how it looks. One
+     document, precached with the shell, mounted in-shell at /#voice by
+     voice-page.js. It uses the UI Library's chrome (ci-library.css) and its
+     components, and declares nothing of its own. Every example here is a
+     real string the app uses or a real format app-format.js produces - the
+     dates and numbers below are written by that module at load, so the page
+     cannot drift from the code. -->
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
+<link rel="stylesheet" href="/fonts.css?v=1">
+<link rel="stylesheet" href="/app-tokens.css?v=9">
+<link rel="stylesheet" href="/app-glass.css?v=11">
+<link rel="stylesheet" href="/app-components.css?v=32">
+<link rel="stylesheet" href="/app-shell.css?v=2">
+<link rel="stylesheet" href="/ci-library.css?v=10">
+</head>
+<body>
+
+<div class="environment-stage" id="environmentStage" aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
+
+<main class="app-page">
+
+  <header class="app-hero">
+    <div class="app-hero-head"><button class="app-back-control app-control" type="button" data-ci-back aria-label="Back to settings"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button></div>
+    <p class="app-hero-eyebrow">Sindhorn Midtown Internal</p>
+    <h1 class="app-hero-title">Voice</h1>
+    <p class="app-hero-copy">How the app speaks: the words, the case, the marks, the dates and the numbers, in English and Thai. A page inherits this the way it inherits the UI Library. Copy that needs a form absent from here gets it added here first.</p>
+    <nav class="ci-index" aria-label="Sections">
+      <a class="app-chip app-control" href="#voice">01 Voice</a>
+      <a class="app-chip app-control" href="#registers">02 Registers</a>
+      <a class="app-chip app-control" href="#principles">03 Principles</a>
+      <a class="app-chip app-control" href="#language">04 Language</a>
+      <a class="app-chip app-control" href="#vocabulary">05 Vocabulary</a>
+      <a class="app-chip app-control" href="#names">06 Names</a>
+      <a class="app-chip app-control" href="#case">07 Case</a>
+      <a class="app-chip app-control" href="#punctuation">08 Punctuation</a>
+      <a class="app-chip app-control" href="#formats">09 Dates &amp; Numbers</a>
+      <a class="app-chip app-control" href="#titles">10 Titles &amp; Labels</a>
+      <a class="app-chip app-control" href="#actions">11 Actions</a>
+      <a class="app-chip app-control" href="#feedback">12 Feedback</a>
+      <a class="app-chip app-control" href="#states">13 States</a>
+      <a class="app-chip app-control" href="#forms">14 Forms</a>
+      <a class="app-chip app-control" href="#thai">15 Thai &amp; English</a>
+      <a class="app-chip app-control" href="#guest">16 Guest-Facing</a>
+      <a class="app-chip app-control" href="#promotions">17 Promotion Copy</a>
+      <a class="app-chip app-control" href="#rules">18 Rules</a>
+    </nav>
+  </header>
+
+  <!-- ========================= 01 VOICE ========================= -->
+  <section class="app-section" id="voice">
+    <p class="app-section-kicker">01 · Voice</p>
+    <h2 class="app-section-title">Where It Comes From</h2>
+    <p class="app-section-lede">Sindhorn Midtown is a Vignette Collection hotel. Vignette speaks in short, warm, confident sentences about one-of-a-kind places and the people who run them. This app is that hotel talking to its own people, so it keeps the voice and drops the sales.</p>
+
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Vignette Collection</span><span>read on ihg.com, September 2026</span></div>
+        <div class="app-card app-surface"><p class="app-surface-label">What the brand does</p><div class="app-surface-copy">Short declaratives. Second person, “you”, and a hotel that says “we”. No exclamation marks. American English. Oxford comma. One idea per sentence. Its words are independent-spirited, one-of-a-kind, thoughtful, character, story, memorable — and it names a property “Sindhorn Midtown Hotel Bangkok, Vignette Collection”, never “by IHG” in running copy.</div></div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Sindhorn Midtown</span><span>sindhornmidtown.com</span></div>
+        <div class="app-card app-surface"><p class="app-surface-label">What the hotel does</p><div class="app-surface-copy">Title Case headings (“Rooms &amp; Suites”, “Restaurants &amp; Bars”), sentence-case links, day-month-year dates (“31 January 2027”), lowercase am and pm (“11:30 am”, “6 pm – midnight”), prices as “THB 3,600++” and “THB 1,300 Net”. The Thai site keeps the 24-hour clock (“11:30 น. - 17:00 น.”) and the Buddhist year. This page settles the inconsistencies the site still carries.</div></div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>This app</span><span>the hotel, to its people</span></div>
+        <div class="app-card app-surface"><p class="app-surface-label">What we do</p><div class="app-surface-copy">The same warmth and the same confidence, spent on being useful. A control says what it does. A message says what happened and, if something went wrong, what to do next. Nothing is sold, nothing apologizes, nothing shouts. Guest-facing surfaces (16) get the full brand voice; everything else is the hotel being plain with a colleague.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 02 REGISTERS ========================= -->
+  <section class="app-section" id="registers">
+    <p class="app-section-kicker">02 · Registers</p>
+    <h2 class="app-section-title">Two Ways of Speaking</h2>
+    <p class="app-section-lede">Who is reading decides the register. One voice, two volumes.</p>
+    <table class="ci-ref ci-ref-table">
+      <tbody>
+        <tr><th>Staff</th><td>Every signed-in page: Today, F&amp;B, Jobs, Brand, Messages, Settings. Plain, warm, brief. “You” is the employee; “we” and “the hotel” are Sindhorn Midtown. Facts first, feelings rarely, and never a pitch.</td></tr>
+        <tr><th>Guest</th><td>The public share page and the business card (Phase 7). Full Vignette voice: a little more room, a little more story, the hotel's full name. Still no exclamation marks, still American English, still the same dates and times.</td></tr>
+        <tr><th>Sourced</th><td>Text the hotel or IHG already published — F&amp;B promotion copy (17), the IHG history — is quoted as written, in whatever spelling it came with. Only a typo or a grammatical slip is corrected, in the data, with approval.</td></tr>
+      </tbody>
+    </table>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Same fact, both registers</span><span>staff · guest</span></div>
+        <div class="app-stack">
+          <div class="app-card app-surface"><p class="app-surface-label">Staff · F&amp;B</p><div class="app-surface-copy">Lao Khao ritual · Daily 5–6 pm at ANJU · Complimentary Lao Khao shot with local pickled fruits.</div></div>
+          <div class="app-card app-surface"><p class="app-surface-label">Guest · share page</p><div class="app-surface-copy">Every evening from 5 to 6 pm, ANJU pours a complimentary shot of Lao Khao with local pickled fruits — a small Thai ritual before a Korean night on the 31st floor.</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 03 PRINCIPLES ========================= -->
+  <section class="app-section" id="principles">
+    <p class="app-section-kicker">03 · Principles</p>
+    <h2 class="app-section-title">Seven Habits</h2>
+    <div class="ci-rule-list">
+      <div class="ci-rule"><b>Lead with the thing.</b><span>“No jobs yet”, not “It looks like you don't have any jobs yet.” The subject of the sentence is the subject of the screen.</span></div>
+      <div class="ci-rule"><b>Say what happens.</b><span>A button names its result (“Publish”, “Revoke access”, “Save code and open app”). A toast confirms it in the past tense (“Published to All employees”). The two match.</span></div>
+      <div class="ci-rule"><b>Speak to one person.</b><span>“You” is the employee holding the phone. “We” is the hotel. Never “the user”, never “users”.</span></div>
+      <div class="ci-rule"><b>Warm, not chatty.</b><span>Contractions are welcome (“can't”, “didn't”, “you'll”). Jokes, emoji, “oops”, “awesome” and “please” are not. Vignette is warm because it is confident, not because it is cute.</span></div>
+      <div class="ci-rule"><b>One idea per sentence.</b><span>Short declaratives. If a sentence needs a semicolon, it is two sentences. If a paragraph needs a third sentence, it is probably a list.</span></div>
+      <div class="ci-rule"><b>Explain, don't apologize.</b><span>An error says what didn't happen and what to do: “Couldn't load your jobs. Check the connection and try again.” No “sorry”, no “unfortunately”, no transport internals.</span></div>
+      <div class="ci-rule"><b>Specific beats clever.</b><span>“Saved on this phone · 5 Sep 2026 · 8:30 am” says more than “You're all caught up”. A number, a name or a time earns its place; a flourish does not.</span></div>
+    </div>
+  </section>
+
+  <!-- ========================= 04 LANGUAGE ========================= -->
+  <section class="app-section" id="language">
+    <p class="app-section-kicker">04 · Language</p>
+    <h2 class="app-section-title">American English, Always</h2>
+    <p class="app-section-lede">Vignette Collection writes in American English and so does every word this app owns — copy, code comments, the UI Library's notes. The spellings below are the ones that kept slipping in.</p>
+    <table class="ci-ref ci-ref-table">
+      <tbody>
+        <tr><th>Write</th><td>color, center, centered, behavior, gray, organize, customize, canceled, catalog, program, favorite, license, analyze, traveled, toward, among, while, elevator, check, uncheck, inquiry, theater, cell or mobile, apartment, parking</td></tr>
+        <tr><th>Not</th><td>colour, centre, centred, behaviour, grey, organise, customise, cancelled, catalogue, programme, favourite, licence, analyse, travelled, towards, amongst, whilst, lift, tick, untick, enquiry, theatre, flat, car park</td></tr>
+        <tr><th>Keep as published</th><td>Proper names and sourced text: “Vignette Collection”, “IHG Hotels &amp; Resorts”, “The Lobby Lounge”, the IHG history (“Our history” is IHG plc's own page) and F&amp;B promotion copy. A name is spelled the way its owner spells it.</td></tr>
+        <tr><th>Employee ID</th><td>Two words, capital I, capital D. Not “employee number”, “staff ID” or “ID number”. The field on the sign-in page and in Admin says exactly this.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ========================= 05 VOCABULARY ========================= -->
+  <section class="app-section" id="vocabulary">
+    <p class="app-section-kicker">05 · Vocabulary</p>
+    <h2 class="app-section-title">The Words We Use</h2>
+    <p class="app-section-lede">One word per thing, everywhere. Where the app and the database disagree, the app's word wins on screen.</p>
+    <div class="ci-rule-list">
+      <div class="ci-rule"><b>employee</b><span>Not user, staff, staff member, team member, member. Admin, sign-in, gates.</span></div>
+      <div class="ci-rule"><b>you</b><span>Not the employee, the user, one. Everywhere a person is addressed.</span></div>
+      <div class="ci-rule"><b>colleague</b><span>Not coworker, peer. Other employees, in warm copy.</span></div>
+      <div class="ci-rule"><b>administrator</b><span>Not admin (in prose). “Admin” only as the tab name and the label “Admin only”.</span></div>
+      <div class="ci-rule"><b>People &amp; Culture</b><span>Not HR, Human Resources. Gates and help.</span></div>
+      <div class="ci-rule"><b>sign in · sign out</b><span>Not log in, login, log out, logout. Verb “sign in”, noun “sign-in”.</span></div>
+      <div class="ci-rule"><b>permanent code · one-time code</b><span>Not PIN, password, passcode, OTP. Sign-in, Admin.</span></div>
+      <div class="ci-rule"><b>guest</b><span>Not customer, client, visitor. Anyone the hotel hosts.</span></div>
+      <div class="ci-rule"><b>promotion</b><span>Not promo, campaign, offer, deal. F&amp;B.</span></div>
+      <div class="ci-rule"><b>outlet</b><span>Not venue, restaurant (as the generic). Business and F&amp;B data; a named place uses its name.</span></div>
+      <div class="ci-rule"><b>broadcast</b><span>Not announcement, notice, message (as the type). What the hotel sends to everyone or a department.</span></div>
+      <div class="ci-rule"><b>alert</b><span>Not notification, push (in copy). What arrives on this phone; “notifications” only as the setting's name.</span></div>
+      <div class="ci-rule"><b>job</b><span>Not task, ticket, request. Jobs.</span></div>
+      <div class="ci-rule"><b>deadline</b><span>Not due date, ETA. Jobs.</span></div>
+      <div class="ci-rule"><b>archive</b><span>Not delete, remove (a job). Jobs — nothing is deleted.</span></div>
+      <div class="ci-rule"><b>revoke</b><span>Not delete, disable, remove (access or a broadcast). Admin, Broadcast.</span></div>
+      <div class="ci-rule"><b>turn on · turn off</b><span>Not enable, disable, activate. Settings.</span></div>
+      <div class="ci-rule"><b>phone</b><span>Not device. To the employee (“Saved on this phone”); “device” only in Admin.</span></div>
+      <div class="ci-rule"><b>tap · open</b><span>Not click, press, launch. Instructions.</span></div>
+      <div class="ci-rule"><b>today's numbers · the report</b><span>Not data, dashboard, KPIs. Today.</span></div>
+      <div class="ci-rule"><b>artwork</b><span>Not creative, design file, asset. F&amp;B.</span></div>
+      <div class="ci-rule"><b>business card</b><span>Not e-card, digital card, profile. Me, Phase 7.</span></div>
+      <div class="ci-rule"><b>the app</b><span>Not the PWA, the system, the platform, the portal. System, help.</span></div>
+    </div>
+  </section>
+
+  <!-- ========================= 06 NAMES ========================= -->
+  <section class="app-section" id="names">
+    <p class="app-section-kicker">06 · Names</p>
+    <h2 class="app-section-title">Naming the Hotel and Its Places</h2>
+    <p class="app-section-lede">A name is written the way its owner writes it, then shortened the same way every time.</p>
+    <table class="ci-ref ci-ref-table">
+      <tbody>
+        <tr><th>Full</th><td>Sindhorn Midtown Hotel Bangkok, Vignette Collection — first mention on any guest-facing surface, the masthead logo's alt text, the business card.</td></tr>
+        <tr><th>Short</th><td>Sindhorn Midtown — everywhere else. In running copy after the first mention: “the hotel”.</td></tr>
+        <tr><th>Brand</th><td>Vignette Collection. “Vignette Collection by IHG” only where the relationship is the point (Brand › Know Our Hotel). Never “Vignette” alone in copy, never “by IHG” appended to the hotel name.</td></tr>
+        <tr><th>Company</th><td>IHG, IHG Hotels &amp; Resorts, IHG One Rewards. The plc's own text keeps its own spelling.</td></tr>
+        <tr><th>Outlets</th><td>Bangkok'78 · ANJU (full: ANJU Korean Rooftop Restaurant &amp; Bar) · Sip &amp; Co. · Horizon Pool Bar · The Lobby Lounge (the article is part of the name) · Horizon Pool · Veha, Midtown 1, Midtown 2, Midtown 3.</td></tr>
+        <tr><th>Departments</th><td>People &amp; Culture, Food &amp; Beverage (F&amp;B in the navbar and labels), Front Office, Housekeeping, Sales &amp; Marketing, Marcom. Title Case, ampersand kept.</td></tr>
+        <tr><th>The app</th><td>“Sindhorn Midtown” is its installed name; “the app” in copy; “Sindhorn Midtown Internal” only as the eyebrow over the two libraries.</td></tr>
+        <tr><th>People</th><td>Display name as the employee wrote it, then position and department in sentence case: “Decha · Senior Graphic Designer · Marcom”. No honorifics, no khun in English chrome.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ========================= 07 CASE ========================= -->
+  <section class="app-section" id="case">
+    <p class="app-section-kicker">07 · Case</p>
+    <h2 class="app-section-title">Title Case Above, Sentence Case Below</h2>
+    <p class="app-section-lede">Only two things take Title Case: a hero title and a section title. Everything else is a sentence, and sentences start with one capital.</p>
+    <div class="ci-type-stack">
+      <div class="ci-type-row"><span class="ci-type-meta">Hero<br>Title Case</span><span class="app-hero-title">Job Tracker</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Section<br>Title Case</span><span class="app-section-title">Where Sources Disagree</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Eyebrow<br>sentence</span><span class="app-hero-eyebrow">Secure your account</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Kicker<br>number · sentence</span><span class="app-section-kicker">03 · Needs attention</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Card title<br>sentence</span><span class="ci-type-lead">Lobby elevator wrap, Loy Krathong</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Label<br>sentence</span><span class="app-surface-label">Saved on this phone</span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Button<br>sentence</span><span class="app-row"><button class="app-primary app-control" type="button">Save code and open app</button></span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Badge<br>sentence</span><span class="app-row"><span class="app-badge" data-tone="success">Live now</span><span class="app-badge" data-tone="quiet">Draft</span></span></div>
+      <div class="ci-type-row"><span class="ci-type-meta">Navbar<br>one word</span><span class="ci-type-small">Today · F&amp;B · Jobs · Brand · Me · Admin · Broadcast · System</span></div>
+    </div>
+    <table class="ci-ref ci-ref-table">
+      <tbody>
+        <tr><th>Title Case</th><td>Capitalize every word except a, an, the, and, or, nor, of, at, in, on, to, for, by, with — unless it is the first or last word. “Sign In with a One-Time Code”, “Know Our Hotel”, “At a Glance”, “Rooms &amp; Suites”.</td></tr>
+        <tr><th>Sentence case</th><td>First word and proper nouns only. “Employee ID”, “People &amp; Culture” and outlet names keep their capitals inside a sentence; a status or a role does not (“working”, “administrator”).</td></tr>
+        <tr><th>Never</th><td>ALL CAPS in copy (the UI Library's uppercase labels are a style on sentence-case text, not a spelling), camelCase, Every Word Capitalized in a button or a badge.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ========================= 08 PUNCTUATION ========================= -->
+  <section class="app-section" id="punctuation">
+    <p class="app-section-kicker">08 · Punctuation</p>
+    <h2 class="app-section-title">The Marks</h2>
+    <p class="app-section-lede">Few marks, used the same way. The typeface has zero tracking; the copy has zero decoration.</p>
+    <table class="ci-ref ci-ref-table">
+      <tbody>
+        <tr><th>Period</th><td>Ends a sentence in copy, a lede, a note, a dialog body, a state's copy line. Never on a title, a label, a button, a badge, a toast, a kicker, a list-row title or a state's title. “Saved”, not “Saved.”</td></tr>
+        <tr><th>Exclamation</th><td>Never.</td></tr>
+        <tr><th>Question</th><td>Only when the copy really asks: a confirmation title (“Revoke access for Decha?”) or a help kicker (“First time here?”).</td></tr>
+        <tr><th>Middle dot ·</th><td>Separates items in one line of metadata, spaced on both sides: “Operations · 5 Sep 2026 · 8:30 am”, “Access revoked · 2 sessions ended”. Not between clauses, not in a sentence.</td></tr>
+        <tr><th>Em dash —</th><td>An aside inside a sentence, spaced on both sides in this typeface: “a done job's title steps back — nothing else changes”. At most one per sentence.</td></tr>
+        <tr><th>En dash –</th><td>A range, unspaced: “6–11 pm”, “5–6 pm”, “September–October 2026”, “06:30–11:00” in data. Not a hyphen.</td></tr>
+        <tr><th>Hyphen -</th><td>Compounds only: one-time code, 6-digit, 24-hour, on-the-books, day-to-night. Not for ranges, not as a dash.</td></tr>
+        <tr><th>Ellipsis …</th><td>One character, only for a working state: “Signing you in…”, “Checking one-time code…”. Never in finished copy.</td></tr>
+        <tr><th>Comma</th><td>Oxford comma in every list of three or more: “weather, air-quality, business, and broadcast alerts”. No comma after a weekday in a date.</td></tr>
+        <tr><th>Quotes “ ”</th><td>Curly in copy; straight only inside code. A title quoted in a dialog: Revoke “Lobby elevators serviced Tuesday morning”?</td></tr>
+        <tr><th>Apostrophe '</th><td>The keyboard mark, the same one every string in the code carries. Contractions and possessives are welcome: “can't”, “didn't”, “today's report”.</td></tr>
+        <tr><th>Ampersand &amp;</th><td>Only inside a name that owns one (F&amp;B, People &amp; Culture, Sip &amp; Co., Rooms &amp; Suites). In a sentence, “and”.</td></tr>
+        <tr><th>Slash /</th><td>Only in a proper label that has one (“Rooms / Revenue”, “Audio/visual”). “Or” in a sentence.</td></tr>
+        <tr><th>Parentheses</th><td>Rare. A unit or a clarifier: “(sqm)”. Never a whole sentence.</td></tr>
+        <tr><th>Colon</th><td>Introduces a list or a value in a label: “Deadline: none”. Not before a sentence.</td></tr>
+        <tr><th>Symbols</th><td>Minus sign − (U+2212) for a negative, never a hyphen. Percent unspaced “72.4%”. Degrees unspaced. Multiplication ×.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ========================= 09 DATES & NUMBERS ========================= -->
+  <section class="app-section" id="formats">
+    <p class="app-section-kicker">09 · Dates &amp; Numbers</p>
+    <h2 class="app-section-title">One Clock, Two Languages</h2>
+    <p class="app-section-lede">Every date, time and amount is written by <code>app-format.js</code>. Hotel time always, never a zone suffix. English uses am and pm with no leading zero; Thai keeps the 24-hour clock. The values below are produced by the module at load, from 5 September 2026 at 6 pm and 11:30 am.</p>
+    <table class="ci-ref ci-ref-table">
+      <tbody>
+        <tr><th>Date, short</th><td><code data-format="date:short:en">—</code> · <code data-format="date:short:th">—</code><br>Metadata, list rows, Jobs, Today's report dates</td></tr>
+        <tr><th>Date, long</th><td><code data-format="date:long:en">—</code> · <code data-format="date:long:th">—</code><br>F&amp;B “Updated”, Brand “verified”, prose</td></tr>
+        <tr><th>Date with weekday</th><td><code data-format="date:weekday:en">—</code> · <code data-format="date:weekday:th">—</code><br>Today's hero</td></tr>
+        <tr><th>Day, short</th><td><code data-format="date:day:en">—</code> · <code data-format="date:day:th">—</code><br>Jobs “Received”, deadlines</td></tr>
+        <tr><th>Month</th><td><code data-format="date:month:en">—</code> · <code data-format="date:month:th">—</code><br>Stay months on Today</td></tr>
+        <tr><th>Time, on the hour</th><td><code data-format="time:en">—</code> · <code data-format="time:th">—</code><br>“6 pm”, not “6:00 pm” or “18:00”</td></tr>
+        <tr><th>Time, with minutes</th><td><code data-format="time2:en">—</code> · <code data-format="time2:th">—</code><br>“11:30 am”, not “11.30” or “11:30 AM”</td></tr>
+        <tr><th>Noon · midnight</th><td><code data-format="noon:en">—</code> · <code data-format="noon:th">—</code><br>English says the word; Thai says 12:00 น. and 00:00 น.</td></tr>
+        <tr><th>Date and time</th><td><code data-format="datetime:en">—</code> · <code data-format="datetime:th">—</code><br>Messages, broadcasts, “Updated”, change stamps</td></tr>
+        <tr><th>Hours, a range</th><td><code data-format="clock:en">—</code> · <code data-format="clock:th">—</code><br>Factsheet hours: one meridiem when both ends share it</td></tr>
+        <tr><th>Hours, past midnight</th><td><code data-format="clock2:en">—</code> · <code data-format="clock2:th">—</code><br>ANJU</td></tr>
+        <tr><th>Money</th><td><code data-format="money">—</code> · <code>1,300 บาท</code><br>Staff: ฿ and thousands separators</td></tr>
+        <tr><th>Money, guest</th><td><code data-format="money-code">—</code> · <code>1,300 บาทสุทธิ</code><br>Guest: “THB 1,300 net”, “THB 250++” — the code, then the amount, then the condition</td></tr>
+        <tr><th>Money, compact</th><td><code data-format="money-compact">—</code><br>A metric tile: ฿1.23M, ฿480K</td></tr>
+        <tr><th>Percent</th><td><code data-format="percent">—</code><br>No space; a real minus sign; “+” only for a delta</td></tr>
+        <tr><th>Count</th><td><code data-format="count">—</code><br>The number always shows: “1 job”, “3 jobs”, “0 sessions”</td></tr>
+      </tbody>
+    </table>
+    <table class="ci-ref ci-ref-table">
+      <tbody>
+        <tr><th>Order</th><td>Day, month, year in both languages: “5 Sep 2026”, “5 ก.ย. 2569”. Never “09/05” or “2026-09-05” on screen — ISO days are how dates travel, not how they read.</td></tr>
+        <tr><th>Year</th><td>Four digits, always. English is Gregorian; Thai is Buddhist, as the hotel's Thai site and every Thai phone write it. No “พ.ศ.” prefix; the number is enough.</td></tr>
+        <tr><th>Clock</th><td>English: 12-hour, lowercase am and pm, a space before them, no leading zero, no “:00” on the hour, “noon” and “midnight” for 12. Thai: 24-hour, leading zero, “น.” after. A range takes an en dash and one meridiem when it can: “6:30–11 am”, “5 pm–2 am”.</td></tr>
+        <tr><th>Relative</th><td>“today”, “tomorrow”, “in 3 days”, “overdue” — lowercase after a middle dot (“Mon 8 Sep 2026 · today”), capitalized as a badge (“Starts tomorrow”). Never “yesterday at 6 pm”; a stamp is a stamp.</td></tr>
+        <tr><th>Zone</th><td>Never shown. Everything is hotel time. “ICT”, “GMT+7” and “Bangkok time” do not appear.</td></tr>
+        <tr><th>Numbers</th><td>Thousands separators from 1,000. Tabular figures in a column. Spell out one to nine in prose (“five failed attempts”), digits for everything with a unit (“6-digit code”, “15 minutes”, “3 sessions”). Units unspaced with symbols (72.4%, 172.5 sqm has a space because sqm is a word).</td></tr>
+        <tr><th>Money</th><td>Baht only. Staff surfaces “฿1,300”; guest surfaces “THB 1,300”, then “net” or “++” as the hotel writes them, lowercase “net”. Thai: “1,300 บาท”, “1,300 บาทสุทธิ”, “250++ บาท”. No decimals unless the data has them.</td></tr>
+        <tr><th>Phone</th><td>International, spaced in groups: “+66 2 796 8888”. A form's help says “such as +66…”.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ========================= 10 TITLES & LABELS ========================= -->
+  <section class="app-section" id="titles">
+    <p class="app-section-kicker">10 · Titles &amp; Labels</p>
+    <h2 class="app-section-title">Eyebrow, Title, Copy</h2>
+    <p class="app-section-lede">A hero is three lines and each has a job. The eyebrow says where you are, the title says what this is, the copy says what it is for — in one sentence.</p>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-hero</span><span>where · what · what for</span></div>
+        <div class="app-card app-surface">
+          <p class="app-hero-eyebrow">Jobs</p>
+          <h3 class="app-hero-title">Job Tracker</h3>
+          <p class="app-hero-copy">What was asked of you, who asked, and where it stands.</p>
+        </div>
+        <p class="app-note">Eyebrow: the tab or the parent (“Today”, “Settings”, “Secure your account”). Title: two or three words in Title Case, a noun phrase, no verb, no period. Copy: one sentence, ends with a period, says what the page is for, never welcomes anyone.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-section-kicker + title</span><span>a numbered sequence only when order means something</span></div>
+        <div class="app-card app-surface">
+          <p class="app-section-kicker">03 · Needs attention</p>
+          <h3 class="app-section-title">Below Forecast</h3>
+          <p class="app-section-lede">Outlets and segments running behind, with the gap in baht.</p>
+        </div>
+        <p class="app-note">Today numbers its sections because the report reads top to bottom; the libraries number theirs because they are indexed. A page whose sections have no order carries no numbers.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-surface-label</span><span>a label names, it does not describe</span></div>
+        <div class="app-card app-surface"><p class="app-surface-label">Rooms · 5 Sep 2026</p><div class="app-surface-copy">A label is a noun or a noun and a date. “Rooms report”, “Private contact”, “Shown on the public card”. Never a sentence, never a question.</div></div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-list-row</span><span>title · meta · copy</span></div>
+        <div class="app-card app-surface"><div class="app-list">
+          <div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">Lobby elevators serviced Tuesday morning</span><span class="app-list-row-meta">Operations · 5 Sep 2026 · 8:30 am</span><span class="app-list-row-copy">Use the service elevators for guest luggage between 9 and 11 am.</span></span></div>
+          <div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">Data updated</span><span class="app-list-row-meta">Passed with warnings</span></span></div>
+        </div></div>
+        <p class="app-note">Row title: a sentence fragment in sentence case, no period. Meta: nouns and stamps joined by middle dots. Copy: a full sentence.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 11 ACTIONS ========================= -->
+  <section class="app-section" id="actions">
+    <p class="app-section-kicker">11 · Actions</p>
+    <h2 class="app-section-title">A Button Is a Verb</h2>
+    <p class="app-section-lede">The label is what happens when it is tapped, in one to three words, sentence case, no period. Never “OK”, “Submit”, “Yes”, “Go” or “Click here”.</p>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-primary</span><span>the one thing this screen is for</span></div>
+        <div class="app-row">
+          <button class="app-primary app-control" type="button">Sign in</button>
+          <button class="app-primary app-control" type="button">Publish</button>
+          <button class="app-primary app-control" type="button">Add job</button>
+          <button class="app-primary app-control" type="button">Try again</button>
+        </div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-utility-action</span><span>secondary, still a verb</span></div>
+        <div class="app-utility-row">
+          <button class="app-utility-action" type="button">Update</button>
+          <button class="app-utility-action" type="button">Show full</button>
+          <button class="app-utility-action" type="button">Clear device alerts</button>
+          <button class="app-utility-action" type="button">Back to top</button>
+        </div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Destructive</span><span>name the loss, then confirm with the same verb</span></div>
+        <div class="app-card app-surface">
+          <p class="app-dialog-kicker">Settings › Admin</p>
+          <h3 class="app-dialog-title">Revoke access for Decha?</h3>
+          <p class="app-dialog-copy">Every session on every phone ends now. A new one-time code brings the employee back.</p>
+          <div class="app-dialog-actions">
+            <button class="app-utility-action" type="button">Cancel</button>
+            <button class="app-primary app-control" type="button">Revoke access</button>
+          </div>
+        </div>
+        <p class="app-note">Title: the action as a question, with the object named. Copy: the consequence in one or two sentences, and the way back if there is one. Buttons: “Cancel” and the verb from the title — never “Yes” / “No”, never “Are you sure?”.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Working</span><span>present participle, ellipsis, the button disables</span></div>
+        <div class="app-row">
+          <button class="app-primary app-control" type="button" disabled>Signing you in…</button>
+          <button class="app-primary app-control" type="button" disabled>Publishing…</button>
+        </div>
+        <p class="app-note">“Signing you in…”, “Checking one-time code…”, “Saving your permanent code…”, “Publishing…”. The working label replaces the button label and comes back when the work ends.</p>
+      </div>
+    </div>
+    <table class="ci-ref ci-ref-table">
+      <tbody>
+        <tr><th>Pairs</th><td>Sign in / Sign out · Publish / Revoke · Add / Update / Archive · Turn on / Turn off · Show full / Show less · Copy link · Try again · Refresh · Close · Cancel · Back</td></tr>
+        <tr><th>Link text</th><td>What is on the other side, sentence case: “How access works”, “Dining inquiries”, “Open the folder”. Never “here”, “learn more” or a bare URL.</td></tr>
+        <tr><th>Switch help</th><td>A question that names the situation, then the way: “First time or forgot your code? Use an administrator one-time code.” The way back is shorter: “Back to sign in”.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ========================= 12 FEEDBACK ========================= -->
+  <section class="app-section" id="feedback">
+    <p class="app-section-kicker">12 · Feedback</p>
+    <h2 class="app-section-title">What Happened, Then Nothing More</h2>
+    <p class="app-section-lede">A toast confirms; a badge states; a status line explains. None of them ends with a period, and none of them cheers.</p>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-toast</span><span>past tense · result · 2.2 s</span></div>
+        <div class="app-row"><button class="app-primary app-control" type="button" data-toast-open>Show toast</button></div>
+        <p class="app-note">“Saved” · “Link copied” · “Job added” · “Job archived” · “Marked working” · “Published to All employees” · “Scheduled for 8 Sep 2026 · 9 am” · “Draft saved” · “Broadcast revoked” · “Notifications on” · “Employee updated” · “Access revoked · 2 sessions ended”. A failed action starts with “Couldn't”: “Couldn't copy the link”. An instruction toast is an imperative: “Publish the card before sharing”.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-badge</span><span>a state in one or two words</span></div>
+        <div class="app-row">
+          <span class="app-badge" data-tone="success">Live now</span>
+          <span class="app-badge">Starts tomorrow</span>
+          <span class="app-badge">Starts in 3 days</span>
+          <span class="app-badge" data-tone="quiet">Ended</span>
+          <span class="app-badge" data-tone="quiet">Draft</span>
+          <span class="app-badge" data-tone="danger">Urgent</span>
+          <span class="app-badge">3</span>
+        </div>
+        <p class="app-note">Present tense for what is true now. A count is bare. Job statuses are lowercase in a sentence and sentence case on the badge: Not started, Working, Waiting, Stuck, Done.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-note / status line</span><span>a fact about the data, with its stamp</span></div>
+        <div class="app-card app-surface"><div class="app-surface-copy">Updated 5 Sep 2026 · 6 pm · revision 14<br>Saved on this phone · 5 Sep 2026 · 8:30 am<br>Offline · showing the last saved promotions<br>Offline · broadcasts will load when the connection returns<br>Shown until 12 Sep 2026 · 6 pm</div></div>
+        <p class="app-note">Starts with the fact (“Updated”, “Saved”, “Offline”, “Shown until”), then the stamp, then anything else, all joined by middle dots. Lowercase after the first word unless it is a name.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 13 STATES ========================= -->
+  <section class="app-section" id="states">
+    <p class="app-section-kicker">13 · States</p>
+    <h2 class="app-section-title">Empty, Error, Offline, Gate</h2>
+    <p class="app-section-lede">A state card is three lines. Label: one word for the kind. Title: what is true, no period. Copy: what to do about it, a full sentence.</p>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Empty</span><span>state the absence, then the way it fills</span></div>
+        <div class="app-stack">
+          <div class="app-state app-card" data-tone="empty"><p class="app-state-label">Empty</p><p class="app-state-title">No jobs yet</p><p class="app-state-copy">Add a job when someone asks you for something, and it stays here until it is done.</p></div>
+          <div class="app-state app-card" data-tone="empty"><p class="app-state-label">Empty</p><p class="app-state-title">No promotions match these filters</p><p class="app-state-copy">Choose another outlet or month.</p></div>
+        </div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Error</span><span>“Couldn't” + what, then what to do</span></div>
+        <div class="app-stack">
+          <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Couldn't load your jobs</p><p class="app-state-copy">Check the connection and try again.</p></div>
+          <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Couldn't load today's report</p><p class="app-state-copy">Sign in again to see today's report.</p></div>
+        </div>
+        <p class="app-note">The title always starts “Couldn't” and names the thing in the employee's words (“your jobs”, “today's report”, “the directory”, “messages”). The copy is the recovery: check the connection, sign in again, refresh the list. A retry button says “Try again”. Transport details never appear.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Offline</span><span>what is shown instead</span></div>
+        <div class="app-state app-card" data-tone="error"><p class="app-state-label">Offline</p><p class="app-state-title">Couldn't load messages</p><p class="app-state-copy">Check the connection and pull to refresh.</p></div>
+        <p class="app-note">When something older is still on the phone, say so in a note instead of a state: “Offline · showing the last saved promotions”.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Gate</span><span>who it is for, then who to ask</span></div>
+        <div class="app-stack">
+          <div class="app-state app-card" data-tone="empty"><p class="app-state-label">Admin only</p><p class="app-state-title">This tab is for administrators</p><p class="app-state-copy">Ask People &amp; Culture if you need access.</p></div>
+          <div class="app-state app-card" data-tone="empty"><p class="app-state-label">Not available</p><p class="app-state-title">The job tracker isn't on for your account</p><p class="app-state-copy">Ask People &amp; Culture if you need it.</p></div>
+        </div>
+        <p class="app-note">A gate never says “permission denied”, “unauthorized” or “you do not have the right”. It says who the thing is for and who turns it on.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Loading</span><span>a skeleton, or a present participle</span></div>
+        <div class="app-state app-card" data-tone="empty"><p class="app-state-label">Loading</p><p class="app-state-title">Loading today's report…</p></div>
+        <p class="app-note">Prefer the skeleton (UI Library 21) and no words at all. When words are unavoidable: “Loading…” plus the thing, an ellipsis, no copy line.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 14 FORMS ========================= -->
+  <section class="app-section" id="forms">
+    <p class="app-section-kicker">14 · Forms</p>
+    <h2 class="app-section-title">Label, Hint, Help, Error</h2>
+    <p class="app-section-lede">A field's label is a noun. Its hint is a qualifier in the label's second slot. Its help is a sentence under the group. Its error says what to fix.</p>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-field</span><span>label · hint · placeholder</span></div>
+        <div class="app-card app-surface"><div class="ci-field-stack">
+          <div class="app-field"><label for="voice-id">Employee ID</label><input id="voice-id" type="text" inputmode="numeric" placeholder="6 digits" autocomplete="off"></div>
+          <div class="app-field"><label for="voice-title">Title <span>English</span></label><input id="voice-title" type="text" placeholder="What is this about?" autocomplete="off"></div>
+          <div class="app-field"><label for="voice-mobile">Personal mobile <span>optional</span></label><input id="voice-mobile" type="tel" placeholder="+66…" autocomplete="off"></div>
+        </div></div>
+        <p class="app-note">Label: sentence case noun, no colon. Hint in the label's span: “English”, “optional”, “choose any” — lowercase unless a name. Placeholder: the shape of the answer, not the label repeated, and never something the employee needs after typing.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Help</span><span>one sentence, under the group</span></div>
+        <div class="app-card app-surface"><div class="app-surface-copy">The administrator code works once and expires after 15 minutes. Once it checks out, you'll create your permanent code.</div></div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Validation</span><span>the fix, in the employee's words</span></div>
+        <div class="app-card app-surface"><div class="app-surface-copy">Enter all 6 digits of your permanent code.<br>The two codes don't match.<br>Check the Employee ID, name and hotel email.<br>Choose a department from the list.<br>Use an international mobile number such as +66…<br>A scheduled time has to be in the future.<br>Choose who receives this: everyone, or at least one department or role.</div></div>
+        <p class="app-note">Imperative or a plain statement of the mismatch. Never “invalid”, “illegal”, “bad input” or a field's internal name. A save that fails for a reason the employee cannot see: “The change didn't save. Try again.”</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Checkbox · toggle</span><span>the thing it turns on, as a noun</span></div>
+        <div class="app-card app-surface"><div class="app-surface-copy">Notifications · On<br>Shown on the public card · Uncheck a line to leave it off the public page and the saved contact.<br>Artwork done</div></div>
+        <p class="app-note">“Uncheck”, never “untick”. The state words are “On” and “Off”; the toast repeats them: “Notifications on”.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 15 THAI & ENGLISH ========================= -->
+  <section class="app-section" id="thai">
+    <p class="app-section-kicker">15 · Thai &amp; English</p>
+    <h2 class="app-section-title">Two Languages, One Voice</h2>
+    <p class="app-section-lede">The app's chrome is English. Content the hotel writes for its people — broadcasts, promotions, the guest page — comes in both, and the employee's preferred language decides which leads. The other is never hidden.</p>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Bilingual pair</span><span>preferred leads · the other follows</span></div>
+        <div class="app-card app-surface">
+          <p class="app-surface-label">Broadcast · Operations</p>
+          <div class="app-surface-copy">ลิฟต์ล็อบบี้ปิดซ่อมบำรุงวันอังคารที่ 9 กันยายน เวลา 09:00–11:00 น. กรุณาใช้ลิฟต์บริการสำหรับสัมภาระของแขกในช่วงเวลาดังกล่าว</div>
+          <div class="app-surface-copy">The lobby elevators are being serviced on Tuesday 9 September from 9 to 11 am. Use the service elevators for guest luggage during that window.</div>
+        </div>
+      </div>
+    </div>
+    <table class="ci-ref ci-ref-table">
+      <tbody>
+        <tr><th>Register</th><td>Thai is polite and plain — สุภาพ, ไม่เป็นทางการเกินไป. No particles (ครับ / ค่ะ) in UI text; “กรุณา” is fine in Thai where “please” is not in English, because it is the ordinary polite imperative, not a plea.</td></tr>
+        <tr><th>Clock</th><td>Thai time is 24-hour with a leading zero and “น.”: “09:00–11:00 น.”, “18:30 น.”, “00:00 น.” for midnight. Never am / pm in Thai. “เที่ยง” and “เที่ยงคืน” only in prose, not in a stamp.</td></tr>
+        <tr><th>Dates</th><td>Day, Thai month, Buddhist year: “5 กันยายน 2569”, short “5 ก.ย. 2569”. No “วันที่” before the day in a stamp; in prose, “วันอังคารที่ 9 กันยายน” is right.</td></tr>
+        <tr><th>Money</th><td>“1,300 บาท”, “1,300 บาทสุทธิ”, “250++ บาท” — the amount, then the unit, then the condition, as the hotel's Thai site writes it.</td></tr>
+        <tr><th>Names</th><td>Brand and outlet names stay in Latin script: ANJU, Vignette Collection, IHG, Sip &amp; Co., Bangkok'78. The hotel is “โรงแรมสินธร มิดทาวน์” in prose and “Sindhorn Midtown” in a label.</td></tr>
+        <tr><th>Punctuation</th><td>Thai sentences end without a period. Phrases separate with a space, not a comma. Quotes are “ ”. Numbers are Arabic digits, never Thai numerals.</td></tr>
+        <tr><th>Mixing</th><td>A Thai sentence may hold an English name or a code (“Employee ID”, “ANJU”); an English sentence never holds Thai. Chrome never mixes: a label is one language.</td></tr>
+        <tr><th>Missing half</th><td>If only one language exists, show it alone. Never machine-translate, never “(no Thai text)”.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ========================= 16 GUEST-FACING ========================= -->
+  <section class="app-section" id="guest">
+    <p class="app-section-kicker">16 · Guest-Facing</p>
+    <h2 class="app-section-title">The Hotel, at Full Volume</h2>
+    <p class="app-section-lede">The public share page and the business card are the only surfaces a guest reads. They speak the full Vignette voice: the hotel's whole name, a sentence with a little air in it, a place described rather than listed.</p>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Share page hero</span><span>Phase 7</span></div>
+        <div class="app-card app-surface">
+          <p class="app-hero-eyebrow">Sindhorn Midtown Hotel Bangkok, Vignette Collection</p>
+          <h3 class="app-hero-title">This Season at Our Tables</h3>
+          <p class="app-hero-copy">Five kitchens, one address in the heart of Langsuan. Here is what they are cooking for September and October 2026.</p>
+        </div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>Business card</span><span>name · position · hotel · reach</span></div>
+        <div class="app-card app-surface"><div class="app-surface-copy">Decha Dae<br>Senior Graphic Designer · Marketing Communications<br>Sindhorn Midtown Hotel Bangkok, Vignette Collection<br>+66 2 796 8888 · decha.dae@ihg.com<br>Save contact · Call · Email · Open in Maps</div></div>
+        <p class="app-note">Position and department spelled out; no abbreviations a guest would not know (“Marketing Communications”, not “Marcom”). Buttons are verbs, sentence case, each one a thing a guest can do right now.</p>
+      </div>
+    </div>
+    <table class="ci-ref ci-ref-table">
+      <tbody>
+        <tr><th>Tone</th><td>Confident and warm; describes, never sells. “A small Thai ritual before a Korean night on the 31st floor” — not “Don't miss our amazing happy hour!”</td></tr>
+        <tr><th>Words</th><td>The Vignette vocabulary is available here and nowhere else: one-of-a-kind, character, story, ritual, thoughtful, independent-spirited. One per paragraph at most.</td></tr>
+        <tr><th>Prices</th><td>“THB 1,300 net per person”, “THB 250++” — exactly as the hotel's site writes them, and exactly as the promotion copy gives them.</td></tr>
+        <tr><th>Hotel name</th><td>Full on the first line a guest reads; “Sindhorn Midtown” after that; “the hotel” in a sentence.</td></tr>
+        <tr><th>Never</th><td>Internal words: outlet, activation, artwork, revision, read model, staff. A guest sees restaurants, bars, offers and people.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ========================= 17 PROMOTION COPY ========================= -->
+  <section class="app-section" id="promotions">
+    <p class="app-section-kicker">17 · Promotion Copy</p>
+    <h2 class="app-section-title">As Written by F&amp;B</h2>
+    <p class="app-section-lede">The English and Thai copy of a promotion is the F&amp;B team's, approved with the artwork. The app renders it verbatim and the voice stops at its edge.</p>
+    <div class="ci-rule-list">
+      <div class="ci-rule"><b>Verbatim.</b><span>Title, copy, terms, prices and dates appear exactly as provided. The app does not retitle, shorten, recase or rephrase them, and never adds a period, a dash or a badge inside them.</span></div>
+      <div class="ci-rule"><b>Typos and grammar only.</b><span>A spelling slip or a broken sentence may be corrected. A word choice, a British spelling the team chose, a “Net” with a capital N, a “++” — these stay. When in doubt, it stays.</span></div>
+      <div class="ci-rule"><b>Fixed in the data, with approval.</b><span>A correction is a change to the promotion record, proposed to the user with the before and after, and written only once approved. Never patched in the page.</span></div>
+      <div class="ci-rule"><b>The frame follows the voice.</b><span>Everything around the copy — the status badge, “Starts tomorrow”, “Updated 5 September 2026 · 6 pm”, “Artwork done”, “Link copied”, the empty and error states — is the app's and follows this page.</span></div>
+      <div class="ci-rule"><b>Both languages, as given.</b><span>The Thai and English halves are shown as written, the preferred one first. A half that was not provided is simply absent.</span></div>
+    </div>
+  </section>
+
+  <!-- ========================= 18 RULES ========================= -->
+  <section class="app-section" id="rules">
+    <p class="app-section-kicker">18 · Rules</p>
+    <h2 class="app-section-title">What Holds the Voice Together</h2>
+    <div class="ci-rule-list">
+      <div class="ci-rule"><b>American English, always.</b><span>Copy, comments and library notes. Sourced text and proper names keep their owner's spelling.</span></div>
+      <div class="ci-rule"><b>One word per thing.</b><span>The vocabulary in 05 is the whole list. A new thing gets its word here before it gets a screen.</span></div>
+      <div class="ci-rule"><b>Title Case for a hero and a section title; sentence case for everything else.</b><span>Two exceptions only. A button, a badge, a label, a toast and a row title are sentences.</span></div>
+      <div class="ci-rule"><b>A period ends copy, never a fragment.</b><span>Titles, labels, buttons, badges, toasts, kickers and state titles carry no period. Copy lines, ledes, notes, dialog bodies and help do.</span></div>
+      <div class="ci-rule"><b>No exclamation marks, no “please”, no apologies.</b><span>Warmth is confidence, not decoration. Thai “กรุณา” is the ordinary imperative and stays.</span></div>
+      <div class="ci-rule"><b>A button is a verb; a toast is its past tense.</b><span>“Publish” → “Published to All employees”. “Revoke access” → “Access revoked · 2 sessions ended”.</span></div>
+      <div class="ci-rule"><b>An error is “Couldn't” + the thing, then the way out.</b><span>Never the transport, never the code, never “unauthorized”. A gate says who it is for and who to ask.</span></div>
+      <div class="ci-rule"><b>Dates and numbers come from app-format.js.</b><span>Day month year, four-digit year, no zone. English 12-hour with lowercase am and pm and no leading zero; Thai 24-hour with “น.” and the Buddhist year. No page formats a date of its own.</span></div>
+      <div class="ci-rule"><b>Metadata joins with a middle dot.</b><span>“Operations · 5 Sep 2026 · 8:30 am”. A sentence uses commas and periods; a line of facts uses dots.</span></div>
+      <div class="ci-rule"><b>The staff register is plain; the guest register is the brand.</b><span>Story, ritual and one-of-a-kind belong to the share page and the business card. Inside the hotel, the fact is the sentence.</span></div>
+      <div class="ci-rule"><b>Promotion copy is verbatim.</b><span>Typo and grammar fixes only, in the data, with approval. The frame around it follows this page.</span></div>
+      <div class="ci-rule"><b>Copy is not inline.</b><span>Strings live in the page module that owns them or in the data they describe, never in a style, a script fragment or a patch. A string that appears on two pages is written once.</span></div>
+    </div>
+  </section>
+
+  <div class="app-utility-row"><button class="app-utility-action" type="button" data-ci-top><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15V5M5 9l5-5 5 5"/></svg>Back to top</button></div>
+
+</main>
+
+<div class="app-toast app-overlay" data-toast hidden>Published to All employees</div>
+
+<script type="module">
+/* The page's own bootstrap: the atmosphere, then the shared voice behavior. */
+(async () => {
+  try {
+    const betta = await import('/betta-runtime-full.js?v=1');
+    await betta.initEnvironment();
+    document.getElementById('environmentStage')?.setAttribute('data-ready', 'true');
+  } catch (error) {
+    console.warn('Atmosphere unavailable; specimens render over the flat ground.', error);
+  }
+})();
+
+// The live formats and every control's behavior live in voice-page.js,
+// shared with the shell route that mounts this same markup at /#voice.
+const { bindVoice } = await import('/voice-page.js');
+bindVoice(document.body, { page: document.querySelector('.app-page') });
+</script>
+
+</body>
+</html>

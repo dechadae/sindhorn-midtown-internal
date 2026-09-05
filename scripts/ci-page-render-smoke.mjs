@@ -107,6 +107,7 @@ const TYPES = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascrip
 const server = http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0]);
   if (p === '/ci') p = '/ci.html';
+  if (p === '/voice') p = '/voice.html';
   if (p === '/') p = '/index.html';
   const file = path.join(ROOT, p);
   if (!file.startsWith(ROOT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); res.end('not found'); return; }
@@ -280,8 +281,32 @@ else {
   if (norm(shown.confirmColor) !== 'rgb(227, 162, 168)') failures.push(`confirmDialog(): danger confirm is ${shown.confirmColor}, expected --app-danger`);
   if (!shown.focusedCancel) failures.push('confirmDialog(): Cancel should hold focus when the dialog opens');
   if (after.remaining !== 0) failures.push(`confirmDialog(): ${after.remaining} dialog(s) left in the document after close`);
-  if (!/^Cancelled/.test(after.note)) failures.push(`confirmDialog(): cancel should resolve false, note reads "${after.note}"`);
+  if (!/^Canceled/.test(after.note)) failures.push(`confirmDialog(): cancel should resolve false, note reads "${after.note}"`);
 }
+
+// The Voice library renders on the same chrome: every [data-format] slot is
+// written by app-format.js at load, its cards frost, nothing errors.
+await page.goto(`http://127.0.0.1:${port}/voice`, { waitUntil: 'load' });
+await page.waitForFunction(() => document.querySelector('[data-format]')?.textContent !== '—', null, { timeout: 8000 }).catch(() => {});
+const voice = await page.evaluate(() => {
+  const slots = [...document.querySelectorAll('[data-format]')];
+  const card = document.querySelector('.ci-specimen .app-card');
+  const s = card && getComputedStyle(card);
+  return {
+    sections: document.querySelectorAll('.app-section').length,
+    specimens: document.querySelectorAll('.ci-specimen').length,
+    unfilled: slots.filter(node => node.textContent === '—' || !node.textContent.trim()).map(node => node.dataset.format),
+    samples: Object.fromEntries(slots.slice(0, 6).map(node => [node.dataset.format, node.textContent])),
+    card: s && { bg: s.backgroundColor, filter: String(s.backdropFilter || s.webkitBackdropFilter || 'none') },
+    toast: !!document.querySelector('[data-toast]')
+  };
+});
+if (voice.sections < 18) failures.push(`voice: only ${voice.sections} sections rendered`);
+if (voice.specimens < 20) failures.push(`voice: only ${voice.specimens} specimens rendered`);
+if (voice.unfilled.length) failures.push(`voice: app-format.js left slots unwritten: ${voice.unfilled.join(', ')}`);
+if (!voice.card || norm(voice.card.bg) !== norm(CARD.bg) || norm(voice.card.filter) !== norm(CARD.filter)) failures.push(`voice: specimen card material ${JSON.stringify(voice.card)}, expected the card`);
+if (voice.samples['date:short:en'] !== '5 Sep 2026') failures.push(`voice: date:short:en reads "${voice.samples['date:short:en']}"`);
+if (voice.samples['date:short:th'] !== '5 ก.ย. 2569') failures.push(`voice: date:short:th reads "${voice.samples['date:short:th']}"`);
 
 await browser.close();
 server.close();
@@ -291,4 +316,4 @@ if (failures.length) {
   for (const failure of failures) console.error(`  ${failure}`);
   process.exit(1);
 }
-console.log(JSON.stringify({ ok: true, sections: report.sections, specimens: report.specimens, canvas: report.canvas, components: EXPECT.length }));
+console.log(JSON.stringify({ ok: true, sections: report.sections, specimens: report.specimens, canvas: report.canvas, components: EXPECT.length, voice: { sections: voice.sections, specimens: voice.specimens, formats: Object.keys(voice.samples).length } }));

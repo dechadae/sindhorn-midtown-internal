@@ -5,60 +5,28 @@
 
    business-dashboard-data.js is reused unmodified: it already fetches
    sindhorn_business_dashboard_read_model correctly and is not route markup.
-   The formatting helpers below are deliberately a fresh, small copy rather
-   than an import from business-dashboard.js - that file is the still-live
+   Numbers and dates are read through app-format.js (the Voice library's
+   one spelling), never business-dashboard.js - that file is the still-live
    legacy route, and this rebuild does not patch or depend on route code it
    is replacing.
 
    That RPC requires an authenticated session. This shell has none yet (auth
    returns in a later phase), so today a fresh visitor sees the real error
-   state below, not a fake success - which is the correct behaviour, not a
+   state below, not a fake success - which is the correct behavior, not a
    bug to route around. */
 import { loadBusinessDashboard } from './business-dashboard-data.js';
 import { initAuth } from './auth-client.js';
+import { formatMoney as money, formatInteger as integer, formatPercent as percent, formatDate, formatDateTime } from './app-format.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const num = value => Number.isFinite(Number(value)) ? Number(value) : null;
 const directionOf = delta => delta === null || delta === undefined || Number.isNaN(delta) ? null : delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat';
 
-function money(value, { compact = false, signed = false } = {}) {
-  const n = num(value);
-  if (n === null) return '—';
-  const abs = Math.abs(n), sign = n < 0 ? '−' : signed && n > 0 ? '+' : '';
-  let body;
-  if (compact && abs >= 1_000_000) body = `${(abs / 1_000_000).toFixed(abs >= 10_000_000 ? 1 : 2).replace(/\.0+$/, '')}M`;
-  else if (compact && abs >= 100_000) body = `${Math.round(abs / 1000)}K`;
-  else body = Math.round(abs).toLocaleString('en-US');
-  return `${sign}฿${body}`;
-}
-function integer(value, { signed = false } = {}) {
-  const n = num(value); if (n === null) return '—';
-  const sign = n < 0 ? '−' : signed && n > 0 ? '+' : '';
-  return `${sign}${Math.abs(Math.round(n)).toLocaleString('en-US')}`;
-}
-function percent(value, { signed = false, digits = 1 } = {}) {
-  const n = num(value); if (n === null) return '—';
-  const p = n * 100, sign = p < 0 ? '−' : signed && p > 0 ? '+' : '';
-  return `${sign}${Math.abs(p).toFixed(digits)}%`;
-}
-function dateLabel(value, { monthOnly = false } = {}) {
-  const d = new Date(`${String(value).slice(0, 10)}T00:00:00+07:00`);
-  if (Number.isNaN(d.valueOf())) return String(value || '');
-  return new Intl.DateTimeFormat('en-GB', monthOnly ? { month: 'short', year: '2-digit' } : { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(d);
-}
-function shortDateLabel(value) {
-  const raw = String(value || '').slice(0, 10);
-  const d = new Date(`${raw}T00:00:00+07:00`);
-  if (Number.isNaN(d.valueOf())) return String(value || '');
-  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(d);
-}
-function dateTimeLabel(value) {
-  const d = new Date(value);
-  if (Number.isNaN(d.valueOf())) return String(value || '');
-  const date = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Bangkok' }).format(d);
-  const time = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Bangkok' }).format(d);
-  return `${date} · ${time} ICT`;
-}
+/* Hotel days: the business date reads with its weekday, a report date short,
+   a stay month as "Sep 2026". */
+const dateLabel = (value, { monthOnly = false } = {}) => formatDate(String(value || '').slice(0, 10), { style: monthOnly ? 'month' : 'weekday' }) || String(value || '');
+const shortDateLabel = value => formatDate(String(value || '').slice(0, 10)) || String(value || '');
+const dateTimeLabel = value => formatDateTime(value) || String(value || '');
 function sourceFor(data, type) { return (data.sources || []).find(source => source?.type === type) || null; }
 function variance(actual, forecast, { moneyValue = true } = {}) {
   const a = num(actual), f = num(forecast);
@@ -270,11 +238,11 @@ function skeletonMarkup() {
 function errorMarkup(error) {
   const unauthorized = error?.status === 401 || error?.status === 403;
   const message = unauthorized
-    ? 'Sign-in has not returned to this shell yet, so the approved report cannot be verified as yours to see.'
-    : (error?.message || 'Try again when the connection is available.');
-  return `<header class="app-hero"><p class="app-hero-eyebrow">Today</p><h1 class="app-hero-title">Hotel Business</h1><p class="app-hero-copy">Daily business data is temporarily unavailable.</p></header>
+    ? 'Sign in again to see today\'s report.'
+    : (error?.message || 'Check the connection and try again.');
+  return `<header class="app-hero"><p class="app-hero-eyebrow">Today</p><h1 class="app-hero-title">Hotel Business</h1><p class="app-hero-copy">Today\'s numbers aren\'t available right now.</p></header>
   <section class="app-section"><div class="app-stack">
-    <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Unable to load the approved report</p><p class="app-state-copy">${esc(message)}</p></div>
+    <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Couldn\'t load today\'s report</p><p class="app-state-copy">${esc(message)}</p></div>
     <div class="app-row"><button class="app-primary app-control" type="button" data-today-retry>Try again</button></div>
   </div></section>`;
 }

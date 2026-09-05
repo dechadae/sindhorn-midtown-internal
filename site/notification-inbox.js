@@ -1,3 +1,4 @@
+import { formatDateTime } from './app-format.js';
 const DB_NAME='sindhorn-midtown-notification-inbox';
 const DB_VERSION=1;
 const STORE='messages';
@@ -63,10 +64,8 @@ function routeName(route){
   return'today';
 }
 
-function stamp(value,locale){
-  const time=Number(value),date=Number.isFinite(time)?new Date(time):new Date();
-  try{return new Intl.DateTimeFormat(locale,{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Bangkok'}).format(date)}catch(_){return date.toLocaleString(locale)}
-}
+/* Hotel time in the voice, "5 Sep 2026 · 6 pm"; the locale argument is legacy and ignored. */
+function stamp(value){const time=Number(value);return formatDateTime(Number.isFinite(time)?new Date(time):new Date())}
 
 function kindLabel(kind){
   const value=String(kind||'');

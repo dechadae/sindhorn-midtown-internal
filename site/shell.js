@@ -1,4 +1,4 @@
-/* The app shell's behaviour: atmosphere, sign-in gate, hash router, masthead
+/* The app shell's behavior: atmosphere, sign-in gate, hash router, masthead
    controls and the two-set navbar. index.html is markup only; everything
    that moves lives here, so a shell change is one file and one precache
    entry.
@@ -86,14 +86,15 @@ const ROUTES = {
   brand: () => import('./brand-page.js').then(m => m.mountBrand),
   settings: () => import('./settings-page.js').then(m => m.mountSettings),
   signin: () => import('./signin-page.js').then(m => m.mountSignin),
-  ci: () => import('./ci-page.js').then(m => m.mountCi)
+  ci: () => import('./ci-page.js').then(m => m.mountCi),
+  voice: () => import('./voice-page.js').then(m => m.mountVoice)
 };
 const SETTINGS_TABS = ['me', 'admin', 'broadcast', 'system'];
 
 /* The shell's layers: the app tabs are the ground; Settings and the library
    it opens sit one layer up; sign-in covers everything. Closing a layer
    returns to where the layer below was. */
-const layerOf = view => view === 'signin' ? 2 : (view.startsWith('settings') || view === 'ci') ? 1 : 0;
+const layerOf = view => view === 'signin' ? 2 : (view.startsWith('settings') || view === 'ci' || view === 'voice') ? 1 : 0;
 
 const host = document.getElementById('routeView');
 const masthead = document.querySelector('.app-masthead');
@@ -128,8 +129,8 @@ let current = '', dispose = null, generation = 0, returnHash = '', messagesRetur
    close mark, the way the chip does for Settings. */
 function paintNavbar(name) {
   const locked = !signedIn();
-  const mode = name === 'settings' || name === 'ci' ? 'settings' : 'app';
-  const full = name === 'ci' ? 'settings/system' : viewOf(name);
+  const mode = name === 'settings' || name === 'ci' || name === 'voice' ? 'settings' : 'app';
+  const full = name === 'ci' || name === 'voice' ? 'settings/system' : viewOf(name);
   navbar.dataset.mode = mode;
   if (locked) navbar.dataset.locked = ''; else delete navbar.dataset.locked;
   for (const set of navbar.querySelectorAll('.app-navbar-set')) set.inert = set.dataset.set !== mode;

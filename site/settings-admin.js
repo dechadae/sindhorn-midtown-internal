@@ -16,6 +16,7 @@ import { appSelect, appSelectValue, setAppSelectValue, bindAppSelects } from './
 import { openDialog, dialogHead, confirmDialog } from './app-dialog.js';
 import { qrStyledSvg } from './qr-v6.js';
 import { showToast } from './app-toast.js';
+import { formatDateTime, formatCount } from './app-format.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const SEARCH_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="M13.2 13.2L17 17"/></svg>';
@@ -36,15 +37,15 @@ function explain(error) {
   const message = String(error?.message || '').toLowerCase();
   const code = String(error?.payload?.code || error?.code || '');
   if (message.includes('admin access required')) return 'Admin access is required for this change.';
-  if (message.includes('insufficient role')) return 'Your role cannot make this change.';
-  if (message.includes('cannot remove own admin access')) return 'You cannot remove your own admin access.';
+  if (message.includes('insufficient role')) return 'Your role can\'t make this change.';
+  if (message.includes('cannot remove own admin access')) return 'You can\'t remove your own admin access.';
   if (code === '23505' || message.includes('duplicate key') || message.includes('already exists')) return 'That Employee ID or hotel email is already assigned.';
   if (message.includes('invalid employee input')) return 'Check the Employee ID, name and hotel email.';
   if (message.includes('invalid department')) return 'Choose a department from the list.';
   if (message.includes('invalid personal email')) return 'Use a valid personal email address.';
   if (message.includes('invalid mobile')) return 'Use an international mobile number such as +66…';
   if (message.includes('employee not found')) return 'That employee no longer exists. Refresh the list.';
-  return 'The change could not be saved. Please try again.';
+  return 'The change didn\'t save. Try again.';
 }
 
 /* The invitation link the new shell reads: Employee ID and code prefilled
@@ -72,8 +73,8 @@ export async function mountAdmin(stack, { manifest, signal }) {
     if (!alive) return;
     const shown = users.filter(matches);
     count.textContent = query ? `${shown.length} of ${users.length}` : `${users.length} employees`;
-    if (!users.length) { list.innerHTML = state('Employees', 'No employees yet.', canManage ? 'Add the first employee to start the directory.' : ''); return; }
-    if (!shown.length) { list.innerHTML = state('Search', 'No employee matches that.', 'Try a name, Employee ID, position or email.'); return; }
+    if (!users.length) { list.innerHTML = state('Employees', 'No employees yet', canManage ? 'Add the first employee to start the directory.' : ''); return; }
+    if (!shown.length) { list.innerHTML = state('Search', 'No employee matches that', 'Try a name, Employee ID, position or email.'); return; }
     list.innerHTML = `<div class="app-card app-surface"><div class="app-list">${shown.map(user => `
       <button class="app-list-row" type="button" data-admin-open="${esc(user.id)}"${user.active ? '' : ' data-inactive'}>
         <span class="app-list-row-lead"><span class="app-avatar" aria-hidden="true">${esc(initials(user.display_name))}</span>
@@ -89,7 +90,7 @@ export async function mountAdmin(stack, { manifest, signal }) {
       users = result.users || []; departments = result.departments || []; actor = result.actor || null;
       paintList();
     } catch (error) {
-      if (alive) list.innerHTML = state('Error', 'The directory could not be loaded.', explain(error), 'error') + '<div class="app-utility-row"><button class="app-utility-action" type="button" data-admin-retry>Try again</button></div>';
+      if (alive) list.innerHTML = state('Error', 'Couldn\'t load the directory', explain(error), 'error') + '<div class="app-utility-row"><button class="app-utility-action" type="button" data-admin-retry>Try again</button></div>';
     }
   }
 
@@ -180,7 +181,7 @@ export async function mountAdmin(stack, { manifest, signal }) {
       if (!result?.ok) throw new Error(result?.error || 'revoke_failed');
       if (!alive) return;
       closeDialog();
-      showToast(`Access revoked · ${result.sessionsEnded ?? 0} session${result.sessionsEnded === 1 ? '' : 's'} ended`);
+      showToast(`Access revoked · ${formatCount(result.sessionsEnded ?? 0, 'session')} ended`);
       await load();
     } catch (error) {
       if (status) { status.dataset.tone = 'error'; status.textContent = explain(error); }
@@ -211,7 +212,7 @@ export async function mountAdmin(stack, { manifest, signal }) {
     try { qr = `<figure class="app-figure" data-code-qr>${qrStyledSvg(url)}</figure>`; } catch (_) {}
     const d = open(`<div class="app-dialog-body" data-admin-code>
         ${dialogHead('Settings › Admin', recovery ? 'Recovery code' : 'First-login code')}
-        <p class="app-dialog-copy">For ${esc(user.display_name)} · ${esc(user.employee_number)}. Shown once${expires ? `, valid until ${esc(expires.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }))}` : ''}.</p>
+        <p class="app-dialog-copy">For ${esc(user.display_name)} · ${esc(user.employee_number)}. Shown once${expires ? `, valid until ${esc(formatDateTime(expires))}` : ''}.</p>
         <div class="app-stack">
           <p class="app-code-display" aria-label="One-time code ${esc(code.split('').join(' '))}">${code.split('').map(ch => `<b>${esc(ch)}</b>`).join('')}</p>
           <div class="app-business-card">${qr}<p class="app-business-card-link"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(url.replace(/^https?:\/\//, ''))}</a></p></div>
@@ -221,11 +222,11 @@ export async function mountAdmin(stack, { manifest, signal }) {
       </div>`);
     const text = `${recovery ? 'Recovery' : 'First-login'} code for Sindhorn Midtown Internal\nEmployee ID: ${user.employee_number}\nCode: ${code}\n${url}`;
     d.querySelector('[data-code-copy]').addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(url); showToast('Link copied'); } catch (_) { showToast('Could not copy the link'); }
+      try { await navigator.clipboard.writeText(url); showToast('Link copied'); } catch (_) { showToast('Couldn\'t copy the link'); }
     });
     d.querySelector('[data-code-share]').addEventListener('click', async () => {
       if (typeof navigator.share === 'function') { try { await navigator.share({ title: 'Sindhorn Midtown Internal', text, url }); return; } catch (error) { if (error?.name === 'AbortError') return; } }
-      try { await navigator.clipboard.writeText(text); showToast('Code and link copied'); } catch (_) { showToast('Could not copy the code'); }
+      try { await navigator.clipboard.writeText(text); showToast('Code and link copied'); } catch (_) { showToast('Couldn\'t copy the code'); }
     });
   }
 

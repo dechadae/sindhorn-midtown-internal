@@ -2,7 +2,7 @@
 
    Derived from what the app already uses, not from a new design. Every value
    below is the most-used member of a cluster the codebase had already formed;
-   the neighbours it absorbs are listed so the choice is auditable.
+   the neighbors it absorbs are listed so the choice is auditable.
 
    Nothing consumes these yet. Routes migrate onto them one at a time, and each
    migration deletes the local values it replaces. See the CI / UI Library page
@@ -13,7 +13,7 @@
 
   /* ---- Type scale -------------------------------------------------------
      70 distinct font sizes across 380 uses, 47 of them used twice or less.
-     Eight steps replace them. Half-pixel neighbours are absorbed upward or
+     Eight steps replace them. Half-pixel neighbors are absorbed upward or
      to the nearest step, which is invisible at 9-13px on a phone. */
   --type-caption:9px;     /* absorbs 8.5 / 9 / 9.5   — ~79 uses */
   --type-micro:10px;      /* absorbs 10 / 10.5       — ~35 uses */
@@ -43,7 +43,7 @@
      radii; these add the surface and geometric values it was missing.
      14px is the single most-used radius in the app (28 uses) and had no
      token at all. */
-  /* Colour. Every route had already converged on these three values under its own
+  /* Color. Every route had already converged on these three values under its own
      names (--fnb-accent / --fs-accent / --settings-accent and so on). The library
      owns them once so a component can leave its route and still resolve. */
   --app-text:#FAF7F5;
@@ -52,7 +52,7 @@
   --app-inset-fill:rgba(250,247,245,.055);
   --app-accent:#E5ECBE;
   --app-accent-rgb:229,236,190;
-  /* Status tones. A state is a tone, never an ad-hoc colour: the two values
+  /* Status tones. A state is a tone, never an ad-hoc color: the two values
      the routes had been repeating for "done / live" and "error / down". */
   --app-success:#72A75D;
   --app-danger:#E3A2A8;

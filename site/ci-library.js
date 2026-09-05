@@ -1,6 +1,6 @@
-/* The UI Library's behaviour, shared by the standalone page (/ci) and the
+/* The UI Library's behavior, shared by the standalone page (/ci) and the
    shell route (/#ci). One binding for one markup contract, so the two
-   cannot drift apart: components that ship behaviour in the app (the
+   cannot drift apart: components that ship behavior in the app (the
    selector, disclosure, clamp) are demonstrated with exactly the markup the
    pages use. bindLibrary(root) wires every specimen under root and returns a
    dispose function; nothing here touches the document outside root except
@@ -36,7 +36,7 @@ export function bindLibrary(root, { page = root } = {}) {
   const { signal } = controller;
   const on = (target, type, handler) => target.addEventListener(type, handler, { signal });
 
-  // Code group - the same behaviour the sign-in page binds.
+  // Code group - the same behavior the sign-in page binds.
   bindCode(root, { signal });
 
   // The library is reached from Settings › System; Back returns there (on
@@ -102,7 +102,7 @@ export function bindLibrary(root, { page = root } = {}) {
   const confirmOpen = root.querySelector('[data-confirm-open]'), confirmResult = root.querySelector('[data-confirm-result]');
   if (confirmOpen) on(confirmOpen, 'click', async () => {
     const yes = await confirmDialog({ kicker: 'Specimen', title: 'Sign out of this device?', copy: 'You will need your Employee ID and permanent code to sign back in.', confirm: 'Sign out', cancel: 'Stay signed in', tone: 'danger' });
-    if (confirmResult && !signal.aborted) confirmResult.textContent = yes ? 'Confirmed - the page would sign out now.' : 'Cancelled - nothing happened, which is the point of asking.';
+    if (confirmResult && !signal.aborted) confirmResult.textContent = yes ? 'Confirmed - the page would sign out now.' : 'Canceled - nothing happened, which is the point of asking.';
   });
 
   // Form dialog - openDialog() with a body of the page's own: the grid, a

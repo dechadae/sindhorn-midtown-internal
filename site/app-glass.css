@@ -77,7 +77,7 @@
      .app-overlay  a drawn boundary floating above content, not the atmosphere
 
    Route stylesheets own geometry only - padding, radius, grid - and never
-   declare fill, border colour or backdrop-filter. They need no cascade override
+   declare fill, border color or backdrop-filter. They need no cascade override
    precisely because nothing downstream is allowed to compete.
 
    They replace a 61-name hand-maintained registry in app-glass-runtime.js.

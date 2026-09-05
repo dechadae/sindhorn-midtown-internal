@@ -15,19 +15,19 @@ import { bindCode, codeValue, clearCode } from './app-code.js';
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
 const COPY = {
-  eyebrow: 'Internal employee access',
-  permanent: { title: 'Employee sign in.', copy: 'Enter your Employee ID and permanent 6-digit code.', code: 'Permanent code', button: 'Sign in', working: 'Signing you in…',
+  eyebrow: 'Employee access',
+  permanent: { title: 'Sign In', copy: 'Enter your Employee ID and your permanent 6-digit code.', code: 'Permanent code', button: 'Sign in', working: 'Signing you in…',
     error: 'Check your Employee ID and permanent code, then try again. If needed, use an administrator one-time code.' },
-  onetime: { title: 'Employee sign in.', copy: 'Enter your Employee ID and the one-time code provided by an administrator.', code: 'Administrator one-time code', button: 'Continue', working: 'Checking one-time code…',
-    note: 'The administrator code works once and expires after 15 minutes. After verification, you will create a new permanent code.',
+  onetime: { title: 'Sign In with a One-Time Code', copy: 'Enter your Employee ID and the one-time code an administrator gave you.', code: 'Administrator one-time code', button: 'Continue', working: 'Checking one-time code…',
+    note: 'The administrator code works once and expires after 15 minutes. Once it checks out, you\'ll create your permanent code.',
     error: 'Check your Employee ID and administrator one-time code, then try again. Ask an administrator for a new code if it has expired.' },
-  setpin: { eyebrow: 'Secure your account', title: 'Create your permanent code.', copy: 'Choose a 6-digit code you will use with your Employee ID for future sign-ins.', button: 'Save code & open app', working: 'Saving your permanent code…',
-    note: 'Your permanent code is stored only as a secure hash. Five failed attempts temporarily lock PIN sign-in for 15 minutes.',
-    mismatch: 'The two permanent codes do not match.' },
+  setpin: { eyebrow: 'Secure your account', title: 'Create Your Permanent Code', copy: 'Choose the 6-digit code you\'ll use with your Employee ID from now on.', button: 'Save code and open app', working: 'Saving your permanent code…',
+    note: 'Your permanent code is stored only as a secure hash. Five failed attempts lock code sign-in for 15 minutes.',
+    mismatch: 'The two codes don\'t match.' },
   length: 'Enter all 6 digits of your permanent code.',
-  generic: 'Sign-in could not be completed. Please try again.',
+  generic: 'Sign-in didn\'t complete. Try again.',
   switchToOnetime: 'First time or forgot your code? Use an administrator one-time code.',
-  switchToPermanent: 'Back to permanent code sign in'
+  switchToPermanent: 'Back to sign in'
 };
 
 function codeMarkup(name, label, { autofill = false } = {}) {

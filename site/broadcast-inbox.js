@@ -97,11 +97,5 @@ export function otherText(broadcast, key) {
   return getProfile()?.preferred_language === 'th' ? en : th;
 }
 
-/* Hotel time for a server timestamp. */
-export function whenLabel(value, { dateStyle = 'medium', timeStyle = 'short' } = {}) {
-  const date = value ? new Date(value) : null;
-  if (!date || Number.isNaN(date.getTime())) return '';
-  try { return new Intl.DateTimeFormat('en-GB', { dateStyle, timeStyle, timeZone: 'Asia/Bangkok' }).format(date); } catch (_) { return date.toLocaleString('en-GB'); }
-}
 
 document.addEventListener('sindhorn:auth-changed', event => { if (event.detail?.authenticated === false) clearInbox(); });

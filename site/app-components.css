@@ -7,7 +7,7 @@
    instead, and owns nothing but geometry and structure.
 
    Material comes from app-glass.css: .app-card, .app-control, .app-overlay.
-   Values come from app-tokens.css. No fill, no blur, no colour literals here.
+   Values come from app-tokens.css. No fill, no blur, no color literals here.
 
    Routes still own their own copies until each is rebuilt page by page. That
    duplication is deliberate and temporary: a route keeps working untouched, and
@@ -19,7 +19,7 @@
    BASE — applies wherever the library is loaded.
    ========================================================================== */
 
-/* Mobile browsers paint a grey box over anything tappable on press. It is not
+/* Mobile browsers paint a gray box over anything tappable on press. It is not
    part of this system: press feedback is the scale-down each control already
    declares. Keyboard focus rings are untouched, since those are how a keyboard
    user knows where they are. */
@@ -32,7 +32,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 
 /* ---- Actionable card -------------------------------------------------------
    A card whose whole face is the button. The button itself must reset the user
-   agent's background, or it renders as a grey ButtonFace over the material. */
+   agent's background, or it renders as a gray ButtonFace over the material. */
 .app-action-card{overflow:clip;border-radius:var(--radius-surface)}
 .app-action-card-button{
   width:100%;margin:0;padding:16px 17px;
@@ -172,8 +172,8 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 
 /* A six-digit code is one field with six wells, one digit each, so what the
    employee typed is visible at a glance. Each well is an ordinary field
-   input — same height, tint, focus and blur — only centred and larger. The
-   group's behaviour (advance, backspace, paste) lives in app-code.js. */
+   input — same height, tint, focus and blur — only centered and larger. The
+   group's behavior (advance, backspace, paste) lives in app-code.js. */
 .app-code{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
 .app-field .app-code input{padding-inline:0;text-align:center;font-size:var(--type-lead);font-variant-numeric:tabular-nums}
 
@@ -209,7 +209,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 }
 
 /* ---- Selector --------------------------------------------------------------
-   Behaviour lives in app-select.js. The trigger is a control; the menu floats
+   Behavior lives in app-select.js. The trigger is a control; the menu floats
    above content, so it is an overlay rather than a card. Inside a card the
    library lifts the open menu to the document (glass never nests): the same
    element as position:fixed, anchored to the trigger through the three
@@ -308,7 +308,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 /* ---- Metric -----------------------------------------------------------------
    A number that carries meaning: today's occupancy, an outlet's revenue. The
    value is tabular so columns of them line up, and the delta states its own
-   direction rather than relying on colour alone. */
+   direction rather than relying on color alone. */
 .app-metric{min-width:0;display:grid;gap:6px;align-content:start}
 .app-metric-label{color:var(--app-muted);font-size:var(--type-small);text-transform:uppercase}
 .app-metric-value{font-size:var(--type-title);font-weight:var(--weight-regular);line-height:1;font-variant-numeric:tabular-nums}
@@ -350,9 +350,9 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 [data-track-ready="true"] .app-track-bar{transform:scaleX(1)}
 
 /* ---- Sheet ------------------------------------------------------------------
-   A bottom sheet, not a centred dialog: it belongs to the thumb. Same native
+   A bottom sheet, not a centered dialog: it belongs to the thumb. Same native
    <dialog> element and the same overlay material, different geometry, so the
-   two cannot drift into separate scroll-lock or backdrop behaviour. */
+   two cannot drift into separate scroll-lock or backdrop behavior. */
 .app-sheet{
   width:100%;max-width:100%;max-height:82dvh;
   margin:auto auto 0;padding:0;
@@ -426,7 +426,7 @@ button.app-list-row{width:100%;border:0;background:transparent;color:inherit;fon
 button.app-list-row:active{opacity:.9}
 button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
 /* A picker row (the status sheet): the chosen row carries the accent and a
-   check at its end; the others stay the text colour. */
+   check at its end; the others stay the text color. */
 button.app-list-row[aria-pressed="true"]{color:var(--app-accent)}
 button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accent)}
 .app-list-row-end svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8}
@@ -866,7 +866,7 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
    public link - laid out on the card material the page already has. It is
    layout only: the .app-card around it is the material, the details are a
    text metric grid, the QR is a figure. The QR's paper is inside the SVG the
-   generator draws, so this rule paints no colour. */
+   generator draws, so this rule paints no color. */
 .app-business-card{display:grid;gap:18px;text-align:center}
 .app-business-card-kicker{margin:0;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
 .app-business-card-name{margin:6px 0 0;font-size:var(--type-display);font-weight:var(--weight-thin);line-height:.98;text-wrap:balance;overflow-wrap:anywhere}

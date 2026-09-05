@@ -3,7 +3,7 @@
    backspace on an empty well retreats, and a pasted or autofilled code fills
    the whole group from wherever it lands. The markup and the wells' look
    live in app-components.css (.app-code inside .app-field); this file is
-   only behaviour. */
+   only behavior. */
 
 export const CODE_LENGTH = 6;
 

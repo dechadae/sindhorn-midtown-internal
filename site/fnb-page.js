@@ -4,10 +4,11 @@
    folder links, sharing and the shared completion status - in library
    primitives and nothing else. No fnb-* class, no stylesheet of its own.
 
-   fnb-read-model.js is the data; this file is the markup and behaviour. The
+   fnb-read-model.js is the data; this file is the markup and behavior. The
    route is addressed by hash so the browser's back button works between the
    index and a detail: #fnb, #fnb/<promotion-id>. */
 import { initAuth } from './auth-client.js';
+import { formatDate, formatDateTime } from './app-format.js';
 import { loadFnbPromotions, readArtworkStatus, writeArtworkStatus, isArtworkEditor, readLocalLinks, writeLocalLinks, safeFolderUrl, parseUpdated } from './fnb-read-model.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -41,13 +42,7 @@ const statusTone = value => value === 'live' ? 'success' : value === 'ended' ? '
 const toneAttr = value => statusTone(value) ? ` data-tone="${statusTone(value)}"` : '';
 const outletsOf = campaign => campaign.activations.map(a => a.outlet).join(' + ');
 function uniqueValue(values, fallback = 'Varies by outlet') { const unique = [...new Set(values)]; return unique.length === 1 ? unique[0] : fallback; }
-function updatedLabel(value, { withTime = true } = {}) {
-  const date = parseUpdated(value); if (!date) return '';
-  const day = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Bangkok', day: 'numeric', month: 'long', year: 'numeric' }).format(date);
-  if (!withTime) return day;
-  const time = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Bangkok', hour: 'numeric', minute: '2-digit', hour12: true }).format(date).toLowerCase();
-  return `${day} · ${time}`;
-}
+const updatedLabel = (value, { withTime = true } = {}) => { const date = parseUpdated(value); return date ? (withTime ? formatDateTime(date, { style: 'long' }) : formatDate(date, { style: 'long' })) : ''; };
 // The month filter and the hero's period both come from the dataset's span,
 // so a new season needs no code change.
 function monthsSpanned(promotions) {
@@ -62,8 +57,8 @@ function monthsSpanned(promotions) {
 function periodLabel(months) {
   if (!months.length) return '';
   const first = months[0], last = months[months.length - 1];
-  if (first.year === last.year) return first === last ? `${MONTH_NAMES[first.month]} ${first.year}` : `${MONTH_NAMES[first.month]} – ${MONTH_NAMES[last.month]} ${first.year}`;
-  return `${MONTH_NAMES[first.month]} ${first.year} – ${MONTH_NAMES[last.month]} ${last.year}`;
+  if (first.year === last.year) return first === last ? `${MONTH_NAMES[first.month]} ${first.year}` : `${MONTH_NAMES[first.month]}–${MONTH_NAMES[last.month]} ${first.year}`;
+  return `${MONTH_NAMES[first.month]} ${first.year}–${MONTH_NAMES[last.month]} ${last.year}`;
 }
 function inMonth(campaign, entry) {
   if (!entry) return true;
@@ -139,7 +134,7 @@ function detailSkeletonMarkup() {
 function errorMarkup(error) {
   if (error) console.warn('F&B promotions did not load', error);
   return `${heroMarkup('Promotions are temporarily unavailable.')}<section class="app-section"><div class="app-stack">
-    <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Could not load promotions</p><p class="app-state-copy">The F&amp;B data did not come through and nothing is saved on this device yet. Check the connection and try again.</p></div>
+    <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Couldn\'t load promotions</p><p class="app-state-copy">Nothing is saved on this phone yet. Check the connection and try again.</p></div>
     <div class="app-utility-row"><button class="app-utility-action" type="button" data-retry><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10a6 6 0 0 1 10.3-4.2M16 10a6 6 0 0 1-10.3 4.2M14.5 3v3h-3M5.5 17v-3h3"/></svg>Try again</button></div>
   </div></section>`;
 }
@@ -328,7 +323,7 @@ export async function mountFnb(host) {
     if (value) done.add(id); else done.delete(id);
     refreshCounts();
     try { await writeArtworkStatus({ [id]: value }); }
-    catch (_) { if (value) done.delete(id); else done.add(id); input.checked = !value; refreshCounts(); toast('Could not save - check your sign-in'); }
+    catch (_) { if (value) done.delete(id); else done.add(id); input.checked = !value; refreshCounts(); toast('Couldn\'t save. Check your sign-in'); }
   }
   function refreshCounts() {
     const campaign = promotions.find(p => p.id === currentId()); if (!campaign) return;

@@ -95,7 +95,7 @@ export function bindSelectField(root,kind,onChange,labelFor=v=>v){
    compact:true is the same selector as a badge (08 Selector, the compact
    specimen): no visible label, the trigger a badge at a tappable height,
    the menu hanging from the trigger's right edge. An option's tone travels
-   to the trigger when chosen, so a status reads in its own colour. It is
+   to the trigger when chosen, so a status reads in its own color. It is
    the status on a job card (23 Job). */
 export function appSelect({kind,label,options,selected,disabled=false,compact=false}){
   const current=options.find(o=>String(o.value)===String(selected))||options[0]||{value:'',label:''};

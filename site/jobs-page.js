@@ -18,6 +18,7 @@ import { supabaseRpc } from './auth-client.js';
 import { appSelect, appSelectValue, setAppSelectValue, bindAppSelects } from './app-select.js';
 import { openDialog, dialogHead, confirmDialog } from './app-dialog.js';
 import { showToast } from './app-toast.js';
+import { formatDate, formatDateTime, daysUntil } from './app-format.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const PLUS_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>';
@@ -26,7 +27,6 @@ const STATUSES = [['not-started', 'Not started', 'quiet'], ['working', 'Working'
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(([key, label]) => [key, label]));
 const STATUS_TONE = Object.fromEntries(STATUSES.map(([key, , tone]) => [key, tone]));
 const FILTERS = [['open', 'Open'], ['stuck', 'Stuck'], ['done', 'Done'], ['all', 'All']];
-const DAY = 86400000;
 
 const hero = action => `<header class="app-hero"><div class="app-hero-head"><p class="app-hero-eyebrow">Jobs</p>${action}</div><h1 class="app-hero-title">Job Tracker</h1><p class="app-hero-copy">What was asked, who sent it, the deadline and where it stands.</p></header>`;
 const addAction = `<button class="app-utility-action" type="button" data-job-add>${PLUS_ICON}Add job</button>`;
@@ -37,11 +37,10 @@ const field = (id, name, label, value, { type = 'text', note = '', required = fa
   `<div class="app-field"${span ? ` data-span="${span}"` : ''}><label for="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><input id="${id}" name="${name}" type="${type}" value="${esc(value ?? '')}" maxlength="${maxlength}" autocomplete="off"${required ? ' required' : ''}></div>`;
 const textarea = (id, name, label, value) => `<div class="app-field" data-span="full"><label for="${id}">${esc(label)}</label><textarea id="${id}" name="${name}" rows="4" maxlength="4000">${esc(value ?? '')}</textarea></div>`;
 
-/* Dates travel as ISO days and read as "8 Sep 2026". */
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const dayLabel = iso => { if (!iso) return ''; const d = new Date(`${iso}T00:00:00`); return Number.isNaN(d.getTime()) ? String(iso) : `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
-const stampLabel = iso => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? '' : `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
-const daysUntil = iso => { if (!iso) return null; const d = new Date(`${iso}T00:00:00`); const today = new Date(); today.setHours(0, 0, 0, 0); return Math.round((d - today) / DAY); };
+/* Dates travel as ISO days and read as "Tue 8 Sep 2026"; a change stamp as
+   "8 Sep 2026 · 2:05 pm" - app-format.js spells both. */
+const dayLabel = iso => iso ? (formatDate(iso, { style: 'day' }) || String(iso)) : '';
+const stampLabel = iso => formatDateTime(iso);
 /* A tight deadline is within the week, or already past, on a job not done. */
 const isTight = job => { const days = daysUntil(job.deadlineOn); return job.status !== 'done' && days !== null && days <= 7; };
 const deadlineValue = job => {
@@ -54,10 +53,10 @@ const deadlineValue = job => {
 
 function explain(error) {
   const message = String(error?.message || '').toLowerCase();
-  if (message.includes('capability required')) return 'Your account cannot change jobs.';
+  if (message.includes('capability required')) return 'Your account can\'t change jobs.';
   if (message.includes('job not found')) return 'That job is no longer on your list. Refresh and try again.';
   if (message.includes('violates check constraint')) return 'Check the title and the lengths of the fields.';
-  return 'The change could not be saved. Please try again.';
+  return 'The change didn\'t save. Try again.';
 }
 
 /* The status on the card: a badge for a reader, the compact selector for an
@@ -134,8 +133,8 @@ export async function mountJobs(host) {
       if (!alive) return;
       const gated = /capability required|authentication required/i.test(String(error?.message || ''));
       host.innerHTML = `${hero('')}<section class="app-section"><div class="app-stack">${gated
-        ? state('Not available', 'The job tracker is not on for your account.', 'Ask People & Culture if you need it.', 'empty', ' data-gate="jobs.read"')
-        : state('Error', 'Your jobs could not be loaded', 'Check the connection and try again.', 'error')}</div></section>`;
+        ? state('Not available', 'The job tracker isn\'t on for your account', 'Ask People & Culture if you need it.', 'empty', ' data-gate="jobs.read"')
+        : state('Error', 'Couldn\'t load your jobs', 'Check the connection and try again.', 'error')}</div></section>`;
       return;
     }
     if (!alive) return;

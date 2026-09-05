@@ -16,10 +16,10 @@ const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7
 const LOGOUT_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 3H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h3M13 6l4 4-4 4M17 10H8"/></svg>';
 
 const TABS = {
-  me: { eyebrow: 'Settings', title: 'Me', copy: 'Your account and how you appear to colleagues.', capability: 'account.read', gate: 'Your account', gateTitle: 'This account cannot read its own profile yet.', gateCopy: 'Ask People & Culture to check your access.' },
-  admin: { eyebrow: 'Settings', title: 'Admin', copy: 'Employees, access and one-time codes.', capability: 'people.read', gate: 'Admin only', gateTitle: 'This tab is only for admins.', gateCopy: 'Ask People & Culture if you need access.' },
-  broadcast: { eyebrow: 'Settings', title: 'Broadcast', copy: 'Messages sent to every employee or a department.', capability: 'broadcasts.manage', gate: 'Broadcast only', gateTitle: 'This tab is only for employees who send broadcasts.', gateCopy: 'Ask People & Culture if you need access.' },
-  system: { eyebrow: 'Settings', title: 'System', copy: 'The app itself: version, library and diagnostics.', capability: 'system.manage', gate: 'System only', gateTitle: 'This tab is only for system administrators.', gateCopy: '' }
+  me: { eyebrow: 'Settings', title: 'Me', copy: 'Your account and how you appear to colleagues.', capability: 'account.read', gate: 'Your account', gateTitle: 'This account can\'t read its own profile yet', gateCopy: 'Ask People & Culture to check your access.' },
+  admin: { eyebrow: 'Settings', title: 'Admin', copy: 'Employees, access and one-time codes.', capability: 'people.read', gate: 'Admin only', gateTitle: 'This tab is for administrators', gateCopy: 'Ask People & Culture if you need access.' },
+  broadcast: { eyebrow: 'Settings', title: 'Broadcast', copy: 'Messages sent to every employee or a department.', capability: 'broadcasts.manage', gate: 'Broadcast only', gateTitle: 'This tab is for employees who send broadcasts', gateCopy: 'Ask People & Culture if you need access.' },
+  system: { eyebrow: 'Settings', title: 'System', copy: 'The app itself: version, library and diagnostics.', capability: 'system.manage', gate: 'System only', gateTitle: 'This tab is for system administrators', gateCopy: '' }
 };
 const tabOf = () => { const tab = (location.hash.match(/^#settings\/([a-z]+)/) || [])[1]; return TABS[tab] ? tab : 'me'; };
 
@@ -43,6 +43,12 @@ function systemMarkup(manifest, version) {
       <span class="app-action-card-title">UI Library</span>
       <span class="app-action-card-copy">Every component the app is built from, with its material and motion demonstrated live.</span>
       <span class="app-action-card-foot"><span>/ci</span>${CHEVRON}</span>
+    </button></article>
+    <article class="app-action-card"><button class="app-action-card-button" type="button" data-settings-go="#voice">
+      <span class="app-action-card-head"><span class="app-action-card-status">Developer</span></span>
+      <span class="app-action-card-title">Voice</span>
+      <span class="app-action-card-copy">How the app speaks: words, case, marks, dates and numbers, in English and Thai.</span>
+      <span class="app-action-card-foot"><span>/voice</span>${CHEVRON}</span>
     </button></article>` : ''}`;
 }
 
@@ -72,7 +78,7 @@ export async function mountSettings(host) {
     try { manifest = await loadSettingsAuthority(); }
     catch (error) {
       if (!alive) return;
-      paint(state('Error', 'Settings could not be loaded.', 'Check the connection and try again.', 'error') + `<div class="app-utility-row"><button class="app-utility-action" type="button" data-settings-retry>Try again</button></div>`);
+      paint(state('Error', 'Couldn\'t load Settings', 'Check the connection and try again.', 'error') + `<div class="app-utility-row"><button class="app-utility-action" type="button" data-settings-retry>Try again</button></div>`);
       return;
     }
     if (!alive || tab !== tabOf()) return;
@@ -87,7 +93,7 @@ export async function mountSettings(host) {
   async function mountTab(which, manifest) {
     let module;
     try { module = which === 'me' ? await import('./settings-me.js') : which === 'admin' ? await import('./settings-admin.js') : await import('./settings-broadcast.js'); }
-    catch (_) { paint(state('Error', 'This tab could not be loaded.', 'Check the connection and try again.', 'error') + `<div class="app-utility-row"><button class="app-utility-action" type="button" data-settings-retry>Try again</button></div>`); return; }
+    catch (_) { paint(state('Error', 'Couldn\'t load this tab', 'Check the connection and try again.', 'error') + `<div class="app-utility-row"><button class="app-utility-action" type="button" data-settings-retry>Try again</button></div>`); return; }
     if (!alive || which !== tabOf()) return;
     paint('');
     tabController = new AbortController();

@@ -16,7 +16,8 @@ import { supabaseRpc } from './auth-client.js';
 import { appSelect, appSelectValue, bindAppSelects } from './app-select.js';
 import { openDialog, dialogHead, confirmDialog } from './app-dialog.js';
 import { showToast } from './app-toast.js';
-import { categoryLabel, priorityLabel, categoryOptions, priorityOptions, whenLabel } from './broadcast-inbox.js';
+import { categoryLabel, priorityLabel, categoryOptions, priorityOptions } from './broadcast-inbox.js';
+import { formatDateTime } from './app-format.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
@@ -49,10 +50,10 @@ function explain(error) {
   if (message.includes('admin access required')) return 'Only employees who send broadcasts can make this change.';
   if (message.includes('invalid broadcast input')) return 'A title and message in English, a category and a priority are needed.';
   if (message.includes('broadcast has no audience') || message.includes('shape_check')) return 'Choose who receives this: everyone, or at least one department or role.';
-  if (message.includes('broadcast is not editable') || message.includes('immutable') || message.includes('may only remain published')) return 'A published or revoked broadcast cannot be edited. Compose a new one instead.';
+  if (message.includes('broadcast is not editable') || message.includes('immutable') || message.includes('may only remain published')) return 'A published or revoked broadcast can\'t be edited. Compose a new one instead.';
   if (message.includes('broadcast not found')) return 'That broadcast no longer exists. Refresh the list.';
   if (message.includes('future publish_at')) return 'A scheduled time has to be in the future.';
-  return 'The change could not be saved. Please try again.';
+  return 'The change didn\'t save. Try again.';
 }
 
 export async function mountBroadcast(stack, { manifest, signal }) {
@@ -78,13 +79,13 @@ export async function mountBroadcast(stack, { manifest, signal }) {
     if (people) parts.push(`${people} employee${people === 1 ? '' : 's'}`);
     return parts.join(', ');
   }
-  const when = b => b.status === 'published' ? whenLabel(b.publishAt) : b.status === 'scheduled' ? `Scheduled for ${whenLabel(b.publishAt)}` : b.status === 'revoked' ? `Revoked ${whenLabel(b.revokedAt)}` : `Edited ${whenLabel(b.updatedAt)}`;
+  const when = b => b.status === 'published' ? formatDateTime(b.publishAt) : b.status === 'scheduled' ? `Scheduled for ${formatDateTime(b.publishAt)}` : b.status === 'revoked' ? `Revoked ${formatDateTime(b.revokedAt)}` : `Edited ${formatDateTime(b.updatedAt)}`;
 
   function paintList() {
     if (!alive) return;
     const live = broadcasts.filter(b => b.status === 'published').length;
     count.textContent = broadcasts.length ? `${broadcasts.length} broadcast${broadcasts.length === 1 ? '' : 's'} · ${live} live` : '';
-    if (!broadcasts.length) { list.innerHTML = state('Broadcast', 'No broadcasts yet.', 'Compose the first message to every employee or a department.'); return; }
+    if (!broadcasts.length) { list.innerHTML = state('Broadcast', 'No broadcasts yet', 'Compose the first message to every employee or a department.'); return; }
     list.innerHTML = `<div class="app-card app-surface"><div class="app-list">${broadcasts.map(b => {
       const [word, tone] = STATUS[b.status] || [b.status, 'quiet'];
       return `<button class="app-list-row" type="button" data-broadcast-open="${esc(b.id)}">
@@ -100,7 +101,7 @@ export async function mountBroadcast(stack, { manifest, signal }) {
       broadcasts = result.broadcasts || []; departments = result.departments || []; groups = result.groups || [];
       paintList();
     } catch (error) {
-      if (alive) list.innerHTML = state('Error', 'Broadcasts could not be loaded.', explain(error), 'error') + '<div class="app-utility-row"><button class="app-utility-action" type="button" data-broadcast-retry>Try again</button></div>';
+      if (alive) list.innerHTML = state('Error', 'Couldn\'t load broadcasts', explain(error), 'error') + '<div class="app-utility-row"><button class="app-utility-action" type="button" data-broadcast-retry>Try again</button></div>';
     }
   }
 
@@ -207,7 +208,7 @@ export async function mountBroadcast(stack, { manifest, signal }) {
       const result = await persist(form, b, params);
       if (!alive) return;
       closeDialog();
-      showToast(result.status === 'scheduled' ? `Scheduled for ${whenLabel(params.p_publish_at)}` : 'Draft saved');
+      showToast(result.status === 'scheduled' ? `Scheduled for ${formatDateTime(params.p_publish_at)}` : 'Draft saved');
       await load();
     } catch (error) {
       status.dataset.tone = 'error'; status.textContent = explain(error); buttons.forEach(x => { x.disabled = false; });
@@ -237,7 +238,7 @@ export async function mountBroadcast(stack, { manifest, signal }) {
   }
 
   async function revoke(form, b) {
-    const yes = await confirmDialog({ kicker: 'Settings › Broadcast', title: `Revoke "${b.titleEn}"?`, copy: 'It disappears from Messages for everyone and cannot be edited or published again.', confirm: 'Revoke', cancel: 'Keep it', tone: 'danger' });
+    const yes = await confirmDialog({ kicker: 'Settings › Broadcast', title: `Revoke "${b.titleEn}"?`, copy: 'It disappears from Messages for everyone and can\'t be edited or published again.', confirm: 'Revoke', cancel: 'Keep it', tone: 'danger' });
     if (!yes || !alive) return;
     const status = form.querySelector('[data-dialog-status]'), button = form.querySelector('[data-broadcast-revoke]');
     if (button) button.disabled = true; status.dataset.tone = ''; status.textContent = 'Revoking…';

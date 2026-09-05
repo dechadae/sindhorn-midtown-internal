@@ -32,7 +32,7 @@
     <p class="app-hero-copy">Every component the app is allowed to use, rendered live over the real atmosphere. A page is built by consuming these; a page that needs something absent from here needs it added here first.</p>
     <nav class="ci-index" aria-label="Sections">
       <a class="app-chip app-control" href="#material">01 Material</a>
-      <a class="app-chip app-control" href="#colour">02 Colour</a>
+      <a class="app-chip app-control" href="#color">02 Color</a>
       <a class="app-chip app-control" href="#type">03 Type</a>
       <a class="app-chip app-control" href="#shape">04 Shape &amp; Motion</a>
       <a class="app-chip app-control" href="#cards">05 Cards</a>
@@ -97,7 +97,7 @@
     <table class="ci-ref ci-ref-table">
       <tbody>
         <tr><th>Inspiration</th><td>Eight real Betta fish morphs: Royal Blue Halfmoon (the production default), Super Red Halfmoon, Mustard Gas, Black Orchid, Copper Metallic, Turquoise Metallic, Nemo Galaxy Koi, Red Snow Dragon</td></tr>
-        <tr><th>Live input</th><td>Bangkok's own sky. JMA Himawari-9 satellite imagery — infrared, water-vapour and visible bands — biases the fish's movement, membrane lighting and iridescence between frames</td></tr>
+        <tr><th>Live input</th><td>Bangkok's own sky. JMA Himawari-9 satellite imagery — infrared, water-vapor and visible bands — biases the fish's movement, membrane lighting and iridescence between frames</td></tr>
         <tr><th>Never an input</th><td>Local weather, forecast, time of day, device sensors and geolocation stay separate operational data. None of them reach the shader — only the satellite does</td></tr>
         <tr><th>Renderer</th><td><code>sindhorn-betta-satellite-v1</code> — one persistent WebGL canvas, procedural GLSL, zero image textures, paused automatically when the tab is hidden</td></tr>
         <tr><th>Page contract</th><td>A page carries <code>.environment-stage</code> + <code>.environment-canvas</code> and imports <code>betta-runtime-full.js</code> directly. Importing <code>betta-runtime.js</code> instead leaves a still 300×150 frame — that file only bootstraps the app shell's own startup signal, which a standalone page never sends</td></tr>
@@ -105,9 +105,9 @@
     </table>
   </section>
 
-  <!-- ========================= 02 COLOUR ========================= -->
-  <section class="app-section" id="colour">
-    <p class="app-section-kicker">02 · Colour</p>
+  <!-- ========================= 02 COLOR ========================= -->
+  <section class="app-section" id="color">
+    <p class="app-section-kicker">02 · Color</p>
     <h2 class="app-section-title">Five Values, Named Once</h2>
     <p class="app-section-lede">Every route had converged on the same values under its own names. The library owns them once so a component can leave its route and still resolve.</p>
     <div class="ci-swatches">
@@ -217,7 +217,7 @@
             <button class="app-utility-action" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9M7 6l3-3 3 3M5 11v4a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-4"/></svg>Share</button>
           </div>
         </article>
-        <p class="app-note">Status is a tone — <code>success</code> for live, <code>quiet</code> for ended, accent otherwise — the same vocabulary a badge and a state use. On the article, the tone also colours the title and the <code>-when</code> line, as the live route does. The track is the one from 12 Metrics without its reference mark: a completion, not a comparison.</p>
+        <p class="app-note">Status is a tone — <code>success</code> for live, <code>quiet</code> for ended, accent otherwise — the same vocabulary a badge and a state use. On the article, the tone also colors the title and the <code>-when</code> line, as the live route does. The track is the one from 12 Metrics without its reference mark: a completion, not a comparison.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-surface</span><span>no press state</span></div>
@@ -280,7 +280,7 @@
             </div></div></div>
           </article>
         </div>
-        <p class="app-note">The end slot holds the chevron and one figure. <code>data-tone="success"</code> on the disclosure colours its leading edge and the figure: complete is read at a glance in a list of outlets.</p>
+        <p class="app-note">The end slot holds the chevron and one figure. <code>data-tone="success"</code> on the disclosure colors its leading edge and the figure: complete is read at a glance in a list of outlets.</p>
       </div>
     </div>
   </section>
@@ -303,7 +303,7 @@
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-field textarea · datetime-local</span><span>a paragraph · a moment</span></div>
         <div class="ci-field-stack">
-          <div class="app-field"><label for="ci-body">Message <span>English</span></label><textarea id="ci-body" rows="4">The lobby lifts are being serviced on Tuesday 9 September from 09:00 to 11:00. Please use the service lifts for guest luggage during that window.</textarea></div>
+          <div class="app-field"><label for="ci-body">Message <span>English</span></label><textarea id="ci-body" rows="4">The lobby elevators are being serviced on Tuesday 9 September from 9 to 11 am. Use the service elevators for guest luggage during that window.</textarea></div>
           <div class="app-field"><label for="ci-when">Publish at <span>optional · leave empty to publish now</span></label><input id="ci-when" type="datetime-local" value="2026-09-09T08:30"></div>
         </div>
         <p class="app-note">A paragraph takes the same well as a line, tall enough to read what was written; the employee may grow it. A moment is typed into the well too — the browser's own picker opens from it, but the field keeps its edge and height. Times are the hotel's (Asia/Bangkok).</p>
@@ -515,7 +515,7 @@
         <div class="ci-specimen-label"><span>.app-table</span><span>scroll sideways</span></div>
         <div class="app-table-wrap">
           <table class="app-table">
-            <thead><tr><th scope="col">Room</th><th scope="col">Class</th><th scope="col">Theatre</th><th scope="col">Banquet</th><th scope="col">Cocktail</th></tr></thead>
+            <thead><tr><th scope="col">Room</th><th scope="col">Class</th><th scope="col">Theater</th><th scope="col">Banquet</th><th scope="col">Cocktail</th></tr></thead>
             <tbody>
               <tr><th scope="row">Veha<small>30th · 172.5 sqm</small></th><td>60</td><td>108</td><td>110</td><td>120</td></tr>
               <tr><th scope="row">Midtown 1<small>2nd · 45 sqm</small></th><td>16</td><td>43</td><td>24</td><td>—</td></tr>
@@ -532,7 +532,7 @@
   <section class="app-section" id="metrics">
     <p class="app-section-kicker">12 · Metrics</p>
     <h2 class="app-section-title">Numbers Read as Numbers</h2>
-    <p class="app-section-lede">Tabular figures line up in a column. A delta states its own direction as text, so the meaning does not depend on colour alone.</p>
+    <p class="app-section-lede">Tabular figures line up in a column. A delta states its own direction as text, so the meaning does not depend on color alone.</p>
     <div class="ci-stack is-single">
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-metric-grid</span><span>tabular-nums</span></div>
@@ -636,7 +636,7 @@
         <div class="app-card app-surface">
           <div class="app-list">
             <button class="app-list-row" type="button">
-              <span class="app-list-row-main"><span class="app-list-row-title">Lobby lifts serviced Tuesday morning</span><span class="app-list-row-meta">Operations · 5 Sep 2026, 08:30</span><span class="app-list-row-copy">The lobby lifts are being serviced on Tuesday 9 September from 09:00 to 11:00. Please use the service lifts for guest luggage during that window.</span></span>
+              <span class="app-list-row-main"><span class="app-list-row-title">Lobby elevators serviced Tuesday morning</span><span class="app-list-row-meta">Operations · 5 Sep 2026 · 8:30 am</span><span class="app-list-row-copy">The lobby elevators are being serviced on Tuesday 9 September from 9 to 11 am. Use the service elevators for guest luggage during that window.</span></span>
               <span class="app-list-row-end"><span class="app-badge" data-tone="quiet">Pinned</span><span class="app-badge">New</span></span>
             </button>
             <button class="app-list-row" type="button">
@@ -816,7 +816,7 @@ Ask the team about the pairing board: three small plates built for the three dri
           <div class="ci-shell-frame-body">
             <div class="app-surface"><p class="app-surface-label">Scroll</p><div class="app-surface-copy">Content passes beneath the sticky header and footer, which is why both are glass rather than painted.</div></div>
             <div class="app-surface"><p class="app-surface-label">Scroll</p><div class="app-surface-copy">Keep scrolling to watch the footer resolve different content behind it too.</div></div>
-            <div class="app-surface"><p class="app-surface-label">Scroll</p><div class="app-surface-copy">This frame exists only so the sticky behaviour has somewhere bounded to scroll — the classes are unchanged.</div></div>
+            <div class="app-surface"><p class="app-surface-label">Scroll</p><div class="app-surface-copy">This frame exists only so the sticky behavior has somewhere bounded to scroll — the classes are unchanged.</div></div>
           </div>
           <nav class="app-navbar" aria-label="Primary" data-mode="app">
             <div class="app-navbar-set" data-set="app">
@@ -918,12 +918,12 @@ Ask the team about the pairing board: three small plates built for the three dri
           <div class="app-state app-card" data-tone="loading"><p class="app-state-label">Loading</p><p class="app-state-title">Loading employees…</p><p class="app-state-copy">Reserve the final geometry where possible so nothing jumps.</p></div>
           <div class="app-state app-card" data-tone="empty"><p class="app-state-label">Empty</p><p class="app-state-title">No messages yet</p><p class="app-state-copy">State the absence plainly. Do not manufacture decorative content.</p></div>
           <div class="app-state app-card" data-tone="success"><p class="app-state-label">Success</p><p class="app-state-title">Saved</p><p class="app-state-copy">Confirm the meaningful result, then return control to the user.</p></div>
-          <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Could not save</p><p class="app-state-copy">Explain the recoverable action instead of exposing transport internals.</p></div>
+          <div class="app-state app-card" data-tone="error"><p class="app-state-label">Error</p><p class="app-state-title">Couldn\'t save</p><p class="app-state-copy">Explain the recoverable action instead of exposing transport internals.</p></div>
         </div>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-state[data-gate]</span><span>a tab the employee can see but not use</span></div>
-        <div class="app-state app-card" data-tone="empty" data-gate="people.read"><p class="app-state-label">Admin only</p><p class="app-state-title">This tab is only for admins.</p><p class="app-state-copy">Every settings tab stays visible to every employee; what it shows depends on the capabilities the account holds. Ask People &amp; Culture if you need access.</p></div>
+        <div class="app-state app-card" data-tone="empty" data-gate="people.read"><p class="app-state-label">Admin only</p><p class="app-state-title">This tab is for administrators</p><p class="app-state-copy">Every settings tab stays visible to every employee; what it shows depends on the capabilities the account holds. Ask People &amp; Culture if you need access.</p></div>
       </div>
     </div>
   </section>
@@ -998,7 +998,7 @@ Ask the team about the pairing board: three small plates built for the three dri
             <p class="app-business-card-link"><a href="#business-card">sindhorn-midtown-internal.pages.dev/decha-dae</a></p>
           </div>
         </div>
-        <p class="app-note">The QR carries its own paper inside the SVG - the one place the card's colour is not a token, because a scanner needs the paper white regardless of theme. Hidden fields are simply absent, exactly as the public page leaves them out.</p>
+        <p class="app-note">The QR carries its own paper inside the SVG - the one place the card's color is not a token, because a scanner needs the paper white regardless of theme. Hidden fields are simply absent, exactly as the public page leaves them out.</p>
       </div>
     </div>
   </section>
@@ -1029,7 +1029,7 @@ Ask the team about the pairing board: three small plates built for the three dri
         <div class="app-stack">
           <article class="app-card app-surface"><div class="app-job" data-status="not-started">
             <div class="app-job-head"><p class="app-job-kicker">Received 3 Sep 2026</p><div class="app-select" data-select="status-not-started" data-value="not-started" data-compact="true"><button class="app-select-trigger app-badge" type="button" data-tone="quiet" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Not started</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="app-select-menu app-overlay" role="listbox" aria-label="Status"><button class="app-select-option" type="button" role="option" aria-selected="true" data-value="not-started" data-tone="quiet">Not started</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="working">Working</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="stuck" data-tone="danger">Stuck</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="done" data-tone="success">Done</button></div></div></div>
-            <h3 class="app-job-title">Lobby lift wrap, Loy Krathong</h3>
+            <h3 class="app-job-title">Lobby elevator wrap, Loy Krathong</h3>
             <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Rooms Division</span></div>
               <div class="app-metric app-job-deadline"><span class="app-metric-label">Deadline</span><span class="app-metric-value">24 Oct 2026</span></div>
@@ -1053,7 +1053,7 @@ Ask the team about the pairing board: three small plates built for the three dri
             </div>
           </div></article>
         </div>
-        <p class="app-note"><code>data-status</code> on <code>.app-job</code> names the state for scripts and for the one visual it changes - a done job's title steps back to the muted colour. The status is the compact selector from 08 - a badge in the status's tone (none for working, <code>quiet</code> for not started, <code>danger</code> for stuck, <code>success</code> for done) whose menu drops below it, lifted out of the card's glass while open; a pick saves at once. <code>.app-job-section</code> puts the hairline between the card's groups - the ask, the facts, the actions. <code>.app-job-deadline[data-tight="true"]</code> is a deadline inside a week. The list is filtered by an <code>.app-rail</code> of chips above it and edited in the dialog standard.</p>
+        <p class="app-note"><code>data-status</code> on <code>.app-job</code> names the state for scripts and for the one visual it changes - a done job's title steps back to the muted color. The status is the compact selector from 08 - a badge in the status's tone (none for working, <code>quiet</code> for not started, <code>danger</code> for stuck, <code>success</code> for done) whose menu drops below it, lifted out of the card's glass while open; a pick saves at once. <code>.app-job-section</code> puts the hairline between the card's groups - the ask, the facts, the actions. <code>.app-job-deadline[data-tight="true"]</code> is a deadline inside a week. The list is filtered by an <code>.app-rail</code> of chips above it and edited in the dialog standard.</p>
       </div>
     </div>
   </section>
@@ -1070,7 +1070,7 @@ Ask the team about the pairing board: three small plates built for the three dri
       <div class="ci-rule"><b>One rhythm between sections.</b><span>44px between sections, 24px from the hero to the first one, 20px from a title to its content, 12px between cards in a stack, and a hairline between groups inside one card. A page never sets its own gaps.</span></div>
       <div class="ci-rule"><b>Secondary text never drops below 11px.</b><span>Labels, deltas, notes and metadata are 11 or 12px. A rule that shrinks them fails the render gate.</span></div>
       <div class="ci-rule"><b>Geometry is never inline.</b><span>A data-driven length is an SVG attribute or a data attribute the library maps, not a style attribute. The track in 12 Metrics is the pattern. The one runtime exception is the library's own: the anchor of a lifted selector menu, three custom properties app-select.js sets and clears.</span></div>
-      <div class="ci-rule"><b>Status is a tone, not a colour.</b><span>A card's status, a hero's eyebrow, a badge and a state all speak the same two words — success, quiet — and the library maps them. A page never picks a colour for a state.</span></div>
+      <div class="ci-rule"><b>Status is a tone, not a color.</b><span>A card's status, a hero's eyebrow, a badge and a state all speak the same two words — success, quiet — and the library maps them. A page never picks a color for a state.</span></div>
       <div class="ci-rule"><b>One typeface, zero tracking.</b><span>LINE Seed Sans TH at 100, 400 or 700. Application chrome never adjusts letter spacing.</span></div>
       <div class="ci-rule"><b>Rounded, never circular.</b><span>Corners are soft. Circular and capsule chrome are not part of this system.</span></div>
       <div class="ci-rule"><b>Motion explains state.</b><span>Press is immediate, state settles with one easing family, and reduced motion removes the transition without hiding what changed.</span></div>
@@ -1102,20 +1102,20 @@ Ask the team about the pairing board: three small plates built for the three dri
   <div class="app-sheet-grip"></div>
   <div class="app-sheet-body">
     <h2 class="app-sheet-title">Sheet Standard</h2>
-    <p class="app-dialog-copy">Bottom-anchored, thumb-reachable. Same material and the same native &lt;dialog&gt; behaviour as the centred dialog above — only the geometry is different.</p>
+    <p class="app-dialog-copy">Bottom-anchored, thumb-reachable. Same material and the same native &lt;dialog&gt; behavior as the centered dialog above — only the geometry is different.</p>
     <div class="app-dialog-actions">
       <button class="app-utility-action" type="button" data-sheet-close>Close</button>
     </div>
   </div>
 </dialog>
 
-<div class="app-toast app-overlay" data-toast hidden>Saved.</div>
+<div class="app-toast app-overlay" data-toast hidden>Saved</div>
 
 <script type="module">
-/* The page's own bootstrap: the atmosphere, then the shared library behaviour. */
+/* The page's own bootstrap: the atmosphere, then the shared library behavior. */
 
 // Live atmosphere. The library's material is only honest over the real thing,
-// so a failure here degrades to the flat brand colour rather than faking it.
+// so a failure here degrades to the flat brand color rather than faking it.
 (async () => {
   try {
     // The full WebGL runtime directly, not betta-runtime.js. That module is a
@@ -1131,7 +1131,7 @@ Ask the team about the pairing board: three small plates built for the three dri
   }
 })();
 
-// Every specimen's behaviour lives in ci-library.js, shared with the shell
+// Every specimen's behavior lives in ci-library.js, shared with the shell
 // route that mounts this same markup at /#ci.
 const { bindLibrary } = await import('/ci-library.js');
 bindLibrary(document.body, { page: document.querySelector('.app-page') });

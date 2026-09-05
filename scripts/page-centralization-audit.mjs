@@ -2,7 +2,7 @@
 
    A page passes only when every class it renders is defined in the foundation
    stylesheets (or, for /ci, its own reference sheet), and when it declares no
-   presentation of its own: no style attributes, no <style> blocks, no colour
+   presentation of its own: no style attributes, no <style> blocks, no color
    literals, no pixel values in templates, no backdrop-filter anywhere but
    app-glass.css. This is the check the eight rebuild requirements reduce to
    for a single page, so it runs on every page as it is finished.
@@ -13,8 +13,9 @@ import fs from 'node:fs';
 
 const FOUNDATION = ['site/app-tokens.css', 'site/app-glass.css', 'site/app-components.css', 'site/app-shell.css'];
 const PAGES = [
-  { name: '/ (app shell)', files: ['site/index.html', 'site/push-client.js', 'site/shell.js', 'site/today.js', 'site/fnb-page.js', 'site/ci-page.js', 'site/ci-library.js', 'site/brand-page.js', 'site/signin-page.js', 'site/settings-page.js', 'site/messages-page.js', 'site/jobs-page.js', 'site/app-code.js', 'site/app-view.js', 'site/app-dialog.js', 'site/app-toast.js', 'site/settings-me.js', 'site/settings-admin.js', 'site/settings-broadcast.js', 'site/broadcast-inbox.js'], css: FOUNDATION },
-  { name: '/ci (UI Library)', files: ['site/ci.html'], css: [...FOUNDATION, 'site/ci-library.css'] }
+  { name: '/ (app shell)', files: ['site/index.html', 'site/push-client.js', 'site/shell.js', 'site/today.js', 'site/fnb-page.js', 'site/ci-page.js', 'site/ci-library.js', 'site/voice-page.js', 'site/app-format.js', 'site/brand-page.js', 'site/signin-page.js', 'site/settings-page.js', 'site/messages-page.js', 'site/jobs-page.js', 'site/app-code.js', 'site/app-view.js', 'site/app-dialog.js', 'site/app-toast.js', 'site/settings-me.js', 'site/settings-admin.js', 'site/settings-broadcast.js', 'site/broadcast-inbox.js'], css: FOUNDATION },
+  { name: '/ci (UI Library)', files: ['site/ci.html'], css: [...FOUNDATION, 'site/ci-library.css'] },
+  { name: '/voice (Voice)', files: ['site/voice.html'], css: [...FOUNDATION, 'site/ci-library.css'] }
 ];
 // Classes that are state hooks or belong to a runtime the page only hosts.
 const ALLOW = new Set(['is-shell', 'is-single', 'is-open']);
@@ -49,14 +50,14 @@ for (const page of PAGES) {
     for (const m of src.matchAll(/\sstyle=["']/g)) findings.push(`${file}: inline style attribute at offset ${m.index}`);
     if (isHtml && /<style[\s>]/.test(src)) findings.push(`${file}: <style> block`);
     for (const m of src.matchAll(/#[0-9a-fA-F]{3,8}\b(?![^<]*<\/code>)/g)) {
-      // Fragment links (#section) and hex in prose/code samples are not colour declarations.
+      // Fragment links (#section) and hex in prose/code samples are not color declarations.
       const ctx = src.slice(Math.max(0, m.index - 12), m.index);
       if (/href=["']$|\(["']?$|>\s*$|`\s*$/.test(ctx) || /\.\w+:\s*$/.test(ctx)) continue;
-      if (/(color|background|fill|stroke|border)\s*:\s*$/.test(ctx) || /style/.test(ctx)) findings.push(`${file}: colour literal ${m[0]}`);
+      if (/(color|background|fill|stroke|border)\s*:\s*$/.test(ctx) || /style/.test(ctx)) findings.push(`${file}: color literal ${m[0]}`);
     }
     for (const m of src.matchAll(/rgba?\(/g)) {
       const ctx = src.slice(Math.max(0, m.index - 40), m.index);
-      if (!/<code>[^<]*$/.test(ctx) && !/expected|smoke|\/\//.test(ctx)) findings.push(`${file}: colour function at offset ${m.index}`);
+      if (!/<code>[^<]*$/.test(ctx) && !/expected|smoke|\/\//.test(ctx)) findings.push(`${file}: color function at offset ${m.index}`);
     }
     if (/backdrop-filter/.test(src)) findings.push(`${file}: backdrop-filter outside app-glass.css`);
     for (const m of src.matchAll(/(?:width|height|margin|padding|gap|top|left|right|bottom|font-size)\s*:\s*-?\d+(?:\.\d+)?px/g)) {

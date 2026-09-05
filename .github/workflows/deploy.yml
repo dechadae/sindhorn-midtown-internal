@@ -63,7 +63,7 @@ jobs:
             site/app-view.js site/app-dialog.js site/app-select.js site/app-toast.js site/app-code.js
             site/qr-v6.js site/business-dashboard-data.js site/business-card-core.js
             site/business-card-public.js site/business-card-renderer.js site/settings-dialog-standard.js
-            site/ci-library.js site/ci-page.js
+            site/ci-library.js site/ci-page.js site/voice-page.js site/app-format.js
             site/fnb.js site/fnb-data.js site/fnb-share-ui.js site/fnb-artwork-sync.js site/betta-runtime.js
             site/betta-environment.js site/betta-satellite.js site/betta-day-periods.js
             site/betta-fin-presets.js site/betta-fin-shader.js site/betta-vignette-palettes.js

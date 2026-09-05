@@ -63,7 +63,7 @@ export function factsMarkup(manifest) {
    the one moment permission is asked, and it happens from the tap. */
 const PUSH_COPY = {
   unconfigured: ['Not available', 'The notification service is not configured yet.', 'quiet'],
-  unsupported: ['Not available', 'This browser cannot receive Web Push. Install the app to your home screen if your phone requires it.', 'quiet'],
+  unsupported: ['Not available', 'This browser can\'t receive push notifications. Install the app to your home screen if your phone requires it.', 'quiet'],
   blocked: ['Blocked', 'Notifications are turned off for this app in the phone or browser settings.', 'danger'],
   off: ['Off', 'Weather, air-quality, business and broadcast alerts arrive here when this is on.', 'quiet'],
   on: ['On', 'Weather, air-quality, business and broadcast alerts reach this phone.', '']
@@ -160,7 +160,7 @@ export async function mountMe(stack, { manifest, signal }) {
     } catch (error) {
       console.warn('Push toggle failed', error);
       const after = await pushStatus().catch(() => before);
-      paintPush(after, after.support === 'blocked' ? '' : 'Could not change notifications. Try again.');
+      paintPush(after, after.support === 'blocked' ? '' : 'Couldn\'t change notifications. Try again.');
     }
   }
   stack.addEventListener('click', event => { if (event.target.closest('[data-push-toggle]')) togglePush(); }, { signal });
@@ -172,10 +172,10 @@ export async function mountMe(stack, { manifest, signal }) {
   const url = () => data?.card?.publicSlug ? businessCardUrl(location.origin, data.card.publicSlug) : '';
   const share = async () => {
     const view = publicView(data);
-    if (!view.published) { showToast('Publish the card before sharing.'); return; }
+    if (!view.published) { showToast('Publish the card before sharing'); return; }
     const payload = { title: `${view.displayName} | ${view.hotelName}`, text: [view.displayName, view.positionTitle, view.hotelName].filter(Boolean).join(' · '), url: url() };
     if (typeof navigator.share === 'function') { try { await navigator.share(payload); return; } catch (error) { if (error?.name === 'AbortError') return; } }
-    showToast(await copyText(payload.url) ? 'Link copied' : 'Could not copy the link');
+    showToast(await copyText(payload.url) ? 'Link copied' : 'Couldn\'t copy the link');
   };
 
   function paint() {
@@ -211,7 +211,7 @@ export async function mountMe(stack, { manifest, signal }) {
           <div class="app-field"><label for="card-mobile">Business mobile <span>optional · +66…</span></label><input id="card-mobile" name="mobile" type="tel" inputmode="tel" maxlength="16" autocomplete="off" value="${esc(card.businessMobile || '')}"></div>
           <div class="app-field"><label for="card-direct">Direct phone <span>optional</span></label><input id="card-direct" name="direct" type="tel" inputmode="tel" maxlength="64" autocomplete="off" value="${esc(card.directPhone || '')}"></div>
           <div data-span="full">${check('published', 'Publish the card at its public link', card.published === true)}</div>
-          <div class="app-dialog-section"><span>Shown on the public card</span><small>Untick a line to leave it off the public page and the saved contact.</small></div>
+          <div class="app-dialog-section"><span>Shown on the public card</span><small>Uncheck a line to leave it off the public page and the saved contact.</small></div>
           ${VISIBLE_FIELDS.map(([key, label]) => `<div>${check(key, label, vis[key] !== false)}</div>`).join('')}
         </div>
         <p class="app-dialog-status" data-dialog-status role="status" aria-live="polite"></p>
@@ -240,7 +240,7 @@ export async function mountMe(stack, { manifest, signal }) {
     } catch (error) {
       const message = String(error?.message || '').toLowerCase();
       status.dataset.tone = 'error';
-      status.textContent = message.includes('invalid business mobile') ? 'Use an international business mobile such as +66…' : 'The card could not be saved. Try again.';
+      status.textContent = message.includes('invalid business mobile') ? 'Use an international business mobile such as +66…' : 'The card didn\'t save. Try again.';
       button.disabled = false;
     }
   }
@@ -260,7 +260,7 @@ export async function mountMe(stack, { manifest, signal }) {
     data = result;
     paint();
   } catch (_) {
-    if (alive) cardHost.innerHTML = state('Business card', 'Your business card is not available right now.', 'Check the connection and open Me again.', 'error');
+    if (alive) cardHost.innerHTML = state('Business card', 'Couldn\'t load your business card', 'Check the connection and open Me again.', 'error');
   }
 
   return () => { alive = false; closeDialog(); };

@@ -4,10 +4,11 @@
    else. No brand-* class, no stylesheet of its own.
 
    ihg-history-data.js and hotel-factsheet-data.js are the data; this file is
-   the markup and behaviour. The route is addressed by hash so the browser's
+   the markup and behavior. The route is addressed by hash so the browser's
    back button works: #brand, #brand/history, #brand/factsheet. */
 import { IHG_HISTORY_PERIODS, IHG_HISTORY_SOURCE } from './ihg-history-data.js';
 import { HOTEL_FACTSHEET, HOTEL_FACTSHEET_IMAGES, HOTEL_FACTSHEET_SOURCES, HOTEL_FACTSHEET_SOURCE_NOTES } from './hotel-factsheet-data.js';
+import { formatDate, formatClock } from './app-format.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
@@ -106,18 +107,18 @@ function historyMarkup() {
 function factsheetMarkup() {
   const D = HOTEL_FACTSHEET, h = D.hotel, I = HOTEL_FACTSHEET_IMAGES, S = HOTEL_FACTSHEET_SOURCES;
   const num = value => value === null || value === undefined ? '—' : String(value);
-  const verified = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${D.verifiedOn}T00:00:00+07:00`));
+  const verified = formatDate(D.verifiedOn, { style: 'long' });
   const rail = `<nav class="app-rail" data-columns="3" aria-label="Factsheet sections">${FACTSHEET_SECTIONS.map(([id, label], i) => `<button class="app-chip app-control${i === 0 ? ' is-active' : ''}" type="button" data-section="${id}"${i === 0 ? ' aria-current="true"' : ''}>${label}</button>`).join('')}</nav>`;
   const roomBody = room => `<div class="app-prose"><ul>${room.highlights.map(item => `<li>${esc(item)}</li>`).join('')}</ul></div>`;
-  const venueBody = venue => `<div><p class="app-surface-label">Hours</p><div class="app-surface-copy">${venue.hours.map(esc).join('<br>')}</div></div>`;
-  const facilityBody = item => `<div class="app-prose"><p>${esc(item.detail)}</p></div>`;
+  const venueBody = venue => `<div><p class="app-surface-label">Hours</p><div class="app-surface-copy">${venue.hours.map(hours => esc(formatClock(hours))).join('<br>')}</div></div>`;
+  const facilityBody = item => `<div class="app-prose"><p>${esc(formatClock(item.detail))}</p></div>`;
   const space = s => `<tr><th scope="row">${esc(s.name)}<small>${esc(s.floor)} · ${esc(s.sqm)} sqm</small></th><td>${num(s.classroom)}</td><td>${num(s.theater)}</td><td>${num(s.banquet)}</td><td>${num(s.halfMoon)}</td><td>${num(s.uShape)}</td><td>${num(s.boardroom)}</td><td>${num(s.cocktail)}</td></tr>`;
   const noteBody = note => `<div class="app-prose"><p>${esc(note.note)}</p></div><div><p class="app-surface-label">Authority</p><div class="app-surface-copy">${esc(note.authority)}</div></div>${utilityRow(...note.urls.map((url, i) => externalLink(url, `Source ${i + 1}`)))}`;
   return `<header class="app-hero"><div class="app-hero-head">${BACK}</div><p class="app-hero-eyebrow">Sindhorn Midtown Hotel Bangkok</p><h1 class="app-hero-title">Hotel Factsheet</h1><p class="app-hero-copy">Vignette Collection by IHG · Langsuan, Bangkok</p><p class="app-note">Verified against the official hotel site on ${esc(verified)}</p></header>
   ${rail}
   <section class="app-section" id="overview">
     ${figure(I.overview.src, I.overview.alt, '')}
-    <div class="app-metric-grid" data-columns="3" data-values="text" data-rule="true">${fact('Rooms & suites', h.roomsAndSuites)}${fact('Room types', h.roomTypes)}${fact('Dining venues', h.diningVenues)}${fact('Meetings', `Up to ${h.meetingMaxGuests}`)}${fact('Check-in', h.checkIn)}${fact('Check-out', h.checkOut)}</div>
+    <div class="app-metric-grid" data-columns="3" data-values="text" data-rule="true">${fact('Rooms & suites', h.roomsAndSuites)}${fact('Room types', h.roomTypes)}${fact('Dining venues', h.diningVenues)}${fact('Meetings', `Up to ${h.meetingMaxGuests}`)}${fact('Check-in', formatClock(h.checkIn))}${fact('Check-out', formatClock(h.checkOut))}</div>
     <div class="app-card app-surface"><div class="app-list">
       ${listRow(h.name, h.positioning)}
       ${listRow('Owner and operator', h.ownerOperator)}
@@ -136,18 +137,18 @@ function factsheetMarkup() {
   <section class="app-section" id="dine"><p class="app-section-kicker">02 · Dine</p><h2 class="app-section-title">Restaurants &amp; Bars</h2>
     ${figure(I.dine.src, I.dine.alt, '')}
     <div class="app-stack">${D.dining.map((venue, i) => disclosure({ id: `venue-${i}`, kicker: venue.floor, title: venue.name, copy: venue.concept, body: venueBody(venue) })).join('')}</div>
-    <div class="app-card app-surface"><div class="app-list">${listLink(`mailto:${h.diningEmail}`, 'Dining enquiries', h.diningEmail)}</div></div>
+    <div class="app-card app-surface"><div class="app-list">${listLink(`mailto:${h.diningEmail}`, 'Dining inquiries', h.diningEmail)}</div></div>
     ${utilityRow(externalLink(S.bangkok78, 'Dining source'))}
   </section>
   <section class="app-section" id="facilities"><p class="app-section-kicker">03 · Facilities</p><h2 class="app-section-title">Facilities &amp; Services</h2>
     ${figure(I.facilities.src, I.facilities.alt, '')}
-    <div class="app-stack">${D.facilities.map((item, i) => disclosure({ id: `facility-${i}`, title: item.name, copy: item.fact, body: facilityBody(item) })).join('')}</div>
+    <div class="app-stack">${D.facilities.map((item, i) => disclosure({ id: `facility-${i}`, title: item.name, copy: formatClock(item.fact), body: facilityBody(item) })).join('')}</div>
     ${utilityRow(externalLink(S.facilities, 'Facilities source'), externalLink(S.shuttle, 'Shuttle source'))}
   </section>
   <section class="app-section" id="meet"><p class="app-section-kicker">04 · Meet</p><h2 class="app-section-title">Meetings &amp; Events</h2><p class="app-section-lede">${esc(D.meetings.summary)}</p>
     ${figure(I.meetings.src, I.meetings.alt, '')}
     <div class="app-table-wrap"><table class="app-table">
-      <thead><tr><th scope="col">Room</th><th scope="col">Class</th><th scope="col">Theatre</th><th scope="col">Banquet</th><th scope="col">Half-moon</th><th scope="col">U-shape</th><th scope="col">Board</th><th scope="col">Cocktail</th></tr></thead>
+      <thead><tr><th scope="col">Room</th><th scope="col">Class</th><th scope="col">Theater</th><th scope="col">Banquet</th><th scope="col">Half-moon</th><th scope="col">U-shape</th><th scope="col">Board</th><th scope="col">Cocktail</th></tr></thead>
       <tbody>${D.meetings.spaces.map(space).join('')}</tbody>
     </table></div>
     <h3 class="app-section-subhead">Private events</h3>
@@ -162,7 +163,7 @@ function factsheetMarkup() {
     ${utilityRow(externalLink(S.location, 'Location source'))}
   </section>
   <section class="app-section" id="source-notes"><p class="app-section-kicker">06 · Source notes</p><h2 class="app-section-title">Where Sources Disagree</h2><p class="app-section-lede">The official site sometimes publishes two values for one fact. These notes record which one this factsheet uses and why.</p>
-    <div class="app-stack">${HOTEL_FACTSHEET_SOURCE_NOTES.map((note, i) => disclosure({ id: `note-${i}`, kicker: note.topic, title: note.selected, body: noteBody(note) })).join('')}</div>
+    <div class="app-stack">${HOTEL_FACTSHEET_SOURCE_NOTES.map((note, i) => disclosure({ id: `note-${i}`, kicker: note.topic, title: formatClock(note.selected), body: noteBody(note) })).join('')}</div>
     ${utilityRow(externalLink(S.gallery, 'Photo gallery'), topButton())}
   </section>`;
 }
