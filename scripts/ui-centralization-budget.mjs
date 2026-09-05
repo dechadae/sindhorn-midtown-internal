@@ -23,7 +23,7 @@ const PATCH_PATTERN=/-(refinements|fixes|polish|standard|stability)\.css$/;
 /* Foundation stylesheets are shared infrastructure and are expected to GROW as
    route CSS is absorbed into them. Counting all stylesheets together would make
    the ratchet block the very files that let route CSS be deleted. */
-const FOUNDATION=new Set(['app-tokens.css','app-glass.css','app-shapes.css','app-components.css','app-shell.css','ci-library.css','fonts.css','shell.css']);
+const FOUNDATION=new Set(['app-tokens.css','app-glass.css','app-shapes.css','app-components.css','app-shell.css','ci-library.css','fonts.css']);
 
 const read=f=>fs.readFileSync(path.join(SITE,f),'utf8');
 const cssFiles=fs.readdirSync(SITE).filter(f=>f.endsWith('.css')).sort();
@@ -88,7 +88,7 @@ for(const r of rows){
 }
 
 /* A brand new patch-layer stylesheet is refused outright, not ratcheted:
-   the eight that exist are grandfathered until their consumers migrate. */
+   the ones that exist are grandfathered until their consumers migrate. */
 const knownPatches=new Set(JSON.parse(fs.readFileSync(BASELINE,'utf8')).patchLayerFiles||[]);
 const currentPatches=cssFiles.filter(f=>PATCH_PATTERN.test(f));
 const newPatches=knownPatches.size?currentPatches.filter(f=>!knownPatches.has(f)):[];

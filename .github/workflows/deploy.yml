@@ -52,9 +52,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # r18: the shell at / and its lazy page modules, the public share's
-          # legacy F&B runtime (until Phase 7 rebuilds /share on the shell), the
-          # Betta sources, the service worker and the Workers.
+          # r18: the shell at / and its lazy page modules, the Betta sources,
+          # the service worker and the Workers. r30: the public /share pages are
+          # the same shell, so there is no second runtime to check.
           MODULES=(
             site/shell.js site/auth-client.js site/signin-page.js site/today.js site/fnb-page.js
             site/fnb-read-model.js site/fnb-artwork-copy.js site/messages-page.js site/brand-page.js site/settings-page.js
@@ -64,7 +64,6 @@ jobs:
             site/qr-v6.js site/business-dashboard-data.js site/business-card-core.js
             site/business-card-public.js site/business-card-renderer.js site/settings-dialog-standard.js
             site/ci-library.js site/ci-page.js site/voice-page.js site/app-format.js
-            site/fnb.js site/fnb-data.js site/fnb-share-ui.js site/fnb-artwork-sync.js site/betta-runtime.js
             site/betta-environment.js site/betta-satellite.js site/betta-day-periods.js
             site/betta-fin-presets.js site/betta-fin-shader.js site/betta-vignette-palettes.js
             site/sw.js site/_worker.js worker/src/index.js auth-worker/src/index.js
@@ -77,10 +76,21 @@ jobs:
           node scripts/build-betta-runtime.mjs --check
           node --input-type=module --check < scripts/generate-fnb-share.mjs
           node --input-type=module --check < scripts/generate-pwa-icons.mjs
-          node --input-type=module --check < site/share/fnb-runtime.js
-          node --input-type=module --check < site/share/fnb-public-shell.js
-          node --input-type=module --check < site/share/fnb-share-ui-public.js
-          node .github/tests/fnb-sharing-regression.test.mjs
+          # r30: the generated share pages are HTML only; their scripts are the
+          # shell's own modules, checked above. Every page must be the shell in
+          # public mode - no navbar, no account, no service-worker registration.
+          test -s site/share/fnb.html
+          python3 - <<'PY'
+          from pathlib import Path
+          pages=sorted(Path('site/share').rglob('*.html'))
+          assert len(pages)>1, 'share generation produced no promotion pages'
+          for page in pages:
+              html=page.read_text()
+              assert 'data-public="fnb"' in html, f'{page} is not the shell in public mode'
+              assert 'src="/shell.js"' in html, f'{page} does not load the shell'
+              for banned in ('app-navbar','app-masthead-account','data-masthead-route','rel="manifest"','apple-mobile-web-app','fnb-public-shell','betta-runtime.js'):
+                  assert banned not in html, f'{page} still carries {banned}'
+          PY
           node .github/tests/font-architecture.test.mjs
           node site/betta-day-periods.test.mjs
           node site/betta-vignette-palettes.test.mjs
@@ -126,15 +136,25 @@ jobs:
 
           # Performance audit: the tree-shaken Betta bundle is the only Three.js
           # payload in the install path. The shell imports it directly; the
-          # betta-runtime.js bootstrap wrapper serves only the public /share pages.
+          # public /share pages are the same shell, so it is the only runtime.
           shell_js=(root/'shell.js').read_text()
           assert "'/betta-runtime-full.js'" in sw and "'/betta-runtime-full.js?v=1'" in sw
           assert "import('/betta-runtime-full.js?v=1')" in shell_js
-          assert "'/betta-runtime.js'" not in sw, 'the share-page Betta bootstrap must not be precached by the shell'
           assert "'/vendor/three.module.js'" not in sw
           assert (root/'vendor/three.module.js').exists(), 'Three source must remain available for reproducible Betta builds'
-          for name in ('betta-runtime.js','shell.css','fnb.js','fnb.css','environment.css'):
-              assert f'/{name}' not in index, f'share-page-only file referenced by the shell: {name}'
+          # r30: the Supabase presentation pack that served /share retired.
+          # Nothing may bring it back, and the shell must not reference it.
+          share_pack=('betta-runtime.js','shell.css','environment.css','fnb.js','fnb-data.js','fnb-share-ui.js',
+            'fnb-artwork-sync.js','fnb.css','fnb-approved-polish.css','fnb-refinements.css','fnb-layout-stability.css')
+          for name in share_pack:
+              assert not (root/name).exists(), f'share pack retired in r30 is back: {name}'
+              assert f"'/{name}'" not in precache, f'share pack file in the service-worker precache: {name}'
+              assert f'/{name}' not in index, f'share pack file referenced by the shell: {name}'
+          assert 'export function selectField' not in (root/'app-select.js').read_text(), 'the legacy F&B selector retired in r30'
+          # The shell only registers its service worker in the app, never on a
+          # shared page, and the sky mode contract must hold in the engine.
+          assert "dataset.public === 'fnb'" in shell_js and '!PUBLIC' in shell_js
+          assert "setBettaMode" in betta and "prefers-reduced-motion: reduce" in betta and "'sindhorn-midtown:betta-mode:v1'" in betta
           assert '/shell.js' in index and 'manifest.webmanifest?v=5' in index
           redirects=(root/'_redirects').read_text()
           for line in ('/next / 301','/login.html / 301','/fnb /#fnb 301','/messages /#messages 301','/settings /#settings/me 301','/admin /#settings/admin 301','/hotel-factsheet /#brand/factsheet 301'):
@@ -239,7 +259,7 @@ jobs:
             / /fnb /messages /settings /account /admin /shell.js /auth-client.js
             /today.js /business-dashboard-data.js /betta-runtime-full.js /betta-environment.js
             /notification-inbox.js /broadcast-inbox.js /push-client.js
-            /manifest.webmanifest /sw.js /share/fnb /betta-runtime.js
+            /manifest.webmanifest /sw.js /share/fnb
           )
           for path in "${paths[@]}"; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/smoke-response

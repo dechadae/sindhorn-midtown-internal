@@ -7,7 +7,13 @@
    The shell swaps views on hashchange, keeps the navbar honest (the current
    view's button carries aria-current="page") and refuses every route but
    sign-in until an employee with a permanent code has a session - the same
-   line the legacy app draws. Data pages never see a signed-out host. */
+   line the legacy app draws. Data pages never see a signed-out host.
+
+   The public share (r30) is this same shell in public mode: the generated
+   /share/fnb pages carry <body data-public="fnb"> and no masthead tools or
+   navbar, and the shell then registers no service worker, opens no session,
+   counts no inbox and mounts the F&B page in its public mode on the one
+   route the page is. Same stylesheets, same atmosphere, same page. */
 import { initAuth, getState, supabaseRpc } from './auth-client.js';
 import { updateBadge } from './notification-inbox.js';
 import { loadInbox, serverUnread } from './broadcast-inbox.js';
@@ -44,7 +50,8 @@ import { loadInbox, serverUnread } from './broadcast-inbox.js';
    phone in place: same registration, same scope, a new VERSION precaches the
    new shell and takes over on the next open. Registered after load so the
    first paint never waits on it. */
-if ('serviceWorker' in navigator) {
+const PUBLIC = document.body.dataset.public === 'fnb';
+if ('serviceWorker' in navigator && !PUBLIC) {
   addEventListener('load', () => { navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(error => console.warn('Service worker registration failed', error)); });
 }
 
@@ -130,6 +137,13 @@ const navbar = document.querySelector('.app-navbar');
 const home = masthead.querySelector('.app-masthead-home');
 const account = masthead.querySelector('.app-masthead-account');
 const messages = masthead.querySelector('[data-masthead-route="messages"]');
+
+/* Public mode: the share page is the F&B page and nothing else - the path
+   names the promotion, and the hash the page routes by is set from it once. */
+if (PUBLIC) {
+  const id = decodeURIComponent((location.pathname.match(/^\/share\/fnb\/([^/]+)/) || [])[1] || document.body.dataset.publicId || '');
+  if (id && !location.hash) history.replaceState(null, '', `${location.pathname}${location.search}#fnb/${encodeURIComponent(id)}`);
+}
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* An employee is signed in once a session, a profile and a permanent code
@@ -145,7 +159,7 @@ const initials = name => {
 /* The hash names the wanted view; the gate decides what actually mounts. */
 const wantedName = () => { const name = (location.hash.match(/^#([a-z]+)/) || [])[1]; return ROUTES[name] ? name : 'today'; };
 const settingsTab = () => { const tab = (location.hash.match(/^#settings\/([a-z]+)/) || [])[1]; return SETTINGS_TABS.includes(tab) ? tab : 'me'; };
-const resolve = () => { const name = wantedName(); if (!signedIn()) return 'signin'; if (DEVELOPER_ROUTES.has(name) && !isDeveloper()) { history.replaceState(null, '', '#settings/system'); return 'settings'; } return name === 'signin' ? 'today' : name; };
+const resolve = () => { if (PUBLIC) return 'fnb'; const name = wantedName(); if (!signedIn()) return 'signin'; if (DEVELOPER_ROUTES.has(name) && !isDeveloper()) { history.replaceState(null, '', '#settings/system'); return 'settings'; } return name === 'signin' ? 'today' : name; };
 /* A view is a route plus, for Settings, its tab - so a tab change is a view change. */
 const viewOf = name => name === 'settings' ? `settings/${settingsTab()}` : name;
 
@@ -156,6 +170,7 @@ let current = '', dispose = null, generation = 0, returnHash = '', messagesRetur
    app set shows with nothing current and the masthead icon becomes the
    close mark, the way the chip does for Settings. */
 function paintNavbar(name) {
+  if (PUBLIC || !navbar) return;
   const locked = !signedIn();
   const mode = name === 'settings' || DEVELOPER_ROUTES.has(name) ? 'settings' : 'app';
   const full = DEVELOPER_ROUTES.has(name) ? 'settings/system' : viewOf(name);
@@ -198,11 +213,11 @@ async function route() {
   const mount = await ROUTES[name]();
   if (mine !== generation) return;
   scrollTo(0, 0);
-  dispose = await mount(host);
+  dispose = await mount(host, { public: PUBLIC });
   if (mine !== generation && typeof dispose === 'function') dispose();
 }
 
-navbar.addEventListener('click', event => {
+navbar?.addEventListener('click', event => {
   const button = event.target.closest('[data-route]');
   if (!button || button.disabled) return;
   const name = button.dataset.route;
@@ -212,6 +227,7 @@ navbar.addEventListener('click', event => {
 
 /* The logo is Home: back to Today from anywhere, to the top if already there. */
 home.addEventListener('click', () => {
+  if (PUBLIC) return;
   if (current === 'today' || current === 'signin') { scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' }); return; }
   location.hash = '';
 });
@@ -219,14 +235,14 @@ home.addEventListener('click', () => {
 /* The masthead icon is the only way into Messages; while Messages is open
    it is the way back to the page beneath (the last page that was not
    Messages - Today when there is none), the way the chip closes Settings. */
-messages.addEventListener('click', () => {
+messages?.addEventListener('click', () => {
   if (current === 'messages') { const back = messagesReturnHash; messagesReturnHash = ''; location.hash = back; return; }
   location.hash = '#messages';
 });
 
 /* The account chip opens Settings; while Settings is open it is the way back
    to wherever the employee came from. */
-account.addEventListener('click', () => {
+account?.addEventListener('click', () => {
   if (layerOf(current) === 1) { const back = returnHash; returnHash = ''; location.hash = back; return; }
   location.hash = '#settings/me';
 });
@@ -236,8 +252,8 @@ account.addEventListener('click', () => {
    worker stores a push while the app is open, whenever the app returns to
    the front (the inbox is refreshed then, at most once a minute), and when
    the Messages page changes something. */
-const badge = () => updateBadge(serverUnread()).catch(() => {});
-const refreshInbox = () => loadInbox({ force: false }).finally(badge);
+const badge = () => PUBLIC ? Promise.resolve() : updateBadge(serverUnread()).catch(() => {});
+const refreshInbox = () => PUBLIC ? Promise.resolve() : loadInbox({ force: false }).finally(badge);
 /* A stored device alert only moves the badge; a broadcast push means the
    server inbox has a row this phone has not seen, so fetch it now. */
 navigator.serviceWorker?.addEventListener?.('message', event => {
@@ -260,4 +276,4 @@ addEventListener('hashchange', route);
 host.innerHTML = `<header class="app-hero"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line" data-width="medium"></div></div></header>
 <section class="app-section"><div class="app-stack"><div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-block"></div></div></div></div></section>`;
 paintNavbar('signin');
-initAuth().finally(() => { route(); refreshInbox(); });
+if (PUBLIC) route(); else initAuth().finally(() => { route(); refreshInbox(); });

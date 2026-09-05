@@ -37,7 +37,7 @@ function systemMarkup(manifest, version) {
   const library = manifest?.profile?.accountType === 'developer';
   return `<div class="app-card app-surface">
       <div class="app-card-section"><p class="app-surface-label">This app</p>
-        <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${fact('Version', version)}${fact('Display', matchMedia('(display-mode: standalone)').matches ? 'Installed' : 'Browser')}</div>
+        <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${fact('Version', version)}${fact('Display', matchMedia('(display-mode: standalone)').matches ? 'Installed' : 'Browser')}${fact('Atmosphere', atmosphereLabel())}</div>
       </div>
     </div>
     ${library ? `<article class="app-action-card"><button class="app-action-card-button" type="button" data-settings-go="#ci">
@@ -58,6 +58,15 @@ function systemMarkup(manifest, version) {
       <span class="app-action-card-copy">The Betta for each period of the day, and whether the app's ink stays readable on it.</span>
       <span class="app-action-card-foot"><span>#readability</span>${CHEVRON}</span>
     </button></article>` : ''}`;
+}
+
+/* Which atmosphere this phone draws (r30): the fish, or the sky held still
+   for reduced motion, or the sky because this phone could not hold the fish. */
+function atmosphereLabel() {
+  const betta = window.SindhornEnvironment?.getState?.().betta;
+  if (!betta) return 'Unavailable';
+  if (betta.mode !== 'sky') return 'Betta';
+  return betta.modeReason === 'reduced-motion' ? 'Sky · reduced motion' : betta.modeReason === 'low-end' ? 'Sky · this phone' : 'Sky';
 }
 
 async function appVersion() {

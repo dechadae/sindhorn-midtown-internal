@@ -629,6 +629,13 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 }
 .app-masthead-home:active{transform:scale(.96)}
 .app-masthead-home:focus-visible{outline:2px solid var(--app-accent);outline-offset:4px}
+/* The public share (r30) is the shell with no navbar and the logo as a
+   mark, not Home: the page reserves no room for a footer, the toast sits on
+   the safe area, and the mark takes no press. One body attribute, set by
+   the generated page, is the whole difference. */
+body[data-public]{--app-navbar-height:0px}
+body[data-public] .app-masthead-home{cursor:default}
+body[data-public] .app-masthead-home:active{transform:none}
 
 /* The account chip carries the employee's initials and opens Settings; while
    Settings is open it becomes the way back, so the same control shows a

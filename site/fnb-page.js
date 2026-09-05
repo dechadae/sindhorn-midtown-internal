@@ -6,7 +6,14 @@
 
    fnb-read-model.js is the data; this file is the markup and behavior. The
    route is addressed by hash so the browser's back button works between the
-   index and a detail: #fnb, #fnb/<promotion-id>. */
+   index and a detail: #fnb, #fnb/<promotion-id>.
+
+   The public share (/share/fnb, /share/fnb/<id>; r30) mounts this same page
+   in public mode: no session, the public read model, and nothing that is
+   the team's own work - no checklist, no artwork progress, no link editing.
+   What remains is the promotion as the world may see it, with its artwork
+   folder button (grayed out until a folder is linked) and Share, which
+   shares the page itself. */
 import { initAuth } from './auth-client.js';
 import { formatDate, formatDateTime } from './app-format.js';
 import { loadFnbPromotions, readArtworkStatus, writeArtworkStatus, isArtworkEditor, readLocalLinks, writeLocalLinks, safeFolderUrl, parseUpdated } from './fnb-read-model.js';
@@ -140,15 +147,15 @@ function errorMarkup(error) {
   </div></section>`;
 }
 
-export async function mountFnb(host) {
+export async function mountFnb(host, { public: isPublic = false } = {}) {
   host.innerHTML = /^#fnb\/./.test(location.hash) ? detailSkeletonMarkup() : skeletonMarkup();
-  await initAuth();
+  if (!isPublic) await initAuth();
   const today = bangkokToday();
-  const editor = isArtworkEditor();
+  const editor = !isPublic && isArtworkEditor();
   let promotions = [], source = '', updatedAt = null, months = [], outlets = [];
   let done = new Set();
   let filter = 'ALL', month = 'ALL', indexScroll = 0;
-  let links = readLocalLinks();
+  let links = isPublic ? {} : readLocalLinks();
   const openActivations = new Set();
   let disposed = false, spyRaf = 0, toastTimer = 0;
 
@@ -193,8 +200,7 @@ export async function mountFnb(host) {
         <span class="app-action-card-title">${esc(campaign.title)}</span>
         <span class="app-action-card-copy">${esc(outletsOf(campaign))}</span>
         <span class="app-action-card-when">${esc(campaign.dateLabel)}</span>
-        <span class="app-action-card-meta"><span>Artwork</span><b>${n.done} / ${n.total}</b></span>
-        ${track(n.done, n.total)}
+        ${isPublic ? '' : `<span class="app-action-card-meta"><span>Artwork</span><b>${n.done} / ${n.total}</b></span>${track(n.done, n.total)}`}
         <span class="app-action-card-foot"><span>${esc(campaign.summary)}</span>${CHEVRON}</span>
       </button>
       <div class="app-action-card-actions">${folder}${shareButton('promotion', campaign.id)}</div>
@@ -209,7 +215,7 @@ export async function mountFnb(host) {
     const monthOptions = [{ value: 'ALL', label: 'All months' }, ...months.map(m => ({ value: m.key, label: m.label }))];
     return `${heroMarkup(esc(periodLabel(months)), { action: shareButton('page'), note })}
     <section class="app-section">
-      <div class="app-metric-grid" data-columns="3" data-values="text" data-rule="true">${metric('Promotions', list.length)}${metric('Live now', live)}${metric('Artwork done', `${n}/${total}`)}</div>
+      <div class="app-metric-grid" data-columns="${isPublic ? 2 : 3}" data-values="text" data-rule="true">${metric('Promotions', list.length)}${metric('Live now', live)}${isPublic ? '' : metric('Artwork done', `${n}/${total}`)}</div>
       <div class="app-row">${select('outlet', 'Outlet', outletOptions, filter)}${select('month', 'Month', monthOptions, month)}</div>
       <h3 class="app-section-subhead">${list.length === 1 ? '1 promotion' : `${list.length} promotions`}</h3>
       <div class="app-stack">${list.length ? list.map(cardMarkup).join('') : '<div class="app-state app-card" data-tone="empty"><p class="app-state-label">Empty</p><p class="app-state-title">No promotions match these filters</p><p class="app-state-copy">Choose another outlet or month.</p></div>'}</div>
@@ -260,7 +266,7 @@ export async function mountFnb(host) {
       ? `<a class="app-primary app-control" href="${esc(folders[0].url)}" target="_blank" rel="noopener">${LINK_ICON}View artwork folder</a>`
       : folders.length ? `<button class="app-primary app-control" type="button" data-folders="${esc(campaign.id)}">${LINK_ICON}View artwork folders</button>` : '';
     const edit = editor ? `<button class="app-primary app-control" type="button" data-edit-links><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17h7M13.5 3.5a1.8 1.8 0 0 1 2.5 2.5L7 15l-3.5 1 1-3.5z"/></svg>${folders.length ? 'Change link' : 'Add link'}</button>` : '';
-    if (!view && !edit) return '<p class="app-note">Artwork folder · Not linked yet</p>';
+    if (!view && !edit) return isPublic ? `<button class="app-primary app-control" type="button" disabled>${LINK_ICON}Artwork folder · Not linked yet</button>` : '<p class="app-note">Artwork folder · Not linked yet</p>';
     return `<div class="app-row">${view}${edit}</div>`;
   }
   function detailMarkup(campaign) {
@@ -280,8 +286,8 @@ export async function mountFnb(host) {
     <section class="app-section" id="brief"><p class="app-section-kicker">01 · Promotion brief</p><div class="app-stack">${briefMarkup(campaign)}</div></section>
     <section class="app-section" id="copy"><p class="app-section-kicker">02 · Copy</p>${copyMarkup(campaign)}</section>
     <section class="app-section" id="artwork-copy"><p class="app-section-kicker">03 · Artwork copy</p><div class="app-stack">${artworkCopyMarkup(campaign)}</div></section>
-    <section class="app-section" id="artwork"><p class="app-section-kicker">04 · Artwork<span class="app-section-kicker-end" data-artwork-count>${n.done} / ${n.total} complete</span></p>
-      <div class="app-stack">${campaign.activations.map(activationMarkup).join('')}${folderMarkup(campaign)}</div>
+    <section class="app-section" id="artwork"><p class="app-section-kicker">04 · Artwork${isPublic ? '' : `<span class="app-section-kicker-end" data-artwork-count>${n.done} / ${n.total} complete</span>`}</p>
+      <div class="app-stack">${isPublic ? '' : campaign.activations.map(activationMarkup).join('')}${folderMarkup(campaign)}</div>
       <div class="app-utility-row"><button class="app-utility-action" type="button" data-fnb-top><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15V5M5 9l5-5 5 5"/></svg>Back to top</button></div>
     </section>`;
   }
@@ -378,7 +384,7 @@ export async function mountFnb(host) {
   async function load() {
     host.innerHTML = currentId() ? detailSkeletonMarkup() : skeletonMarkup();
     try {
-      const [model, shared] = await Promise.all([loadFnbPromotions(), readArtworkStatus().catch(() => new Set())]);
+      const [model, shared] = await Promise.all([loadFnbPromotions({ persist: !isPublic }), isPublic ? new Set() : readArtworkStatus().catch(() => new Set())]);
       if (disposed) return;
       ({ promotions, source, updatedAt } = model); done = shared;
       months = monthsSpanned(promotions); outlets = outletsIn(promotions);
@@ -428,7 +434,7 @@ export async function mountFnb(host) {
   const onChange = event => { const input = event.target.closest('[data-task]'); if (input && editor) toggleTask(input); };
   const onKey = event => { if (event.key === 'Escape') for (const el of qa('[data-select][data-open="true"]')) el.dataset.open = 'false'; };
   const onHash = () => { if (!disposed && /^#fnb(\/|$)/.test(location.hash) && promotions.length) render(); };
-  const onVisible = async () => { if (document.visibilityState !== 'visible' || disposed || !promotions.length) return; try { done = await readArtworkStatus(); if (currentId()) refreshCounts(); else render(); } catch (_) {} };
+  const onVisible = async () => { if (isPublic || document.visibilityState !== 'visible' || disposed || !promotions.length) return; try { done = await readArtworkStatus(); if (currentId()) refreshCounts(); else render(); } catch (_) {} };
   host.addEventListener('click', onClick);
   host.addEventListener('change', onChange);
   host.addEventListener('keydown', onKey);

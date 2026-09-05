@@ -118,14 +118,17 @@ jobs:
             sleep 10
           done
           test "$ready" = true
-          for path in / /fonts.css /share/fnb-public-data.js /assets/fonts/line-seed-sans-th-thin.woff2 /assets/fonts/line-seed-sans-th-regular.woff2 /assets/fonts/line-seed-sans-th-bold.woff2 /sw.js; do
+          for path in / /fonts.css /share/fnb /assets/fonts/line-seed-sans-th-thin.woff2 /assets/fonts/line-seed-sans-th-regular.woff2 /assets/fonts/line-seed-sans-th-bold.woff2 /sw.js; do
             curl --fail --silent --show-error --location --retry 12 --retry-all-errors --retry-delay 2 "${BASE_URL}${path}" -o /tmp/font-smoke
             test -s /tmp/font-smoke
           done
           curl --fail --silent --show-error --location "${BASE_URL}/fonts.css" -o /tmp/fonts.css
           grep -q 'LINE Seed Sans TH' /tmp/fonts.css
-          curl --fail --silent --show-error --location "${BASE_URL}/share/fnb-public-data.js" -o /tmp/fnb-public-data.js
-          grep -q 'FNB_PROMOTIONS' /tmp/fnb-public-data.js
+          # r30: the public share is the shell in public mode, so it carries
+          # the same self-hosted fonts.css as the app.
+          curl --fail --silent --show-error --location "${BASE_URL}/share/fnb" -o /tmp/share-fnb.html
+          grep -q 'data-public="fnb"' /tmp/share-fnb.html
+          grep -q '/fonts.css' /tmp/share-fnb.html
           curl --fail --silent --show-error --location "${BASE_URL}/sw.js" -o /tmp/sw.js
           grep -q 'pwa-v31-line-seed-sans-th' /tmp/sw.js
           for font in thin regular bold; do

@@ -2,11 +2,10 @@
    status, and the device-local folder-link overrides. No markup, no style, no
    DOM - a page renders what this returns.
 
-   fnb-data.js is not reused here because it is not a data module: on import
-   it injects a <style> element and patches legacy .fnb-* markup, which the
-   rebuild forbids on sight. The fetch, validation and shaping below are the
-   same as that module's, carried over so both shells read one dataset the
-   same way until the legacy route retires.
+   This is the one F&B dataset reader: the app's F&B page and the public
+   /share pages (r30) both call loadFnbPromotions(). The legacy fnb-data.js
+   adapter - a module that injected a <style> element on import - retired
+   with the presentation pack in r30.
 
    Auth comes from auth-client.js, the one session in this shell. Signed in,
    the internal read model answers; otherwise the public one does, exactly as
@@ -70,15 +69,17 @@ function writeCache(data) { try { localStorage.setItem(CACHE_KEY, JSON.stringify
 
 /* { promotions, source: 'supabase' | 'supabase-public' | 'cache', updatedAt }.
    Throws only when there is nothing to show at all - no network and no
-   cache - so the page can render its real error state. */
-export async function loadFnbPromotions() {
+   cache - so the page can render its real error state. The public share
+   (r30) reads with persist:false, so the public dataset never overwrites the
+   app's own offline copy on a phone that also has the app. */
+export async function loadFnbPromotions({ persist = true } = {}) {
   let raw = null, source;
   try {
     const token = getAccessToken();
     raw = token ? await supabaseRpc(INTERNAL_RPC, {}, { accessToken: token }) : await supabaseRpc(PUBLIC_RPC, {}, { accessToken: null });
     if (!validate(raw)) throw new Error('Invalid F&B dataset');
     source = token ? 'supabase' : 'supabase-public';
-    writeCache(raw);
+    if (persist) writeCache(raw);
   } catch (error) {
     const cached = readCache();
     if (!cached) throw error;

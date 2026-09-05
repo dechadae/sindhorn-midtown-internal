@@ -8,6 +8,13 @@
    is a still image because the bootstrap runtime was imported instead of the
    full one. Every one of those shipped at least once.
 
+   r30: the public share pages (/share/fnb and one promotion) are the same
+   shell in public mode, so they render here too: no navbar, no account, no
+   service-worker registration, the artwork folder a disabled button when it
+   is not linked, no checklist. The dataset is a fixture answered locally, so
+   the gate never reaches the database. The pages are the generator's output
+   (site/share, produced by scripts/generate-fnb-share.mjs before this runs).
+
    Usage: node scripts/ci-page-render-smoke.mjs
 */
 import http from 'node:http';
@@ -109,6 +116,9 @@ const server = http.createServer((req, res) => {
   if (p === '/ci') p = '/ci.html';
   if (p === '/voice') p = '/voice.html';
   if (p === '/') p = '/index.html';
+  // Cloudflare Pages serves /share/fnb from share/fnb.html and
+  // /share/fnb/<id> from share/fnb/<id>.html; mirror that here.
+  if (/^\/share\/[^.]+$/.test(p)) p = `${p}.html`;
   const file = path.join(ROOT, p);
   if (!file.startsWith(ROOT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) { res.writeHead(404); res.end('not found'); return; }
   res.writeHead(200, { 'content-type': TYPES[path.extname(file)] || 'application/octet-stream' });
@@ -337,6 +347,69 @@ if (voice.samples['date:short:th'] !== '5 ก.ย. 2569') failures.push(`voice: 
 if (voice.range !== '1 September – 31 December 2026') failures.push(`voice: range:en reads "${voice.range}"`);
 if (voice.artwork.title !== 'Fried Chicken & Waffles' || voice.artwork.subtitle !== 'Where crispy meets fluffy in every bite' || !/^Crispy fried chicken .* Available 1 September – 31 December 2026 at Sip & Co\. and The Lobby Lounge\. THB 490\+\+ and THB 350\+\+\. IHG One Rewards members save an extra 20%\. Reserve at \+66 2 796 8888/.test(voice.artwork.body || '')) failures.push(`voice: artwork-copy specimen ${JSON.stringify(voice.artwork)}`);
 
+// The public share: the shell in public mode. One index, one promotion.
+const SHARE_FIXTURE = [{
+  id: 'smoke-promotion', title: 'Smoke Promotion', subtitle: 'A fixture, not a promotion', start: '2026-09-01', end: '2026-12-31', updatedAt: '2026-09-01 09:00',
+  displayOutlets: ['Sip & Co.'],
+  activations: [{ id: 'smoke-activation', outlet: 'Sip & Co.', time: 'All day', discount: 'THB 490++', artworks: [{ id: 'smoke-artwork', name: 'Poster A2' }] }]
+}];
+const sharePages = fs.existsSync(path.join(ROOT, 'share/fnb.html')) ? fs.readdirSync(path.join(ROOT, 'share/fnb')).filter(name => name.endsWith('.html')) : null;
+if (!sharePages) failures.push('share: site/share/fnb.html is missing - run scripts/generate-fnb-share.mjs first');
+else if (!sharePages.length) failures.push('share: no promotion pages under site/share/fnb');
+else {
+  const share = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const shareErrors = [];
+  share.on('pageerror', error => shareErrors.push(error.message));
+  // Later routes match first: the catch-all goes in before the fixture.
+  await share.route('**/rest/v1/rpc/**', route => route.fulfill({ status: 403, contentType: 'application/json', body: '{}' }));
+  await share.route('**/rest/v1/rpc/sindhorn_fnb_public_read_model', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(SHARE_FIXTURE) }));
+  const readShare = () => share.evaluate(() => {
+    const sw = navigator.serviceWorker?.controller || null;
+    return {
+      publicMode: document.body.dataset.public, navbar: !!document.querySelector('.app-navbar'), account: !!document.querySelector('.app-masthead-account'),
+      tools: !!document.querySelector('.app-masthead-tools'), homeIsLink: document.querySelector('.app-masthead-home')?.tagName, manifest: !!document.querySelector('link[rel="manifest"]'),
+      navbarHeight: getComputedStyle(document.body).getPropertyValue('--app-navbar-height').trim(), swController: !!sw,
+      title: document.querySelector('.app-hero-title')?.textContent?.trim() || '', cards: document.querySelectorAll('.app-action-card').length,
+      checks: document.querySelectorAll('.app-check').length, columns: document.querySelector('.app-metric-grid')?.dataset.columns || '',
+      folderDisabled: !!document.querySelector('#artwork .app-primary[disabled]'), folderNote: !!document.querySelector('#artwork .app-note'),
+      shareButtons: document.querySelectorAll('[data-share]').length, back: !!document.querySelector('[data-back]'),
+      bettaMode: document.body.dataset.bettaMode || '', canvas: (() => { const c = document.getElementById('environmentCanvas'); return c ? `${c.width}x${c.height}` : 'none'; })(),
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
+    };
+  });
+  await share.goto(`http://127.0.0.1:${port}/share/fnb`, { waitUntil: 'load' });
+  await share.waitForFunction(() => document.querySelector('.app-action-card, .app-state[data-tone="error"]'), null, { timeout: 15000 }).catch(() => failures.push('share: /share/fnb never rendered a promotion card'));
+  await share.waitForTimeout(1500);
+  const index = await readShare();
+  if (index.publicMode !== 'fnb') failures.push(`share: index body[data-public] is "${index.publicMode}", expected fnb`);
+  if (index.navbar || index.account || index.tools) failures.push(`share: index still carries app chrome (navbar ${index.navbar}, account ${index.account}, tools ${index.tools})`);
+  if (index.homeIsLink !== 'DIV') failures.push(`share: the masthead logo must be inert on a shared page, it is a ${index.homeIsLink}`);
+  if (index.manifest) failures.push('share: a shared page must not carry the PWA manifest');
+  if (index.navbarHeight !== '0px') failures.push(`share: --app-navbar-height is ${index.navbarHeight}, expected 0px with no navbar`);
+  if (index.swController) failures.push('share: a shared page must not be controlled by the service worker');
+  if (index.cards !== 1) failures.push(`share: index rendered ${index.cards} cards for a one-promotion fixture`);
+  if (index.columns !== '2') failures.push(`share: index metric grid has ${index.columns} columns, expected 2 (no artwork count in public)`);
+  if (index.shareButtons < 1) failures.push('share: the Share button must stay on the shared page');
+  if (index.canvas === 'none' || index.canvas === '300x150') failures.push(`share: atmosphere canvas ${index.canvas}`);
+  if (!['betta', 'sky'].includes(index.bettaMode)) failures.push(`share: body[data-betta-mode] is "${index.bettaMode}"`);
+  if (index.overflow > 1) failures.push(`share: index horizontal overflow ${index.overflow}px`);
+  // The promotion page: the generator's own file for the first promotion,
+  // opened at the fixture's id so the page has a promotion to show.
+  await share.goto(`http://127.0.0.1:${port}/share/fnb/${sharePages[0].replace(/\.html$/, '')}#fnb/smoke-promotion`, { waitUntil: 'load' });
+  await share.waitForFunction(() => document.querySelector('#artwork, .app-state[data-tone="error"]'), null, { timeout: 15000 }).catch(() => failures.push('share: promotion page never rendered its Artwork section'));
+  await share.waitForTimeout(1500);
+  const detail = await readShare();
+  if (detail.publicMode !== 'fnb' || detail.navbar || detail.account) failures.push(`share: promotion page chrome (public ${detail.publicMode}, navbar ${detail.navbar}, account ${detail.account})`);
+  if (detail.title !== 'Smoke Promotion') failures.push(`share: promotion page title "${detail.title}"`);
+  if (detail.checks !== 0) failures.push(`share: promotion page shows ${detail.checks} checklist rows; the checklist is internal`);
+  if (!detail.folderDisabled) failures.push('share: an unlinked artwork folder must be a disabled primary button on the shared page');
+  if (detail.folderNote) failures.push('share: the app-only "not linked" note leaked onto the shared page');
+  if (!detail.back) failures.push('share: promotion page lost its Back control');
+  if (detail.overflow > 1) failures.push(`share: promotion horizontal overflow ${detail.overflow}px`);
+  if (shareErrors.length) failures.push(`share: page errors: ${shareErrors.join(' | ')}`);
+  await share.close();
+}
+
 await browser.close();
 server.close();
 
@@ -345,4 +418,4 @@ if (failures.length) {
   for (const failure of failures) console.error(`  ${failure}`);
   process.exit(1);
 }
-console.log(JSON.stringify({ ok: true, sections: report.sections, specimens: report.specimens, canvas: report.canvas, components: EXPECT.length, voice: { sections: voice.sections, specimens: voice.specimens, formats: Object.keys(voice.samples).length } }));
+console.log(JSON.stringify({ ok: true, sections: report.sections, specimens: report.specimens, canvas: report.canvas, components: EXPECT.length, voice: { sections: voice.sections, specimens: voice.specimens, formats: Object.keys(voice.samples).length }, share: sharePages ? sharePages.length + 1 : 0 }));

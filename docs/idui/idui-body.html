@@ -356,7 +356,7 @@
         <tr><th>Either</th><td>Press feedback: <code>--motion-fast</code> 160ms.</td></tr>
         <tr><th>Or</th><td>Settling: <code>--motion-ms</code> 280ms. A data track drawing itself in is the one longer reveal (920ms).</td></tr>
         <tr><th>Neither</th><td>Nothing moves. Page changes are a plain swap; the navbar set push is the shell's one choreography.</td></tr>
-        <tr><th>Consequence</th><td>One easing, <code>--motion-ease</code>. Reduced motion shortens the same tokens near zero rather than maintaining a second motion-safe copy of any component.</td></tr>
+        <tr><th>Consequence</th><td>One easing, <code>--motion-ease</code>. Reduced motion shortens the same tokens near zero rather than maintaining a second motion-safe copy of any component. The atmosphere follows the same principle in its own terms (r30): under reduced motion the Betta engine shows the sky and holds it still, rather than a slower fish - see INV-ATMOSPHERE-MODE.</td></tr>
         <tr><th>Inputs</th><td>The kind of change.</td></tr>
         <tr><th>Forbidden</th><td>A third duration, another curve, a transition on an ancestor of glass (see INV-MATERIAL-NESTING).</td></tr>
         <tr><th>Exceptions</th><td>None.</td></tr>
@@ -469,6 +469,24 @@
       </tbody></table>
     </article>
 
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-ATMOSPHERE-MODE</p><span class="app-badge" data-tone="success">Implemented</span></div>
+      <h3 class="app-surface-title">One scene, two modes</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>What the atmosphere is allowed to be when the fish cannot or should not move.</td></tr>
+        <tr><th>Question</th><td>Does this device and this person get the fish, or the sky the fish is made of?</td></tr>
+        <tr><th>Either</th><td>Betta: the saved fish of the period, moving.</td></tr>
+        <tr><th>Or</th><td>Sky: no fins; the period's four saved palette colors blended into its three saved sky stops as slow plumes. Same eight periods, same saved styles, same Himawari drivers (motion drifts it, energy breathes it, cloud and vapor soften it, cold cools it). Held still under reduced motion; drifting on a low-end phone.</td></tr>
+        <tr><th>Neither</th><td>A static image, a flat color, a second cycle, a second set of styles.</td></tr>
+        <tr><th>Consequence</th><td>Mode is resolved, not configured: a request (the Readability Test's Sky transport only) → <code>prefers-reduced-motion</code> → a remembered low-end reading (seven days) → betta. Low-end is decided once per session from rendered frame times, never from a device list, and never in a WebDriver session, so CI always measures the fish. Plume intensity is one rule, <code>SKY_PLUME_ENERGY / Σ luminance(palette)</code>, so the sky inherits INV-READABILITY: every period's muted ink reads ≥5.2:1 on the glass (r30 calibration, 20 s of drift each, worst frame 5.28:1 at midnight). The saved styles stay locked; the sky reads them and never edits them.</td></tr>
+        <tr><th>Inputs</th><td>The reduced-motion query, the frame governor, the saved period style, the satellite drivers.</td></tr>
+        <tr><th>Forbidden</th><td>A per-period plume value; a sky that ignores the drivers; DPR or membrane quality lowered as the fallback; a mode chosen by user-agent string.</td></tr>
+        <tr><th>Exceptions</th><td>None.</td></tr>
+        <tr><th>Enforcement</th><td>Level 2. The engine (<code>betta-environment.js</code>) resolves the mode and stamps <code>data-betta-mode</code> / <code>data-betta-mode-reason</code> on the body; the deploy guard asserts the contract strings in the engine and the render smoke asserts a mode on the shared page; Settings › This app shows the resolved mode as Atmosphere. The reduced-motion and requested paths are exercised by a Playwright walk at release; the governor path is exercised on a phone, not in CI.</td></tr>
+        <tr><th>Specimens</th><td><code>#readability</code> Sky transport; Settings › This app › Atmosphere.</td></tr>
+      </tbody></table>
+    </article>
+
   </div>
 
   <h3 class="app-section-subhead">Before adding a rule</h3>
@@ -510,7 +528,7 @@
       <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Field</h3><span class="app-badge" data-tone="success">Keep</span></div><p class="app-note"><code>.app-field</code> · native input, textarea, select, search with clear · label, note, native validation</p><p class="app-surface-copy">Native behavior; the library only frames it. The search clear is a field feature, not a primitive.</p></div>
       <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Code entry</h3><span class="app-badge" data-tone="success">Keep</span></div><p class="app-note"><code>.app-code</code> + <code>app-code.js</code> · six wells · typing advances, backspace retreats, paste fills</p><p class="app-surface-copy">A distinct state machine shared by sign-in and the library specimen. Behavior lives in one module.</p></div>
       <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Check</h3><span class="app-badge" data-tone="success">Keep</span></div><p class="app-note"><code>.app-check</code> · native checkbox in a row · done / option modes</p><p class="app-surface-copy">Native. The two modes differ in where the box sits, which is composition.</p></div>
-      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Selector</h3><span class="app-badge" data-tone="success">Keep · delete legacy</span></div><p class="app-note"><code>.app-select</code> + <code>app-select.js</code> · <code>role="listbox"</code> / <code>option</code>, <code>aria-expanded</code> · menu lifted to body inside a card</p><p class="app-surface-copy">Compact is appearance (<code>data-compact</code>), correctly not a second primitive. The same module still carries the legacy <code>selectField</code> / <code>bindSelectField</code> pair for <code>/share</code>: two implementations of one behavior, to be deleted with Phase 7.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Selector</h3><span class="app-badge" data-tone="success">Keep</span></div><p class="app-note"><code>.app-select</code> + <code>app-select.js</code> · <code>role="listbox"</code> / <code>option</code>, <code>aria-expanded</code> · menu lifted to body inside a card</p><p class="app-surface-copy">Compact is appearance (<code>data-compact</code>), correctly not a second primitive. The legacy <code>selectField</code> / <code>bindSelectField</code> pair that the old <code>/share</code> runtime used - two implementations of one behavior - was deleted with Phase 7 (r30); the module now carries one selector.</p></div>
       <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Disclosure</h3><span class="app-badge" data-tone="danger">Centralize</span></div><p class="app-note"><code>.app-disclosure</code> · <code>aria-expanded</code> + <code>data-open</code> · one rhythm · the clamp toggle is the same machine</p><p class="app-surface-copy"><strong>The one real behavioral duplicate.</strong> The toggle is written three times — <code>brand-page.js</code>, <code>fnb-page.js</code>, <code>ci-library.js</code> — plus the clamp toggle in F&amp;B. Identical contract; only the per-page persistence differs. One binder with an <code>onToggle</code> callback removes three copies.</p></div>
       <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Dialog</h3><span class="app-badge" data-tone="success">Keep</span></div><p class="app-note"><code>.app-dialog</code> + <code>app-dialog.js</code> · native <code>&lt;dialog&gt;</code>, <code>showModal</code>, backdrop click closes, <code>returnValue</code> · confirm variant</p><p class="app-surface-copy">The modal lifecycle, once. <code>dialogHead()</code> is the shared head with the close control.</p></div>
       <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Sheet</h3><span class="app-badge">Merge into dialog</span></div><p class="app-note"><code>.app-sheet</code> · a <code>&lt;dialog&gt;</code> created inside <code>fnb-page.js</code> with the same lifecycle · bottom position, grip</p><p class="app-surface-copy">Identical state machine to the dialog; differs by geometry. By the new-primitive test it is the dialog with <code>data-kind="sheet"</code>, opened by <code>openDialog</code>, and the page-local opener goes away.</p></div>
@@ -541,26 +559,26 @@
 <section class="app-section" id="metrics">
   <p class="app-section-kicker">04 · Metrics</p>
   <h2 class="app-section-title">What Moved, What Is Unknown</h2>
-  <p class="app-section-lede">Numbers are taken from the committed ratchet baseline of 3 September (<code>20e3361</code>) and from measuring the working tree at <code>558ab67</code> on 5 September. "All" is every CSS file on disk and includes the legacy F&amp;B files kept only for the public <code>/share</code> generator until Phase 7; "shell" is the five foundation files the app actually loads.</p>
+  <p class="app-section-lede">Numbers are taken from the committed ratchet baseline of 3 September (<code>20e3361</code>), from measuring the working tree at <code>558ab67</code> on 5 September, and from the r30 baseline after Phase 7 the same night. "All" is every CSS file on disk; before r30 that included the legacy F&amp;B files kept only for the public <code>/share</code> generator, after r30 what remains outside the foundation is the public business card (three files, one of them a patch layer) - not yet rebuilt. "Shell" is the five foundation files the app actually loads.</p>
 
   <div class="app-table-wrap">
     <table class="app-table">
-      <thead><tr><th>Metric</th><th>3 Sep</th><th>5 Sep · all</th><th>5 Sep · shell</th></tr></thead>
+      <thead><tr><th>Metric</th><th>3 Sep</th><th>5 Sep · all</th><th>r30 · all</th><th>r30 · shell</th></tr></thead>
       <tbody>
-        <tr><th>Route stylesheets</th><td>30</td><td>8</td><td>0</td></tr>
-        <tr><th><code>!important</code></th><td>715</td><td>271</td><td>22</td></tr>
-        <tr><th>Material rules outside <code>app-glass.css</code></th><td>71</td><td>23</td><td>1</td></tr>
-        <tr><th>Patch-layer stylesheets</th><td>8</td><td>4</td><td>0</td></tr>
-        <tr><th>Inline <code>&lt;style&gt;</code> blocks</th><td>3</td><td>1</td><td>0</td></tr>
-        <tr><th>Inline <code>style=</code> attributes</th><td>11</td><td>0</td><td>0</td></tr>
-        <tr><th>Distinct font-size literals</th><td>70</td><td>27</td><td>2</td></tr>
-        <tr><th>Distinct radius literals</th><td>36</td><td>18</td><td>2</td></tr>
-        <tr><th>Card implementations</th><td>10</td><td>3</td><td>1</td></tr>
-        <tr><th>Hero implementations</th><td>1</td><td>1</td><td>0</td></tr>
+        <tr><th>Route stylesheets</th><td>30</td><td>8</td><td>3</td><td>0</td></tr>
+        <tr><th><code>!important</code></th><td>715</td><td>271</td><td>87</td><td>16</td></tr>
+        <tr><th>Material rules outside <code>app-glass.css</code></th><td>71</td><td>23</td><td>6</td><td>1</td></tr>
+        <tr><th>Patch-layer stylesheets</th><td>8</td><td>4</td><td>1</td><td>0</td></tr>
+        <tr><th>Inline <code>&lt;style&gt;</code> blocks</th><td>3</td><td>1</td><td>1</td><td>0</td></tr>
+        <tr><th>Inline <code>style=</code> attributes</th><td>11</td><td>0</td><td>0</td><td>0</td></tr>
+        <tr><th>Distinct font-size literals</th><td>70</td><td>27</td><td>12</td><td>0</td></tr>
+        <tr><th>Distinct radius literals</th><td>36</td><td>18</td><td>13</td><td>2</td></tr>
+        <tr><th>Card implementations</th><td>10</td><td>3</td><td>2</td><td>1</td></tr>
+        <tr><th>Hero implementations</th><td>1</td><td>1</td><td>0</td><td>0</td></tr>
       </tbody>
     </table>
   </div>
-  <p class="app-note">Shell-foundation residue, named so it is not mistaken for permission: 12 <code>!important</code> in <code>fonts.css</code> (the typeface lock) and 10 in <code>app-glass.css</code> (the legacy material aliases and the frameless-utility guard); the one material rule outside the canonical file is the dialog scrim's 7px kernel, kept on purpose in r28; the two font-size literals are legacy <code>/share</code> rules; the radius literals are <code>0</code> and one 6px.</p>
+  <p class="app-note">Shell-foundation residue, named so it is not mistaken for permission: 6 <code>!important</code> in <code>fonts.css</code> (the typeface lock; the legacy display rules it carried for <code>/share</code> left with r30) and 10 in <code>app-glass.css</code> (the legacy material aliases and the frameless-utility guard); the one material rule outside the canonical file is the dialog scrim's 7px kernel, kept on purpose in r28; no font-size literal; the radius literals are <code>0</code> and one 6px. Outside the shell, the business card's three files and <code>app-shapes.css</code> (loaded by the card page alone) hold the rest of the "all" column, and the one inline <code>&lt;style&gt;</code> is the Betta vignette test page.</p>
 
   <h3 class="app-section-subhead">Method metrics</h3>
   <div class="app-stack">
@@ -578,7 +596,7 @@
       </div>
       <div class="app-divider"></div>
       <div class="app-metric-grid" data-values="text">
-        <div class="app-metric"><span class="app-metric-label">Invariant maturity</span><span class="app-metric-value">2 · 10 · 1 of 13</span><span class="app-metric-note">Level 1 only: control height, action weight. Level 2: material surface, weight, nesting, token locality, type, tone (page side), motion, page presentation, format, library-first (partial). Level 3: readability - at authoring, at the server (r29b) and at release (r29c).</span></div>
+        <div class="app-metric"><span class="app-metric-label">Invariant maturity</span><span class="app-metric-value">2 · 11 · 1 of 14</span><span class="app-metric-note">Level 1 only: control height, action weight. Level 2: material surface, weight, nesting, token locality, type, tone (page side), motion, page presentation, format, library-first (partial), atmosphere mode (r30). Level 3: readability - at authoring, at the server (r29b) and at release (r29c).</span></div>
         <div class="app-metric"><span class="app-metric-label">Literal design values in pages</span><span class="app-metric-value">0</span><span class="app-metric-note">Audit, 5 Sep 2026.</span></div>
         <div class="app-metric"><span class="app-metric-label">Behavior duplicates</span><span class="app-metric-value">3 + 1</span><span class="app-metric-note">Disclosure toggle ×3, clamp toggle ×1. The only duplication the rebuild left in the shell's behavior.</span></div>
       </div>
@@ -617,10 +635,12 @@
       <p>r29b moves the saved fish to the server: a table nobody can read or write directly, an anonymous read that returns styles and nothing else, and a save RPC that re-checks the 4.5:1 reading itself and refuses below it. r29c adds the release gate: every saved style must still be drawn by its seed under the code about to ship. The contract now holds at authoring, at the server and at release; the page is one of three places it is enforced, not the only one.</p>
       <h3>5 September, evening — the token was the ceiling</h3>
       <p>The owner could save the dark half of the day and none of the bright half, and asked whether light fin edges at the screen edge were the cause. Measuring instead of guessing: 40 fish on production, the worst sample mid-screen, the page gutters worth one fish, the glass worth nothing for muted - and the muted token itself unable to pass on any sky brighter than 25% grey. r29d raised <code>--app-muted</code> from .55 to .70 and nothing else; the owner then chose all eight fish in under an hour and locked them. The lesson the method keeps: when every candidate fails, suspect the rule's constant before the candidates.</p>
+      <h3>5 September, night — the last of the old app leaves (Phase 7, r30)</h3>
+      <p>The public <code>/share</code> pages had been the one place the old app still ran: eleven legacy files, 249 <code>!important</code>, a second Betta bootstrap and a second selector, all kept so a shared promotion would render for a guest. r30 replaces the pack with the shell itself in public mode - the same page module, the same five foundation files, one CSS rule (<code>body[data-public]</code>) - and deletes the pack, its test, its smoke scripts and its hotfix workflow. The ratchet baseline drops to the numbers above. In the same release the atmosphere gains its second mode: the sky, made from the saved fish's own colors, for reduced motion and for phones that cannot hold the fish - decided by measuring frames, not by guessing devices. The eight saved styles were not touched.</p>
       <h3>Result</h3>
       <p>The shell loads five foundation files and no route CSS. Eleven page modules contain no design literal. One material, two weights, one blur, three control floors, eight type steps, two durations. Twelve behaviors.</p>
       <h3>Remaining debt</h3>
-      <p>Eight legacy stylesheets and 249 <code>!important</code> kept for <code>/share</code> until Phase 7. Three disclosure toggles and a sheet opener in page code. The legacy selector pair. <code>app-view.js</code> without a consumer. The muted ink below 4.5:1 on every period. Control-height and action-weight rules with no check.</p>
+      <p>The public business card: three route files and <code>app-shapes.css</code>, the last CSS outside the foundation, not yet rebuilt on the library. Three disclosure toggles and a sheet opener in page code. <code>app-view.js</code> without a consumer. Control-height and action-weight rules with no check. The <code>/share</code> pack and its selector pair, and the muted-ink ceiling, are gone (r29d, r30).</p>
       <h3>Lessons</h3>
       <p>Measure, don't reason — nested glass and the transition ladder were both settled by a device, not an argument. A ratchet beats a rule the code cannot yet satisfy. Land one page at a time, verified live. A rule can be vetoed; a list cannot. The specimen page must render the real material or it documents a fiction. Inventories are evidence to inspect, never architecture to preserve.</p>
     </div>
@@ -682,7 +702,7 @@
     <div class="app-list">
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>ui-centralization-budget.mjs</code></span><span class="app-list-row-meta">The ratchet · eleven metrics may only fall · run before every push touching shared UI</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>page-centralization-audit.mjs</code></span><span class="app-list-row-meta">Per page: no style attributes or blocks, no color or pixel literals, no undefined classes, no backdrop-filter outside the material file</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>ci-page-render-smoke.mjs</code></span><span class="app-list-row-meta">Headless render of <code>/ci</code> and <code>/voice</code> · computed material of every canonical selector · computed motion · format specimens</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>ci-page-render-smoke.mjs</code></span><span class="app-list-row-meta">Headless render of <code>/ci</code>, <code>/voice</code> and, since r30, the generated <code>/share</code> index and one promotion against a local fixture · computed material of every canonical selector · computed motion · format specimens · public mode (no chrome, no service worker, no checklist)</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>nested-glass-smoke.mjs</code></span><span class="app-list-row-meta">13 routes with a stand-in session · fails on a blurred element inside a glass surface</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Readability Test · <code>#readability</code></span><span class="app-list-row-meta">Authoring-time contract on the live atmosphere · Save gated on 4.5:1 for ink, muted, accent · human-driven, not in CI</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>font-architecture.test.mjs</code></span><span class="app-list-row-meta">One family, three weights, zero tracking</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
@@ -747,7 +767,7 @@
           <li>Checks 1 and 3 — grep-level, same afternoon, no product change.</li>
           <li>Disclosure binder and the sheet fold into <code>app-dialog.js</code>, each a normal release with the library specimen updated first; then check 4.</li>
           <li>Check 2 in the nested-glass walk.</li>
-          <li>Phase 7 retires <code>/share</code>'s legacy files; the ratchet baseline drops to the foundation numbers above and the legacy selector pair is deleted.</li>
+          <li>Phase 7 retires <code>/share</code>'s legacy files; the ratchet baseline drops to the foundation numbers above and the legacy selector pair is deleted. <strong>Done, r30 (5 September, night).</strong></li>
           <li>The muted-ink decision, then r29b, then check 5.</li>
         </ol>
         <p>Each step is reported before it is built. The method's own origin is the reason: no hour of classification or restructuring before the owner has challenged whether the problem needs to exist.</p>

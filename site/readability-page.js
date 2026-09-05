@@ -8,14 +8,16 @@
    Lab does (betta-random.js): a seed, never a hand-picked hex. Camera and
    composition are never touched.
 
-   The page is a rail of transport chips (Previous, Play day, Next, Live)
+   The page is a rail of transport chips (Previous, Play day, Next, Live, Sky)
    that stays put while the eight period cards scroll, a sample shaped like
    Today's hero and first card so the eye judges what the numbers judge, and
    one card per period: its hours, seven swatches, three readings, the seed,
    and Show · Random · Save · Original. Showing a period pins it on the
    atmosphere with the runtime's own 900ms fade; Play day runs the whole day
    in half a minute so the transitions are seen as they happen; Live hands
-   the clock back. Save writes the style to the server (sindhorn_betta_periods,
+   the clock back; Sky shows the period's sky mode (r30), the fish's colors
+   as plumes with no fish, so it can be read the same way, and while it is
+   shown nothing saves. Save writes the style to the server (sindhorn_betta_periods,
    r29b) for every phone's next launch, and the server refuses a reading
    under 4.5:1 on its own; Original returns the period to the bundled fish.
    Both need system.manage. Nothing here is a live input to the atmosphere:
@@ -48,6 +50,7 @@ const rail = () => `<div class="app-rail" role="toolbar" aria-label="Atmosphere"
   <button class="app-chip app-control" type="button" data-transport="play" aria-pressed="false">Play day</button>
   <button class="app-chip app-control" type="button" data-transport="next">Next</button>
   <button class="app-chip app-control" type="button" data-transport="live" aria-pressed="false">Live</button>
+  <button class="app-chip app-control" type="button" data-transport="sky" aria-pressed="false">Sky</button>
 </div>`;
 
 /* Today's hero and first card, as a sample: the shapes the ink takes. */
@@ -138,12 +141,16 @@ export async function mountReadability(host) {
     const live = cycle().mode === 'live';
     host.querySelector('[data-transport="live"]')?.setAttribute('aria-pressed', String(Boolean(live)));
     host.querySelector('[data-transport="play"]')?.setAttribute('aria-pressed', String(playing));
+    host.querySelector('[data-transport="sky"]')?.setAttribute('aria-pressed', String(skyShown()));
   }
+  /* Sky shows the period's sky mode (r30) in place of its fish, so the same
+     readings can be taken of it; a reading of the sky is never saved. */
+  const skyShown = () => api?.getState?.().betta?.mode === 'sky';
 
   function paintReading(key) {
     const entry = entries.get(key), node = card(key); if (!node) return;
     node.querySelector('[data-reading-grid]').innerHTML = readingMarkup(entry.reading);
-    node.querySelector('[data-save]').disabled = !(entry.reading?.pass && entry.dirty);
+    node.querySelector('[data-save]').disabled = !(entry.reading?.pass && entry.dirty) || skyShown();
   }
 
   function paintStyle(key) {
@@ -197,6 +204,7 @@ export async function mountReadability(host) {
       else if (transport.dataset.transport === 'next') show(nextPeriod(periodByKey(key) || BETTA_DAY_PERIODS[0]).key);
       else if (transport.dataset.transport === 'play') { playing = !playing; if (playing) api.previewBettaDayCycle(PLAY_SECONDS); else api.setBettaPeriod(shownKey()); settleAt = performance.now() + SETTLE_MS; paintShown(); }
       else if (transport.dataset.transport === 'live') { playing = false; api.useLiveBettaDayCycle(); settleAt = performance.now() + SETTLE_MS; paintShown(); }
+      else if (transport.dataset.transport === 'sky') { api.setBettaMode(skyShown() ? 'betta' : 'sky'); for (const entry of entries.values()) entry.reading = null; settleAt = performance.now() + SETTLE_MS; paintShown(); for (const period of BETTA_DAY_PERIODS) paintReading(period.key); }
       return;
     }
     const showButton = event.target.closest('[data-show]');
@@ -270,6 +278,6 @@ export async function mountReadability(host) {
     /* Leaving hands the clock back, returns the atmosphere to what is saved
        - a fish tried and not saved goes - and drops the sampling context. */
     if (ready) api.setBettaStyles(Object.fromEntries([...entries].map(([key, entry]) => [key, entry.saved]).filter(([, style]) => style)));
-    api?.useLiveBettaDayCycle?.(); api?.disposeBettaSampler?.();
+    api?.useLiveBettaDayCycle?.(); api?.setBettaMode?.('auto'); api?.disposeBettaSampler?.();
   };
 }
