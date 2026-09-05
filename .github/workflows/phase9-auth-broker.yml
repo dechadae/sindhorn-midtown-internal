@@ -77,7 +77,8 @@ jobs:
           grep -q "/#signin?i=" site/settings-admin.js
           grep -q "history.replaceState" site/signin-page.js
           grep -q "#signin?i=" site/shell.js
-          grep -q "letter-spacing:0!important" site/fonts.css
+          # r32: the zero-tracking lock holds without !important (font-architecture.test.mjs owns the full check)
+          grep -qF "*,*::before,*::after{letter-spacing:0}" site/fonts.css
           test ! -e site/login.html
           test ! -e site/admin.html
           ! grep -R -q -E 'BREVO|TURNSTILE|/otp/request|/otp/verify|sindhorn-midtown-auth.*workers\.dev' \
