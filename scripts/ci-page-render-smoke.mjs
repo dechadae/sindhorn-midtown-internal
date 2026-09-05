@@ -378,8 +378,12 @@ else {
     };
   });
   await share.goto(`http://127.0.0.1:${port}/share/fnb`, { waitUntil: 'load' });
-  await share.waitForFunction(() => document.querySelector('.app-action-card, .app-state[data-tone="error"]'), null, { timeout: 15000 }).catch(() => failures.push('share: /share/fnb never rendered a promotion card'));
-  await share.waitForTimeout(1500);
+  // The page shows a skeleton (three placeholder cards, a 3-column grid)
+  // until the dataset lands; on a slow runner that can outlast a fixed
+  // wait, so wait for the section to stop being busy, not for a card.
+  const settled = () => share.waitForFunction(() => !document.querySelector('.app-section[aria-busy="true"], .app-skeleton') && document.querySelector('.app-action-card, #artwork, .app-state[data-tone="error"]'), null, { timeout: 30000 });
+  await settled().catch(() => failures.push('share: /share/fnb never left its skeleton'));
+  await share.waitForTimeout(500);
   const index = await readShare();
   if (index.publicMode !== 'fnb') failures.push(`share: index body[data-public] is "${index.publicMode}", expected fnb`);
   if (index.navbar || index.account || index.tools) failures.push(`share: index still carries app chrome (navbar ${index.navbar}, account ${index.account}, tools ${index.tools})`);
@@ -396,8 +400,8 @@ else {
   // The promotion page: the generator's own file for the first promotion,
   // opened at the fixture's id so the page has a promotion to show.
   await share.goto(`http://127.0.0.1:${port}/share/fnb/${sharePages[0].replace(/\.html$/, '')}#fnb/smoke-promotion`, { waitUntil: 'load' });
-  await share.waitForFunction(() => document.querySelector('#artwork, .app-state[data-tone="error"]'), null, { timeout: 15000 }).catch(() => failures.push('share: promotion page never rendered its Artwork section'));
-  await share.waitForTimeout(1500);
+  await settled().catch(() => failures.push('share: promotion page never left its skeleton'));
+  await share.waitForTimeout(500);
   const detail = await readShare();
   if (detail.publicMode !== 'fnb' || detail.navbar || detail.account) failures.push(`share: promotion page chrome (public ${detail.publicMode}, navbar ${detail.navbar}, account ${detail.account})`);
   if (detail.title !== 'Smoke Promotion') failures.push(`share: promotion page title "${detail.title}"`);
