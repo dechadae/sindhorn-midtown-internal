@@ -37,7 +37,7 @@ function systemMarkup(manifest, version) {
   const library = manifest?.profile?.accountType === 'developer';
   return `<div class="app-card app-surface">
       <div class="app-card-section"><p class="app-surface-label">This app</p>
-        <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${fact('Version', version)}${fact('Display', matchMedia('(display-mode: standalone)').matches ? 'Installed' : 'Browser')}${fact('Atmosphere', atmosphereLabel())}</div>
+        <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${fact('Version', version)}${fact('Display', matchMedia('(display-mode: standalone)').matches ? 'Installed' : 'Browser')}${fact('Atmosphere', atmosphereLabel())}</div>
       </div>
     </div>
     ${library ? `<article class="app-action-card"><button class="app-action-card-button" type="button" data-settings-go="#ci">

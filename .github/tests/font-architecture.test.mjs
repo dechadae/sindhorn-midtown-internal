@@ -65,18 +65,22 @@ if(fontFiles.length!==allowedFonts.size)errors.push(`expected exactly ${allowedF
 const fonts=fs.readFileSync(path.join(site,'fonts.css'),'utf8');
 for(const weight of ['100','400','700'])if(!fonts.includes(`font-weight:${weight}`))errors.push(`fonts.css missing weight ${weight}`);
 if((fonts.match(/font-family:"LINE Seed Sans TH"/g)||[]).length!==3)errors.push('fonts.css must define exactly three LINE Seed faces');
-if(!fonts.includes('--font-ui:"LINE Seed Sans TH"!important'))errors.push('canonical LINE Seed family token must be locked with !important');
-if(!fonts.includes('*::before,*::after{letter-spacing:0!important}'))errors.push('global zero-tracking invariant missing');
+// r32: the lock is the rules themselves, not !important - nothing downstream
+// may declare a family (the ratchet refuses a new stylesheet), so nothing
+// here needs to shout. A returning !important is the regression.
+if(!fonts.includes('--font-ui:"LINE Seed Sans TH"'))errors.push('canonical LINE Seed family token missing');
+if(!fonts.includes('*::before,*::after{letter-spacing:0}'))errors.push('global zero-tracking invariant missing');
+if(fonts.includes('!important'))errors.push('fonts.css declares !important; the lock is the rule set, not the flag (r32)');
 if(!fonts.includes('font-synthesis:none'))errors.push('font weight synthesis guard missing');
 
 // r18: the shell at / is the only internal document; sign-in is a route in it.
 const index=fs.readFileSync(path.join(site,'index.html'),'utf8');
-if(!index.includes('/fonts.css?v=1'))errors.push('index.html does not load fonts.css');
+if(!index.includes('/fonts.css?v=2'))errors.push('index.html does not load fonts.css');
 for(const name of ['line-seed-sans-th-regular.woff2','line-seed-sans-th-thin.woff2'])if(!index.includes(name))errors.push(`index.html does not preload ${name}`);
 if(fs.existsSync(path.join(site,'login.html')))errors.push('login.html is retired; sign-in renders inside the shell');
 
 const sw=fs.readFileSync(path.join(site,'sw.js'),'utf8');
-for(const required of ['/fonts.css','/fonts.css?v=1','/assets/fonts/line-seed-sans-th-thin.woff2','/assets/fonts/line-seed-sans-th-regular.woff2','/assets/fonts/line-seed-sans-th-bold.woff2'])if(!sw.includes(required))errors.push(`service worker missing ${required}`);
+for(const required of ['/fonts.css','/fonts.css?v=2','/assets/fonts/line-seed-sans-th-thin.woff2','/assets/fonts/line-seed-sans-th-regular.woff2','/assets/fonts/line-seed-sans-th-bold.woff2'])if(!sw.includes(required))errors.push(`service worker missing ${required}`);
 if(!sw.includes('pwa-v31-line-seed-sans-th'))errors.push('service worker cache version not bumped for LINE Seed');
 
 if(errors.length){console.error(errors.join('\n'));process.exit(1)}

@@ -54,17 +54,9 @@ async function clearAll(){
     request.onsuccess=()=>resolve();
     request.onerror=()=>reject(request.error||new Error('Unable to clear messages'));
   });
-  await refreshUi();
 }
 
-function routeName(route){
-  if(String(route||'').startsWith('/guidance'))return'guidance';
-  if(String(route||'').startsWith('/details'))return'details';
-  if(String(route||'').startsWith('/messages'))return'messages';
-  return'today';
-}
-
-/* Hotel time in the voice, "5 Sep 2026 · 6 pm"; the locale argument is legacy and ignored. */
+/* Hotel time in the voice, "5 Sep 2026 · 6 pm". */
 function stamp(value){const time=Number(value);return formatDateTime(Number.isFinite(time)?new Date(time):new Date())}
 
 function kindLabel(kind){
@@ -79,33 +71,8 @@ function kindLabel(kind){
   return'Environmental alert';
 }
 
-function messageCard(row){
-  const article=document.createElement('article');article.className='message-card app-glass-surface';article.dataset.read=row.read?'true':'false';
-  const meta=document.createElement('div');meta.className='message-meta';
-  const kind=document.createElement('span');kind.className='message-kind';kind.textContent=kindLabel(row.kind);
-  const time=document.createElement('time');time.dateTime=new Date(Number(row.receivedAt)||Date.now()).toISOString();time.textContent=stamp(row.receivedAt,'en-GB');
-  meta.append(kind,time);
-  const title=document.createElement('h2');title.className='message-title';title.textContent=String(row.titleEn||'SINDHORN MIDTOWN UPDATE');
-  const body=document.createElement('p');body.className='message-body';body.textContent=String(row.bodyEn||'New information is available in the app.');
-  const link=document.createElement('a');link.className='message-open';link.href=String(row.route||'/');link.dataset.appRoute=routeName(row.route);link.textContent='Open';link.setAttribute('aria-label','Open related information');
-  article.append(meta,title,body,link);
-  return article;
-}
-
-async function renderMessages(){
-  const list=document.getElementById('messageList'),empty=document.getElementById('messageEmpty'),clear=document.getElementById('messageClearBtn');
-  if(!list)return;
-  let rows=[];try{rows=await allMessages()}catch(_){}
-  list.replaceChildren(...rows.map(messageCard));
-  if(empty)empty.hidden=rows.length>0;
-  if(clear){clear.classList.add('app-glass-control');clear.hidden=rows.length===0}
-  if(document.body.dataset.route==='messages'&&rows.some(row=>!row.read)){
-    try{await markAllRead()}catch(_){}
-  }
-}
-
-/* The count on the navbar. The legacy app passes nothing; the shell adds the
-   unread broadcasts it knows from the server (broadcast-inbox.js). */
+/* The count on the navbar: the unread alerts here plus the unread broadcasts
+   the shell knows from the server (broadcast-inbox.js). */
 async function updateBadge(extra=0){
   let count=0;try{count=await unreadCount()}catch(_){}
   count+=Math.max(0,Number(extra)||0);
@@ -116,26 +83,7 @@ async function updateBadge(extra=0){
   });
 }
 
-async function refreshUi(){await Promise.allSettled([renderMessages(),updateBadge()])}
-
-export async function initNotificationInbox(){
-  await updateBadge();
-  document.addEventListener('sindhorn:route-mounted',event=>{
-    if(event.detail?.route==='messages')renderMessages().then(updateBadge).catch(()=>{});else updateBadge().catch(()=>{});
-  });
-  document.addEventListener('click',event=>{
-    if(event.target.closest('#messageClearBtn'))clearAll().catch(()=>{});
-  });
-  navigator.serviceWorker?.addEventListener?.('message',event=>{
-    if(event.data?.type==='SINDHORN_NOTIFICATION_STORED')refreshUi().catch(()=>{});
-  });
-  addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshUi().catch(()=>{})});
-  if(document.body.dataset.route==='messages')await renderMessages();
-}
-
-window.SindhornNotificationInbox={list:allMessages,unreadCount,markAllRead,clearAll,refresh:refreshUi};
-
-/* The same store, read by the shell's Messages page. Named exports only;
-   nothing above changes for the legacy route, which keeps the window
-   object it already uses. */
+/* The store, read by the shell's Messages page (messages-page.js), which
+   paints it on list rows; the badge above is what the shell updates. This
+   module renders nothing itself since r20. */
 export{allMessages as listMessages,unreadCount,markAllRead,clearAll,updateBadge,kindLabel,stamp};

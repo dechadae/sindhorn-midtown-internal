@@ -116,10 +116,10 @@ export function bindLibrary(root, { page = root } = {}) {
       <div class="app-dialog-grid">
         <div class="app-field"><label for="ci-f-number">Employee ID</label><input id="ci-f-number" type="text" value="SM-0311" autocomplete="off"></div>
         <div class="app-field"><label for="ci-f-name">Display name</label><input id="ci-f-name" type="text" value="Nattaya Prasert" autocomplete="off"></div>
-        <div class="app-field" data-span="full"><label for="ci-f-mail">Hotel email</label><input id="ci-f-mail" type="email" value="nattaya.prasert@sindhornmidtown.com" autocomplete="off"></div>
+        <div class="app-field" data-width="full"><label for="ci-f-mail">Hotel email</label><input id="ci-f-mail" type="email" value="nattaya.prasert@sindhornmidtown.com" autocomplete="off"></div>
         ${appSelect({ kind: 'department', label: 'Department', options: [{ value: '', label: 'Unassigned' }, { value: 'fo', label: 'Front Office' }, { value: 'mc', label: 'Marketing Communications' }], selected: 'fo' })}
         ${appSelect({ kind: 'role', label: 'Role', options: [{ value: 'employee', label: 'Employee' }, { value: 'supervisor', label: 'Supervisor' }, { value: 'manager', label: 'Manager' }, { value: 'admin', label: 'Admin' }], selected: 'employee' })}
-        <div data-span="full">${check('active', 'Access is active', true)}</div>
+        <div data-width="full">${check('active', 'Access is active', true)}</div>
         <div class="app-dialog-section"><span>Private contact</span><small>Where a first-login or recovery code can reach this employee. Private to admins.</small></div>
         <div class="app-field"><label for="ci-f-personal">Personal email <span>optional</span></label><input id="ci-f-personal" type="email" autocomplete="off"></div>
         <div class="app-field"><label for="ci-f-mobile">Mobile <span>optional · +66…</span></label><input id="ci-f-mobile" type="tel" autocomplete="off"></div>
@@ -215,7 +215,7 @@ export function bindLibrary(root, { page = root } = {}) {
   });
 
   // Tracks draw themselves in after first paint, the same way a page does it.
-  requestAnimationFrame(() => requestAnimationFrame(() => { if (!signal.aborted) page.dataset.trackReady = 'true'; }));
+  requestAnimationFrame(() => requestAnimationFrame(() => { if (!signal.aborted) page.dataset.ready = 'true'; }));
 
   return () => { controller.abort(); clearTimeout(toastTimer); dialog?.open && dialog.close(); sheet?.open && sheet.close(); formDialog?.close(''); };
 }

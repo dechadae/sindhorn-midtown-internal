@@ -100,8 +100,8 @@ function copyBlock(label, text, lang = '') {
   const langAttr = lang ? ` lang="${lang}"` : '';
   if (!text) return `<div class="app-card app-surface">${label ? `<p class="app-surface-label">${esc(label)}</p>` : ''}<div class="app-surface-copy"${langAttr}>${lang === 'th' ? 'Thai copy was not supplied in the source workbook.' : 'Not supplied in the source workbook.'}</div></div>`;
   const long = text.length > 380 || text.split('\n').length > 8;
-  const prose = `<div class="app-prose" data-verbatim="true"${langAttr}><p>${esc(text)}</p></div>`;
-  return `<div class="app-card app-surface">${label ? `<p class="app-surface-label">${esc(label)}</p>` : ''}${long ? `<div class="app-clamp" data-clamp>${prose}</div><button class="app-chip app-control" type="button" data-scale="control" data-clamp-toggle aria-expanded="false">Show full</button>` : prose}</div>`;
+  const prose = `<div class="app-prose" data-mode="verbatim"${langAttr}><p>${esc(text)}</p></div>`;
+  return `<div class="app-card app-surface">${label ? `<p class="app-surface-label">${esc(label)}</p>` : ''}${long ? `<div class="app-clamp" data-clamp>${prose}</div><button class="app-chip app-control" type="button" data-size="control" data-clamp-toggle aria-expanded="false">Show full</button>` : prose}</div>`;
 }
 function heroMarkup(copy, { action = '', note = '' } = {}) {
   return `<header class="app-hero"><div class="app-hero-head"><p class="app-hero-eyebrow">Food &amp; Beverage</p>${action}</div><h1 class="app-hero-title">Promotions</h1><p class="app-hero-copy">${copy}</p>${note}</header>`;
@@ -110,29 +110,29 @@ function heroMarkup(copy, { action = '', note = '' } = {}) {
    filters and card anatomy, so nothing moves when the data lands. */
 const line = (width = '', size = '') => `<div class="app-skeleton-line"${width ? ` data-width="${width}"` : ''}${size ? ` data-size="${size}"` : ''}></div>`;
 function skeletonCard() {
-  return `<article class="app-action-card"><div class="app-skeleton" data-gap="tight">
+  return `<article class="app-action-card"><div class="app-skeleton" data-compact="true">
     <div class="app-action-card-head">${line('tiny')}${line('tiny')}</div>
     ${line('medium', 'lead')}${line('half')}${line('short')}
     <div class="app-action-card-meta">${line('tiny')}${line('tiny')}</div>${line('', 'track')}${line('')}
   </div><div class="app-action-card-actions">${line('short')}${line('tiny')}</div></article>`;
 }
 function skeletonMarkup() {
-  const metric = () => `<div class="app-metric"><div class="app-skeleton" data-gap="tight">${line('medium')}${line('short', 'lead')}</div></div>`;
+  const metric = () => `<div class="app-metric"><div class="app-skeleton" data-compact="true">${line('medium')}${line('short', 'lead')}</div></div>`;
   return `${heroMarkup('Loading this season’s promotions…', { action: shareButton('page'), note: '<p class="app-note">Checking for the latest update…</p>' })}
   <section class="app-section" aria-busy="true">
-    <div class="app-metric-grid" data-columns="3" data-values="text" data-rule="true">${metric()}${metric()}${metric()}</div>
+    <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">${metric()}${metric()}${metric()}</div>
     <div class="app-row"><div class="app-skeleton">${line('short')}${line('', 'control')}</div><div class="app-skeleton">${line('short')}${line('', 'control')}</div></div>
     <h3 class="app-section-subhead">Promotions</h3>
     <div class="app-stack">${skeletonCard()}${skeletonCard()}${skeletonCard()}</div>
   </section>`;
 }
 function detailSkeletonMarkup() {
-  const fact = () => `<div class="app-metric"><div class="app-skeleton" data-gap="tight">${line('medium')}${line('short', 'lead')}</div></div>`;
+  const fact = () => `<div class="app-metric"><div class="app-skeleton" data-compact="true">${line('medium')}${line('short', 'lead')}</div></div>`;
   const block = () => `<div class="app-card app-surface"><div class="app-skeleton">${line('tiny')}${line('')}${line('')}${line('medium')}</div></div>`;
   return `<header class="app-hero"><div class="app-hero-head"><button class="app-back-control app-control" type="button" data-back aria-label="Back to promotions"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button></div>
     <div class="app-skeleton"><div class="app-skeleton-line" data-width="tiny"></div><div class="app-skeleton-line" data-width="medium" data-size="title"></div><div class="app-skeleton-line" data-width="half" data-size="lead"></div></div></header>
   <nav class="app-rail" aria-label="Promotion sections" aria-busy="true">${SECTIONS.map(([id, label], i) => `<span class="app-chip app-control${i === 0 ? ' is-active' : ''}">${label}</span>`).join('')}</nav>
-  <section class="app-section" aria-busy="true"><div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${fact()}${fact()}${fact()}${fact()}</div></section>
+  <section class="app-section" aria-busy="true"><div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${fact()}${fact()}${fact()}${fact()}</div></section>
   <section class="app-section"><p class="app-section-kicker">01 · Promotion brief</p><div class="app-stack">${block()}</div></section>
   <section class="app-section"><p class="app-section-kicker">02 · Copy</p><div class="app-stack">${block()}${block()}</div></section>
   <section class="app-section"><p class="app-section-kicker">03 · Artwork copy</p><div class="app-stack">${block()}</div></section>`;
@@ -184,8 +184,8 @@ export async function mountFnb(host, { public: isPublic = false } = {}) {
     clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.hidden = true; }, 2200);
   }
   function revealTracks() {
-    delete host.dataset.trackReady;
-    requestAnimationFrame(() => requestAnimationFrame(() => { if (!disposed) host.dataset.trackReady = 'true'; }));
+    delete host.dataset.ready;
+    requestAnimationFrame(() => requestAnimationFrame(() => { if (!disposed) host.dataset.ready = 'true'; }));
   }
 
   /* ---- index ------------------------------------------------------------ */
@@ -215,7 +215,7 @@ export async function mountFnb(host, { public: isPublic = false } = {}) {
     const monthOptions = [{ value: 'ALL', label: 'All months' }, ...months.map(m => ({ value: m.key, label: m.label }))];
     return `${heroMarkup(esc(periodLabel(months)), { action: shareButton('page'), note })}
     <section class="app-section">
-      <div class="app-metric-grid" data-columns="${isPublic ? 2 : 3}" data-values="text" data-rule="true">${metric('Promotions', list.length)}${metric('Live now', live)}${isPublic ? '' : metric('Artwork done', `${n}/${total}`)}</div>
+      <div class="app-metric-grid" data-columns="${isPublic ? 2 : 3}" data-mode="text" data-rule="true">${metric('Promotions', list.length)}${metric('Live now', live)}${isPublic ? '' : metric('Artwork done', `${n}/${total}`)}</div>
       <div class="app-row">${select('outlet', 'Outlet', outletOptions, filter)}${select('month', 'Month', monthOptions, month)}</div>
       <h3 class="app-section-subhead">${list.length === 1 ? '1 promotion' : `${list.length} promotions`}</h3>
       <div class="app-stack">${list.length ? list.map(cardMarkup).join('') : '<div class="app-state app-card" data-tone="empty"><p class="app-state-label">Empty</p><p class="app-state-title">No promotions match these filters</p><p class="app-state-copy">Choose another outlet or month.</p></div>'}</div>
@@ -254,7 +254,7 @@ export async function mountFnb(host, { public: isPublic = false } = {}) {
   function artworkCopyMarkup(campaign) {
     const c = artworkCopy(campaign);
     return `<div class="app-card app-surface">
-      <div class="app-card-section"><p class="app-surface-label">Title · As written</p><div class="app-prose" data-verbatim="true"><h3>${esc(c.title)}</h3></div></div>
+      <div class="app-card-section"><p class="app-surface-label">Title · As written</p><div class="app-prose" data-mode="verbatim"><h3>${esc(c.title)}</h3></div></div>
       ${c.subtitle ? `<div class="app-card-section"><p class="app-surface-label">Subtitle</p><div class="app-prose"><p>${esc(c.subtitle)}</p></div></div>` : ''}
       <div class="app-card-section"><p class="app-surface-label">Body</p><div class="app-prose"><p>${esc(c.body)}</p></div></div>
     </div>
@@ -281,7 +281,7 @@ export async function mountFnb(host, { public: isPublic = false } = {}) {
     </header>
     <nav class="app-rail" aria-label="Promotion sections">${SECTIONS.map(([id, label], i) => `<button class="app-chip app-control${i === 0 ? ' is-active' : ''}" type="button" data-section="${id}"${i === 0 ? ' aria-current="true"' : ''}>${label}</button>`).join('')}</nav>
     <section class="app-section" id="overview">
-      <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${fact('Outlet', outletsOf(campaign))}${fact('Time', time)}${fact('IHG One Rewards', discount)}${updated ? fact('Updated', updated) : ''}</div>
+      <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${fact('Outlet', outletsOf(campaign))}${fact('Time', time)}${fact('IHG One Rewards', discount)}${updated ? fact('Updated', updated) : ''}</div>
     </section>
     <section class="app-section" id="brief"><p class="app-section-kicker">01 · Promotion brief</p><div class="app-stack">${briefMarkup(campaign)}</div></section>
     <section class="app-section" id="copy"><p class="app-section-kicker">02 · Copy</p>${copyMarkup(campaign)}</section>
@@ -451,6 +451,6 @@ export async function mountFnb(host, { public: isPublic = false } = {}) {
     removeEventListener('hashchange', onHash); removeEventListener('scroll', scheduleSpy); removeEventListener('resize', scheduleSpy);
     document.removeEventListener('visibilitychange', onVisible);
     if (spyRaf) cancelAnimationFrame(spyRaf); clearTimeout(toastTimer);
-    delete host.dataset.trackReady;
+    delete host.dataset.ready;
   };
 }

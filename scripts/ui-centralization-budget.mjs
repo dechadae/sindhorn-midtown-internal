@@ -23,7 +23,7 @@ const PATCH_PATTERN=/-(refinements|fixes|polish|standard|stability)\.css$/;
 /* Foundation stylesheets are shared infrastructure and are expected to GROW as
    route CSS is absorbed into them. Counting all stylesheets together would make
    the ratchet block the very files that let route CSS be deleted. */
-const FOUNDATION=new Set(['app-tokens.css','app-glass.css','app-components.css','app-shell.css','ci-library.css','fonts.css']);
+const FOUNDATION=new Set(['app-tokens.css','app-glass.css','app-components.css','app-compositions.css','app-shell.css','ci-library.css','fonts.css']);
 
 const read=f=>fs.readFileSync(path.join(SITE,f),'utf8');
 const cssFiles=fs.readdirSync(SITE).filter(f=>f.endsWith('.css')).sort();

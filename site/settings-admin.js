@@ -29,7 +29,7 @@ const ROLE_LABEL = Object.fromEntries(ROLES);
 const initials = name => String(name || '').trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('') || '·';
 const state = (label, title, copy, tone = 'empty', attrs = '') => `<div class="app-state app-card" data-tone="${tone}"${attrs}><p class="app-state-label">${esc(label)}</p><p class="app-state-title">${esc(title)}</p>${copy ? `<p class="app-state-copy">${esc(copy)}</p>` : ''}</div>`;
 const field = (id, name, label, value, { type = 'text', note = '', required = false, maxlength = 120, autocomplete = 'off', inputmode = '', disabled = false, span = '' } = {}) =>
-  `<div class="app-field"${span ? ` data-span="${span}"` : ''}><label for="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><input id="${id}" name="${name}" type="${type}" value="${esc(value ?? '')}" maxlength="${maxlength}" autocomplete="${autocomplete}"${inputmode ? ` inputmode="${inputmode}"` : ''}${required ? ' required' : ''}${disabled ? ' disabled' : ''}></div>`;
+  `<div class="app-field"${span ? ` data-width="${span}"` : ''}><label for="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><input id="${id}" name="${name}" type="${type}" value="${esc(value ?? '')}" maxlength="${maxlength}" autocomplete="${autocomplete}"${inputmode ? ` inputmode="${inputmode}"` : ''}${required ? ' required' : ''}${disabled ? ' disabled' : ''}></div>`;
 const check = (name, label, checked) => `<label class="app-check" data-mode="option"><input type="checkbox" name="${esc(name)}"${checked ? ' checked' : ''}><span class="app-check-box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg></span><span class="app-check-label">${esc(label)}</span></label>`;
 
 /* The live admin page's error vocabulary, in the employee's words. */
@@ -119,7 +119,7 @@ export async function mountAdmin(stack, { manifest, signal }) {
           ${appSelect({ kind: 'role', label: 'Role', options: roleOptions, selected: user?.role || 'employee' })}
           ${appSelect({ kind: 'account_type', label: 'Account type', options: typeOptions, selected: user?.account_type || 'employee' })}
           ${appSelect({ kind: 'preferred_language', label: 'Language', options: LANGUAGES.map(([value, label]) => ({ value, label })), selected: user?.preferred_language || 'th' })}
-          <div data-span="full">${check('active', 'Access is active', isNew ? true : user.active !== false)}</div>
+          <div data-width="full">${check('active', 'Access is active', isNew ? true : user.active !== false)}</div>
           <div class="app-dialog-section"><span>Private contact</span><small>${contactOk ? 'Where a first-login or recovery code can reach this employee. Private to admins.' : canContacts ? 'This employee has not shared a private contact.' : 'Your role cannot see private contacts.'}</small></div>
           ${field('adm-personal', 'personal_email', 'Personal email', contact.personal_email, { type: 'email', inputmode: 'email', maxlength: 160, disabled: !contactOk, note: 'optional' })}
           ${field('adm-mobile', 'mobile_e164', 'Mobile', contact.mobile_e164, { type: 'tel', inputmode: 'tel', maxlength: 16, disabled: !contactOk, note: 'optional · +66…' })}

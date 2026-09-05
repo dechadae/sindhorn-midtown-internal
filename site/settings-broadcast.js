@@ -27,13 +27,13 @@ const STATUS = { published: ['Published', ''], scheduled: ['Scheduled', 'quiet']
 
 const state = (label, title, copy, tone = 'empty') => `<div class="app-state app-card" data-tone="${tone}"><p class="app-state-label">${esc(label)}</p><p class="app-state-title">${esc(title)}</p>${copy ? `<p class="app-state-copy">${esc(copy)}</p>` : ''}</div>`;
 const field = (id, name, label, value, { type = 'text', note = '', required = false, maxlength = 140, disabled = false, span = 'full' } = {}) =>
-  `<div class="app-field"${span ? ` data-span="${span}"` : ''}><label for="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><input id="${id}" name="${name}" type="${type}" value="${esc(value ?? '')}"${type === 'text' ? ` maxlength="${maxlength}"` : ''} autocomplete="off"${required ? ' required' : ''}${disabled ? ' disabled' : ''}></div>`;
+  `<div class="app-field"${span ? ` data-width="${span}"` : ''}><label for="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><input id="${id}" name="${name}" type="${type}" value="${esc(value ?? '')}"${type === 'text' ? ` maxlength="${maxlength}"` : ''} autocomplete="off"${required ? ' required' : ''}${disabled ? ' disabled' : ''}></div>`;
 const area = (id, name, label, value, { note = '', required = false, disabled = false } = {}) =>
-  `<div class="app-field" data-span="full"><label for="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><textarea id="${id}" name="${name}" rows="5" maxlength="4000"${required ? ' required' : ''}${disabled ? ' disabled' : ''}>${esc(value ?? '')}</textarea></div>`;
+  `<div class="app-field" data-width="full"><label for="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><textarea id="${id}" name="${name}" rows="5" maxlength="4000"${required ? ' required' : ''}${disabled ? ' disabled' : ''}>${esc(value ?? '')}</textarea></div>`;
 const check = (name, label, checked, disabled) => `<label class="app-check" data-mode="option"><input type="checkbox" name="${esc(name)}"${checked ? ' checked' : ''}${disabled ? ' disabled' : ''}><span class="app-check-box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg></span><span class="app-check-label">${esc(label)}</span></label>`;
 const chip = (group, value, label, pressed, disabled) => `<button class="app-chip app-control" type="button" data-chip="${esc(group)}" data-value="${esc(value)}" aria-pressed="${pressed ? 'true' : 'false'}"${disabled ? ' disabled' : ''}>${esc(label)}</button>`;
 const chips = (id, label, note, group, options, pressed, { disabled = false, hidden = false } = {}) =>
-  `<div class="app-field" data-span="full" role="group" aria-labelledby="${id}" data-chip-field="${esc(group)}"${hidden ? ' hidden' : ''}><label id="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><div class="app-chip-group">${options.map(([value, text]) => chip(group, value, text, pressed.includes(value), disabled)).join('')}</div></div>`;
+  `<div class="app-field" data-width="full" role="group" aria-labelledby="${id}" data-chip-field="${esc(group)}"${hidden ? ' hidden' : ''}><label id="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><div class="app-chip-group">${options.map(([value, text]) => chip(group, value, text, pressed.includes(value), disabled)).join('')}</div></div>`;
 
 /* datetime-local speaks the device's local time, without a zone. */
 const toLocal = iso => {
@@ -132,8 +132,8 @@ export async function mountBroadcast(stack, { manifest, signal }) {
           ${chips('bc-role', 'Roles', 'choose any', 'role', ROLES, targets.filter(t => t.type === 'role').map(t => t.role), { disabled: ro, hidden: mode !== 'role' })}
           ${groups.length ? chips('bc-group', 'Groups', 'choose any', 'group', groups.map(x => [x.id, x.name]), targets.filter(t => t.type === 'group').map(t => t.groupId), { disabled: ro, hidden: mode !== 'group' }) : ''}
           <div class="app-dialog-section"><span>Options</span></div>
-          <div data-span="full">${check('pinned', 'Pin to the top of Messages', Boolean(b?.pinned), ro)}</div>
-          <div data-span="full">${check('sensitive', 'Sensitive - the text shows only after the message is opened', Boolean(b?.sensitive), ro)}</div>
+          <div data-width="full">${check('pinned', 'Pin to the top of Messages', Boolean(b?.pinned), ro)}</div>
+          <div data-width="full">${check('sensitive', 'Sensitive - the text shows only after the message is opened', Boolean(b?.sensitive), ro)}</div>
           <div class="app-dialog-section"><span>Timing</span><small>${editable ? 'Leave the time empty and publish by hand, or set a time and save to schedule it. Hotel time.' : 'Hotel time.'}</small></div>
           ${field('bc-publish', 'publish_at', b?.status === 'published' ? 'Published' : 'Publish at', toLocal(b?.publishAt), { type: 'datetime-local', note: editable ? 'optional' : '', disabled: ro })}
           ${field('bc-expires', 'expires_at', 'Remove after', toLocal(b?.expiresAt), { type: 'datetime-local', note: editable ? 'optional' : '', disabled: ro })}

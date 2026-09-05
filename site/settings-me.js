@@ -44,7 +44,7 @@ export function factsMarkup(manifest) {
   const p = manifest.profile || {}, auth = getState().profile || {};
   return `<div class="app-card app-surface">
       <div class="app-card-section"><p class="app-surface-label">Account</p>
-        <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">
+        <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">
           ${fact('Name', p.displayName || auth.display_name)}${fact('Employee ID', p.employeeNumber || auth.employee_number)}
           ${fact('Position', p.positionTitle)}${fact('Department', p.departmentName)}
           ${fact('Role', ROLE_LABEL[p.role] || p.role)}${fact('Language', LANGUAGE_LABEL[p.preferredLanguage] || p.preferredLanguage)}
@@ -144,7 +144,7 @@ export async function mountMe(stack, { manifest, signal }) {
         <div class="app-dialog-grid">
           <div class="app-field"><label for="card-mobile">Business mobile <span>optional · +66…</span></label><input id="card-mobile" name="mobile" type="tel" inputmode="tel" maxlength="16" autocomplete="off" value="${esc(card.businessMobile || '')}"></div>
           <div class="app-field"><label for="card-direct">Direct phone <span>optional</span></label><input id="card-direct" name="direct" type="tel" inputmode="tel" maxlength="64" autocomplete="off" value="${esc(card.directPhone || '')}"></div>
-          <div data-span="full">${check('published', 'Publish the card at its public link', card.published === true)}</div>
+          <div data-width="full">${check('published', 'Publish the card at its public link', card.published === true)}</div>
           <div class="app-dialog-section"><span>Shown on the public card</span><small>Uncheck a line to leave it off the public page and the saved contact.</small></div>
           ${VISIBLE_FIELDS.map(([key, label]) => `<div>${check(key, label, vis[key] !== false)}</div>`).join('')}
         </div>

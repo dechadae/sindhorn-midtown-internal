@@ -100,7 +100,7 @@ export function businessCardMarkup(view, { url, qr = true, actions = '' } = {}) 
       </div>
       ${figure}
       <img class="app-business-card-logo" src="${esc(view.hotelLogo)}" alt="">
-      ${details ? `<div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${details}</div>` : ''}
+      ${details ? `<div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${details}</div>` : ''}
       ${actions}
       ${url ? `<p class="app-business-card-link">${view.published ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(url.replace(/^https?:\/\//, ''))}</a>` : 'Unpublished — the link and QR are off until you publish the card.'}</p>` : ''}
     </div>`;

@@ -68,7 +68,7 @@ function indexMarkup() {
   </article>`;
   return `<header class="app-hero"><p class="app-hero-eyebrow">Brand</p><h1 class="app-hero-title">Know Our Hotel</h1><p class="app-hero-copy">History, identity and essential hotel knowledge.</p></header>
   <section class="app-section">
-    <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${fact('Hotel', 'Sindhorn Midtown')}${fact('Collection', 'Vignette Collection by IHG')}</div>
+    <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${fact('Hotel', 'Sindhorn Midtown')}${fact('Collection', 'Vignette Collection by IHG')}</div>
     <h3 class="app-section-subhead">Reference</h3>
     <div class="app-stack">
       ${card('history', '01 · IHG Hotels & Resorts', 'Our History', 'From the origins of Bass in 1777 to today’s global IHG portfolio.', `${milestones} milestones`)}
@@ -92,7 +92,7 @@ function historyMarkup() {
   };
   return `<header class="app-hero"><div class="app-hero-head">${BACK}</div><p class="app-hero-eyebrow">IHG Hotels &amp; Resorts</p><h1 class="app-hero-title">Our History</h1><p class="app-hero-copy">From a Burton-on-Trent brewery in 1777 to a global hospitality group.</p></header>
   <section class="app-section">
-    <div class="app-metric-grid" data-columns="3" data-values="text" data-rule="true">${fact('Story begins', '1777')}${fact('IHG is born', '2003')}${fact('Latest milestone', latest)}</div>
+    <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">${fact('Story begins', '1777')}${fact('IHG is born', '2003')}${fact('Latest milestone', latest)}</div>
   </section>
   <section class="app-section" id="periods"><p class="app-section-kicker">01 · Periods</p><h2 class="app-section-title">Ten Chapters</h2>
     <div class="app-stack">${IHG_HISTORY_PERIODS.map(period).join('')}</div>
@@ -118,7 +118,7 @@ function factsheetMarkup() {
   ${rail}
   <section class="app-section" id="overview">
     ${figure(I.overview.src, I.overview.alt, '')}
-    <div class="app-metric-grid" data-columns="3" data-values="text" data-rule="true">${fact('Rooms & suites', h.roomsAndSuites)}${fact('Room types', h.roomTypes)}${fact('Dining venues', h.diningVenues)}${fact('Meetings', `Up to ${h.meetingMaxGuests}`)}${fact('Check-in', formatClock(h.checkIn))}${fact('Check-out', formatClock(h.checkOut))}</div>
+    <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">${fact('Rooms & suites', h.roomsAndSuites)}${fact('Room types', h.roomTypes)}${fact('Dining venues', h.diningVenues)}${fact('Meetings', `Up to ${h.meetingMaxGuests}`)}${fact('Check-in', formatClock(h.checkIn))}${fact('Check-out', formatClock(h.checkOut))}</div>
     <div class="app-card app-surface"><div class="app-list">
       ${listRow(h.name, h.positioning)}
       ${listRow('Owner and operator', h.ownerOperator)}
@@ -152,13 +152,13 @@ function factsheetMarkup() {
       <tbody>${D.meetings.spaces.map(space).join('')}</tbody>
     </table></div>
     <h3 class="app-section-subhead">Private events</h3>
-    <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${D.meetings.privateEvents.map(item => fact(item.name, item.capacity)).join('')}</div>
+    <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${D.meetings.privateEvents.map(item => fact(item.name, item.capacity)).join('')}</div>
     <div class="app-card app-surface"><p class="app-surface-label">Included</p><div class="app-prose"><ul>${D.meetings.included.map(item => `<li>${esc(item)}</li>`).join('')}</ul></div></div>
     <div class="app-card app-surface"><div class="app-list">${listLink(`mailto:${h.commercialEmail}`, 'Meetings & events', h.commercialEmail)}</div></div>
     ${utilityRow(externalLink(S.meetings, 'Meeting source'), externalLink(S.privateEvents, 'Venues source'))}
   </section>
   <section class="app-section" id="access"><p class="app-section-kicker">05 · Access</p><h2 class="app-section-title">Getting Here</h2>
-    <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">${D.access.bts.map(item => fact(`${item.distance} · ${item.walk}`, item.station, item.exit)).join('')}</div>
+    <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${D.access.bts.map(item => fact(`${item.distance} · ${item.walk}`, item.station, item.exit)).join('')}</div>
     <div class="app-card app-surface"><p class="app-surface-label">Nearby destinations</p><div class="app-row">${D.access.nearby.map(item => `<span class="app-badge" data-tone="quiet">${esc(item)}</span>`).join('')}</div></div>
     ${utilityRow(externalLink(S.location, 'Location source'))}
   </section>

@@ -254,8 +254,8 @@ async function refresh(host, { force = false, alive = () => true } = {}) {
     if (!alive()) return;
     host.innerHTML = render(data);
     // Tracks draw themselves in after first paint; reduced motion arrives drawn.
-    delete host.dataset.trackReady;
-    requestAnimationFrame(() => requestAnimationFrame(() => { if (alive()) host.dataset.trackReady = 'true'; }));
+    delete host.dataset.ready;
+    requestAnimationFrame(() => requestAnimationFrame(() => { if (alive()) host.dataset.ready = 'true'; }));
   } catch (error) {
     if (alive()) host.innerHTML = errorMarkup(error);
   }
@@ -285,5 +285,5 @@ export async function mountToday(host) {
   host.addEventListener('click', onClick);
   // The shell calls this when it routes away, so a report that answers late
   // never paints over the next view.
-  return () => { disposed = true; host.removeEventListener('click', onClick); delete host.dataset.trackReady; };
+  return () => { disposed = true; host.removeEventListener('click', onClick); delete host.dataset.ready; };
 }

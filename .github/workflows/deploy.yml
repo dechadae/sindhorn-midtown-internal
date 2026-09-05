@@ -208,6 +208,13 @@ jobs:
           node scripts/shell-precache-parity-smoke.mjs
           node scripts/sw-install-resilience-smoke.mjs
           node scripts/ci-page-render-smoke.mjs
+          # IDUI invariants 7 (variants are attributes, one vocabulary) and 8
+          # (actions in one row share one weight) are static reads (r32).
+          node scripts/idui-invariants-smoke.mjs
+          node scripts/ui-shape-source-audit.mjs
+          # idui-core/ is the foundation copied verbatim; drift is a second
+          # source of truth.
+          node scripts/idui-core-parity-smoke.mjs
           # Every saved Betta period must still be drawn by its seed under the
           # code about to ship (anon read, no credential). All eight periods
           # have been saved since 5 Sep 2026, so an unsaved period is a

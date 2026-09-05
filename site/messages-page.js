@@ -61,8 +61,8 @@ function detail(b) {
   return `<div class="app-dialog-body">
     ${dialogHead(meta, preferredText(b, 'title'))}
     <div class="app-dialog-grid">
-      <div class="app-prose" data-span="full" data-verbatim="true"><p>${esc(lead)}</p></div>
-      ${other ? `<div class="app-dialog-section"><span>${esc(otherTitle || preferredText(b, 'title'))}</span></div><div class="app-prose" data-span="full" data-verbatim="true"><p>${esc(other)}</p></div>` : ''}
+      <div class="app-prose" data-width="full" data-mode="verbatim"><p>${esc(lead)}</p></div>
+      ${other ? `<div class="app-dialog-section"><span>${esc(otherTitle || preferredText(b, 'title'))}</span></div><div class="app-prose" data-width="full" data-mode="verbatim"><p>${esc(other)}</p></div>` : ''}
     </div>
     ${b.expiresAt ? `<p class="app-dialog-status">Shown until ${esc(formatDateTime(b.expiresAt))}</p>` : ''}
     <div class="app-dialog-actions"><button class="app-primary app-control" type="button" data-dialog-close>Close</button></div>

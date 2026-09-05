@@ -12,10 +12,11 @@
      new page built from the same four files will render the same way — that is
      the only claim this page is allowed to make. -->
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
-<link rel="stylesheet" href="/fonts.css?v=1">
-<link rel="stylesheet" href="/app-tokens.css?v=10">
-<link rel="stylesheet" href="/app-glass.css?v=11">
-<link rel="stylesheet" href="/app-components.css?v=38">
+<link rel="stylesheet" href="/fonts.css?v=2">
+<link rel="stylesheet" href="/app-tokens.css?v=11">
+<link rel="stylesheet" href="/app-glass.css?v=12">
+<link rel="stylesheet" href="/app-components.css?v=39">
+<link rel="stylesheet" href="/app-compositions.css?v=1">
 <link rel="stylesheet" href="/app-shell.css?v=2">
 <link rel="stylesheet" href="/ci-library.css?v=10">
 </head>
@@ -41,17 +42,17 @@
       <a class="app-chip app-control" href="#selector">08 Selector</a>
       <a class="app-chip app-control" href="#actions">09 Actions</a>
       <a class="app-chip app-control" href="#dialog">10 Dialog</a>
-      <a class="app-chip app-control" href="#table">11 Table</a>
-      <a class="app-chip app-control" href="#metrics">12 Metrics</a>
-      <a class="app-chip app-control" href="#list">13 List</a>
-      <a class="app-chip app-control" href="#check">14 Check</a>
-      <a class="app-chip app-control" href="#badge">15 Badge</a>
-      <a class="app-chip app-control" href="#prose">16 Prose &amp; Divider</a>
-      <a class="app-chip app-control" href="#toast">17 Toast</a>
-      <a class="app-chip app-control" href="#shell">18 Shell</a>
-      <a class="app-chip app-control" href="#figure">19 Figure</a>
-      <a class="app-chip app-control" href="#states">20 States</a>
-      <a class="app-chip app-control" href="#skeleton">21 Skeleton</a>
+      <a class="app-chip app-control" href="#metrics">11 Metrics</a>
+      <a class="app-chip app-control" href="#list">12 List</a>
+      <a class="app-chip app-control" href="#check">13 Check</a>
+      <a class="app-chip app-control" href="#badge">14 Badge</a>
+      <a class="app-chip app-control" href="#prose">15 Prose</a>
+      <a class="app-chip app-control" href="#toast">16 Toast</a>
+      <a class="app-chip app-control" href="#shell">17 Shell</a>
+      <a class="app-chip app-control" href="#figure">18 Figure</a>
+      <a class="app-chip app-control" href="#states">19 States</a>
+      <a class="app-chip app-control" href="#skeleton">20 Skeleton</a>
+      <a class="app-chip app-control" href="#table">21 Table</a>
       <a class="app-chip app-control" href="#business-card">22 Business card</a>
       <a class="app-chip app-control" href="#job">23 Job</a>
       <a class="app-chip app-control" href="#rules">24 Rules</a>
@@ -60,7 +61,7 @@
 
   <!-- ========================= 01 MATERIAL ========================= -->
   <section class="app-section" id="material">
-    <p class="app-section-kicker">01 · Material</p>
+    <p class="app-section-kicker">01 · Material<span class="app-section-kicker-end">Foundation</span></p>
     <h2 class="app-section-title">One Frosted Material</h2>
     <p class="app-section-lede">A card is anything that draws an edge, so it needs the atmosphere behind it. A layout container draws no edge and takes no material. Three primitives, declared in markup, defined once in app-glass.css.</p>
 
@@ -107,7 +108,7 @@
 
   <!-- ========================= 02 COLOR ========================= -->
   <section class="app-section" id="color">
-    <p class="app-section-kicker">02 · Color</p>
+    <p class="app-section-kicker">02 · Color<span class="app-section-kicker-end">Foundation</span></p>
     <h2 class="app-section-title">Five Values, Named Once</h2>
     <p class="app-section-lede">Every route had converged on the same values under its own names. The library owns them once so a component can leave its route and still resolve.</p>
     <div class="ci-swatches">
@@ -122,7 +123,7 @@
 
   <!-- ========================= 03 TYPE ========================= -->
   <section class="app-section" id="type">
-    <p class="app-section-kicker">03 · Type</p>
+    <p class="app-section-kicker">03 · Type<span class="app-section-kicker-end">Foundation</span></p>
     <h2 class="app-section-title">One Typeface, Clear Roles</h2>
     <p class="app-section-lede">LINE Seed Sans TH for English and Thai. Weights 100 / 400 / 700 only, and zero tracking everywhere in application chrome.</p>
     <div class="ci-type-stack">
@@ -139,7 +140,7 @@
 
   <!-- ========================= 04 SHAPE & MOTION ========================= -->
   <section class="app-section" id="shape">
-    <p class="app-section-kicker">04 · Shape &amp; Motion</p>
+    <p class="app-section-kicker">04 · Shape &amp; Motion<span class="app-section-kicker-end">Foundation</span></p>
     <h2 class="app-section-title">Rounded, Never Circular</h2>
     <p class="app-section-lede">Corners are soft; UI chrome is never a circle or a capsule. Motion explains state and settles with one easing family — press the controls below to feel it.</p>
     <table class="ci-ref ci-ref-table">
@@ -185,7 +186,7 @@
 
   <!-- ========================= 05 CARDS ========================= -->
   <section class="app-section" id="cards">
-    <p class="app-section-kicker">05 · Cards</p>
+    <p class="app-section-kicker">05 · Cards<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">Cards Communicate Role</h2>
     <p class="app-section-lede">A surface looks actionable only when it is actionable. Both take the same material; only the press promise differs.</p>
     <div class="ci-stack">
@@ -228,7 +229,7 @@
 
   <!-- ========================= 06 DISCLOSURE ========================= -->
   <section class="app-section" id="disclosure">
-    <p class="app-section-kicker">06 · Disclosure</p>
+    <p class="app-section-kicker">06 · Disclosure<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">Expandable Content Has One Rhythm</h2>
     <p class="app-section-lede">Content stays in the DOM when collapsed, so search and screen readers still find it. The control owns <code>aria-expanded</code>.</p>
     <div class="ci-stack is-single">
@@ -287,7 +288,7 @@
 
   <!-- ========================= 07 FORMS ========================= -->
   <section class="app-section" id="forms">
-    <p class="app-section-kicker">07 · Forms</p>
+    <p class="app-section-kicker">07 · Forms<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">Forms Stay Quiet and Explicit</h2>
     <p class="app-section-lede">Labels stay visible. An input reads as a recessed well rather than a raised surface, so it keeps its own inset tint instead of the card's fill — but it still draws an edge, so it still frosts.</p>
     <div class="ci-stack is-single">
@@ -342,7 +343,7 @@
 
   <!-- ========================= 08 SELECTOR ========================= -->
   <section class="app-section" id="selector">
-    <p class="app-section-kicker">08 · Selector</p>
+    <p class="app-section-kicker">08 · Selector<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">One Selector, One Menu</h2>
     <p class="app-section-lede">The trigger is a control; the menu floats above content, so it is an overlay. There is one selector in the app and this is it - and one compact form of it, a badge that opens the same menu.</p>
     <div class="ci-stack">
@@ -410,7 +411,7 @@
 
   <!-- ========================= 09 ACTIONS ========================= -->
   <section class="app-section" id="actions">
-    <p class="app-section-kicker">09 · Actions</p>
+    <p class="app-section-kicker">09 · Actions<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">One Tactile Language</h2>
     <p class="app-section-lede">Emphasis changes by role, not by inventing a new interaction. Utility actions are deliberately frameless: no edge, so no material.</p>
     <div class="ci-stack is-single">
@@ -469,7 +470,7 @@
 
   <!-- ========================= 10 DIALOG ========================= -->
   <section class="app-section" id="dialog">
-    <p class="app-section-kicker">10 · Dialog</p>
+    <p class="app-section-kicker">10 · Dialog<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">One Dialog Standard</h2>
     <p class="app-section-lede">Editing and bounded secondary tasks use a native dialog. Do not build a second scrim, scroll lock or open animation.</p>
     <div class="ci-stack is-single">
@@ -486,7 +487,7 @@
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>openDialog() · .app-dialog-grid</span><span>a form in the standard · two columns, one on a phone</span></div>
         <button class="app-primary app-control" type="button" data-form-dialog-open>Open form dialog specimen</button>
-        <p class="app-note">A page with a form to show - Edit card, Add employee - calls <code>openDialog(markup)</code> with a body of its own and gets the same scrim, Escape and clean-up. Inside, <code>.app-dialog-grid</code> lays fields and selectors two across, <code>data-span="full"</code> takes a row, <code>.app-dialog-section</code> opens a titled group above a hairline, and <code>.app-dialog-status</code> is the one line that says Saving… or explains the error - never a second toast, never an alert.</p>
+        <p class="app-note">A page with a form to show - Edit card, Add employee - calls <code>openDialog(markup)</code> with a body of its own and gets the same scrim, Escape and clean-up. Inside, <code>.app-dialog-grid</code> lays fields and selectors two across, <code>data-width="full"</code> takes a row, <code>.app-dialog-section</code> opens a titled group above a hairline, and <code>.app-dialog-status</code> is the one line that says Saving… or explains the error - never a second toast, never an alert.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-sheet</span><span>native &lt;dialog&gt; · bottom-anchored</span></div>
@@ -506,32 +507,9 @@
     </div>
   </section>
 
-  <!-- ========================= 11 TABLE ========================= -->
-  <section class="app-section" id="table">
-    <p class="app-section-kicker">11 · Table</p>
-    <h2 class="app-section-title">Dense Data Scrolls, It Does Not Collapse</h2>
-    <p class="app-section-lede">On a narrow screen, horizontal scrolling beats illegible compression. The first column stays put so a row never loses its label.</p>
-    <div class="ci-stack is-single">
-      <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-table</span><span>scroll sideways</span></div>
-        <div class="app-table-wrap">
-          <table class="app-table">
-            <thead><tr><th scope="col">Room</th><th scope="col">Class</th><th scope="col">Theater</th><th scope="col">Banquet</th><th scope="col">Cocktail</th></tr></thead>
-            <tbody>
-              <tr><th scope="row">Veha<small>30th · 172.5 sqm</small></th><td>60</td><td>108</td><td>110</td><td>120</td></tr>
-              <tr><th scope="row">Midtown 1<small>2nd · 45 sqm</small></th><td>16</td><td>43</td><td>24</td><td>—</td></tr>
-              <tr><th scope="row">Midtown 2<small>2nd · 45 sqm</small></th><td>16</td><td>43</td><td>24</td><td>—</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <p class="app-note">The sticky column carries an opaque fill. At the card's 30% the numbers slide visibly underneath the row label.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========================= 12 METRICS ========================= -->
+  <!-- ========================= 11 METRICS ========================= -->
   <section class="app-section" id="metrics">
-    <p class="app-section-kicker">12 · Metrics</p>
+    <p class="app-section-kicker">11 · Metrics<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">Numbers Read as Numbers</h2>
     <p class="app-section-lede">Tabular figures line up in a column. A delta states its own direction as text, so the meaning does not depend on color alone.</p>
     <div class="ci-stack is-single">
@@ -546,17 +524,17 @@
         </div>
       </div>
       <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-metric-grid data-columns · data-values · data-rule</span><span>an open strip, no card</span></div>
-        <div class="app-metric-grid" data-columns="3" data-values="text" data-rule="true">
+        <div class="ci-specimen-label"><span>.app-metric-grid data-columns · data-mode · data-rule</span><span>an open strip, no card</span></div>
+        <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">
           <div class="app-metric"><p class="app-metric-label">Promotions</p><p class="app-metric-value">18</p></div>
           <div class="app-metric"><p class="app-metric-label">Live now</p><p class="app-metric-value">2</p></div>
           <div class="app-metric"><p class="app-metric-label">Artwork done</p><p class="app-metric-value">12/61</p></div>
         </div>
-        <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">
+        <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">
           <div class="app-metric"><p class="app-metric-label">Outlet</p><p class="app-metric-value">The Lobby Lounge + Sip &amp; Co.</p></div>
           <div class="app-metric"><p class="app-metric-label">Time</p><p class="app-metric-value">TBC</p></div>
         </div>
-        <p class="app-note">Fixed columns keep a strip on one line at phone width; <code>data-values="text"</code> scales the value to lead so the grid can carry facts as well as figures; <code>data-rule</code> closes each cell with the list hairline. The strip sits on the ground — it draws no edge, so it takes no material.</p>
+        <p class="app-note">Fixed columns keep a strip on one line at phone width; <code>data-mode="text"</code> scales the value to lead so the grid can carry facts as well as figures; <code>data-rule</code> closes each cell with the list hairline. The strip sits on the ground — it draws no edge, so it takes no material.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-track</span><span>actual against a reference</span></div>
@@ -596,7 +574,7 @@
           <h3 class="app-surface-title">Golden Hour</h3>
           <div class="app-swatches" role="img" aria-label="Three sky colors and four fish colors"><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#0b0708"/></svg><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#1a0c0a"/></svg><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#0c0a0f"/></svg><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#7a2f16"/></svg><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#d8642a"/></svg><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#f6c98a"/></svg><svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="#ffe9c9"/></svg></div>
         </div>
-        <div class="app-metric-grid app-card-section" data-columns="3" data-values="text">
+        <div class="app-metric-grid app-card-section" data-columns="3" data-mode="text">
           <div class="app-metric"><span class="app-metric-label">Ink</span><span class="app-metric-value">9.8:1</span></div>
           <div class="app-metric"><span class="app-metric-label">Muted</span><span class="app-metric-value">4.7:1</span></div>
           <div class="app-metric" data-tone="danger"><span class="app-metric-label">Accent</span><span class="app-metric-value">4.1:1</span></div>
@@ -606,9 +584,9 @@
     </div>
 </section>
 
-  <!-- ========================= 13 LIST ========================= -->
+  <!-- ========================= 12 LIST ========================= -->
   <section class="app-section" id="list">
-    <p class="app-section-kicker">13 · List</p>
+    <p class="app-section-kicker">12 · List<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">Rows Share One Hairline, Not a Card Each</h2>
     <p class="app-section-lede">A directory or an inbox is a list, not a stack of cards. The separator sits between rows and never after the last.</p>
     <div class="ci-stack is-single">
@@ -670,9 +648,9 @@
     </div>
   </section>
 
-  <!-- ========================= 14 CHECK ========================= -->
+  <!-- ========================= 13 CHECK ========================= -->
   <section class="app-section" id="check">
-    <p class="app-section-kicker">14 · Check</p>
+    <p class="app-section-kicker">13 · Check<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">A Row You Can Mark Done</h2>
     <p class="app-section-lede">The label is the hit target, not just the box, so the whole row responds rather than a 20px square.</p>
     <div class="ci-stack is-single">
@@ -694,9 +672,9 @@
     </div>
   </section>
 
-  <!-- ========================= 15 BADGE ========================= -->
+  <!-- ========================= 14 BADGE ========================= -->
   <section class="app-section" id="badge">
-    <p class="app-section-kicker">15 · Badge</p>
+    <p class="app-section-kicker">14 · Badge<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">A Count, Never the Only Signal</h2>
     <p class="app-section-lede">A badge marks a count or a status. Pair it with text a screen reader can read — never rely on the badge alone.</p>
     <div class="ci-stack">
@@ -713,9 +691,9 @@
     </div>
   </section>
 
-  <!-- ========================= 16 PROSE & DIVIDER ========================= -->
+  <!-- ========================= 15 PROSE ========================= -->
   <section class="app-section" id="prose">
-    <p class="app-section-kicker">16 · Prose &amp; Divider</p>
+    <p class="app-section-kicker">15 · Prose<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">Long-Form Copy Keeps a Measure</h2>
     <p class="app-section-lede">History and brand narrative read as prose, not as a paragraph stretched across a tablet's full width.</p>
     <div class="ci-stack is-single">
@@ -728,8 +706,6 @@
             <p>The property carries <strong>IHG</strong>'s Vignette Collection standard: independent character inside a global network.</p>
             <ul><li>Guided by local craft</li><li>Anchored to Sindhorn Village</li></ul>
           </div>
-          <hr class="app-divider">
-          <p class="app-note">.app-divider — one hairline, one token, instead of a route drawing its own.</p>
         </div>
       </div>
       <div class="ci-specimen">
@@ -751,7 +727,7 @@
         <div class="app-card app-surface">
           <p class="app-surface-label">English</p>
           <div class="app-clamp" data-clamp>
-            <div class="app-prose" data-verbatim="true"><p>Negroni Week returns to ANJU and The Lobby Lounge with three creations that begin from a familiar ritual and travel somewhere else entirely.
+            <div class="app-prose" data-mode="verbatim"><p>Negroni Week returns to ANJU and The Lobby Lounge with three creations that begin from a familiar ritual and travel somewhere else entirely.
 
 The Seoul Negroni folds toasted barley and a whisper of gochugaru into the classic build. The Lobby's version leans on Araksa tea and a bitter orange cordial made in house.
 
@@ -759,9 +735,9 @@ Available 21 – 27 September, 5 pm until late at ANJU and from 6:30 am at The L
 
 Ask the team about the pairing board: three small plates built for the three drinks.</p></div>
           </div>
-          <button class="app-chip app-control" type="button" data-scale="control" data-clamp-toggle aria-expanded="false">Show full</button>
+          <button class="app-chip app-control" type="button" data-size="control" data-clamp-toggle aria-expanded="false">Show full</button>
         </div>
-        <p class="app-note">The toggle is a chip at control scale, flattened by the card it sits in. The copy keeps its source line breaks through <code>data-verbatim</code>. Open removes the limit rather than animating to a guessed height, so nothing jumps when the text is longer than expected.</p>
+        <p class="app-note">The toggle is a chip at control scale, flattened by the card it sits in. The copy keeps its source line breaks through <code>data-mode="verbatim"</code>. Open removes the limit rather than animating to a guessed height, so nothing jumps when the text is longer than expected.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-section-kicker-end</span><span>a figure after the rule</span></div>
@@ -778,9 +754,9 @@ Ask the team about the pairing board: three small plates built for the three dri
     </div>
   </section>
 
-  <!-- ========================= 17 TOAST ========================= -->
+  <!-- ========================= 16 TOAST ========================= -->
   <section class="app-section" id="toast">
-    <p class="app-section-kicker">17 · Toast</p>
+    <p class="app-section-kicker">16 · Toast<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">A Transient Confirmation</h2>
     <p class="app-section-lede">Floats above content on overlay material, above the footer's height, then gets out of the way on its own.</p>
     <div class="ci-stack is-single">
@@ -791,9 +767,9 @@ Ask the team about the pairing board: three small plates built for the three dri
     </div>
   </section>
 
-  <!-- ========================= 18 SHELL ========================= -->
+  <!-- ========================= 17 SHELL ========================= -->
   <section class="app-section" id="shell">
-    <p class="app-section-kicker">18 · Shell</p>
+    <p class="app-section-kicker">17 · Shell<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">A Sticky Header and Footer That Frost What Passes Under Them</h2>
     <p class="app-section-lede">The app shell is exactly these two elements: a masthead and a navbar, both one band of <code>--app-shell-band</code> 56px so the top and bottom match. The masthead's logo is Home; its account chip opens Settings, and the navbar's four buttons cross-fade to the settings set (Me, Admin, Broadcast, System) while it is open. Signed out, the shell stays visible but locked. Scroll the frame below — this is the same markup the app at / uses.</p>
     <div class="ci-stack is-single">
@@ -892,9 +868,9 @@ Ask the team about the pairing board: three small plates built for the three dri
     </div>
   </section>
 
-  <!-- ========================= 19 FIGURE ========================= -->
+  <!-- ========================= 18 FIGURE ========================= -->
   <section class="app-section" id="figure">
-    <p class="app-section-kicker">19 · Figure</p>
+    <p class="app-section-kicker">18 · Figure<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">Official Imagery Keeps Its Ratio</h2>
     <p class="app-section-lede">A figure crops to an intentional ratio and labels its provenance. It draws no edge, so by the rule it takes no material — the image is the content.</p>
     <div class="ci-stack is-single">
@@ -922,9 +898,9 @@ Ask the team about the pairing board: three small plates built for the three dri
     </div>
   </section>
 
-  <!-- ========================= 20 STATES ========================= -->
+  <!-- ========================= 19 STATES ========================= -->
   <section class="app-section" id="states">
-    <p class="app-section-kicker">20 · States</p>
+    <p class="app-section-kicker">19 · States<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">Operational States Stay Calm</h2>
     <p class="app-section-lede">Loading, empty, success and error explain what happened and what the employee can do next, without changing the product's visual language.</p>
     <div class="ci-stack">
@@ -944,9 +920,9 @@ Ask the team about the pairing board: three small plates built for the three dri
     </div>
   </section>
 
-  <!-- ========================= 21 SKELETON ========================= -->
+  <!-- ========================= 20 SKELETON ========================= -->
   <section class="app-section" id="skeleton">
-    <p class="app-section-kicker">21 · Skeleton</p>
+    <p class="app-section-kicker">20 · Skeleton<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">Reserve the Shape Before the Data</h2>
     <p class="app-section-lede">A skeleton holds the geometry the content will occupy, so the page does not reflow when it arrives. It is a placeholder, not a surface.</p>
     <div class="ci-stack">
@@ -963,17 +939,17 @@ Ask the team about the pairing board: three small plates built for the three dri
         <p class="app-note">Reduced motion stops the pulse without removing the reserved space.</p>
       </div>
       <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-skeleton in the page's own anatomy</span><span>data-size · data-gap</span></div>
+        <div class="ci-specimen-label"><span>.app-skeleton in the page's own anatomy</span><span>data-size · data-compact</span></div>
         <div class="app-section" aria-busy="true">
-        <div class="app-metric-grid" data-columns="3" data-values="text" data-rule="true">
-          <div class="app-metric"><div class="app-skeleton" data-gap="tight"><div class="app-skeleton-line" data-width="medium"></div><div class="app-skeleton-line" data-width="short" data-size="lead"></div></div></div>
-          <div class="app-metric"><div class="app-skeleton" data-gap="tight"><div class="app-skeleton-line" data-width="medium"></div><div class="app-skeleton-line" data-width="short" data-size="lead"></div></div></div>
-          <div class="app-metric"><div class="app-skeleton" data-gap="tight"><div class="app-skeleton-line" data-width="medium"></div><div class="app-skeleton-line" data-width="short" data-size="lead"></div></div></div>
+        <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">
+          <div class="app-metric"><div class="app-skeleton" data-compact="true"><div class="app-skeleton-line" data-width="medium"></div><div class="app-skeleton-line" data-width="short" data-size="lead"></div></div></div>
+          <div class="app-metric"><div class="app-skeleton" data-compact="true"><div class="app-skeleton-line" data-width="medium"></div><div class="app-skeleton-line" data-width="short" data-size="lead"></div></div></div>
+          <div class="app-metric"><div class="app-skeleton" data-compact="true"><div class="app-skeleton-line" data-width="medium"></div><div class="app-skeleton-line" data-width="short" data-size="lead"></div></div></div>
         </div>
         <div class="app-row"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line" data-size="control"></div></div><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line" data-size="control"></div></div></div>
         <h3 class="app-section-subhead">Promotions</h3>
         <div class="app-stack">
-        <article class="app-action-card"><div class="app-skeleton" data-gap="tight">
+        <article class="app-action-card"><div class="app-skeleton" data-compact="true">
           <div class="app-action-card-head"><div class="app-skeleton-line" data-width="tiny"></div><div class="app-skeleton-line" data-width="tiny"></div></div>
           <div class="app-skeleton-line" data-width="medium" data-size="lead"></div><div class="app-skeleton-line" data-width="half"></div><div class="app-skeleton-line" data-width="short"></div>
           <div class="app-action-card-meta"><div class="app-skeleton-line" data-width="tiny"></div><div class="app-skeleton-line" data-width="tiny"></div></div>
@@ -986,9 +962,32 @@ Ask the team about the pairing board: three small plates built for the three dri
     </div>
   </section>
 
+  <!-- ========================= 21 TABLE ========================= -->
+  <section class="app-section" id="table">
+    <p class="app-section-kicker">21 · Table<span class="app-section-kicker-end">Composition</span></p>
+    <h2 class="app-section-title">Dense Data Scrolls, It Does Not Collapse</h2>
+    <p class="app-section-lede">On a narrow screen, horizontal scrolling beats illegible compression. The first column stays put so a row never loses its label.</p>
+    <div class="ci-stack is-single">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-table</span><span>scroll sideways</span></div>
+        <div class="app-table-wrap">
+          <table class="app-table">
+            <thead><tr><th scope="col">Room</th><th scope="col">Class</th><th scope="col">Theater</th><th scope="col">Banquet</th><th scope="col">Cocktail</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Veha<small>30th · 172.5 sqm</small></th><td>60</td><td>108</td><td>110</td><td>120</td></tr>
+              <tr><th scope="row">Midtown 1<small>2nd · 45 sqm</small></th><td>16</td><td>43</td><td>24</td><td>—</td></tr>
+              <tr><th scope="row">Midtown 2<small>2nd · 45 sqm</small></th><td>16</td><td>43</td><td>24</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="app-note">The sticky column carries an opaque fill. At the card's 30% the numbers slide visibly underneath the row label.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- ========================= 22 BUSINESS CARD ========================= -->
   <section class="app-section" id="business-card">
-    <p class="app-section-kicker">22 · Business card</p>
+    <p class="app-section-kicker">22 · Business card<span class="app-section-kicker-end">Composition</span></p>
     <h2 class="app-section-title">One Card, Presented or Printed</h2>
     <p class="app-section-lede">An employee's digital business card is a layout on a plain surface, not a new material: name at display size, the QR as a figure, the reachable details as a text metric grid. Settings › Me previews it, presents it in a dialog and edits it; the public page at /&lt;slug&gt; prints the same.</p>
     <div class="ci-stack is-single">
@@ -1004,7 +1003,7 @@ Ask the team about the pairing board: three small plates built for the three dri
             </div>
             <figure class="app-figure" data-card-qr-specimen></figure>
             <img class="app-business-card-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="">
-            <div class="app-metric-grid" data-columns="2" data-values="text" data-rule="true">
+            <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">
               <div class="app-metric"><span class="app-metric-label">Work email</span><span class="app-metric-value"><a href="mailto:decha.dae@sindhornmidtown.com">decha.dae@sindhornmidtown.com</a></span></div>
               <div class="app-metric"><span class="app-metric-label">Business mobile</span><span class="app-metric-value"><a href="tel:+66800000000">+66 80 000 0000</a></span></div>
               <div class="app-metric"><span class="app-metric-label">Hotel telephone</span><span class="app-metric-value"><a href="tel:+6627966888">+66 2 796 6888</a></span></div>
@@ -1021,7 +1020,7 @@ Ask the team about the pairing board: three small plates built for the three dri
 
   <!-- ========================= 23 JOB ========================= -->
   <section class="app-section" id="job">
-    <p class="app-section-kicker">23 · Job</p>
+    <p class="app-section-kicker">23 · Job<span class="app-section-kicker-end">Composition</span></p>
     <h2 class="app-section-title">One Job, Where It Stands</h2>
     <p class="app-section-lede">The Jobs tab lists what was asked of an employee: the task, who sent it and when, the deadline and the status. A job is a layout inside a plain card, the way the business card is - the status is the compact selector, a badge whose tone says the state and, tapped, drops its menu; a tight deadline reads in the danger tone, and everything else editable opens in the dialog.</p>
     <div class="ci-stack">
@@ -1033,7 +1032,7 @@ Ask the team about the pairing board: three small plates built for the three dri
             <h3 class="app-surface-title">ANJU Grab delivery review card</h3>
             <p class="app-surface-copy">Artwork for the review card that goes out with Grab deliveries: QR to the Google review page, both languages, print-ready at 90 × 55 mm.</p>
             </div>
-            <div class="app-metric-grid app-card-section" data-columns="2" data-values="text">
+            <div class="app-metric-grid app-card-section" data-columns="2" data-mode="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Chanrutt Thayartsuwan</span><span class="app-metric-note">Director of Marketing Communications</span></div>
               <div class="app-metric" data-tone="danger"><span class="app-metric-label">Deadline</span><span class="app-metric-value">Mon 8 Sep 2026</span><span class="app-metric-note">Before the Grab listing goes live</span></div>
             </div>
@@ -1048,7 +1047,7 @@ Ask the team about the pairing board: three small plates built for the three dri
               <p class="app-surface-label">Received 3 Sep 2026</p>
             <h3 class="app-surface-title">Lobby elevator wrap, Loy Krathong</h3>
             </div>
-            <div class="app-metric-grid app-card-section" data-columns="2" data-values="text">
+            <div class="app-metric-grid app-card-section" data-columns="2" data-mode="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Rooms Division</span></div>
               <div class="app-metric"><span class="app-metric-label">Deadline</span><span class="app-metric-value">24 Oct 2026</span></div>
             </div>
@@ -1060,7 +1059,7 @@ Ask the team about the pairing board: three small plates built for the three dri
             <h3 class="app-surface-title">Sindhorn Wellness brochure reprint</h3>
             <p class="app-surface-copy">Waiting on the revised treatment prices from Spa before the price page can be set.</p>
             </div>
-            <div class="app-metric-grid app-card-section" data-columns="2" data-values="text">
+            <div class="app-metric-grid app-card-section" data-columns="2" data-mode="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Spa Manager</span></div>
               <div class="app-metric"><span class="app-metric-label">Deadline</span><span class="app-metric-value">No date</span><span class="app-metric-note">When the prices arrive</span></div>
             </div>
@@ -1071,7 +1070,7 @@ Ask the team about the pairing board: three small plates built for the three dri
               <p class="app-surface-label">Received 21 Aug 2026</p>
             <h3 class="app-surface-title">Mother's Day afternoon tea social set</h3>
             </div>
-            <div class="app-metric-grid app-card-section" data-columns="2" data-values="text">
+            <div class="app-metric-grid app-card-section" data-columns="2" data-mode="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">F&amp;B Marketing</span></div>
               <div class="app-metric"><span class="app-metric-label">Deadline</span><span class="app-metric-value">1 Sep 2026</span></div>
             </div>

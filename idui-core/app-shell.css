@@ -1,0 +1,52 @@
+/* Sindhorn Midtown Internal — shell foundation.
+
+   The ground every page stands on: the document reset and the live atmosphere
+   stage. These were sitting in the UI Library page's private stylesheet, which
+   meant the new app shell could not reuse them without copying — the same trap
+   that produced per-route drift in the first place.
+
+   A page loads: fonts.css, app-tokens.css, app-glass.css, app-components.css,
+   app-shell.css. That is the whole system.
+*/
+
+*{box-sizing:border-box}
+/* hidden is an instruction, not a hint. This sheet loads after the
+   components, so at equal specificity it wins over any component's display
+   rule, and a control the router hides stays hidden. */
+[hidden]{display:none}
+html{-webkit-text-size-adjust:100%}
+
+/* min-height:100% on body is a no-op without html{height:100%}, so a page
+   shorter than the viewport (a short route, or the frame before content
+   mounts) never actually reaches the bottom of the screen - a sticky footer
+   then floats right after the short content instead of pinning to view.
+   100dvh plus a flex column makes body itself always at least viewport-tall,
+   and .app-page.is-shell (below) grows to fill what's left, so the footer's
+   position:sticky always has real space to stick within. */
+body{
+  min-height:100dvh;margin:0;
+  display:flex;flex-direction:column;
+  background:#2E273B;color:var(--app-text);
+  font-family:var(--font-ui);font-size:var(--type-body);font-weight:var(--weight-regular);
+  letter-spacing:0;line-height:var(--leading-body);
+  overflow-x:hidden;
+}
+
+/* The live atmosphere. Every glass surface samples this, so it is the reason the
+   material is real rather than a painted approximation. It sits behind
+   everything and never receives pointer events. */
+.environment-stage{
+  position:fixed;z-index:0;inset:0 0 auto 0;
+  width:100vw;height:100lvh;overflow:hidden;
+  background:#2E273B;pointer-events:none;
+}
+.environment-canvas{
+  position:absolute;z-index:1;inset:0;
+  width:100%;height:100%;display:block;
+  opacity:0;transition:opacity .32s var(--motion-ease);
+}
+.environment-stage[data-ready="true"] .environment-canvas{opacity:1}
+
+@media(prefers-reduced-motion:reduce){
+  .environment-canvas{transition:none}
+}

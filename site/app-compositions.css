@@ -1,0 +1,131 @@
+/* Sindhorn Midtown Internal — the compositions.
+
+   A composition is made of primitives (app-components.css) and shaped by
+   one page's content: the F&B promotion card's progress and action rows,
+   the directory's search, avatar and recovery code, the brand fact table,
+   the Readability Test's swatches, the digital business card. Each is still
+   library - one name, one place, no page CSS - but none is vocabulary a
+   second product would carry, so they sit in their own file and the
+   primitives stay the transferable core.
+
+   The same rules as the primitives: geometry and structure only. Material
+   comes from app-glass.css, values from app-tokens.css. When a composition
+   is adopted by a second page it is not promoted; it is questioned - most
+   often the second page wanted a primitive with a variant.
+*/
+
+/* ---- Promotion card (F&B) --------------------------------------------------
+   The actionable card as the F&B list uses it: a date beside the status, a
+   when-line under the title, one line of progress above the foot and a row
+   of frameless secondary actions below the press surface. */
+.app-action-card-date{color:var(--app-muted);font-size:var(--type-small);white-space:nowrap}
+.app-action-card-when{display:block;margin:6px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body);font-variant-numeric:tabular-nums}
+/* A live card's when-line takes the success tone with its title. */
+.app-action-card[data-tone="success"] .app-action-card-when{color:var(--app-success)}
+/* A card can carry one line of progress above its foot (label left, tally
+   right, .app-track beneath) and a row of frameless secondary actions below
+   the press surface. The actions sit outside the button so a tap on Share
+   never also opens the detail. */
+.app-action-card-meta{margin-top:12px;padding-top:11px;border-top:1px solid var(--app-line);display:flex;align-items:baseline;justify-content:space-between;gap:12px;color:var(--app-muted);font-size:var(--type-small);text-transform:uppercase}
+.app-action-card-meta b{color:var(--app-text);font-weight:var(--weight-regular);font-size:var(--type-body-s);text-transform:none;font-variant-numeric:tabular-nums}
+.app-action-card-actions{padding:6px 10px;display:flex;align-items:center;justify-content:flex-end;gap:4px;border-top:1px solid var(--app-line)}
+.app-action-card-actions>:first-child:not(:last-child){margin-right:auto}
+
+/* ---- Directory (Settings › Admin) ------------------------------------------
+   A search well, an initials avatar leading a row, and the six-well code the
+   app shows rather than asks for. */
+/* A search is a field with a leading glass and a clear control, for a list
+   the employee filters as they type - the directory. The well is the same
+   input; only the padding makes room. The clear control appears once there
+   is something to clear, from the placeholder alone, so no script has to
+   watch the value. */
+.app-search{position:relative}
+/* The glyph and the clear control sit above the well: the input's blur makes
+   it a stacking context that would otherwise paint over them. */
+.app-search>svg{position:absolute;z-index:1;left:12px;bottom:15px;width:18px;height:18px;fill:none;stroke:var(--app-muted);stroke-width:1.6;pointer-events:none}
+.app-search input{padding-left:38px;padding-right:44px;-webkit-appearance:none;appearance:none}
+.app-search input::-webkit-search-cancel-button,.app-search input::-webkit-search-decoration{-webkit-appearance:none;appearance:none}
+.app-search-clear{
+  position:absolute;z-index:1;right:4px;bottom:4px;width:40px;height:40px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:0;border-radius:var(--radius-tight);background:transparent;
+  color:var(--app-muted);cursor:pointer;
+}
+.app-search-clear svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6}
+.app-search-clear:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
+.app-search input:placeholder-shown~.app-search-clear{display:none}
+
+/* A six-character code the app shows rather than asks for - a first-login
+   or recovery code an admin reads out or shares. The same six wells as the
+   input group, only static, so the two read as one thing. */
+.app-code-display{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:0}
+.app-code-display b{
+  min-height:var(--control-row);display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--app-line);border-radius:var(--radius-inset);background:var(--app-inset-fill);
+  font-size:var(--type-title);font-weight:var(--weight-regular);font-variant-numeric:tabular-nums;
+}
+
+/* An avatar is the initials on the inset tint - rounded, never circular. It
+   leads a directory row; the row's text column keeps its own grid beside it.
+   The fill is the badge's tint, so like the badge it is a fill without an
+   edge: app-glass.css gives it the blur where it can sample the page. */
+.app-avatar{
+  flex:0 0 auto;width:38px;height:38px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:var(--radius-inset);background:var(--app-inset-fill);
+  color:var(--app-muted);font-size:var(--type-body-s);font-weight:var(--weight-bold);text-transform:uppercase;
+}
+.app-list-row-lead{min-width:0;flex:1 1 auto;display:flex;align-items:center;gap:12px}
+.app-list-row-lead>.app-list-row-main{flex:1 1 auto}
+
+/* ---- Swatches ------------------------------------------------------------
+   A swatch is a sample of a color, not a surface: it draws no edge of its
+   own and is never glass. A strip shares its row equally, one swatch per
+   color, at the inline control height so it sits in a card the way a badge
+   row does. The color is the swatch's own SVG fill - data the page sets as an
+   attribute, never a style. */
+.app-swatches{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+.app-swatch{display:block;width:100%;height:var(--control-inline);border-radius:var(--radius-tight);overflow:hidden}
+.app-card-section>.app-surface-title+.app-swatches{margin-top:12px}
+
+/* ---- Table -----------------------------------------------------------------
+   Dense data scrolls horizontally rather than compressing. The first column is
+   sticky, so it must be opaque enough to cover the cells passing beneath it —
+   a transparent sticky column lets numbers slide under the row label. */
+/* contain:inline-size — the wide table scrolls inside the wrap and never sizes
+   the page around it. */
+.app-table-wrap{overflow-x:auto;contain:inline-size;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+.app-table{width:max(650px,100%);border-collapse:collapse;font-size:var(--type-body-s);font-variant-numeric:tabular-nums}
+.app-table th,.app-table td{padding:10px 8px;border-bottom:1px solid var(--app-line);text-align:center;white-space:nowrap}
+.app-table thead th{color:var(--app-muted);font-size:var(--type-small);font-weight:var(--weight-regular);text-transform:uppercase}
+.app-table thead th:first-child{width:108px;min-width:108px;max-width:108px}
+.app-table tbody th{
+  position:sticky;left:0;z-index:1;
+  width:108px;min-width:108px;max-width:108px;
+  text-align:left;font-weight:var(--weight-regular);white-space:normal;line-height:var(--leading-label);
+}
+.app-table tbody th small{display:block;margin-top:3px;color:var(--app-muted);font-size:var(--type-small);font-weight:var(--weight-regular);line-height:var(--leading-label)}
+
+/* ---- Business card ----------------------------------------------------------
+   The employee's digital card as it appears on Settings › Me: the same shape
+   the public card page draws - name, position, hotel, the QR that opens the
+   public link - laid out on the card material the page already has. It is
+   layout only: the .app-card around it is the material, the details are a
+   text metric grid, the QR is a figure. The QR's paper is inside the SVG the
+   generator draws, so this rule paints no color. */
+.app-business-card{display:grid;gap:18px;text-align:center}
+.app-business-card-kicker{margin:0;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-business-card-name{margin:6px 0 0;font-size:var(--type-display);font-weight:var(--weight-thin);line-height:.98;text-wrap:balance;overflow-wrap:anywhere}
+.app-business-card-position{margin:10px 0 0;font-size:var(--type-lead);line-height:var(--leading-label)}
+.app-business-card-hotel{max-width:36ch;margin:8px auto 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body);text-wrap:balance}
+.app-business-card>.app-figure{width:min(72%,260px);margin-inline:auto;aspect-ratio:1;border-radius:var(--radius-surface)}
+.app-business-card>.app-figure svg{display:block;width:100%;height:100%}
+.app-business-card-logo{display:block;width:min(120px,32vw);height:auto;margin:0 auto}
+.app-business-card>.app-metric-grid .app-metric{text-align:center}
+.app-business-card>.app-metric-grid .app-metric-value{font-size:var(--type-body);line-height:var(--leading-label);overflow-wrap:anywhere}
+.app-business-card>.app-metric-grid .app-metric-value a{color:var(--app-accent);text-decoration:none}
+.app-business-card>.app-utility-row{justify-content:center}
+.app-business-card-link{margin:0;color:var(--app-muted);font-size:var(--type-small);overflow-wrap:anywhere}
+.app-business-card-link a{color:inherit;text-underline-offset:3px}
+/* Presenting the card in a dialog changes nothing about the card: the same
+   markup, the same QR width, the same spacing as the page. */

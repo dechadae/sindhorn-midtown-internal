@@ -1,6 +1,6 @@
 /* Invariant-Driven UI (IDUI) export. docs/idui/idui-body.html is the source:
    library classes only, no presentation of its own. This script wraps it in
-   the app's own foundation files - the six CSS files every page loads, taken
+   the app's own foundation files - the seven CSS files every page loads, taken
    verbatim from site/ - with the fonts and the logo embedded, so the document
    opens offline and always shows the library as it ships. The stamp is the
    service-worker VERSION, so a release that changes nothing the document
@@ -29,7 +29,7 @@ if(!sw){console.error('sw.js: VERSION not found');process.exit(1)}
 const swShort=sw.replace(/^sindhorn-midtown-internal-pwa-/,'');
 
 // Foundation files, in the order every app page loads them.
-const FILES=['fonts.css','app-tokens.css','app-glass.css','app-components.css','app-shell.css','ci-library.css'];
+const FILES=['fonts.css','app-tokens.css','app-glass.css','app-components.css','app-compositions.css','app-shell.css','ci-library.css'];
 let styles='';const leftover=[];
 for(const name of FILES){
   let css=read(path.join(SITE,name));
@@ -53,7 +53,7 @@ const html=`<!doctype html>
 <title>Invariant-Driven UI</title>
 <!--
   Invariant-Driven UI (IDUI) v0.1 — Sindhorn Midtown Internal.
-  Self-contained export built by scripts/build-idui.mjs from docs/idui/idui-body.html. The six
+  Self-contained export built by scripts/build-idui.mjs from docs/idui/idui-body.html. The seven
   <style> blocks below are the app's own foundation files as shipped with ${sw}; fonts and the
   logo are embedded as data URIs so the file opens offline. The document declares no CSS of its
   own: every element is a library class. The Betta WebGL atmosphere is replaced by a still SVG

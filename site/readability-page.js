@@ -99,7 +99,7 @@ function cardMarkup(period, entry) {
       <h3 class="app-surface-title">${esc(period.name)}</h3>
       <div data-swatches>${swatches(style)}</div>
     </div>
-    <div class="app-metric-grid app-card-section" data-columns="3" data-values="text" data-reading-grid>${readingMarkup(entry.reading)}</div>
+    <div class="app-metric-grid app-card-section" data-columns="3" data-mode="text" data-reading-grid>${readingMarkup(entry.reading)}</div>
     <div class="app-stack app-card-section">
       <div class="app-field"><label for="readability-seed-${esc(period.key)}">Seed <span>${original ? 'original fish' : 'six hex digits draw the same fish'}</span></label><input id="readability-seed-${esc(period.key)}" type="text" inputmode="text" autocomplete="off" spellcheck="false" maxlength="16" placeholder="Original" value="${original ? '' : esc(seedLabel(entry.style.seed))}" data-seed="${esc(period.key)}"></div>
       <div class="app-row">

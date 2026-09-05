@@ -92,7 +92,7 @@ function lift(field,trigger){
   if(!field.closest(LIFT_FROM)||field.closest('dialog'))return;
   const menu=field.querySelector('.app-select-menu');if(!menu)return;
   lifted.set(field,menu);liftedNow=field;
-  menu.dataset.floating='true';
+  menu.dataset.mode='floating';
   document.body.append(menu);
   anchor(field,trigger,menu);
 }
@@ -101,7 +101,7 @@ function lower(field){
   const menu=lifted.get(field);if(!menu)return;
   lifted.delete(field);if(liftedNow===field)liftedNow=null;
   if(menu.contains(document.activeElement))field.querySelector('.app-select-trigger')?.focus({preventScroll:true});
-  delete menu.dataset.floating;
+  delete menu.dataset.mode;
   for(const prop of ['--app-select-top','--app-select-left','--app-select-width'])menu.style.removeProperty(prop);
   menu.style.length||menu.removeAttribute('style');
   field.append(menu);

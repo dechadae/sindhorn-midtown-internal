@@ -31,11 +31,11 @@ const FILTERS = [['open', 'Open'], ['stuck', 'Stuck'], ['done', 'Done'], ['all',
 const hero = action => `<header class="app-hero"><div class="app-hero-head"><p class="app-hero-eyebrow">Jobs</p>${action}</div><h1 class="app-hero-title">Job Tracker</h1><p class="app-hero-copy">What was asked, who sent it, the deadline and where it stands.</p></header>`;
 const addAction = `<button class="app-utility-action" type="button" data-job-add>${PLUS_ICON}Add job</button>`;
 const line = (width = '', size = '') => `<div class="app-skeleton-line"${width ? ` data-width="${width}"` : ''}${size ? ` data-size="${size}"` : ''}></div>`;
-const skeleton = `<article class="app-card app-surface"><div class="app-skeleton" data-gap="tight">${line('tiny')}${line('medium', 'lead')}${line('')}${line('half')}<div class="app-metric-grid" data-columns="2"><div class="app-metric">${line('tiny')}${line('short')}</div><div class="app-metric">${line('tiny')}${line('short')}</div></div></div></article>`;
+const skeleton = `<article class="app-card app-surface"><div class="app-skeleton" data-compact="true">${line('tiny')}${line('medium', 'lead')}${line('')}${line('half')}<div class="app-metric-grid" data-columns="2"><div class="app-metric">${line('tiny')}${line('short')}</div><div class="app-metric">${line('tiny')}${line('short')}</div></div></div></article>`;
 const state = (label, title, copy, tone = 'empty', attrs = '') => `<div class="app-state app-card" data-tone="${tone}"${attrs}><p class="app-state-label">${esc(label)}</p><p class="app-state-title">${esc(title)}</p>${copy ? `<p class="app-state-copy">${esc(copy)}</p>` : ''}</div>`;
 const field = (id, name, label, value, { type = 'text', note = '', required = false, maxlength = 160, span = '' } = {}) =>
-  `<div class="app-field"${span ? ` data-span="${span}"` : ''}><label for="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><input id="${id}" name="${name}" type="${type}" value="${esc(value ?? '')}" maxlength="${maxlength}" autocomplete="off"${required ? ' required' : ''}></div>`;
-const textarea = (id, name, label, value) => `<div class="app-field" data-span="full"><label for="${id}">${esc(label)}</label><textarea id="${id}" name="${name}" rows="4" maxlength="4000">${esc(value ?? '')}</textarea></div>`;
+  `<div class="app-field"${span ? ` data-width="${span}"` : ''}><label for="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><input id="${id}" name="${name}" type="${type}" value="${esc(value ?? '')}" maxlength="${maxlength}" autocomplete="off"${required ? ' required' : ''}></div>`;
+const textarea = (id, name, label, value) => `<div class="app-field" data-width="full"><label for="${id}">${esc(label)}</label><textarea id="${id}" name="${name}" rows="4" maxlength="4000">${esc(value ?? '')}</textarea></div>`;
 
 /* Dates travel as ISO days and read as "Tue 8 Sep 2026"; a change stamp as
    "8 Sep 2026 · 2:05 pm" - app-format.js spells both. */
@@ -78,7 +78,7 @@ function cardMarkup(job, canManage) {
       <h3 class="app-surface-title">${esc(job.title)}</h3>
       ${job.description ? `<p class="app-surface-copy">${esc(job.description)}</p>` : ''}
     </div>
-    <div class="app-metric-grid app-card-section" data-columns="2" data-values="text">
+    <div class="app-metric-grid app-card-section" data-columns="2" data-mode="text">
       <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">${esc(job.senderName || '—')}</span>${job.senderRole ? `<span class="app-metric-note">${esc(job.senderRole)}</span>` : ''}</div>
       <div class="app-metric"${tight ? ' data-tone="danger"' : ''}><span class="app-metric-label">Deadline</span><span class="app-metric-value">${esc(deadlineValue(job))}</span>${job.deadlineOn && job.deadlineNote ? `<span class="app-metric-note">${esc(job.deadlineNote)}</span>` : ''}</div>
     </div>
@@ -103,7 +103,7 @@ function dialogMarkup(job) {
     ${dialogHead(editing ? 'Update job' : 'New job', editing ? job.title : 'What was asked?')}
     <div class="app-dialog-grid">
       ${field('job-title', 'title', 'Task', job.title, { required: true, maxlength: 200, span: 'full' })}
-      ${editing ? `<div data-span="full">${appSelect({ kind: 'status', label: 'Status', options: STATUSES.map(([value, label]) => ({ value, label })), selected: job.status })}</div>` : ''}
+      ${editing ? `<div data-width="full">${appSelect({ kind: 'status', label: 'Status', options: STATUSES.map(([value, label]) => ({ value, label })), selected: job.status })}</div>` : ''}
       ${textarea('job-description', 'description', 'Details', job.description)}
       ${field('job-sender', 'senderName', 'Sent by', job.senderName)}
       ${field('job-sender-role', 'senderRole', 'Their role', job.senderRole)}
