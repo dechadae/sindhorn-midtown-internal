@@ -15,13 +15,16 @@
    and Show · Random · Save · Original. Showing a period pins it on the
    atmosphere with the runtime's own 900ms fade; Play day runs the whole day
    in half a minute so the transitions are seen as they happen; Live hands
-   the clock back. Save keeps the style on this device (r29a); Original
-   returns the period to the bundled fish. Nothing here is a live input to
-   the atmosphere: a style is configuration, like a preset.
+   the clock back. Save writes the style to the server (sindhorn_betta_periods,
+   r29b) for every phone's next launch, and the server refuses a reading
+   under 4.5:1 on its own; Original returns the period to the bundled fish.
+   Both need system.manage. Nothing here is a live input to the atmosphere:
+   a style is configuration, like a preset.
 
    Everything is library: the rail, the hero shape, .app-card sections with
    surface text roles, .app-swatches, .app-metric-grid readings with the
    danger tone, .app-field, utility actions in a row, the toast. */
+import { supabaseRpc } from './auth-client.js';
 import { showToast } from './app-toast.js';
 import { formatClock, formatDate } from './app-format.js';
 import { BETTA_DAY_PERIODS, periodByKey, nextPeriod } from './betta-day-periods.js';
@@ -66,6 +69,15 @@ const sample = () => `<section class="app-section" id="readability-sample">
 
 const swatch = color => `<svg class="app-swatch" viewBox="0 0 1 1" preserveAspectRatio="none" aria-hidden="true"><rect width="1" height="1" fill="${esc(color.hex)}"/></svg>`;
 const swatches = style => { const colors = periodColors(style); return `<div class="app-swatches" role="img" aria-label="${esc(colors.map(color => `${color.label} ${color.hex}`).join(', '))}">${colors.map(swatch).join('')}</div>`; };
+
+/* What the server said, in the app's words. 42501 is the capability gate,
+   23514 the contract re-checked server-side; anything else is the network. */
+function saveFailure(error) {
+  const code = error?.payload?.code;
+  if (code === '42501' || error?.status === 401 || error?.status === 403) return 'Saving a fish needs the system capability.';
+  if (code === '23514') return 'This reading doesn\'t clear 4.5:1. Random again.';
+  return 'The style didn\'t save. Check the connection and try again.';
+}
 
 /* A reading is three metrics; before a period has been shown they read "—". */
 function readingMarkup(reading) {
@@ -192,24 +204,51 @@ export async function mountReadability(host) {
     const random = event.target.closest('[data-random]');
     if (random) { const key = random.dataset.random; setStyle(key, generateBettaStyle(periodByKey(key).baseline, randomSeed())); if (shownKey() !== key) show(key); return; }
     const original = event.target.closest('[data-original]');
-    if (original) {
-      const key = original.dataset.original, entry = entries.get(key);
-      entry.style = null; entry.saved = null; entry.reading = null; entry.dirty = false;
-      api.setBettaStyle(key, null); api.saveBettaStyles();
-      settleAt = performance.now() + SETTLE_MS;
-      paintStyle(key); if (shownKey() !== key) show(key);
-      showToast(`${periodByKey(key).name} is back to the original fish.`);
-      return;
-    }
+    if (original) { restore(original.dataset.original, original); return; }
     const save = event.target.closest('[data-save]');
-    if (save) {
-      const key = save.dataset.save, entry = entries.get(key);
-      if (!entry.reading?.pass) return;
-      entry.saved = entry.style; entry.dirty = false;
-      if (api.saveBettaStyles()) showToast(`${periodByKey(key).name} saved on this device.`); else showToast('The style didn\'t save. Check the browser\'s storage and try again.');
-      paintStyle(key);
-    }
+    if (save) persist(save.dataset.save, save);
   });
+
+  /* Save and Original are one request each; the button waits while it runs.
+     The server answers with the whole saved map, which becomes this
+     device's copy, so the copy never holds a fish that was only tried. */
+  async function persist(key, button) {
+    const entry = entries.get(key);
+    if (!entry.reading?.pass || !entry.style) return;
+    button.disabled = true;
+    try {
+      const result = await supabaseRpc('sindhorn_betta_period_save_v1', { p_key: key, p_seed: String(entry.style.seed), p_style: entry.style, p_reading: entry.reading });
+      if (!alive) return;
+      entry.saved = entry.style; entry.dirty = false;
+      api.saveBettaStyles(result?.styles);
+      showToast(`${periodByKey(key).name} saved.`);
+    } catch (error) {
+      if (!alive) return;
+      showToast(saveFailure(error));
+    }
+    paintStyle(key);
+  }
+
+  async function restore(key, button) {
+    const entry = entries.get(key);
+    button.disabled = true;
+    try {
+      if (entry.saved) {
+        const result = await supabaseRpc('sindhorn_betta_period_reset_v1', { p_key: key });
+        if (!alive) return;
+        api.saveBettaStyles(result?.styles);
+      }
+      entry.style = null; entry.saved = null; entry.reading = null; entry.dirty = false;
+      api.setBettaStyle(key, null);
+      settleAt = performance.now() + SETTLE_MS;
+      if (shownKey() !== key) show(key);
+      showToast(`${periodByKey(key).name} is back to the original fish.`);
+    } catch (error) {
+      if (!alive) return;
+      showToast(saveFailure(error));
+    }
+    paintStyle(key);
+  }
 
   /* A typed seed draws that fish; anything else leaves the card as it was. */
   host.addEventListener('change', event => {

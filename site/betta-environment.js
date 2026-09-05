@@ -116,12 +116,16 @@ function retarget(duration=DAY_CYCLE_CORRECTION_MS,reason='style'){
 function setBettaStyle(periodKey,style,duration=DAY_CYCLE_CORRECTION_MS){const period=periodByKey(periodKey);if(!period)return false;if(style&&typeof style==='object')styles.set(period.baseline,style);else styles.delete(period.baseline);if(dayCycle.targetPeriod?.key===period.key)retarget(duration,'style');return true}
 function setBettaStyles(map,duration=DAY_CYCLE_CORRECTION_MS){styles.clear();for(const [key,style] of Object.entries(map||{})){const period=periodByKey(key);if(period&&style&&typeof style==='object')styles.set(period.baseline,style)}if(dayCycle.targetPeriod)retarget(duration,'styles');return true}
 function bettaStyleState(){return Object.fromEntries(BETTA_DAY_PERIODS.map(period=>[period.key,styles.get(period.baseline)||null]))}
-/* Saved styles live on this device (Settings › System › Readability Test)
-   and are read before the first frame so the launch paints the saved fish,
-   not the bundled one and then a swap. Styles are configuration, never a
-   live input: the atmosphere still follows the satellite alone. */
+/* Saved styles are the app's configuration (sindhorn_betta_periods, written
+   by Settings › System › Readability Test); this device keeps a copy so the
+   launch paints the saved fish before the first frame, not the bundled one
+   and then a swap. The shell refreshes the copy from the server after boot
+   and hands a changed map to setBettaStyles; saveBettaStyles writes the
+   runtime's map, or the map it is given, to the copy. Styles are
+   configuration, never a live input: the atmosphere still follows the
+   satellite alone. */
 function loadSavedStyles(){try{const saved=JSON.parse(localStorage.getItem(STYLES_CACHE_KEY)||'null');if(!saved||typeof saved!=='object')return;for(const [key,style] of Object.entries(saved)){const period=periodByKey(key);if(period&&style&&typeof style==='object')styles.set(period.baseline,style)}}catch(_){}}
-function saveBettaStyles(){try{const map=bettaStyleState();const kept=Object.fromEntries(Object.entries(map).filter(([,style])=>style));if(Object.keys(kept).length)localStorage.setItem(STYLES_CACHE_KEY,JSON.stringify(kept));else localStorage.removeItem(STYLES_CACHE_KEY);return true}catch(_){return false}}
+function saveBettaStyles(map=bettaStyleState()){try{const kept=Object.fromEntries(Object.entries(map||{}).filter(([key,style])=>periodByKey(key)&&style&&typeof style==='object'));if(Object.keys(kept).length)localStorage.setItem(STYLES_CACHE_KEY,JSON.stringify(kept));else localStorage.removeItem(STYLES_CACHE_KEY);return true}catch(_){return false}}
 
 /* A small second view of the same scene for measuring what the glass will
    show: the Readability Test reads its pixels. It is its own context so the

@@ -8,7 +8,7 @@
    view's button carries aria-current="page") and refuses every route but
    sign-in until an employee with a permanent code has a session - the same
    line the legacy app draws. Data pages never see a signed-out host. */
-import { initAuth, getState } from './auth-client.js';
+import { initAuth, getState, supabaseRpc } from './auth-client.js';
 import { updateBadge } from './notification-inbox.js';
 import { loadInbox, serverUnread } from './broadcast-inbox.js';
 
@@ -64,6 +64,27 @@ if ('serviceWorker' in navigator) {
   };
 }
 
+/* The saved fish for each period is the app's configuration
+   (sindhorn_betta_periods, anon-readable, styles only). The runtime booted
+   from this device's copy so the launch stays fast; the server's map is
+   fetched after the first frame and applied only when it differs, with the
+   runtime's own cross-fade, and the copy is brought up to date. A failed
+   fetch changes nothing: the atmosphere keeps the copy. */
+const canonical = map => JSON.stringify(Object.fromEntries(Object.entries(map || {}).filter(([, style]) => style).sort(([a], [b]) => a.localeCompare(b))));
+async function refreshBettaStyles() {
+  try {
+    const result = await supabaseRpc('sindhorn_betta_periods_v1');
+    const api = window.SindhornEnvironment;
+    if (!result?.ok || !api) return;
+    const styles = result.styles && typeof result.styles === 'object' ? result.styles : {};
+    if (canonical(styles) === canonical(api.getState()?.betta?.styles)) return;
+    api.setBettaStyles(styles);
+    api.saveBettaStyles(styles);
+  } catch (error) {
+    console.warn('Saved Betta styles unavailable; the atmosphere keeps this device\'s copy.', error);
+  }
+}
+
 /* The full WebGL runtime directly. betta-runtime.js is a bootstrap that paints
    a still frame and waits for a startup signal the old app shell emits; a page
    outside that shell never receives it, and the glass would be frosting a
@@ -73,6 +94,7 @@ if ('serviceWorker' in navigator) {
     const betta = await import('/betta-runtime-full.js?v=1');
     await betta.initEnvironment();
     document.getElementById('environmentStage')?.setAttribute('data-ready', 'true');
+    refreshBettaStyles();
   } catch (error) {
     console.warn('Atmosphere unavailable; the shell renders over the flat ground.', error);
   }
