@@ -9,7 +9,7 @@
    archive. Nothing is deleted - an archived job simply leaves the list.
 
    Everything here is library: a rail of filter chips, one .app-card per job
-   with the .app-job layout and its hairline groups, the compact selector as
+   as .app-card-section groups with surface text roles, the compact selector as
    the status on the card (r23c - a dropdown whose menu the library lifts out
    of the card's glass while open), the dialog standard with a form grid and
    the shared selector for the status, the confirm dialog before archiving,
@@ -31,7 +31,7 @@ const FILTERS = [['open', 'Open'], ['stuck', 'Stuck'], ['done', 'Done'], ['all',
 const hero = action => `<header class="app-hero"><div class="app-hero-head"><p class="app-hero-eyebrow">Jobs</p>${action}</div><h1 class="app-hero-title">Job Tracker</h1><p class="app-hero-copy">What was asked, who sent it, the deadline and where it stands.</p></header>`;
 const addAction = `<button class="app-utility-action" type="button" data-job-add>${PLUS_ICON}Add job</button>`;
 const line = (width = '', size = '') => `<div class="app-skeleton-line"${width ? ` data-width="${width}"` : ''}${size ? ` data-size="${size}"` : ''}></div>`;
-const skeleton = `<article class="app-card app-surface"><div class="app-skeleton" data-gap="tight"><div class="app-job-head">${line('tiny')}${line('tiny')}</div>${line('medium', 'lead')}${line('')}${line('half')}<div class="app-metric-grid" data-columns="2"><div class="app-metric">${line('tiny')}${line('short')}</div><div class="app-metric">${line('tiny')}${line('short')}</div></div></div></article>`;
+const skeleton = `<article class="app-card app-surface"><div class="app-skeleton" data-gap="tight">${line('tiny')}${line('medium', 'lead')}${line('')}${line('half')}<div class="app-metric-grid" data-columns="2"><div class="app-metric">${line('tiny')}${line('short')}</div><div class="app-metric">${line('tiny')}${line('short')}</div></div></div></article>`;
 const state = (label, title, copy, tone = 'empty', attrs = '') => `<div class="app-state app-card" data-tone="${tone}"${attrs}><p class="app-state-label">${esc(label)}</p><p class="app-state-title">${esc(title)}</p>${copy ? `<p class="app-state-copy">${esc(copy)}</p>` : ''}</div>`;
 const field = (id, name, label, value, { type = 'text', note = '', required = false, maxlength = 160, span = '' } = {}) =>
   `<div class="app-field"${span ? ` data-span="${span}"` : ''}><label for="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><input id="${id}" name="${name}" type="${type}" value="${esc(value ?? '')}" maxlength="${maxlength}" autocomplete="off"${required ? ' required' : ''}></div>`;
@@ -72,16 +72,18 @@ function statusMarkup(job, canManage) {
 
 function cardMarkup(job, canManage) {
   const tight = isTight(job);
-  return `<article class="app-card app-surface" data-job="${esc(job.id)}"><div class="app-job" data-status="${esc(job.status)}">
-    <div class="app-job-head"><p class="app-job-kicker">${job.receivedOn ? `Received ${esc(dayLabel(job.receivedOn))}` : 'Received'}</p>${statusMarkup(job, canManage)}</div>
-    <h3 class="app-job-title">${esc(job.title)}</h3>
-    ${job.description ? `<p class="app-job-copy">${esc(job.description)}</p>` : ''}
-    <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
-      <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">${esc(job.senderName || '—')}</span>${job.senderRole ? `<span class="app-metric-note">${esc(job.senderRole)}</span>` : ''}</div>
-      <div class="app-metric app-job-deadline"${tight ? ' data-tight="true"' : ''}><span class="app-metric-label">Deadline</span><span class="app-metric-value">${esc(deadlineValue(job))}</span>${job.deadlineOn && job.deadlineNote ? `<span class="app-metric-note">${esc(job.deadlineNote)}</span>` : ''}</div>
+  return `<article class="app-card app-surface" data-job="${esc(job.id)}" data-status="${esc(job.status)}"${job.status === 'done' ? ' data-tone="quiet"' : ''}>
+    <div class="app-card-section">
+      <p class="app-surface-label">${job.receivedOn ? `Received ${esc(dayLabel(job.receivedOn))}` : 'Received'}</p>
+      <h3 class="app-surface-title">${esc(job.title)}</h3>
+      ${job.description ? `<p class="app-surface-copy">${esc(job.description)}</p>` : ''}
     </div>
-    ${canManage ? `<div class="app-utility-row app-job-section"><button class="app-utility-action" type="button" data-job-edit="${esc(job.id)}">Update</button></div>` : ''}
-  </div></article>`;
+    <div class="app-metric-grid app-card-section" data-columns="2" data-values="text">
+      <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">${esc(job.senderName || '—')}</span>${job.senderRole ? `<span class="app-metric-note">${esc(job.senderRole)}</span>` : ''}</div>
+      <div class="app-metric"${tight ? ' data-tone="danger"' : ''}><span class="app-metric-label">Deadline</span><span class="app-metric-value">${esc(deadlineValue(job))}</span>${job.deadlineOn && job.deadlineNote ? `<span class="app-metric-note">${esc(job.deadlineNote)}</span>` : ''}</div>
+    </div>
+    <div class="app-row app-card-section" data-split="true">${statusMarkup(job, canManage)}${canManage ? `<button class="app-utility-action" type="button" data-job-edit="${esc(job.id)}">Update</button>` : ''}</div>
+  </article>`;
 }
 
 const matches = (job, filter) => filter === 'all' || (filter === 'open' ? job.status === 'not-started' || job.status === 'working' : job.status === filter);

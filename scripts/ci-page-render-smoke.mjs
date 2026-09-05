@@ -68,8 +68,8 @@ const EXPECT = [
   ['.app-rail', BARE], ['.app-clamp', BARE],
   ['.app-action-card-meta', BARE], ['.app-action-card-actions', BARE], ['.app-hero-head', BARE], ['.app-utility-row', BARE], ['.app-action-card-when', BARE], ['.app-disclosure-end', BARE], ['.app-section-kicker-end', BARE], ['.app-metric-grid[data-columns="3"]', BARE],
   ['.app-check-box', BARE],
-  // A job is a layout inside a plain card, like the business card.
-  ['.app-job', BARE], ['.app-job-head', BARE], ['.app-job-deadline', BARE], ['.app-job-section', BARE], ['#job .app-badge[data-tone="success"]', BADGE_SUCCESS_NESTED],
+  // A job is a card with sections and the surface text roles, not a component.
+  ['#job .app-card-section', BARE], ['#job .app-row[data-split="true"]', BARE], ['#job .app-metric[data-tone="danger"]', BARE], ['#job .app-badge[data-tone="success"]', BADGE_SUCCESS_NESTED],
   // The status control is a badge grown to a control (r23): it keeps the
   // badge's tint and, nested in the card, drops the blur like any badge.
   ['#job .app-select[data-compact="true"] .app-select-trigger:not([data-tone])', { bg: BADGE.bg, filter: 'none' }], ['#job .app-select[data-compact="true"] .app-select-trigger[data-tone="quiet"]', BADGE_NESTED],
@@ -143,7 +143,7 @@ const report = await page.evaluate(([expect, motionSelectors]) => {
   };
   // Secondary text has to stay legible on a phone: every muted label, delta,
   // meta and note in the library must sit at or above this floor.
-  const smallText = ['.app-metric-label','.app-metric-delta','.app-metric-note','.app-list-row-meta','.app-list-row-end','.app-surface-label','.app-section-kicker','.app-disclosure-kicker','.app-disclosure-copy','.app-note','.app-field label','.app-field-note','.app-select-label','.app-dialog-kicker','.app-table','.app-table thead th','.app-state-label','.app-state-copy','.app-figure figcaption','.app-action-card-status','.app-action-card-date','.app-action-card-meta','.app-badge','.app-job-kicker','.app-job-copy']
+  const smallText = ['.app-metric-label','.app-metric-delta','.app-metric-note','.app-list-row-meta','.app-list-row-end','.app-surface-label','.app-section-kicker','.app-disclosure-kicker','.app-disclosure-copy','.app-note','.app-field label','.app-field-note','.app-select-label','.app-dialog-kicker','.app-table','.app-table thead th','.app-state-label','.app-state-copy','.app-figure figcaption','.app-action-card-status','.app-action-card-date','.app-action-card-meta','.app-badge','.app-surface-copy']
     .map(selector => { const node = document.querySelector(selector); return { selector, size: node ? parseFloat(getComputedStyle(node).fontSize) : null }; });
   const trackDrawn = (() => { const bar = document.querySelector('.app-track-bar'); if (!bar) return null; const m = new DOMMatrix(getComputedStyle(bar).transform); return { ready: document.querySelector('.app-page').dataset.trackReady === 'true', scaleX: m.a }; })();
   const sectionDivider = (() => { const node = document.querySelector('.app-card-section+.app-card-section'); if (!node) return null; const style = getComputedStyle(node); return { border: `${style.borderTopWidth} ${style.borderTopStyle}`, color: style.borderTopColor }; })();

@@ -59,7 +59,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    never also opens the detail. */
 .app-action-card-meta{margin-top:12px;padding-top:11px;border-top:1px solid var(--app-line);display:flex;align-items:baseline;justify-content:space-between;gap:12px;color:var(--app-muted);font-size:var(--type-small);text-transform:uppercase}
 .app-action-card-meta b{color:var(--app-text);font-weight:var(--weight-regular);font-size:var(--type-body-s);text-transform:none;font-variant-numeric:tabular-nums}
-.app-action-card-actions{min-height:44px;padding:2px 10px 4px;display:flex;align-items:center;justify-content:flex-end;gap:4px;border-top:1px solid var(--app-line)}
+.app-action-card-actions{padding:6px 10px;display:flex;align-items:center;justify-content:flex-end;gap:4px;border-top:1px solid var(--app-line)}
 .app-action-card-actions>:first-child:not(:last-child){margin-right:auto}
 /* Status reads as a tone, the same vocabulary a badge and a state use. */
 .app-action-card-status[data-tone="success"],.app-hero-eyebrow[data-tone="success"]{color:var(--app-success)}
@@ -73,14 +73,14 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    opacity also fades its backdrop-filter, so a disabled control stops looking
    like the same material as everything around it. */
 .app-primary{
-  min-height:40px;padding:0 16px;
+  min-height:var(--control);padding:0 16px;
   border:1px solid rgba(var(--app-accent-rgb),.28);border-radius:var(--radius-inset);
   color:inherit;font:inherit;font-size:var(--type-body-s);cursor:pointer;
   transition:transform var(--motion-fast) var(--motion-ease),border-color var(--motion-ms) ease,color var(--motion-ms) ease;
 }
 .app-primary{display:inline-flex;align-items:center;justify-content:center;gap:10px;text-decoration:none}
 .app-primary svg{width:16px;height:16px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.5}
-.app-primary[data-width="full"]{width:100%;min-height:44px}
+.app-primary[data-width="full"]{width:100%}
 .app-primary:active{transform:scale(.975)}
 .app-primary:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
 .app-primary:disabled{border-color:var(--app-line);color:var(--app-muted);cursor:default;transform:none}
@@ -94,7 +94,10 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    card, deliberately without a press affordance. */
 .app-surface{padding:15px 16px;border-radius:var(--radius-surface)}
 .app-surface-label{color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
+.app-surface-title{margin:8px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight);text-wrap:balance}
 .app-surface-copy{margin:8px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+/* Tone is the one thing a card says about its content: quiet steps the title back. */
+.app-card[data-tone="quiet"] .app-surface-title{color:var(--app-muted)}
 
 /* Card sections: one card, several groups. Each group after the first opens
    with the same hairline the list uses, so a card never needs a nested card
@@ -109,7 +112,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    and Find-in-page still see it when collapsed. */
 .app-disclosure{overflow:clip;border-radius:var(--radius-surface)}
 .app-disclosure-button{
-  width:100%;min-height:52px;margin:0;padding:15px 16px;
+  width:100%;min-height:var(--control-row);margin:0;padding:15px 16px;
   display:flex;align-items:center;justify-content:space-between;gap:16px;
   border:0;background:transparent;
   color:inherit;font:inherit;text-align:left;cursor:pointer;
@@ -146,7 +149,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-field label{color:var(--app-muted);font-size:var(--type-small);text-transform:uppercase}
 .app-field label span{opacity:.72;text-transform:none}
 .app-field input,.app-field textarea,.app-field select{
-  width:100%;min-height:48px;padding:10px 12px;
+  width:100%;min-height:var(--control-row);padding:10px 12px;
   border:1px solid var(--app-line);border-radius:var(--radius-inset);
   background:var(--app-inset-fill);
   color:var(--app-text);font:inherit;font-size:var(--type-body);
@@ -160,7 +163,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-field input:disabled,.app-field textarea:disabled,.app-field select:disabled{opacity:.45;cursor:default}
 /* Longer text: the same well, tall enough for a paragraph, grown by the
    employee and never by the browser's corner grip alone. */
-.app-field textarea{min-height:124px;line-height:var(--leading-body);resize:vertical}
+.app-field textarea{line-height:var(--leading-body);resize:vertical}
 /* A moment is typed into the same well; WebKit's own picker chrome is dropped
    so the field keeps its edge and height. */
 .app-field input[type="datetime-local"],.app-field input[type="date"],.app-field input[type="time"]{appearance:none;-webkit-appearance:none}
@@ -204,7 +207,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    input group, only static, so the two read as one thing. */
 .app-code-display{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:0}
 .app-code-display b{
-  min-height:52px;display:flex;align-items:center;justify-content:center;
+  min-height:var(--control-row);display:flex;align-items:center;justify-content:center;
   border:1px solid var(--app-line);border-radius:var(--radius-inset);background:var(--app-inset-fill);
   font-size:var(--type-title);font-weight:var(--weight-regular);font-variant-numeric:tabular-nums;
 }
@@ -219,7 +222,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-select{position:relative;min-width:0;display:grid;gap:6px}
 .app-select-label{color:var(--app-muted);font-size:var(--type-small);text-transform:uppercase}
 .app-select-trigger{
-  width:100%;min-height:40px;padding:0 12px;
+  width:100%;min-height:var(--control);padding:0 12px;
   display:flex;align-items:center;justify-content:space-between;gap:10px;
   border-radius:var(--radius-inset);
   color:inherit;font:inherit;font-size:var(--type-body);text-align:left;cursor:pointer;
@@ -243,7 +246,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    status on a job card (23 Job) is this. */
 .app-select[data-compact="true"]{display:inline-grid;gap:0}
 .app-select[data-compact="true"] .app-select-trigger{
-  width:auto;height:auto;min-height:28px;padding:0 8px 0 10px;
+  width:auto;height:auto;min-height:var(--control-inline);padding:0 8px 0 10px;
   gap:5px;justify-content:center;
   border:0;border-radius:var(--radius-inset);
   font-size:var(--type-small);line-height:1;
@@ -253,8 +256,11 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-select[data-compact="true"] .app-select-trigger:active{transform:scale(.96)}
 .app-select[data-compact="true"] .app-select-trigger:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
 .app-select[data-compact="true"] .app-select-menu{min-width:200px;left:auto;right:0}
+/* A compact menu opens toward the free side: at the start of a split row it
+   hangs from the trigger's left edge, anywhere else from its right. */
+.app-row[data-split="true"]>.app-select[data-compact="true"]:first-child .app-select-menu{left:0;right:auto}
 .app-select-option{
-  width:100%;min-height:42px;padding:0 12px;
+  width:100%;min-height:var(--control);padding:0 12px;
   display:flex;align-items:center;
   border:0;border-radius:0;background:transparent;
   color:inherit;font:inherit;font-size:var(--type-body-s);text-align:left;cursor:pointer;
@@ -270,7 +276,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    intent behind a pile of cascade overrides, and is not loaded outside the app
    shell — which is why these rendered as bare browser buttons here. */
 .app-utility-action{
-  min-height:32px;padding:0;
+  min-height:var(--control-inline);padding:0;
   display:inline-flex;align-items:center;gap:8px;
   border:0;background:transparent;
   color:var(--app-muted);font:inherit;font-size:var(--type-body-s);line-height:1;
@@ -318,6 +324,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-metric-delta[data-direction="up"]{color:var(--app-success)}
 .app-metric-delta[data-direction="down"]{color:var(--app-danger)}
 .app-metric-delta[data-direction="flat"]{color:var(--app-muted)}
+.app-metric[data-tone="danger"] .app-metric-value{color:var(--app-danger)}
 .app-metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:18px 20px}
 /* Fixed columns keep a strip on one line at phone width; text-scale values
    let the grid carry facts (an outlet, a time) as well as numbers; ruled
@@ -369,7 +376,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    A task or artwork item that can be marked done. The label is the hit target,
    so the whole row is tappable rather than just the box. */
 .app-check{
-  min-height:44px;padding:8px 0;
+  min-height:var(--control-row);padding:8px 0;
   display:flex;align-items:center;gap:12px;
   cursor:pointer;
 }
@@ -411,7 +418,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    The separator sits between rows and never after the last. */
 .app-list{display:grid}
 .app-list-row{
-  min-height:52px;padding:12px 0;
+  min-height:var(--control-row);padding:12px 0;
   display:flex;align-items:center;justify-content:space-between;gap:14px;
 }
 .app-list-row+.app-list-row{border-top:1px solid var(--app-line)}
@@ -463,7 +470,7 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 .app-clamp{position:relative;max-height:170px;overflow:hidden;-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent 100%)}
 .app-clamp[data-open="true"]{max-height:none;-webkit-mask-image:none;mask-image:none}
 .app-clamp+.app-chip{margin-top:14px}
-.app-chip[data-scale="control"]{min-height:40px;padding-inline:22px;font-size:var(--type-body-s)}
+.app-chip[data-scale="control"]{min-height:var(--control);padding-inline:22px;font-size:var(--type-body-s)}
 
 /* ---- Divider ----------------------------------------------------------------
    One hairline, one token. Pages were drawing their own. It separates groups
@@ -489,7 +496,7 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
    Metadata or an explicit filter, never decoration on a short label.
    .app-control supplies the material. */
 .app-chip{
-  min-height:32px;padding:0 12px;
+  min-height:var(--control-inline);padding:0 12px;
   display:inline-flex;align-items:center;gap:6px;
   border-radius:var(--radius-inset);
   color:var(--app-muted);font:inherit;font-size:var(--type-small);text-decoration:none;cursor:pointer;
@@ -542,9 +549,9 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 .app-dialog-section{grid-column:1/-1;display:grid;gap:3px;margin-top:6px;padding-top:14px;border-top:1px solid var(--app-line)}
 .app-dialog-section>span{color:var(--app-accent);font-size:var(--type-small);text-transform:uppercase}
 .app-dialog-section>small{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
-.app-dialog-status{min-height:18px;margin:14px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-dialog-status{margin:14px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-dialog-status[data-tone="error"]{color:var(--app-danger)}
-.app-dialog-status:empty{margin:0;min-height:0}
+.app-dialog-status:empty{margin:0}
 /* The dialog's body scrolls when a form outgrows the viewport; the head and
    the actions stay in the flow so the whole form is one scroll. */
 .app-dialog{overflow:auto}
@@ -675,7 +682,7 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
   border-top:1px solid var(--app-glass-border);
 }
 .app-navbar-button{
-  min-height:44px;padding:0 4px;
+  min-height:var(--control);padding:0 4px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
   border:0;background:transparent;
   color:var(--app-muted);font:inherit;font-size:var(--type-small);line-height:1;text-decoration:none;
@@ -745,6 +752,7 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 .app-section-title{margin:8px 0 0;font-size:var(--type-section);font-weight:var(--weight-thin);line-height:var(--leading-tight)}
 .app-section-lede{margin:10px 0 0;max-width:60ch;color:var(--app-muted);font-size:var(--type-body);line-height:var(--leading-body)}
 .app-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.app-row[data-split="true"]{justify-content:space-between}
 .app-stack{display:grid;gap:12px}
 .app-section>.app-stack,
 .app-section>.app-card,
@@ -756,8 +764,10 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 /* 20px is the distance from a title to its content; a section that opens
    straight into content has no title to be 20px from. */
 .app-section>.app-stack:first-child,.app-section>.app-card:first-child,.app-section>.app-metric-grid:first-child,.app-section>.app-figure:first-child{margin-top:0}
-/* Two selectors side by side share the row equally. */
+/* Two selectors side by side share the row equally; a compact one is a badge
+   and keeps its own width. */
 .app-row>.app-select{flex:1 1 140px}
+.app-row>.app-select[data-compact="true"]{flex:0 0 auto}
 .app-section-subhead{margin:28px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-label)}
 .app-section-subhead+.app-stack{margin-top:12px}
 .app-note{margin:12px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
@@ -888,27 +898,3 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 /* Presenting the card in a dialog changes nothing about the card: the same
    markup, the same QR width, the same spacing as the page. */
 
-/* ---- Job -------------------------------------------------------------------
-   One tracked job, the way the Jobs tab lists it: what was asked, who sent
-   it and when, the deadline, and where it stands. A layout inside a plain
-   .app-card.app-surface, not a new material - the same way the business
-   card is. The status is a badge whose tone says the state at a glance:
-   not-started quiet, working accent, stuck danger, done success; a tight
-   deadline reads in the danger tone. The status is the compact selector
-   (08 Selector) - its menu lifts out of the card while open - and
-   everything else changes in the dialog. */
-.app-job{display:grid;gap:10px}
-/* The card's groups - what was asked, then the facts, then the actions - are
-   separated by the hairline every card uses between groups (24 Rules), so a
-   long list reads as rows of the same shape rather than one run of text.
-   The line sits 16px clear of the text on both sides, the card-section
-   rhythm; the 10px grid gap plus 6px makes the 16 above it. */
-.app-job-section{margin-top:6px;padding-top:16px;border-top:1px solid var(--app-line)}
-.app-job>.app-utility-row{margin-top:6px;min-height:0}
-.app-job>.app-utility-row>.app-utility-action{min-height:24px}
-.app-job-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.app-job-kicker{margin:0;color:var(--app-muted);font-size:var(--type-small);line-height:var(--leading-label);text-transform:uppercase}
-.app-job-title{margin:0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight);text-wrap:balance}
-.app-job-copy{margin:0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
-.app-job-deadline[data-tight="true"] .app-metric-value{color:var(--app-danger)}
-.app-job[data-status="done"] .app-job-title{color:var(--app-muted)}

@@ -63,6 +63,14 @@
   --radius-dialog:24px;    /* nested surfaces         —  12 uses */
   --radius-pill:999px;    /* chips, rails            —  18 uses */
   --radius-circle:50%;    /* avatars, dots           —  14 uses */
+
+  /* Control heights — three, by role, and nothing else declares a floor.
+     row: a full-width thing you tap (list row, disclosure, field, code cell)
+     control: a framed button, chip or select trigger
+     inline: a frameless utility, badge or compact select */
+  --control-row:52px;
+  --control:40px;
+  --control-inline:32px;
   --radius-none:0;
 
   /* ---- Space ------------------------------------------------------------

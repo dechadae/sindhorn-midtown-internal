@@ -144,7 +144,12 @@ function anchor(field,trigger,menu){
   const rect=trigger.getBoundingClientRect();
   const compact=field.dataset.compact==='true';
   const width=Math.min(compact?Math.max(rect.width,COMPACT_MENU_WIDTH):rect.width,innerWidth-EDGE*2);
-  const left=Math.max(EDGE,Math.min(compact?rect.right-width:rect.left,innerWidth-EDGE-width));
+  /* A compact menu opens toward the free side: from the trigger's left edge
+     when the trigger sits in the left half of the screen, from its right
+     edge otherwise, so a status badge at the start of a row and one at the
+     end both keep their menu over the card. */
+  const startSide=compact&&(rect.left+rect.right)/2<innerWidth/2;
+  const left=Math.max(EDGE,Math.min(compact&&!startSide?rect.right-width:rect.left,innerWidth-EDGE-width));
   const ceiling=(document.querySelector('.app-masthead')?.getBoundingClientRect().bottom||0)+MENU_GAP;
   const floor=(document.querySelector('.app-navbar')?.getBoundingClientRect().top||innerHeight)-MENU_GAP;
   const height=menu.offsetHeight;

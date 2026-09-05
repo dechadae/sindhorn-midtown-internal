@@ -13,9 +13,9 @@
      the only claim this page is allowed to make. -->
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="stylesheet" href="/fonts.css?v=1">
-<link rel="stylesheet" href="/app-tokens.css?v=9">
+<link rel="stylesheet" href="/app-tokens.css?v=10">
 <link rel="stylesheet" href="/app-glass.css?v=11">
-<link rel="stylesheet" href="/app-components.css?v=34">
+<link rel="stylesheet" href="/app-components.css?v=35">
 <link rel="stylesheet" href="/app-shell.css?v=2">
 <link rel="stylesheet" href="/ci-library.css?v=10">
 </head>
@@ -361,7 +361,7 @@
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-select[data-compact]</span><span>in a card · the menu lifts</span></div>
         <article class="app-card app-surface">
-          <div class="app-job-head"><p class="app-job-kicker">Compact, inside a card</p>
+          <div class="app-row" data-split="true"><p class="app-surface-label">Compact, inside a card</p>
             <div class="app-select" data-select="status" data-value="working" data-compact="true">
               <button class="app-select-trigger app-badge" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Working</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button>
               <div class="app-select-menu app-overlay" role="listbox" aria-label="Status">
@@ -1011,50 +1011,59 @@ Ask the team about the pairing board: three small plates built for the three dri
     <p class="app-section-lede">The Jobs tab lists what was asked of an employee: the task, who sent it and when, the deadline and the status. A job is a layout inside a plain card, the way the business card is - the status is the compact selector, a badge whose tone says the state and, tapped, drops its menu; a tight deadline reads in the danger tone, and everything else editable opens in the dialog.</p>
     <div class="ci-stack">
       <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-job</span><span>data-status working · tight deadline · hairline groups</span></div>
-        <article class="app-card app-surface">
-          <div class="app-job" data-status="working">
-            <div class="app-job-head"><p class="app-job-kicker">Received 4 Sep 2026</p><div class="app-select" data-select="status-working" data-value="working" data-compact="true"><button class="app-select-trigger app-badge" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Working</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="app-select-menu app-overlay" role="listbox" aria-label="Status"><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="not-started" data-tone="quiet">Not started</button><button class="app-select-option" type="button" role="option" aria-selected="true" data-value="working">Working</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="stuck" data-tone="danger">Stuck</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="done" data-tone="success">Done</button></div></div></div>
-            <h3 class="app-job-title">ANJU Grab delivery review card</h3>
-            <p class="app-job-copy">Artwork for the review card that goes out with Grab deliveries: QR to the Google review page, both languages, print-ready at 90 × 55 mm.</p>
-            <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
-              <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Chanrutt Thayartsuwan</span><span class="app-metric-note">Director of Marketing Communications</span></div>
-              <div class="app-metric app-job-deadline" data-tight="true"><span class="app-metric-label">Deadline</span><span class="app-metric-value">Mon 8 Sep 2026</span><span class="app-metric-note">Before the Grab listing goes live</span></div>
+        <div class="ci-specimen-label"><span>.app-card · sections</span><span>data-status working · deadline in the danger tone · hairline groups</span></div>
+        <article class="app-card app-surface" data-status="working">
+            <div class="app-card-section">
+              <p class="app-surface-label">Received 4 Sep 2026</p>
+            <h3 class="app-surface-title">ANJU Grab delivery review card</h3>
+            <p class="app-surface-copy">Artwork for the review card that goes out with Grab deliveries: QR to the Google review page, both languages, print-ready at 90 × 55 mm.</p>
             </div>
-            <div class="app-utility-row app-job-section"><button class="app-utility-action" type="button">Update</button></div>
-          </div>
-        </article>
+            <div class="app-metric-grid app-card-section" data-columns="2" data-values="text">
+              <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Chanrutt Thayartsuwan</span><span class="app-metric-note">Director of Marketing Communications</span></div>
+              <div class="app-metric" data-tone="danger"><span class="app-metric-label">Deadline</span><span class="app-metric-value">Mon 8 Sep 2026</span><span class="app-metric-note">Before the Grab listing goes live</span></div>
+            </div>
+            <div class="app-row app-card-section" data-split="true"><div class="app-select" data-select="status-working" data-value="working" data-compact="true"><button class="app-select-trigger app-badge" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Working</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="app-select-menu app-overlay" role="listbox" aria-label="Status"><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="not-started" data-tone="quiet">Not started</button><button class="app-select-option" type="button" role="option" aria-selected="true" data-value="working">Working</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="stuck" data-tone="danger">Stuck</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="done" data-tone="success">Done</button></div></div><button class="app-utility-action" type="button">Update</button></div>
+          </article>
       </div>
       <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-job</span><span>the four statuses</span></div>
+        <div class="ci-specimen-label"><span>.app-card · sections</span><span>the four statuses</span></div>
         <div class="app-stack">
-          <article class="app-card app-surface"><div class="app-job" data-status="not-started">
-            <div class="app-job-head"><p class="app-job-kicker">Received 3 Sep 2026</p><div class="app-select" data-select="status-not-started" data-value="not-started" data-compact="true"><button class="app-select-trigger app-badge" type="button" data-tone="quiet" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Not started</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="app-select-menu app-overlay" role="listbox" aria-label="Status"><button class="app-select-option" type="button" role="option" aria-selected="true" data-value="not-started" data-tone="quiet">Not started</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="working">Working</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="stuck" data-tone="danger">Stuck</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="done" data-tone="success">Done</button></div></div></div>
-            <h3 class="app-job-title">Lobby elevator wrap, Loy Krathong</h3>
-            <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
+          <article class="app-card app-surface" data-status="not-started">
+            <div class="app-card-section">
+              <p class="app-surface-label">Received 3 Sep 2026</p>
+            <h3 class="app-surface-title">Lobby elevator wrap, Loy Krathong</h3>
+            </div>
+            <div class="app-metric-grid app-card-section" data-columns="2" data-values="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Rooms Division</span></div>
-              <div class="app-metric app-job-deadline"><span class="app-metric-label">Deadline</span><span class="app-metric-value">24 Oct 2026</span></div>
+              <div class="app-metric"><span class="app-metric-label">Deadline</span><span class="app-metric-value">24 Oct 2026</span></div>
             </div>
-          </div></article>
-          <article class="app-card app-surface"><div class="app-job" data-status="stuck">
-            <div class="app-job-head"><p class="app-job-kicker">Received 28 Aug 2026</p><div class="app-select" data-select="status-stuck" data-value="stuck" data-compact="true"><button class="app-select-trigger app-badge" type="button" data-tone="danger" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Stuck</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="app-select-menu app-overlay" role="listbox" aria-label="Status"><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="not-started" data-tone="quiet">Not started</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="working">Working</button><button class="app-select-option" type="button" role="option" aria-selected="true" data-value="stuck" data-tone="danger">Stuck</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="done" data-tone="success">Done</button></div></div></div>
-            <h3 class="app-job-title">Sindhorn Wellness brochure reprint</h3>
-            <p class="app-job-copy">Waiting on the revised treatment prices from Spa before the price page can be set.</p>
-            <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
+            <div class="app-row app-card-section" data-split="true"><div class="app-select" data-select="status-not-started" data-value="not-started" data-compact="true"><button class="app-select-trigger app-badge" type="button" data-tone="quiet" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Not started</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="app-select-menu app-overlay" role="listbox" aria-label="Status"><button class="app-select-option" type="button" role="option" aria-selected="true" data-value="not-started" data-tone="quiet">Not started</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="working">Working</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="stuck" data-tone="danger">Stuck</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="done" data-tone="success">Done</button></div></div><button class="app-utility-action" type="button">Update</button></div>
+          </article>
+          <article class="app-card app-surface" data-status="stuck">
+            <div class="app-card-section">
+              <p class="app-surface-label">Received 28 Aug 2026</p>
+            <h3 class="app-surface-title">Sindhorn Wellness brochure reprint</h3>
+            <p class="app-surface-copy">Waiting on the revised treatment prices from Spa before the price page can be set.</p>
+            </div>
+            <div class="app-metric-grid app-card-section" data-columns="2" data-values="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Spa Manager</span></div>
-              <div class="app-metric app-job-deadline"><span class="app-metric-label">Deadline</span><span class="app-metric-value">No date</span><span class="app-metric-note">When the prices arrive</span></div>
+              <div class="app-metric"><span class="app-metric-label">Deadline</span><span class="app-metric-value">No date</span><span class="app-metric-note">When the prices arrive</span></div>
             </div>
-          </div></article>
-          <article class="app-card app-surface"><div class="app-job" data-status="done">
-            <div class="app-job-head"><p class="app-job-kicker">Received 21 Aug 2026</p><div class="app-select" data-select="status-done" data-value="done" data-compact="true"><button class="app-select-trigger app-badge" type="button" data-tone="success" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Done</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="app-select-menu app-overlay" role="listbox" aria-label="Status"><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="not-started" data-tone="quiet">Not started</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="working">Working</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="stuck" data-tone="danger">Stuck</button><button class="app-select-option" type="button" role="option" aria-selected="true" data-value="done" data-tone="success">Done</button></div></div></div>
-            <h3 class="app-job-title">Mother's Day afternoon tea social set</h3>
-            <div class="app-metric-grid app-job-section" data-columns="2" data-values="text">
+            <div class="app-row app-card-section" data-split="true"><div class="app-select" data-select="status-stuck" data-value="stuck" data-compact="true"><button class="app-select-trigger app-badge" type="button" data-tone="danger" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Stuck</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="app-select-menu app-overlay" role="listbox" aria-label="Status"><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="not-started" data-tone="quiet">Not started</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="working">Working</button><button class="app-select-option" type="button" role="option" aria-selected="true" data-value="stuck" data-tone="danger">Stuck</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="done" data-tone="success">Done</button></div></div><button class="app-utility-action" type="button">Update</button></div>
+          </article>
+          <article class="app-card app-surface" data-status="done" data-tone="quiet">
+            <div class="app-card-section">
+              <p class="app-surface-label">Received 21 Aug 2026</p>
+            <h3 class="app-surface-title">Mother's Day afternoon tea social set</h3>
+            </div>
+            <div class="app-metric-grid app-card-section" data-columns="2" data-values="text">
               <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">F&amp;B Marketing</span></div>
-              <div class="app-metric app-job-deadline"><span class="app-metric-label">Deadline</span><span class="app-metric-value">1 Sep 2026</span></div>
+              <div class="app-metric"><span class="app-metric-label">Deadline</span><span class="app-metric-value">1 Sep 2026</span></div>
             </div>
-          </div></article>
+            <div class="app-row app-card-section" data-split="true"><div class="app-select" data-select="status-done" data-value="done" data-compact="true"><button class="app-select-trigger app-badge" type="button" data-tone="success" aria-haspopup="listbox" aria-expanded="false" aria-label="Status"><span data-select-value>Done</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg></button><div class="app-select-menu app-overlay" role="listbox" aria-label="Status"><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="not-started" data-tone="quiet">Not started</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="working">Working</button><button class="app-select-option" type="button" role="option" aria-selected="false" data-value="stuck" data-tone="danger">Stuck</button><button class="app-select-option" type="button" role="option" aria-selected="true" data-value="done" data-tone="success">Done</button></div></div><button class="app-utility-action" type="button">Update</button></div>
+          </article>
         </div>
-        <p class="app-note"><code>data-status</code> on <code>.app-job</code> names the state for scripts and for the one visual it changes - a done job's title steps back to the muted color. The status is the compact selector from 08 - a badge in the status's tone (none for working, <code>quiet</code> for not started, <code>danger</code> for stuck, <code>success</code> for done) whose menu drops below it, lifted out of the card's glass while open; a pick saves at once. <code>.app-job-section</code> puts the hairline between the card's groups - the ask, the facts, the actions. <code>.app-job-deadline[data-tight="true"]</code> is a deadline inside a week. The list is filtered by an <code>.app-rail</code> of chips above it and edited in the dialog standard.</p>
+        <p class="app-note">A job is not a component. It is a card with three <code>.app-card-section</code> groups (the ask, the facts, the actions), the surface text roles (label, title, copy), a split <code>.app-row</code> for the actions - the status selector at the start, Update at the end, both at the inline height - and the tone vocabulary: <code>data-tone="quiet"</code> on a done card steps its title back, <code>data-tone="danger"</code> on the deadline metric colors its value. <code>data-status</code> names the state for scripts only. The status is the compact selector, whose tone says the state at a glance.</p>
       </div>
     </div>
   </section>
@@ -1069,6 +1078,9 @@ Ask the team about the pairing board: three small plates built for the three dri
       <div class="ci-rule"><b>Glass never nests.</b><span>A backdrop filter inside a backdrop filter samples its parent, not the page, and renders as a flat tint. The library handles this so a page cannot get it wrong.</span></div>
       <div class="ci-rule"><b>Reuse before creating.</b><span>If a page needs something that is not here, it is added here first and then consumed. A component that exists only inside one route is not a component.</span></div>
       <div class="ci-rule"><b>One rhythm between sections.</b><span>44px between sections, 24px from the hero to the first one, 20px from a title to its content, 12px between cards in a stack, and a hairline between groups inside one card. A page never sets its own gaps.</span></div>
+      <div class="ci-rule"><b>Three control heights, by role.</b><span>A full-width thing you tap is a row at 52px: a list row, a disclosure, a field, a code cell. A framed button, chip or selector trigger is a control at 40px. A frameless utility, badge or compact selector is inline at 32px. Nothing else declares a floor; a text area sizes by its rows.</span></div>
+      <div class="ci-rule"><b>One glass blur.</b><span>blur(18px) saturate(1.18) is the only kernel a surface runs. The scrim behind a dialog is not a surface: it dims the page and softens it with its own light 7px blur so the dialog reads as floating, and that is the one exception.</span></div>
+      <div class="ci-rule"><b>Rules over inventories.</b><span>Before cataloguing variants, find the smallest rule that makes the distinctions irrelevant. A new component exists only for a different behavior — interaction, state or accessibility — never because the content differs. A job is a card with sections; it is not a component.</span></div>
       <div class="ci-rule"><b>Secondary text never drops below 11px.</b><span>Labels, deltas, notes and metadata are 11 or 12px. A rule that shrinks them fails the render gate.</span></div>
       <div class="ci-rule"><b>Geometry is never inline.</b><span>A data-driven length is an SVG attribute or a data attribute the library maps, not a style attribute. The track in 12 Metrics is the pattern. The one runtime exception is the library's own: the anchor of a lifted selector menu, three custom properties app-select.js sets and clears.</span></div>
       <div class="ci-rule"><b>Status is a tone, not a color.</b><span>A card's status, a hero's eyebrow, a badge and a state all speak the same two words — success, quiet — and the library maps them. A page never picks a color for a state.</span></div>
@@ -1091,7 +1103,7 @@ Ask the team about the pairing board: three small plates built for the three dri
         <h2 class="app-dialog-title">Dialog Standard</h2>
       </div>
     </div>
-    <p class="app-dialog-copy">A dialog floats above page content rather than the atmosphere, so it takes the heavier overlay fill. The scrim behind it dims the page and owns its own values.</p>
+    <p class="app-dialog-copy">A dialog floats above page content rather than the atmosphere, so it takes the heavier overlay fill. The scrim behind it dims the page and softens it slightly so the dialog reads as floating.</p>
     <div class="app-dialog-actions">
       <button class="app-utility-action" type="button" data-dialog-close>Cancel</button>
       <button class="app-primary app-control" value="ok">Confirm</button>

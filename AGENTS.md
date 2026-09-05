@@ -85,7 +85,7 @@ The single-shell router invariant is mandatory for all authenticated app feature
 - **Voice invariant (r24, 5 Sep 2026): `site/voice.html` at `/voice` (in-shell `#voice` via `voice-page.js`, listed under Settings › System beside the UI Library) is the master copy library - the way `/ci` is the master for components. Every string the app owns follows it: American English; one word per thing (employee, sign in, permanent code / one-time code, People & Culture, guest, promotion, broadcast, job, archive, revoke, turn on/off, phone, tap); Title Case only on hero and section titles; no period on titles, labels, buttons, badges, toasts or state titles; no exclamation marks, no "please", no apologies; errors are "Couldn't <thing>" + what to do; gates are "This tab is for …" + "Ask People & Culture …". Dates, times, money and counts are written only by `site/app-format.js` (hotel time, never a zone suffix; English `5 Sep 2026 · 6 pm`, `11:30 am`, `6:30–11 am`, weekday without a comma; Thai `5 ก.ย. 2569 · 18:00 น.`, Buddhist year) - no route formats its own. F&B promotion copy (`data-verbatim`) is rendered as provided; only a typo or grammatical slip may be corrected, in the data, with approval. The Voice page's specimens are filled by `app-format.js` at mount (`[data-format]`), so the document cannot drift from the code; `ci-page-render-smoke.mjs` renders `/voice` too.**
 - **Artwork copy invariant (r25, 5 Sep 2026): section 03 of an F&B promotion (`#fnb/<id>` → `#artwork-copy`) is derived at render time by `site/fnb-artwork-copy.js` (`artworkCopy(campaign)`), never stored: the title verbatim, the subtitle from the press headline with its venue clause removed and never the title said again (r25c: `titleShare` rejects it, the next non-fact line or sentence stands in), and the body as one paragraph, never a table or a fact list (r25b): `summary` plus the press release's own non-fact sentences until ≥200 characters (r25c), then "Available <formatDateRange> at <outlets in OUTLET_ORDER> (<formatClock hours>)", the prices, the terms, IHG One Rewards, "Reserve at +66 2 796 8888 or eat.sindhornmidtown@ihg.com" and the enrollment link, sentence after sentence through `app-format.js`; the `*` channel line is returned as `channel` and shown in the note under the card, not in the copy. The designer sets the body as running copy on the artwork, so do not split it back into rows. The press-release EN/TH copy in 02 stays the verbatim reference. The specimen in `/voice` §17 is bound from the same module against a fixed Fried Chicken & Waffles record and the render smoke asserts it. A hand-written override would be a data field, proposed and approved first, never a page patch. The rail's chips grow from their labels (`flex:1 1 auto`, v33) so five fit one phone row.**
 - **Masthead two-state invariant (r23): the account chip and the Messages icon each have two states driven by `data-mode` - `initials`/`close` on the chip, `messages`/`close` on the icon. While its destination is open the control is the accent close mark and tapping it returns to the page the employee came from (Settings → `returnHash`, Messages → the last non-Messages layer-0 page; Today when none). Never add a third way out of either.**
-- **Job card invariant (r23, r23c): a job card's groups (the ask, the facts, the actions) are separated by `.app-job-section` hairlines; the status is the compact selector (`.app-select[data-compact="true"]` from `app-select.js`, the trigger an `.app-badge` in the status's tone) - a real dropdown, and a pick saves through `sindhorn_jobs_set_status_v1` at once. Glass never nests, so `bindAppSelects` lifts a card selector's open menu to `<body>` as `position:fixed` anchored by the three `--app-select-*` custom properties it sets and clears - the library's one runtime geometry, never a page's. A selector inside a `<dialog>` stays in place.**
+- **Job card invariant (r23, r23c, r28): a job is not a component - it is an `.app-card.app-surface` whose groups (the ask, the facts, the actions) are `.app-card-section`s, with the surface text roles (`.app-surface-label` / `-title` / `-copy`), a split `.app-row` of actions at the foot (status selector at the start, Update at the end, both at the inline height), `data-tone="quiet"` on a done card and `data-tone="danger"` on a tight deadline metric; the status is the compact selector (`.app-select[data-compact="true"]` from `app-select.js`, the trigger an `.app-badge` in the status's tone) - a real dropdown, and a pick saves through `sindhorn_jobs_set_status_v1` at once. Glass never nests, so `bindAppSelects` lifts a card selector's open menu to `<body>` as `position:fixed` anchored by the three `--app-select-*` custom properties it sets and clears - the library's one runtime geometry, never a page's. A selector inside a `<dialog>` stays in place.**
 - Messages is a masthead destination and its device-local inbox works offline. Jobs is each employee's own job tracker (`site/jobs-page.js`, r21): rows in `public.sindhorn_jobs`, reached only through the `sindhorn_jobs_*_v1` RPCs (capability `jobs.read` / `jobs.manage`, granted to everyone; every call is scoped to the caller's own employee row; archive, never delete).
 - Environmental Alerts / Web Push is user-gesture initiated only; never auto-prompt notification permission.
 - **The active persistent visual is the Sindhorn Betta WebGL organism. Its only real-time visual/environmental authority is current JMA Himawari-9 High-Resolution Asia 1 satellite imagery over Bangkok.** No TMD station data, MET model data, AirBKK, device geolocation/orientation, local clock, calculated astronomy, microphone/camera or other sensor may be introduced as a Betta form/colour driver without a new explicit product decision.
@@ -242,7 +242,10 @@ Two weights of one material, both in `site/app-glass.css`:
   black and stops being glass, which is how `.fnb-select-menu` ended up at `.98`.
 
 Both use the same `--app-glass-filter` `blur(18px) saturate(1.18)`. There is no
-third recipe.
+third recipe for a surface. The `::backdrop` scrim behind a dialog or sheet is
+not a surface: it dims the page and softens it with a light `blur(7px)` so the
+dialog reads as floating. r28 considered removing that kernel and kept it,
+because removing it visibly changes what shows through the scrim. Keep it.
 
 Anything inside a glass surface takes a plain tint with no `backdrop-filter`.
 That is not a downgrade: nested glass was already rendering as its flat fill, so
@@ -253,6 +256,15 @@ Enforced in two places. `scripts/page-centralization-audit.mjs` rejects a
 `app-glass.css` only), and `scripts/nested-glass-smoke.mjs` fails the build if
 a rendered route has a blurred element inside a glass surface — which is
 exactly how `.fnb-action-control` once acquired an inert blur.
+
+### Control heights — 5 September 2026 (r28)
+
+Three floors by role, in `app-tokens.css`, and nothing else declares a
+`min-height`: `--control-row` 52px (a full-width thing you tap: list row,
+disclosure, field, code cell, check row), `--control` 40px (a framed button,
+chip or selector trigger), `--control-inline` 32px (a frameless utility, badge
+or compact selector). Text areas size by `rows`. A literal `min-height` in
+`app-components.css` is a regression.
 
 ### Rules over inventories — 5 September 2026
 
