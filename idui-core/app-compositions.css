@@ -26,9 +26,9 @@
    right, .app-track beneath) and a row of frameless secondary actions below
    the press surface. The actions sit outside the button so a tap on Share
    never also opens the detail. */
-.app-action-card-meta{margin-top:12px;padding-top:11px;border-top:1px solid var(--app-line);display:flex;align-items:baseline;justify-content:space-between;gap:12px;color:var(--app-muted);font-size:var(--type-small);text-transform:uppercase}
+.app-action-card-meta{margin-top:12px;padding-top:11px;border-top:1px solid var(--app-line);display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-5);color:var(--app-muted);font-size:var(--type-small);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 .app-action-card-meta b{color:var(--app-text);font-weight:var(--weight-regular);font-size:var(--type-body-s);text-transform:none;font-variant-numeric:tabular-nums}
-.app-action-card-actions{padding:6px 10px;display:flex;align-items:center;justify-content:flex-end;gap:4px;border-top:1px solid var(--app-line)}
+.app-action-card-actions{padding:6px 10px;display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);border-top:1px solid var(--app-line)}
 .app-action-card-actions>:first-child:not(:last-child){margin-right:auto}
 
 /* ---- Directory (Settings › Admin) ------------------------------------------
@@ -58,7 +58,7 @@
 /* A six-character code the app shows rather than asks for - a first-login
    or recovery code an admin reads out or shares. The same six wells as the
    input group, only static, so the two read as one thing. */
-.app-code-display{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:0}
+.app-code-display{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--space-3);margin:0}
 .app-code-display b{
   min-height:var(--control-row);display:flex;align-items:center;justify-content:center;
   border:1px solid var(--app-line);border-radius:var(--radius-inset);background:var(--app-inset-fill);
@@ -73,9 +73,9 @@
   flex:0 0 auto;width:38px;height:38px;
   display:inline-flex;align-items:center;justify-content:center;
   border-radius:var(--radius-inset);background:var(--app-inset-fill);
-  color:var(--app-muted);font-size:var(--type-body-s);font-weight:var(--weight-bold);text-transform:uppercase;
+  color:var(--app-muted);font-size:var(--type-body-s);font-weight:var(--weight-bold);letter-spacing:var(--tracking-label);text-transform:uppercase;
 }
-.app-list-row-lead{min-width:0;flex:1 1 auto;display:flex;align-items:center;gap:12px}
+.app-list-row-lead{min-width:0;flex:1 1 auto;display:flex;align-items:center;gap:var(--space-5)}
 .app-list-row-lead>.app-list-row-main{flex:1 1 auto}
 
 /* ---- Swatches ------------------------------------------------------------
@@ -97,7 +97,7 @@
 .app-table-wrap{overflow-x:auto;contain:inline-size;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
 .app-table{width:max(650px,100%);border-collapse:collapse;font-size:var(--type-body-s);font-variant-numeric:tabular-nums}
 .app-table th,.app-table td{padding:10px 8px;border-bottom:1px solid var(--app-line);text-align:center;white-space:nowrap}
-.app-table thead th{color:var(--app-muted);font-size:var(--type-small);font-weight:var(--weight-regular);text-transform:uppercase}
+.app-table thead th{color:var(--app-muted);font-size:var(--type-small);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 .app-table thead th:first-child{width:108px;min-width:108px;max-width:108px}
 .app-table tbody th{
   position:sticky;left:0;z-index:1;
@@ -105,6 +105,14 @@
   text-align:left;font-weight:var(--weight-regular);white-space:normal;line-height:var(--leading-label);
 }
 .app-table tbody th small{display:block;margin-top:3px;color:var(--app-muted);font-size:var(--type-small);font-weight:var(--weight-regular);line-height:var(--leading-label)}
+/* A reading table (a manual, a comparison): left aligned, wrapping, the
+   page's width, and its heads in the accent. No row head, so no sticky
+   column and no cell takes the material. */
+.app-table[data-mode="text"]{width:100%}
+.app-table[data-mode="text"] th,.app-table[data-mode="text"] td{text-align:left;white-space:normal;vertical-align:top;padding:10px 12px}
+.app-table[data-mode="text"] thead th{width:auto;min-width:0;max-width:none;color:var(--app-accent);white-space:nowrap}
+.app-table[data-mode="text"] td{color:var(--app-muted);line-height:var(--leading-body)}
+.app-table[data-mode="text"] td b{color:var(--app-text);font-weight:var(--weight-medium)}
 
 /* ---- Business card ----------------------------------------------------------
    The employee's digital card as it appears on Settings › Me: the same shape
@@ -114,7 +122,7 @@
    text metric grid, the QR is a figure. The QR's paper is inside the SVG the
    generator draws, so this rule paints no color. */
 .app-business-card{display:grid;gap:18px;text-align:center}
-.app-business-card-kicker{margin:0;color:var(--app-accent);font-size:var(--type-caption);text-transform:uppercase}
+.app-business-card-kicker{margin:0;color:var(--app-accent);font-size:var(--type-caption);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 .app-business-card-name{margin:6px 0 0;font-size:var(--type-display);font-weight:var(--weight-thin);line-height:.98;text-wrap:balance;overflow-wrap:anywhere}
 .app-business-card-position{margin:10px 0 0;font-size:var(--type-lead);line-height:var(--leading-label)}
 .app-business-card-hotel{max-width:36ch;margin:8px auto 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body);text-wrap:balance}

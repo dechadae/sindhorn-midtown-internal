@@ -51,8 +51,8 @@
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">1 · One material</span><span class="app-list-row-meta">Every fill, border and blur of a surface comes from <code>app-glass.css</code>; no <code>backdrop-filter</code> is written anywhere else, the dialog scrim included.</span><span class="app-list-row-meta">Checked by ratchet · nested-glass</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">2 · A card is anything that draws an edge</span><span class="app-list-row-meta">An edge is glass; glass never nests. Structure inside a card is a rule, a section, a row - never a second surface.</span><span class="app-list-row-meta">Checked by nested-glass · page audit</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">3 · One scale</span><span class="app-list-row-meta">Every size, radius, space, weight, leading, duration and control height is a token in <code>app-tokens.css</code>; a literal in a component is a finding.</span><span class="app-list-row-meta">Checked by ratchet · page audit · invariants</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">4 · One face, zero tracking</span><span class="app-list-row-meta">One family, three weights, <code>letter-spacing:0</code> on everything. <code>--tracking</code> stays as the constitution's knob and is set to nothing.</span><span class="app-list-row-meta">Checked by font-architecture</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">5 · Rounded, never circular</span><span class="app-list-row-meta">No 50% and no pill on a control; a circle is allowed only where it draws a natural thing.</span><span class="app-list-row-meta">Checked by shape audit</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">4 · One face</span><span class="app-list-row-meta">The constitution declares the family, the weights, the tracking and the case; the core consumes them and declares none of its own. Zero tracking, one family and three weights are Sindhorn's constitution, not the core's (restated r33 after the Flipgazine rebuild).</span><span class="app-list-row-meta">Checked by font-architecture and constitution completeness</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">5 · One shape system</span><span class="app-list-row-meta">Every radius is a token and the core declares no radius literal. Rounded, never circular - no 50%, no pill on a control - is Sindhorn's constitution (<code>--radius-control: var(--radius-inset)</code>); a circle is allowed only where it draws a natural thing (restated r33).</span><span class="app-list-row-meta">Checked by shape audit</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">6 · No CSS outside the foundation</span><span class="app-list-row-meta">Seven sheets style the app. A page brings markup and behavior and no presentation: no style attribute, no style block, no route sheet.</span><span class="app-list-row-meta">Checked by ratchet · page audit</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">7 · Variants are attributes, not classes</span><span class="app-list-row-meta">A component varies by <code>data-tone size width columns mode open compact direction split rule icon stagger</code>, and a script stamps state as <code>data-view run set locked ready public</code>. No <code>.app-*--modifier</code>.</span><span class="app-list-row-meta">Checked by invariants</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">8 · Both-or-neither</span><span class="app-list-row-meta">Actions that share a row share a weight: all framed buttons or all frameless utilities. A hero head and a dialog foot are where the rule says neither.</span><span class="app-list-row-meta">Checked by invariants</span></div></div>
@@ -725,7 +725,7 @@
   <div class="app-card app-surface">
     <div class="app-list">
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>ui-centralization-budget.mjs</code></span><span class="app-list-row-meta">The ratchet · eleven metrics may only fall · run before every push touching shared UI</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>page-centralization-audit.mjs</code></span><span class="app-list-row-meta">Per page: no style attributes or blocks, no color or pixel literals, no undefined classes, no backdrop-filter outside the material file</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>page-centralization-audit.mjs</code></span><span class="app-list-row-meta">Per page: no style attributes or blocks, no color or pixel literals, no undefined classes, no <code>backdrop-filter</code> outside the material file. Since r34 it audits the public document pages <code>/idui</code> and <code>/evidence</code> too, and text quoted inside <code>&lt;code&gt;</code> is not a declaration</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>ci-page-render-smoke.mjs</code></span><span class="app-list-row-meta">Headless render of <code>/ci</code>, <code>/voice</code>, since r30 the generated <code>/share</code> index and one promotion, and since r31 the business card and an unknown slug, cut locally by the worker's own transformation over a fixture · computed material of every canonical selector · computed motion · format specimens · public mode (no chrome, no service worker, no checklist; the card on glass with its QR, contact actions and vCard)</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>nested-glass-smoke.mjs</code></span><span class="app-list-row-meta">13 routes with a stand-in session · fails on a blurred element inside a glass surface</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Readability Test · <code>#readability</code></span><span class="app-list-row-meta">Authoring-time contract on the live atmosphere · Save gated on 4.5:1 for ink, muted, accent · human-driven, not in CI</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
@@ -813,7 +813,7 @@
       <div class="app-metric-grid" data-mode="text">
         <div class="app-metric"><span class="app-metric-label">Observed</span><span class="app-metric-value">In Sindhorn</span><span class="app-metric-note">The ratchet numbers. Zero page literals across eleven modules. One duplicated behavior. Two rules settled by measurement. Pages landing one a day once the library existed. A contract that refuses to save the current atmosphere's muted ink.</span></div>
         <div class="app-metric"><span class="app-metric-label">Inferred</span><span class="app-metric-value">Explained by the method</span><span class="app-metric-note">That a membership test outlives a registry; that a ratchet lets migration finish; that an agent given rules stops generating local decisions; that random sampling against a contract is property-based testing applied to appearance.</span></div>
-        <div class="app-metric"><span class="app-metric-label">Hypothesized</span><span class="app-metric-value">To test elsewhere</span><span class="app-metric-note">That the four-layer split and either/or/neither shape hold in an unrelated product, with a different material, on desktop, in a light theme, with a larger team; that the validation harness generalizes beyond contrast. First test in §08: the material, scale and face held under a second identity; seven findings against the core.</span></div>
+        <div class="app-metric"><span class="app-metric-label">Hypothesized</span><span class="app-metric-value">To test elsewhere</span><span class="app-metric-note">That the four-layer split and either/or/neither shape hold in an unrelated product, with a different material, on desktop, in a light theme, with a larger team; that the validation harness generalizes beyond contrast. First test in §08: the material, scale and face held under a second identity; seven findings against the core. Second test, same day: one real Flipgazine page with its own engines, rebuilt with no CSS in the page; nine core assumptions moved to the constitutions.</span></div>
       </div>
     </article>
 
@@ -827,7 +827,7 @@
           <li>A poorly chosen invariant creates rigidity, and too many invariants recreate taxonomy in another form.</li>
           <li>Semantic information must still be authored; tone, state and hierarchy are decisions a person makes.</li>
           <li>Composition stays a human and product responsibility.</li>
-          <li>The evidence comes from one production system, one material, one dark theme, one phone-first product, one team of one plus an agent. The transfer in §08 is a second identity on the same dark, glass, phone-first premise, not a second product.</li>
+          <li>The evidence comes from one production system, one material, one dark theme, one phone-first product, one team of one plus an agent. The transfer in §08 is a second identity on the same dark, glass, phone-first premise, not a second product; the rebuild test that followed is one page of a second product, still dark and still glass.</li>
           <li>A headless browser can pass every gate here and still differ from a phone; real devices remain part of validation.</li>
         </ul>
       </div>
@@ -870,8 +870,8 @@
       <thead><tr><th scope="col">Selector · property</th><th scope="col">Sindhorn</th><th scope="col">Flipgazine</th></tr></thead>
       <tbody>
         <tr><th scope="row">body · font</th><td>LINE Seed Sans TH 400 · 13px / 19.5</td><td>Poppins 300 · 14px / 23.1</td></tr>
-        <tr><th scope="row">.app-surface · fill</th><td>rgba(46,39,59,.30)</td><td>rgba(21,25,24,.55)</td></tr>
-        <tr><th scope="row">.app-surface · backdrop-filter</th><td>blur(18px) saturate(1.18)</td><td>blur(18px) saturate(1.3)</td></tr>
+        <tr><th scope="row">.app-surface · fill</th><td><code>rgba(46,39,59,.30)</code></td><td><code>rgba(21,25,24,.55)</code></td></tr>
+        <tr><th scope="row">.app-surface · <code>backdrop-filter</code></th><td>blur(18px) saturate(1.18)</td><td>blur(18px) saturate(1.3)</td></tr>
         <tr><th scope="row">.app-hero-title · weight</th><td>100</td><td>200</td></tr>
         <tr><th scope="row">.app-section-kicker · color</th><td>#E5ECBE</td><td>#00F0D1</td></tr>
         <tr><th scope="row">.app-section-kicker · letter-spacing</th><td>normal</td><td>normal</td></tr>
@@ -937,8 +937,52 @@
     </article>
   </div>
 
+  <h3 class="app-section-subhead">The rebuild test: a real page, its engines carried</h3>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p>The specimen test above was self-confirming: IDUI markup rendered under a second set of tokens. The same day the method met its first external adversarial case. Flipgazine's page "Moving to Claude Code" - seven style blocks of its own, a shared header, a WebGL atmosphere, a glyph field, a theme engine that rewrites the palette eight times a day - was rebuilt through a constitution written from the real page rule by rule, and through the core's primitives, with no CSS and no style attribute in the page. The atmosphere, glyph, theme, motion and clock engines were carried unchanged: IDUI governs the interface's relationship with an engine (the engine writes <code>--bg --text --accent --glass</code>, the constitution aliases them, the core derives everything else) and does not absorb it, the same way it does not own Betta's fin shader. The protocol was frozen before the after-metrics; the objective was preservation of product identity, not pixel-equivalent CSS reconstruction. The files are <code>idui-core/evidence/rebuild/</code>; the run - screenshots, every metric, the falsification log and the parity verdict - is published at <a href="https://sindhorn-midtown-internal.pages.dev/evidence">sindhorn-midtown-internal.pages.dev/evidence</a>.</p>
+    </div>
+  </div>
+
+  <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Appearance decisions in the page</p><p class="app-metric-value">356 → 0</p><p class="app-metric-note">Sizes, weights, radii, trackings, blurs the page chose</p></div>
+    <div class="app-metric"><p class="app-metric-label">Semantic declarations</p><p class="app-metric-value">44 → 41</p><p class="app-metric-note">What the page still has to say it is</p></div>
+    <div class="app-metric"><p class="app-metric-label">Change propagation</p><p class="app-metric-value">14–24 → 1</p><p class="app-metric-note">Chip radius, label tracking, glass recipe, body face, label weight</p></div>
+    <div class="app-metric"><p class="app-metric-label">Page CSS</p><p class="app-metric-value">30,693 B → 0</p><p class="app-metric-note">229 rules, 3 !important, 3 inline styles → none</p></div>
+    <div class="app-metric"><p class="app-metric-label">CSS the page loads</p><p class="app-metric-value">2.9×</p><p class="app-metric-note">87,877 B of core + constitution against 30,693. A loss, published.</p></div>
+    <div class="app-metric"><p class="app-metric-label">Rendered</p><p class="app-metric-value">5 → 1 · 3 → 0</p><p class="app-metric-note">Blur recipes · glass inside glass. Font sizes 15 → 7, trackings 14 → 6, radii 7 → 4</p></div>
+  </div>
+
+  <h3 class="app-section-subhead">What the rebuild disproved</h3>
+  <p class="app-note">Every value the core carried as its own that turned out to be Sindhorn's. Each moved to the constitutions; Sindhorn renders 0 differing pixels after every move. The full log is <code>idui-core/evidence/rebuild/FALSIFICATIONS.md</code>.</p>
+  <div class="app-table-wrap">
+    <table class="app-table" data-mode="text">
+      <thead><tr><th scope="col">Initial core assumption</th><th scope="col">Flipgazine required</th><th scope="col">Result</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Zero tracking, regular labels, display case kept</th><td>Tracked uppercase labels at 600, 300 as the body's regular</td><td><code>--tracking --tracking-label --tracking-display --case-display --weight-label --weight-medium</code>; the core declares none (T1, T5)</td></tr>
+        <tr><th scope="row">Ground <code>#2E273B</code> in the shell sheet</th><td>Ground written by the theme engine</td><td><code>--app-ground</code> (T3)</td></tr>
+        <tr><th scope="row">A control's radius is the inset radius</th><td>A pill on every control</td><td><code>--radius-control</code>; "never circular" is Sindhorn's rule, checked by its shape audit (T5)</td></tr>
+        <tr><th scope="row">The material's fill, edge, blur and scrim on the core's <code>:root</code></th><td>The engine's glass, <code>saturate(1.3)</code></td><td>Seven <code>--app-glass-*</code> tokens; <code>app-glass.css</code> declares the rule and no value</td></tr>
+        <tr><th scope="row">Shell band 56px, page 720px, prose 64ch, code face</th><td>54px, 760px, no prose measure</td><td><code>--app-shell-band --measure-page --measure-prose --font-code</code></td></tr>
+        <tr><th scope="row">Font files in <code>site/assets/fonts/</code></th><td>A face that travels</td><td><code>constitutions/&lt;name&gt;/assets/</code>; <code>fonts.css</code> names them relative to itself (T6)</td></tr>
+        <tr><th scope="row">Inputs and icon controls at the UA's weight</th><td>300 everywhere</td><td><code>font: inherit</code> on fields and controls (T4)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="app-note">Refused, because they fail the question <em>is this a reusable semantic degree of freedom required by multiple legitimate constitutions, or one application's historical exception?</em>: the catalog thumbnail tilt, the header's second saturate, the editorial palette switch. Still demanded by the core and not supplied by Flipgazine: <code>--app-success</code> and <code>--app-danger</code> (T7) - the one place the core's shape shows through a constitution, left visible on purpose. T2 (rhythm) is half-answered: the core now reads a space token wherever its gap sits on a step (40 literal gaps → 18); the 3, 5, 6, 14 and 18px gaps between the steps are still literals, and folding them is the next honest move.</p>
+
+  <h3 class="app-section-subhead">Three tiers, after the test</h3>
+  <div class="app-table-wrap">
+    <table class="app-table" data-mode="text">
+      <thead><tr><th scope="col">IDUI core</th><th scope="col">Sindhorn constitution</th><th scope="col">Flipgazine constitution</th></tr></thead>
+      <tbody>
+        <tr><td>Pages own no presentation; a page writes semantic declarations only. Primitives are justified by behavior, never by look. Every value comes from the constitution. The nine invariants and their contracts. A local exception needs constitutional authority.</td><td>LINE Seed Sans TH at 100 / 400 / 700, zero tracking, the glass material at 30% and 72%, 10px control radius, 56px band, control floors, motion timings, the Betta rules and periods.</td><td>Poppins with Noto Sans Thai at 300 / 500 / 600, tracked uppercase labels, ground, ink, muted and accent written by its theme engine, its own material, pill controls, 54px band, the glyph and WebGL engines.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
   <h3 class="app-section-subhead">Not tested</h3>
-  <p class="app-note">Motion (Flipgazine's 640ms leave and 1.06s arrival were mapped to <code>--motion-view</code> and <code>--motion-reveal</code> but the specimens are static); the behavior modules; a light theme; desktop. The atmosphere is a still gradient in both pages, as it is in this export. Nothing was deployed to Flipgazine.</p>
+  <p class="app-note">Motion (Flipgazine's 640ms leave and 1.06s arrival were mapped to <code>--motion-view</code> and <code>--motion-reveal</code> but the specimens are static); the behavior modules; a light theme; desktop. The atmosphere is a still gradient in both specimen pages, as it is in the offline export of this document (the page at <code>/idui</code> runs the live one). Nothing was deployed to Flipgazine.</p>
 
   <div class="app-utility-row">
     <a class="app-utility-action" href="#top">Back to top</a>

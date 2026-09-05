@@ -26,25 +26,41 @@ function rel(file){return path.relative(site,file)}
 function isZeroTracking(value){
   return /^0(?:\.0+)?(?:px|rem|em)?$/i.test(value.replace(/!important/gi,'').trim());
 }
+// r33: the core consumes the constitution's tracking tokens and declares no
+// tracking of its own; the zero is Sindhorn's rule, asserted on the tokens
+// below. A literal in a sheet must still be zero.
+const trackingTokens=['--tracking','--tracking-label','--tracking-display'];
+function isTrackingToken(value){
+  const v=value.replace(/!important/gi,'').trim();
+  return trackingTokens.some(t=>v===`var(${t})`);
+}
 
 for(const file of walk(site)){
   const ext=path.extname(file).toLowerCase();
   if(!textExtensions.has(ext))continue;
   const text=fs.readFileSync(file,'utf8');
-  if(bannedFamily.test(text))errors.push(`${rel(file)} contains retired font family`);
+  // r34: the public document pages (/idui, /evidence) name Flipgazine's
+  // families in prose. A page carries no <style> and no style attribute (the
+  // page audit), so in HTML a family is a declaration only inside a
+  // font-family value or a Google Fonts link - which the checks below and
+  // externalFont catch - and the whole-text rule applies to the code files.
+  const declared=ext==='.html'?[...text.matchAll(/font-family\s*:\s*([^;}"]+)/gi)].map(m=>m[1]).join('\n'):text;
+  if(bannedFamily.test(declared))errors.push(`${rel(file)} contains retired font family`);
   if(bannedAsset.test(text))errors.push(`${rel(file)} contains retired font asset`);
   if(externalFont.test(text))errors.push(`${rel(file)} contains runtime external font dependency`);
 
   for(const match of text.matchAll(/letter-spacing\s*:\s*([^;}]+)/gi)){
-    if(!isZeroTracking(match[1]))errors.push(`${rel(file)} nonzero letter-spacing: ${match[0]}`);
+    if(!isZeroTracking(match[1])&&!isTrackingToken(match[1]))errors.push(`${rel(file)} nonzero letter-spacing: ${match[0]}`);
   }
   for(const match of text.matchAll(/font-weight\s*:\s*(\d+)/gi)){
+    // a literal weight (a token's value, a face); var(--weight-*) does not match \d
     if(!['100','400','700'].includes(match[1]))errors.push(`${rel(file)} unsupported font weight ${match[1]}`);
   }
   if(path.basename(file)!=='fonts.css'){
     for(const match of text.matchAll(/(?<![-\w])font-family\s*:\s*([^;}]+)/gi)){
       const value=match[1].replace(/!important/gi,'').trim();
-      if(value!=='var(--font-ui)'&&value!=='inherit')errors.push(`${rel(file)} non-canonical font-family: ${value}`);
+      // r33: --font-code is the constitution's code face, consumed by .app-code-block only.
+      if(value!=='var(--font-ui)'&&value!=='var(--font-code)'&&value!=='inherit')errors.push(`${rel(file)} non-canonical font-family: ${value}`);
     }
     // Anchor on a property boundary: without it these also match the tail of custom
       // properties such as --app-utility-font, which is a font-size token, not a
@@ -70,6 +86,14 @@ if((fonts.match(/font-family:"LINE Seed Sans TH"/g)||[]).length!==3)errors.push(
 // here needs to shout. A returning !important is the regression.
 if(!fonts.includes('--font-ui:"LINE Seed Sans TH"'))errors.push('canonical LINE Seed family token missing');
 if(!fonts.includes('*::before,*::after{letter-spacing:0}'))errors.push('global zero-tracking invariant missing');
+// r33: zero tracking is the constitution's rule, so the constitution's tokens
+// must each be 0 - the core reads them and nothing else may set tracking.
+const tokens=fs.readFileSync(path.join(site,'app-tokens.css'),'utf8');
+for(const t of trackingTokens){
+  const m=tokens.match(new RegExp(`${t}\\s*:\\s*([^;}]+)`));
+  if(!m)errors.push(`app-tokens.css does not declare ${t}`);
+  else if(!isZeroTracking(m[1]))errors.push(`app-tokens.css ${t} is not zero: ${m[1].trim()}`);
+}
 if(fonts.includes('!important'))errors.push('fonts.css declares !important; the lock is the rule set, not the flag (r32)');
 if(!fonts.includes('font-synthesis:none'))errors.push('font weight synthesis guard missing');
 

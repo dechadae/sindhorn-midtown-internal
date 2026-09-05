@@ -9,9 +9,10 @@
    --shots <dir>   also write one JPEG per section and constitution there, for
                    a side-by-side report; not kept in the repository
 
-   Serves the repository root so the Sindhorn constitution's /assets/fonts
-   resolve to site/assets/fonts; the core does not carry the font files, and
-   that is one of the findings. */
+   Serves the repository root. The Sindhorn constitution's font files travel
+   with it (constitutions/sindhorn/assets/fonts, r33) and fonts.css names
+   them relative to itself, so the same file resolves at /fonts.css in the
+   app and inside the constitution folder here. */
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
@@ -33,7 +34,6 @@ for (const key of PAGES) {
 
 const server = http.createServer((req, res) => {
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-  if (p.startsWith('/assets/')) p = '/site' + p;
   const file = path.join(ROOT, p);
   if (!file.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
   fs.readFile(file, (err, data) => {

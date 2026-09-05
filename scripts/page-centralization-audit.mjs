@@ -15,7 +15,11 @@ const FOUNDATION = ['site/app-tokens.css', 'site/app-glass.css', 'site/app-compo
 const PAGES = [
   { name: '/ (app shell)', files: ['site/index.html', 'site/push-client.js', 'site/shell.js', 'site/today.js', 'site/fnb-page.js', 'site/fnb-artwork-copy.js', 'site/ci-page.js', 'site/ci-library.js', 'site/voice-page.js', 'site/app-format.js', 'site/brand-page.js', 'site/signin-page.js', 'site/settings-page.js', 'site/messages-page.js', 'site/jobs-page.js', 'site/app-code.js', 'site/app-view.js', 'site/app-dialog.js', 'site/app-toast.js', 'site/settings-me.js', 'site/settings-admin.js', 'site/settings-broadcast.js', 'site/broadcast-inbox.js', 'site/readability-page.js', 'site/betta-readability.js', 'site/betta-random.js'], css: FOUNDATION },
   { name: '/ci (UI Library)', files: ['site/ci.html'], css: [...FOUNDATION, 'site/ci-library.css'] },
-  { name: '/voice (Voice)', files: ['site/voice.html'], css: [...FOUNDATION, 'site/ci-library.css'] }
+  { name: '/voice (Voice)', files: ['site/voice.html'], css: [...FOUNDATION, 'site/ci-library.css'] },
+  // The public document pages (r34): built from docs/idui by
+  // scripts/build-idui.mjs and scripts/build-evidence.mjs, library classes only.
+  { name: '/idui (Methodology)', files: ['site/idui.html', 'site/public-doc.js'], css: [...FOUNDATION, 'site/ci-library.css'] },
+  { name: '/evidence (Rebuild test)', files: ['site/evidence.html'], css: [...FOUNDATION, 'site/ci-library.css'] }
 ];
 // Classes that are state hooks or belong to a runtime the page only hosts.
 const ALLOW = new Set(['is-shell', 'is-single', 'is-open']);
@@ -42,8 +46,10 @@ for (const page of PAGES) {
   const findings = [];
   for (const file of page.files) {
     const raw = read(file);
-    const src = stripComments(raw);
     const isHtml = file.endsWith('.html');
+    // What a page quotes inside <code> is text, never a live class, color or
+    // declaration: the document pages (r34) quote all three by name.
+    const src = stripComments(isHtml ? raw.replace(/(<code\b[^>]*>)[\s\S]*?(<\/code>)/g, '$1$2') : raw);
     // Scripts inside the HTML are audited as templates too, but a <script> that
     // only sets a CSS custom property on the root is not a style attribute.
     for (const c of usedClasses(src)) if (!defined.has(c) && !ALLOW.has(c)) findings.push(`${file}: class "${c}" is not defined by the library`);

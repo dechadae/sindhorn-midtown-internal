@@ -9,7 +9,10 @@
    rendered specification. In IDUI terms this file, with fonts.css, is the
    constitution: the one file a second project rewrites (idui-core/README.md).
 
-   Typography: LINE Seed Sans TH only, three weights, zero tracking. */
+   Typography: LINE Seed Sans TH only, three weights, zero tracking - the
+   zero is this constitution's rule (the font test holds every tracking
+   token at 0), not the core's: the core consumes the tokens and declares
+   no tracking of its own (r33). */
 :root{
 
   /* ---- Type scale -------------------------------------------------------
@@ -37,7 +40,18 @@
   --weight-thin:100;
   --weight-regular:400;
   --weight-bold:700;
+  /* Two more slots the core consumes (r33): the weight a label or chip
+     carries and the weight of emphasis in running text. Sindhorn's labels
+     are regular and its emphasis is bold, so both resolve to values above
+     and nothing renders differently. */
+  --weight-label:var(--weight-regular);
+  --weight-medium:var(--weight-bold);
+  /* Tracking: running text, uppercase labels, display titles. All zero
+     here; a tracked voice sets each. Case of a display title likewise. */
   --tracking:0;
+  --tracking-label:0;
+  --tracking-display:0;
+  --case-display:none;
 
   /* ---- Shape ------------------------------------------------------------
      Every radius in the app resolves to one of these; the legacy routes'
@@ -57,6 +71,29 @@
   --app-inset-fill:rgba(250,247,245,.055);
   --app-accent:#E5ECBE;
   --app-accent-rgb:229,236,190;
+  /* The ground every page stands on and the atmosphere paints over (r33:
+     was a literal in app-shell.css). */
+  --app-ground:#2E273B;
+  /* The material (r33: was the :root of app-glass.css). The proven CI blur,
+     exactly 18px / saturate(1.18); Vignette pigment lowered to 30% so the
+     live Betta remains visible through frost. Floating surfaces - menus,
+     dialogs, sheets, toasts - sit over arbitrary content and carry more
+     pigment: same blur, heavier fill, one material in two weights (the app's
+     own --ci-glass-strong, .72). Do not push that to .92+: it reads as solid
+     black and stops being glass. An overlay inside an overlay cannot blur what
+     is beneath it, so its tint alone carries legibility (.98). The scrim is a
+     darkening and a lighter blur, so the page reads as present but out of
+     reach. */
+  --app-glass-fill:rgba(46,39,59,.30);
+  --app-glass-border:rgba(250,247,245,.14);
+  --app-glass-filter:blur(18px) saturate(1.18);
+  --app-glass-overlay-fill:rgba(38,32,49,.72);
+  --app-glass-nested-fill:rgba(38,32,49,.98);
+  --app-glass-scrim-fill:rgba(14,11,19,.48);
+  --app-glass-scrim-filter:blur(7px);
+  /* The shell band: header and footer are one height each (r33: was a
+     literal in app-components.css). */
+  --app-shell-band:56px;
   /* Status tones. A state is a tone, never an ad-hoc color: the two values
      the routes had been repeating for "done / live" and "error / down". */
   --app-success:#72A75D;
@@ -64,6 +101,9 @@
 
   --radius-surface:14px;  /* cards, panels, sheets   —  28 uses */
   --radius-inset:10px;
+  /* A framed control - chip, primary, select trigger, icon control -
+     shares the inset radius here; a pill-shaped voice sets this alone. */
+  --radius-control:var(--radius-inset);
   --radius-tight:8px;
   --radius-dialog:24px;    /* nested surfaces         —  12 uses */
   --radius-pill:999px;    /* chips, rails            —  18 uses */
@@ -76,6 +116,11 @@
   --control-row:52px;
   --control:40px;
   --control-inline:32px;
+  /* The reading column. */
+  --measure-page:720px;
+  /* Long-form copy keeps a reading measure inside the page (r33: was a
+     literal in app-components.css). */
+  --measure-prose:64ch;
 
   /* ---- Space ------------------------------------------------------------
      27 distinct gap values, mostly 6-16px near-duplicates of each other. */
@@ -92,6 +137,8 @@
      account chip - so a close mark is the same size in a dialog head, the
      masthead and the library. The mark inside is always 18px. */
   --size-icon-control:36px;
+  /* The face of code: a command in a well, a value read verbatim. */
+  --font-code:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 
   /* ---- Motion -----------------------------------------------------------
      Mirrors the existing app-transitions.css contract so there is one

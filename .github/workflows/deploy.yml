@@ -215,15 +215,20 @@ jobs:
           # idui-core/ is the foundation copied verbatim; drift is a second
           # source of truth.
           node scripts/idui-core-parity-smoke.mjs
+          # Every token the core consumes is declared by every constitution
+          # and nothing is declared that the core never reads (r33).
+          node scripts/idui-constitution-completeness.mjs
           # Every saved Betta period must still be drawn by its seed under the
           # code about to ship (anon read, no credential). All eight periods
           # have been saved since 5 Sep 2026, so an unsaved period is a
           # regression too: --require-all.
           node scripts/betta-periods-release-smoke.mjs --require-all
-          # The IDUI methodology export (docs/idui) is rebuilt from the library
-          # at every release and stamped with the service-worker VERSION; a
-          # stale export fails here rather than drifting from the app.
+          # The IDUI methodology export (docs/idui) and the public document
+          # pages /idui and /evidence are rebuilt from the library at every
+          # release and stamped with the service-worker VERSION; a stale
+          # output fails here rather than drifting from the app (r34).
           node scripts/build-idui.mjs --check
+          node scripts/build-evidence.mjs --check
 
       - name: Deploy to Cloudflare Pages
         env:

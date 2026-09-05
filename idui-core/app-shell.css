@@ -8,6 +8,9 @@
    A page loads: fonts.css, app-tokens.css, app-glass.css, app-components.css,
    app-compositions.css, app-shell.css. That is the whole system (r32; the
    same files, copied verbatim, are idui-core/).
+
+   The ground and the body's tracking are the constitution's (--app-ground,
+   --tracking, r33): this sheet holds no color and no tracking of its own.
 */
 
 *{box-sizing:border-box}
@@ -27,9 +30,9 @@ html{-webkit-text-size-adjust:100%}
 body{
   min-height:100dvh;margin:0;
   display:flex;flex-direction:column;
-  background:#2E273B;color:var(--app-text);
+  background:var(--app-ground);color:var(--app-text);
   font-family:var(--font-ui);font-size:var(--type-body);font-weight:var(--weight-regular);
-  letter-spacing:0;line-height:var(--leading-body);
+  letter-spacing:var(--tracking);line-height:var(--leading-body);
   overflow-x:hidden;
 }
 
@@ -39,7 +42,7 @@ body{
 .environment-stage{
   position:fixed;z-index:0;inset:0 0 auto 0;
   width:100vw;height:100lvh;overflow:hidden;
-  background:#2E273B;pointer-events:none;
+  background:var(--app-ground);pointer-events:none;
 }
 .environment-canvas{
   position:absolute;z-index:1;inset:0;

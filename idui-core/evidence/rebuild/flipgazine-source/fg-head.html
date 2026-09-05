@@ -1,0 +1,47 @@
+<!-- fg-head v1 — shared pre-paint resources; arrival CSS stays page-inline -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,300&family=Noto+Sans+Thai:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/favicon-v3.svg">
+<link rel="apple-touch-icon" href="/icons/icon-192-v3.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="flipgazine">
+<style id="fg-head-core">
+:root{
+  --ease-soft:cubic-bezier(.4,0,.2,1);
+  --soft:var(--ease-soft);
+  --font-ui:'Poppins','Noto Sans Thai',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+[hidden]{display:none!important}
+html,body{background:var(--bg-grad,var(--bg,#0D1110));background-attachment:fixed}
+body,button,input,select,textarea{font-family:var(--font-ui)}
+</style>
+<script>
+/* Synchronous palette restore. This fragment is composed before document.write,
+   so the cached period palette is applied before the destination can paint. */
+(function(){
+  var p; try{ p=JSON.parse(localStorage.getItem("fg:pal")||"null"); }catch(e){ return; }
+  if(!p||!p.bg) return;
+  var d=document.documentElement, s=d.style;
+  function c(a){ return "rgb("+(a[0]|0)+","+(a[1]|0)+","+(a[2]|0)+")"; }
+  function v(a){ return (a[0]|0)+","+(a[1]|0)+","+(a[2]|0); }
+  var b2=p.bg2||p.bg;
+  s.setProperty("--bg",c(p.bg));       s.setProperty("--bg2",c(b2));
+  s.setProperty("--bg-rgb",v(p.bg));
+  s.setProperty("--bg-grad","linear-gradient(165deg, "+c(p.bg)+" 0%, "+c(b2)+" 100%)");
+  s.setProperty("--surface",c(p.surface));
+  s.setProperty("--text",c(p.text));   s.setProperty("--text-rgb",v(p.text));
+  s.setProperty("--muted",c(p.muted));
+  s.setProperty("--line","rgba("+v(p.text)+",0.09)");
+  s.setProperty("--glass","rgba("+v(p.surface)+",0.55)");
+  s.setProperty("--glass-brd","rgba("+v(p.text)+",0.14)");
+  s.setProperty("--accent",c(p.accent)); s.setProperty("--accent-rgb",v(p.accent));
+  s.setProperty("--ambient",c(p.amb));   s.setProperty("--ambient-rgb",v(p.amb));
+  if(typeof p.glyph==="number") s.setProperty("--glyph-op",p.glyph.toFixed(3));
+  s.background="";
+  var l=(0.2126*p.bg[0]+0.7152*p.bg[1]+0.0722*p.bg[2])/255;
+  d.setAttribute("data-theme",l<0.18?"dark":"light");
+})();
+</script>

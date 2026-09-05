@@ -5,35 +5,16 @@
    else owns geometry and content only.
 
    Material contract:
-   - keep the proven CI blur exactly at 18px / saturate(1.18)
-   - lower Vignette pigment to 30% so the live Betta remains visible through frost
+   - one blur recipe, one fill per weight, both named by the constitution
    - utility actions (Sign out / Share / Back to top) remain fully transparent
    - nothing here shouts: nothing downstream is allowed to compete (the ratchet
      refuses a new stylesheet), so nothing here needs to shout
 */
-:root{
-  --app-glass-fill:rgba(46,39,59,.30);
-  --app-glass-border:rgba(250,247,245,.14);
-  --app-glass-filter:blur(18px) saturate(1.18);
-
-  /* Floating surfaces - dropdown menus, dialogs, sheets, toasts - sit over
-     arbitrary content and must stay legible, so they carry more pigment than a
-     card. Same blur, heavier fill: one material, two weights, instead of the
-     .92 / .94 / .98 spread these surfaces had grown. The value is the app's own
-     --ci-glass-strong, not a new invention.
-
-     Do not push this to .92+ again. At that opacity it reads as solid black and
-     stops being glass at all. */
-  --app-glass-overlay-fill:rgba(38,32,49,.72);
-  /* An overlay inside an overlay (a selector menu open in a dialog) cannot blur
-     what is beneath it - see THE RULE - so its tint alone must carry legibility. */
-  --app-glass-nested-fill:rgba(38,32,49,.98);
-
-  /* The scrim behind a dialog or sheet: a darkening and a lighter blur, so
-     the page reads as present but out of reach. A material, so it lives here. */
-  --app-glass-scrim-fill:rgba(14,11,19,.48);
-  --app-glass-scrim-filter:blur(7px);
-}
+/* The material's values - fill, edge, blur, the overlay and scrim weights -
+   are the constitution's (--app-glass-*, r33): a product decides how much
+   pigment its glass carries and how strong its blur is. This sheet declares
+   the rule (who is glass, who is not, glass never nests) and consumes those
+   tokens; it declares no value of its own. */
 
 /* THE RULE: glass only where it touches the atmosphere.
 
@@ -109,8 +90,8 @@
 }
 .app-overlay{border:1px solid var(--app-glass-border)}
 
-/* A badge and a form well each draw a fill, so the glass membership rule
-   applies to them too - but each keeps its own tint (accent, inset) rather
+/* A badge, a form well and a code block each draw a fill, so the glass
+   membership rule applies to them too - but each keeps its own tint (accent, inset) rather
    than either weight above, so only the blur is shared here. Their fill and
    border stay declared with the rest of the component in app-components.css;
    backdrop-filter stays here because this file is the one place it may be
@@ -118,6 +99,7 @@
    slightly-different blur recipe. */
 .app-badge,
 .app-avatar,
+.app-code-block,
 .app-field input,
 .app-field textarea,
 .app-field select{
@@ -138,10 +120,13 @@
 .app-card .app-field input,
 .app-card .app-field textarea,
 .app-card .app-field select,
+.app-card .app-code-block,
+.app-code-block .app-control,
 .app-action-card .app-card,
 .app-disclosure .app-card,
 .app-masthead .app-control,
 .app-masthead .app-badge,
+.app-navbar .app-control,
 .app-navbar .app-badge,
 .app-overlay .app-card,
 .app-overlay .app-control,
@@ -150,7 +135,8 @@
 .app-overlay .app-overlay,
 .app-overlay .app-field input,
 .app-overlay .app-field textarea,
-.app-overlay .app-field select{
+.app-overlay .app-field select,
+.app-overlay .app-code-block{
   backdrop-filter:none;
   -webkit-backdrop-filter:none;
 }

@@ -1,69 +1,100 @@
-/* Flipgazine — a constitution for idui-core, written for the IDUI transfer
-   test (6 Sep 2026). Nothing here is deployed to Flipgazine; it is the
-   evidence page's identity.
+/* Flipgazine — the constitution, written 6 Sep 2026 for the IDUI rebuild
+   test (idui-core/evidence/rebuild/). Every value is read from the page it
+   rebuilds, "Moving to Claude Code", and from Flipgazine's shared header:
+   the seven style blocks that page and header carry, measured rule by rule.
 
-   Every value is read from flipgazine.pages.dev/ci.html as rendered on
-   6 Sep 2026: its custom properties (--bg #0D1110, --surface #151918,
-   --text #F4F1EB, --muted #858887, --accent #00F0D1, --line, --glass,
-   --glass-brd, --ease, --soft) and the conventions its own library states
-   (Poppins with Noto Sans Thai; display 200, body 300, label 500; body
-   line-height 1.65; radius 3 / 11-14 / 24 / 999; blur 14-18px saturate 1.3;
-   640ms leave, 1.06s arrival, 120ms linear progress). Where Flipgazine
-   states no value the choice is marked "invented" so the evidence page can
-   count it. The property names are the core's; only the values are new. */
+   Flipgazine's palette is not a set of constants. Its theme engine
+   (fg-theme.js) rewrites --bg --surface --text --muted --line --glass
+   --glass-brd --accent --accent-rgb on the root element as the day moves
+   through eight periods, and its head restores the last palette before
+   first paint. So the constitution aliases the core's color slots to those
+   engine variables, with the legacy-dark values the page ships as
+   fallbacks. Nothing in the core knows the engine exists; it reads
+   --app-text like it always has and the day changes under it.
+
+   Typography: Poppins with Noto Sans Thai, weights 300 / 500 / 600 in the
+   page, tracked labels, uppercase display titles. */
 :root{
-  /* Type. Flipgazine: eyebrow 9-11 · body 14-15.5 · section 21-32 · display 30-46. */
-  --type-caption:9px;
-  --type-micro:10px;
-  --type-small:11px;
-  --type-body-s:13px;
-  --type-body:14px;
-  --type-lead:15.5px;
-  --type-title:23px;
-  --type-section:clamp(21px,5.6vw,32px);
-  --type-display:clamp(30px,8.5vw,46px);
 
-  --leading-tight:1.1;
-  --leading-label:1.3;
-  --leading-body:1.65;
+  /* ---- Type scale -------------------------------------------------------
+     The page uses 9.5 / 10 / 10.5 / 12.5 / 13.5 / 14.5 / 15.5 and two
+     clamps. Nine steps, nothing invented. */
+  --type-caption:9.5px;    /* copy chip, quote label */
+  --type-micro:10.5px;     /* step label, note label, rail chip */
+  --type-small:11px;       /* the eyebrow */
+  --type-body-s:13.5px;    /* note copy, table, TOC */
+  --type-body:14.5px;      /* running text, lists */
+  --type-lead:15.5px;      /* subhead, hero copy (clamp(14px,2.4vw,16px) on the page) */
+  --type-title:15.5px;
+  --type-section:clamp(20px,4.4vw,27px);
+  --type-display:clamp(30px,7.4vw,52px);
 
-  /* Weight. Three slots in the core; Flipgazine's display / body / label.
-     Its wordmark 600 and cover 700 have no slot: a finding, not a value. */
-  --weight-thin:200;
+  --leading-tight:1.08;
+  --leading-label:1.30;
+  --leading-body:1.75;
+
+  /* ---- Weight and tracking ---------------------------------------------
+     Poppins 300 is the page's regular; 500 is emphasis in running text;
+     600 is every label, chip, button and the bold half of the title. */
+  --weight-thin:300;
   --weight-regular:300;
-  --weight-bold:500;
-  /* Flipgazine tracks: labels +0.16em, display -0.02em. The core has one knob
-     and no consumer for it (see the evidence page). */
-  --tracking:.16em;
+  --weight-medium:500;
+  --weight-bold:600;
+  --weight-label:600;
+  --tracking:0;
+  --tracking-label:.12em;   /* .1 - .16em across the labels; one value */
+  --tracking-display:-.01em;
+  --case-display:uppercase;
 
-  /* Color. */
-  --app-text:#F4F1EB;
-  --app-muted:#858887;
-  --app-line:rgba(244,241,235,.09);
-  --app-inset-fill:rgba(244,241,235,.055);
-  --app-accent:#00F0D1;
-  --app-accent-rgb:0,240,209;
-  /* Status tones: Flipgazine declares none. Danger is its one warm value
-     (#E8792B, the cover orange); success is invented. */
-  --app-success:#6FCF97;
-  --app-danger:#E8792B;
+  /* ---- Color ------------------------------------------------------------
+     Aliases to the theme engine's variables, legacy-dark fallbacks. */
+  --app-text:var(--text,#F4F1EB);
+  --app-muted:var(--muted,#858887);
+  --app-line:var(--line,rgba(244,241,235,.09));
+  --app-inset-fill:var(--surface,#151918);
+  --app-accent:var(--accent,#00F0D1);
+  --app-accent-rgb:var(--accent-rgb,0,240,209);
+  --app-ground:var(--bg,#0D1110);
+  /* Flipgazine has no status vocabulary; the accent stands in for success
+     and the muted ink for danger, and the rebuild test records that these
+     two slots are demanded, not supplied. */
+  --app-success:var(--accent,#00F0D1);
+  --app-danger:var(--muted,#858887);
 
-  /* Shape. Flipgazine: 3px inline code · 11-14px panels · 24px switches ·
-     999px buttons and chips. The core keeps pills for chips and rails only. */
+  /* ---- Material ---------------------------------------------------------
+     The core's glass reads these; Flipgazine's glass is the engine's
+     --glass and --glass-brd, blurred 18px and saturated 1.3 (the header
+     alone says 1.4 - one recipe here, the difference recorded). */
+  --app-glass-fill:var(--glass,rgba(21,25,24,.55));
+  --app-glass-border:var(--glass-brd,rgba(244,241,235,.14));
+  --app-glass-filter:blur(18px) saturate(1.3);
+  --app-glass-overlay-fill:var(--surface,#151918);
+  --app-glass-nested-fill:var(--surface,#151918);
+  --app-glass-scrim-fill:rgba(0,0,0,.48);
+  --app-glass-scrim-filter:blur(7px);
+
+  /* ---- Shape ------------------------------------------------------------
+     14 on the table of contents, 12 on notes, commands and quotes, 8 on
+     the copy chip, and a pill on every control. */
   --radius-surface:14px;
-  --radius-inset:11px;
-  --radius-tight:3px;
-  --radius-dialog:24px;
+  --radius-inset:12px;
+  --radius-tight:8px;
+  --radius-dialog:14px;
+  --radius-control:999px;
   --radius-pill:999px;
   --radius-none:0;
 
-  /* Control heights: derived (44px is Flipgazine's stated tap minimum; the
-     rest are invented to keep three floors). */
-  --control-row:44px;
-  --control:36px;
-  --control-inline:28px;
+  /* Control heights: the header buttons and rail chips are 30px; the
+     hero button is 13px padding around a 12px label (~40px). */
+  --control-row:52px;
+  --control:40px;
+  --control-inline:30px;
+  /* The header row is 12px padding around a 30px control on a phone, 15px
+     from 1024 wide; the core's one band is the phone height. */
+  --app-shell-band:54px;
+  --measure-page:760px;
+  --measure-prose:none;         /* prose runs to the page measure */
 
-  /* Space. Same seven steps: the core never reads them (finding). */
   --space-2:4px;
   --space-3:8px;
   --space-4:10px;
@@ -72,26 +103,19 @@
   --space-7:20px;
   --space-8:24px;
 
-  --size-icon-control:36px;
+  --size-icon-control:30px;
+  --font-code:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 
-  /* Motion. Flipgazine's two curves and four durations. */
-  --motion-ms:280ms;
+  /* ---- Motion -----------------------------------------------------------
+     --ease-editorial and --ease-soft are the page's; .2s is its transition. */
+  --motion-ms:200ms;
   --motion-fast:120ms;
-  --motion-reveal:1060ms;
-  --motion-view:640ms;
+  --motion-reveal:1200ms;
+  --motion-view:300ms;
   --motion-view-travel:32px;
   --motion-ease:cubic-bezier(.22,1,.36,1);
   --motion-ease-inout:cubic-bezier(.4,0,.2,1);
   --motion-fade:linear;
-
-  /* Material, redeclared (this file loads last). */
-  --app-glass-fill:rgba(21,25,24,.55);
-  --app-glass-border:rgba(244,241,235,.14);
-  --app-glass-filter:blur(18px) saturate(1.3);
-  --app-glass-overlay-fill:rgba(21,25,24,.82);
-  --app-glass-nested-fill:rgba(21,25,24,.98);
-  --app-glass-scrim-fill:rgba(13,17,16,.55);
-  --app-glass-scrim-filter:blur(7px);
 }
 
 @media (prefers-reduced-motion:reduce){

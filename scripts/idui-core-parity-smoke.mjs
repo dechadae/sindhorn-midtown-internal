@@ -12,14 +12,20 @@ export const PAIRS=[
   ['site/app-compositions.css','idui-core/app-compositions.css'],
   ['site/app-shell.css','idui-core/app-shell.css'],
   ['site/app-tokens.css','idui-core/constitutions/sindhorn/app-tokens.css'],
-  ['site/fonts.css','idui-core/constitutions/sindhorn/fonts.css']
+  ['site/fonts.css','idui-core/constitutions/sindhorn/fonts.css'],
+  /* The face travels with its constitution (r33): fonts.css points at
+     /assets/fonts/, so the constitution folder carries the same files. */
+  ['site/assets/fonts/line-seed-sans-th-thin.woff2','idui-core/constitutions/sindhorn/assets/fonts/line-seed-sans-th-thin.woff2'],
+  ['site/assets/fonts/line-seed-sans-th-regular.woff2','idui-core/constitutions/sindhorn/assets/fonts/line-seed-sans-th-regular.woff2'],
+  ['site/assets/fonts/line-seed-sans-th-bold.woff2','idui-core/constitutions/sindhorn/assets/fonts/line-seed-sans-th-bold.woff2'],
+  ['site/assets/fonts/OFL-LINE-SEED.txt','idui-core/constitutions/sindhorn/assets/fonts/OFL-LINE-SEED.txt']
 ];
 const sync=process.argv.includes('--sync');
 const drift=[];
 for(const [source,copy] of PAIRS){
-  const a=await readFile(new URL(source,ROOT),'utf8');
-  const b=await readFile(new URL(copy,ROOT),'utf8').catch(()=>null);
-  if(a===b)continue;
+  const a=await readFile(new URL(source,ROOT));
+  const b=await readFile(new URL(copy,ROOT)).catch(()=>null);
+  if(b&&a.equals(b))continue;
   if(sync){const {writeFile}=await import('node:fs/promises');await writeFile(new URL(copy,ROOT),a);console.log(`synced ${copy}`);continue}
   drift.push(copy);
 }

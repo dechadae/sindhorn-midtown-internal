@@ -6,18 +6,25 @@
    service-worker VERSION, so a release that changes nothing the document
    shows still re-stamps it.
 
-     node scripts/build-idui.mjs            rebuild docs/idui/IDUI-v0.1.html
-     node scripts/build-idui.mjs --check    fail if the committed export is stale
-     node scripts/build-idui.mjs --downloads  also copy to ~/Downloads */
+   The same body is also the public document at /idui (site/idui.html, r34):
+   the seven stylesheets linked rather than embedded, the live sky atmosphere
+   in place of the still gradient, and the share pages' masthead
+   (scripts/public-doc-page.mjs). One source, two outputs, one --check.
+
+     node scripts/build-idui.mjs            rebuild docs/idui/IDUI-v0.1.html and site/idui.html
+     node scripts/build-idui.mjs --check    fail if either committed output is stale
+     node scripts/build-idui.mjs --downloads  also copy the export to ~/Downloads */
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import {fileURLToPath} from 'node:url';
+import {docPage} from './public-doc-page.mjs';
 
 const ROOT=path.join(path.dirname(fileURLToPath(import.meta.url)),'..');
 const SITE=path.join(ROOT,'site');
 const SRC=path.join(ROOT,'docs/idui/idui-body.html');
 const OUT=path.join(ROOT,'docs/idui/IDUI-v0.1.html');
+const SITE_OUT=path.join(SITE,'idui.html');
 const check=process.argv.includes('--check');
 const downloads=process.argv.includes('--downloads');
 
@@ -33,7 +40,7 @@ const FILES=['fonts.css','app-tokens.css','app-glass.css','app-components.css','
 let styles='';const leftover=[];
 for(const name of FILES){
   let css=read(path.join(SITE,name));
-  if(name==='fonts.css')css=css.replace(/url\((["']?)(\/assets\/fonts\/[^"')]+\.woff2)\1\)/g,(_m,_q,p)=>`url(${dataUri(path.join(SITE,p),'font/woff2')})`);
+  if(name==='fonts.css')css=css.replace(/url\((["']?)\/?(assets\/fonts\/[^"')]+\.woff2)\1\)/g,(_m,_q,p)=>`url(${dataUri(path.join(SITE,p),'font/woff2')})`);
   for(const m of css.matchAll(/url\(([^)]*)\)/g))if(!m[1].startsWith('data:'))leftover.push(`${name}: ${m[1]}`);
   styles+=`\n<style>\n/* ===== ${name} — verbatim snapshot from site/${name} as shipped with ${sw}. Exported copy; the app loads the file, not this block. ===== */\n${css.trim()}\n</style>\n`;
 }
@@ -66,12 +73,30 @@ ${body}
 </body>
 </html>
 `;
+/* The public document: the export's still gradient and its own masthead are
+   the body's; the site page takes the live stage and the share masthead
+   from public-doc-page.mjs instead. */
+const cut=(text,pattern,what)=>{const next=text.replace(pattern,'');if(next===text)throw new Error(`idui-body.html: ${what} not found`);return next};
+let siteBody=read(SRC).replaceAll('__SW__',swShort);
+siteBody=cut(siteBody,/<div class="environment-stage"[\s\S]*?<\/svg>\n<\/div>\n/,'still atmosphere');
+siteBody=cut(siteBody,/<header class="app-masthead">[\s\S]*?<\/header>\n/,'masthead');
+if(siteBody.includes('__LOGO__'))throw new Error('idui-body.html: the logo is used outside the masthead');
+const site=docPage({
+  title:'Invariant-Driven UI | Sindhorn Midtown',
+  description:'Pages compose. Primitives behave. Invariants style. Contracts validate. The design and development method behind Sindhorn Midtown Internal, written from the production code.',
+  slug:'idui',
+  body:siteBody.trim(),
+  comment:`  Invariant-Driven UI (IDUI) v0.1 - the public document, built by scripts/build-idui.mjs from\n  docs/idui/idui-body.html with ${sw}. Library classes only; the atmosphere is live.`
+});
+
 if(check){
-  const current=fs.existsSync(OUT)?read(OUT):'';
-  if(current!==html){console.error(`docs/idui/IDUI-v0.1.html is stale for ${sw}: run node scripts/build-idui.mjs and commit it`);process.exit(1)}
-  console.log(JSON.stringify({ok:true,mode:'check',sw,bytes:html.length}));
+  const stale=[];
+  if((fs.existsSync(OUT)?read(OUT):'')!==html)stale.push('docs/idui/IDUI-v0.1.html');
+  if((fs.existsSync(SITE_OUT)?read(SITE_OUT):'')!==site)stale.push('site/idui.html');
+  if(stale.length){console.error(`${stale.join(' and ')} stale for ${sw}: run node scripts/build-idui.mjs and commit`);process.exit(1)}
+  console.log(JSON.stringify({ok:true,mode:'check',sw,bytes:html.length,siteBytes:site.length}));
 }else{
-  fs.mkdirSync(path.dirname(OUT),{recursive:true});fs.writeFileSync(OUT,html);
+  fs.mkdirSync(path.dirname(OUT),{recursive:true});fs.writeFileSync(OUT,html);fs.writeFileSync(SITE_OUT,site);
   if(downloads)fs.writeFileSync(path.join(os.homedir(),'Downloads/IDUI-v0.1.html'),html);
-  console.log(JSON.stringify({ok:true,sw,bytes:html.length,out:path.relative(ROOT,OUT),downloads}));
+  console.log(JSON.stringify({ok:true,sw,bytes:html.length,out:path.relative(ROOT,OUT),siteBytes:site.length,siteOut:path.relative(ROOT,SITE_OUT),downloads}));
 }

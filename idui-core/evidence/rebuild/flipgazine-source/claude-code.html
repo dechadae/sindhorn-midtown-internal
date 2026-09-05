@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" style="background:#0D1110">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="dark">
+<script>
+/* Phase 4: declared here, in head, not at the bottom of body where this used
+   to live. The header now starts fg-motion/theme/glyph/atmos itself, and
+   those modules decide whether to self-drive their own animation loop the
+   instant each one's fetch resolves -- reading this exact flag. A fetch is
+   effectively always slower than the rest of this document finishing parse,
+   which is why the old bottom-of-body placement worked in practice, but
+   that was a timing coincidence, not a guarantee, and coincidences are how
+   the earlier persistent-stage attempt broke. Declaring the requirement
+   before anything can possibly read it removes the coincidence. The load
+   call below still runs where it always has -- this line only used to be
+   part of it, and only the assignment moved. */
+window.FGRuntimeWillDrive=true;
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Moving flipgazine to Claude Code &#8212; a beginner's manual</title>
+<meta name="theme-color" content="#0D1110">
+<meta name="description" content="A step-by-step manual for running the flipgazine project in Claude Code, written for someone who has never used a terminal.">
+
+
+
+
+<!--FG_HEAD-->
+
+
+
+
+<!-- Progressive-enhancement flag: added synchronously so no-JS clients never hide content -->
+<script>document.documentElement.classList.add('js');</script>
+
+<style data-fg-page-style>
+  /* =========================================================================
+     LAYER 1 · DOM PRODUCT — tokens, typography, layout, components, a11y
+     The DOM defines the world. WebGL only decorates it.
+     ========================================================================= */
+
+  :root{
+    /* Static brand accent (identical across themes) */
+    --accent:#00F0D1;
+    --accent-rgb:0,240,209;
+    --accent-strong:#00d9bd;
+
+    /* These four are re-written every frame by the theme crossfade engine.
+       The values below are the dark-theme defaults so first paint is correct. */
+    --bg:#0D1110;
+    --surface:#151918;
+    --text:#F4F1EB;
+    --muted:#858887;
+    --line:rgba(244,241,235,0.09);
+    --glass:rgba(21,25,24,0.55);
+    --glass-brd:rgba(244,241,235,0.14);
+
+    /* Atmosphere multipliers, also crossfaded */
+    --glyph-op:0.85;
+
+    --header-h:64px;
+
+    /* Motion tokens (spec §4.3) */
+    --ease-editorial:cubic-bezier(0.22,1,0.36,1);
+    --ease-spring:cubic-bezier(0.16,1,0.3,1);
+    /* --ease and --soft are referenced on these pages -- a handful of rules
+       copied over from ci and pilot -- but were never defined here, so those
+       rules have been resolving to nothing and falling back to the browser
+       default easing. Defined as aliases of the long names. */
+    --ease:var(--ease-editorial);
+    --soft:var(--ease-soft);
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+
+/* ---- page scrollbar — system rule, documented in ci.html §04 Surfaces ------
+   Both syntaxes on purpose: Chrome 121+ and Firefox read scrollbar-width and
+   scrollbar-color and ignore the ::-webkit- pseudo-elements once
+   scrollbar-width is set; Safari and older Chrome only understand the
+   pseudo-elements. Each engine takes the pair it knows.
+   color-scheme is separate again — it is what makes native form controls and
+   the macOS overlay bars render dark, which they do not do from --bg.
+   Internal horizontal rails keep their own display:none override; a selector
+   on the element beats these, so the two coexist. */
+:root{ color-scheme:dark; }
+html[data-theme="light"]{ color-scheme:light; }
+html{ scrollbar-width:thin; scrollbar-color:var(--glass-brd) transparent; }
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{
+  background:var(--glass-brd);
+  border:2px solid transparent;
+  background-clip:padding-box;
+  border-radius:5px;
+}
+::-webkit-scrollbar-thumb:hover{
+  background:rgba(var(--accent-rgb),.55);
+  background-clip:padding-box;
+}
+::-webkit-scrollbar-corner{background:transparent;}
+
+/* Arrival fade. Stays inline, and must: it has to be parsed before the first
+   paint, and fg-motion.js is fetched after the page has already rendered --
+   applying an opacity animation at that point flashes the content out and back.
+   The overlay, its stacking, the click interception and the timing all live in
+   the module; only these two lines cannot. */
+@keyframes fgEnter{from{opacity:0}to{opacity:1}}
+body > main,body > #app,body > .wrap,#glCanvas,#bgLetters,#glyphs{animation:fgEnter 1.06s var(--ease-soft,cubic-bezier(.4,0,.2,1)) backwards}
+
+  html,body{margin:0;padding:0;color:var(--text);
+    font-family:'Poppins',sans-serif;font-weight:300;overflow-x:hidden;}
+  body{min-height:100svh;}
+  a{text-decoration:none;color:inherit;}
+  ::selection{background:var(--accent);color:#0D1110;}
+
+  /* Quality floor: visible keyboard focus everywhere */
+  :focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px;}
+
+  .skip-link{position:fixed;top:-60px;left:12px;z-index:1000;background:var(--accent);color:#0D1110;
+    padding:10px 16px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.05em;
+    transition:top .2s var(--ease-soft);}
+  .skip-link:focus{top:12px;}
+
+  .wrap{max-width:1240px;margin:0 auto;padding:0 clamp(20px,4vw,48px);}
+
+  /* WebGL sits behind everything and never intercepts UI (spec §2, Layer 3 rule) */
+  #glCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+
+  /* DOM glyph atmosphere — behind the product, above the shader */
+  .bg-letters{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden;color:var(--text);}
+  .bg-letters span{position:absolute;font-weight:300;will-change:transform,opacity;
+    transition:color .35s var(--ease-soft),text-shadow .45s var(--ease-soft);}
+  .bg-letters span.hero{color:var(--accent)!important;
+    text-shadow:0 0 26px rgba(var(--accent-rgb),.85),0 0 55px rgba(var(--accent-rgb),.45);
+    animation:glyphPulse 1.2s ease-in-out infinite;}
+  @keyframes glyphPulse{
+    0%,100%{text-shadow:0 0 16px rgba(var(--accent-rgb),.55),0 0 36px rgba(var(--accent-rgb),.3);}
+    50%{text-shadow:0 0 34px rgba(var(--accent-rgb),1),0 0 68px rgba(var(--accent-rgb),.6);}
+  }
+
+  /* The product layer floats above both atmosphere layers, isolated */
+  main{position:relative;z-index:2;padding-top:calc(var(--header-h) + 20px);}
+
+  /* ---- hero — tightened so it reads as a statement, not empty space ---- */
+  .hero{position:relative;min-height:calc(67svh - var(--header-h));
+    display:flex;flex-direction:column;justify-content:center;
+    padding:clamp(12px,2.5vh,40px) 0 clamp(48px,6vh,80px);}
+  .social-col{position:absolute;left:0;top:clamp(18px,4vh,40px);display:flex;flex-direction:column;
+    gap:16px;font-size:10px;color:var(--muted);letter-spacing:.14em;z-index:2;}
+  .hero .inner{max-width:min(92vw,900px);padding-left:clamp(0px,4vw,44px);}
+  .hero h1{font-size:clamp(40px,9.2vw,120px);font-weight:300;line-height:1.02;letter-spacing:.005em;
+    text-transform:uppercase;margin:0 0 clamp(14px,2vh,24px);max-width:8ch;}
+  .hero p{font-size:clamp(14px,1.5vw,18px);color:var(--muted);max-width:clamp(300px,32vw,440px);
+    margin:0 0 clamp(24px,3vh,36px);line-height:1.65;}
+  .hero .scroll-hint{position:absolute;bottom:clamp(14px,2.5vh,28px);left:clamp(0px,4vw,44px);
+    font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);
+    display:flex;align-items:center;gap:10px;}
+  .hero .scroll-hint::before{content:"";width:26px;height:1px;background:var(--muted);opacity:.6;}
+  @media (max-width:520px){
+    .social-col{display:none;}
+    .hero .inner,.hero .scroll-hint{padding-left:0;left:0;}
+  }
+
+  /* staged reveal — only engaged when JS is present (.js) so no-JS stays visible */
+  .js .reveal{opacity:0;transform:translateY(16px);}
+  .js body.arrive .reveal{opacity:1;transform:none;
+    transition:opacity .8s var(--ease-editorial),transform .8s var(--ease-editorial);}
+  .js body.arrive .reveal.d1{transition-delay:.06s;}
+  .js body.arrive .reveal.d2{transition-delay:.16s;}
+  .js body.arrive .reveal.d3{transition-delay:.26s;}
+
+  /* ---- buttons ---- */
+  .btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:22px;font-family:inherit;
+    font-size:12px;letter-spacing:.06em;font-weight:600;padding:13px 24px;cursor:pointer;
+    text-transform:uppercase;transition:transform .24s var(--ease-spring),
+    background .24s var(--ease-soft),box-shadow .24s var(--ease-soft);}
+  .btn-primary{background:rgba(var(--accent-rgb),0.18);color:var(--text);border:1px solid rgba(var(--accent-rgb),0.55);-webkit-backdrop-filter:blur(12px) saturate(1.5);backdrop-filter:blur(12px) saturate(1.5);}
+  .btn-primary:hover{background:rgba(var(--accent-rgb),0.32);transform:translateY(-1px);
+    box-shadow:0 8px 22px rgba(var(--accent-rgb),.32);}
+  .btn-primary:active{transform:translateY(0);}
+
+  /* ---- gyro permission pill (spec §5.3 — appears only after first interaction) ---- */
+
+  /* ---- catalog ---- */
+  .section{padding:8px 0 70px;}
+  #top,#flipbooks{scroll-margin-top:calc(var(--header-h) + 14px);}
+  .section-head{display:flex;flex-direction:column;align-items:center;text-align:center;
+    gap:6px;margin-bottom:26px;padding-top:14px;}
+  .eyebrow{font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;
+    margin:0 0 8px;font-weight:500;}
+  .section-head h2{font-size:clamp(22px,5vw,28px);font-weight:300;margin:0;}
+  .section-count{font-size:11px;color:var(--muted);white-space:nowrap;}
+
+  .catalog-grid{display:grid;justify-content:center;gap:clamp(14px,2vw,28px);
+    grid-template-columns:repeat(2,minmax(0,1fr));}
+  @media (min-width:600px){.catalog-grid{grid-template-columns:repeat(3,minmax(0,340px));}}
+  @media (min-width:980px){.catalog-grid{grid-template-columns:repeat(4,minmax(0,340px));}}
+
+  /* each card is a size container, so the cover text scales with the card itself */
+  .card{border-radius:14px;overflow:hidden;background:var(--glass);
+    -webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);
+    border:1px solid var(--glass-brd);
+    display:flex;flex-direction:column;min-width:0;container-type:inline-size;
+    transition:transform .5s var(--ease-editorial),box-shadow .5s var(--ease-editorial),
+    border-color .35s var(--ease-soft);}
+  .card:hover{transform:translateY(-6px);box-shadow:0 22px 44px rgba(0,0,0,.32);
+    border-color:rgba(var(--accent-rgb),.4);}
+  .card:focus-within{border-color:var(--accent);}
+
+  /* interactive cover: cursor-driven 3D tilt + glare + sheen sweep */
+  .book-thumb{aspect-ratio:3/4.6;position:relative;overflow:hidden;display:flex;
+    align-items:center;justify-content:center;padding:8px;
+    transform:perspective(760px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));
+    transform-style:preserve-3d;transition:transform .45s var(--ease-soft);}
+  .card:hover .book-thumb{transition:transform .1s linear;}
+  .book-thumb::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:linear-gradient(115deg,transparent 32%,rgba(255,255,255,.22) 48%,transparent 64%);
+    transform:translateX(-130%);transition:transform .8s var(--ease-editorial);}
+  .card:hover .book-thumb::before{transform:translateX(130%);}
+  .book-thumb::after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;
+    background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.3),transparent 46%);
+    opacity:0;transition:opacity .35s var(--ease-soft);mix-blend-mode:screen;}
+  .card:hover .book-thumb::after{opacity:1;}
+  .book-thumb:active{transform:perspective(760px) scale(.985);}
+
+  .thumb-frame{position:absolute;inset:8px;z-index:2;border:1px solid var(--accent2,rgba(255,255,255,.4));
+    border-radius:2px;pointer-events:none;opacity:.85;transition:opacity .35s var(--ease-soft);}
+  .card:hover .thumb-frame{opacity:1;}
+  .thumb-frame .gem{position:absolute;width:5px;height:5px;background:var(--accent2);
+    transform:rotate(45deg);box-shadow:0 0 6px var(--accent2);transition:box-shadow .35s var(--ease-soft);}
+  .card:hover .thumb-frame .gem{box-shadow:0 0 13px var(--accent2);}
+  .thumb-frame .gem.tl{top:-3px;left:-3px;}.thumb-frame .gem.tr{top:-3px;right:-3px;}
+  .thumb-frame .gem.bl{bottom:-3px;left:-3px;}.thumb-frame .gem.br{bottom:-3px;right:-3px;}
+  .thumb-lines{position:relative;z-index:4;text-align:center;color:#fff;padding:0 6%;
+    transform:translateZ(30px);}
+  .thumb-lines .l-meta{font-size:clamp(6px,3cqw,11px);letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent2);margin-bottom:clamp(7px,4cqw,14px);font-weight:500;}
+  .thumb-lines .l-title{font-size:clamp(13px,9cqw,32px);font-weight:600;
+    margin-bottom:clamp(6px,3cqw,11px);line-height:1.12;}
+  .thumb-lines .l-sub{font-size:clamp(6.5px,3.4cqw,13px);letter-spacing:.1em;text-transform:uppercase;
+    color:rgba(255,255,255,.85);margin-bottom:clamp(6px,3cqw,11px);}
+  .thumb-lines .l-tagline{font-size:clamp(5.5px,2.7cqw,10px);letter-spacing:.06em;
+    text-transform:uppercase;color:var(--accent2);opacity:.9;}
+
+  .book-meta-row{display:flex;justify-content:space-between;font-size:8.5px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.05em;padding:10px 12px 0;}
+  .card .body{padding:6px 12px 14px;display:flex;flex-direction:column;gap:5px;flex:1;}
+  .card h3{font-size:13.5px;font-weight:500;margin:0;line-height:1.3;color:var(--text);}
+  .card p{font-size:10.5px;color:var(--muted);line-height:1.55;margin:0;flex:1;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+  .card a.readmore{font-size:9.5px;font-weight:600;color:var(--text);text-transform:uppercase;
+    letter-spacing:.05em;display:inline-flex;align-items:center;gap:5px;
+    transition:color .2s var(--ease-soft),gap .2s var(--ease-spring);}
+  .card a.readmore:hover{color:var(--accent);gap:9px;}
+  @media (min-width:560px){
+    .book-meta-row{font-size:10px;padding:16px 20px 0;}
+    .card .body{padding:10px 20px 20px;gap:8px;}
+    .card h3{font-size:19px;font-weight:400;}
+    .card p{font-size:12px;-webkit-line-clamp:initial;}
+    .card a.readmore{font-size:11px;}
+  }
+
+  /* skeleton + empty/error states — an empty screen is an invitation to act */
+  .skeleton .book-thumb{background:linear-gradient(110deg,var(--surface) 30%,rgba(255,255,255,.05) 50%,var(--surface) 70%);
+    background-size:220% 100%;animation:shimmer 1.3s linear infinite;}
+  @keyframes shimmer{to{background-position:-220% 0;}}
+  .catalog-note{grid-column:1/-1;padding:26px 4px;color:var(--muted);font-size:13px;line-height:1.6;}
+  .catalog-note a{color:var(--accent);font-weight:500;}
+
+  .nav-actions{display:flex;align-items:center;gap:10px;}
+  .fs-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--glass-brd);border-radius:50%;cursor:pointer;color:var(--text);transition:box-shadow .28s var(--ease-soft),transform .2s var(--ease-spring);}
+  .fs-btn:hover{box-shadow:0 4px 16px rgba(0,0,0,.18);}
+  .fs-btn:active{transform:scale(.94);}
+  .fs-btn svg{width:16px;height:16px;fill:none;stroke:var(--text);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+  .js .cat-reveal{opacity:0;transform:translateY(22px);will-change:opacity,transform;}
+  .js .cat-reveal.in{opacity:1;transform:none;transition:opacity .7s var(--ease-editorial),transform .7s var(--ease-editorial);}
+  .js .catalog-grid .cat-reveal:nth-child(2){transition-delay:.08s;}
+  .js .catalog-grid .cat-reveal:nth-child(3){transition-delay:.16s;}
+  .js .catalog-grid .cat-reveal:nth-child(4){transition-delay:.24s;}
+  html[data-theme="light"] .card p{color:#5f5f5f;}
+  .cat-filter{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:0 0 26px;}
+  .cat-chip{font:inherit;font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;padding:8px 16px;border-radius:20px;cursor:pointer;color:var(--text);background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--glass-brd);transition:background .2s var(--ease-soft),border-color .2s var(--ease-soft),color .2s var(--ease-soft);}
+  .cat-chip[aria-pressed="true"]{background:rgba(var(--accent-rgb),0.2);border-color:rgba(var(--accent-rgb),0.55);color:var(--accent);}
+  .social-col{display:none!important;}
+  @media (min-width:1024px){
+    .hero{min-height:calc(76svh - var(--header-h));padding:clamp(16px,3vh,48px) 0 clamp(40px,6vh,72px);}
+    .hero .inner{max-width:min(72vw,1060px);padding-left:clamp(24px,4vw,56px);}
+    .hero h1{font-size:clamp(96px,9.4vw,158px);line-height:1.0;max-width:9ch;}
+    .hero p{font-size:clamp(17px,1.4vw,21px);max-width:480px;}
+  }
+</style>
+<style data-fg-page-style>
+/* Catalog filters as editorial tabs rather than pills: letterspaced small caps
+   on a single hairline rule, with the active one carrying the accent and a
+   sliding underline. Loaded after the main sheet so it overrides .cat-chip
+   without touching the filters() that generates the buttons. */
+.cat-filter{
+  display:flex;align-items:center;gap:26px;
+  width:max-content;max-width:calc(100% - 32px);
+  margin:0 auto 36px;padding:0 2px 12px;
+  overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;
+  border-bottom:1px solid var(--glass-brd);
+}
+.cat-filter::-webkit-scrollbar{display:none;}
+.cat-chip{
+  position:relative;flex:0 0 auto;white-space:nowrap;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:500;
+  padding:4px 0;border:0;border-radius:0;background:none;
+  -webkit-backdrop-filter:none;backdrop-filter:none;
+  color:var(--text);opacity:.60;cursor:pointer;
+  transition:opacity .28s var(--ease-soft),color .28s var(--ease-soft);
+}
+.cat-chip:hover{opacity:.78;}
+.cat-chip[aria-pressed="true"]{color:var(--accent);opacity:1;background:none;border-color:transparent;}
+.cat-chip::after{
+  content:"";position:absolute;left:0;right:0;bottom:-12px;height:1px;
+  background:var(--accent);transform:scaleX(0);
+  transition:transform .34s var(--ease-soft);
+}
+.cat-chip[aria-pressed="true"]::after{transform:scaleX(1);}
+</style>
+<style data-fg-page-style>.brand-essence-heading{font-size:.83em;font-weight:600;margin:0 0 .3em;}
+</style>
+<style data-fg-page-style>
+/* ---- switches: both compact, both identical in size --------------------- */
+.ed-switch,.theme-switch{
+  height:30px;padding:0 9px;gap:8px;border-radius:15px;
+  display:inline-flex;align-items:center;box-sizing:border-box;
+}
+/* Both header controls hold the same 30px height as .mode-btn. */
+.nav-actions .ed-switch,.nav-actions .theme-switch{height:30px;border-radius:15px;}
+.ed-switch{
+  background:var(--glass);border:1px solid var(--glass-brd);cursor:pointer;
+  color:var(--text);font:inherit;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  transition:border-color .28s var(--ease-soft),opacity .28s var(--ease-soft);
+}
+.ed-switch svg{width:14px;height:14px;stroke:var(--accent);fill:none;stroke-width:1.7;
+  stroke-linecap:round;}
+.ed-switch .track,.theme-switch .track{
+  width:28px;height:15px;border-radius:15px;background:var(--bg);
+  border:1px solid var(--line);position:relative;flex:0 0 auto;
+}
+.ed-switch .knob,.theme-switch .knob{
+  position:absolute;top:1.5px;left:1.5px;width:10px;height:10px;border-radius:50%;
+  background:var(--accent);transition:left .32s var(--ease),background .4s var(--ease-soft);
+}
+.ed-switch[aria-pressed="true"] .knob{left:14.5px;}
+.ed-switch[aria-pressed="false"] .knob{background:var(--muted);}
+.ed-switch[aria-pressed="false"] svg{stroke:var(--muted);}
+.theme-switch svg{width:14px;height:14px;}
+html[data-theme="dark"] .theme-switch .knob{left:14.5px;}
+
+/* While the editorial theme is driving, light/dark has nothing to control. */
+.theme-switch.inert{opacity:.34;pointer-events:none;}
+
+</style>
+<style data-fg-page-style>
+/* Light/dark is one alternating button now: it shows the mode you would switch
+   to, so it needs no track. Matched to the atmosphere switch height. */
+.mode-btn{
+  height:30px;width:34px;padding:0;border-radius:15px;
+  display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
+  background:var(--glass);border:1px solid var(--glass-brd);cursor:pointer;color:var(--text);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  transition:border-color .28s var(--ease-soft),opacity .28s var(--ease-soft);
+}
+.mode-btn svg{width:15px;height:15px;stroke:var(--text);fill:none;stroke-width:1.8;}
+.mode-btn .ic-moon{display:none;}
+html[data-theme="dark"] .mode-btn .ic-sun{display:none;}
+html[data-theme="dark"] .mode-btn .ic-moon{display:block;}
+.mode-btn.inert{opacity:.34;pointer-events:none;}
+.nav-actions{display:flex;align-items:center;gap:8px;}
+</style>
+<style data-fg-page-style>
+/* Two-tone dark ground on every period. Fixed attachment so the gradient
+   belongs to the viewport rather than scrolling with content. */
+html,body{}
+</style>
+<script>
+/* Desktop-view restore. Runs before first paint deliberately: applied later
+   the page lays out at device width and visibly reflows once. The dev menu
+   chip at the foot of the page writes the flag; this only reads it. */
+(function(){
+  try{ if(localStorage.getItem("fg:wideViewport")!=="1") return; }catch(e){ return; }
+  var m=document.querySelector('meta[name="viewport"]');
+  if(m&&m.parentNode) m.parentNode.removeChild(m);
+  var n=document.createElement("meta");
+  n.name="viewport";
+  n.content="width=1240, viewport-fit=cover";
+  document.head.appendChild(n);
+})();
+</script>
+
+</head>
+<body data-fg-persist="interactive-v1">
+
+<a class="skip-link" href="#flipbooks">Skip to the catalog</a>
+
+<!-- LAYER 3 · atmospheric shader (decoration only) -->
+<canvas id="glCanvas" aria-hidden="true"></canvas>
+<!-- DOM glyph atmosphere (typography as material) -->
+<div class="bg-letters" id="bgLetters" aria-hidden="true"></div>
+
+<!--FG_HEADER-->
+
+<main id="main" data-fg-page data-fg-controller="/fg-page-claude-code.js">
+  <div class="wrap">
+
+    <style>
+      /* Guide components. Colours come only from the home-page tokens, so this
+         page follows the same daylight theme crossfade as everything else. */
+      .g-hero{padding:clamp(48px,9vw,86px) 0 clamp(26px,4vw,40px);max-width:760px;margin:0 auto;}
+      .g-hero h1{font-size:clamp(30px,7.4vw,52px);font-weight:300;line-height:1.08;
+        margin:0 0 16px;letter-spacing:-.01em;text-transform:uppercase;}
+      .g-hero h1 b{font-weight:600;}
+      .g-hero p{font-size:clamp(14px,2.4vw,16px);color:var(--muted);line-height:1.75;margin:0;max-width:56ch;}
+      /* The intro paragraph sets margin:0, so the button sat flush against the
+         last line of copy with no separation at all. Spaced from the text
+         rather than the section, so it stays correct if the copy rewraps. */
+      .g-hero .btn{margin-top:clamp(22px,3.4vw,32px);}
+      .g-body{max-width:760px;margin:0 auto;padding-bottom:96px;}
+
+      /* Canonical footer section rail — Voice reference. */
+      .bottom-nav{
+        position:fixed;left:0;right:0;bottom:0;z-index:40;
+        display:flex;gap:8px;align-items:center;justify-content:safe center;
+        overflow-x:auto;overscroll-behavior-x:contain;
+        scrollbar-width:none;-webkit-overflow-scrolling:touch;
+        background:var(--glass);
+        border-top:1px solid var(--glass-brd);
+        padding-block:10px;
+        padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+        padding-inline:max(clamp(20px,4vw,48px),calc((100% - var(--sbw,0px) - 720px)/2 + clamp(20px,4vw,48px)));
+        padding-inline-end:calc(max(clamp(20px,4vw,48px),calc((100% - var(--sbw,0px) - 720px)/2 + clamp(20px,4vw,48px))) + var(--sbw,0px));
+        -webkit-backdrop-filter:blur(18px) saturate(1.3);
+        backdrop-filter:blur(18px) saturate(1.3);
+      }
+      .bottom-nav::-webkit-scrollbar{display:none}
+      .nav-chip{
+        flex:0 0 auto;white-space:nowrap;text-decoration:none;
+        font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;
+        color:var(--muted);background:var(--glass);
+        height:30px;min-height:30px;border-radius:15px;padding:0 14px;
+        border:1px solid var(--glass-brd);
+        display:inline-flex;align-items:center;justify-content:center;
+        transition:color .2s ease,border-color .2s ease,background .2s ease;
+      }
+      .nav-chip.on{color:var(--accent);border-color:var(--accent)}
+      @media(max-width:639.98px){
+        .bottom-nav{gap:7px;padding:8px 20px 10px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+        .nav-chip{font-size:10px;padding:0 12px;letter-spacing:.08em}
+      }
+      .g-body h2{font-size:clamp(20px,4.4vw,27px);font-weight:300;margin:56px 0 4px;
+        letter-spacing:-.005em;scroll-margin-top:calc(var(--header-h) + 16px);}
+      .g-body h2 .num{color:var(--accent);font-weight:600;margin-right:12px;}
+      .g-body h3{font-size:15.5px;font-weight:600;margin:30px 0 6px;letter-spacing:.01em;}
+      .g-body p{font-size:14.5px;line-height:1.78;color:var(--muted);margin:12px 0;}
+      .g-body p.lead{color:var(--text);}
+      .g-body b{color:var(--text);font-weight:500;}
+      .g-body i{color:var(--text);font-style:italic;}
+      .g-rule{height:1px;background:var(--line);border:0;margin:0;}
+
+      .g-toc{background:var(--glass);-webkit-backdrop-filter:blur(18px) saturate(1.3);
+        backdrop-filter:blur(18px) saturate(1.3);border:1px solid var(--glass-brd);
+        border-radius:14px;padding:22px 24px;margin:14px 0 0;}
+      .g-toc .eyebrow{margin-bottom:12px;}
+      .g-toc ol{margin:0;padding-left:20px;columns:1;}
+      @media(min-width:640px){.g-toc ol{columns:2;column-gap:34px;}}
+      .g-toc li{margin:6px 0;font-size:13.5px;color:var(--muted);break-inside:avoid;}
+      .g-toc a{color:var(--text);}
+      .g-toc a:hover{color:var(--accent);}
+
+      .g-step{border-left:1px solid var(--line);padding:2px 0 2px 20px;margin:16px 0;position:relative;}
+      .g-step::before{content:"";position:absolute;left:-4px;top:9px;width:7px;height:7px;
+        border-radius:50%;background:var(--accent);}
+      .g-step .st{font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+        color:var(--accent);display:block;margin-bottom:4px;}
+      .g-step p{margin:0;color:var(--muted);}
+
+      .g-note{border:1px solid var(--glass-brd);background:var(--glass);
+        -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+        border-radius:12px;padding:16px 18px;margin:20px 0;}
+      .g-note .nt{font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+        color:var(--accent);margin:0 0 6px;}
+      .g-note p{margin:0;font-size:13.5px;color:var(--text);line-height:1.7;}
+      .g-note.warn .nt{color:var(--text);}
+      .g-note.warn{border-color:rgba(var(--accent-rgb),.45);}
+
+      .g-cmd{position:relative;border:1px solid var(--line);border-radius:12px;
+        background:var(--surface);padding:14px 60px 14px 16px;margin:12px 0;overflow-x:auto;}
+      .g-cmd code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+        font-size:12.5px;color:var(--accent);white-space:pre;display:block;line-height:1.65;}
+      .g-copy{position:absolute;top:8px;right:8px;border:1px solid var(--glass-brd);
+        background:var(--glass);color:var(--text);border-radius:8px;font-family:inherit;
+        font-size:9.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+        padding:6px 9px;cursor:pointer;transition:color .2s var(--ease-soft),border-color .2s var(--ease-soft);}
+      .g-copy:hover{color:var(--accent);border-color:rgba(var(--accent-rgb),.55);}
+      .g-copy.ok{color:var(--accent);border-color:var(--accent);}
+
+      .g-say{border:1px dashed var(--glass-brd);border-radius:12px;padding:14px 16px;margin:12px 0;
+        background:rgba(var(--accent-rgb),.05);}
+      .g-say .sy{display:block;font-size:9.5px;font-weight:600;letter-spacing:.16em;
+        text-transform:uppercase;color:var(--muted);margin-bottom:7px;}
+      .g-say p{margin:0;color:var(--text);font-size:14.5px;line-height:1.6;}
+
+      .g-tbl{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px;display:block;overflow-x:auto;}
+      .g-tbl th{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);
+        color:var(--accent);font-size:10px;font-weight:600;letter-spacing:.13em;
+        text-transform:uppercase;white-space:nowrap;}
+      .g-tbl td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);
+        color:var(--muted);vertical-align:top;line-height:1.6;}
+      .g-tbl td b{color:var(--text);font-weight:500;}
+
+      .g-list{margin:12px 0;padding-left:18px;}
+      .g-list li{font-size:14.5px;line-height:1.75;color:var(--muted);margin:9px 0;}
+      .g-list li b{color:var(--text);font-weight:500;}
+    </style>
+
+    <section class="g-hero" id="top">
+      <div class="eyebrow">flipgazine &middot; internal manual</div>
+      <h1>Moving to<br><b>Claude Code</b></h1>
+      <p>Written for someone who has never opened a terminal. Nothing is assumed, every command can be copied with one tap, and the parts you can safely skip are marked.</p>
+      <a class="btn btn-primary" href="#s1">Start at step one<span aria-hidden="true">&rarr;</span></a>
+    </section>
+
+    <hr class="g-rule">
+
+    <div class="g-body">
+
+      <p class="lead">Today you brief Claude in a chat window and Claude reaches into the database for you. <b>Claude Code</b> is the same Claude, except it also lives inside your project folder. It reads your files, loads your rules automatically, and can carry a long job through to the end without you re-explaining the project each time.</p>
+
+      <div class="g-toc">
+        <div class="eyebrow">What we will do</div>
+        <ol>
+          <li><a href="#s1">Check your Claude plan</a></li>
+          <li><a href="#s2">Choose how you want to work</a></li>
+          <li><a href="#s3">Install Claude Code</a></li>
+          <li><a href="#s4">Set up VS Code</a></li>
+          <li><a href="#s5">Using VS Code day to day</a></li>
+          <li><a href="#s6">Make the project folder</a></li>
+          <li><a href="#s7">Add the rules file</a></li>
+          <li><a href="#s8">Connect Supabase</a></li>
+          <li><a href="#s9">Install skills from GitHub</a></li>
+          <li><a href="#s10">Set up your team of subagents</a></li>
+          <li><a href="#s11">Your first session</a></li>
+          <li><a href="#s12">Everyday commands</a></li>
+          <li><a href="#s13">Golden rules for flipgazine</a></li>
+          <li><a href="#s14">When something goes wrong</a></li>
+          <li><a href="#s15">Word list</a></li>
+          <li><a href="#s16">Running two jobs at once</a></li>
+          <li><a href="#s17">Two Claude accounts on one Mac</a></li>
+          <li><a href="#s18">The same accounts on a second machine</a></li>
+          <li><a href="#s19">The automatic inbox scan</a></li>
+          <li><a href="#s20">Running Claude Code alongside Codex</a></li>
+          <li><a href="#s21">Building a new interface page without drift</a></li>
+        </ol>
+      </div>
+
+      <h2 id="s1"><span class="num">01</span>Check your Claude plan</h2>
+      <p>Claude Code needs a <b>Pro, Max, Team or Enterprise</b> plan, or a Claude Console account. <b>The free plan does not include Claude Code.</b> If you already pay for Claude, you are ready.</p>
+      <div class="g-note warn">
+        <p class="nt">Do this before anything else</p>
+        <p>There is no point installing until the plan is sorted. The sign-in step at the end will simply refuse, and it is a confusing place to get stuck.</p>
+      </div>
+
+      <h2 id="s2"><span class="num">02</span>Choose how you want to work</h2>
+      <p>Three ways to run the same thing. You can change your mind later, and they share the same account, rules and history.</p>
+      <table class="g-tbl">
+        <tr><th>Option</th><th>What it feels like</th><th>Best for</th></tr>
+        <tr><td><b>VS Code</b></td><td>A normal app window. Claude sits in a side panel, and every change it proposes is shown as a highlighted before-and-after that you accept or reject.</td><td><b>You. Start here.</b></td></tr>
+        <tr><td><b>Desktop app</b></td><td>Same idea, standalone, without a code editor around it.</td><td>If VS Code feels like too much.</td></tr>
+        <tr><td><b>Terminal</b></td><td>A plain text window where you type.</td><td>Later, if curiosity strikes.</td></tr>
+      </table>
+      <div class="g-note">
+        <p class="nt">My recommendation</p>
+        <p>Use <b>VS Code</b>. You never have to write code in it &mdash; you are using it as a viewer with Claude attached. The reason it beats the others for this project is the <b>diff view</b>: you see exactly what Claude wants to change, in colour, and nothing happens until you approve it. That is the single best safety net for someone learning.</p>
+      </div>
+
+      <h2 id="s3"><span class="num">03</span>Install Claude Code</h2>
+      <p>If you are going the VS Code route, <b>skip this section entirely</b> &mdash; the extension in step 4 brings Claude Code with it. This is here for the desktop app and the terminal.</p>
+
+      <h3>Desktop app</h3>
+      <div class="g-step"><span class="st">Step 1</span><p>Download it from <a href="https://claude.com/download" target="_blank" rel="noopener">claude.com/download</a>.</p></div>
+      <div class="g-step"><span class="st">Step 2</span><p>Install it like any other app, open it, and sign in with your Claude account.</p></div>
+
+      <h3>Terminal</h3>
+      <p>Open the terminal first: on a Mac press <b>Command + Space</b>, type <i>Terminal</i>, press Enter. On Windows press Start, type <i>PowerShell</i>, press Enter. Then paste the line for your machine and press Enter.</p>
+      <p><b>Mac:</b></p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>curl -fsSL https://claude.ai/install.sh | bash</code></div>
+      <p><b>Windows PowerShell:</b></p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>irm https://claude.ai/install.ps1 | iex</code></div>
+      <p>Check it worked:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>claude --version</code></div>
+      <p>A version number means success. If it says <i>command not found</i>, close the window, open a fresh one and try again &mdash; it usually just needs a restart to notice the new program.</p>
+
+      <h2 id="s4"><span class="num">04</span>Set up VS Code</h2>
+      <p>VS Code is a free code editor from Microsoft. We are using it as a comfortable window onto your project with Claude attached to the side.</p>
+      <div class="g-step"><span class="st">Step 1</span><p>Download and install VS Code from <a href="https://code.visualstudio.com" target="_blank" rel="noopener">code.visualstudio.com</a>. Accept all the defaults.</p></div>
+      <div class="g-step"><span class="st">Step 2</span><p>Open VS Code and click the <b>Extensions</b> icon in the left bar &mdash; it looks like four small squares. Or press <b>Command + Shift + X</b> on Mac, <b>Ctrl + Shift + X</b> on Windows.</p></div>
+      <div class="g-step"><span class="st">Step 3</span><p>Search for <b>Claude Code</b> and install the one published by <b>Anthropic</b>. There are imitations; check the publisher name.</p></div>
+      <div class="g-step"><span class="st">Step 4</span><p>A small spark icon appears. Click it to open the Claude panel, then sign in when your browser opens.</p></div>
+      <div class="g-note">
+        <p class="nt">Worth knowing</p>
+        <p>The extension <b>includes Claude Code inside it</b>. You do not need to install anything from step 3 as well. If the spark icon does not appear, press <b>Command/Ctrl + Shift + P</b>, type <i>Developer: Reload Window</i> and press Enter.</p>
+      </div>
+
+      <h2 id="s5"><span class="num">05</span>Using VS Code day to day</h2>
+      <p>You only need four things. Everything else is optional.</p>
+      <table class="g-tbl">
+        <tr><th>What</th><th>How</th></tr>
+        <tr><td><b>Open the project</b></td><td><i>File &rarr; Open Folder</i>, then choose your <b>flipgazine</b> folder. Do this once; VS Code reopens it next time.</td></tr>
+        <tr><td><b>Talk to Claude</b></td><td>Click the spark icon, type in the panel, press Enter.</td></tr>
+        <tr><td><b>Review a change</b></td><td>When Claude proposes an edit you get a side-by-side comparison &mdash; old on the left, new on the right. <b>Accept</b> or <b>reject</b> each one.</td></tr>
+        <tr><td><b>Point at a file</b></td><td>Type <b>@</b> then part of a filename. Selecting lines first attaches just those lines.</td></tr>
+      </table>
+      <div class="g-note">
+        <p class="nt">The setting that matters most</p>
+        <p>At the bottom of the prompt box is a <b>mode selector</b>. Keep it on the mode that asks permission before each edit while you are learning. Auto-accept is faster and much less forgiving.</p>
+      </div>
+      <p>You can also open several conversations in separate tabs &mdash; useful for keeping a long job separate from a quick question. If you ever prefer the plain text look, there is a <i>Use Terminal</i> checkbox in the extension settings.</p>
+
+      <h2 id="s6"><span class="num">06</span>Make the project folder</h2>
+      <p>Claude Code works inside one folder. That folder is "the project".</p>
+      <div class="g-step"><span class="st">Step 1</span><p>Create the folder in your <b>home folder</b> &mdash; the one with your name on it, reached in Finder with Command + Shift + H. Name it <b>flipgazine</b>. Put it there and not in Documents: the scheduled job in section 19 looks for it at exactly that location.</p></div>
+      <div class="g-step"><span class="st">Step 2</span><p>Put the deploy files in it: <b>index.html</b>, <b>_worker.js</b>, <b>_headers</b>, <b>_redirects</b>, <b>sw.js</b>, <b>flipbook-ui.js</b>, <b>flipbook-core.js</b>, <b>flipbook-core.css</b>, <b>manifest.webmanifest</b>, and the <b>icons</b> and <b>og</b> folders &mdash; the same files you upload to Cloudflare.</p></div>
+      <div class="g-step"><span class="st">Step 3</span><p>Open it in VS Code with <i>File &rarr; Open Folder</i>.</p></div>
+      <div class="g-note warn">
+        <p class="nt">Never move _worker.js into a functions folder</p>
+        <p><b>_worker.js</b> sits at the root, beside index.html, and it is what gives every link its own preview title and description. Cloudflare's conventional location for this is a <i>functions/</i> directory &mdash; and moving it there will silently break it, because the dashboard drag-and-drop deploy uploads a functions folder without ever compiling it, and reports success anyway. That mistake cost three deploys to find. It stays where it is unless you switch to deploying with Wrangler or Git.</p>
+        <p>The file itself almost never changes. What a page or a share says in a preview lives in the <b>fg_page_meta</b> and <b>fg_shares</b> tables, so new books and new share links need no deploy at all.</p>
+      </div>
+
+      <div class="g-note warn">
+        <p class="nt">Remember what is not in this folder</p>
+        <p>This folder is only the <b>shell</b>. The six books, the home page, the reader and the CMS all live in the Supabase database, not on your computer. That is why step 8 matters, and why "edit the book" almost never means "edit a file here".</p>
+      </div>
+
+      <h2 id="s7"><span class="num">07</span>Add the rules file</h2>
+      <p>A file called <b>CLAUDE.md</b> sitting in that folder is read automatically at the start of every session. It is how Claude knows the architecture, the conventions and the traps without you explaining them again.</p>
+      <div class="g-step"><span class="st">Step 1</span><p>Drop the <b>CLAUDE.md</b> file into the <b>flipgazine</b> folder, alongside index.html.</p></div>
+      <div class="g-step"><span class="st">Step 2</span><p>That is all. Nothing to switch on. Confirm it loaded by typing <b>/context</b> in a session.</p></div>
+      <div class="g-note">
+        <p class="nt">Keeping it useful</p>
+        <p>Add a line whenever Claude makes the same mistake twice, or you type the same correction more than once. Keep it under roughly 200 lines &mdash; a bloated rules file gets skimmed instead of followed.</p>
+      </div>
+
+      <h2 id="s8"><span class="num">08</span>Connect Supabase</h2>
+      <p>This gives Claude Code the same database reach it has in our chats. Without it Claude can see your shell files but none of your books.</p>
+      <p><b>In VS Code or the desktop app:</b> open the plugin and connector manager from the panel, choose to add a connector, and give it this address:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>https://mcp.supabase.com/mcp</code></div>
+      <p><b>In the terminal:</b> run this before starting a session:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>claude mcp add --transport http supabase https://mcp.supabase.com/mcp</code></div>
+      <p>Then start Claude Code and type:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>/mcp</code></div>
+      <p>You will be sent to your browser to sign in to Supabase. Approve it once and it stays connected.</p>
+      <div class="g-note warn">
+        <p class="nt">The project reference</p>
+        <p>flipgazine lives in project <b>sjpvhgxacsiorrtijqua</b>. That database is shared with unrelated projects, so tell Claude to stay in the flipgazine tables. The rules file says this too, but it is worth knowing yourself.</p>
+      </div>
+
+      <h2 id="s9"><span class="num">09</span>Install skills from GitHub</h2>
+      <p>A <b>skill</b> is a folder of expert instructions Claude loads only when it is relevant &mdash; how to build a good-looking interface, how to fill in a PDF, how to write a spreadsheet. A <b>plugin</b> is a bundle of several. A <b>marketplace</b> is a GitHub repository full of plugins.</p>
+      <p>Anthropic's own marketplace is already registered, so you can install from it straight away. Type this inside a session:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>/plugin</code></div>
+      <p>That opens a browser: <b>Discover</b> to look around, <b>Installed</b> to manage what you have. Everything can be done from there with arrow keys and Enter &mdash; no typing required.</p>
+
+      <h3>The ones worth having for this project</h3>
+      <p>Anthropic publishes its skills at <a href="https://github.com/anthropics/skills" target="_blank" rel="noopener">github.com/anthropics/skills</a>. Add it as a marketplace:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>/plugin marketplace add anthropics/skills</code></div>
+      <p>Then install the bundles:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>/plugin install document-skills@anthropic-agent-skills</code></div>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>/plugin install example-skills@anthropic-agent-skills</code></div>
+      <table class="g-tbl">
+        <tr><th>Skill</th><th>Why you want it</th></tr>
+        <tr><td><b>Front-end design</b></td><td>The design skill. It is what shaped the look of this very page and the books &mdash; typography, colour discipline, avoiding generic template output. The most valuable one for flipgazine.</td></tr>
+        <tr><td><b>Document skills</b></td><td>Word, PowerPoint, Excel and PDF. Useful for turning a venue menu PDF into flipbook pages, or producing a report for the hotel.</td></tr>
+        <tr><td><b>Skill creator</b></td><td>Lets you build your own skill &mdash; for example one that knows the flipgazine SQL editing patterns by heart.</td></tr>
+      </table>
+      <p>For the community collection, add that marketplace too and browse it the same way:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>/plugin marketplace add anthropics/claude-plugins-community</code></div>
+      <div class="g-note">
+        <p class="nt">If a newly installed skill does not seem to fire</p>
+        <p>Restart the session. Skills are matched to your request by their description, so it also helps to name it: <i>"use the front-end design skill for this"</i>.</p>
+      </div>
+
+      <h2 id="s10"><span class="num">10</span>Set up your team of subagents</h2>
+      <p>A <b>subagent</b> is a specialist Claude can hand a job to. It works in its own separate context, with its own instructions and its own limited set of tools, then reports back. Two reasons this matters here: a read-only subagent <b>cannot damage anything</b>, and side quests stay out of your main conversation instead of clogging it.</p>
+      <p>The easy way to make one is to type:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>/agents</code></div>
+      <p>It walks you through it and writes the file for you. Subagents are plain text files in a <b>.claude/agents/</b> folder inside your project. Here are three worth having for flipgazine &mdash; you can also just paste each block to Claude and ask it to create the file.</p>
+
+      <h3>1. The surgeon &mdash; makes database edits carefully</h3>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>---
+name: fg-surgeon
+description: Makes careful edits to flipgazine pages and books in the
+  Supabase site_files table. Use for any change to a book, the home
+  page, the reader or the CMS.
+---
+You edit flipgazine content that lives in the Supabase site_files table.
+
+Before every edit:
+- Confirm the anchor string appears exactly once. Postgres replace()
+  hits every occurrence.
+- Show the SQL and wait for approval before running it.
+
+After every edit:
+- Prove it landed: query that the new string is present and the old
+  string is gone, and report the row length.
+
+Never delete a row without first checking what serves that path.
+Never touch tables belonging to the other projects that share this
+database.</code></div>
+
+      <h3>2. The inspector &mdash; read-only, cannot break anything</h3>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>---
+name: fg-inspector
+description: Read-only investigator for flipgazine. Use to find where
+  something lives, audit a page, or check a change went in correctly.
+  Never writes.
+---
+You investigate the flipgazine project and report findings. You never
+write, update or delete anything, in files or in the database.
+
+Useful checks:
+- Which site_files row actually serves a given path.
+- Whether an anchor string is unique before an edit is attempted.
+- Whether an edit landed: new string present, old string absent.
+- Whether an anonymous visitor can read a row, using a role anon check.
+
+Report what you found plainly, including anything that looks wrong but
+was not asked about.</code></div>
+
+      <h3>3. The designer &mdash; visual work in the flipgazine style</h3>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>---
+name: fg-designer
+description: Visual and front-end work on flipgazine - layout,
+  typography, colour, WebGL backgrounds, book covers. Use whenever a
+  change is about how something looks.
+---
+You handle the look of flipgazine. Use the front-end design skill.
+
+House rules:
+- Palette and type come from the home page tokens. Do not invent new
+  colours; use the existing custom properties so pages follow the
+  daylight theme.
+- Each book keeps its own accent. Do not standardise them.
+- Some things look like bugs but are deliberate: reduced motion is
+  switched off site-wide, and the Lobby Lounge cover emboss is
+  stronger than the other five.
+- You cannot see the result. Validate the code, then say plainly that
+  the pixels are unverified and ask for a look.</code></div>
+
+      <div class="g-note">
+        <p class="nt">How to use them</p>
+        <p>Mostly you do not have to. Claude reads each description and hands work over automatically. You can also ask directly: <i>"use fg-inspector to check whether that change landed"</i>. Restart the session after adding a new agent file so it gets picked up.</p>
+      </div>
+
+      <h2 id="s11"><span class="num">11</span>Your first session</h2>
+      <p>Start with something read-only so nothing can break while you find your feet.</p>
+      <div class="g-say"><span class="sy">Type this to Claude</span><p>Read CLAUDE.md, then list the six flipgazine books in site_files with their sizes. Do not change anything.</p></div>
+      <p>If that comes back right, the whole chain works: Claude read your rules and reached your database. Now a real but small change:</p>
+      <div class="g-say"><span class="sy">Type this to Claude</span><p>In the Sip &amp; Co. book, change the cover tagline to "Find your Co. in Langsuan". Show me the SQL first and check the anchor is unique before running it.</p></div>
+      <div class="g-note">
+        <p class="nt">The habit worth forming</p>
+        <p><b>Ask for the plan before the work.</b> One extra message prevents most bad days &mdash; and in VS Code you get the diff as a second checkpoint.</p>
+      </div>
+
+      <h2 id="s12"><span class="num">12</span>Everyday commands</h2>
+      <p>Inside a session, typing <b>/</b> lists everything. These are the ones you will actually use.</p>
+      <table class="g-tbl">
+        <tr><th>Type</th><th>What it does</th></tr>
+        <tr><td><b>/context</b></td><td>Shows which memory files are loaded. Use it to confirm CLAUDE.md was picked up.</td></tr>
+        <tr><td><b>/mcp</b></td><td>Shows and reconnects Supabase.</td></tr>
+        <tr><td><b>/plugin</b></td><td>Browse, install and manage skills.</td></tr>
+        <tr><td><b>/agents</b></td><td>Create and manage your subagents.</td></tr>
+        <tr><td><b>/clear</b></td><td>Fresh conversation. Use between unrelated jobs so old context stops interfering.</td></tr>
+        <tr><td><b>/help</b></td><td>Everything else.</td></tr>
+      </table>
+      <p>And from a terminal, outside a session:</p>
+      <table class="g-tbl">
+        <tr><td><b>claude</b></td><td>Start Claude Code in the current folder.</td></tr>
+        <tr><td><b>claude doctor</b></td><td>Health check. Run this first when something seems broken.</td></tr>
+        <tr><td><b>claude update</b></td><td>Update to the newest version.</td></tr>
+      </table>
+
+      <h2 id="s13"><span class="num">13</span>Golden rules for flipgazine</h2>
+      <p>These come from mistakes already made on this project. They are in CLAUDE.md too, but knowing them yourself lets you catch a wrong turn early.</p>
+      <ul class="g-list">
+        <li><b>Editing a book is a database edit, not a file edit.</b> If Claude starts hunting for book HTML in your folder, stop it and point it at site_files.</li>
+        <li><b>Redeploy is only for the shell.</b> index.html, sw.js, _redirects, _headers, flipbook-ui.js and icons. Everything else is live the moment the database changes.</li>
+        <li><b>Never delete a row without checking what serves it.</b> This once took the books offline.</li>
+        <li><b>The database is shared.</b> If Claude mentions tables like shops, trips or book_chapters, it has wandered into another project. Redirect it.</li>
+        <li><b>Claude cannot see the result.</b> It can validate code and maths but not pixels. You are the eyes &mdash; always load the page and report back.</li>
+        <li><b>Ask it to prove the change landed.</b> The proof is a query showing the new text present and the old text gone.</li>
+      </ul>
+
+      <h2 id="s14"><span class="num">14</span>When something goes wrong</h2>
+      <table class="g-tbl">
+        <tr><th>What you see</th><th>What to do</th></tr>
+        <tr><td><b>The spark icon is missing in VS Code</b></td><td>Command/Ctrl + Shift + P, run <i>Developer: Reload Window</i>. If still missing, open a file first.</td></tr>
+        <tr><td><b>command not found</b></td><td>Close the terminal, open a new one, try again. Then <b>claude doctor</b>.</td></tr>
+        <tr><td><b>Claude cannot reach the database</b></td><td>Type <b>/mcp</b> and reconnect. Sign-ins expire.</td></tr>
+        <tr><td><b>Claude ignores the rules</b></td><td><b>/context</b> to check CLAUDE.md is loaded. If missing, the file is in the wrong folder.</td></tr>
+        <tr><td><b>A new skill or agent does nothing</b></td><td>Restart the session, then name it directly in your request.</td></tr>
+        <tr><td><b>Claude is confused or looping</b></td><td><b>/clear</b> and restate the job in one message. Long sessions drift.</td></tr>
+        <tr><td><b>A change made things worse</b></td><td>Every write is snapshotted into site_files_versions. Ask Claude to restore the previous version of that path.</td></tr>
+      </table>
+
+      <h2 id="s15"><span class="num">15</span>Word list</h2>
+      <table class="g-tbl">
+        <tr><td><b>Terminal</b></td><td>A window where you type commands instead of clicking. Also called command line, shell, PowerShell.</td></tr>
+        <tr><td><b>Extension</b></td><td>An add-on for VS Code. The Claude Code one puts Claude in the sidebar.</td></tr>
+        <tr><td><b>Diff</b></td><td>A before-and-after view of a change, with additions and removals highlighted.</td></tr>
+        <tr><td><b>Folder / directory</b></td><td>The same thing. "Directory" is just the technical word.</td></tr>
+        <tr><td><b>Deploy</b></td><td>Publishing the shell files to Cloudflare so the live site uses them.</td></tr>
+        <tr><td><b>MCP</b></td><td>The bridge that lets Claude reach an outside service. For us, Supabase.</td></tr>
+        <tr><td><b>Skill</b></td><td>A folder of expert instructions Claude loads only when relevant.</td></tr>
+        <tr><td><b>Plugin / marketplace</b></td><td>A bundle of skills, and the GitHub repository that publishes bundles.</td></tr>
+        <tr><td><b>Subagent</b></td><td>A specialist Claude hands a scoped job to, with its own tools and limits.</td></tr>
+        <tr><td><b>Row</b></td><td>One record in a database table. One book is one row in site_files.</td></tr>
+        <tr><td><b>RLS</b></td><td>The database permission rules. Why a hidden book is invisible to visitors.</td></tr>
+        <tr><td><b>SQL</b></td><td>The language for talking to the database. Claude writes it, you approve it.</td></tr>
+      </table>
+
+      <h2 id="s16"><span class="num">16</span>Running two jobs at once</h2>
+      <p>Sooner or later you will want Claude working on two things at the same time &mdash; say, restyling a book while a second job fixes the CMS. Opening two sessions on the same folder is the obvious move and the wrong one: both are editing the same files, so they overwrite each other and each ends up confused about what the file contains.</p>
+      <p>The fix is a <b>worktree</b>: a second copy of your project folder, on its own branch, sharing the same history. Each session gets its own files and cannot disturb the other. Claude Code creates and cleans them up for you.</p>
+
+      <div class="g-note warn">
+        <p class="nt">Read this before you use it here</p>
+        <p>Worktrees isolate <b>files</b>. They do <b>not</b> isolate the database &mdash; and almost everything in flipgazine lives in the database. Two sessions in two worktrees are still writing to the same <i>site_files</i> rows, and the second one to save wins. Worktrees make parallel work <i>safe on the shell files</i>; they do nothing about collisions on a book. See the rule at the end of this section.</p>
+      </div>
+
+      <h3>First, make the folder a git repository</h3>
+      <p>Worktrees need git. If you have never run git in your flipgazine folder, do this once. In VS Code open the terminal panel with <i>Terminal &rarr; New Terminal</i>, then paste:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>git init
+git add .
+git commit -m "flipgazine shell"</code></div>
+      <p>You do not need GitHub or any remote for this to work. Then add one line to a file called <b>.gitignore</b> so the worktree folders do not clutter your project:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>.claude/worktrees/</code></div>
+
+      <h3>Starting a session in a worktree</h3>
+      <p>Give it a short name describing the job:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>claude --worktree anju-restyle</code></div>
+      <p>That creates an isolated copy at <b>.claude/worktrees/anju-restyle/</b> on a new branch called <b>worktree-anju-restyle</b>, and starts Claude inside it. Open a second terminal and run the same command with a different name for your second job:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>claude --worktree cms-fix</code></div>
+      <p>The short form is <b>-w</b>. If you leave the name out, Claude invents one such as <i>bright-running-fox</i>.</p>
+      <div class="g-note">
+        <p class="nt">Two easier routes</p>
+        <p>In the <b>desktop app</b>, every new session gets its own worktree automatically &mdash; nothing to type. And in any session you can simply say <i>"work in a worktree"</i> and Claude will move itself into one, which is useful when you realise mid-job that you want isolation.</p>
+      </div>
+      <p>The first time you use it you may be asked to trust the folder. If <b>--worktree</b> exits with a trust error, run <b>claude</b> once in the folder normally, accept the prompt, then try again.</p>
+
+      <h3>Finishing up</h3>
+      <p>Closing the session does not automatically throw away your work.</p>
+      <table class="g-tbl">
+        <tr><th>Situation</th><th>What happens</th></tr>
+        <tr><td><b>Nothing was changed</b></td><td>The worktree and its branch are removed automatically.</td></tr>
+        <tr><td><b>There are changes</b></td><td>Claude asks whether to keep or remove it. <b>Keep</b> preserves the folder and branch so you can come back; <b>remove</b> deletes the work with it.</td></tr>
+      </table>
+      <p>To see what exists and tidy up by hand:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>git worktree list</code></div>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>git worktree remove .claude/worktrees/anju-restyle</code></div>
+
+      <h3>Giving a subagent its own worktree</h3>
+      <p>Subagents can be isolated the same way, which matters if one is editing many files at once. Ask Claude to <i>"use worktrees for your agents"</i>, or make it permanent for one agent by adding a single line to its frontmatter:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>---
+name: fg-designer
+description: Visual and front-end work on flipgazine.
+isolation: worktree
+---</code></div>
+      <p>Claude removes those temporary worktrees itself once the agent finishes without leaving changes behind.</p>
+
+      <h3>The rule for this project</h3>
+      <ul class="g-list">
+        <li><b>Split parallel jobs by path, not just by worktree.</b> One session on the ANJU book, another on the CMS &mdash; fine. Two sessions on the same book &mdash; the worktree will not save you, because the collision happens in the database.</li>
+        <li><b>Two or three at once is plenty.</b> Beyond that you cannot review the output properly, and every session is drawing on the same usage allowance.</li>
+        <li><b>Worktrees earn their keep on the shell files</b> &mdash; index.html, sw.js, flipbook-ui.js &mdash; and for trying an experiment without disturbing your main folder. For ordinary book edits, a single session is simpler and just as fast.</li>
+      </ul>
+
+      <h2 id="s17"><span class="num">17</span>Two Claude accounts on one Mac</h2>
+      <p>If you have two paid Claude accounts &mdash; say a personal one and a work one &mdash; you can run both side by side on the same Mac, each in its own window, without logging out. Two accounts means two separate usage allowances, so a long job on one does not slow the other down.</p>
+
+      <div class="g-note warn">
+        <p class="nt">Two honest warnings first</p>
+        <p><b>Each account needs its own paid plan.</b> This is for people who genuinely have two, not a way to dodge usage limits by opening extra accounts &mdash; that risks the accounts themselves. If you just want more headroom, upgrade the plan you have.<br><br>
+        Also, the setting below (<b>CLAUDE_CONFIG_DIR</b>) works and is what most people use, but it is <b>not in Anthropic's official documentation</b>. It could change without warning. If it ever stops working, use the supported fallbacks at the end of this section.</p>
+      </div>
+
+      <h3>What we are actually doing</h3>
+      <p>Claude Code keeps everything that makes an account yours &mdash; the login, settings, history, installed skills &mdash; in one folder on your Mac, normally called <b>~/.claude</b>. If you point it at a <i>different</i> folder, you get a second, completely separate Claude Code. Same program, different identity.</p>
+      <p>So the whole job is: make a second folder, create a shortcut that uses it, and log in once. Five minutes, done permanently.</p>
+
+      <h3>First: a two-minute terminal primer</h3>
+      <p>Everything below is typed into the Terminal. If you have never used it, read this bit &mdash; it removes most of the fear.</p>
+      <ul class="g-list">
+        <li><b>Opening it.</b> Press <b>Command + Space</b>, type <i>Terminal</i>, press Enter. If VS Code is already open you can instead use <i>Terminal &rarr; New Terminal</i> from its menu &mdash; it is the same thing in a panel at the bottom.</li>
+        <li><b>What you see.</b> A line of text ending in a <b>%</b> sign. That is the prompt. It is simply waiting for you.</li>
+        <li><b>How to run a command.</b> Copy it with the button on this page, click into the Terminal window, press <b>Command + V</b> to paste, then press <b>Enter</b>. Nothing runs until you press Enter.</li>
+        <li><b>Silence is success.</b> Most of these commands print nothing at all when they work. An empty line and a fresh prompt means it worked. You only need to worry if you see the word <i>error</i> or <i>not found</i>.</li>
+        <li><b>The squiggle.</b> <b>~</b> is shorthand for your home folder. A name starting with a dot, like <b>.claude</b>, is a hidden folder &mdash; Finder does not show it by default. That is normal, not a mistake.</li>
+        <li><b>You cannot break anything</b> with the commands in this section. The worst case is a shortcut that does not work, and the last step shows you how to undo it.</li>
+      </ul>
+
+      <h3>Step 1 &mdash; check which shell your Mac uses</h3>
+      <p>This decides which settings file we write to. Paste this and press Enter:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>echo $SHELL</code></div>
+      <p><b>What you should see:</b> <i>/bin/zsh</i>. That is the normal answer on any recent Mac, and the rest of this section assumes it.</p>
+      <div class="g-note">
+        <p class="nt">If it said /bin/bash instead</p>
+        <p>You are on an older setup. Everything still works &mdash; just replace <b>~/.zshrc</b> with <b>~/.bash_profile</b> everywhere below.</p>
+      </div>
+
+      <h3>Step 2 &mdash; make the folder for the second account</h3>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>mkdir -p ~/.claude-second</code></div>
+      <p><b>What you should see:</b> nothing. The prompt returns and that is correct. You have just created an empty hidden folder that will hold the second account.</p>
+
+      <h3>Step 3 &mdash; create the two shortcuts</h3>
+      <p>An <b>alias</b> is a nickname for a longer command. We are adding two nicknames &mdash; <b>claude1</b> and <b>claude2</b> &mdash; to a settings file your Terminal reads every time it opens, so they exist from now on.</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>echo "alias claude1='claude'" >> ~/.zshrc
+echo "alias claude2='CLAUDE_CONFIG_DIR=~/.claude-second claude'" >> ~/.zshrc</code></div>
+      <p><b>What you should see:</b> nothing again. Those two lines added themselves to the end of the settings file. The <b>&gt;&gt;</b> means "add to the end of" &mdash; it does not overwrite what is already there.</p>
+      <p>Now tell the Terminal to re-read that file so the shortcuts work immediately, instead of having to close and reopen the window:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>source ~/.zshrc</code></div>
+
+      <h3>Step 4 &mdash; check the shortcuts exist</h3>
+      <p>This one does print something, so it is a good confidence check:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>alias | grep claude</code></div>
+      <p><b>What you should see:</b> two lines, one for <b>claude1</b> and one for <b>claude2</b>. If you see nothing, the shortcuts did not load &mdash; close the Terminal window completely, open a new one, and run this again.</p>
+
+      <h3>Step 5 &mdash; sign in to the second account</h3>
+      <div class="g-step"><span class="st">Step 5a</span><p>Start the second Claude Code:</p></div>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>claude2</code></div>
+      <div class="g-step"><span class="st">Step 5b</span><p>Because this folder is brand new, it behaves like a first-ever install: it will ask you to sign in and open your browser.</p></div>
+      <div class="g-step"><span class="st">Step 5c</span><p><b>Sign in with your other account</b> &mdash; not the one you normally use. This is the only moment where it matters which one you pick.</p></div>
+      <div class="g-step"><span class="st">Step 5d</span><p>Return to the Terminal. You are now in a session on the second account. Type <b>/exit</b> to leave when you are done.</p></div>
+      <p>It may also ask whether you trust the folder you are in. Say yes &mdash; it is your own project folder.</p>
+
+      <h3>Step 6 &mdash; running both at once</h3>
+      <div class="g-step"><span class="st">Step 6a</span><p>In your current Terminal window, type <b>claude1</b> and press Enter. That is your usual account.</p></div>
+      <div class="g-step"><span class="st">Step 6b</span><p>Open a second window with <b>Command + N</b>, or a second tab with <b>Command + T</b>.</p></div>
+      <div class="g-step"><span class="st">Step 6c</span><p>In the new one, type <b>claude2</b>. Both are now running, each on its own account, neither aware of the other.</p></div>
+      <div class="g-note">
+        <p class="nt">Label them before you get confused</p>
+        <p>Two identical windows is the easiest way to lose track. With a window selected, use <i>Shell &rarr; Rename Tab</i> from the Terminal menu and call them <b>claude1</b> and <b>claude2</b>. Do it now rather than later.</p>
+      </div>
+      <p>From here on the routine is simply: open Terminal, type <b>claude1</b> or <b>claude2</b>. Nothing to set up again.</p>
+
+      <h3>What each account has to set up separately</h3>
+      <p>The second account starts empty. It is a fresh Claude Code, so a few things need doing twice.</p>
+      <table class="g-tbl">
+        <tr><th>Set up twice</th><th>Shared automatically</th></tr>
+        <tr>
+          <td>The Supabase connection (<b>/mcp</b>)<br>Installed skills and plugins (<b>/plugin</b>)<br>The sign-in itself</td>
+          <td><b>CLAUDE.md</b><br>Your subagents in <b>.claude/agents/</b><br>The project files themselves</td>
+        </tr>
+      </table>
+      <p>The right-hand column is shared because it lives in the project folder rather than in the account folder &mdash; so both accounts follow the same rules and use the same specialists with no extra work.</p>
+
+      <h3>Combining with worktrees</h3>
+      <p>The two ideas stack. Accounts give you two usage allowances; worktrees keep the files apart:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>claude2 --worktree cms-fix</code></div>
+
+      <h3>If something goes wrong</h3>
+      <table class="g-tbl">
+        <tr><th>What you see</th><th>What it means and what to do</th></tr>
+        <tr><td><b>zsh: command not found: claude</b></td><td>Claude Code is not installed for the Terminal. If you have only been using the VS Code extension, go back to section 3 and run the installer.</td></tr>
+        <tr><td><b>zsh: command not found: claude2</b></td><td>The shortcut has not loaded. Run <b>source ~/.zshrc</b>, or close the window and open a new one.</td></tr>
+        <tr><td><b>claude2 signed in as the wrong account</b></td><td>Run <b>claude2</b>, type <b>/logout</b>, then <b>/login</b>, and choose the right one.</td></tr>
+        <tr><td><b>Both windows feel like the same account</b></td><td>You probably typed <b>claude</b> rather than <b>claude2</b>. Always use the numbered names.</td></tr>
+      </table>
+
+      <h3>How to undo all of this</h3>
+      <p>Nothing here is permanent. To remove the second account from your Mac, open the settings file:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>open -e ~/.zshrc</code></div>
+      <p>That opens it in TextEdit. Delete the two <b>alias claude1</b> and <b>alias claude2</b> lines, save, and close. Then, if you also want to delete the second account's local data:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>rm -rf ~/.claude-second</code></div>
+      <div class="g-note warn">
+        <p class="nt">Be careful with that last one</p>
+        <p><b>rm -rf</b> deletes permanently, with no trip to the Trash. Make sure the line reads exactly <b>~/.claude-second</b> and not <b>~/.claude</b> &mdash; the second one would delete your main account's settings. Your Claude account itself is untouched either way; this is only local data.</p>
+      </div>
+
+      <h3>The rule, again</h3>
+      <p>Everything from the previous section still applies, and more sharply. <b>Two accounts do not give you two databases.</b> Both are writing to the same <i>site_files</i> rows in the same Supabase project. Split the work by path &mdash; one account on a book, the other on the CMS or the shell &mdash; and never point both at the same page.</p>
+
+      <h3>If the shortcut stops working</h3>
+      <ul class="g-list">
+        <li><b>Switch instead of running both.</b> Inside a session, <b>/logout</b> then <b>/login</b> moves you to the other account. Supported, but one at a time.</li>
+        <li><b>Use a second macOS user account.</b> System Settings &rarr; Users &amp; Groups, add a user, then switch with fast user switching. Heavier, but completely supported and fully isolated.</li>
+      </ul>
+
+      <h2 id="s18"><span class="num">18</span>The same two accounts on a second machine</h2>
+      <p>Nothing stops you using the same accounts on a laptop as well as the Mac &mdash; a Claude subscription belongs to you, not to a computer, and signing in on several devices is expected. What surprises people is how much of your setup does <b>not</b> come with you.</p>
+
+      <h3>What travels, and what does not</h3>
+      <table class="g-tbl">
+        <tr><th>Travels by itself</th><th>Must be redone on each machine</th></tr>
+        <tr>
+          <td><b>Your accounts and plans</b> &mdash; just sign in<br>
+              <b>The whole flipgazine site</b> &mdash; it lives in Supabase, not on any computer<br>
+              <b>Claude chat</b> conversations, projects and preferences sync across devices</td>
+          <td><b>The Supabase connection</b> (<b>/mcp</b>)<br>
+              <b>Skills and plugins</b> (<b>/plugin</b>)<br>
+              <b>The sign-in</b> for each account<br>
+              <b>Session history</b> &mdash; stays on the machine that made it</td>
+        </tr>
+      </table>
+      <div class="g-note">
+        <p class="nt">Why the right-hand column exists</p>
+        <p>Claude Code keeps all of that in a folder on the machine itself, and there is currently <b>no built-in way to sync it between computers</b>. It is a frequently requested feature that does not exist yet. Budget about five minutes per machine, per account. Do not go looking for a sync setting &mdash; there isn't one.</p>
+      </div>
+      <p>The good news for this project is the first row. Because the books, the home page, the reader and the CMS all live in Supabase, your second machine does not need to carry the site at all. Connect it to the database and you are working on exactly the same content.</p>
+
+      <h3>Step 1 &mdash; get the project folder onto the second machine</h3>
+      <p>You only need this folder for the shell files, CLAUDE.md and your subagents. The tidy way is a private repository, which also keeps both machines in step from then on.</p>
+      <p>On the Mac, once:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>git remote add origin https://github.com/YOURNAME/flipgazine.git
+git push -u origin main</code></div>
+      <p>On the second machine:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>git clone https://github.com/YOURNAME/flipgazine.git</code></div>
+      <p>After that, <b>git pull</b> before you start work and <b>git push</b> when you finish keeps CLAUDE.md and your agents identical on both.</p>
+      <div class="g-note warn">
+        <p class="nt">Do not put this folder in iCloud Drive or Dropbox</p>
+        <p>File-sync services corrupt git repositories &mdash; they copy the internal git files mid-write, and worktrees make it worse. If you would rather not use GitHub, copy the folder across manually instead and accept that you must re-copy CLAUDE.md whenever it changes.</p>
+      </div>
+
+      <h3>Step 2 &mdash; install and sign in</h3>
+      <div class="g-step"><span class="st">Step 1</span><p>Install VS Code and the Claude Code extension exactly as in section 4, or the desktop app from section 3.</p></div>
+      <div class="g-step"><span class="st">Step 2</span><p>Open the cloned <b>flipgazine</b> folder and sign in with your first account.</p></div>
+      <div class="g-step"><span class="st">Step 3</span><p>Connect Supabase again &mdash; section 8. This is per machine and per account, so on a two-account machine you do it twice.</p></div>
+      <div class="g-step"><span class="st">Step 4</span><p>Reinstall the skills you use &mdash; section 9. Type <b>/context</b> to confirm CLAUDE.md is loading, and you are running.</p></div>
+
+      <h3>Step 3 &mdash; add the second account</h3>
+      <p>If the second machine is <b>a Mac or Linux</b>, repeat section 17 exactly: make the folder, add the two aliases, run <b>claude2</b> and sign in.</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>mkdir -p ~/.claude-second
+echo "alias claude2='CLAUDE_CONFIG_DIR=~/.claude-second claude'" >> ~/.zshrc
+source ~/.zshrc</code></div>
+      <p>If it is <b>Windows</b>, the idea is the same but the shortcut goes in your PowerShell profile. Paste this into PowerShell:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>New-Item -ItemType Directory -Force -Path "$HOME\.claude-second"
+Add-Content -Path $PROFILE -Value 'function claude2 { $env:CLAUDE_CONFIG_DIR="$HOME\.claude-second"; claude @args }'
+. $PROFILE</code></div>
+      <p>Then open a new PowerShell window and run <b>claude2</b> to sign in with the second account.</p>
+
+      <h3>Keeping skills in step without a sync feature</h3>
+      <p>Since there is no built-in sync, pick one of these and stick to it.</p>
+      <ul class="g-list">
+        <li><b>Simplest, recommended:</b> install only the two or three skills you actually use, and reinstall them on each machine. Five minutes, no moving parts.</li>
+        <li><b>If a skill becomes essential to the project:</b> keep it in the repository under <b>.claude/skills/</b> instead of the account folder. Then it travels with <b>git pull</b> like CLAUDE.md does, and both accounts on both machines get it.</li>
+        <li><b>Avoid</b> elaborate symlink-and-cloud-drive schemes. They are a known source of stale and half-copied files, and you do not need them for a project this size.</li>
+      </ul>
+
+      <h3>The rule, one last time</h3>
+      <p>Two machines with two accounts each is up to <b>four sessions writing to one database</b>, and Supabase will not stop them colliding. The discipline is unchanged and matters more the more places you work from:</p>
+      <ul class="g-list">
+        <li><b>One page, one session.</b> Split by path &mdash; never two sessions on the same book, whatever machine they are on.</li>
+        <li><b>Pull before you start, push when you stop.</b> Otherwise the two machines drift apart on CLAUDE.md and your agents.</li>
+        <li><b>If something is overwritten,</b> every write is snapshotted in <i>site_files_versions</i>. Ask Claude to restore the previous version of that path.</li>
+      </ul>
+
+            <h2 id="s19"><span class="num">19</span>The automatic inbox scan</h2>
+      <p class="lead">This sets up Claude Code on your Mac to read your Apple Mail inbox twice a day &mdash; <b>9am and 5pm, Monday to Friday</b> &mdash; find anything newly addressed to Marcom, and add it to the job tracker as a new card. It runs with no window open and nothing for you to click.</p>
+      <p>Written out click by click, on the assumption that you have never opened a terminal. A handful of lines below do need a terminal window, and step&nbsp;0 shows you the painless way to open one. Every command can be copied with one tap.</p>
+
+      <div class="g-note warn">
+        <p class="nt">The one rule this whole job is built around</p>
+        <p><b>It adds. It never edits.</b> Existing cards are never rewritten, and your status pills are never touched &mdash; if you have marked something <i>Done</i> at 4pm, the 5pm run must not undo it. That is stated in the brief below three times and then checked afterwards, because an instruction alone is not a guarantee.</p>
+      </div>
+
+      <h3>What you are creating</h3>
+      <table class="g-tbl">
+        <tr><th>File</th><th>What it is</th><th>Where it goes</th></tr>
+        <tr><td><b>.claude/jobscan.md</b></td><td>The brief &mdash; what Claude should do on each run.</td><td>Inside your flipgazine folder</td></tr>
+        <tr><td><b>.claude/jobscan.sh</b></td><td>A short script that runs Claude Code with that brief, with no window open.</td><td>Inside your flipgazine folder</td></tr>
+        <tr><td><b>com.flipgazine.jobscan.plist</b></td><td>The macOS schedule &mdash; the ten times a week it should fire.</td><td>Your LaunchAgents folder</td></tr>
+      </table>
+
+      <h3>Step 0 &mdash; three checks before you begin</h3>
+      <div class="g-step">
+        <span class="st">Check 1 &mdash; where the folder lives</span>
+        <p>The thing most likely to trip you up. The script looks for your project at <i>your home folder &rarr; flipgazine</i>, not inside Documents. Open Finder and press <b>Command + Shift + H</b>: that is your home folder, the one with your name on it. Your <b>flipgazine</b> folder should be sitting right there. If it is somewhere else, drag it there now.</p>
+      </div>
+      <div class="g-step">
+        <span class="st">Check 2 &mdash; Claude Code is working</span>
+        <p>Open VS Code, click the spark icon, check that Claude answers. If it cannot reach the database, type <b>/mcp</b> and reconnect before going on.</p>
+      </div>
+      <div class="g-step">
+        <span class="st">Check 3 &mdash; Apple Mail is set up</span>
+        <p>The scan reads Mail on this Mac, not a webmail page in a browser. Your work inbox has to actually be in the Mail app.</p>
+      </div>
+
+      <div class="g-note">
+        <p class="nt">How to open a terminal, once, painlessly</p>
+        <p>You do not need the Terminal app. In VS Code, click <b>Terminal &rarr; New Terminal</b> in the top menu &mdash; a panel opens at the bottom, already pointed at your project folder. Every command on this page goes in there: click into it, paste, press Enter.</p>
+      </div>
+
+      <h3>If you would rather not create the files yourself</h3>
+      <p>Claude can write all three for you. Paste this into the Claude panel, then pick the thread up again at step 3 &mdash; the remaining steps need you sitting there to approve things.</p>
+      <div class="g-say">
+        <span class="sy">Type this to Claude</span>
+        <p>Read section 19 of /claude-code.html in site_files. Create the three files it describes &mdash; .claude/jobscan.md, .claude/jobscan.sh and the LaunchAgents plist &mdash; exactly as written, in my flipgazine folder. Show me each file before you save it. Do not run anything yet.</p>
+      </div>
+
+      <h3>Step 1 &mdash; the brief</h3>
+      <p>The brief is the instruction sheet Claude reads at the start of every run. It is ordinary text, not code.</p>
+      <div class="g-step">
+        <span class="st">Step 1a</span>
+        <p>In VS Code, with your flipgazine folder open, hover over the folder name at the top of the file list and click the <b>New File</b> icon &mdash; a small page with a plus on it.</p>
+      </div>
+      <div class="g-step">
+        <span class="st">Step 1b</span>
+        <p>Type the name exactly: <b>.claude/jobscan.md</b> &mdash; dot at the front, slash included. VS Code creates the hidden <i>.claude</i> folder for you. Press Enter.</p>
+      </div>
+      <div class="g-step">
+        <span class="st">Step 1c</span>
+        <p>Copy the block below, paste it into the empty file, and save with <b>Command + S</b>.</p>
+      </div>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>Scheduled inbox scan for the Marcom job tracker. Read-and-add only.
+
+THE GOVERNING RULE
+Add new job cards only. Never modify or delete an existing card, and never
+change any status. If you are unsure whether something is new, skip it and
+say so in your summary. A missed item is fine; an overwritten status is not.
+
+1. READ THE INBOX
+Use osascript to read Apple Mail's inbox. Only look at messages received
+since the timestamp in .claude/jobscan-last-run.txt. If that file does not
+exist, use the last 24 hours. Write the current time to that file when you
+finish, whether or not you added anything.
+
+2. DECIDE WHAT COUNTS
+Include a message only if it contains a specific ask addressed to Marcom in
+the body. Exclude BEO forms, reservation notes, FYI and thank-you threads,
+newsletters, and anything whose action items belong to another department.
+
+3. CHECK IT IS ACTUALLY NEW
+Read the row /private/job-tracking-data.html from Supabase site_files.
+Collect every existing data-job key and every existing job title. Skip any
+message that matches an existing key, or whose subject is clearly the same
+task as an existing title, including reply threads about a task already
+listed. When in doubt, skip.
+
+4. ADD THE NEW CARDS
+For each genuinely new item, build a card in exactly this shape and insert
+it immediately before the closing tag of the board div. Do not touch any
+existing card. Nothing outside the board div is yours to edit at all. The
+intro blurb, the meta line, the excluded-items note and the footer
+paragraph are off-limits - leave them character for character as you found
+them. The only thing you change outside the HTML is the timestamp in part 7.
+
+&lt;div class="job" data-job="SHORT-SLUG"&gt;
+  &lt;div class="job-task"&gt;
+    &lt;div class="job-col-label"&gt;Task&lt;/div&gt;
+    &lt;div class="job-title"&gt;TITLE&lt;/div&gt;
+    &lt;div class="job-desc"&gt;ONE OR TWO SENTENCES, PLUS ANY FILE PATH GIVEN&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="job-col"&gt;
+    &lt;div class="job-col-label"&gt;Sent by&lt;/div&gt;
+    &lt;div class="sender"&gt;NAME&lt;/div&gt;
+    &lt;div class="sender-role"&gt;ROLE IF KNOWN&lt;/div&gt;
+    &lt;div class="received"&gt;Received D MMM YYYY&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="job-col"&gt;
+    &lt;div class="job-col-label"&gt;Deadline&lt;/div&gt;
+    &lt;div class="deadline"&gt;AS STATED, OR "Not stated"&lt;/div&gt;
+    &lt;div class="deadline-note"&gt;WHERE THAT CAME FROM&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="job-col status-wrap"&gt;
+    &lt;div class="job-col-label"&gt;Status&lt;/div&gt;
+    &lt;button class="status-pill not-started" data-current="not-started" type="button"&gt;Not started&lt;/button&gt;
+    &lt;div class="status-menu"&gt;
+      &lt;div class="status-opt" data-value="not-started"&gt;&lt;span class="status-dot not-started"&gt;&lt;/span&gt;Not started&lt;/div&gt;
+      &lt;div class="status-opt" data-value="working"&gt;&lt;span class="status-dot working"&gt;&lt;/span&gt;Working on it&lt;/div&gt;
+      &lt;div class="status-opt" data-value="stuck"&gt;&lt;span class="status-dot stuck"&gt;&lt;/span&gt;Stuck&lt;/div&gt;
+      &lt;div class="status-opt" data-value="done"&gt;&lt;span class="status-dot done"&gt;&lt;/span&gt;Done&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+Add class="deadline tight" instead of class="deadline" only when the
+deadline is this week or sooner.
+
+5. RECORD THE STATUS
+For each new key only, insert into job_tracking_status with status
+'not-started', using on conflict (job_key) do nothing. Never update a row
+that already exists. Do not delete rows.
+
+6. PROVE YOU DID NO HARM
+Before editing, record the card count, the list of data-job keys with
+their data-current values, and the exact text of the footer paragraph.
+After editing, check that:
+- the card count rose by exactly the number of cards you added
+- every previously existing key is still present
+- every previously existing data-current value is unchanged
+- the job_tracking_status rows for old keys are unchanged
+- the footer paragraph is character-for-character identical
+- the meta line is character-for-character identical
+If any check fails, restore the previous version of the row from
+site_files_versions and report the failure instead of continuing.
+
+7. STAMP THE BOARD
+Only if you actually added at least one card, run exactly this:
+  update job_tracking_meta set updated_at = now() where id = 1;
+That timestamp is what the page shows as "Updated on". Adding a task stamps
+it; changing a status stamps it from the browser. Reordering must never
+stamp it, and neither must a run that added nothing. Do not edit the meta
+line in the HTML - it is filled in by the page at load time and holds no
+text of its own.
+
+8. HOUSEKEEPING
+Never touch tables belonging to the other projects sharing this database.
+Print a short summary: how many messages read, how many added, the title of
+each, and anything skipped and why. If nothing qualifies, say so and change
+nothing at all.</code></div>
+
+      <div class="g-note">
+        <p class="nt">Why the name starts with a dot</p>
+        <p>A folder beginning with a dot is hidden from Finder. That is deliberate, not a mistake &mdash; it is where Claude Code keeps its settings. You will only ever see it from inside VS Code.</p>
+      </div>
+
+      <p>What that brief says, in plain words: read only mail that arrived since the last run &middot; include only a real ask addressed to Marcom &middot; check it against the tracker so nothing is added twice &middot; build each new card in exactly the shape given &middot; set the status to <i>Not started</i> for brand-new items only &middot; count the cards before and after and roll everything back if anything old changed &middot; touch nothing outside the board, footer and meta line included &middot; stamp the board clock only if something was actually added &middot; print a short summary at the end.</p>
+
+      <h3>Step 2 &mdash; the runner</h3>
+      <p>This is the short script that actually starts Claude with that brief. Create it the same way: <b>New File</b>, named <b>.claude/jobscan.sh</b>, paste, save.</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>#!/bin/zsh
+cd "$HOME/flipgazine" || exit 1
+claude -p "$(cat .claude/jobscan.md)" \
+  --allowedTools "Read,Bash" \
+  --permission-mode dontAsk \
+  --max-turns 40 \
+  &gt;&gt; "$HOME/Library/Logs/fg-jobscan.log" 2&gt;&amp;1
+echo "--- finished $(date) ---" &gt;&gt; "$HOME/Library/Logs/fg-jobscan.log"</code></div>
+
+      <p>Now it needs permission to run. This is your first terminal line. Open the panel with <b>Terminal &rarr; New Terminal</b>, then paste this and press Enter:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>chmod +x ~/flipgazine/.claude/jobscan.sh</code></div>
+      <p>Nothing visible happens. That is success &mdash; <i>chmod +x</i> only means &ldquo;this file is allowed to run&rdquo;. If you get <i>No such file or directory</i>, the folder is not in your home folder; go back to check 1.</p>
+
+      <div class="g-note">
+        <p class="nt">What dontAsk is doing in that script</p>
+        <p>A run at 9am with nobody there cannot answer a permission pop-up. That flag tells Claude to refuse anything outside the listed tools rather than sit frozen forever, waiting for a click that will never come.</p>
+      </div>
+
+      <h3>Step 3 &mdash; run it once by hand</h3>
+      <p>Do not skip this. The first run makes macOS ask whether this may control Mail. If that appears at 9am when nobody is watching, the scheduled run simply fails.</p>
+      <div class="g-step">
+        <span class="st">Step 3a</span>
+        <p>In the same terminal panel, paste this and press Enter.</p>
+      </div>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>~/flipgazine/.claude/jobscan.sh; tail -40 ~/Library/Logs/fg-jobscan.log</code></div>
+      <div class="g-step">
+        <span class="st">Step 3b</span>
+        <p><b>Approve the Mail prompt</b> when it appears. Then wait &mdash; a minute or two is normal.</p>
+      </div>
+      <div class="g-step">
+        <span class="st">Step 3c</span>
+        <p>Read what prints out. That is the summary: how many messages it read, how many cards it added, and what it skipped and why.</p>
+      </div>
+      <div class="g-step">
+        <span class="st">Step 3d</span>
+        <p>Open the job tracker in your browser and <b>look at it</b>. Are the new cards right? Are the old ones untouched, statuses exactly as you left them? If anything is off, stop here and adjust the brief before scheduling anything.</p>
+      </div>
+
+      <h3>Step 4 &mdash; the schedule</h3>
+      <p>This last file tells macOS when to run the job. It lives in a system folder, so you reach it through Finder rather than the file list in VS Code.</p>
+      <div class="g-step">
+        <span class="st">Step 4a</span>
+        <p>In Finder press <b>Command + Shift + G</b>, type <b>~/Library/LaunchAgents</b> and press Enter. If the folder does not exist, create it.</p>
+      </div>
+      <div class="g-step">
+        <span class="st">Step 4b</span>
+        <p>Open that folder in VS Code, create a file named <b>com.flipgazine.jobscan.plist</b>, and paste in the block below. Save.</p>
+      </div>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;
+&lt;plist version="1.0"&gt;
+&lt;dict&gt;
+  &lt;key&gt;Label&lt;/key&gt;
+  &lt;string&gt;com.flipgazine.jobscan&lt;/string&gt;
+  &lt;key&gt;ProgramArguments&lt;/key&gt;
+  &lt;array&gt;
+    &lt;string&gt;/bin/zsh&lt;/string&gt;
+    &lt;string&gt;-lc&lt;/string&gt;
+    &lt;string&gt;~/flipgazine/.claude/jobscan.sh&lt;/string&gt;
+  &lt;/array&gt;
+  &lt;key&gt;StartCalendarInterval&lt;/key&gt;
+  &lt;array&gt;
+    &lt;dict&gt;&lt;key&gt;Weekday&lt;/key&gt;&lt;integer&gt;1&lt;/integer&gt;&lt;key&gt;Hour&lt;/key&gt;&lt;integer&gt;9&lt;/integer&gt;&lt;key&gt;Minute&lt;/key&gt;&lt;integer&gt;0&lt;/integer&gt;&lt;/dict&gt;
+    &lt;dict&gt;&lt;key&gt;Weekday&lt;/key&gt;&lt;integer&gt;1&lt;/integer&gt;&lt;key&gt;Hour&lt;/key&gt;&lt;integer&gt;17&lt;/integer&gt;&lt;key&gt;Minute&lt;/key&gt;&lt;integer&gt;0&lt;/integer&gt;&lt;/dict&gt;
+    &lt;dict&gt;&lt;key&gt;Weekday&lt;/key&gt;&lt;integer&gt;2&lt;/integer&gt;&lt;key&gt;Hour&lt;/key&gt;&lt;integer&gt;9&lt;/integer&gt;&lt;key&gt;Minute&lt;/key&gt;&lt;integer&gt;0&lt;/integer&gt;&lt;/dict&gt;
+    &lt;dict&gt;&lt;key&gt;Weekday&lt;/key&gt;&lt;integer&gt;2&lt;/integer&gt;&lt;key&gt;Hour&lt;/key&gt;&lt;integer&gt;17&lt;/integer&gt;&lt;key&gt;Minute&lt;/key&gt;&lt;integer&gt;0&lt;/integer&gt;&lt;/dict&gt;
+    &lt;dict&gt;&lt;key&gt;Weekday&lt;/key&gt;&lt;integer&gt;3&lt;/integer&gt;&lt;key&gt;Hour&lt;/key&gt;&lt;integer&gt;9&lt;/integer&gt;&lt;key&gt;Minute&lt;/key&gt;&lt;integer&gt;0&lt;/integer&gt;&lt;/dict&gt;
+    &lt;dict&gt;&lt;key&gt;Weekday&lt;/key&gt;&lt;integer&gt;3&lt;/integer&gt;&lt;key&gt;Hour&lt;/key&gt;&lt;integer&gt;17&lt;/integer&gt;&lt;key&gt;Minute&lt;/key&gt;&lt;integer&gt;0&lt;/integer&gt;&lt;/dict&gt;
+    &lt;dict&gt;&lt;key&gt;Weekday&lt;/key&gt;&lt;integer&gt;4&lt;/integer&gt;&lt;key&gt;Hour&lt;/key&gt;&lt;integer&gt;9&lt;/integer&gt;&lt;key&gt;Minute&lt;/key&gt;&lt;integer&gt;0&lt;/integer&gt;&lt;/dict&gt;
+    &lt;dict&gt;&lt;key&gt;Weekday&lt;/key&gt;&lt;integer&gt;4&lt;/integer&gt;&lt;key&gt;Hour&lt;/key&gt;&lt;integer&gt;17&lt;/integer&gt;&lt;key&gt;Minute&lt;/key&gt;&lt;integer&gt;0&lt;/integer&gt;&lt;/dict&gt;
+    &lt;dict&gt;&lt;key&gt;Weekday&lt;/key&gt;&lt;integer&gt;5&lt;/integer&gt;&lt;key&gt;Hour&lt;/key&gt;&lt;integer&gt;9&lt;/integer&gt;&lt;key&gt;Minute&lt;/key&gt;&lt;integer&gt;0&lt;/integer&gt;&lt;/dict&gt;
+    &lt;dict&gt;&lt;key&gt;Weekday&lt;/key&gt;&lt;integer&gt;5&lt;/integer&gt;&lt;key&gt;Hour&lt;/key&gt;&lt;integer&gt;17&lt;/integer&gt;&lt;key&gt;Minute&lt;/key&gt;&lt;integer&gt;0&lt;/integer&gt;&lt;/dict&gt;
+  &lt;/array&gt;
+  &lt;key&gt;StandardErrorPath&lt;/key&gt;
+  &lt;string&gt;/tmp/fg-jobscan.err&lt;/string&gt;
+&lt;/dict&gt;
+&lt;/plist&gt;</code></div>
+
+      <p><b>How to read it:</b> each line in the middle is one scheduled run. <i>Weekday 1</i> is Monday through <i>Weekday 5</i> for Friday; <i>Hour 9</i> is 9am and <i>Hour 17</i> is 5pm. Ten lines, so two runs a day across five days. If you later decide you only want a morning scan, delete the five <i>Hour 17</i> lines.</p>
+      <div class="g-step">
+        <span class="st">Step 4c</span>
+        <p>Back in the VS Code terminal, switch the schedule on:</p>
+      </div>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.flipgazine.jobscan.plist</code></div>
+      <div class="g-step">
+        <span class="st">Step 4d</span>
+        <p>Force a run right now, so you prove the schedule itself works instead of waiting until tomorrow morning:</p>
+      </div>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>launchctl kickstart -k gui/$(id -u)/com.flipgazine.jobscan</code></div>
+
+      <h3>Watching it, and switching it off</h3>
+      <p>To watch a run as it happens &mdash; worth doing for the first week:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>tail -f ~/Library/Logs/fg-jobscan.log</code></div>
+      <p>Press <b>Control + C</b> to stop watching. That stops the watching, not the job. To switch the whole thing off:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>launchctl bootout gui/$(id -u)/com.flipgazine.jobscan</code></div>
+      <p>To turn it back on later, run the <i>bootstrap</i> line from step 4c again.</p>
+
+      <h3>Before you trust it</h3>
+      <ul class="g-list">
+        <li><b>Your Mac has to be awake.</b> macOS does not catch up on runs missed while the machine was asleep. A closed laptop at 9am means no 9am scan.</li>
+        <li><b>Read the log every day for the first week</b> and compare it against the tracker. Judging what counts as an ask addressed to Marcom is the part most likely to need tuning &mdash; adjust part 2 of the brief as you learn what it gets wrong.</li>
+        <li><b>Check your usage.</b> Ten headless runs a week draw on the same allowance as your normal sessions. Type <b>/usage</b> in a session after a few days.</li>
+        <li><b>Everything is recoverable.</b> Every write is snapshotted into <i>site_files_versions</i>, so a bad run can be undone by asking Claude to restore the previous version of <i>/private/job-tracking-data.html</i>.</li>
+        <li><b>It reads your mail.</b> Only the summary reaches the tracker, but the run does have Mail access. If you ever share this machine, switch it off with the bootout command above.</li>
+      </ul>
+
+      <h3>If something goes wrong</h3>
+      <table class="g-tbl">
+        <tr><th>What you see</th><th>What to do</th></tr>
+        <tr><td><b>No such file or directory</b></td><td>The flipgazine folder is not directly in your home folder. Move it, or ask Claude to update the paths in <i>jobscan.sh</i> and the plist.</td></tr>
+        <tr><td><b>Permission denied</b></td><td>The <i>chmod +x</i> line in step 2 did not run. Do it again.</td></tr>
+        <tr><td><b>Nothing in the log at all</b></td><td>The Mail permission prompt was never approved. Run step 3 by hand again and watch for it.</td></tr>
+        <tr><td><b>An unknown flag error from claude</b></td><td>Run <b>claude -p --help</b> to check the flag names, or paste the error straight into the Claude panel and ask.</td></tr>
+        <tr><td><b>It added a card that already existed</b></td><td>Its judgement of what counts as new needs tightening. Edit part 3 of the brief to be more specific about reply threads.</td></tr>
+        <tr><td><b>It changed an existing status</b></td><td>Switch it off with the bootout command, restore the previous version of that row, and treat the brief as faulty &mdash; tighten part 6 before turning it back on.</td></tr>
+      </table>
+
+      <h2 id="s20"><span class="num">20</span>Running Claude Code alongside Codex</h2>
+      <p>Some jobs go faster with a second opinion from a different model. <b>Codex</b> is OpenAI's coding agent &mdash; it lives inside VS Code the same way Claude Code does, and both can be open on the same Mac without either one knowing the other exists. This section assumes you have already read <a href="#s16">Running two jobs at once</a>: everything below builds on worktrees, it does not replace them.</p>
+
+      <h3>Install Codex in VS Code</h3>
+      <p>No terminal needed for any of this.</p>
+      <ol class="g-list">
+        <li>Open the <b>Extensions</b> panel &mdash; the four-square icon on the left edge of VS Code, or <b>Cmd+Shift+X</b>.</li>
+        <li>Search for <b>Codex</b>. Install the one published by <b>OpenAI</b> &mdash; it may list itself as "ChatGPT."</li>
+        <li>A new Codex icon appears in the activity bar. Click it, then click <b>Sign in with ChatGPT</b>.</li>
+        <li>Your browser opens to log in. You need a <b>ChatGPT Plus, Pro, Business, or Enterprise</b> plan &mdash; the free tier does not include Codex, and no API key is needed.</li>
+      </ol>
+      <p>Signed in, the Codex panel works like a second Claude panel: a chat box that reads your open files and edits them directly, with its own local-versus-cloud toggle.</p>
+
+      <h3>Give both tools the same rules</h3>
+      <p>Claude Code reads <b>CLAUDE.md</b>. Codex reads a different file, <b>AGENTS.md</b>. Neither reads the other's automatically &mdash; left alone, the two will drift, and Codex will quietly miss every flipgazine-specific rule you have taught Claude.</p>
+      <p>The fix is a one-line import, not two files kept in sync by hand. Rename your existing <b>CLAUDE.md</b> to <b>AGENTS.md</b> &mdash; right-click it in the file explorer and choose <b>Rename</b> &mdash; then create a new <b>CLAUDE.md</b> containing just this:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>@AGENTS.md
+
+## Claude-specific
+(anything only Claude Code should follow goes here)</code></div>
+      <p>Claude Code expands that <b>@AGENTS.md</b> line at the start of every session, so it ends up reading the exact same rules Codex does, plus anything Claude-only underneath. AGENTS.md becomes the one real file; CLAUDE.md is a two-line wrapper pointing at it.</p>
+      <div class="g-note">
+        <p class="nt">If you would rather not rename anything yourself</p>
+        <p>Ask Claude Code, in a normal chat message, to <i>"create an AGENTS.md file next to CLAUDE.md with the same content, and turn CLAUDE.md into a one-line @AGENTS.md import."</i> It is a file edit, not a terminal command, so it can do the whole thing for you.</p>
+      </div>
+
+      <h3>Give Codex its own worktree</h3>
+      <p>The rule from <a href="#s16">section 16</a> holds exactly the same way here: never point two agents at the same files at the same time. VS Code can create the worktree itself &mdash; no terminal required.</p>
+      <ol class="g-list">
+        <li>Open the <b>Source Control</b> panel &mdash; the branch icon on the left edge.</li>
+        <li>Find your repository, click the <b>&hellip;</b> menu beside it, then choose <b>Worktrees &rarr; Create Worktree</b>.</li>
+        <li>Give it a short, descriptive name &mdash; the same naming habit from section 16 works here too.</li>
+        <li>Choose <b>Open Worktree in New Window</b>. A second VS Code window opens on the new folder.</li>
+        <li>In that window, open the Codex panel and start there. Claude Code keeps running in the original window, on the original folder, untouched.</li>
+      </ol>
+      <div class="g-note warn">
+        <p class="nt">The same database warning as section 16</p>
+        <p>A worktree isolates files on disk. It does <b>not</b> isolate <i>flipgazine_moodboards</i>, <i>site_files</i>, or any other Supabase table &mdash; both agents are still one Supabase project away from writing to the same row. Give Claude Code and Codex different books or different paths, exactly as you would two Claude sessions. Point them at the same book and the second save silently wins, worktree or not.</p>
+      </div>
+
+      <h3>What VS Code is actually doing</h3>
+      <p>Worth being exact about this, since it decides how carefully you need to work: VS Code does not coordinate the two tools. There is no lock, no queue, no handshake between Claude Code and Codex. What VS Code does is <b>watch files on disk</b> and reload a tab when the file underneath it changes.</p>
+      <ul class="g-list">
+        <li><b>Tab has no unsaved changes:</b> VS Code reloads it silently the moment the other agent writes to it. This is the part that makes the two tools feel connected.</li>
+        <li><b>Tab has unsaved changes:</b> VS Code stops and asks you to keep yours or take the version on disk. Nothing is lost silently, but nothing merges either &mdash; you are picking one side.</li>
+        <li><b>Both agents write to the same file at nearly the same moment:</b> whichever save reaches disk second wins, in full, with no warning shown. This is the actual reason for separate worktrees &mdash; not a nicety, the only thing preventing this.</li>
+      </ul>
+
+      <h3>Splitting the work</h3>
+      <p>Model rankings age quickly and both tools change every few months, so a rule like "Claude plans, Codex executes" will be wrong within a year. A split that holds up regardless of which model happens to be ahead: <b>own by worktree, not by task type.</b></p>
+      <ul class="g-list">
+        <li><b>One agent, one worktree, one job, start to finish.</b> Whichever tool starts a book restyle finishes it &mdash; don't hand a half-done job to the other mid-way, since neither has seen the other's uncommitted changes.</li>
+        <li><b>Review is the one thing worth crossing tools for.</b> Once Claude Code commits a change in its worktree, open that same worktree in Codex (or the reverse) and have it read the diff before you merge to main. A different model reading your model's own output catches things a self-review misses.</li>
+        <li><b>The commit is the real handoff.</b> Not a chat message, not a shared folder &mdash; the commit. If it isn't committed, the next agent can't see it and has no way to know to look.</li>
+      </ul>
+
+      <h3>Two Codex accounts in one VS Code window</h3>
+      <p>The Codex extension only holds one signed-in account at a time, and OpenAI has an open, unresolved request for this exact feature. In the meantime, a small third-party extension handles the swap for you &mdash; no terminal, though it is switching between accounts, not running two at once. This example uses <b>Codex Switch</b>, which is the clearest-documented of the few that exist.</p>
+      <ol class="g-list">
+        <li>Open <b>Extensions</b> (<b>Cmd+Shift+X</b>), search <b>Codex Switch</b>, and install the one published by <b>WoozyMasta</b>. Check the publisher name before installing &mdash; this is not an OpenAI extension, just one that manages OpenAI's own auth file.</li>
+        <li>Sign into your first Codex account the normal way, as in the previous section, if you have not already.</li>
+        <li>Open the Command Palette (<b>Cmd+Shift+P</b>) and run <b>Codex Switch: Prepare for New Login</b>. This saves your current account as a named profile and clears the active session so the login screen reappears. Use this, not a plain logout &mdash; logging out directly can invalidate that account's token, which means signing in from scratch again later instead of switching back to it.</li>
+        <li>Click <b>Sign in with ChatGPT</b> and log into the second account. Codex Switch saves it as a second profile automatically.</li>
+        <li>From then on, the status bar at the bottom of VS Code shows whichever profile is active. Click it to switch, or cycle through saved profiles &mdash; configurable in the extension's settings.</li>
+      </ol>
+      <div class="g-note warn">
+        <p class="nt">This swaps accounts, it does not run two</p>
+        <p>Only one account is signed in at any moment, in this window. If you genuinely need both accounts doing work at the same time, that needs two separate windows, each launched with its own <b>CODEX_HOME</b> folder &mdash; the same shape as the <b>claude2</b> shortcut trick in <a href="#s17">section 17</a>, just for Codex. Ask Claude Code to set that up for you if you need it; it is a one-time, five-minute job.</p>
+      </div>
+
+      <h3>Writing a handoff before you switch</h3>
+      <p>Codex does not carry the conversation across that reload &mdash; whatever it was reasoning through when you switch accounts is gone, not paused. A short file fixes this more reliably than memory would anyway, because it is something you can also read.</p>
+      <p>Before switching, ask for one. If you are working in a worktree, say so, so the file stays with that job rather than landing in the project root where a second job would overwrite it:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>Before I switch accounts, write a handoff to handoff.md in this worktree. Include: what you're working on right now, what you've already tried and ruled out, what to do next, and anything you're waiting on me to decide. Keep it short enough to read in under a minute.</code></div>
+      <p>Wait for it to confirm the file is written, then switch. When you come back to that job &mdash; same account or the other one &mdash; open that same worktree and start with this:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>Read handoff.md in this worktree before doing anything else, then pick up where it left off.</code></div>
+      <div class="g-note">
+        <p class="nt">Why intent, not a list of changes</p>
+        <p>Every save is already snapshotted in <i>site_files_versions</i>, so Codex can always re-read what a file currently contains &mdash; that part does not need writing down. What a handoff needs to capture is the part that vanishes with the reload: why a decision was made, what was tried and rejected, and what you were about to ask it to do next.</p>
+      </div>
+
+      <div class="g-note">
+        <p class="nt">The companion documents</p>
+        <p><b>CLAUDE.md</b> in your project folder is the technical version of this manual, written for Claude rather than for you. <b>/FLIPGAZINE_HANDOFF.md</b> in the database holds the full architecture notes. Official Claude Code documentation is at <a href="https://code.claude.com/docs/en/setup" target="_blank" rel="noopener">code.claude.com/docs</a>.</p>
+      </div>
+
+      <h2 id="s21"><span class="num">21</span>Building a new interface page without drift</h2>
+      <p>flipgazine now has one persistent interface system. The shared header, session gate, clock, navigation router, fonts, palette preload, WebGL atmosphere, glyph field, theme and transition modules are started centrally. A new page supplies only its own content, styles and—when it has behaviour—a lifecycle controller.</p>
+      <p>Do not start from an old page by deleting pieces until it looks right. Start from the small contract below. That keeps navigation seamless and lets the page be added or edited in Supabase without redeploying the Cloudflare shell.</p>
+      <p><b>Check <a href="/ci.html">CI</a> before inventing or copying interface values.</b> It is the living UX/UI reference for Flipgazine. Shared implementation should follow it; when CI and the product disagree, stop and resolve the drift instead of treating whichever file you opened first as canonical.</p>
+
+      <h3>The current page skeleton</h3>
+      <p>Every interface page needs exactly one shared-head marker, at least one <b>data-fg-page-style</b> style block, one WebGL canvas, one glyph host, one shared-header marker and one page payload. This is the interactive form:</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>&lt;!doctype html&gt;
+&lt;html lang="en" data-theme="dark" style="background:#0D1110"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width,initial-scale=1"&gt;
+  &lt;title&gt;Page title · flipgazine&lt;/title&gt;
+  &lt;!--FG_HEAD--&gt;
+  &lt;style data-fg-page-style&gt;
+  /* Arrival fade. Stays inline, and must: it has to be parsed before the first
+     paint, and fg-motion.js is fetched after the page has already rendered --
+     applying an opacity animation at that point flashes the content out and back.
+     The overlay, its stacking, the click interception and the timing all live in
+     the module; only these two lines cannot. */
+  @keyframes fgEnter{from{opacity:0}to{opacity:1}}
+  body &gt; main,body &gt; #app,body &gt; .wrap,#glCanvas,#bgLetters,#glyphs{animation:fgEnter 1.06s var(--ease-soft,cubic-bezier(.4,0,.2,1)) backwards}
+
+  /* Page-specific styles begin here. */
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body data-fg-persist="interactive-v1"&gt;
+  &lt;canvas id="glCanvas" aria-hidden="true"&gt;&lt;/canvas&gt;
+  &lt;div class="bg-letters" id="bgLetters" aria-hidden="true"&gt;&lt;/div&gt;
+  &lt;!--FG_HEADER--&gt;
+  &lt;main id="main" data-fg-page data-fg-controller="/fg-page-example.js"&gt;
+    &lt;!-- This page's content only. --&gt;
+  &lt;/main&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></div>
+      <div class="g-note warn">
+        <p class="nt">Only the arrival block stays page-local</p>
+        <p>The shared-head marker supplies Poppins and Noto Sans Thai, common tokens, <b>[hidden]</b>, the fixed gradient, PWA metadata and the synchronous palette restore before first paint. Do not paste font links, a palette-preload script, theme-colour metadata or shared background rules into the page. The arrival block above is the one deliberate exception and must remain byte-for-byte identical on every interface page.</p>
+      </div>
+
+      <h3>Choose the right lifecycle</h3>
+      <table class="g-tbl">
+        <tr><th>Page type</th><th>Body and main contract</th><th>Use it when</th></tr>
+        <tr><td><b>Static</b></td><td><b>data-fg-persist="static-v1"</b> on <b>&lt;body&gt;</b>; <b>data-fg-page</b> on <b>&lt;main&gt;</b>; no controller attribute.</td><td>The page has no listeners, observers, timers, async rendering or page-owned global state. Privacy and Terms are the examples.</td></tr>
+        <tr><td><b>Interactive</b></td><td><b>data-fg-persist="interactive-v1"</b> on <b>&lt;body&gt;</b>; <b>data-fg-page</b> and one <b>data-fg-controller</b> on <b>&lt;main&gt;</b>.</td><td>Anything clickable, live, authenticated, database-backed or asynchronously rendered.</td></tr>
+      </table>
+      <div class="g-note warn">
+        <p class="nt">Fail closed when uncertain</p>
+        <p>Never label an interactive page <b>static-v1</b> just to make its transition persistent. Missing cleanup accumulates old handlers and timers after each visit. Without a valid contract the router deliberately falls back to a normal full-document load.</p>
+      </div>
+
+      <h3>The controller contract</h3>
+      <p>An interactive page keeps its JavaScript in a separate <b>/fg-page-name.js</b> row. It registers one controller under the exact same path used by <b>data-fg-controller</b>. <b>mount(main)</b> starts page behaviour; <b>unmount()</b> removes every resource that page owns.</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>(function(){
+  var PATH="/fg-page-example.js";
+  var registry=window.FGPageControllers||{};
+  var state=null;
+  window.FGPageControllers=registry;
+
+  function unmount(){
+    if(!state) return;
+    state.abort.abort();
+    if(state.observer) state.observer.disconnect();
+    if(state.timer) clearTimeout(state.timer);
+    state=null;
+  }
+
+  function mount(main){
+    if(state&amp;&amp;state.main===main) return;
+    unmount();
+    var current={main:main,abort:new AbortController(),observer:null,timer:0};
+    state=current;
+
+    main.addEventListener("click",function(e){
+      if(state!==current) return;
+      /* Page behaviour. */
+    },{signal:current.abort.signal});
+  }
+
+  registry[PATH]={mount:mount,unmount:unmount};
+})();</code></div>
+      <p>Clean up document/window listeners, observers, intervals, timeouts, subscriptions, realtime channels, object URLs and temporary DOM. Abort or generation-guard asynchronous work so a page that has already unmounted cannot render or write later.</p>
+
+      <h3>What the centralized interface already owns</h3>
+      <p>The shared header creates the readiness promise immediately, completes the session/invite check, starts Dev Nav once and exposes <b>FGInterfaceReady</b>. It also loads motion, theme, glyph and atmosphere modules in canonical order. The navigation router waits for readiness before committing a compatible page swap.</p>
+      <ul class="g-list">
+        <li>Do not call <b>FGModules.load(...)</b> from the page.</li>
+        <li>Do not load <b>fg-devnav.js</b>, <b>fg-prefetch.js</b>, <b>fg-motion.js</b>, <b>fg-theme.js</b>, <b>fg-glyph.js</b>, <b>fg-atmos.js</b> or <b>fg-runtime.js</b> yourself.</li>
+        <li>Do not copy header markup/CSS, <b>F_PATHS</b>, the clock bootstrap, module loader, WebGL shaders, glyph generation, Dev Nav or an element named <b>fgFade</b>.</li>
+        <li>Do not add page-local <b>.rule</b> / <b>.fg-progress-rule</b> styling or a second <b>#ruleFill</b>. The progress component belongs to <b>/fg-header.html</b>; <b>/fg-motion.js</b> owns its scroll logic.</li>
+        <li>Do not create a second animation loop. Shared atmosphere time, glyph seed, session and header nodes are intentionally preserved across page navigation.</li>
+      </ul>
+      <p>A footer logo needs only an empty <b>&lt;svg id="footerLogoMark" viewBox="0 0 646 676" aria-hidden="true"&gt;&lt;/svg&gt;</b>. The shared brand renderer fills it. The same header fragment owns the canonical <b>.fg-progress-rule</b> markup and CSS, so every interface page gets the same 2px / glow / 120ms progress treatment without a local copy.</p>
+
+      <h3>Footer section rail / chip contract</h3>
+      <p>Persistent interface pages that use a bottom section rail must follow the same component contract as <b>Voice</b>. This rule is for section-navigation chips only—not admin tab bars, pagination, book controls, toasts or unrelated fixed actions.</p>
+      <ul class="g-list">
+        <li>Use <b>.bottom-nav</b> for the rail, <b>.nav-chip</b> for every chip and <b>.on</b> for the active section. A page-specific action may add one semantic class such as <b>.act</b> or <b>.nav-action</b>, but it must inherit the same base geometry.</li>
+        <li>The rail is fixed to left/right/bottom 0 at <b>z-index:40</b>, horizontally scrollable, safe-centred, <b>background:var(--glass)</b>, top border <b>var(--glass-brd)</b>, and <b>blur(18px) saturate(1.3)</b>. Do not invent a second footer surface.</li>
+        <li>Desktop chips are <b>30px</b> high with <b>15px</b> radius, <b>0 14px</b> padding, <b>10.5px</b> uppercase type, <b>.1em</b> tracking and weight 600. Active text and border use <b>var(--accent)</b>.</li>
+        <li>At <b>639.98px and below</b>, the rail uses a 7px gap and <b>8px 20px 10px</b> padding plus the bottom safe area; chips use <b>10px</b> type, <b>0 12px</b> padding and <b>.08em</b> tracking.</li>
+        <li>Reserve roughly <b>62px + safe-area-inset-bottom</b> below page content so the last section never sits under the rail.</li>
+      </ul>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>.bottom-nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:40;
+  display:flex;gap:8px;align-items:center;justify-content:safe center;
+  overflow-x:auto;overscroll-behavior-x:contain;
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
+  background:var(--glass);border-top:1px solid var(--glass-brd);
+  padding-block:10px;
+  padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));
+  -webkit-backdrop-filter:blur(18px) saturate(1.3);
+  backdrop-filter:blur(18px) saturate(1.3);
+}
+.nav-chip{
+  flex:0 0 auto;white-space:nowrap;text-decoration:none;
+  height:30px;min-height:30px;border-radius:15px;padding:0 14px;
+  font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;
+  color:var(--muted);background:var(--glass);border:1px solid var(--glass-brd);
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.nav-chip.on{color:var(--accent);border-color:var(--accent);}
+@media(max-width:639.98px){
+  .bottom-nav{gap:7px;padding:8px 20px 10px;
+    padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));}
+  .nav-chip{font-size:10px;padding:0 12px;letter-spacing:.08em;}
+}</code></div>
+      <h3>Footer rail behaviour and lifecycle</h3>
+      <ul class="g-list">
+        <li>A tap must mark the selected chip <b>.on immediately</b>, then smooth-scroll to its section. Do not wait for scrollspy before showing feedback.</li>
+        <li>Hold the tapped chip active during the smooth-scroll handoff (about <b>1.2s</b> in the current controllers), then let scrollspy resume. Keep the active chip revealed/centred in the horizontal rail and update the hash without a full navigation.</li>
+        <li>Every rail listener, RAF and timer belongs to the page controller and must be cleaned up in <b>unmount()</b>.</li>
+        <li>Never solve a footer paint bug with giant z-index values, <b>translate3d</b>, <b>will-change</b>, <b>contain:paint</b>, forced opacity or an opaque loading guard. The canonical rail stays at z-index 40.</li>
+        <li>If Android Chrome composites a fixed glass rail badly because it lives inside the canonical <b>fgEnter</b>-animated <b>&lt;main&gt;</b>, an <b>interactive-v1</b> controller may portal that rail to <b>document.body</b> on mount and restore/remove it on unmount. Keep the source markup inside the one page payload so <b>fg-nav.js</b> can parse and own it. <b>Voice</b> is the proven reference.</li>
+        <li>Do not leave an invisible full-screen fixed element with <b>backdrop-filter</b> mounted behind the rail. Closed overlays must leave the render/compositor path until they are actually opened.</li>
+      </ul>
+
+      <h3>Database workflow—no shell redeploy</h3>
+      <ol class="g-list">
+        <li>Create the page row in <b>site_files</b>. For an interactive page, create its controller row too.</li>
+        <li>Snapshot an existing row before a substantial edit. Prove every replacement anchor appears once.</li>
+        <li>Run <b>node --check</b> on the controller and every executable script extracted from the page.</li>
+        <li>Stage a large controller or replacement block in a temporary row and compare its MD5 before publishing.</li>
+        <li>Confirm the page row is readable as <b>anon</b>, then test direct load and continuous navigation at desktop and mobile sizes.</li>
+      </ol>
+      <p>Adding or editing a database-backed page does not redeploy Cloudflare. Redeploy only when changing the shell itself: <b>index.html</b>, service worker, redirects, headers, worker, manifest, icons or shared static flipbook files.</p>
+
+      <h3>The corrected page audit</h3>
+      <p>Replace the path in the last line. For an interactive page the structural checks should be <b>1</b>; <b>forbidden_local_copies</b> and <b>local_progress_copy</b> must be <b>0</b>. For a static page, <b>controller</b> must also be <b>0</b>. This SQL has been executed against the live Home row.</p>
+      <div class="g-cmd"><button class="g-copy" type="button">Copy</button><code>with page as (
+  select content
+  from public.site_files
+  where path='/your-new-page.html'
+)
+select
+  (select count(*) from regexp_matches(content,'&lt;!--FG_HEAD--&gt;','g'))
+    as head_marker,
+  (select count(*) from regexp_matches(content,'&lt;!--FG_HEADER--&gt;','g'))
+    as header_marker,
+  (select count(*) from regexp_matches(content,'&lt;canvas[^&gt;]+id="glCanvas"','g'))
+    as canvas,
+  (select count(*) from regexp_matches(content,'id="(bgLetters|glyphs)"','g'))
+    as glyph_host,
+  (select count(*) from regexp_matches(content,
+    '&lt;body[^&gt;]+data-fg-persist="(static|interactive)-v1"','g'))
+    as page_contract,
+  (select count(*) from regexp_matches(content,'&lt;main[^&gt;]+data-fg-page','g'))
+    as payload_main,
+  case when position('data-fg-page-style' in content)>0 then 1 else 0 end
+    as page_style,
+  (select count(*) from regexp_matches(content,
+    'data-fg-controller="/fg-page-[^"]+\.js"','g'))
+    as controller,
+  (select count(*) from regexp_matches(content,
+    '@keyframes fgEnter\{from\{opacity:0\}to\{opacity:1\}\}','g'))
+    as arrival_keyframe,
+  case when position('.fg-progress-rule{' in content)>0
+         or position('.rule{position:absolute;left:0;right:0' in content)>0
+       then 1 else 0 end as local_progress_copy,
+  (select count(*) from regexp_matches(content,
+    'FGModules\.load|fg-devnav\.js|id="fgFade"|F_PATHS|localStorage\.getItem\("fg:pal"\)','g'))
+    as forbidden_local_copies
+from page;</code></div>
+
+      <h3>Final browser check</h3>
+      <p>Open the page directly, then reach it from another compatible interface page and leave it again. Check desktop and 390px mobile. The sticky header, WebGL canvas and glyph host must remain the same DOM objects; the atmosphere must not restart; there must be no flash, overflow, duplicate action or console error. If the page has a footer section rail, tap every chip: the active state must appear immediately, smooth scrolling must land on the correct section, the active chip must stay revealed in the horizontal rail, and no content may flash or leak over/through the footer during arrival or departure. Test Back and Forward too. Authenticated pages must retain their access boundary.</p>
+      <div class="g-note">
+        <p class="nt">Editorial flipbooks are different</p>
+        <p>The six hand-built books deliberately keep full-document navigation because their bespoke flipbook, sound and atmosphere engines do not yet have lifecycle controllers. Their colour-matched entry and return transition is centralized separately. Do not use a book as the starting template for an interface page.</p>
+      </div>
+
+    </div>
+
+    <nav class="bottom-nav" id="claudeNav" aria-label="Guide sections">
+      <a class="nav-chip" href="#s1" data-nav="s1">Plan</a>
+      <a class="nav-chip" href="#s2" data-nav="s2">Work mode</a>
+      <a class="nav-chip" href="#s3" data-nav="s3">Install</a>
+      <a class="nav-chip" href="#s4" data-nav="s4">VS Code</a>
+      <a class="nav-chip" href="#s5" data-nav="s5">Daily use</a>
+      <a class="nav-chip" href="#s6" data-nav="s6">Project</a>
+      <a class="nav-chip" href="#s7" data-nav="s7">Rules</a>
+      <a class="nav-chip" href="#s8" data-nav="s8">Supabase</a>
+      <a class="nav-chip" href="#s9" data-nav="s9">Skills</a>
+      <a class="nav-chip" href="#s10" data-nav="s10">Subagents</a>
+      <a class="nav-chip" href="#s11" data-nav="s11">First session</a>
+      <a class="nav-chip" href="#s12" data-nav="s12">Commands</a>
+      <a class="nav-chip" href="#s13" data-nav="s13">Golden rules</a>
+      <a class="nav-chip" href="#s14" data-nav="s14">Troubleshoot</a>
+      <a class="nav-chip" href="#s15" data-nav="s15">Word list</a>
+      <a class="nav-chip" href="#s16" data-nav="s16">Parallel jobs</a>
+      <a class="nav-chip" href="#s17" data-nav="s17">Two accounts</a>
+      <a class="nav-chip" href="#s18" data-nav="s18">Second machine</a>
+      <a class="nav-chip" href="#s19" data-nav="s19">Inbox scan</a>
+      <a class="nav-chip" href="#s20" data-nav="s20">Codex</a>
+      <a class="nav-chip" href="#s21" data-nav="s21">New page</a>
+    </nav>
+
+    <div style="display:none" aria-hidden="true">
+      <div class="section-count" id="catalogCount"></div>
+      <div class="catalog-grid" id="catalogGrid"></div>
+    </div>
+
+
+
+<!-- The manual ends with section 21. The period mark, the soundscape player,
+     the footer lockup and the copyright line were all removed: the full footer
+     belongs to the homepage only, and the two widgets were decoration at the
+     end of a written document. Their scripts went with them rather than being
+     left to run against markup that no longer exists. -->
+  </div>
+</main>
+
+<style>/* No reduced-motion variant anywhere in flipgazine, by design. */</style>
+<!-- The soundscape player was removed with the rest of the page furniture;
+     its script went with it rather than being left to run against markup that
+     no longer exists. -->
+<!-- Reading progress component: fg-header.html; scroll logic: fg-motion.js -->
+</body>
+</html>

@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2E273B">
+<title>The Rebuild Test | Sindhorn Midtown</title>
+<meta name="description" content="IDUI evidence: one Flipgazine page rebuilt through its own constitution on the IDUI core, measured before and after in the same browser on the same clock. Wins, losses and nine core falsifications.">
+<link rel="canonical" href="https://sindhorn-midtown-internal.pages.dev/evidence">
+<meta property="og:site_name" content="Sindhorn Midtown">
+<meta property="og:title" content="The Rebuild Test | Sindhorn Midtown">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sindhorn-midtown-internal.pages.dev/evidence">
+<meta property="og:description" content="IDUI evidence: one Flipgazine page rebuilt through its own constitution on the IDUI core, measured before and after in the same browser on the same clock. Wins, losses and nine core falsifications.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/app-192.png?v=2">
+<!--
+  The Rebuild Test - IDUI evidence, built by scripts/build-evidence.mjs from docs/idui/evidence-body.html
+  and idui-core/evidence/rebuild/comparison.json with sindhorn-midtown-internal-pwa-v115-public-docs-r34. Library classes only; the atmosphere is live.
+-->
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
+<link rel="stylesheet" href="/fonts.css?v=2">
+<link rel="stylesheet" href="/app-tokens.css?v=11">
+<link rel="stylesheet" href="/app-glass.css?v=12">
+<link rel="stylesheet" href="/app-components.css?v=39">
+<link rel="stylesheet" href="/app-compositions.css?v=1">
+<link rel="stylesheet" href="/app-shell.css?v=3">
+<link rel="stylesheet" href="/ci-library.css?v=10">
+</head>
+<body data-public="doc">
+
+<div class="environment-stage" id="environmentStage" aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
+
+<header class="app-masthead">
+  <div class="app-masthead-home"><img class="app-masthead-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></div>
+</header>
+
+<main class="app-page is-shell" id="top">
+
+<section class="app-hero">
+  <p class="app-hero-eyebrow">Sindhorn Midtown Internal · IDUI evidence</p>
+  <h1 class="app-hero-title">The Rebuild Test</h1>
+  <p class="app-hero-copy">One page from a product with no IDUI history, rebuilt through its own constitution and the core's primitives, with its WebGL atmosphere, glyph field, theme engine and motion runtime carried unchanged. Every number below was measured by the same script in the same browser on the same clock, before and after.</p>
+  <p class="app-note">Run September 6, 2026 under a frozen protocol, on Flipgazine's page "Moving to Claude Code". Period <code>golden-hour</code>, clock <code>September 6, 2026 at 19:20 +07:00</code>, Chromium via Playwright. The method itself is at <a href="/idui">/idui</a>; the raw run is <code>idui-core/evidence/rebuild/</code> in the repository, stamped <code>sindhorn-midtown-internal-pwa-v115-public-docs-r34</code>.</p>
+  <nav class="ci-index" aria-label="Sections">
+    <a class="app-chip app-control" href="#claim">00 Claim</a>
+    <a class="app-chip app-control" href="#protocol">01 Protocol</a>
+    <a class="app-chip app-control" href="#pages">02 Pages</a>
+    <a class="app-chip app-control" href="#source">03 Source</a>
+    <a class="app-chip app-control" href="#architecture">04 Architecture</a>
+    <a class="app-chip app-control" href="#rendered">05 Rendered</a>
+    <a class="app-chip app-control" href="#falsifications">06 Falsifications</a>
+    <a class="app-chip app-control" href="#parity">07 Parity</a>
+    <a class="app-chip app-control" href="#verdict">08 Verdict</a>
+    <a class="app-chip app-control" href="#files">09 Files</a>
+  </nav>
+</section>
+
+<!-- ================================================================ 00 -->
+<section class="app-section" id="claim">
+  <p class="app-section-kicker">00 · The claim under test</p>
+  <h2 class="app-section-title">One Method, Two Products</h2>
+  <p class="app-section-lede">Not "we rebuilt a page with less CSS". The earlier transfer test was self-confirming - IDUI specimens rebuilt on IDUI. This one is not.</p>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p><strong>A methodology derived from one dark-glass hospitality application can express a visually unrelated existing product without importing that application's visual constitution.</strong></p>
+      <p>Flipgazine's page is the adversary: seven style blocks of its own, a shared header, a WebGL atmosphere, a glyph field, a theme engine that rewrites the palette eight times a day, Poppins at 300 / 500 / 600, tracked uppercase labels and pill controls. None of it was designed with IDUI in mind, and almost none of it looks like Sindhorn.</p>
+      <p>If the test forces Sindhorn assumptions out of the core, that is evidence for the methodology, not against it - and every such assumption is recorded in the falsification log below. If it cannot express the page without page-level CSS, the claim fails.</p>
+    </div>
+  </div>
+  <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Page CSS</p><p class="app-metric-value">30,693 B → 0</p><p class="app-metric-note">229 rules, 3 !important, 3 inline styles → none</p></div>
+    <div class="app-metric"><p class="app-metric-label">Appearance decisions</p><p class="app-metric-value">356 → 0</p><p class="app-metric-note">Sizes, weights, radii, trackings, blurs the page chose</p></div>
+    <div class="app-metric"><p class="app-metric-label">CSS the page loads</p><p class="app-metric-value">2.9×</p><p class="app-metric-note">87,877 B of core + constitution against 30,693. A loss, published.</p></div>
+    <div class="app-metric"><p class="app-metric-label">Core assumptions disproved</p><p class="app-metric-value">9</p><p class="app-metric-note">Each moved to a constitution; Sindhorn renders 0 differing pixels</p></div>
+    <div class="app-metric"><p class="app-metric-label">Blur recipes</p><p class="app-metric-value">5 → 1</p><p class="app-metric-note">Glass inside glass 3 → 0</p></div>
+    <div class="app-metric"><p class="app-metric-label">Console errors</p><p class="app-metric-value">1 → 0</p><p class="app-metric-note">Same harness, same clock, same period</p></div>
+  </div>
+</section>
+
+<!-- ================================================================ 01 -->
+<section class="app-section" id="protocol">
+  <p class="app-section-kicker">01 · Protocol</p>
+  <h2 class="app-section-title">Frozen Before The After</h2>
+  <p class="app-section-lede">Eight steps, written down and committed before a single after-metric was taken, so the result could not shape the test.</p>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <ol>
+        <li><strong>Snapshot</strong> the original page and everything it loads, as stored in Flipgazine's <code>site_files</code>. Nothing in Flipgazine's repository or database is modified; its anon key is redacted from the carried source.</li>
+        <li><strong>Measure</strong> every before-metric automatically, in a real browser, on a pinned clock and a pinned period. Every Supabase read the page makes is answered from disk; no request reaches the live project.</li>
+        <li><strong>State which engines stay untouched</strong> - <code>fg-atmos.js</code> (WebGL atmosphere), <code>fg-glyph.js</code> (glyph field), <code>fg-theme.js</code> (period palette, editorial and legacy modes), <code>fg-motion.js</code>, <code>fg-clock.js</code>. They are environmental engines, not interface. IDUI governs the interface's relationship with them and does not absorb them, the way it does not own Betta's fin shader.</li>
+        <li><strong>Define parity in layers</strong>: functional, identity, visual.</li>
+        <li><strong>Record every core assumption the migration disproves.</strong></li>
+        <li><strong>Rebuild through constitution and primitives only.</strong> The conversion is a deterministic class mapping; the after page may carry no CSS and no style attribute. Where the library has no primitive, one question is asked before anything is added to the core: <em>is this a reusable semantic degree of freedom required by multiple legitimate constitutions, or one application's historical exception?</em></li>
+        <li><strong>Measure exactly the same metrics afterward</strong>, same harness, same clock.</li>
+        <li><strong>Publish wins and losses</strong>, including raw total CSS bytes even where the shared foundation is larger than the page it replaced.</li>
+      </ol>
+    </div>
+  </div>
+  <h3 class="app-section-subhead">Parity, in layers</h3>
+  <div class="app-list">
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Functional</span><span class="app-list-row-meta">Same content, same information hierarchy, same interactive capabilities - copy buttons, section rail with scroll tracking and smooth scroll, fullscreen, theme and editorial toggles - same state transitions.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Identity</span><span class="app-list-row-meta">Same face and weights, same tracked labels, same palette through the day, same shape language, same atmosphere. A reader who knows Flipgazine recognizes it.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Visual</span><span class="app-list-row-meta">As close as the constitution and primitives can reach. Every deviation is declared, none is patched in page code.</span></div></div>
+  </div>
+</section>
+
+<!-- ================================================================ 02 -->
+<section class="app-section" id="pages">
+  <p class="app-section-kicker">02 · The two pages</p>
+  <h2 class="app-section-title">Before And After</h2>
+  <p class="app-section-lede">First screen of each page at the same clock and the same period; the original first, the rebuild after it. Both render Poppins from Google Fonts, both run the carried atmosphere.</p>
+  <div class="app-stack ci-stack">
+    <figure class="app-figure"><img src="/assets/evidence/before-390-top.png" width="390" height="844" alt="The original Flipgazine page at 390 wide: header, tracked eyebrow, uppercase title, lead, accent button, opening paragraph, contents list, section rail" loading="lazy"><figcaption>Before · 390 wide · 30,693 B of page CSS</figcaption></figure>
+    <figure class="app-figure"><img src="/assets/evidence/after-390-top.png" width="390" height="844" alt="The rebuilt page at 390 wide: the same header, eyebrow, title, lead, button, paragraph, contents list and rail through the core's primitives" loading="lazy"><figcaption>After · 390 wide · 0 B of page CSS</figcaption></figure>
+  </div>
+  <div class="app-stack ci-stack">
+    <figure class="app-figure"><img src="/assets/evidence/before-1240-top.png" width="1240" height="900" alt="The original page at 1240 wide" loading="lazy"><figcaption>Before · 1240 wide</figcaption></figure>
+    <figure class="app-figure"><img src="/assets/evidence/after-1240-top.png" width="1240" height="900" alt="The rebuilt page at 1240 wide" loading="lazy"><figcaption>After · 1240 wide</figcaption></figure>
+  </div>
+  <p class="app-note">The visible differences - hero padding, the glass sentence-case button, the pill copy chip, the centered rail at desktop - are listed under Parity, each with its cause.</p>
+</section>
+
+<!-- ================================================================ 03 -->
+<section class="app-section" id="source">
+  <p class="app-section-kicker">03 · Source</p>
+  <h2 class="app-section-title">What The Page Has To Carry</h2>
+  <p class="app-section-lede">Measured on the files as served: the composed page with its shared header, and the four core sheets plus the Flipgazine constitution the rebuild loads instead.</p>
+  <div class="app-table-wrap">
+    <table class="app-table" data-mode="text">
+      <thead><tr><th scope="col">Metric</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Page-authored CSS</th><td>30,693 B in 10 style blocks, 229 rules, 11 <code>@media</code></td><td><strong>0</strong></td></tr>
+        <tr><th scope="row"><code>!important</code></th><td>3</td><td>0</td></tr>
+        <tr><th scope="row">Inline <code>style=</code></th><td>3</td><td>0</td></tr>
+        <tr><th scope="row">Literal font sizes / radii in page CSS</th><td>28 / 11</td><td>0 / 0</td></tr>
+        <tr><th scope="row"><code>backdrop-filter</code> declarations in page CSS</th><td>26</td><td>0</td></tr>
+        <tr><th scope="row">Page markup</th><td>149,822 B</td><td>108,867 B</td></tr>
+        <tr><th scope="row">Behavior JS the page needs</th><td>26,748 B (<code>fg-page-claude-code.js</code> + <code>fg-nav.js</code> + header script)</td><td>7,963 B (<code>claude-code.js</code>)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 class="app-section-subhead">The shared foundation: the loss</h3>
+  <div class="app-table-wrap">
+    <table class="app-table" data-mode="text">
+      <thead><tr><th scope="col">Sheet</th><th scope="col">Bytes</th><th scope="col">Rules</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Core (<code>app-glass</code> + <code>app-components</code> + <code>app-compositions</code> + <code>app-shell</code>)</th><td>82,011</td><td>434</td></tr>
+        <tr><th scope="row">Flipgazine constitution (<code>app-tokens.css</code> + <code>fonts.css</code>)</th><td>5,866</td><td>6</td></tr>
+        <tr><th scope="row"><strong>Total CSS the after page loads</strong></th><td><strong>87,877</strong></td><td>440</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p>The after page loads <strong>2.9× the CSS bytes</strong> the before page authored (87,877 against 30,693). Published as a loss, as the protocol requires. The comparison is not like for like - the before figure is one page's CSS and the after figure is a foundation that carries every page of a product - but for a product with one page, IDUI costs more bytes, and this test does not pretend otherwise. Of the 434 core rules, this page exercises perhaps a third; the rest is the price of not writing them again on the next page.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 04 -->
+<section class="app-section" id="architecture">
+  <p class="app-section-kicker">04 · Architecture</p>
+  <h2 class="app-section-title">What The Page Decides</h2>
+  <p class="app-section-lede">A discretionary decision is a value the page chose: a font size, a padding, a radius, a blur. A semantic declaration is a thing the page says it is: a class, a data attribute.</p>
+  <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Appearance decisions in page code</p><p class="app-metric-value">356 → 0</p><p class="app-metric-note">48 font-size, 34 padding, 31 font-weight, 26 height, 25 border-radius, 24 letter-spacing, 24 margin, 23 width…</p></div>
+    <div class="app-metric"><p class="app-metric-label">Semantic declarations the page must write</p><p class="app-metric-value">44 → 41</p><p class="app-metric-note">40 classes + 4 data attributes → 34 classes + 7 data attributes</p></div>
+  </div>
+  <h3 class="app-section-subhead">Change propagation: edits to change one thing</h3>
+  <div class="app-table-wrap">
+    <table class="app-table" data-mode="text">
+      <thead><tr><th scope="col">Change</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Chip radius</th><td>14 edits (10 page, 4 header)</td><td>1 (constitution)</td></tr>
+        <tr><th scope="row">Label tracking</th><td>24</td><td>1</td></tr>
+        <tr><th scope="row">Glass recipe</th><td>24</td><td>1</td></tr>
+        <tr><th scope="row">Body face</th><td>3</td><td>1</td></tr>
+        <tr><th scope="row">Label weight</th><td>12</td><td>1</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="app-note">Semantic declarations barely moved (44 → 41): the page still has to say what everything <em>is</em>. What it no longer says is what anything looks like. That is the separation the methodology claims.</p>
+</section>
+
+<!-- ================================================================ 05 -->
+<section class="app-section" id="rendered">
+  <p class="app-section-kicker">05 · Rendered</p>
+  <h2 class="app-section-title">What The Browser Computed</h2>
+  <p class="app-section-lede">Distinct computed values across every visible element at 390 wide; the same at 1240 unless noted.</p>
+  <div class="app-table-wrap">
+    <table class="app-table" data-mode="text">
+      <thead><tr><th scope="col">Metric</th><th scope="col">Before</th><th scope="col">After</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Distinct font sizes</th><td>15 (13 at 1240)</td><td>7</td></tr>
+        <tr><th scope="row">Distinct font weights</th><td>4</td><td>3</td></tr>
+        <tr><th scope="row">Distinct letter-spacings</th><td>14</td><td>6</td></tr>
+        <tr><th scope="row">Distinct radii</th><td>7</td><td>4</td></tr>
+        <tr><th scope="row"><code>backdrop-filter</code> recipes</th><td>5 (<code>blur(18px) saturate(1.4)</code>, <code>blur(8px)</code>, <code>blur(12px) saturate(1.5)</code>, <code>blur(18px) saturate(1.3)</code>, <code>blur(12px)</code>)</td><td>1 (<code>blur(18px) saturate(1.3)</code>)</td></tr>
+        <tr><th scope="row">Elements carrying a <code>backdrop-filter</code></th><td>38</td><td>90</td></tr>
+        <tr><th scope="row">Glass inside glass</th><td>3</td><td>0</td></tr>
+        <tr><th scope="row">Runtime-written inline styles</th><td>4</td><td>2 (the theme engine's palette on <code>html</code>, the progress rule's width)</td></tr>
+        <tr><th scope="row">Stylesheets</th><td>14 (Google Fonts, <code>fg-head-core</code>, 8 inline, dev chrome, transition, glyph, shared header)</td><td>8 (fonts, glass, components, compositions, shell, tokens, transition, glyph)</td></tr>
+        <tr><th scope="row">Document height</th><td>56,089 px (39,702 at 1240)</td><td>57,554 px (40,585 at 1240)</td></tr>
+        <tr><th scope="row">Console errors</th><td>1 (a 404)</td><td>0</td></tr>
+        <tr><th scope="row"><code>--app-text</code> / <code>--app-ground</code> / <code>--app-accent</code> on the root</th><td>not defined</td><td>the theme engine's values, aliased</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p>The after page carries a <code>backdrop-filter</code> on 90 elements against 38 - every rail chip, every surface and every code block is glass under the membership rule where the original blurred only its larger boxes. It is a cost on a weak GPU and it is what the rule says; the constitution could opt a control out only by rewriting the rule, which it may not.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 06 -->
+<section class="app-section" id="falsifications">
+  <p class="app-section-kicker">06 · Falsifications</p>
+  <h2 class="app-section-title">What The Core Got Wrong</h2>
+  <p class="app-section-lede">Every value the core carried as its own that the rebuild showed to be one application's constitution. Each moved out of the core; Sindhorn renders 0 differing pixels on <code>/ci</code>, <code>/</code> and <code>/voice</code> after every move, and the ratchet's eleven metrics are unchanged.</p>
+  <div class="app-table-wrap">
+    <table class="app-table" data-mode="text">
+      <thead><tr><th scope="col">Assumed</th><th scope="col">Flipgazine</th><th scope="col">Result</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">1 · Zero tracking is a rule of the core; every <code>letter-spacing</code> locked at 0, labels regular, display titles keep their case</th><td>Tracked uppercase labels (<code>.1–.16em</code>), 600-weight labels, uppercase display titles, 300 as the body's regular</td><td><code>--tracking --tracking-label --tracking-display --case-display --weight-label --weight-medium</code> in the constitution. The core declares no tracking, weight or case literal; Sindhorn's font test holds its tokens at 0</td></tr>
+        <tr><th scope="row">2 · The shell ground <code>#2E273B</code> was a literal in <code>app-shell.css</code></th><td>Ground written by the theme engine (<code>--bg</code>) eight times a day</td><td><code>--app-ground</code>; Flipgazine aliases it to <code>var(--bg)</code>. The shell sheet holds no color</td></tr>
+        <tr><th scope="row">3 · A framed control's radius is the inset radius</th><td>A pill on every control</td><td><code>--radius-control</code>. Sindhorn's resolves to <code>--radius-inset</code>; "rounded, never circular" is Sindhorn's rule, checked by its shape audit, not the core's</td></tr>
+        <tr><th scope="row">4 · The reading column is 720px</th><td>760px</td><td><code>--measure-page</code></td></tr>
+        <tr><th scope="row">5 · The face of code is the core's</th><td>Same stack, but a product decision</td><td><code>--font-code</code></td></tr>
+        <tr><th scope="row">6 · Font files live in <code>site/assets/fonts/</code></th><td>Poppins + Noto Sans Thai from Google Fonts; LINE Seed files must not be a core dependency</td><td>Font files travel with their constitution; <code>fonts.css</code> is per constitution and the only place <code>@font-face</code> or a font link may appear</td></tr>
+        <tr><th scope="row">7 · The material's values - fill, edge, blur, overlay, nested, scrim - were the <code>:root</code> of <code>app-glass.css</code></th><td>Glass is the engine's <code>--glass</code> / <code>--glass-brd</code>, <code>saturate(1.3)</code>, overlay is the engine's surface</td><td>Seven <code>--app-glass-*</code> tokens. <code>app-glass.css</code> declares the rule and no value. Propagation for "change the blur" fell from 24 declarations to 1</td></tr>
+        <tr><th scope="row">8 · The shell band is 56px</th><td>54px (12px around a 30px control)</td><td><code>--app-shell-band</code></td></tr>
+        <tr><th scope="row">9 · Long-form prose keeps a 64ch measure</th><td>Prose runs to the page measure</td><td><code>--measure-prose</code> (<code>none</code> in Flipgazine)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <h3 class="app-section-subhead">Asked and refused</h3>
+  <p class="app-note">Capabilities Flipgazine has that were not added to the core, because they fail the question <em>is this a reusable semantic degree of freedom required by multiple legitimate constitutions, or one application's historical exception?</em></p>
+  <div class="app-list">
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">The catalog book-thumbnail tilt and hover lift</span><span class="app-list-row-meta">One application's motif; stays in its engine.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">The header's <code>saturate(1.4)</code> against <code>saturate(1.3)</code> on the page</span><span class="app-list-row-meta">A drift, not a decision; the constitution names one recipe. Recorded as a visual deviation.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">The editorial / legacy palette switch and the eight-period theme</span><span class="app-list-row-meta">Engine behavior; the core sees only the tokens the engine writes.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Two status slots the core demands and Flipgazine never had</span><span class="app-list-row-meta">Recorded the other way round: <code>--app-success</code> and <code>--app-danger</code> are a vocabulary this product never needed. Flipgazine fills them with its accent and muted ink. The one place the core's shape shows through the constitution, left visible on purpose.</span></div></div>
+  </div>
+  <h3 class="app-section-subhead">What did not change</h3>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p>The seven-sheet contract, the load order (fonts → glass → components → compositions → shell → tokens last), the nine invariants, the glass membership rule, the blur-drop rule for nested glass and the primitive set - <code>.app-card</code>, <code>.app-control</code>, <code>.app-overlay</code>, <code>.app-surface</code>, <code>.app-prose</code>, <code>.app-hero</code>, <code>.app-section</code>, <code>.app-masthead</code>, <code>.app-navbar</code>, <code>.app-code-block</code>, <code>.app-table</code>, <code>.app-step</code>, <code>.app-switch</code>, <code>.app-chip</code> - carried the page without a page-level rule.</p>
+      <p>Three core rules were added, all behavioral, all general: a control inside a code block drops its blur (nested glass); a contents list (<code>data-mode="contents"</code>) reads as navigation rather than as running-text links; <code>data-columns="2"</code> lets a list run in two columns from 640px.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 07 -->
+<section class="app-section" id="parity">
+  <p class="app-section-kicker">07 · Parity</p>
+  <h2 class="app-section-title">How Close It Came</h2>
+  <p class="app-section-lede">Three layers, judged against the frozen definitions. Two met; the third close, with every deviation named and none patched in page code.</p>
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">Functional</p><span class="app-badge" data-tone="success">Met</span></div>
+      <p class="app-surface-copy">Same 21 sections, same table of contents, same notes, quotes, commands and tables; copy buttons copy and say "Copied"; the rail tracks scroll, smooth-scrolls, writes the hash and restores it; fullscreen, theme and editorial switches call the same engine entry points; the atmosphere and glyph field self-drive as before.</p>
+    </article>
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">Identity</p><span class="app-badge" data-tone="success">Met</span></div>
+      <p class="app-surface-copy">Poppins 300 / 500 / 600 from the constitution; tracked uppercase labels (<code>.12em</code>); the theme engine's ground, ink, accent and glass, changing through the day under the core without the core knowing; 14 / 12 / 8 radii and pill controls; the same atmosphere.</p>
+    </article>
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">Visual</p><span class="app-badge" data-tone="quiet">Close, with deviations</span></div>
+      <p class="app-surface-copy">Each deviation is either a constitution value the core reads once where the page had several, or a core rule the page does not get to override. Before → after:</p>
+      <div class="app-prose" data-tone="quiet">
+        <ul>
+          <li>hero top padding 48–110px → the composition's 28px</li>
+          <li>hero button: accent-tinted uppercase → glass sentence-case primary</li>
+          <li>copy chip: 8px radius uppercase "COPY" → pill "Copy" (the constitution has one control radius)</li>
+          <li>header icon buttons 34×30 → 30×30; icon mark 15px → 18px</li>
+          <li>note label 10.5px → 11px (wraps in one place)</li>
+          <li><code>h3</code> weight 600 → 500</li>
+          <li>active rail chip: border only → border + tint</li>
+          <li>prose gap 12 → 14px; contents list 13.5 → 14.5px; section spacing differs by a few px</li>
+          <li>header <code>saturate(1.4)</code> → <code>1.3</code> (one recipe)</li>
+          <li>the rail is centered to the page at desktop where the original hugged the left</li>
+          <li>no arrival fade, no selection color, no scrollbar styling - none is a semantic degree of freedom the core offers yet</li>
+          <li>the header row is not re-centered to 1240 at desktop</li>
+        </ul>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ================================================================ 08 -->
+<section class="app-section" id="verdict">
+  <p class="app-section-kicker">08 · Verdict</p>
+  <h2 class="app-section-title">Held, After Nine Corrections</h2>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p>The claim under test - one dark-glass hospitality application's method can express an unrelated product without importing that application's constitution - <strong>held, but only after nine core assumptions were moved out of the core</strong>. The core that came out is smaller in what it decides and identical in what it renders for Sindhorn: 0 differing pixels on <code>/ci</code>, <code>/</code> and <code>/voice</code>, ratchet unchanged.</p>
+      <h3>Wins</h3>
+      <p>356 → 0 appearance decisions in the page; 5 → 1 blur recipes; 3 → 0 nested glass; every named change now one edit; 0 CSS, 0 <code>!important</code>, 0 inline styles in the page; the page's own script less than a third of the size.</p>
+      <h3>Losses</h3>
+      <p>2.9× the CSS bytes for a one-page product; 90 glass elements against 38; the visual deviations above; two status tokens the core demands that Flipgazine never needed.</p>
+      <h3>Not tested</h3>
+      <p>A light theme; motion beyond what the carried engines drive; a second external product. Nothing was deployed to Flipgazine; its repository and database are unchanged.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 09 -->
+<section class="app-section" id="files">
+  <p class="app-section-kicker">09 · Files</p>
+  <h2 class="app-section-title">The Run, On Disk</h2>
+  <p class="app-section-lede">Everything above regenerates from these; the numbers on this page are read from <code>comparison.json</code> at build, never typed.</p>
+  <div class="app-list">
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>idui-core/evidence/rebuild/PROTOCOL.md</code></span><span class="app-list-row-meta">The frozen protocol: claim, steps, engines preserved, parity layers.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>idui-core/evidence/rebuild/convert.mjs</code></span><span class="app-list-row-meta">The deterministic class mapping, before → after; the after page carries no CSS and no style attribute.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>idui-core/evidence/rebuild/measure.mjs</code></span><span class="app-list-row-meta">Both pages in the same browser on the same clock → <code>comparison.json</code> and the screenshots.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>idui-core/evidence/rebuild/FALSIFICATIONS.md</code></span><span class="app-list-row-meta">The nine moves, the refusals, what did not change.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>idui-core/evidence/rebuild/flipgazine-source/</code></span><span class="app-list-row-meta">The original page and everything it loads, as stored in <code>site_files</code>, anon key redacted. Read only.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>idui-core/constitutions/flipgazine/</code></span><span class="app-list-row-meta">The constitution written from the real page: <code>app-tokens.css</code> and <code>fonts.css</code>, 5,866 bytes.</span></div></div>
+    <a class="app-list-row" href="/idui"><div class="app-list-row-main"><span class="app-list-row-title">Invariant-Driven UI</span><span class="app-list-row-meta">The method this test is evidence for, at <code>/idui</code>.</span></div><span class="app-list-row-end"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span></a>
+  </div>
+
+  <div class="app-utility-row">
+    <a class="app-utility-action" href="#top">Back to top</a>
+  </div>
+  <p class="app-note">The Rebuild Test · Sindhorn Midtown Internal · September 6, 2026. This page is composed from the same library it reports on - <code>app-tokens.css</code>, <code>app-glass.css</code>, <code>app-components.css</code>, <code>app-compositions.css</code>, <code>app-shell.css</code>, <code>ci-library.css</code> - and carries no CSS of its own. The atmosphere is the app's live Betta runtime in sky mode. Built by <code>scripts/build-evidence.mjs</code> with <code>sindhorn-midtown-internal-pwa-v115-public-docs-r34</code>.</p>
+</section>
+
+</main>
+
+<script type="module" src="/public-doc.js"></script>
+
+</body>
+</html>

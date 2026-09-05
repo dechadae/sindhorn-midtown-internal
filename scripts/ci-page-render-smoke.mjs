@@ -15,6 +15,13 @@
    the gate never reaches the database. The pages are the generator's output
    (site/share, produced by scripts/generate-fnb-share.mjs before this runs).
 
+   r34: the public document pages (/idui and /evidence) render here too. They
+   are built pages (scripts/build-idui.mjs, scripts/build-evidence.mjs) that
+   carry only library classes, the share pages' masthead and the live
+   atmosphere forced to sky, so the gate checks exactly that: no page CSS,
+   no app chrome, an inert logo, no manifest, no service worker, sky mode on
+   the body, a real canvas, every image found, no horizontal overflow.
+
    r31: the public business card (/<slug>) is the same shell in card mode,
    cut per request by site/_worker.js with site/public-page.js. The local
    server here runs that same transformation on a fixture card, so the page
@@ -132,6 +139,8 @@ const server = http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0]);
   if (p === '/ci') p = '/ci.html';
   if (p === '/voice') p = '/voice.html';
+  if (p === '/idui') p = '/idui.html';
+  if (p === '/evidence') p = '/evidence.html';
   if (p === '/') p = '/index.html';
   // Cloudflare Pages serves /share/fnb from share/fnb.html and
   // /share/fnb/<id> from share/fnb/<id>.html; mirror that here.
@@ -505,6 +514,53 @@ else {
   await card.close();
 }
 
+// The public document pages, r34.
+const DOCS = [
+  { route: '/idui', title: 'Invariant-Driven UI', sections: 9 },
+  { route: '/evidence', title: 'The Rebuild Test', sections: 10 }
+];
+const docReport = {};
+for (const doc of DOCS) {
+  const tab = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const docErrors = [];
+  tab.on('pageerror', error => docErrors.push(error.message));
+  tab.on('console', message => { if (message.type() === 'error') docErrors.push(message.text()); });
+  // The satellite feed is the Pages worker's (_worker.js); the static server
+  // here has none, and a 404 would be logged as a console error.
+  await tab.route('**/api/betta-satellite**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+  await tab.goto(`http://127.0.0.1:${port}${doc.route}`, { waitUntil: 'load' });
+  await tab.waitForFunction(() => document.getElementById('environmentStage')?.dataset.ready === 'true', null, { timeout: 30000 }).catch(() => failures.push(`${doc.route}: the atmosphere never became ready`));
+  await tab.waitForTimeout(500);
+  const seen = await tab.evaluate(() => ({
+    publicMode: document.body.dataset.public, navbar: !!document.querySelector('.app-navbar'), account: !!document.querySelector('.app-masthead-account'),
+    tools: !!document.querySelector('.app-masthead-tools'), homeIsLink: document.querySelector('.app-masthead-home')?.tagName, masthead: !!document.querySelector('.app-masthead .app-masthead-logo'),
+    manifest: !!document.querySelector('link[rel="manifest"]'), swController: !!navigator.serviceWorker?.controller,
+    styleBlocks: document.querySelectorAll('style').length, inlineStyles: document.querySelectorAll('main [style]').length,
+    navbarHeight: getComputedStyle(document.body).getPropertyValue('--app-navbar-height').trim(),
+    title: document.querySelector('.app-hero-title')?.textContent?.trim() || '', sections: document.querySelectorAll('main > .app-section').length,
+    chips: document.querySelectorAll('.ci-index .app-chip').length,
+    bettaMode: document.body.dataset.bettaMode || '', canvas: (() => { const c = document.getElementById('environmentCanvas'); return c ? `${c.width}x${c.height}` : 'none'; })(),
+    brokenImages: [...document.images].filter(img => img.complete && img.naturalWidth === 0).length, images: document.images.length,
+    overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
+  }));
+  if (seen.publicMode !== 'doc') failures.push(`${doc.route}: body[data-public] is "${seen.publicMode}", expected doc`);
+  if (seen.navbar || seen.account || seen.tools) failures.push(`${doc.route}: page carries app chrome (navbar ${seen.navbar}, account ${seen.account}, tools ${seen.tools})`);
+  if (!seen.masthead || seen.homeIsLink !== 'DIV') failures.push(`${doc.route}: the masthead must be the share pages' inert logo (found ${seen.masthead}, home is ${seen.homeIsLink})`);
+  if (seen.manifest) failures.push(`${doc.route}: a document page must not carry the PWA manifest`);
+  if (seen.swController) failures.push(`${doc.route}: a document page must not be controlled by the service worker`);
+  if (seen.styleBlocks || seen.inlineStyles) failures.push(`${doc.route}: page CSS found (${seen.styleBlocks} style blocks, ${seen.inlineStyles} inline styles)`);
+  if (seen.navbarHeight !== '0px') failures.push(`${doc.route}: --app-navbar-height is ${seen.navbarHeight}, expected 0px with no navbar`);
+  if (seen.title !== doc.title) failures.push(`${doc.route}: hero title is "${seen.title}"`);
+  if (seen.sections !== doc.sections || seen.chips !== doc.sections) failures.push(`${doc.route}: ${seen.sections} sections and ${seen.chips} index chips, expected ${doc.sections} of each`);
+  if (seen.bettaMode !== 'sky') failures.push(`${doc.route}: body[data-betta-mode] is "${seen.bettaMode}", expected sky`);
+  if (seen.canvas === 'none' || seen.canvas === '300x150') failures.push(`${doc.route}: atmosphere canvas ${seen.canvas}`);
+  if (seen.brokenImages) failures.push(`${doc.route}: ${seen.brokenImages} of ${seen.images} images failed to load`);
+  if (seen.overflow > 1) failures.push(`${doc.route}: horizontal overflow ${seen.overflow}px`);
+  if (docErrors.length) failures.push(`${doc.route}: page errors: ${docErrors.join(' | ')}`);
+  docReport[doc.route] = { sections: seen.sections, images: seen.images, canvas: seen.canvas, mode: seen.bettaMode };
+  await tab.close();
+}
+
 await browser.close();
 server.close();
 
@@ -513,4 +569,4 @@ if (failures.length) {
   for (const failure of failures) console.error(`  ${failure}`);
   process.exit(1);
 }
-console.log(JSON.stringify({ ok: true, sections: report.sections, specimens: report.specimens, canvas: report.canvas, components: EXPECT.length, voice: { sections: voice.sections, specimens: voice.specimens, formats: Object.keys(voice.samples).length }, share: sharePages ? sharePages.length + 1 : 0, card: 2 }));
+console.log(JSON.stringify({ ok: true, sections: report.sections, specimens: report.specimens, canvas: report.canvas, components: EXPECT.length, voice: { sections: voice.sections, specimens: voice.specimens, formats: Object.keys(voice.samples).length }, share: sharePages ? sharePages.length + 1 : 0, card: 2, docs: docReport }));
