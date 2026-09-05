@@ -868,13 +868,16 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
    not-started quiet, working accent, stuck danger, done success; a tight
    deadline reads in the danger tone. Changing anything happens in the
    dialog, so the card itself draws no control of its own. */
-.app-job{display:grid;gap:12px}
+.app-job{display:grid;gap:10px}
 /* The card's groups - what was asked, then the facts, then the actions - are
    separated by the hairline every card uses between groups (24 Rules), so a
-   long list reads as rows of the same shape rather than one run of text. */
-.app-job-section{padding-top:12px;border-top:1px solid var(--app-line)}
-.app-job>.app-utility-row{margin-top:0}
-.app-job-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+   long list reads as rows of the same shape rather than one run of text.
+   The line sits 16px clear of the text on both sides, the card-section
+   rhythm; the 10px grid gap plus 6px makes the 16 above it. */
+.app-job-section{margin-top:6px;padding-top:16px;border-top:1px solid var(--app-line)}
+.app-job>.app-utility-row{margin-top:6px;min-height:0}
+.app-job>.app-utility-row>.app-utility-action{min-height:24px}
+.app-job-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 /* The status is the one control on the card: a badge grown to a tappable
    height that opens the status sheet. It is a badge, so it keeps the badge
    tones and the badge's glass membership (tint, no blur inside the card). */
@@ -891,6 +894,5 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 .app-job-kicker{margin:0;color:var(--app-muted);font-size:var(--type-small);line-height:var(--leading-label);text-transform:uppercase}
 .app-job-title{margin:0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight);text-wrap:balance}
 .app-job-copy{margin:0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
-.app-job .app-metric-grid{padding-top:2px}
 .app-job-deadline[data-tight="true"] .app-metric-value{color:var(--app-danger)}
 .app-job[data-status="done"] .app-job-title{color:var(--app-muted)}
