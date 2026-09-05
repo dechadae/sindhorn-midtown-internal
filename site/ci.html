@@ -14,8 +14,8 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="stylesheet" href="/fonts.css?v=1">
 <link rel="stylesheet" href="/app-tokens.css?v=9">
-<link rel="stylesheet" href="/app-glass.css?v=10">
-<link rel="stylesheet" href="/app-components.css?v=28">
+<link rel="stylesheet" href="/app-glass.css?v=11">
+<link rel="stylesheet" href="/app-components.css?v=29">
 <link rel="stylesheet" href="/app-shell.css?v=2">
 <link rel="stylesheet" href="/ci-library.css?v=10">
 </head>
@@ -53,7 +53,8 @@
       <a class="app-chip app-control" href="#states">20 States</a>
       <a class="app-chip app-control" href="#skeleton">21 Skeleton</a>
       <a class="app-chip app-control" href="#business-card">22 Business card</a>
-      <a class="app-chip app-control" href="#rules">23 Rules</a>
+      <a class="app-chip app-control" href="#job">23 Job</a>
+      <a class="app-chip app-control" href="#rules">24 Rules</a>
     </nav>
   </header>
 
@@ -667,11 +668,12 @@
     <p class="app-section-lede">A badge marks a count or a status. Pair it with text a screen reader can read — never rely on the badge alone.</p>
     <div class="ci-stack">
       <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-badge</span><span>default · quiet · danger</span></div>
+        <div class="ci-specimen-label"><span>.app-badge</span><span>default · quiet · danger · success</span></div>
         <div class="app-row">
           <span class="app-badge">3</span>
           <span class="app-badge" data-tone="quiet">New</span>
           <span class="app-badge" data-tone="danger">Urgent</span>
+          <span class="app-badge" data-tone="success">Done</span>
         </div>
         <p class="app-note">Three tones only: the accent for a count or something new, quiet for a plain status, danger for what was revoked or is urgent. The tone is the status's ink, so the text beside it must say the same thing.</p>
       </div>
@@ -789,7 +791,10 @@ Ask the team about the pairing board: three small plates built for the three dri
         <div class="ci-shell-frame" data-shell-demo>
           <header class="app-masthead">
             <button class="app-masthead-home" type="button" aria-label="Home"><img class="app-masthead-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></button>
-            <button class="app-masthead-account app-control" type="button" data-mode="initials" aria-label="Settings"><span>DT</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
+            <div class="app-masthead-tools">
+              <button class="app-masthead-action app-control" type="button" aria-label="Messages"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14v10H8l-5 3z"/></svg><span class="app-badge app-masthead-badge" aria-label="3 unread">3</span></button>
+              <button class="app-masthead-account app-control" type="button" data-mode="initials" aria-label="Settings"><span>DT</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
+            </div>
           </header>
           <div class="ci-shell-frame-body">
             <div class="app-surface"><p class="app-surface-label">Scroll</p><div class="app-surface-copy">Content passes beneath the sticky header and footer, which is why both are glass rather than painted.</div></div>
@@ -800,7 +805,7 @@ Ask the team about the pairing board: three small plates built for the three dri
             <div class="app-navbar-set" data-set="app">
               <button class="app-navbar-button" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M4 6h16M4 18h10"/></svg><span>Today</span></button>
               <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v8a3 3 0 0 0 6 0V3M9 11v10M17 3c-1.5 2-1.5 5 0 7v11"/></svg><span>F&amp;B</span></button>
-              <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v11H9l-5 4z"/></svg><span>Messages</span><span class="app-badge app-navbar-badge" aria-label="3 unread">3</span></button>
+              <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9zM6 5.5h12V20H6zM9 12l2 2 4-4"/></svg><span>Jobs</span></button>
               <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l2.4 5 5.6.7-4 3.9 1 5.4-5-2.7-5 2.7 1-5.4-4-3.9 5.6-.7z"/></svg><span>Brand</span></button>
             </div>
             <div class="app-navbar-set" data-set="settings" inert>
@@ -811,21 +816,24 @@ Ask the team about the pairing board: three small plates built for the three dri
             </div>
           </nav>
         </div>
-        <p class="app-note"><code>.app-masthead-home</code> wraps the logo and is frameless. <code>.app-masthead-account</code> is an <code>.app-control</code> inside the glass masthead, so it keeps the tint and drops the blur; <code>data-mode="close"</code> swaps the initials for a close mark. The navbar holds both <code>.app-navbar-set</code>s in one cell and <code>data-mode="settings"</code> chooses which one shows; the hidden set is <code>inert</code>.</p>
+        <p class="app-note"><code>.app-masthead-home</code> wraps the logo and is frameless. <code>.app-masthead-account</code> is an <code>.app-control</code> inside the glass masthead, so it keeps the tint and drops the blur; <code>data-mode="close"</code> swaps the initials for a close mark. <code>.app-masthead-action</code> beside it is Messages — the same <code>--size-icon-control</code> square, the unread count as <code>.app-masthead-badge</code> on its corner, <code>aria-current="page"</code> while Messages is open; it is the only way in, and the footer beneath stays the app set with no tab current. The footer tabs are Today, F&amp;B, Jobs and Brand. The navbar holds both <code>.app-navbar-set</code>s in one cell and <code>data-mode="settings"</code> chooses which one shows; the hidden set is <code>inert</code>.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>transitionView()</span><span>app-view.js · pages arrive, they do not reload</span></div>
         <div class="ci-shell-frame" data-view-demo>
           <header class="app-masthead">
             <button class="app-masthead-home" type="button" aria-label="Home" data-demo-route="today"><img class="app-masthead-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></button>
-            <button class="app-masthead-account app-control" type="button" data-mode="initials" aria-label="Settings" data-demo-account><span>DT</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
+            <div class="app-masthead-tools">
+              <button class="app-masthead-action app-control" type="button" aria-label="Messages" data-demo-route="messages"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14v10H8l-5 3z"/></svg><span class="app-badge app-masthead-badge" hidden></span></button>
+              <button class="app-masthead-account app-control" type="button" data-mode="initials" aria-label="Settings" data-demo-account><span>DT</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg></button>
+            </div>
           </header>
           <div class="ci-shell-frame-body" data-view-host></div>
           <nav class="app-navbar" aria-label="Primary" data-mode="app">
             <div class="app-navbar-set" data-set="app">
               <button class="app-navbar-button" type="button" data-demo-route="today" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M4 6h16M4 18h10"/></svg><span>Today</span></button>
               <button class="app-navbar-button" type="button" data-demo-route="fnb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v8a3 3 0 0 0 6 0V3M9 11v10M17 3c-1.5 2-1.5 5 0 7v11"/></svg><span>F&amp;B</span></button>
-              <button class="app-navbar-button" type="button" data-demo-route="messages"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v11H9l-5 4z"/></svg><span>Messages</span></button>
+              <button class="app-navbar-button" type="button" data-demo-route="jobs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9zM6 5.5h12V20H6zM9 12l2 2 4-4"/></svg><span>Jobs</span></button>
               <button class="app-navbar-button" type="button" data-demo-route="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l2.4 5 5.6.7-4 3.9 1 5.4-5-2.7-5 2.7 1-5.4-4-3.9 5.6-.7z"/></svg><span>Brand</span></button>
             </div>
             <div class="app-navbar-set" data-set="settings" inert>
@@ -844,7 +852,7 @@ Ask the team about the pairing board: three small plates built for the three dri
         <nav class="app-navbar" aria-label="Primary (locked)" data-locked>
           <button class="app-navbar-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M4 6h16M4 18h10"/></svg><span>Today</span></button>
           <button class="app-navbar-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v8a3 3 0 0 0 6 0V3M9 11v10M17 3c-1.5 2-1.5 5 0 7v11"/></svg><span>F&amp;B</span></button>
-          <button class="app-navbar-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v11H9l-5 4z"/></svg><span>Messages</span></button>
+          <button class="app-navbar-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9zM6 5.5h12V20H6zM9 12l2 2 4-4"/></svg><span>Jobs</span></button>
           <button class="app-navbar-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l2.4 5 5.6.7-4 3.9 1 5.4-5-2.7-5 2.7 1-5.4-4-3.9 5.6-.7z"/></svg><span>Brand</span></button>
         </nav>
       </div>
@@ -978,9 +986,64 @@ Ask the team about the pairing board: three small plates built for the three dri
     </div>
   </section>
 
-  <!-- ========================= 23 RULES ========================= -->
+  <!-- ========================= 23 JOB ========================= -->
+  <section class="app-section" id="job">
+    <p class="app-section-kicker">23 · Job</p>
+    <h2 class="app-section-title">One Job, Where It Stands</h2>
+    <p class="app-section-lede">The Jobs tab lists what was asked of an employee: the task, who sent it and when, the deadline and the status. A job is a layout inside a plain card, the way the business card is - the status is a badge whose tone says the state, a tight deadline reads in the danger tone, and everything editable opens in the dialog.</p>
+    <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-job</span><span>inside .app-card.app-surface · data-status working · tight deadline</span></div>
+        <article class="app-card app-surface">
+          <div class="app-job" data-status="working">
+            <div class="app-job-head"><p class="app-job-kicker">Received 4 Sep 2026</p><span class="app-badge">Working</span></div>
+            <h3 class="app-job-title">ANJU Grab delivery review card</h3>
+            <p class="app-job-copy">Artwork for the review card that goes out with Grab deliveries: QR to the Google review page, both languages, print-ready at 90 × 55 mm.</p>
+            <div class="app-metric-grid" data-columns="2" data-values="text">
+              <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Chanrutt Thayartsuwan</span><span class="app-metric-note">Director of Marketing Communications</span></div>
+              <div class="app-metric app-job-deadline" data-tight="true"><span class="app-metric-label">Deadline</span><span class="app-metric-value">Mon 8 Sep 2026</span><span class="app-metric-note">Before the Grab listing goes live</span></div>
+            </div>
+            <div class="app-utility-row"><button class="app-utility-action" type="button">Update</button></div>
+          </div>
+        </article>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-job</span><span>the four statuses</span></div>
+        <div class="app-stack">
+          <article class="app-card app-surface"><div class="app-job" data-status="not-started">
+            <div class="app-job-head"><p class="app-job-kicker">Received 3 Sep 2026</p><span class="app-badge" data-tone="quiet">Not started</span></div>
+            <h3 class="app-job-title">Lobby lift wrap, Loy Krathong</h3>
+            <div class="app-metric-grid" data-columns="2" data-values="text">
+              <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Rooms Division</span></div>
+              <div class="app-metric app-job-deadline"><span class="app-metric-label">Deadline</span><span class="app-metric-value">24 Oct 2026</span></div>
+            </div>
+          </div></article>
+          <article class="app-card app-surface"><div class="app-job" data-status="stuck">
+            <div class="app-job-head"><p class="app-job-kicker">Received 28 Aug 2026</p><span class="app-badge" data-tone="danger">Stuck</span></div>
+            <h3 class="app-job-title">Sindhorn Wellness brochure reprint</h3>
+            <p class="app-job-copy">Waiting on the revised treatment prices from Spa before the price page can be set.</p>
+            <div class="app-metric-grid" data-columns="2" data-values="text">
+              <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">Spa Manager</span></div>
+              <div class="app-metric app-job-deadline"><span class="app-metric-label">Deadline</span><span class="app-metric-value">No date</span><span class="app-metric-note">When the prices arrive</span></div>
+            </div>
+          </div></article>
+          <article class="app-card app-surface"><div class="app-job" data-status="done">
+            <div class="app-job-head"><p class="app-job-kicker">Received 21 Aug 2026</p><span class="app-badge" data-tone="success">Done</span></div>
+            <h3 class="app-job-title">Mother's Day afternoon tea social set</h3>
+            <div class="app-metric-grid" data-columns="2" data-values="text">
+              <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">F&amp;B Marketing</span></div>
+              <div class="app-metric app-job-deadline"><span class="app-metric-label">Deadline</span><span class="app-metric-value">1 Sep 2026</span></div>
+            </div>
+          </div></article>
+        </div>
+        <p class="app-note"><code>data-status</code> on <code>.app-job</code> names the state for scripts and for the one visual it changes - a done job's title steps back to the muted colour. The badge tones are the badge's own: none for working, <code>quiet</code> for not started, <code>danger</code> for stuck, <code>success</code> for done. <code>.app-job-deadline[data-tight="true"]</code> is a deadline inside a week. The list is filtered by an <code>.app-rail</code> of chips above it and edited in the dialog standard; nothing on the card is a control except the utility action.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= 24 RULES ========================= -->
   <section class="app-section" id="rules">
-    <p class="app-section-kicker">23 · Rules</p>
+    <p class="app-section-kicker">24 · Rules</p>
     <h2 class="app-section-title">What Holds the System Together</h2>
     <div class="ci-rule-list">
       <div class="ci-rule"><b>A card draws an edge.</b><span>If it draws a border or a fill it is a card and takes the material. If it only arranges children it is a layout container and takes nothing.</span></div>

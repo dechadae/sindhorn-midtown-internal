@@ -13,7 +13,7 @@ import fs from 'node:fs';
 
 const FOUNDATION = ['site/app-tokens.css', 'site/app-glass.css', 'site/app-components.css', 'site/app-shell.css'];
 const PAGES = [
-  { name: '/ (app shell)', files: ['site/index.html', 'site/push-client.js', 'site/shell.js', 'site/today.js', 'site/fnb-page.js', 'site/ci-page.js', 'site/ci-library.js', 'site/brand-page.js', 'site/signin-page.js', 'site/settings-page.js', 'site/messages-page.js', 'site/app-code.js', 'site/app-view.js', 'site/app-dialog.js', 'site/app-toast.js', 'site/settings-me.js', 'site/settings-admin.js', 'site/settings-broadcast.js', 'site/broadcast-inbox.js'], css: FOUNDATION },
+  { name: '/ (app shell)', files: ['site/index.html', 'site/push-client.js', 'site/shell.js', 'site/today.js', 'site/fnb-page.js', 'site/ci-page.js', 'site/ci-library.js', 'site/brand-page.js', 'site/signin-page.js', 'site/settings-page.js', 'site/messages-page.js', 'site/jobs-page.js', 'site/app-code.js', 'site/app-view.js', 'site/app-dialog.js', 'site/app-toast.js', 'site/settings-me.js', 'site/settings-admin.js', 'site/settings-broadcast.js', 'site/broadcast-inbox.js'], css: FOUNDATION },
   { name: '/ci (UI Library)', files: ['site/ci.html'], css: [...FOUNDATION, 'site/ci-library.css'] }
 ];
 // Classes that are state hooks or belong to a runtime the page only hosts.

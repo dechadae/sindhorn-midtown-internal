@@ -49,7 +49,7 @@ try{
   // honest empty state; an error-tone state means the RPC failed or is
   // missing on the live project. Nothing is written - opening a broadcast
   // is the only receipt, and the test account is sent none.
-  await page.click('[data-route="messages"]');
+  await page.click('[data-masthead-route="messages"]');
   await page.waitForFunction(()=>document.querySelector('.app-hero-title')?.textContent.trim()==='Inbox'&&!document.querySelector('#routeView .app-skeleton'),null,{timeout:30000});
   const inbox=await page.evaluate(()=>({
     rows:document.querySelectorAll('#routeView [data-broadcast-open]').length,

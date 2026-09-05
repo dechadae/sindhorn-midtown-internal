@@ -82,6 +82,7 @@ const ROUTES = {
   today: () => import('./today.js').then(m => m.mountToday),
   fnb: () => import('./fnb-page.js').then(m => m.mountFnb),
   messages: () => import('./messages-page.js').then(m => m.mountMessages),
+  jobs: () => import('./jobs-page.js').then(m => m.mountJobs),
   brand: () => import('./brand-page.js').then(m => m.mountBrand),
   settings: () => import('./settings-page.js').then(m => m.mountSettings),
   signin: () => import('./signin-page.js').then(m => m.mountSignin),
@@ -99,6 +100,7 @@ const masthead = document.querySelector('.app-masthead');
 const navbar = document.querySelector('.app-navbar');
 const home = masthead.querySelector('.app-masthead-home');
 const account = masthead.querySelector('.app-masthead-account');
+const messages = masthead.querySelector('[data-masthead-route="messages"]');
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* An employee is signed in once a session, a profile and a permanent code
@@ -121,7 +123,8 @@ const viewOf = name => name === 'settings' ? `settings/${settingsTab()}` : name;
 let current = '', dispose = null, generation = 0, returnHash = '';
 
 /* The library is reached from Settings › System, so it keeps the settings
-   set beneath it with System still current. */
+   set beneath it with System still current. Messages has no footer tab: the
+   app set shows with nothing current and the masthead icon reads current. */
 function paintNavbar(name) {
   const locked = !signedIn();
   const mode = name === 'settings' || name === 'ci' ? 'settings' : 'app';
@@ -133,6 +136,8 @@ function paintNavbar(name) {
     button.disabled = locked;
     if (button.dataset.route === full) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
   }
+  messages.hidden = locked;
+  if (name === 'messages') messages.setAttribute('aria-current', 'page'); else messages.removeAttribute('aria-current');
   account.hidden = locked;
   account.dataset.mode = mode === 'settings' ? 'close' : 'initials';
   account.setAttribute('aria-label', mode === 'settings' ? 'Close settings' : 'Settings');
@@ -179,6 +184,13 @@ home.addEventListener('click', () => {
   location.hash = '';
 });
 
+/* The masthead icon is the only way into Messages; already there, it goes
+   to the top like a footer tab does. */
+messages.addEventListener('click', () => {
+  if (current === 'messages') { scrollTo({ top: 0, behavior: reduced() ? 'auto' : 'smooth' }); return; }
+  location.hash = '#messages';
+});
+
 /* The account chip opens Settings; while Settings is open it is the way back
    to wherever the employee came from. */
 account.addEventListener('click', () => {
@@ -186,7 +198,7 @@ account.addEventListener('click', () => {
   location.hash = '#settings/me';
 });
 
-/* Unread messages on the navbar: device alerts from IndexedDB plus the
+/* Unread messages on the masthead icon: device alerts from IndexedDB plus the
    broadcasts the server last listed. Counted on launch, when the service
    worker stores a push while the app is open, whenever the app returns to
    the front (the inbox is refreshed then, at most once a minute), and when

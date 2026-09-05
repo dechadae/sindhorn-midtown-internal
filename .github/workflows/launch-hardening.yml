@@ -71,7 +71,7 @@ jobs:
           for name in ('bootstrap.js','route-registry.js','auth-shell.js','app.js','login.html','fallback'):
               assert not (root/name).exists(), f'legacy source is back: {name}'
           assert 'src="/shell.js"' in index
-          for name in ('today','fnb','messages','brand','settings','signin','ci'):
+          for name in ('today','fnb','jobs','messages','brand','settings','signin','ci'):
               assert f"{name}:" in shell_js, f'shell route missing: {name}'
           assert 'startViewTransition' not in shell_js
           redirects=(root/'_redirects').read_text()

@@ -379,6 +379,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 }
 .app-badge[data-tone="quiet"]{background:var(--app-inset-fill);color:var(--app-muted)}
 .app-badge[data-tone="danger"]{background:color-mix(in srgb,var(--app-danger) 18%,transparent);color:var(--app-danger)}
+.app-badge[data-tone="success"]{background:color-mix(in srgb,var(--app-success) 18%,transparent);color:var(--app-success)}
 
 /* ---- List -------------------------------------------------------------------
    Rows separated by a hairline, never by a gap that pretends to be a card each.
@@ -540,7 +541,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
   .app-action-card-button,.app-disclosure-button,.app-disclosure-chevron,
   .app-disclosure-panel,.app-field input,.app-field textarea,.app-field select,
   .app-select-trigger svg,.app-primary,.app-chip,
-  .app-masthead-home,.app-masthead-account,.app-navbar-set{transition-duration:.001ms;transition-delay:0s}
+  .app-masthead-home,.app-masthead-account,.app-masthead-action,.app-navbar-set{transition-duration:.001ms;transition-delay:0s}
   .app-track-bar{transform:scaleX(1);transition:none}
 }
 
@@ -597,6 +598,30 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-masthead-account[data-mode="close"] span{display:none}
 .app-masthead-account[data-mode="close"] svg{display:block}
 
+/* The masthead's right side is one row of icon controls: Messages, then the
+   account chip. Messages left the footer in r20 - the footer's fourth tab
+   is Jobs - and lives here as an icon-only control the same square as the
+   chip, carrying the unread count. It is the only way into Messages; the
+   page beneath keeps the app footer with no tab current, and the icon
+   itself reads current instead. Hidden with the chip until signed in. */
+.app-masthead-tools{display:flex;align-items:center;gap:8px}
+.app-masthead-action{
+  position:relative;
+  width:var(--size-icon-control);height:var(--size-icon-control);flex:0 0 auto;
+  display:inline-grid;place-items:center;
+  border-radius:var(--radius-inset);
+  color:var(--app-text);font:inherit;cursor:pointer;
+  transition:transform var(--motion-fast) var(--motion-ease),color var(--motion-ms) ease;
+}
+.app-masthead-action:active{transform:scale(.94)}
+.app-masthead-action:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
+.app-masthead-action svg{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6}
+.app-masthead-action[aria-current="page"]{color:var(--app-accent)}
+/* The unread count sits on the control's top-right corner. It is a badge, so
+   it keeps the badge tint; the masthead beneath is already glass, so
+   app-glass.css drops its blur. */
+.app-masthead-badge{position:absolute;top:-6px;right:-7px}
+
 .app-navbar{
   position:sticky;bottom:0;z-index:80;
   min-height:var(--app-navbar-height);
@@ -621,7 +646,7 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-navbar-button:disabled{cursor:default}
 
 /* The footer holds two sets of buttons in the same cell: the app set (Today,
-   F&B, Messages, Brand) and the settings set (Me, Admin, Broadcast, System).
+   F&B, Jobs, Brand) and the settings set (Me, Admin, Broadcast, System).
    The account chip switches the navbar's mode and the sets push: the settings
    set slides in from the right as the app set leaves to the left, and the
    reverse on the way back - the same ease-in-out the page uses. The navbar
@@ -644,12 +669,6 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
    buttons; data-locked lets a specimen show the state without a script. */
 .app-navbar-button:disabled,.app-navbar[data-locked] .app-navbar-button{color:var(--app-muted);opacity:.4;cursor:default}
 .app-navbar-button:disabled:active,.app-navbar[data-locked] .app-navbar-button:active{transform:none}
-
-/* An unread count sits at the icon's top-right corner. It is a badge, so it
-   keeps the badge tint; the navbar beneath it is already glass, so
-   app-glass.css drops its blur. */
-.app-navbar-button{position:relative}
-.app-navbar-badge{position:absolute;top:3px;left:calc(50% + 6px)}
 
 /* A page inside the shell reserves room for the sticky footer. */
 /* flex:1 0 auto is the other half of the sticky-footer fix in app-shell.css:
@@ -824,3 +843,20 @@ button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-of
 .app-business-card-link a{color:inherit;text-underline-offset:3px}
 /* Presenting the card in a dialog changes nothing about the card: the same
    markup, the same QR width, the same spacing as the page. */
+
+/* ---- Job -------------------------------------------------------------------
+   One tracked job, the way the Jobs tab lists it: what was asked, who sent
+   it and when, the deadline, and where it stands. A layout inside a plain
+   .app-card.app-surface, not a new material - the same way the business
+   card is. The status is a badge whose tone says the state at a glance:
+   not-started quiet, working accent, stuck danger, done success; a tight
+   deadline reads in the danger tone. Changing anything happens in the
+   dialog, so the card itself draws no control of its own. */
+.app-job{display:grid;gap:12px}
+.app-job-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.app-job-kicker{margin:0;color:var(--app-muted);font-size:var(--type-small);line-height:var(--leading-label);text-transform:uppercase}
+.app-job-title{margin:0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight);text-wrap:balance}
+.app-job-copy{margin:0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
+.app-job .app-metric-grid{padding-top:2px}
+.app-job-deadline[data-tight="true"] .app-metric-value{color:var(--app-danger)}
+.app-job[data-status="done"] .app-job-title{color:var(--app-muted)}

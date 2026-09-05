@@ -17,14 +17,15 @@ import { qrStyledSvg } from './qr-v6.js';
 const DEMO_PAGES = {
   today: ['Today', 'Hotel Business', 'The day\u2019s numbers, drawn in as they arrive.'],
   fnb: ['Food & Beverage', 'Promotions', 'This season\u2019s campaigns, ready to share.'],
-  messages: ['Messages', 'Inbox', 'What was sent to you, newest first.'],
+  jobs: ['Jobs', 'Job tracker', 'What was asked, who sent it, the deadline and where it stands.'],
   brand: ['Brand', 'Standards', 'The marks, the type and how they are used.'],
+  messages: ['Messages', 'Inbox', 'What was sent to you, newest first.'],
   'settings/me': ['Settings', 'Me', 'Your account and how you appear to colleagues.'],
   'settings/admin': ['Settings', 'Admin', 'Employees, access and one-time codes.'],
   'settings/broadcast': ['Settings', 'Broadcast', 'Messages sent to every employee or a department.'],
   'settings/system': ['Settings', 'System', 'The app itself: version, library and diagnostics.']
 };
-const DEMO_APP = ['today', 'fnb', 'messages', 'brand'];
+const DEMO_APP = ['today', 'fnb', 'jobs', 'brand', 'messages'];
 const DEMO_SETTINGS = ['settings/me', 'settings/admin', 'settings/broadcast', 'settings/system'];
 const demoLayer = view => view.startsWith('settings') ? 1 : 0;
 const demoOrder = view => demoLayer(view) ? DEMO_SETTINGS.indexOf(view) : DEMO_APP.indexOf(view);
@@ -79,7 +80,7 @@ export function bindLibrary(root, { page = root } = {}) {
       account.dataset.mode = settings ? 'close' : 'initials';
       account.setAttribute('aria-label', settings ? 'Close settings' : 'Settings');
       for (const set of navbar.querySelectorAll('.app-navbar-set')) set.inert = set.dataset.set !== navbar.dataset.mode;
-      for (const button of navbar.querySelectorAll('[data-demo-route]')) { if (button.dataset.demoRoute === view) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current'); }
+      for (const button of frame.querySelectorAll('[data-demo-route]')) { if (button.dataset.demoRoute === view) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current'); }
       transitionView(host, kind, () => { host.innerHTML = demoPage(view); }, { within: frame });
     };
     on(frame, 'click', event => {
