@@ -40,6 +40,43 @@ values), which is why it is loaded last.
 Sindhorn loads its tokens before the material; the two orders are equivalent
 there because its constitution redeclares no material value.
 
+## Constitutions
+
+| Name | Source | Notes |
+| --- | --- | --- |
+| `sindhorn` | copied from `site/` at every release (parity-checked) | the origin; redeclares no material value |
+| `flipgazine` | written 6 Sep 2026 from `https://flipgazine.pages.dev/ci.html` | the transfer test; redeclares the whole material; imports Poppins + Noto Sans Thai from Google Fonts; no zero-tracking lock (`--tracking:.16em`) |
+
+## Evidence
+
+`evidence/` is the transfer test. `specimens.html` is one fragment of
+library markup copied from `/ci` (cards, forms, actions, metrics, list, check,
+badge, states, skeleton, table); `build.mjs` writes `sindhorn.html` and
+`flipgazine.html` from it, identical but for the constitution links;
+`transfer-smoke.mjs` renders both in Playwright, refuses any CSS in the page
+or any glass inside glass, and writes `measurements.json` (the same twenty-five
+selectors computed under each constitution) and one viewport screenshot per
+constitution.
+
+```sh
+node idui-core/evidence/build.mjs
+node idui-core/evidence/transfer-smoke.mjs --shots /tmp/idui-shots   # from the repository root
+```
+
+Result of the first run (6 Sep 2026): the fragment transferred without an
+edit; 29 glass surfaces and 0 nested under each; 20 of the 25 probed
+selectors changed value and every change came from a token. The five that did
+not, and what the run showed the core cannot yet say, are the findings in
+`docs/idui/` §08 Transfer. In short: `--tracking` and `--space-*` are declared
+but unconsumed; the shell ground `#2E273B` is a literal; text inputs and
+icon-only controls fall to the UA's weight 400 instead of `--weight-regular`;
+the core carries three weights and one control shape (Flipgazine's 600
+wordmark and pill buttons have no slot, by design); a constitution's font
+files must travel with it (Sindhorn's `fonts.css` points at `/assets/fonts/`,
+which the core does not carry); and the semantic slots `--app-success` and
+`--app-danger` demand values a brand may not have (Flipgazine's were
+invented).
+
 ## The nine invariants the core assumes
 
 1. One material - all fill, border and blur from `app-glass.css`; no `backdrop-filter` elsewhere.

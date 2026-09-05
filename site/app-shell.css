@@ -6,7 +6,8 @@
    that produced per-route drift in the first place.
 
    A page loads: fonts.css, app-tokens.css, app-glass.css, app-components.css,
-   app-shell.css. That is the whole system.
+   app-compositions.css, app-shell.css. That is the whole system (r32; the
+   same files, copied verbatim, are idui-core/).
 */
 
 *{box-sizing:border-box}

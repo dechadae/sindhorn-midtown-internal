@@ -1,0 +1,99 @@
+/* Flipgazine — a constitution for idui-core, written for the IDUI transfer
+   test (6 Sep 2026). Nothing here is deployed to Flipgazine; it is the
+   evidence page's identity.
+
+   Every value is read from flipgazine.pages.dev/ci.html as rendered on
+   6 Sep 2026: its custom properties (--bg #0D1110, --surface #151918,
+   --text #F4F1EB, --muted #858887, --accent #00F0D1, --line, --glass,
+   --glass-brd, --ease, --soft) and the conventions its own library states
+   (Poppins with Noto Sans Thai; display 200, body 300, label 500; body
+   line-height 1.65; radius 3 / 11-14 / 24 / 999; blur 14-18px saturate 1.3;
+   640ms leave, 1.06s arrival, 120ms linear progress). Where Flipgazine
+   states no value the choice is marked "invented" so the evidence page can
+   count it. The property names are the core's; only the values are new. */
+:root{
+  /* Type. Flipgazine: eyebrow 9-11 · body 14-15.5 · section 21-32 · display 30-46. */
+  --type-caption:9px;
+  --type-micro:10px;
+  --type-small:11px;
+  --type-body-s:13px;
+  --type-body:14px;
+  --type-lead:15.5px;
+  --type-title:23px;
+  --type-section:clamp(21px,5.6vw,32px);
+  --type-display:clamp(30px,8.5vw,46px);
+
+  --leading-tight:1.1;
+  --leading-label:1.3;
+  --leading-body:1.65;
+
+  /* Weight. Three slots in the core; Flipgazine's display / body / label.
+     Its wordmark 600 and cover 700 have no slot: a finding, not a value. */
+  --weight-thin:200;
+  --weight-regular:300;
+  --weight-bold:500;
+  /* Flipgazine tracks: labels +0.16em, display -0.02em. The core has one knob
+     and no consumer for it (see the evidence page). */
+  --tracking:.16em;
+
+  /* Color. */
+  --app-text:#F4F1EB;
+  --app-muted:#858887;
+  --app-line:rgba(244,241,235,.09);
+  --app-inset-fill:rgba(244,241,235,.055);
+  --app-accent:#00F0D1;
+  --app-accent-rgb:0,240,209;
+  /* Status tones: Flipgazine declares none. Danger is its one warm value
+     (#E8792B, the cover orange); success is invented. */
+  --app-success:#6FCF97;
+  --app-danger:#E8792B;
+
+  /* Shape. Flipgazine: 3px inline code · 11-14px panels · 24px switches ·
+     999px buttons and chips. The core keeps pills for chips and rails only. */
+  --radius-surface:14px;
+  --radius-inset:11px;
+  --radius-tight:3px;
+  --radius-dialog:24px;
+  --radius-pill:999px;
+  --radius-none:0;
+
+  /* Control heights: derived (44px is Flipgazine's stated tap minimum; the
+     rest are invented to keep three floors). */
+  --control-row:44px;
+  --control:36px;
+  --control-inline:28px;
+
+  /* Space. Same seven steps: the core never reads them (finding). */
+  --space-2:4px;
+  --space-3:8px;
+  --space-4:10px;
+  --space-5:12px;
+  --space-6:16px;
+  --space-7:20px;
+  --space-8:24px;
+
+  --size-icon-control:36px;
+
+  /* Motion. Flipgazine's two curves and four durations. */
+  --motion-ms:280ms;
+  --motion-fast:120ms;
+  --motion-reveal:1060ms;
+  --motion-view:640ms;
+  --motion-view-travel:32px;
+  --motion-ease:cubic-bezier(.22,1,.36,1);
+  --motion-ease-inout:cubic-bezier(.4,0,.2,1);
+  --motion-fade:linear;
+
+  /* Material, redeclared (this file loads last). */
+  --app-glass-fill:rgba(21,25,24,.55);
+  --app-glass-border:rgba(244,241,235,.14);
+  --app-glass-filter:blur(18px) saturate(1.3);
+  --app-glass-overlay-fill:rgba(21,25,24,.82);
+  --app-glass-nested-fill:rgba(21,25,24,.98);
+  --app-glass-scrim-fill:rgba(13,17,16,.55);
+  --app-glass-scrim-filter:blur(7px);
+}
+
+@media (prefers-reduced-motion:reduce){
+  :root{ --motion-ms:1ms; --motion-reveal:1ms; --motion-view:1ms; }
+}

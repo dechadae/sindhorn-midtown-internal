@@ -1,0 +1,10 @@
+/* Flipgazine's face for the IDUI transfer test: Poppins with Noto Sans Thai,
+   the three weights the constitution maps (200 / 300 / 500), from Google
+   Fonts. The zero-tracking lock the Sindhorn face carries is deliberately
+   absent: Flipgazine's voice is tracked, and the test records what the core
+   does with that. */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;500&family=Noto+Sans+Thai:wght@200;300;500&display=swap");
+:root{--font-ui:"Poppins","Noto Sans Thai",system-ui,-apple-system,sans-serif}
+html,body,button,input,select,textarea,option,dialog{font-family:var(--font-ui);font-synthesis:none}
+body *{font-family:var(--font-ui);font-synthesis:none}
+:lang(th),[lang="th"]{font-family:var(--font-ui);word-break:normal;overflow-wrap:normal;line-break:loose}

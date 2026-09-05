@@ -37,6 +37,7 @@
     <a class="app-chip app-control" href="#case">05 Case Study</a>
     <a class="app-chip app-control" href="#enforcement">06 Enforcement</a>
     <a class="app-chip app-control" href="#limits">07 Limits</a>
+    <a class="app-chip app-control" href="#transfer">08 Transfer</a>
   </nav>
 </section>
 
@@ -812,7 +813,7 @@
       <div class="app-metric-grid" data-mode="text">
         <div class="app-metric"><span class="app-metric-label">Observed</span><span class="app-metric-value">In Sindhorn</span><span class="app-metric-note">The ratchet numbers. Zero page literals across eleven modules. One duplicated behavior. Two rules settled by measurement. Pages landing one a day once the library existed. A contract that refuses to save the current atmosphere's muted ink.</span></div>
         <div class="app-metric"><span class="app-metric-label">Inferred</span><span class="app-metric-value">Explained by the method</span><span class="app-metric-note">That a membership test outlives a registry; that a ratchet lets migration finish; that an agent given rules stops generating local decisions; that random sampling against a contract is property-based testing applied to appearance.</span></div>
-        <div class="app-metric"><span class="app-metric-label">Hypothesized</span><span class="app-metric-value">To test elsewhere</span><span class="app-metric-note">That the four-layer split and either/or/neither shape hold in an unrelated product, with a different material, on desktop, in a light theme, with a larger team; that the validation harness generalizes beyond contrast.</span></div>
+        <div class="app-metric"><span class="app-metric-label">Hypothesized</span><span class="app-metric-value">To test elsewhere</span><span class="app-metric-note">That the four-layer split and either/or/neither shape hold in an unrelated product, with a different material, on desktop, in a light theme, with a larger team; that the validation harness generalizes beyond contrast. First test in §08: the material, scale and face held under a second identity; seven findings against the core.</span></div>
       </div>
     </article>
 
@@ -826,7 +827,7 @@
           <li>A poorly chosen invariant creates rigidity, and too many invariants recreate taxonomy in another form.</li>
           <li>Semantic information must still be authored; tone, state and hierarchy are decisions a person makes.</li>
           <li>Composition stays a human and product responsibility.</li>
-          <li>The evidence comes from one production system, one material, one dark theme, one phone-first product, one team of one plus an agent.</li>
+          <li>The evidence comes from one production system, one material, one dark theme, one phone-first product, one team of one plus an agent. The transfer in §08 is a second identity on the same dark, glass, phone-first premise, not a second product.</li>
           <li>A headless browser can pass every gate here and still differ from a phone; real devices remain part of validation.</li>
         </ul>
       </div>
@@ -840,8 +841,109 @@
     </article>
   </div>
 
+</section>
+
+<!-- ================================================================ 08 -->
+<section class="app-section" id="transfer">
+  <p class="app-section-kicker">08 · Transfer</p>
+  <h2 class="app-section-title">The Same Files Under a Second Identity</h2>
+  <p class="app-section-lede">The hypothesis in §07 was that the split holds in an unrelated product with a different material. The first test, 6 September 2026: <code>idui-core/</code> (the four core sheets, copied verbatim from this app) with a constitution written for Flipgazine from its own <code>/ci</code> page, rendering one fragment of library markup copied from Sindhorn's <code>/ci</code>. Not one component was edited. Both pages link six files in the README's order and declare no CSS.</p>
+
+  <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Glass surfaces</p><p class="app-metric-value">29 · 29</p><p class="app-metric-note">Sindhorn · Flipgazine</p></div>
+    <div class="app-metric"><p class="app-metric-label">Glass inside glass</p><p class="app-metric-value">0 · 0</p></div>
+    <div class="app-metric"><p class="app-metric-label">Selectors changed</p><p class="app-metric-value">20 / 25</p><p class="app-metric-note">Every change from a token</p></div>
+  </div>
+
+  <h3 class="app-section-subhead">What the constitution was written from</h3>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p>Flipgazine's <code>/ci</code> declares a near-black green ground <code>#0D1110</code>, ink <code>#F4F1EB</code>, one accent <code>#00F0D1</code>, a glass of <code>rgba(21,25,24,.55)</code> under <code>blur(18px) saturate(1.3)</code>, Poppins with Noto Sans Thai at 200 / 300 / 500, labels tracked +0.16em, body leading 1.65, radii 3 / 11 / 14 / 24 / 999 and a 640ms leave, 1.06s arrival. Each became the same custom property Sindhorn declares; the material tokens were redeclared, which is why the constitution loads last.</p>
+      <p>Three values had to be invented or derived: control heights (44 / 36 / 28 from the site's 36px buttons), a success tone (Flipgazine has none), and danger, mapped to the site's orange, which there is a second accent rather than an error color.</p>
+    </div>
+  </div>
+
+  <h3 class="app-section-subhead">Measured</h3>
+  <p class="app-note">Computed style from a 390px headless Chromium, the same selector under each constitution. The full set is <code>idui-core/evidence/measurements.json</code>.</p>
+  <div class="app-table-wrap">
+    <table class="app-table">
+      <thead><tr><th scope="col">Selector · property</th><th scope="col">Sindhorn</th><th scope="col">Flipgazine</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">body · font</th><td>LINE Seed Sans TH 400 · 13px / 19.5</td><td>Poppins 300 · 14px / 23.1</td></tr>
+        <tr><th scope="row">.app-surface · fill</th><td>rgba(46,39,59,.30)</td><td>rgba(21,25,24,.55)</td></tr>
+        <tr><th scope="row">.app-surface · backdrop-filter</th><td>blur(18px) saturate(1.18)</td><td>blur(18px) saturate(1.3)</td></tr>
+        <tr><th scope="row">.app-hero-title · weight</th><td>100</td><td>200</td></tr>
+        <tr><th scope="row">.app-section-kicker · color</th><td>#E5ECBE</td><td>#00F0D1</td></tr>
+        <tr><th scope="row">.app-section-kicker · letter-spacing</th><td>normal</td><td>normal</td></tr>
+        <tr><th scope="row">.app-primary · height · radius</th><td>40px · 10px</td><td>36px · 11px</td></tr>
+        <tr><th scope="row">.app-utility-action · height</th><td>32px</td><td>28px</td></tr>
+        <tr><th scope="row">.app-check-box · radius</th><td>8px</td><td>3px</td></tr>
+        <tr><th scope="row">.app-badge[danger] · ink</th><td>#E3A2A8</td><td>#E8792B</td></tr>
+        <tr><th scope="row">.app-list-row · height</th><td>62px</td><td>67px</td></tr>
+        <tr><th scope="row">.app-field input · weight</th><td>400</td><td>400</td></tr>
+        <tr><th scope="row">.environment-stage · ground</th><td>#2E273B</td><td>#2E273B</td></tr>
+        <tr><th scope="row">.app-stack · gap</th><td>12px</td><td>12px</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="app-section-subhead">Transferred</h3>
+  <div class="app-card app-surface">
+    <div class="app-list">
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">1 · One material</span><span class="app-list-row-meta">Fill, edge and blur changed on every surface by redeclaring three tokens; 29 glass surfaces each, none nested.</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Held</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">3 · One scale</span><span class="app-list-row-meta">Body 13 → 14, controls 40 / 32 → 36 / 28, rows 62 → 67, radii 8 → 3 on a check box: all from tokens, no literal held.</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Held</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">4 · One face</span><span class="app-list-row-meta">LINE Seed Sans TH 100 / 400 → Poppins 200 / 300 with Noto Sans Thai 300; the Thai specimen rendered in the constitution's face, not a fallback.</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Held</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Tone</span><span class="app-list-row-meta">Accent, muted, line, inset, success and danger took the constitution's values in the kicker, badge, state, delta and card title.</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Held</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">2 · 6 · 7 · 8</span><span class="app-list-row-meta">Same markup, so the same structure: edge means glass, no page CSS, attributes as variants, both-or-neither rows. Not exercised by a second identity, only carried.</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="quiet">Carried</span></div></div>
+    </div>
+  </div>
+
+  <h3 class="app-section-subhead">Findings against the core</h3>
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <p class="app-surface-label">T1 · Tracking is declared, not consumed</p>
+      <h3 class="app-surface-title"><code>--tracking</code> reaches no rule</h3>
+      <p class="app-surface-copy">Flipgazine's labels are tracked +0.16em; under the core they render at <code>normal</code>, the kicker and eyebrow included. Sindhorn holds the token at 0, so consuming it on the uppercase labels (kicker, eyebrow, surface label, metric label, table head) changes nothing here and gives a constitution the knob the README promises.</p>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">T2 · Rhythm is a literal</p>
+      <h3 class="app-surface-title"><code>--space-*</code> is unconsumed; gaps are written as pixels</h3>
+      <p class="app-surface-copy">Seven space tokens exist and no component reads one. A constitution cannot change the rhythm of a stack or a row. Fold the tokens or consume them; either is honest, the current state is neither.</p>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">T3 · The ground is not constitutional</p>
+      <h3 class="app-surface-title"><code>#2E273B</code> is a literal in <code>app-shell.css</code></h3>
+      <p class="app-surface-copy">Both pages measure the same purple on <code>body</code> and the stage, beneath a green atmosphere in Flipgazine's case. Where the atmosphere does not paint, Sindhorn shows. One token, <code>--app-ground</code>, moves it to the constitution.</p>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">T4 · Controls fall to the UA's weight</p>
+      <h3 class="app-surface-title">Inputs and icon-only controls resolve <code>font-weight: 400</code></h3>
+      <p class="app-surface-copy">The core sets the family on form controls but not the weight, so they take the browser's 400. Invisible under Sindhorn, whose regular is 400; visible under Flipgazine, whose regular is 300: a typed value sits heavier than its label. <code>font-weight: inherit</code> on <code>.app-field input</code> and <code>.app-control</code>.</p>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">T5 · Three weights, one shape</p>
+      <h3 class="app-surface-title">The core carries opinions beyond material</h3>
+      <p class="app-surface-copy">Flipgazine's 600 wordmark and 700 cover have no slot (the masthead mark rendered at 300) and its pill buttons are refused: <code>.app-primary</code> takes <code>--radius-inset</code>, and <code>--radius-pill</code> reaches only the badge. Both are the law, not a gap. "One face" says three weights and "rounded, never circular" says no pill on a control; a constitution accepts them or is not one. The README should say so.</p>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">T6 · A face must travel</p>
+      <h3 class="app-surface-title">Sindhorn's <code>fonts.css</code> points at <code>/assets/fonts/</code>, which the core does not carry</h3>
+      <p class="app-surface-copy">The smoke had to map the path to <code>site/</code>. A constitution is self-contained only if its files sit beside it and its URLs are relative. Flipgazine's imports from Google Fonts, which is a network dependency this app's own rules (offline shell, no reinstall) would refuse; fine for a test, not for a product.</p>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">T7 · Semantic slots demand values</p>
+      <h3 class="app-surface-title"><code>--app-success</code> and <code>--app-danger</code> had to be invented</h3>
+      <p class="app-surface-copy">Flipgazine defines no status tones. The core's badge, state and delta need them, so the constitution made them up. This is the right place for the invention, but the README should name the six slots a brand must fill and what each is used for.</p>
+    </article>
+  </div>
+
+  <h3 class="app-section-subhead">Not tested</h3>
+  <p class="app-note">Motion (Flipgazine's 640ms leave and 1.06s arrival were mapped to <code>--motion-view</code> and <code>--motion-reveal</code> but the specimens are static); the behavior modules; a light theme; desktop. The atmosphere is a still gradient in both pages, as it is in this export. Nothing was deployed to Flipgazine.</p>
+
   <div class="app-utility-row">
     <a class="app-utility-action" href="#top">Back to top</a>
   </div>
   <p class="app-note">Invariant-Driven UI v0.1 · Sindhorn Midtown Internal · 5 September 2026. This document is composed from the app's own library — <code>app-tokens.css</code>, <code>app-glass.css</code>, <code>app-components.css</code>, <code>app-compositions.css</code>, <code>app-shell.css</code>, <code>ci-library.css</code> as shipped with service worker <code>__SW__</code> — and declares no presentation of its own. The atmosphere is a still gradient in place of the Betta.</p>
+</section>
+
 </main>

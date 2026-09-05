@@ -17,7 +17,7 @@
 <link rel="stylesheet" href="/app-glass.css?v=12">
 <link rel="stylesheet" href="/app-components.css?v=39">
 <link rel="stylesheet" href="/app-compositions.css?v=1">
-<link rel="stylesheet" href="/app-shell.css?v=2">
+<link rel="stylesheet" href="/app-shell.css?v=3">
 <link rel="stylesheet" href="/ci-library.css?v=10">
 </head>
 <body>
@@ -149,8 +149,8 @@
         <tr><th>Inset</th><td><code>--radius-inset</code> 10px — fields, chips, menus</td></tr>
         <tr><th>Press</th><td><code>--motion-fast</code> 160ms — immediate feedback</td></tr>
         <tr><th>State</th><td><code>--motion-ms</code> 280ms — component settles</td></tr>
-        <tr><th>Reveal</th><td><code>--motion-reveal</code> 920ms — data draws itself in (see 12 Metrics)</td></tr>
-        <tr><th>View</th><td><code>--motion-view</code> 300ms, <code>--motion-view-travel</code> 32px — one page gives way to the next (see 18 Shell)</td></tr>
+        <tr><th>Reveal</th><td><code>--motion-reveal</code> 920ms — data draws itself in (see 11 Metrics)</td></tr>
+        <tr><th>View</th><td><code>--motion-view</code> 300ms, <code>--motion-view-travel</code> 32px — one page gives way to the next (see 17 Shell)</td></tr>
         <tr><th>Easing</th><td><code>--motion-ease</code> cubic-bezier(.22, 1, .36, 1) for a control settling; <code>--motion-ease-inout</code> ease-in-out for a page or a navbar set moving into place</td></tr>
         <tr><th>Reduced</th><td>Reduced motion removes transitions without hiding state</td></tr>
       </tbody>
@@ -175,7 +175,7 @@
         <div class="app-card app-surface">
           <div class="app-skeleton"><div class="app-skeleton-line" data-width="medium"></div></div>
         </div>
-        <p class="app-note">The one continuous animation in the system. See 21 Skeleton for the full placeholder this pulse belongs to.</p>
+        <p class="app-note">The one continuous animation in the system. See 20 Skeleton for the full placeholder this pulse belongs to.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>Reduced motion</span><span>duration → .001ms, state unchanged</span></div>
@@ -218,7 +218,7 @@
             <button class="app-utility-action" type="button"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9M7 6l3-3 3 3M5 11v4a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-4"/></svg>Share</button>
           </div>
         </article>
-        <p class="app-note">Status is a tone — <code>success</code> for live, <code>quiet</code> for ended, accent otherwise — the same vocabulary a badge and a state use. On the article, the tone also colors the title and the <code>-when</code> line, as the live route does. The track is the one from 12 Metrics without its reference mark: a completion, not a comparison.</p>
+        <p class="app-note">Status is a tone — <code>success</code> for live, <code>quiet</code> for ended, accent otherwise — the same vocabulary a badge and a state use. On the article, the tone also colors the title and the <code>-when</code> line, as the live route does. The track is the one from 11 Metrics without its reference mark: a completion, not a comparison.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-surface</span><span>no press state</span></div>
@@ -1096,7 +1096,7 @@ Ask the team about the pairing board: three small plates built for the three dri
       <div class="ci-rule"><b>One glass blur.</b><span>blur(18px) saturate(1.18) is the only kernel a surface runs. The scrim behind a dialog is not a surface: it dims the page and softens it with its own light 7px blur so the dialog reads as floating, and that is the one exception.</span></div>
       <div class="ci-rule"><b>Rules over inventories.</b><span>Before cataloguing variants, find the smallest rule that makes the distinctions irrelevant. A new component exists only for a different behavior — interaction, state or accessibility — never because the content differs. A job is a card with sections; it is not a component.</span></div>
       <div class="ci-rule"><b>Secondary text never drops below 11px.</b><span>Labels, deltas, notes and metadata are 11 or 12px. A rule that shrinks them fails the render gate.</span></div>
-      <div class="ci-rule"><b>Geometry is never inline.</b><span>A data-driven length is an SVG attribute or a data attribute the library maps, not a style attribute. The track in 12 Metrics is the pattern. The one runtime exception is the library's own: the anchor of a lifted selector menu, three custom properties app-select.js sets and clears.</span></div>
+      <div class="ci-rule"><b>Geometry is never inline.</b><span>A data-driven length is an SVG attribute or a data attribute the library maps, not a style attribute. The track in 11 Metrics is the pattern. The one runtime exception is the library's own: the anchor of a lifted selector menu, three custom properties app-select.js sets and clears.</span></div>
       <div class="ci-rule"><b>Status is a tone, not a color.</b><span>A card's status, a hero's eyebrow, a badge and a state all speak the same two words — success, quiet — and the library maps them. A page never picks a color for a state.</span></div>
       <div class="ci-rule"><b>One typeface, zero tracking.</b><span>LINE Seed Sans TH at 100, 400 or 700. Application chrome never adjusts letter spacing.</span></div>
       <div class="ci-rule"><b>Rounded, never circular.</b><span>Corners are soft. Circular and capsule chrome are not part of this system.</span></div>
