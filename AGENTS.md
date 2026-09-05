@@ -253,3 +253,27 @@ Enforced in two places. `scripts/page-centralization-audit.mjs` rejects a
 `app-glass.css` only), and `scripts/nested-glass-smoke.mjs` fails the build if
 a rendered route has a blurred element inside a glass surface — which is
 exactly how `.fnb-action-control` once acquired an inert blur.
+
+### Rules over inventories — 5 September 2026
+
+The glass rule above replaced an inventory of ~200 historical card classes with one
+membership test. That is the method for every layer of this app, not only material:
+
+- **Governing rules over inventories.** Historical class names are not product
+  concepts. Before cataloguing variants, find the smallest rule that makes the
+  distinctions irrelevant. A rule handles a component nobody has seen yet; a list
+  only handles yesterday's.
+- **New-primitive test.** A new component, material or token exists only for a
+  genuinely different visual behavior, interaction, accessibility need or state
+  model — never because the content, page or department differs.
+- **Inventory tripwire.** If centralizing something requires enumerating dozens of
+  variants, stop and test whether the abstraction is wrong before continuing the
+  inventory. Say so and propose the rule first; the rule can be vetoed, a list
+  cannot.
+- **The neither outcome.** A rule may not apply. An object outside a rule inherits
+  nothing from either side (a utility action is neither card nor structure); do
+  not invent a class to hold it.
+
+Keep design rules separate from browser facts. "Glass never nests" is measured
+physics (`backdrop-filter` cannot sample through a blurred ancestor); the edge
+test is a design decision. Only the second kind is open to revision.
