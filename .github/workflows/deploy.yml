@@ -176,6 +176,10 @@ jobs:
           # have been saved since 5 Sep 2026, so an unsaved period is a
           # regression too: --require-all.
           node scripts/betta-periods-release-smoke.mjs --require-all
+          # The IDUI methodology export (docs/idui) is rebuilt from the library
+          # at every release and stamped with the service-worker VERSION; a
+          # stale export fails here rather than drifting from the app.
+          node scripts/build-idui.mjs --check
 
       - name: Deploy to Cloudflare Pages
         env:

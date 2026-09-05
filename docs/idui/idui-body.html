@@ -1,0 +1,792 @@
+<div class="environment-stage" data-ready="true" aria-hidden="true">
+  <svg class="environment-canvas" viewBox="0 0 390 844" preserveAspectRatio="none" role="presentation">
+    <defs>
+      <radialGradient id="idui-blue" cx="0.18" cy="0.22" r="0.62"><stop offset="0" stop-color="#2F6FD6" stop-opacity="0.62"/><stop offset="0.45" stop-color="#1D3F7A" stop-opacity="0.38"/><stop offset="1" stop-color="#0B1A3A" stop-opacity="0"/></radialGradient>
+      <radialGradient id="idui-navy" cx="0.85" cy="0.08" r="0.7"><stop offset="0" stop-color="#0B1A3A" stop-opacity="0.9"/><stop offset="1" stop-color="#0B1A3A" stop-opacity="0"/></radialGradient>
+      <radialGradient id="idui-red" cx="0.82" cy="0.78" r="0.55"><stop offset="0" stop-color="#C8202C" stop-opacity="0.62"/><stop offset="0.5" stop-color="#7A1421" stop-opacity="0.34"/><stop offset="1" stop-color="#3A0C14" stop-opacity="0"/></radialGradient>
+      <radialGradient id="idui-glint" cx="0.62" cy="0.62" r="0.22"><stop offset="0" stop-color="#FF5A1F" stop-opacity="0.42"/><stop offset="1" stop-color="#FF5A1F" stop-opacity="0"/></radialGradient>
+      <radialGradient id="idui-sky" cx="0.3" cy="0.95" r="0.6"><stop offset="0" stop-color="#7DB7F0" stop-opacity="0.28"/><stop offset="1" stop-color="#7DB7F0" stop-opacity="0"/></radialGradient>
+    </defs>
+    <rect width="390" height="844" fill="#211B2E"/>
+    <rect width="390" height="844" fill="url(#idui-navy)"/>
+    <rect width="390" height="844" fill="url(#idui-blue)"/>
+    <rect width="390" height="844" fill="url(#idui-red)"/>
+    <rect width="390" height="844" fill="url(#idui-glint)"/>
+    <rect width="390" height="844" fill="url(#idui-sky)"/>
+  </svg>
+</div>
+
+<header class="app-masthead">
+  <a class="app-masthead-home" href="#top" aria-label="Top of the document"><img class="app-masthead-logo" src="__LOGO__" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></a>
+  <div class="app-masthead-tools"><span class="app-badge" data-tone="quiet">Methodology · v0.1 · __SW__</span></div>
+</header>
+
+<main class="app-page is-shell" id="top">
+
+<section class="app-hero">
+  <p class="app-hero-eyebrow">Sindhorn Midtown Internal · Design and development method</p>
+  <h1 class="app-hero-title">Invariant-Driven UI</h1>
+  <p class="app-hero-copy">Pages compose. Primitives behave. Invariants style. Contracts validate. A working method formalized from the Sindhorn Midtown Internal rebuild of 2–5 September 2026, written from the production code rather than ahead of it.</p>
+  <p class="app-note">Draft v0.1, 5 September 2026. Nothing in this document changes production. Every rule is marked implemented, partial or proposed. Numbers were first measured from the repository at commit <code>558ab67</code> and the export is rebuilt from the library at every release (this copy: service worker <code>__SW__</code>); where evidence does not exist the value is marked unknown. The recommendations in 03 and 06 are proposals for the owner to challenge before any cleanup begins.</p>
+  <nav class="ci-index" aria-label="Sections">
+    <a class="app-chip app-control" href="#method">01 Method</a>
+    <a class="app-chip app-control" href="#invariants">02 Invariants</a>
+    <a class="app-chip app-control" href="#primitives">03 Primitives</a>
+    <a class="app-chip app-control" href="#metrics">04 Metrics</a>
+    <a class="app-chip app-control" href="#case">05 Case Study</a>
+    <a class="app-chip app-control" href="#enforcement">06 Enforcement</a>
+    <a class="app-chip app-control" href="#limits">07 Limits</a>
+  </nav>
+</section>
+
+<!-- ================================================================ 01 -->
+<section class="app-section" id="method">
+  <p class="app-section-kicker">01 · Methodology</p>
+  <h2 class="app-section-title">Small Rules, Strong Consequences</h2>
+  <p class="app-section-lede">IDUI is a way of building an interface in which product decisions stay with the page, behavior lives in a small vocabulary of primitives, and everything visual is derived from a few orthogonal rules and one set of tokens. Its aim is the smallest number of independent design decisions needed to express the product correctly.</p>
+
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <div class="app-card-section">
+      <p class="app-surface-label">Why it exists</p>
+      <div class="app-prose">
+        <h3>A refusal, not a philosophy</h3>
+        <p>IDUI did not begin as an attempt to write a UI methodology. It began as a refusal to keep fixing CSS symptoms. The builder, a graphic designer without formal software-engineering training, kept meeting the same cycle from AI-assisted work: the agent sees a visual problem, adds CSS, the bug moves, another override lands, the old rule stays, the page looks right on the screen in front of it, and the architecture is worse than before. The dirt goes under the rug. The reaction was not to repair the pages more carefully but to repair the system that produces the pages.</p>
+        <p>Two instincts from that period became rules. The first is about instruction. "Make this page follow that page" is reference-driven: it asks the agent to copy an instance, and an instance can always be misread — spacing copied wrong, a context-specific class kept, an old bug inherited, a new local exception created. IDUI asks instead for the rule that produced both pages, and derives the new page from it. A rule is much harder to misinterpret than an example. The second is a dislike of fractions: 18px here and 20px there, 0.28 and 0.34, a variant that is almost another variant. Those are continuous local discretion, and every one is a decision that nobody meant to make. The method prefers a discrete space — one blur, two material weights, three control floors, eight type steps — so the architecture makes the decision once and pages cannot make it again.</p>
+        <p>The aim is the line the builder stated for it: <em>if the architecture is clever enough to design itself, the job is done, and creativity can go anywhere it likes.</em> For publication: the purpose of the architecture is to make routine interface decisions automatic, so that human attention is spent on product, composition, content and experience rather than on styling decisions that should never have been decisions. IDUI does not remove design. It removes the repeated decisions that were never design.</p>
+      </div>
+      </div>
+    </article>
+    <article class="app-card app-surface">
+      <div class="app-card-section">
+      <p class="app-surface-label">The problem it solves</p>
+      <div class="app-prose">
+        <h3>Historical differences are not design concepts</h3>
+        <p>The first Sindhorn Midtown Internal app grew fast: 1,167 commits in its first eight days. By 3 September 2026 it carried 30 route stylesheets, 715 <code>!important</code> declarations, 71 <code>backdrop-filter</code> rules outside the material file, 70 distinct font sizes, 36 distinct radii and 10 separate card implementations. Three routes had each named the same accent color under their own variable. The material every page used had been re-described, slightly differently, by every page.</p>
+        <p>An early step in the rebuild was to inspect and classify roughly two hundred historical card classes and a 61-name material registry. That work was stopped. The owner asked instead whether a much smaller set of rules could make most of those distinctions irrelevant. One question replaced the inventory: <strong>does this element draw an edge?</strong> If it does, it is a surface and takes the one material. If it only arranges its children, it takes nothing. If the question does not apply, the element is outside the rule. That way of thinking is the foundation of everything below.</p>
+      </div>
+      </div>
+    </article>
+  </div>
+
+  <h3 class="app-section-subhead">Three concerns, kept apart</h3>
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <p class="app-surface-label">Composition</p>
+      <h3 class="app-surface-title">What exists on this page, and in what order?</h3>
+      <p class="app-surface-copy">Belongs to page code and is authored on purpose. Today has a hero, business metrics, F&amp;B, rooms, outlook and notes; Jobs has filters, job records, status and actions; Brand has hotel facts and a business card. IDUI never generates information architecture.</p>
+      <div class="app-card-section">
+        <p class="app-surface-label">A page author decides</p>
+        <p class="app-surface-copy">Content and its meaning. Hierarchy, order and grouping. Domain semantics. Which behavioral primitive a thing needs. Semantic tone or state where it cannot be derived.</p>
+      </div>
+      <div class="app-card-section">
+        <p class="app-surface-label">A page author never decides</p>
+        <p class="app-surface-copy">Radius. Blur. Fill opacity. Typeface, size or weight. Border appearance. A color for a component. A spacing value. A control height. An animation. What a card looks like. <strong>Pages compose. Pages do not style.</strong></p>
+      </div>
+    </article>
+
+    <article class="app-card app-surface">
+      <p class="app-surface-label">Behavior</p>
+      <h3 class="app-surface-title">What does this thing actually do?</h3>
+      <p class="app-surface-copy">Belongs to a minimal vocabulary of primitives: button, field, selector, check, disclosure, dialog, toast, chip, navigation, code entry. Each exists because it has a genuinely different interaction contract, state machine, keyboard and focus behavior, accessibility semantics or lifecycle. The vocabulary is necessary; the goal is the smallest one that behavior justifies. <strong>Behavior earns vocabulary. Appearance does not.</strong></p>
+    </article>
+
+    <article class="app-card app-surface">
+      <p class="app-surface-label">Appearance</p>
+      <h3 class="app-surface-title">Given what it is, its state and where it sits, what does it look like?</h3>
+      <p class="app-surface-copy">Derived, never authored per page: semantic and contextual properties go in, invariant rules decide the treatment, tokens supply the values. A component may expose surface, tone, state, priority and hierarchy. It never exposes a styling knob.</p>
+      <table class="ci-ref ci-ref-table">
+        <tbody>
+          <tr><th>Declare</th><td><code>data-tone="danger"</code> — the reading is failing</td></tr>
+          <tr><th>Never</th><td><code>color:#E3A2A8</code> — a page choosing a red</td></tr>
+          <tr><th>Declare</th><td><code>.app-overlay</code> — this surface floats above content</td></tr>
+          <tr><th>Never</th><td><code>background:rgba(38,32,49,.72)</code> — a page choosing a weight</td></tr>
+          <tr><th>Declare</th><td><code>aria-pressed="true"</code> — this chip is selected</td></tr>
+          <tr><th>Never</th><td><code>border-width:2px</code> — a page drawing selection</td></tr>
+        </tbody>
+      </table>
+      <p class="app-note">Changing <code>class="warning-card"</code> into <code>data-tone="warning"</code> is not by itself invariant-driven. Attributes, classes and tokens are mechanisms. What matters is where the decision originates: if page code still picks the look, the syntax changed and the architecture did not.</p>
+    </article>
+  </div>
+
+  <h3 class="app-section-subhead">The fourth concern: validation</h3>
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <p class="app-surface-label">Validation</p>
+      <h3 class="app-surface-title">Is the resulting state legal?</h3>
+      <p class="app-surface-copy">An invariant that lives only in a document is weaker than one that can refuse an invalid result. Composition asks what belongs; behavior asks what it does; appearance asks what treatment follows; validation asks whether the state that results is allowed. It belongs to contracts: a declared condition, measured on the real output, with a consequence when it fails.</p>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Composition</th><td>What belongs here? → pages</td></tr>
+        <tr><th>Behavior</th><td>What does it do? → primitives</td></tr>
+        <tr><th>Appearance</th><td>What treatment follows? → invariants and tokens</td></tr>
+        <tr><th>Validation</th><td>Is the resulting state legal? → contracts</td></tr>
+        <tr><th>Around all four</th><td>Variation explores within the valid space.</td></tr>
+      </tbody></table>
+      <p class="app-note">Rules define the valid design space. People and generators are free to explore inside it. The rules are hard; the result is not. This is what separates the method from a component library: a library offers approved parts, a contract refuses disallowed outcomes whatever parts produced them.</p>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">Invariant maturity</p>
+      <div class="app-metric-grid" data-values="text">
+        <div class="app-metric"><span class="app-metric-label">Level 1 · Documented</span><span class="app-metric-value">A written rule</span><span class="app-metric-note">"Glass must not nest." Followed by discipline; broken politely.</span></div>
+        <div class="app-metric"><span class="app-metric-label">Level 2 · Machine-enforced</span><span class="app-metric-value">A check rejects violations</span><span class="app-metric-note">The nested-glass smoke fails the build on a blurred element inside glass.</span></div>
+        <div class="app-metric"><span class="app-metric-label">Level 3 · Adversarially exercised</span><span class="app-metric-value">The system searches for violations</span><span class="app-metric-note">Conditions that might break the rule are generated on purpose, and the rule must survive them. The Betta contract validator (05) is the one Sindhorn example.</span></div>
+      </div>
+    </article>
+  </div>
+
+  <h3 class="app-section-subhead">Either, or, neither</h3>
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <p class="app-surface-label">The shape of a rule</p>
+      <h3 class="app-surface-title">Does this element draw a bounded foreground surface?</h3>
+      <div class="app-card-section">
+        <div class="app-metric-grid" data-values="text">
+          <div class="app-metric"><span class="app-metric-label">Either</span><span class="app-metric-value">Surface</span><span class="app-metric-note">It draws an edge, a border or a fill. It takes the canonical material.</span></div>
+          <div class="app-metric"><span class="app-metric-label">Or</span><span class="app-metric-value">Structure</span><span class="app-metric-note">It only arranges its children. It stays transparent and draws nothing.</span></div>
+          <div class="app-metric"><span class="app-metric-label">Neither</span><span class="app-metric-value">Outside</span><span class="app-metric-note">Text, an icon, a hairline, a chart line, a color swatch. The rule does nothing.</span></div>
+        </div>
+      </div>
+      <div class="app-card-section">
+        <p class="app-surface-copy">The third outcome is the important one. IDUI does not require every element to take part in every rule, and it refuses to invent a category just so that everything can be classified. <strong>Non-participation is a valid outcome.</strong> Where a domain genuinely has more than three states, the rule says so; the trinary shape is a preference, not a law.</p>
+      </div>
+    </article>
+  </div>
+
+  <h3 class="app-section-subhead">Orthogonality</h3>
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <div class="app-card-section">
+      <p class="app-surface-label">One rule, one concern</p>
+      <div class="app-prose">
+        <h3>The interface is the intersection, not a component per intersection</h3>
+        <p>Never write "a selected, critical, floating, interactive card looks like X". Separate the dimensions: surface? floating? nested? interactive? pressed? tone? disabled? Each invariant owns one, and the final treatment is what they produce together.</p>
+        <p>Worked example from production, the job status control (r23): it is a badge, so it takes the badge tint by tone; it is a selector, so it opens a listbox; it is compact, so it takes the inline height floor; it sits inside a card, so it drops the blur. Four rules meet and no new component exists. Its open menu is lifted to <code>&lt;body&gt;</code> because glass never nests — the library's one runtime geometry, never a page's.</p>
+      </div>
+      <table class="ci-ref ci-ref-table">
+        <tbody>
+          <tr><th>Invariant</th><td>Decides <em>which</em> treatment applies. A bounded surface → the on-page material weight.</td></tr>
+          <tr><th>Token</th><td>Decides the <em>value</em> of that treatment. <code>--app-glass-fill</code>, <code>--app-glass-filter</code>, <code>--radius-surface</code>, <code>--control</code>, <code>--type-body</code>.</td></tr>
+          <tr><th>Page</th><td>Knows neither. It never writes <code>.30</code>, <code>18px</code>, <code>14px</code> or <code>13px</code>, because those are system decisions.</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </article>
+  </div>
+
+  <h3 class="app-section-subhead">What the method protects</h3>
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <p class="app-surface-label">Composition freedom</p>
+      <h3 class="app-surface-title">Invariant appearance must not become invariant composition</h3>
+      <p class="app-surface-copy">A factsheet, a job tracker, a digital business card and the Today dashboard have very different compositions and obey the same appearance laws. The system determines treatment, not product meaning. Over-correcting into pages that all look structurally identical is a failure of the method, not a success.</p>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">Complexity containment</p>
+      <h3 class="app-surface-title">Concentrate complexity where it creates value; eliminate it where it only creates choices</h3>
+      <p class="app-surface-copy">The Betta atmosphere is deliberately complex: a 533,943-byte WebGL runtime, shaders, an eight-period day cycle, satellite imagery as its only live input. That complexity is intrinsic and it is contained behind one canvas and one API. It justifies nothing in the card taxonomy, in spacing, in blur variants, in page materials or in transitions. Whenever complexity appears, ask whether it is intrinsic to the product or merely accumulated by the implementation. Preserve and contain the first; find the invariant that makes the second disappear.</p>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">Performance as architecture</p>
+      <h3 class="app-surface-title">A rendering constraint that changes what may exist is an invariant</h3>
+      <p class="app-surface-copy">"Glass never nests" is physics: <code>backdrop-filter</code> cannot sample past an ancestor that already has one, so nested glass renders as a flat tint whatever the CSS asks for. This was measured, not reasoned — an identical dropdown blurred on the F&amp;B route and not on the library page, because the specimen container was itself glass. The transition ladder of 4 September (r13–r14e) is the same lesson from the other side: <code>view-transition-name</code> on the page host made it a backdrop root and flattened every card on a real phone, while headless Chrome barely showed it. Rules of this kind are first-class and are separated from design decisions: only the second kind is open to revision.</p>
+    </article>
+    <article class="app-card app-surface">
+      <div class="app-card-section">
+      <p class="app-surface-label">Working with an AI agent</p>
+      <div class="app-prose">
+        <h3>Do not ask the agent to rediscover taste that is already encoded</h3>
+        <p>The failure mode is familiar: inspect many historical variants, classify them, preserve the distinctions, generate more local decisions. The IDUI loop is different: read the invariants, understand the semantics, pick the behavior primitive, compose the page, derive the appearance, validate. The agent behaves like a compiler of product intent through design law rather than an independent visual designer.</p>
+        <p>The instruction follows the same shape. The agent is never told to make one page look like another; it is told which rule both pages obey, and a page that cannot be derived from the rules is a missing rule, not a missing reference. By default the agent invents nothing visual: no radius, blur, material, shadow, card type, type hierarchy, animation, control height, semantic color or spacing. When the existing invariants cannot express a result it stops, names the missing semantic requirement, tests whether an existing invariant is incomplete, runs the new-invariant test, and reports before introducing vocabulary. In this project that is written into <code>AGENTS.md</code> as "rules over inventories" and the inventory tripwire.</p>
+      </div>
+      </div>
+    </article>
+  </div>
+
+  <h3 class="app-section-subhead">Workflow for migrating a legacy interface</h3>
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <div class="app-prose">
+        <ol>
+          <li><strong>Inspect rendered outcomes.</strong> Start from what people see and do, never from class names.</li>
+          <li><strong>Separate behavior from appearance.</strong> Which differences are interaction, state or accessibility; which are styling and history.</li>
+          <li><strong>Identify invariants.</strong> Seek the smallest rules that explain the appearance. Run the simplification checkpoint before any table grows past a modest size.</li>
+          <li><strong>Preserve genuine behavior.</strong> Map distinct interactions to primitives.</li>
+          <li><strong>Delete appearance-only taxonomy.</strong> Keep a historical variant only while migration needs it, and say so.</li>
+          <li><strong>Move values into tokens.</strong> No page-level design literals.</li>
+          <li><strong>Move visual decisions into invariants.</strong> Pages stop controlling appearance.</li>
+          <li><strong>Compose with primitives.</strong> Page-specific content and hierarchy stay.</li>
+          <li><strong>Add enforcement.</strong> A rule that lives only in a document will be broken politely.</li>
+          <li><strong>Validate real output.</strong> Real phones, both themes, long content, nested surfaces, reduced motion, performance. A headless browser is evidence, not proof.</li>
+        </ol>
+      </div>
+      <p class="app-note">In Sindhorn this order is literal: the library page came first (3 September), the ratchet froze duplication the same day, the glass rule replaced the registry, and pages landed one at a time on top — Today, F&amp;B, Brand, Messages, Settings, Jobs, Voice, Readability — each verified live before the next.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ================================================================ 02 -->
+<section class="app-section" id="invariants">
+  <p class="app-section-kicker">02 · Invariants</p>
+  <h2 class="app-section-title">The Current Set, Formally</h2>
+  <p class="app-section-lede">The smallest set that explains the production appearance today. Each uses one schema. A specimen in the UI Library illustrates a rule; it never defines it, and every rule below is meant to be understood without its examples.</p>
+  <div class="app-stack">
+    <div class="app-row"><span class="app-badge" data-tone="success">Implemented</span><span class="app-utility-note">live in production and holding</span></div>
+    <div class="app-row"><span class="app-badge">Partial</span><span class="app-utility-note">documented and followed, not machine-checked</span></div>
+    <div class="app-row"><span class="app-badge" data-tone="quiet">Proposed</span><span class="app-utility-note">not production behavior</span></div>
+  </div>
+
+  <div class="app-stack">
+
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-MATERIAL-SURFACE</p><span class="app-badge" data-tone="success">Implemented</span></div>
+      <h3 class="app-surface-title">Material membership</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>Which elements receive the frosted material.</td></tr>
+        <tr><th>Question</th><td>Does this element draw an edge — a border or a fill?</td></tr>
+        <tr><th>Either</th><td>Yes: it is a surface on the atmosphere. It takes the one material: fill, blur, edge.</td></tr>
+        <tr><th>Or</th><td>No, it only arranges its children: it is structure and takes nothing. A frameless utility action is structure.</td></tr>
+        <tr><th>Neither</th><td>Text, icons, hairlines, focus rings, chart lines. A color swatch draws a fill but the fill is data, not a surface; it is outside the rule.</td></tr>
+        <tr><th>Consequence</th><td><code>.app-card</code>, <code>.app-control</code> and the components that are cards by definition (<code>.app-surface</code>, <code>.app-action-card</code>, <code>.app-disclosure</code>, <code>.app-masthead</code>, <code>.app-navbar</code>) get material from <code>app-glass.css</code> alone. A well — badge, avatar, field input — draws a fill, so it borrows the blur and keeps its own tokened tint.</td></tr>
+        <tr><th>Inputs</th><td>Whether the component declares an edge. Nothing about its page, route, department or content.</td></tr>
+        <tr><th>Forbidden</th><td>A page or component declaring <code>background</code>, <code>border-color</code> or <code>backdrop-filter</code>. An empty frame drawn "to have no background" — an unpainted edge is still an edge.</td></tr>
+        <tr><th>Exceptions</th><td>None. This rule replaced a 61-name hand-maintained registry, and a rule-with-exceptions would be that registry again.</td></tr>
+        <tr><th>Enforcement</th><td><code>ci-page-render-smoke.mjs</code> reads the computed material of every canonical selector (CARD, BARE, WELL, OVERLAY). <code>page-centralization-audit.mjs</code> rejects <code>backdrop-filter</code> anywhere but <code>app-glass.css</code>. The ratchet counts material rules outside the canonical file.</td></tr>
+        <tr><th>Specimens</th><td><code>/ci</code> §01 One Frosted Material, §05 Cards Communicate Role, §24 What Holds the System Together.</td></tr>
+      </tbody></table>
+    </article>
+
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-MATERIAL-WEIGHT</p><span class="app-badge" data-tone="success">Implemented</span></div>
+      <h3 class="app-surface-title">Two weights of one material</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>How much pigment a surface carries.</td></tr>
+        <tr><th>Question</th><td>Does this surface float above page content rather than sit on the atmosphere?</td></tr>
+        <tr><th>Either</th><td>Yes — a dialog, sheet, menu, toast, or a sticky table column over scrolling cells: overlay weight, <code>--app-glass-overlay-fill</code> (.72).</td></tr>
+        <tr><th>Or</th><td>No — a card, the masthead, the navbar: on-page weight, <code>--app-glass-fill</code> (.30), light enough for the Betta to show through.</td></tr>
+        <tr><th>Neither</th><td>Not a surface (see INV-MATERIAL-SURFACE).</td></tr>
+        <tr><th>Consequence</th><td>Same blur either way. There is no third recipe for a surface. The overlay weight is never pushed past about .92; at that opacity it reads as solid black and stops being glass, which is how a legacy menu ended at .98.</td></tr>
+        <tr><th>Inputs</th><td>Whether the component is an overlay (<code>.app-overlay</code>) — a lifecycle fact, not a look.</td></tr>
+        <tr><th>Forbidden</th><td>A component choosing its own opacity. A "stronger" or "lighter" glass for one page.</td></tr>
+        <tr><th>Exceptions</th><td>None.</td></tr>
+        <tr><th>Enforcement</th><td>Render smoke: <code>.app-overlay</code>, <code>.app-sheet</code>, <code>.app-toast</code> must compute to OVERLAY; <code>.app-table tbody th</code> to STICKY.</td></tr>
+        <tr><th>Specimens</th><td>§08 One Selector, One Menu; §10 One Dialog Standard; §11 Dense Data Scrolls; §17 A Transient Confirmation.</td></tr>
+      </tbody></table>
+    </article>
+
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-MATERIAL-NESTING</p><span class="app-badge" data-tone="success">Implemented</span></div>
+      <h3 class="app-surface-title">Glass never nests</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>Rendering physics of <code>backdrop-filter</code>.</td></tr>
+        <tr><th>Question</th><td>Is this material surface inside another material surface?</td></tr>
+        <tr><th>Either</th><td>Yes: it keeps its tint and drops the blur. An overlay inside an overlay takes the near-solid nested tint (.98) because its tint alone must carry legibility.</td></tr>
+        <tr><th>Or</th><td>No: the normal blur applies.</td></tr>
+        <tr><th>Neither</th><td>Not a surface.</td></tr>
+        <tr><th>Consequence</th><td>Structural selectors in <code>app-glass.css</code> (<code>.app-card .app-control</code>, <code>.app-overlay .app-overlay</code> …) remove the blur. A selector menu opened inside a card is lifted to <code>&lt;body&gt;</code> so it can blur at all. A card never contains a card; groups inside one card are <code>.app-card-section</code>s separated by a hairline.</td></tr>
+        <tr><th>Inputs</th><td>DOM ancestry only.</td></tr>
+        <tr><th>Forbidden</th><td>A route fighting the rule or giving a nested surface its own blur. Opacity below 1, a transform, or <code>view-transition-name</code> on any ancestor of frosted cards — each makes the ancestor a backdrop root (r14d, reverted).</td></tr>
+        <tr><th>Exceptions</th><td>None. This is measured physics, not a design choice, and is not open to revision.</td></tr>
+        <tr><th>Enforcement</th><td><code>nested-glass-smoke.mjs</code> renders 13 routes and fails on any blurred element inside a glass surface.</td></tr>
+        <tr><th>Specimens</th><td>§05, §08, §23 One Job, Where It Stands (the nested status control).</td></tr>
+      </tbody></table>
+    </article>
+
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-TOKEN-LOCALITY</p><span class="app-badge" data-tone="success">Implemented</span></div>
+      <h3 class="app-surface-title">Values live in two files</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>Where a design value may be written.</td></tr>
+        <tr><th>Question</th><td>Is this a design value — a color, size, radius, duration, opacity, blur?</td></tr>
+        <tr><th>Either</th><td>Yes: it exists once, as a token in <code>app-tokens.css</code> or as the material in <code>app-glass.css</code>, and is referenced by name everywhere else.</td></tr>
+        <tr><th>Or</th><td>No: it is geometry or structure (a grid, a padding, a gap) and may be declared by the component in <code>app-components.css</code>, preferably through a space or radius token.</td></tr>
+        <tr><th>Neither</th><td>Data rendered into markup: a swatch's SVG <code>fill</code>, an image's ratio.</td></tr>
+        <tr><th>Consequence</th><td>Eight type steps, three weights, zero tracking, six radii, seven spaces, three control heights, two durations and one easing. A page module contains no literal at all.</td></tr>
+        <tr><th>Inputs</th><td>The kind of value.</td></tr>
+        <tr><th>Forbidden</th><td>Any style attribute or <code>&lt;style&gt;</code> block; a color or pixel literal in a template; a route stylesheet.</td></tr>
+        <tr><th>Exceptions</th><td>Two <code>#000</code> mask stops and one scrim <code>rgba</code> in <code>app-components.css</code>; a 6px radius; the legacy rules in <code>fonts.css</code> kept for <code>/share</code>. All in the library, none in a page. Listed here so they are not mistaken for permission.</td></tr>
+        <tr><th>Enforcement</th><td><code>page-centralization-audit.mjs</code> (style attributes, style blocks, color literals, pixel values, undefined classes); the ratchet's distinct-font-size, distinct-radius and inline-style metrics, which may only fall.</td></tr>
+        <tr><th>Specimens</th><td>§02 Five Values, Named Once; §03 One Typeface, Clear Roles; §04 Rounded, Never Circular.</td></tr>
+      </tbody></table>
+    </article>
+
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-TYPE</p><span class="app-badge" data-tone="success">Implemented</span></div>
+      <h3 class="app-surface-title">One typeface, clear roles</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>Typography.</td></tr>
+        <tr><th>Question</th><td>What role does this text play — display, section, title, lead, body, small, micro, caption?</td></tr>
+        <tr><th>Outcomes</th><td>Eight roles, each a token step; three weights (thin for display only, regular, bold); tracking is zero everywhere and is a release invariant; LINE Seed Sans TH for Latin and Thai alike.</td></tr>
+        <tr><th>Consequence</th><td>The component that owns the role sets the size. A page never writes <code>font-size</code>, <code>font-weight</code>, <code>letter-spacing</code> or a family.</td></tr>
+        <tr><th>Inputs</th><td>The role, declared by the component class (<code>.app-hero-title</code>, <code>.app-surface-label</code>, <code>.app-metric-value</code>).</td></tr>
+        <tr><th>Forbidden</th><td>A second family; a fourth weight; a ninth size; any tracking; per-page type.</td></tr>
+        <tr><th>Exceptions</th><td>None in the shell.</td></tr>
+        <tr><th>Enforcement</th><td><code>.github/tests/font-architecture.test.mjs</code>; the ratchet's distinct-font-size metric (70 → 27 across all CSS on disk, 2 in the foundation, both legacy).</td></tr>
+        <tr><th>Specimens</th><td>§03 One Typeface, Clear Roles.</td></tr>
+      </tbody></table>
+    </article>
+
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-TONE</p><span class="app-badge" data-tone="success">Implemented</span></div>
+      <h3 class="app-surface-title">A state is a tone, never a color</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>Semantic color.</td></tr>
+        <tr><th>Question</th><td>Is this element in a state the employee must notice?</td></tr>
+        <tr><th>Outcomes</th><td>success · danger · error · loading · quiet — declared as <code>data-tone</code>; or no tone. The domain has five states, so the rule has five outcomes and does not pretend to three.</td></tr>
+        <tr><th>Consequence</th><td>Two status colors exist (<code>--app-success</code>, <code>--app-danger</code>) plus the accent and the ink. A tone changes what a component already draws — a label, a value, a badge tint — and never adds a decoration. A badge is never the only carrier of meaning.</td></tr>
+        <tr><th>Inputs</th><td>The state, from data. A page says "tight deadline"; it does not say "red".</td></tr>
+        <tr><th>Forbidden</th><td>A color literal in a page; a new tone for one page; color as the sole signal.</td></tr>
+        <tr><th>Exceptions</th><td>None.</td></tr>
+        <tr><th>Enforcement</th><td>Audit rejects color literals in page modules. There is no check yet that the library's own colors are only tokens (see 06).</td></tr>
+        <tr><th>Specimens</th><td>§15 A Count, Never the Only Signal; §20 Operational States Stay Calm; §23.</td></tr>
+      </tbody></table>
+    </article>
+
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-MOTION</p><span class="app-badge" data-tone="success">Implemented</span></div>
+      <h3 class="app-surface-title">Two durations, one easing</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>Motion.</td></tr>
+        <tr><th>Question</th><td>Is this press feedback, or a component settling into a new state?</td></tr>
+        <tr><th>Either</th><td>Press feedback: <code>--motion-fast</code> 160ms.</td></tr>
+        <tr><th>Or</th><td>Settling: <code>--motion-ms</code> 280ms. A data track drawing itself in is the one longer reveal (920ms).</td></tr>
+        <tr><th>Neither</th><td>Nothing moves. Page changes are a plain swap; the navbar set push is the shell's one choreography.</td></tr>
+        <tr><th>Consequence</th><td>One easing, <code>--motion-ease</code>. Reduced motion shortens the same tokens near zero rather than maintaining a second motion-safe copy of any component.</td></tr>
+        <tr><th>Inputs</th><td>The kind of change.</td></tr>
+        <tr><th>Forbidden</th><td>A third duration, another curve, a transition on an ancestor of glass (see INV-MATERIAL-NESTING).</td></tr>
+        <tr><th>Exceptions</th><td>None.</td></tr>
+        <tr><th>Enforcement</th><td>Render smoke <code>MOTION</code> list reads computed <code>transition-duration</code> and <code>timing-function</code> off eleven canonical selectors and the skeleton animation.</td></tr>
+        <tr><th>Specimens</th><td>§04 Rounded, Never Circular (shape and motion); §21 Reserve the Shape Before the Data.</td></tr>
+      </tbody></table>
+    </article>
+
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-CONTROL-HEIGHT</p><span class="app-badge">Partial</span></div>
+      <h3 class="app-surface-title">Three floors, by role</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>Tap-target height.</td></tr>
+        <tr><th>Question</th><td>What is tapped — a full-width row, a framed control, or a frameless inline thing?</td></tr>
+        <tr><th>Outcomes</th><td>Row 52px (list row, disclosure, field, code cell, check row) · Control 40px (framed button, chip, selector trigger) · Inline 32px (utility action, badge, compact selector). Text areas size by rows: neither.</td></tr>
+        <tr><th>Consequence</th><td>Nothing but <code>app-tokens.css</code> declares a floor. r28 replaced every literal <code>min-height</code> with these three and changed no visual — "only layout and sizing change is acceptable".</td></tr>
+        <tr><th>Inputs</th><td>The role of the control.</td></tr>
+        <tr><th>Forbidden</th><td>A literal <code>min-height</code> in a component; a fourth floor.</td></tr>
+        <tr><th>Exceptions</th><td>None.</td></tr>
+        <tr><th>Enforcement</th><td><strong>None automated.</strong> Documented as a regression in <code>AGENTS.md</code>; a one-line grep would enforce it (see 06).</td></tr>
+        <tr><th>Specimens</th><td>§09 One Tactile Language; §23.</td></tr>
+      </tbody></table>
+    </article>
+
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-ACTION-WEIGHT</p><span class="app-badge">Partial</span></div>
+      <h3 class="app-surface-title">Actions in one row share one weight</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>Hierarchy of commands.</td></tr>
+        <tr><th>Question</th><td>Do these actions sit in the same row?</td></tr>
+        <tr><th>Either</th><td>Yes: all are framed buttons of equal weight, or all are frameless utilities. Never a primary beside a utility.</td></tr>
+        <tr><th>Or</th><td>No: each row makes its own choice. A full-width single primary is avoided because it reads as a card.</td></tr>
+        <tr><th>Neither</th><td>A lone hero-head action (Share, Sign out) is a utility by position.</td></tr>
+        <tr><th>Consequence</th><td>F&amp;B folder actions became two equal primaries (r27); a job's foot row is a compact selector and a utility, both at the inline floor.</td></tr>
+        <tr><th>Inputs</th><td>Row membership.</td></tr>
+        <tr><th>Forbidden</th><td>Mixed weights in a row.</td></tr>
+        <tr><th>Exceptions</th><td>None known.</td></tr>
+        <tr><th>Enforcement</th><td><strong>None automated.</strong> A markup lint is cheap (see 06).</td></tr>
+        <tr><th>Specimens</th><td>§09 Controls note (width rule); §23.</td></tr>
+      </tbody></table>
+    </article>
+
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-PAGE-PRESENTATION</p><span class="app-badge" data-tone="success">Implemented</span></div>
+      <h3 class="app-surface-title">A page declares no presentation</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>The composition boundary itself.</td></tr>
+        <tr><th>Question</th><td>Is this file a page or a library file?</td></tr>
+        <tr><th>Either</th><td>A page: it renders library classes and semantic attributes, and nothing else. No style attribute, no style block, no color, no pixel, no class the library does not define.</td></tr>
+        <tr><th>Or</th><td>A library file: <code>app-components.css</code> owns geometry and structure; <code>app-glass.css</code> owns material; <code>app-tokens.css</code> owns values.</td></tr>
+        <tr><th>Neither</th><td>A behavior module (<code>app-select.js</code>, <code>app-dialog.js</code>) — it may set the three runtime custom properties a lifted menu needs, and nothing else.</td></tr>
+        <tr><th>Consequence</th><td>This is the appearance-coverage gate in practice: 546 classes rendered by the shell, 166 by the library page, 59 by Voice — every one defined in the foundation, zero findings.</td></tr>
+        <tr><th>Inputs</th><td>File role.</td></tr>
+        <tr><th>Forbidden</th><td>"Just this once" inline CSS. The owner's standing instruction: if a change requires inline, say so first.</td></tr>
+        <tr><th>Exceptions</th><td>None.</td></tr>
+        <tr><th>Enforcement</th><td><code>page-centralization-audit.mjs</code> on every shell module and both standalone pages; the ratchet's inline metrics.</td></tr>
+        <tr><th>Specimens</th><td>The whole of <code>/ci</code> and <code>/voice</code>: both pass the same audit as a route.</td></tr>
+      </tbody></table>
+    </article>
+
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-LIBRARY-FIRST</p><span class="app-badge">Partial</span></div>
+      <h3 class="app-surface-title">Designed in the library before a page consumes it</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>Process — where a component and its copy are born.</td></tr>
+        <tr><th>Question</th><td>Does the library already express what the page needs?</td></tr>
+        <tr><th>Either</th><td>Yes: the page consumes it.</td></tr>
+        <tr><th>Or</th><td>No: the library gets it first — a specimen in <code>/ci</code> over the real atmosphere, its computed material locked in the render smoke, its copy in <code>/voice</code> — and only then the page.</td></tr>
+        <tr><th>Neither</th><td>Data and product content, which belong to the page.</td></tr>
+        <tr><th>Consequence</th><td>The library is the executable reference: invariant → allowed inputs → consequence → live specimen → counterexample where useful. The specimen demonstrates the law; it does not create it.</td></tr>
+        <tr><th>Inputs</th><td>Library state.</td></tr>
+        <tr><th>Forbidden</th><td>A page-first component later "promoted" to the library.</td></tr>
+        <tr><th>Exceptions</th><td>None.</td></tr>
+        <tr><th>Enforcement</th><td>Partial: the audit's undefined-class check catches a page inventing a class; extending <code>EXPECT</code> remains discipline.</td></tr>
+        <tr><th>Specimens</th><td>All 24 sections of <code>/ci</code>; Voice §1–18.</td></tr>
+      </tbody></table>
+    </article>
+
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-FORMAT</p><span class="app-badge" data-tone="success">Implemented</span></div>
+      <h3 class="app-surface-title">Copy obeys invariants too</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>Dates, times, money, counts and tone of voice — the same method applied to words.</td></tr>
+        <tr><th>Question</th><td>Is this a date, time, amount or count?</td></tr>
+        <tr><th>Either</th><td>Yes: <code>app-format.js</code> writes it. English <code>5 Sep 2026 · 6 pm</code>, no leading zero, hotel time with no zone suffix; Thai 24-hour with the Buddhist year.</td></tr>
+        <tr><th>Or</th><td>No: it is copy, and it follows the Voice library — American English, one word per thing, Title Case on hero and section titles only, no exclamation marks, errors as "Couldn't …" plus what to do.</td></tr>
+        <tr><th>Neither</th><td>F&amp;B promotion copy marked <code>data-verbatim</code>, rendered as provided.</td></tr>
+        <tr><th>Consequence</th><td>No route formats its own value. The Voice page's specimens are filled by the same module at mount, so the document cannot drift from the code.</td></tr>
+        <tr><th>Inputs</th><td>Value type and language.</td></tr>
+        <tr><th>Forbidden</th><td>A page-local formatter; a rewritten promotion.</td></tr>
+        <tr><th>Exceptions</th><td>None.</td></tr>
+        <tr><th>Enforcement</th><td>Render smoke asserts the six <code>[data-format]</code> specimens on <code>/voice</code> and the artwork-copy derivation.</td></tr>
+        <tr><th>Specimens</th><td><code>/voice</code> Formats table; §17 Artwork copy.</td></tr>
+      </tbody></table>
+    </article>
+
+    <article class="app-card app-surface">
+      <div class="app-row" data-split="true"><p class="app-surface-label">INV-READABILITY</p><span class="app-badge" data-tone="success">Implemented</span></div>
+      <h3 class="app-surface-title">Ink clears the composite on every period</h3>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Concern</th><td>Contrast of text over the live material.</td></tr>
+        <tr><th>Question</th><td>Does this ink role clear 4.5:1 over the glass composite on the darkest and lightest Betta period?</td></tr>
+        <tr><th>Either</th><td>Yes: the role and the period may ship together.</td></tr>
+        <tr><th>Or</th><td>No: either the period's fish changes (Readability Test, seed-reproducible) or the role's token changes. Never a page-local color.</td></tr>
+        <tr><th>Neither</th><td>Decoration that carries no meaning.</td></tr>
+        <tr><th>Current fact</th><td>The Readability Test (r29a) measures ink, muted and accent from the rendered frame, softened and composited with the glass fill. Ink and accent pass on every bundled period. Muted at <code>.55</code> read 2.7–3.9:1 on all of them, and measured across 40 fish on production it passed 6 - none in a bright period - because translucent ink has a contrast ceiling (5.9:1 over black at .55; 4.5:1 only under a sky darker than 25% grey). The worst sample sits mid-screen, not at a tail edge (excluding the page gutters rescued 1 of 40), and the glass fill is not a lever for muted (it darkens text and ground alike). <strong>Since r29d <code>--app-muted</code> is <code>rgba(250,247,245,.70)</code></strong>, the lowest alpha at which a chosen fish clears 4.5:1 with a margin; the bar is unchanged.</td></tr>
+        <tr><th>Decision</th><td>Judge by the standard: muted is 12px normal text and must clear 4.5:1 like the others - no discount, no measuring region, no palette cap in the randomizer. The first decision (5 September, afternoon) was "no token change"; the measurement overturned it the same evening: the token was the ceiling, not the fish. One token moved, stated once in <code>app-tokens.css</code>, mirrored in <code>betta-readability.js</code>, aliased by the route token <code>--fnb-muted</code>. All eight periods were then chosen and saved by the owner and locked (5 September, 20:46).</td></tr>
+        <tr><th>Enforcement</th><td>At authoring, Level 3: the Readability Test refuses Save until ink, muted and accent all clear 4.5:1 on the lowest reading observed while the period was on screen. At the server (r29b): <code>sindhorn_betta_period_save_v1</code> re-checks the reading and refuses below 4.5:1, so the contract holds without the page. At release (r29c): <code>betta-periods-release-smoke.mjs</code> reads the live map anonymously and requires that <code>generateBettaStyle(baseline, seed)</code> under the code about to ship reproduces every saved fish - a randomizer change cannot silently redraw a measured fish, and since all eight are saved the gate runs with <code>--require-all</code>: a missing period fails the release. A headless WebGL contrast gate was rejected as brittle; the reading is trusted because the server refused everything else.</td></tr>
+        <tr><th>Specimens</th><td><code>#readability</code>; §12 Numbers Read as Numbers (the reading specimen).</td></tr>
+      </tbody></table>
+    </article>
+
+  </div>
+
+  <h3 class="app-section-subhead">Before adding a rule</h3>
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <div class="app-card-section">
+      <p class="app-surface-label">The new-invariant test</p>
+      <div class="app-prose">
+        <ol>
+          <li>Is it based on semantics or context rather than one page?</li>
+          <li>Does it govern a real design consequence?</li>
+          <li>Will it apply beyond one instance?</li>
+          <li>Does it remove author discretion?</li>
+          <li>Is it orthogonal to the existing rules?</li>
+          <li>Can it be explained without listing pages or components?</li>
+          <li>Can it be tested automatically?</li>
+          <li>Does it create an exception to another rule?</li>
+          <li>Would amending an existing rule be cleaner?</li>
+          <li>Is it actually a product decision in disguise?</li>
+        </ol>
+        <p>If the wording needs "except on Today", "except in Brand" or "except for this card", stop: the rule is probably wrong. Do not replace component explosion with invariant explosion.</p>
+      </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ================================================================ 03 -->
+<section class="app-section" id="primitives">
+  <p class="app-section-kicker">03 · Primitives</p>
+  <h2 class="app-section-title">Behavior Earns Vocabulary</h2>
+  <p class="app-section-lede">An audit of what actually behaves in the shell today, judged by the new-primitive test: what interaction, state machine, keyboard and focus behavior, accessibility semantics or lifecycle does it have that nothing else expresses? Where the only difference is appearance, it is not a primitive. No count is targeted.</p>
+
+  <div class="app-card app-surface">
+    <div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Button</h3><span class="app-badge" data-tone="success">Keep · one</span></div><p class="app-note"><code>.app-primary</code> and <code>.app-utility-action</code> · native <code>&lt;button&gt;</code> / <code>&lt;a&gt;</code> · a command · focus ring, press scale</p><p class="app-surface-copy">One behavior, two priorities. Primary is framed at the control floor, utility is frameless at the inline floor; that is weight, not behavior. Name them as the two priorities of one primitive and stop counting two.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Chip</h3><span class="app-badge" data-tone="success">Keep</span></div><p class="app-note"><code>.app-chip</code> · button with <code>aria-pressed</code>, or a jump link · a filter or a toggle</p><p class="app-surface-copy">A pressed state that persists is a different state machine from a command. The rail (Open · Stuck · Done · All) and the transport (Previous · Play · Next · Live) are both chips.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Icon control</h3><span class="app-badge">Merge naming</span></div><p class="app-note"><code>.app-back-control</code>, <code>.app-masthead-action</code>, <code>.app-masthead-account</code> · one 36px square by token · back, close, or a two-state mode</p><p class="app-surface-copy">Three class names for one behavior family already unified by <code>--size-icon-control</code>. The two-state masthead controls (<code>data-mode</code>) are the one genuine state; back and close are commands. Candidate for one name with a mode, once the masthead's nesting is confirmed structural (it is).</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Field</h3><span class="app-badge" data-tone="success">Keep</span></div><p class="app-note"><code>.app-field</code> · native input, textarea, select, search with clear · label, note, native validation</p><p class="app-surface-copy">Native behavior; the library only frames it. The search clear is a field feature, not a primitive.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Code entry</h3><span class="app-badge" data-tone="success">Keep</span></div><p class="app-note"><code>.app-code</code> + <code>app-code.js</code> · six wells · typing advances, backspace retreats, paste fills</p><p class="app-surface-copy">A distinct state machine shared by sign-in and the library specimen. Behavior lives in one module.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Check</h3><span class="app-badge" data-tone="success">Keep</span></div><p class="app-note"><code>.app-check</code> · native checkbox in a row · done / option modes</p><p class="app-surface-copy">Native. The two modes differ in where the box sits, which is composition.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Selector</h3><span class="app-badge" data-tone="success">Keep · delete legacy</span></div><p class="app-note"><code>.app-select</code> + <code>app-select.js</code> · <code>role="listbox"</code> / <code>option</code>, <code>aria-expanded</code> · menu lifted to body inside a card</p><p class="app-surface-copy">Compact is appearance (<code>data-compact</code>), correctly not a second primitive. The same module still carries the legacy <code>selectField</code> / <code>bindSelectField</code> pair for <code>/share</code>: two implementations of one behavior, to be deleted with Phase 7.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Disclosure</h3><span class="app-badge" data-tone="danger">Centralize</span></div><p class="app-note"><code>.app-disclosure</code> · <code>aria-expanded</code> + <code>data-open</code> · one rhythm · the clamp toggle is the same machine</p><p class="app-surface-copy"><strong>The one real behavioral duplicate.</strong> The toggle is written three times — <code>brand-page.js</code>, <code>fnb-page.js</code>, <code>ci-library.js</code> — plus the clamp toggle in F&amp;B. Identical contract; only the per-page persistence differs. One binder with an <code>onToggle</code> callback removes three copies.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Dialog</h3><span class="app-badge" data-tone="success">Keep</span></div><p class="app-note"><code>.app-dialog</code> + <code>app-dialog.js</code> · native <code>&lt;dialog&gt;</code>, <code>showModal</code>, backdrop click closes, <code>returnValue</code> · confirm variant</p><p class="app-surface-copy">The modal lifecycle, once. <code>dialogHead()</code> is the shared head with the close control.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Sheet</h3><span class="app-badge">Merge into dialog</span></div><p class="app-note"><code>.app-sheet</code> · a <code>&lt;dialog&gt;</code> created inside <code>fnb-page.js</code> with the same lifecycle · bottom position, grip</p><p class="app-surface-copy">Identical state machine to the dialog; differs by geometry. By the new-primitive test it is the dialog with <code>data-kind="sheet"</code>, opened by <code>openDialog</code>, and the page-local opener goes away.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Toast</h3><span class="app-badge" data-tone="success">Keep</span></div><p class="app-note"><code>.app-toast</code> + <code>app-toast.js</code> · transient, timed, one at a time</p><p class="app-surface-copy">A lifecycle nothing else has. Never blocks, never asks.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Navigation</h3><span class="app-badge" data-tone="success">Keep</span></div><p class="app-note"><code>.app-navbar-button</code>, masthead home · <code>aria-current</code> · two sets that push between app and settings</p><p class="app-surface-copy">Route state, owned by <code>shell.js</code>. The set push is the one shell choreography and it is a token, not a page decision.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">Pressable surface</h3><span class="app-badge" data-tone="quiet">Neither</span></div><p class="app-note"><code>.app-action-card</code> · a card that is a link · press feedback</p><p class="app-surface-copy">Not a primitive: the interactive dimension applied to a surface. It is listed so nobody adds "card types" for it.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">State, skeleton, track, badge, table, list</h3><span class="app-badge" data-tone="quiet">Neither</span></div><p class="app-note">display of state and data · no interaction contract</p><p class="app-surface-copy">Structure and state display. They participate in the tone and material rules and have no behavior to earn vocabulary with.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title">View transition</h3><span class="app-badge">Decide</span></div><p class="app-note"><code>app-view.js</code> · retained as the §18 specimen only; the shell does not use it</p><p class="app-surface-copy">A behavior with no consumer. Either the specimen documents a decision (why the shell cuts plainly) or the module retires. Owner's call.</p></div>
+      <div class="app-card-section"><div class="app-row" data-split="true"><h3 class="app-surface-title"><code>.app-quiet-action</code></h3><span class="app-badge" data-tone="danger">Delete</span></div><p class="app-note">alias in <code>app-glass.css</code> · zero uses</p><p class="app-surface-copy">An appearance-only name with no consumer.</p></div>
+    </div>
+  </div>
+
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <div class="app-card-section">
+      <p class="app-surface-label">Reading the audit</p>
+      <div class="app-prose">
+        <h3>Twelve behaviors today, ten by name after the mergers, and none of it a target</h3>
+        <p>The vocabulary is already small because appearance never earned a name in the rebuild. What remains is naming debt (button priorities, icon controls), one appearance-only split (sheet), one alias, and one genuine duplication of behavior (disclosure). Keep chip and button separate: a persistent pressed state is a different contract. Keep toast, dialog and selector separate: their lifecycles differ. Do not merge distinct behaviors to make the list look elegant.</p>
+        <p>The new-primitive test, for anything proposed later: what interaction cannot an existing primitive express; what state machine is genuinely different; what keyboard or focus behavior differs; what accessibility semantics differ; what lifecycle differs; is the difference merely appearance; could an existing primitive plus a semantic state express it? If the only difference is appearance, reject it.</p>
+      </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ================================================================ 04 -->
+<section class="app-section" id="metrics">
+  <p class="app-section-kicker">04 · Metrics</p>
+  <h2 class="app-section-title">What Moved, What Is Unknown</h2>
+  <p class="app-section-lede">Numbers are taken from the committed ratchet baseline of 3 September (<code>20e3361</code>) and from measuring the working tree at <code>558ab67</code> on 5 September. "All" is every CSS file on disk and includes the legacy F&amp;B files kept only for the public <code>/share</code> generator until Phase 7; "shell" is the five foundation files the app actually loads.</p>
+
+  <div class="app-table-wrap">
+    <table class="app-table">
+      <thead><tr><th>Metric</th><th>3 Sep</th><th>5 Sep · all</th><th>5 Sep · shell</th></tr></thead>
+      <tbody>
+        <tr><th>Route stylesheets</th><td>30</td><td>8</td><td>0</td></tr>
+        <tr><th><code>!important</code></th><td>715</td><td>271</td><td>22</td></tr>
+        <tr><th>Material rules outside <code>app-glass.css</code></th><td>71</td><td>23</td><td>1</td></tr>
+        <tr><th>Patch-layer stylesheets</th><td>8</td><td>4</td><td>0</td></tr>
+        <tr><th>Inline <code>&lt;style&gt;</code> blocks</th><td>3</td><td>1</td><td>0</td></tr>
+        <tr><th>Inline <code>style=</code> attributes</th><td>11</td><td>0</td><td>0</td></tr>
+        <tr><th>Distinct font-size literals</th><td>70</td><td>27</td><td>2</td></tr>
+        <tr><th>Distinct radius literals</th><td>36</td><td>18</td><td>2</td></tr>
+        <tr><th>Card implementations</th><td>10</td><td>3</td><td>1</td></tr>
+        <tr><th>Hero implementations</th><td>1</td><td>1</td><td>0</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="app-note">Shell-foundation residue, named so it is not mistaken for permission: 12 <code>!important</code> in <code>fonts.css</code> (the typeface lock) and 10 in <code>app-glass.css</code> (the legacy material aliases and the frameless-utility guard); the one material rule outside the canonical file is the dialog scrim's 7px kernel, kept on purpose in r28; the two font-size literals are legacy <code>/share</code> rules; the radius literals are <code>0</code> and one 6px.</p>
+
+  <h3 class="app-section-subhead">Method metrics</h3>
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <div class="app-metric-grid" data-values="text">
+        <div class="app-metric"><span class="app-metric-label">Appearance rule coverage</span><span class="app-metric-value">3 of 3 pages · 0 findings</span><span class="app-metric-note">Every class rendered by the shell (546), the library (166) and Voice (59) is defined in the foundation; no page presentation. Proxy measure: the audit proves no local decision was written, not that every pixel is explained.</span></div>
+        <div class="app-metric"><span class="app-metric-label">ADPE · discretionary</span><span class="app-metric-value">0</span><span class="app-metric-note">Author decisions per element that pick a look: none in the 11 shell page modules.</span></div>
+        <div class="app-metric"><span class="app-metric-label">ADPE · necessary</span><span class="app-metric-value">≈ 0.11</span><span class="app-metric-note">1,059 elements in the page modules carry about 115 semantic declarations (tone 27, columns 16, values 14, span 13, rule 13, width 18, size 5, gap 4, direction 3, scale 1, stagger 1).</span></div>
+      </div>
+      <div class="app-divider"></div>
+      <div class="app-metric-grid" data-values="text">
+        <div class="app-metric"><span class="app-metric-label">Exception rate</span><span class="app-metric-value">4 known</span><span class="app-metric-note">The selector's three lifted-menu custom properties (runtime geometry); the swatch's SVG fill (data); <code>--app-view-scroll</code> (unused); the library's own 22 <code>!important</code>. All in library or behavior code, none in a page.</span></div>
+        <div class="app-metric"><span class="app-metric-label">Behavioral primitives</span><span class="app-metric-value">12 → 10</span><span class="app-metric-note">Counted in 03; ten after naming button priorities and folding the sheet. Not a target.</span></div>
+        <div class="app-metric"><span class="app-metric-label">Appearance-only primitives</span><span class="app-metric-value">2 + 1 alias</span><span class="app-metric-note">Sheet vs dialog; primary vs utility as separate names; <code>.app-quiet-action</code>.</span></div>
+      </div>
+      <div class="app-divider"></div>
+      <div class="app-metric-grid" data-values="text">
+        <div class="app-metric"><span class="app-metric-label">Invariant maturity</span><span class="app-metric-value">2 · 10 · 1 of 13</span><span class="app-metric-note">Level 1 only: control height, action weight. Level 2: material surface, weight, nesting, token locality, type, tone (page side), motion, page presentation, format, library-first (partial). Level 3: readability - at authoring, at the server (r29b) and at release (r29c).</span></div>
+        <div class="app-metric"><span class="app-metric-label">Literal design values in pages</span><span class="app-metric-value">0</span><span class="app-metric-note">Audit, 5 Sep 2026.</span></div>
+        <div class="app-metric"><span class="app-metric-label">Behavior duplicates</span><span class="app-metric-value">3 + 1</span><span class="app-metric-note">Disclosure toggle ×3, clamp toggle ×1. The only duplication the rebuild left in the shell's behavior.</span></div>
+      </div>
+    </article>
+    <article class="app-card app-surface" data-tone="quiet">
+      <p class="app-surface-label">Unknown</p>
+      <h3 class="app-surface-title">Not manufactured</h3>
+      <p class="app-surface-copy">The hours and cost of the earlier AI-assisted attempts. The exact number of legacy classes ("roughly 200 card classes", "a 61-name registry" are the documents' figures, not remeasured). Time-to-build per page before and after. Defect rates. Whether any of these numbers transfer to another codebase.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ================================================================ 05 -->
+<section class="app-section" id="case">
+  <p class="app-section-kicker">05 · Case Study</p>
+  <h2 class="app-section-title">How the Method Emerged</h2>
+  <p class="app-section-lede">Factual, from the repository's own history and documents. The strength of the case is the evidence, not the builder.</p>
+
+  <div class="app-card app-surface">
+    <div class="app-prose" data-rule="true">
+      <h3>25 August 2026 — the first architecture</h3>
+      <p>The repository begins. The app is aligned to the Flipgazine CI (commit <code>4ca81fb</code>) and given "sticky Liquid Glass chrome". A specialist document maps brand colors and a bilingual typography rule. Each route ships its own stylesheet.</p>
+      <h3>25 August – 1 September — accumulation</h3>
+      <p>1,167 commits in eight days: weather WebGL, Phase 6 push, Phase 8 sky, Phase 9 auth, a wet-glass refraction shader added and removed within a day. Every route re-declared the material under its own names; the accent lived as <code>--fnb-accent</code>, <code>--fs-accent</code> and <code>--settings-accent</code>. A "patch layer" convention appeared: <code>-refinements</code>, <code>-fixes</code>, <code>-polish</code>, <code>-stability</code> stylesheets on top of stylesheets.</p>
+      <h3>Late August — centralizing mature code, and losing the race</h3>
+      <p>A first from-scratch rebuild lost to the live app twice. Route CSS kept reinventing material under new names, and review by phone screenshot could not see that half of the library page's own components had no CSS behind them. The live app gained roughly 200 commits in five days while the rebuild stood still. An extraction attempt lifted 57 rules out of three route stylesheets by script and bolted route names on as co-selectors; it dropped resets, missed sub-elements, left components with no material, and each repair was a patch on a patch. These are the "unsuccessful, expensive attempts" of the origin story; their cost in hours is not recorded.</p>
+      <h3>2 September — rebuild from centralized foundations</h3>
+      <p>Eight requirements are fixed: no reinstall, centralized modules, no inline patches, no per-page CSS, real frosted glass everywhere, the Betta engine intact, fast launch, skeleton loading. The order is fixed too: library first, then rules, then pages one at a time.</p>
+      <h3>3 September — the library, the ratchet and the rule</h3>
+      <p><code>/ci</code> is rebuilt as a standalone page. The centralization ratchet records the baseline (30 route sheets, 715 <code>!important</code>, 70 font sizes) and forbids any metric from rising. The glass membership rule replaces the 61-name registry with one question, after measuring on the library page itself that nested blur renders flat. The two-hundred-class inventory is abandoned.</p>
+      <h3>4 September — Today, and a rule that was wrong</h3>
+      <p>Today is rebuilt on the library (Phase 1). The transition ladder r13–r14e tries four ways to animate page changes; each either lagged or flattened the glass, and the View Transitions attempt made the page host a backdrop root on a real phone. It was reverted the same day to a plain swap. The lesson entered the rules: never put opacity, a transform or a transition name on an ancestor of glass.</p>
+      <h3>5 September — pages on the canonical architecture</h3>
+      <p>r15 to r29a: Settings, Broadcast, the shell cutover (legacy sources deleted, gates retuned), Jobs, the Voice copy library, Artwork copy, control heights, the Readability Test. "Rules over inventories" is written into <code>AGENTS.md</code> with the tripwire: if centralizing needs dozens of variants enumerated, stop and propose the rule.</p>
+      <h3>5 September, later — the contract leaves the page</h3>
+      <p>r29b moves the saved fish to the server: a table nobody can read or write directly, an anonymous read that returns styles and nothing else, and a save RPC that re-checks the 4.5:1 reading itself and refuses below it. r29c adds the release gate: every saved style must still be drawn by its seed under the code about to ship. The contract now holds at authoring, at the server and at release; the page is one of three places it is enforced, not the only one.</p>
+      <h3>5 September, evening — the token was the ceiling</h3>
+      <p>The owner could save the dark half of the day and none of the bright half, and asked whether light fin edges at the screen edge were the cause. Measuring instead of guessing: 40 fish on production, the worst sample mid-screen, the page gutters worth one fish, the glass worth nothing for muted - and the muted token itself unable to pass on any sky brighter than 25% grey. r29d raised <code>--app-muted</code> from .55 to .70 and nothing else; the owner then chose all eight fish in under an hour and locked them. The lesson the method keeps: when every candidate fails, suspect the rule's constant before the candidates.</p>
+      <h3>Result</h3>
+      <p>The shell loads five foundation files and no route CSS. Eleven page modules contain no design literal. One material, two weights, one blur, three control floors, eight type steps, two durations. Twelve behaviors.</p>
+      <h3>Remaining debt</h3>
+      <p>Eight legacy stylesheets and 249 <code>!important</code> kept for <code>/share</code> until Phase 7. Three disclosure toggles and a sheet opener in page code. The legacy selector pair. <code>app-view.js</code> without a consumer. The muted ink below 4.5:1 on every period. Control-height and action-weight rules with no check.</p>
+      <h3>Lessons</h3>
+      <p>Measure, don't reason — nested glass and the transition ladder were both settled by a device, not an argument. A ratchet beats a rule the code cannot yet satisfy. Land one page at a time, verified live. A rule can be vetoed; a list cannot. The specimen page must render the real material or it documents a fiction. Inventories are evidence to inspect, never architecture to preserve.</p>
+    </div>
+  </div>
+
+  <h3 class="app-section-subhead">The clearest specimen: the Betta contract validator</h3>
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <p class="app-surface-label">What the tool does · r29a, 5 September 2026</p>
+      <div class="app-prose">
+        <h3>A generative atmosphere, a fixed contract</h3>
+        <p>The Readability Test (<code>#readability</code>) is where each of the eight periods of the hotel day gets its Betta. For a period it shows a candidate rendered live behind the real interface, with its six-hex-digit seed, its palette swatches, and four actions: Random, Show, Save, Original. Below the candidate are three readings — Ink, Muted, Accent — taken from the rendered frame, softened as the glass softens it, composited with the on-page glass fill, and expressed as WCAG contrast. Each reading is the lowest the glass has shown since the period came on screen. A transport steps through periods, plays the day, or follows live hotel time. Under the candidate, a sample of real Today content is rendered on the same atmosphere.</p>
+        <p>Save is unavailable until all three readings clear 4.5:1. There is no aesthetic argument afterward: a candidate that fails is invalid, whatever it looks like.</p>
+      </div>
+      <table class="ci-ref ci-ref-table"><tbody>
+        <tr><th>Period</th><td>Which kinds of expression are appropriate now — the aesthetic envelope of that hour.</td></tr>
+        <tr><th>Seed</th><td>Which expression within that envelope. Deterministic: the same seed reproduces the same fish.</td></tr>
+        <tr><th>Generator</th><td><code>betta-random.js</code>, the Mac lab randomizer ported verbatim. Colors and fin form only; camera and composition are never randomized.</td></tr>
+        <tr><th>Material</th><td>The production glass, the production tokens, the production shell. Nothing is mocked.</td></tr>
+        <tr><th>Contract</th><td>ink ≥ 4.5 and muted ≥ 4.5 and accent ≥ 4.5, on the worst frame observed → the candidate may become canonical; otherwise it is rejected.</td></tr>
+        <tr><th>Judgment</th><td>Among valid candidates, the designer chooses. The contract constrains the space; it does not pick inside it.</td></tr>
+      </tbody></table>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">Why it matters to the method</p>
+      <div class="app-prose">
+        <h3>Variation is made safe, not removed</h3>
+        <p>The input space is large: eight periods, a fish morph, a seed, a palette, satellite imagery as the only live modulation, procedural movement. The contract stays fixed: material, typography, surface rules, nesting, motion, the contrast floor. The atmospheres in one session run through crimson, orange, blue, gold, violet — and the interface is recognizably one system in every one of them. The invariants do not make everything identical; they constrain the relationships that must stay true while the picture changes. That is the answer to the objection that strict invariants make pages rigid.</p>
+        <h3>The worst frame, not a screenshot</h3>
+        <p>A palette can pass on a still and fail five seconds later when a bright fin drifts under muted text. Because the reading is a running minimum over the period's time on screen, the validator judges the worst observed interaction between a moving atmosphere and a stationary surface. This is materially stronger than checking a static palette, and it is what the Readability Test does that a palette table cannot.</p>
+        <h3>Random is design-space sampling</h3>
+        <p>Rather than composing eight palettes by hand and hoping they hold, the tool generates candidates and makes each prove itself against the contract. Generate → render through the production system → observe over time → measure → keep or reject. The nearest analogy in software is property-based testing: declare a property that must always hold, generate inputs, and try to find one that breaks it. Here the property is readability and the inputs are atmospheres. The analogy is an interpretation, not a claim of novelty.</p>
+        <h3>Two validation layers</h3>
+        <p>The formal layer rejects objectively invalid candidates. The perceptual layer — real production composition on the real atmosphere — lets the designer reject a valid candidate that is unpleasant. Both stay. Invariants constrain the valid design space; they do not replace design judgment inside it.</p>
+        <h3>What the contract already found</h3>
+        <p>The bundled presets predate the contract. Measured against it, muted ink fails on every one of the eight periods (2.7–3.9:1) while ink and accent pass. The contract rejects the current production atmosphere before any opinion about it has been offered. That result, unresolved as of this draft, is the best evidence in the project that a contract outranks taste.</p>
+      </div>
+    </article>
+    <article class="app-card app-surface" data-tone="quiet">
+      <p class="app-surface-label">Positioning</p>
+      <h3 class="app-surface-title">Invariant validation harness</h3>
+      <p class="app-surface-copy">The methodology-level name for this class of tool. In Sindhorn it is the Betta contract validator. The principle generalizes to whatever varies: responsive widths, long translated strings, extreme data values, dynamic imagery, focus order, animation budgets — generate the variation and prove the invariants survive it. Only the Sindhorn instance is observed; the generalization is a hypothesis (07). Its limits are also plain: it is driven by a person at authoring time, not by CI at release, and it runs on real WebGL where a headless gate would be brittle.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ================================================================ 06 -->
+<section class="app-section" id="enforcement">
+  <p class="app-section-kicker">06 · Enforcement</p>
+  <h2 class="app-section-title">Rules That Run</h2>
+  <p class="app-section-lede">A rule that exists only in a document is incomplete. What already runs, what is missing, what would be brittle, and a recommended order. Nothing here is built until authorized.</p>
+
+  <h3 class="app-section-subhead">Existing checks</h3>
+  <div class="app-card app-surface">
+    <div class="app-list">
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>ui-centralization-budget.mjs</code></span><span class="app-list-row-meta">The ratchet · eleven metrics may only fall · run before every push touching shared UI</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>page-centralization-audit.mjs</code></span><span class="app-list-row-meta">Per page: no style attributes or blocks, no color or pixel literals, no undefined classes, no backdrop-filter outside the material file</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>ci-page-render-smoke.mjs</code></span><span class="app-list-row-meta">Headless render of <code>/ci</code> and <code>/voice</code> · computed material of every canonical selector · computed motion · format specimens</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>nested-glass-smoke.mjs</code></span><span class="app-list-row-meta">13 routes with a stand-in session · fails on a blurred element inside a glass surface</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Readability Test · <code>#readability</code></span><span class="app-list-row-meta">Authoring-time contract on the live atmosphere · Save gated on 4.5:1 for ink, muted, accent · human-driven, not in CI</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>font-architecture.test.mjs</code></span><span class="app-list-row-meta">One family, three weights, zero tracking</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>shell-precache-parity-smoke.mjs</code>, <code>build-betta-runtime.mjs --check</code></span><span class="app-list-row-meta">Release integrity: every shell asset precached; the Betta bundle byte-reproducible</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Live sign-in smoke, Launch Hardening, Typography gate</span><span class="app-list-row-meta">Deploy-time browser walks on production · no live writes</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
+    </div>
+  </div>
+
+  <h3 class="app-section-subhead">Missing, and worth adding</h3>
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <p class="app-surface-label">1 · Control-height floor</p>
+      <h3 class="app-surface-title">No <code>min-height</code> literal outside <code>app-tokens.css</code></h3>
+      <p class="app-surface-copy">A grep in the audit. Locks INV-CONTROL-HEIGHT. Trivial, no false positives.</p>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">2 · Action weight</p>
+      <h3 class="app-surface-title">No <code>.app-row</code> that holds both <code>.app-primary</code> and <code>.app-utility-action</code></h3>
+      <p class="app-surface-copy">A DOM check in the nested-glass walk, which already mounts every route. Locks INV-ACTION-WEIGHT. Allow a hero head, where the rule says neither.</p>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">3 · Library color literals</p>
+      <h3 class="app-surface-title">Only tokens paint in <code>app-components.css</code></h3>
+      <p class="app-surface-copy">Extend the audit's literal check to the library file with an explicit allowlist (the two mask stops, the scrim). Closes the library side of INV-TONE and INV-TOKEN-LOCALITY.</p>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">4 · Behavior single-source</p>
+      <h3 class="app-surface-title">After the disclosure binder lands, no page handles <code>.app-disclosure-button</code> itself</h3>
+      <p class="app-surface-copy">A grep over page modules. Prevents the one duplication that survived from returning.</p>
+    </article>
+    <article class="app-card app-surface">
+      <p class="app-surface-label">5 · Per-period readability at release <span class="app-badge" data-tone="success">Added, r29c</span></p>
+      <h3 class="app-surface-title">Every saved Betta period must still be drawn by its seed under the code about to ship</h3>
+      <p class="app-surface-copy">Built the day after this list was written. The saved reading itself needs no re-check at release - the server refused any save below 4.5:1 - so the gate checks what can still break: <code>scripts/betta-periods-release-smoke.mjs</code> reads the live map anonymously and fails if a saved style is no longer reproduced by <code>generateBettaStyle</code>, if its seed is malformed, or if its period no longer exists. Unsaved periods are reported; <code>--require-all</code> fails them once all eight are saved.</p>
+    </article>
+    <article class="app-card app-surface" data-tone="quiet">
+      <p class="app-surface-label">6 · A second harness · hypothesized</p>
+      <h3 class="app-surface-title">Long strings and extreme values through the real components</h3>
+      <p class="app-surface-copy">The same shape as the Betta validator applied to content: generate Thai and English strings at the long end, counts and money at the extreme end, render the library specimens, and assert that no control drops below its floor and no surface gains a nested blur. Not scheduled; listed because the pattern exists and the cost is known to be low.</p>
+    </article>
+  </div>
+
+  <h3 class="app-section-subhead">Brittle or counterproductive</h3>
+  <div class="app-stack">
+    <article class="app-card app-surface" data-tone="quiet">
+      <div class="app-prose">
+        <ul>
+          <li><strong>A headless contrast gate over live WebGL.</strong> Headless Chrome already disagrees with real phones on glass; a gate on its pixels would fail for the wrong reasons.</li>
+          <li><strong>A primitive-count ceiling.</strong> A lower count is not better; the gate would encourage merging distinct behaviors.</li>
+          <li><strong>A class-count or file-count target.</strong> Zero classes and zero modules are not goals. The goal is zero discretionary appearance decisions.</li>
+          <li><strong>Screenshot diffs of whole routes.</strong> The Betta is live; every frame differs. Computed-style assertions, which the render smoke already uses, are the stable form.</li>
+        </ul>
+      </div>
+    </article>
+  </div>
+
+  <h3 class="app-section-subhead">Recommended sequence</h3>
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <div class="app-prose">
+        <ol>
+          <li>Checks 1 and 3 — grep-level, same afternoon, no product change.</li>
+          <li>Disclosure binder and the sheet fold into <code>app-dialog.js</code>, each a normal release with the library specimen updated first; then check 4.</li>
+          <li>Check 2 in the nested-glass walk.</li>
+          <li>Phase 7 retires <code>/share</code>'s legacy files; the ratchet baseline drops to the foundation numbers above and the legacy selector pair is deleted.</li>
+          <li>The muted-ink decision, then r29b, then check 5.</li>
+        </ol>
+        <p>Each step is reported before it is built. The method's own origin is the reason: no hour of classification or restructuring before the owner has challenged whether the problem needs to exist.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ================================================================ 07 -->
+<section class="app-section" id="limits">
+  <p class="app-section-kicker">07 · Limits and Positioning</p>
+  <h2 class="app-section-title">What This Is, and Is Not</h2>
+  <p class="app-section-lede">IDUI did not invent design systems, design grammar, model-driven UI, algorithmic layout, semantic tokens, generative UI, property-based testing or generative design. It proposes a practical architecture in which a minimal behavioral vocabulary is combined with small, orthogonal, machine-enforceable invariants so that appearance is derived rather than repeatedly authored. Sindhorn is a production case study, not proof of universal superiority.</p>
+
+  <div class="app-stack">
+    <article class="app-card app-surface">
+      <div class="app-metric-grid" data-values="text">
+        <div class="app-metric"><span class="app-metric-label">Observed</span><span class="app-metric-value">In Sindhorn</span><span class="app-metric-note">The ratchet numbers. Zero page literals across eleven modules. One duplicated behavior. Two rules settled by measurement. Pages landing one a day once the library existed. A contract that refuses to save the current atmosphere's muted ink.</span></div>
+        <div class="app-metric"><span class="app-metric-label">Inferred</span><span class="app-metric-value">Explained by the method</span><span class="app-metric-note">That a membership test outlives a registry; that a ratchet lets migration finish; that an agent given rules stops generating local decisions; that random sampling against a contract is property-based testing applied to appearance.</span></div>
+        <div class="app-metric"><span class="app-metric-label">Hypothesized</span><span class="app-metric-value">To test elsewhere</span><span class="app-metric-note">That the four-layer split and either/or/neither shape hold in an unrelated product, with a different material, on desktop, in a light theme, with a larger team; that the validation harness generalizes beyond contrast.</span></div>
+      </div>
+    </article>
+
+    <article class="app-card app-surface">
+      <div class="app-card-section">
+      <p class="app-surface-label">Limitations</p>
+      <div class="app-prose">
+        <ul>
+          <li>Behavior necessarily requires a catalog; IDUI shrinks it and does not remove it.</li>
+          <li>Not every design question is honestly binary or trinary; either/or/neither is a useful shape, not a universal law.</li>
+          <li>A poorly chosen invariant creates rigidity, and too many invariants recreate taxonomy in another form.</li>
+          <li>Semantic information must still be authored; tone, state and hierarchy are decisions a person makes.</li>
+          <li>Composition stays a human and product responsibility.</li>
+          <li>The evidence comes from one production system, one material, one dark theme, one phone-first product, one team of one plus an agent.</li>
+          <li>A headless browser can pass every gate here and still differ from a phone; real devices remain part of validation.</li>
+        </ul>
+      </div>
+      </div>
+    </article>
+
+    <article class="app-card app-surface">
+      <p class="app-surface-label">Success condition</p>
+      <h3 class="app-surface-title">Can it handle a page the library has never shown?</h3>
+      <p class="app-surface-copy">A developer or an agent receives a requirement for an unseen page and: determines the composition; selects existing primitives; declares the necessary tone and state; writes no page-specific appearance; obtains a UI consistent with the whole product; passes the automated checks; adds a primitive only for new behavior; adds an invariant only where the existing laws cannot express a reusable consequence. If that holds, the system is invariant-driven. If a catalog example is needed for every situation, it is still example-driven. The Readability Test — a page with no precedent, built from the rules in one release with one new swatch primitive that the material rule already explained — is the closest evidence so far.</p>
+    </article>
+  </div>
+
+  <div class="app-utility-row">
+    <a class="app-utility-action" href="#top">Back to top</a>
+  </div>
+  <p class="app-note">Invariant-Driven UI v0.1 · Sindhorn Midtown Internal · 5 September 2026. This document is composed from the app's own library — <code>app-tokens.css</code>, <code>app-glass.css</code>, <code>app-components.css</code>, <code>app-shell.css</code>, <code>ci-library.css</code> as shipped with service worker <code>__SW__</code> — and declares no presentation of its own. The atmosphere is a still gradient in place of the Betta.</p>
+</main>
