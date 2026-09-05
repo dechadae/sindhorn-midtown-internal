@@ -128,9 +128,12 @@ Artwork completion state is separate from workbook content and must not be reset
 in the shipped app, the public share or the deploy reads
 `public.sindhorn_app_files` any more; the shell and every page are static
 files in this repository, and the F&B data is the operational tables through
-the `sindhorn_fnb_*` RPCs. The pack rows and their lineage below are kept as
-history and rollback evidence only. Do not create new packs, and do not delete
-the table or its rows - that is a separate, owner-approved decommission.
+the `sindhorn_fnb_*` RPCs. **The table was dropped on 5 September 2026** (owner-approved
+decommission; migration `20260905230000_sindhorn_app_files_decommission.sql`,
+applied live). A backup of the row manifest (368 rows, packs 1-49) and the last
+enabled pack (49) sits in the owner's Downloads
+(`sindhorn_app_files-backup-2026-09-05/`). The lineage below is history only;
+do not recreate the table or the pack mechanism.
 
 Historical record follows. Supabase owned versioned presentation resources; GitHub/Cloudflare owned the stable executable renderer and shell.
 
