@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v101-disclosure-height';
+const VERSION='sindhorn-midtown-internal-pwa-v102-folder-row';
 // v85: sindhorn-midtown-internal-pwa-v85-metric-track-r4
 // v84: sindhorn-midtown-internal-pwa-v84-today-readability-r4
 // v83: sindhorn-midtown-internal-pwa-v83-sticky-footer-fix-r1
