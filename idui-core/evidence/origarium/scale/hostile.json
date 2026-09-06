@@ -1,72 +1,495 @@
 {
- "test": "IDUI Test 02.3 — hostile content",
+ "test": "IDUI Test 02.3 \u2014 hostile content",
  "fixture": {
   "count": 22,
   "md5": "b676142dda0567a4fda9f1d67a2d6c47"
  },
- "measuredAt": "2026-09-06T10:28:38.175Z",
- "origarium": {
-  "label": "origarium",
-  "viewports": {
-   "390": {
-    "failures": [],
-    "cards": 22,
-    "distinctCardWidths": 1,
-    "distinctPreviewSizes": 1,
-    "errors": 0,
-    "overflow": 0
+ "note": "Two runs of the same frozen fixture. beforeRepair is the finding: neither architecture was designed for this content and both failed. afterRepair is the same fixture once each side carried one declaration - the core rule for IDUI, and for Origarium a scratch copy written outside the repository and never back to its source. Kept apart because re-running the harness after the repair once overwrote the failing numbers, and a file that shows only 22/22 would say nothing happened.",
+ "beforeRepair": {
+  "origarium": {
+   "label": "origarium",
+   "viewports": {
+    "390": {
+     "failures": [
+      {
+       "index": 0,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 1,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 2,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 3,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 4,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 5,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 6,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 7,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 8,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 9,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 10,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 11,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 12,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 13,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 14,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 15,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 16,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 17,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 18,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 19,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 20,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 21,
+       "reason": "overflows the viewport"
+      }
+     ],
+     "cards": 22,
+     "distinctCardWidths": 2,
+     "distinctPreviewSizes": 2,
+     "errors": 0,
+     "overflow": 1050
+    },
+    "1240": {
+     "failures": [
+      {
+       "index": 1,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 3,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 5,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 7,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 9,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 11,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 13,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 15,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 17,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 19,
+       "reason": "overflows the viewport"
+      },
+      {
+       "index": 21,
+       "reason": "overflows the viewport"
+      }
+     ],
+     "cards": 22,
+     "distinctCardWidths": 2,
+     "distinctPreviewSizes": 2,
+     "errors": 0,
+     "overflow": 586
+    }
    },
-   "1240": {
-    "failures": [],
-    "cards": 22,
-    "distinctCardWidths": 1,
-    "distinctPreviewSizes": 1,
-    "errors": 0,
-    "overflow": 0
+   "escaping": {
+    "titleExecuted": false,
+    "bodyExecuted": false,
+    "injectedImages": 0,
+    "injectedScripts": 0
+   },
+   "reader": {
+    "opened": 0,
+    "of": 22,
+    "failures": [
+     {
+      "index": 0,
+      "case": "a very long title",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 1,
+      "case": "one unbroken token",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 2,
+      "case": "a url as a title",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 3,
+      "case": "thai, no word breaks",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 4,
+      "case": "japanese",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 5,
+      "case": "right to left",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 6,
+      "case": "emoji in the title",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 7,
+      "case": "markup in the title",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 8,
+      "case": "a script tag in the title",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 9,
+      "case": "only punctuation",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 10,
+      "case": "a single character",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 11,
+      "case": "no title at all",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 12,
+      "case": "title of one long word",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 13,
+      "case": "numerals only",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 14,
+      "case": "body: empty body",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 15,
+      "case": "body: whitespace body",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 16,
+      "case": "body: one enormous paragraph",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 17,
+      "case": "body: no paragraph breaks",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 18,
+      "case": "body: unclosed markdown",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 19,
+      "case": "body: markup in the body",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 20,
+      "case": "body: a single word",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 21,
+      "case": "body: only a heading",
+      "reason": "reader overflows sideways"
+     }
+    ]
    }
   },
-  "escaping": {
-   "titleExecuted": false,
-   "bodyExecuted": false,
-   "injectedImages": 0,
-   "injectedScripts": 0
+  "idui": {
+   "label": "idui",
+   "viewports": {
+    "390": {
+     "failures": [
+      {
+       "index": 1,
+       "reason": "text overflows: p"
+      },
+      {
+       "index": 2,
+       "reason": "text overflows: p"
+      },
+      {
+       "index": 7,
+       "reason": "text overflows: p"
+      },
+      {
+       "index": 8,
+       "reason": "text overflows: p"
+      },
+      {
+       "index": 12,
+       "reason": "text overflows: p"
+      }
+     ],
+     "cards": 22,
+     "distinctCardWidths": 1,
+     "distinctPreviewSizes": 1,
+     "errors": 0,
+     "overflow": 459
+    },
+    "1240": {
+     "failures": [
+      {
+       "index": 1,
+       "reason": "text overflows: p"
+      },
+      {
+       "index": 12,
+       "reason": "text overflows: p"
+      }
+     ],
+     "cards": 22,
+     "distinctCardWidths": 1,
+     "distinctPreviewSizes": 1,
+     "errors": 0,
+     "overflow": 34
+    }
+   },
+   "escaping": {
+    "titleExecuted": false,
+    "bodyExecuted": false,
+    "injectedImages": 0,
+    "injectedScripts": 0
+   },
+   "reader": {
+    "opened": 7,
+    "of": 22,
+    "failures": [
+     {
+      "index": 1,
+      "case": "one unbroken token",
+      "reason": "reader not full height"
+     },
+     {
+      "index": 2,
+      "case": "a url as a title",
+      "reason": "reader overflows sideways"
+     },
+     {
+      "index": 5,
+      "case": "right to left",
+      "reason": "reader not full height"
+     },
+     {
+      "index": 6,
+      "case": "emoji in the title",
+      "reason": "reader not full height"
+     },
+     {
+      "index": 7,
+      "case": "markup in the title",
+      "reason": "reader not full height"
+     },
+     {
+      "index": 8,
+      "case": "a script tag in the title",
+      "reason": "reader not full height"
+     },
+     {
+      "index": 9,
+      "case": "only punctuation",
+      "reason": "reader not full height"
+     },
+     {
+      "index": 12,
+      "case": "title of one long word",
+      "reason": "reader not full height"
+     },
+     {
+      "index": 13,
+      "case": "numerals only",
+      "reason": "reader not full height"
+     },
+     {
+      "index": 14,
+      "case": "body: empty body",
+      "reason": "reader not full height"
+     },
+     {
+      "index": 15,
+      "case": "body: whitespace body",
+      "reason": "reader not full height"
+     },
+     {
+      "index": 18,
+      "case": "body: unclosed markdown",
+      "reason": "reader not full height"
+     },
+     {
+      "index": 19,
+      "case": "body: markup in the body",
+      "reason": "reader not full height"
+     },
+     {
+      "index": 20,
+      "case": "body: a single word",
+      "reason": "reader not full height"
+     },
+     {
+      "index": 21,
+      "case": "body: only a heading",
+      "reason": "reader not full height"
+     }
+    ]
+   }
   },
-  "reader": {
-   "opened": 22,
-   "of": 22,
-   "failures": []
-  }
+  "measuredAt": "2026-09-06T10:21:40.539Z"
  },
- "idui": {
-  "label": "idui",
-  "viewports": {
-   "390": {
-    "failures": [],
-    "cards": 22,
-    "distinctCardWidths": 1,
-    "distinctPreviewSizes": 1,
-    "errors": 0,
-    "overflow": 0
+ "afterRepair": {
+  "origarium": {
+   "label": "origarium",
+   "viewports": {
+    "390": {
+     "failures": [],
+     "cards": 22,
+     "distinctCardWidths": 1,
+     "distinctPreviewSizes": 1,
+     "errors": 0,
+     "overflow": 0
+    },
+    "1240": {
+     "failures": [],
+     "cards": 22,
+     "distinctCardWidths": 1,
+     "distinctPreviewSizes": 1,
+     "errors": 0,
+     "overflow": 0
+    }
    },
-   "1240": {
-    "failures": [],
-    "cards": 22,
-    "distinctCardWidths": 1,
-    "distinctPreviewSizes": 1,
-    "errors": 0,
-    "overflow": 0
+   "escaping": {
+    "titleExecuted": false,
+    "bodyExecuted": false,
+    "injectedImages": 0,
+    "injectedScripts": 0
+   },
+   "reader": {
+    "opened": 22,
+    "of": 22,
+    "failures": []
    }
   },
-  "escaping": {
-   "titleExecuted": false,
-   "bodyExecuted": false,
-   "injectedImages": 0,
-   "injectedScripts": 0
+  "idui": {
+   "label": "idui",
+   "viewports": {
+    "390": {
+     "failures": [],
+     "cards": 22,
+     "distinctCardWidths": 1,
+     "distinctPreviewSizes": 1,
+     "errors": 0,
+     "overflow": 0
+    },
+    "1240": {
+     "failures": [],
+     "cards": 22,
+     "distinctCardWidths": 1,
+     "distinctPreviewSizes": 1,
+     "errors": 0,
+     "overflow": 0
+    }
+   },
+   "escaping": {
+    "titleExecuted": false,
+    "bodyExecuted": false,
+    "injectedImages": 0,
+    "injectedScripts": 0
+   },
+   "reader": {
+    "opened": 22,
+    "of": 22,
+    "failures": []
+   }
   },
-  "reader": {
-   "opened": 22,
-   "of": 22,
-   "failures": []
-  }
+  "measuredAt": "2026-09-06T10:28:38.175Z",
+  "origariumFix": "scratch copy, one declaration over 13 selectors, never written to the source",
+  "iduiFix": "idui-core/app-components.css, one declaration over 20 roles at zero specificity"
  }
 }

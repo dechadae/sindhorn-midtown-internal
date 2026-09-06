@@ -93,10 +93,17 @@ const idui = await run('idui', {url: `${base}/idui-core/evidence/origarium/after
   openSel: '[data-open]', readerReady: () => document.querySelector('[data-reader]')?.hidden === false, closeSel: '[data-reader-close]'});
 
 await mkdir(path.join(here, 'shots'), {recursive: true});
-await writeFile(path.join(here, 'hostile.json'), JSON.stringify({
-  test: 'IDUI Test 02.3 — hostile content', fixture: {count: COUNT, md5: 'b676142dda0567a4fda9f1d67a2d6c47'},
-  measuredAt: new Date().toISOString(), origarium, idui,
-}, null, 1));
+/* Written into a named phase, never over the whole file: re-running after a
+   repair once erased the failing numbers, and a record that shows only 22/22
+   says nothing happened. ORIGARIUM_ROUTE=/papers-fixed selects afterRepair. */
+const phase = process.env.ORIGARIUM_ROUTE === '/papers-fixed' ? 'afterRepair' : 'beforeRepair';
+const file = path.join(here, 'hostile.json');
+const existing = JSON.parse(await readFile(file, 'utf8').catch(() => '{}'));
+existing.test = 'IDUI Test 02.3 — hostile content';
+existing.fixture = {count: COUNT, md5: 'b676142dda0567a4fda9f1d67a2d6c47'};
+existing[phase] = {origarium, idui, measuredAt: new Date().toISOString()};
+await writeFile(file, JSON.stringify(existing, null, 1));
+console.log(`written to ${phase}`);
 await browser.close(); server.close();
 
 for (const r of [origarium, idui]) {
