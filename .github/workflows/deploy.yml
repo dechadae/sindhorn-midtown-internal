@@ -229,6 +229,7 @@ jobs:
           # output fails here rather than drifting from the app (r34).
           node scripts/build-idui.mjs --check
           node scripts/build-evidence.mjs --check
+          node scripts/build-origarium.mjs --check
 
       - name: Deploy to Cloudflare Pages
         env:

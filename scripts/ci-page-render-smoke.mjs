@@ -141,6 +141,7 @@ const server = http.createServer((req, res) => {
   if (p === '/voice') p = '/voice.html';
   if (p === '/idui') p = '/idui.html';
   if (p === '/evidence') p = '/evidence.html';
+  if (p === '/origarium') p = '/origarium.html';
   if (p === '/') p = '/index.html';
   // Cloudflare Pages serves /share/fnb from share/fnb.html and
   // /share/fnb/<id> from share/fnb/<id>.html; mirror that here.
@@ -521,7 +522,8 @@ else {
 // The public document pages, r34.
 const DOCS = [
   { route: '/idui', title: 'Invariant-Driven UI', sections: 9 },
-  { route: '/evidence', title: 'The Rebuild Test', sections: 10 }
+  { route: '/evidence', title: 'The Rebuild Test', sections: 10 },
+  { route: '/origarium', title: 'Held With Nine Corrections', sections: 10 }
 ];
 const docReport = {};
 for (const doc of DOCS) {

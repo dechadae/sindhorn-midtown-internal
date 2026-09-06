@@ -35,7 +35,7 @@ export function foundationLinks(){
 const TESTS=[
   {slug:'idui',label:'IDUI',href:'/idui',live:true},
   {slug:'evidence',label:'01 Flipgazine',href:'/evidence',live:true},
-  {slug:'origarium',label:'02 Origarium',href:null,live:false},
+  {slug:'origarium',label:'02 Origarium',href:'/origarium',live:true},
   {slug:'apple',label:'03 Apple',href:null,live:false},
 ];
 const MARK={

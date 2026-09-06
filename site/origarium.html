@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2E273B">
+<title>Held With Nine Corrections | Sindhorn Midtown</title>
+<meta name="description" content="IDUI Test 02: an editorial archive and long-form reader rebuilt on the core. Structural conformance complete, editorial parity partial at seventy per cent, with both scale runs and the rejected candidate kept.">
+<link rel="canonical" href="https://sindhorn-midtown-internal.pages.dev/origarium">
+<meta property="og:site_name" content="Sindhorn Midtown">
+<meta property="og:title" content="Held With Nine Corrections | Sindhorn Midtown">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sindhorn-midtown-internal.pages.dev/origarium">
+<meta property="og:description" content="IDUI Test 02: an editorial archive and long-form reader rebuilt on the core. Structural conformance complete, editorial parity partial at seventy per cent, with both scale runs and the rejected candidate kept.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/app-192.png?v=2">
+<!--
+  IDUI Test 02 - Origarium Papers, built by scripts/build-origarium.mjs from
+  docs/idui/origarium-body.html and the pinned runs, with sindhorn-midtown-internal-pwa-v128-origarium-r48. Library classes only.
+-->
+<link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
+<link rel="stylesheet" href="/fonts.css?v=2">
+<link rel="stylesheet" href="/app-tokens.css?v=11">
+<link rel="stylesheet" href="/app-glass.css?v=12">
+<link rel="stylesheet" href="/app-components.css?v=39">
+<link rel="stylesheet" href="/app-compositions.css?v=1">
+<link rel="stylesheet" href="/app-shell.css?v=3">
+<link rel="stylesheet" href="/ci-library.css?v=10">
+</head>
+<body data-public="doc">
+
+<div class="environment-stage" id="environmentStage" aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>
+
+<header class="app-masthead">
+  <div class="app-masthead-home"><img class="app-masthead-logo" src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection"></div>
+</header>
+
+<main class="app-page is-shell" id="top">
+
+<section class="app-hero">
+  <p class="app-hero-eyebrow">Sindhorn Midtown Internal · IDUI evidence</p>
+  <h1 class="app-hero-title">Held With Nine Corrections</h1>
+  <p class="app-hero-copy">An editorial archive and its long-form reader, rebuilt through their own constitution on the IDUI core. Structural conformance complete; editorial parity partial, at seventy per cent, judged by the owner and not by the implementer.</p>
+  <p class="app-note">Origarium Papers, source pinned at <code>/papers.html</code> version 59, md5 <code>7fc246e8</code>, read only throughout. Predictions frozen in commit <code>828ee41</code> before the source was snapshotted and before any Origarium code existed. Run September 6, 2026, stamped v128-origarium-r48.</p>
+  <nav class="ci-index" aria-label="Sections">
+    <a class="app-chip app-control" href="#claim">00 Claim</a>
+    <a class="app-chip app-control" href="#source">01 Source</a>
+    <a class="app-chip app-control" href="#before">02 Before</a>
+    <a class="app-chip app-control" href="#candidates">03 Two candidates</a>
+    <a class="app-chip app-control" href="#ledger">04 Ledger</a>
+    <a class="app-chip app-control" href="#scale">05 Scale</a>
+    <a class="app-chip app-control" href="#hostile">06 Hostile</a>
+    <a class="app-chip app-control" href="#verdict">07 Verdict</a>
+    <a class="app-chip app-control" href="#intent">08 Intent</a>
+    <a class="app-chip app-control" href="#files">09 Files</a>
+  </nav>
+</section>
+
+<!-- ================================================================ 00 -->
+<section class="app-section" id="claim">
+  <p class="app-section-kicker">00 · The claim under test</p>
+  <h2 class="app-section-title">Can The Core Stay Still</h2>
+  <p class="app-section-lede">Test 01 asked whether IDUI transfers away from the product it was written in. This asks the narrower, harder question: the core that Flipgazine corrected — meeting a radically different editorial product, can it mostly stay still?</p>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p><strong>Origarium is an archive with a reader inside it.</strong> Its chrome is near-black with an acid lime; its documents are warm paper. It sets long-form prose in a serif while its interface is a sans and its metadata a monospace. None of it was designed with IDUI in mind and almost none of it looks like Sindhorn.</p>
+      <p>Five predictions were frozen before the work. The one that mattered: <strong>the core exposes a single material family</strong> — <code>app-glass.css</code>, the <code>--app-glass-*</code> tokens, and the rule that a card is anything drawing an edge — and Origarium would need at least two. If that proved wrong, and one generalised material could express it, that would have been a real result too, published as one.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 01 -->
+<section class="app-section" id="source">
+  <p class="app-section-kicker">01 · The source, and the boundary</p>
+  <h2 class="app-section-title">Read, Never Written</h2>
+  <p class="app-section-lede">Cloudflare serves a nine-kilobyte shell; everything real is a row in a Supabase project this application shares with two others.</p>
+  <div class="app-card app-surface">
+    <div class="app-card-section"><p class="app-surface-label">The rule</p>
+      <p class="app-surface-copy">Origarium's rows belong to another application. The experiment may read and snapshot them and must never write to them. Reconstruction happens separately.</p></div>
+    <div class="app-card-section"><p class="app-surface-label">How that was enforced</p>
+      <p class="app-surface-copy">Every Supabase request in the harness is intercepted; reads are answered from the frozen snapshot and writes aborted. The page carries a <code>POST</code> to a visit counter but does not fire it here, so each viewport makes a deliberate write attempt of its own and the run is invalid unless all three are refused. The guard is demonstrated every run rather than assumed.</p></div>
+    <div class="app-card-section"><p class="app-surface-label">What is committed</p>
+      <p class="app-surface-copy">The snapshot with its version and md5, verified against the database so it is exact rather than approximately current, with the publishable key redacted. A live row can move; if the version leaves 59 the run is annotated, never silently carried forward.</p></div>
+  </div>
+</section>
+
+<!-- ================================================================ 02 -->
+<section class="app-section" id="before">
+  <p class="app-section-kicker">02 · Before and after</p>
+  <h2 class="app-section-title">Where The Decisions Went</h2>
+  <p class="app-section-lede">Both sides measured by the same code the Flipgazine test uses, so the two tests can be compared without measuring the measurer.</p>
+
+  <div class="app-metric-grid" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Page CSS</p><p class="app-metric-value">22,912 B → 0</p><p class="app-metric-note">154 rules in 2 style blocks → none</p></div>
+    <div class="app-metric"><p class="app-metric-label">Appearance decisions</p><p class="app-metric-value">243 → 0</p><p class="app-metric-note">Sizes, weights, colours, radii and blurs the page chose for itself</p></div>
+    <div class="app-metric"><p class="app-metric-label">Style set from script</p><p class="app-metric-value">0</p><p class="app-metric-note">Presentation a CSS count alone would miss</p></div>
+  </div>
+  <div class="app-metric-grid" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Blur recipes</p><p class="app-metric-value">4 → 1</p><p class="app-metric-note">Glass inside glass 1 → 0</p></div>
+    <div class="app-metric"><p class="app-metric-label">Font sizes rendered</p><p class="app-metric-value">15 → 7</p><p class="app-metric-note">Normalisation rather than loss: the original accumulated sizes its scale does not name</p></div>
+    <div class="app-metric"><p class="app-metric-label">Console errors</p><p class="app-metric-value">0 → 0</p><p class="app-metric-note">Neither side broke</p></div>
+  </div>
+
+  <h3 class="app-section-subhead">One visual change, and how far it reaches</h3>
+  <div class="app-table-wrap"><table class="app-table">
+    <thead><tr><th>Change</th><th>Before</th><th>After</th></tr></thead>
+    <tbody>
+      <tr><th>Body face</th><td>15 edits</td><td>1</td></tr>
+      <tr><th>Label tracking</th><td>9</td><td>1</td></tr>
+      <tr><th>Glass recipe</th><td>8</td><td>1</td></tr>
+      <tr><th>Label weight</th><td>6</td><td>1</td></tr>
+      <tr><th>Chip radius</th><td>3</td><td>1</td></tr>
+      <tr><th>Document material</th><td>1</td><td>1</td></tr>
+    </tbody>
+  </table></div>
+  <p class="app-note">The last row is not an improvement and is printed because it is not. Origarium had already tokenised its paper colour as <code>--eink-bg</code>, declared once with no literal uses: one edit before, one edit after. A place the original was already doing what IDUI asks.</p>
+</section>
+
+<!-- ================================================================ 03 -->
+<section class="app-section" id="candidates">
+  <p class="app-section-kicker">03 · Two candidates</p>
+  <h2 class="app-section-title">Valid Is Not Selected</h2>
+  <p class="app-section-lede">The first reconstruction passed every contract and the owner rejected it. It is kept uncorrected, because deleting it would destroy the most useful thing this test has.</p>
+
+  <div class="app-stack ci-stack">
+    <figure class="app-figure"><img src="/assets/origarium/before-reader-390-top.png" alt="The original Origarium reader: warm paper filling the screen" width="390" height="844" loading="lazy"><figcaption>The original · the paper is the page</figcaption></figure>
+    <figure class="app-figure"><img src="/assets/origarium/candidate-a-reader-390.png" alt="Candidate A: a cream document inside a dark app shell" width="390" height="844" loading="lazy"><figcaption>A · conformance PASS, selection REJECTED</figcaption></figure>
+  </div>
+
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p>The original says <strong>the paper is the page</strong>: the warm material occupies the environment and the interface sits quietly on it. Candidate A said the paper is a surface inside the app — a dark shell, a rounded dark container, a cream document within. A different composition, not a styling difference.</p>
+      <p>It happened because the reader was built on the library's dialog, which is how that library puts a layer over a page — and which carries a scrim, a floating panel and chrome wrapping content. Reaching for it imported an assumption that had nothing to do with Origarium. That is the failure Test 03 predicts as identity convergence, arriving through a <em>primitive</em> rather than a value, and showing up in a real experiment before the test written to look for it.</p>
+    </div>
+  </div>
+
+  <h3 class="app-section-subhead">What the rejection found</h3>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p>Material by role answers <em>what is this surface made of</em>. It does not answer <em>how much of the world is it</em>. An embedded preview and a full reader are the same material at different scope, and no token could have fixed Candidate A, because the difference is not what the material is — it is where it applies.</p>
+      <p>So the scene declares its context and the constitution derives the ground from it. A page says "this is a reading context"; it never says warm, or cream, or a hex value.</p>
+    </div>
+  </div>
+
+  <div class="app-stack ci-stack">
+    <figure class="app-figure"><img src="/assets/origarium/after-390-top.png" alt="Candidate B: the archive rebuilt on the core" width="390" height="844" loading="lazy"><figcaption>B · the archive</figcaption></figure>
+    <figure class="app-figure"><img src="/assets/origarium/after-reader-390-top.png" alt="Candidate B: the reader, paper filling the view" width="390" height="844" loading="lazy"><figcaption>B · the reader, the governing rule repaired</figcaption></figure>
+  </div>
+  <p class="app-note">Both candidates carry zero page CSS, zero style attributes and zero appearance decisions. Contracts define validity; the editor selects quality. Only B was selected.</p>
+</section>
+
+<!-- ================================================================ 04 -->
+<section class="app-section" id="ledger">
+  <p class="app-section-kicker">04 · What it cost the core</p>
+  <h2 class="app-section-title">Nine Entries, None Product-Specific</h2>
+  <p class="app-section-lede">Seven reusable capabilities, one misowned assumption returned to where it belonged, and one defect this test introduced and then caught.</p>
+  <div class="app-table-wrap"><table class="app-table">
+    <thead><tr><th>Requirement</th><th>Class</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><th>Material chosen by semantic role</th><td>C</td><td>1 rule, 4 tokens</td></tr>
+      <tr><th>Material has scope: a context can be the ground</th><td>C</td><td>1 rule block</td></tr>
+      <tr><th>A view may scale where its material draws no blur</th><td>A</td><td>1 keyframe, 3 tokens, 1 gate</td></tr>
+      <tr><th>Prose has its own face</th><td>C</td><td>1 declaration, 1 token</td></tr>
+      <tr><th>Prose has its own reading size</th><td>C</td><td>2 declarations, 1 token</td></tr>
+      <tr><th>A document in preview keeps a page's proportion</th><td>C</td><td>1 rule, 1 token</td></tr>
+      <tr><th>A stack can flow in columns</th><td>C</td><td>2 rules</td></tr>
+      <tr><th>The accent can emit light</th><td>C</td><td>1 token</td></tr>
+      <tr><th>Text stays inside its box</th><td>C</td><td>1 declaration, 20 roles</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="app-section-subhead">The one marked A</h3>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p>The core said it plainly: <em>nothing recedes, scales or parallaxes — opacity or scale above a <code>backdrop-filter</code> makes the frost flash flat mid-move.</em> That is true, it was measured, and it is <strong>not a law about motion</strong>. It is a law about glass.</p>
+      <p>Origarium's reader is opaque paper on a plain scrim with no blur anywhere in the moving subtree, and the original springs: rise, overshoot a little past rest, settle. The rule is not deleted, because it is correct where it applies. It now states its condition, and the condition is enforced rather than documented — give a glass constitution a spring and the build fails, naming the material that may not scale.</p>
+    </div>
+  </div>
+
+  <h3 class="app-section-subhead">Core stability elsewhere</h3>
+  <div class="app-metric-grid" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Sindhorn, three routes</p><p class="app-metric-value">0 differing pixels</p><p class="app-metric-note">After every one of the nine, not once at the end</p></div>
+    <div class="app-metric"><p class="app-metric-label">Flipgazine specimens</p><p class="app-metric-value">unchanged</p><p class="app-metric-note">29 glass surfaces, 0 nested, still its own face</p></div>
+    <div class="app-metric"><p class="app-metric-label">Constitutions complete</p><p class="app-metric-value">3 of 3</p><p class="app-metric-note">79 required tokens, no orphans</p></div>
+  </div>
+</section>
+
+<!-- ================================================================ 05 -->
+<section class="app-section" id="scale">
+  <p class="app-section-kicker">05 · A hundred papers</p>
+  <h2 class="app-section-title">Both Architectures Held</h2>
+  <p class="app-section-lede">One fixture of a hundred plausible papers, frozen before either implementation saw it, the same records in the same order to both. Contracts checked and never repaired.</p>
+  <div class="app-table-wrap"><table class="app-table">
+    <thead><tr><th>100 papers</th><th>Origarium</th><th>IDUI</th></tr></thead>
+    <tbody>
+      <tr><th>Valid at 390</th><td>100 / 100</td><td>100 / 100</td></tr>
+      <tr><th>Valid at 1240</th><td>100 / 100</td><td>100 / 100</td></tr>
+      <tr><th>Reader opened</th><td>100 / 100</td><td>100 / 100</td></tr>
+      <tr><th>Appearance decisions, 8 → 100 papers</th><td>243 → 243</td><td>0 → 0</td></tr>
+    </tbody>
+  </table></div>
+  <div class="app-card app-surface"><div class="app-prose">
+    <p>IDUI needed that last row not to grow, and it did not. <strong>But neither did Origarium's.</strong> A page that styles by class holds its exceptions up front rather than manufacturing them per instance, so a hundred content instances multiply no styling authority on either side.</p>
+    <p>Scale therefore does <strong>not</strong> show IDUI absorbing variation better. It shows both absorbing it completely, with the difference sitting exactly where the reconstruction found it — a difference of <em>locality</em>, not of robustness under volume.</p>
+  </div></div>
+</section>
+
+<!-- ================================================================ 06 -->
+<section class="app-section" id="hostile">
+  <p class="app-section-kicker">06 · Hostile content</p>
+  <h2 class="app-section-title">Both Failed, In Different Shapes</h2>
+  <p class="app-section-lede">Twenty-two records neither architecture was designed to receive: a four-hundred-character title, an unbroken hash, a URL, Thai and Japanese, right-to-left Arabic, emoji, markup in a title, an empty body, a forty-thousand-character paragraph. Legitimate but unanticipated — never malformed, because malformed input tests a parser.</p>
+  <div class="app-table-wrap"><table class="app-table">
+    <thead><tr><th>22 records</th><th>Origarium</th><th>IDUI</th></tr></thead>
+    <tbody>
+      <tr><th>Valid at 390, before repair</th><td>0 / 22</td><td>17 / 22</td></tr>
+      <tr><th>Page overflow</th><td>1,050 px</td><td>459 px</td></tr>
+      <tr><th>Markup in a title executed</th><td>no</td><td>no</td></tr>
+      <tr><th>After one declaration each</th><td>22 / 22</td><td>22 / 22</td></tr>
+    </tbody>
+  </table></div>
+  <div class="app-card app-surface"><div class="app-prose">
+    <p>One unbroken token took Origarium's whole page — more than two phone screens of overflow — and once that happens no card sits inside the viewport, so the count is one failure taking every card with it rather than twenty-two separate ones. IDUI's grid held and its typography did not: five paragraphs overflowed while every sheet stayed the same shape.</p>
+      <p>The repair was <strong>the same size on both</strong>: one declaration. Anyone claiming IDUI made it smaller would be wrong. The difference is reach — in the core it is a rule that reached two other products for nothing, and in a page it reaches that page. The site has 45 HTML pages carrying their own style blocks, and nothing in that architecture says which of them style text.</p>
+      <p>Both escape correctly. Markup in a title is shown and never run on either side, which is worth stating because it is the one hostile case where failure would be a security defect rather than a layout one.</p>
+  </div></div>
+</section>
+
+<!-- ================================================================ 07 -->
+<section class="app-section" id="verdict">
+  <p class="app-section-kicker">07 · Verdict</p>
+  <h2 class="app-section-title">Structural Pass, Editorial Seventy</h2>
+  <p class="app-section-lede">Presentation burden is evaluated only against a reconstruction the owner has accepted. Zero of it with rejected fidelity is not a win — it is unresolved. Both halves are required, and only one of them is complete.</p>
+  <div class="app-card app-surface" data-mode="quote">
+    <p class="app-surface-label">Owner editorial assessment — subjective</p>
+    <p class="app-surface-copy">Around 70% close to the original. Acceptable as a repeatable template — yes. But it does not totally match my original intent. The font in the thumbnail is still wrong. The black bezel is too wide. The styling of the full-screen e-ink is still wrong, and it is not really full-screen: it should hide the header.</p>
+  </div>
+  <h3 class="app-section-subhead">Open, and deliberately unfixed</h3>
+  <div class="app-list">
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">The thumbnail face</span><span class="app-list-row-meta">Wrong, despite rendering the measured face at the measured size</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">The bezel is too wide</span><span class="app-list-row-meta">The sheet sits smaller inside its card than the original's</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">The reader is not full-screen</span><span class="app-list-row-meta">It fills the viewport beneath a masthead the original hides, so the document is the place only from the masthead down</span></div></div>
+  </div>
+  <p class="app-note">Not repaired, because repairing them would invalidate the judgement that names this result. Any correction is a Candidate C with a verdict of its own.</p>
+</section>
+
+<!-- ================================================================ 08 -->
+<section class="app-section" id="intent">
+  <p class="app-section-kicker">08 · What measurement could not read</p>
+  <h2 class="app-section-title">The Finding That Outranks The Numbers</h2>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p>Asked why the second candidate was better, the owner answered: <strong>because you got a brief of the inspiration.</strong></p>
+      <p>Everything between A and B came from one sentence of design intent — the thumbnail is an e-ink reader, and pressing it bounces to full screen — and not from further measurement. The instruments had already read every value on that page: the colours, the type scale, the radii, the spring curve to three decimal places. They could not read what the thing <strong>was</strong>.</p>
+      <p>So a constitution written from rendered outcomes recovers <em>values</em> faithfully and recovers <em>intent</em> not at all. Candidate A was a correct reading of every measurement and the wrong object, and the gap was closed by a designer saying what he had meant.</p>
+      <p>This is inherited by the next test as a warning rather than a lesson learned. A reconstruction of a third-party product from measurement alone will reproduce its values and miss whatever it meant — and no amount of instrumentation will say which parts those are, because the designer will not be there to tell us.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 09 -->
+<section class="app-section" id="files">
+  <p class="app-section-kicker">09 · The run</p>
+  <h2 class="app-section-title">Everything Here Is In The Repository</h2>
+  <div class="app-list">
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>idui-core/evidence/origarium/PROTOCOL.md</code></span><span class="app-list-row-meta">Predictions and six amendments, appended and never edited in</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>source/</code></span><span class="app-list-row-meta">The snapshot with its version and md5, key redacted</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>after/</code> and <code>candidate-a/</code></span><span class="app-list-row-meta">Both reconstructions, the rejected one kept uncorrected</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>constitutions/origarium/</code></span><span class="app-list-row-meta">Written from rendered outcomes, not from class names</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>scale/</code></span><span class="app-list-row-meta">Both fixtures frozen before either implementation saw them; the hostile run keeps its failing numbers beside its repaired ones</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><a href="/evidence">Test 01 — The Rebuild Test</a></span><span class="app-list-row-meta">The measurements here use its code, unchanged, so the two can be compared</span></div></div>
+  </div>
+  <div class="app-utility-row"><a class="app-utility-action" href="#top">Back to top</a></div>
+  <p class="app-note">IDUI Test 02 · Origarium Papers · this copy stamped v128-origarium-r48. Composed from the app's own library and declaring no presentation of its own. Origarium's rows were read and never written.</p>
+</section>
+
+</main>
+
+<nav class="app-navbar" aria-label="The transfer tests" data-mode="app">
+  <div class="app-navbar-set" data-set="app">
+    <a class="app-navbar-button" href="/idui">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h13"/></svg>
+      <span>IDUI</span>
+    </a>
+    <a class="app-navbar-button" href="/evidence">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h9l5 5v11H5z"/><path d="M14 4v5h5"/></svg>
+      <span>01 Flipgazine</span>
+    </a>
+    <span class="app-navbar-button" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h7v14H4z"/><path d="M13 5h7v14h-7z"/></svg>
+      <span>02 Origarium</span>
+    </span>
+    <span class="app-navbar-button" aria-disabled="true">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7"/><path d="M12 6V3"/></svg>
+      <span>03 Apple</span>
+    </span>
+  </div>
+</nav>
+
+<script type="module" src="/public-doc.js"></script>
+
+</body>
+</html>
