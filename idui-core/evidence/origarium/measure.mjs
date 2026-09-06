@@ -14,7 +14,10 @@
         that POST under this harness, so the guard is demonstrated rather than
         assumed: each run makes a deliberate write attempt of its own and
         requires it to be refused. A run where the probe succeeds is invalid.
-     2. Every Supabase read, answered locally, so nothing depends on live data.
+     2. Every Supabase read, answered from the frozen fixture in
+        source/papers.fixture.json, so nothing depends on live data - and so
+        the archive actually has papers in it. Answering reads empty rendered
+        "No papers published yet", which measured a blank page.
 
    Google Fonts and the supabase-js bundle are allowed through: the page's
    typography is half of what is being measured, and both are read-only. The
@@ -64,6 +67,12 @@ async function open({width,height}){
     const request=route.request(),seen=`${request.method()} ${request.url().split('/').pop().split('?')[0]}`;
     supabaseSeen.push(seen);
     if(request.method()!=='GET'){writesAttempted.push(seen);return route.abort()}
+    /* Reads are answered from the frozen fixture. Answering them all empty
+       measured an archive that said "No papers published yet" - the CSS
+       numbers were right and every rendered number was of a blank page. */
+    const url=request.url();
+    if(/\/papers\?/.test(url))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(papers)});
+    if(/site_stats/.test(url))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{key:'visits',value:1}])});
     return route.fulfill({status:200,contentType:'application/json',body:'[]'});
   });
   await page.goto(`${base}/papers`,{waitUntil:'networkidle'});
@@ -72,6 +81,7 @@ async function open({width,height}){
   return {context,page,errors};
 }
 
+const papers=JSON.parse(await readFile(path.join(srcDir,'papers.fixture.json'),'utf8'));
 const html=await readFile(path.join(srcDir,'papers.html'),'utf8');
 const pageCss=[...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m=>m[1]).join('\n');
 
@@ -82,10 +92,12 @@ const results={
   source:{path:'/papers.html',version:59,characters:58319,md5:'7fc246e81d09a1e9a84488b5b068f15e'},
   hermetic:false,
   hermeticNote:'Google Fonts and the supabase-js bundle load from the network; every Supabase call is intercepted, reads answered empty and writes aborted.',
+  fixture:{papers:papers.length,bodyChars:papers.reduce((n,p)=>n+p.body.length,0)},
   markup:markupMetrics(html),
   discretionary:discretionary(pageCss,html),
   semantic:semantic(html),
   rendered:{},
+  reader:{},
 };
 
 await mkdir(path.join(here,'shots'),{recursive:true});
@@ -95,6 +107,35 @@ for(const viewport of VIEWPORTS){
      error is the harness's, not the page's. */
   results.rendered[viewport.name]={...await page.evaluate(RENDER),errors:[...errors]};
   await page.screenshot({path:path.join(here,`shots/before-${viewport.name}-top.png`)});
+  /* The reader is the other half of the product and the other material. An
+     archive-only measurement cannot speak to P01. */
+  /* The card carries the handler and opens #readerOverlay. The assertion is
+     the overlay's state, never the fact that a click was dispatched: an
+     earlier version clicked the wrong element, reported the reader open, and
+     measured the archive twice. */
+  await page.evaluate(()=>document.querySelector('.paper-card')?.click());
+  const opened=await page.waitForSelector('#readerOverlay.open',{timeout:8000}).then(()=>true).catch(()=>false);
+  if(opened){
+    await page.waitForTimeout(2000);
+    const reader=await page.evaluate(RENDER);
+    /* Ask what is painted, not what a wrapper declares. A transparent
+       container inherits the interface face and reports it, which is how an
+       earlier version recorded the serif reader as Inter. */
+    const proof=await page.evaluate(()=>{
+      const overlay=document.querySelector('#readerOverlay.open');
+      const paras=[...overlay.querySelectorAll('p')].filter(e=>e.textContent.trim().length>80&&e.getBoundingClientRect().height>0);
+      const face=new Map();for(const e of paras){const f=getComputedStyle(e).fontFamily.split(',')[0].replace(/["']/g,'');face.set(f,(face.get(f)||0)+1)}
+      const ground=(()=>{let e=paras[0];while(e){const bg=getComputedStyle(e).backgroundColor;if(bg&&bg!=='rgba(0, 0, 0, 0)'&&bg!=='transparent')return bg;e=e.parentElement}return null})();
+      return {proseFace:[...face].sort((a,b)=>b[1]-a[1])[0]?.[0]||null,
+              proseParagraphs:paras.length,
+              proseGround:ground,
+              proseSize:paras[0]?getComputedStyle(paras[0]).fontSize:null,
+              proseMeasure:paras[0]?Math.round(paras[0].getBoundingClientRect().width):null,
+              proseChars:(overlay.textContent||'').length};
+    });
+    results.reader[viewport.name]={...reader,...proof,errors:[...errors],opened:true};
+    await page.screenshot({path:path.join(here,`shots/before-reader-${viewport.name}-top.png`)});
+  }else results.reader[viewport.name]={opened:false};
   /* Demonstrate the guard on every run rather than trusting it. */
   probes.push(await page.evaluate(async()=>{
     try{const r=await fetch('https://sjpvhgxacsiorrtijqua.supabase.co/rest/v1/rpc/increment_site_visits',{method:'POST',body:'{}'});return {refused:false,status:r.status}}
@@ -129,4 +170,11 @@ console.log(JSON.stringify({
   fontSizes:r.fontSizes.length,fontWeights:r.fontWeights.length,radii:r.radii.length,
   blurRecipes:r.backdropFilters.length,nestedGlass:r.nestedGlass.length??r.nestedGlass,
   errors:r.errors.length,
+  readerOpened:results.reader['390']?.opened===true,
+  readerFontSizes:results.reader['390']?.fontSizes?.length??null,
+  readerProseFace:results.reader['390']?.proseFace??null,
+  readerProseGround:results.reader['390']?.proseGround??null,
+  readerProseSize:results.reader['390']?.proseSize??null,
+  readerProseChars:results.reader['390']?.proseChars??null,
+  archiveBodyFace:r.fontFamily?.split(',')[0],
 },null,1));

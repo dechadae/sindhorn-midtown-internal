@@ -1,7 +1,7 @@
 {
  "test": "IDUI Test 03 — Origarium Papers",
  "side": "before",
- "measuredAt": "2026-09-06T07:02:21.988Z",
+ "measuredAt": "2026-09-06T07:07:26.333Z",
  "source": {
   "path": "/papers.html",
   "version": 59,
@@ -10,6 +10,10 @@
  },
  "hermetic": false,
  "hermeticNote": "Google Fonts and the supabase-js bundle load from the network; every Supabase call is intercepted, reads answered empty and writes aborted.",
+ "fixture": {
+  "papers": 8,
+  "bodyChars": 135858
+ },
  "markup": {
   "bytes": 58219,
   "styleBlocks": 2,
@@ -173,9 +177,25 @@
  },
  "rendered": {
   "390": {
-   "elements": 53,
-   "visible": 36,
+   "elements": 148,
+   "visible": 131,
    "fontSizes": [
+    [
+     "13.3333px",
+     32
+    ],
+    [
+     "10.5px",
+     24
+    ],
+    [
+     "12.5px",
+     17
+    ],
+    [
+     "11px",
+     12
+    ],
     [
      "13px",
      10
@@ -185,15 +205,19 @@
      9
     ],
     [
-     "11px",
-     4
+     "14.5px",
+     9
     ],
     [
-     "15.5px",
-     3
+     "7.4px",
+     8
     ],
     [
      "20px",
+     2
+    ],
+    [
+     "15.5px",
      2
     ],
     [
@@ -209,34 +233,26 @@
      1
     ],
     [
-     "12.5px",
-     1
-    ],
-    [
      "14px",
      1
     ],
     [
      "24px",
      1
-    ],
-    [
-     "14.5px",
-     1
     ]
    ],
    "fontWeights": [
     [
      "400",
-     24
+     95
     ],
     [
      "700",
-     6
+     22
     ],
     [
      "800",
-     5
+     13
     ],
     [
      "500",
@@ -246,7 +262,7 @@
    "letterSpacings": [
     [
      "normal",
-     30
+     125
     ],
     [
      "-0.2px",
@@ -271,6 +287,18 @@
    ],
    "radii": [
     [
+     "7px",
+     9
+    ],
+    [
+     "12px",
+     8
+    ],
+    [
+     "4px",
+     8
+    ],
+    [
      "10px",
      3
     ],
@@ -283,15 +311,15 @@
      1
     ],
     [
-     "7px",
-     1
-    ],
-    [
      "24px",
      1
     ]
    ],
    "lineHeights": [
+    [
+     "normal",
+     66
+    ],
     [
      "24.8px",
      9
@@ -301,19 +329,31 @@
      9
     ],
     [
-     "17.05px",
-     4
+     "16px",
+     8
     ],
     [
-     "24.025px",
-     3
+     "11.1px",
+     8
+    ],
+    [
+     "18.85px",
+     8
+    ],
+    [
+     "18.75px",
+     8
+    ],
+    [
+     "17.05px",
+     4
     ],
     [
      "31px",
      2
     ],
     [
-     "normal",
+     "24.025px",
      2
     ],
     [
@@ -348,23 +388,31 @@
    "colors": [
     [
      "rgb(242, 243, 245)",
-     17
-    ],
-    [
-     "rgb(163, 168, 176)",
-     7
+     57
     ],
     [
      "rgb(109, 114, 122)",
-     4
+     28
+    ],
+    [
+     "rgb(163, 168, 176)",
+     14
+    ],
+    [
+     "rgb(212, 255, 26)",
+     10
+    ],
+    [
+     "rgb(43, 42, 38)",
+     8
+    ],
+    [
+     "rgb(85, 83, 75)",
+     8
     ],
     [
      "rgb(51, 44, 34)",
      3
-    ],
-    [
-     "rgb(212, 255, 26)",
-     2
     ],
     [
      "rgb(37, 31, 22)",
@@ -381,10 +429,11 @@
    ],
    "backdropFilters": [
     "blur(18px) saturate(1.6)",
+    "blur(8px)",
     "blur(0px) saturate(1)",
     "blur(34px) saturate(1.6)"
    ],
-   "backdropCount": 3,
+   "backdropCount": 11,
    "nestedGlass": 1,
    "runtimeInline": [],
    "sheets": [
@@ -401,7 +450,7 @@
      "rules": 13
     }
    ],
-   "docHeight": 844,
+   "docHeight": 2606,
    "fontFamily": "Inter, -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
    "tokens": {
     "--accent": "",
@@ -416,9 +465,25 @@
    "errors": []
   },
   "768": {
-   "elements": 53,
-   "visible": 36,
+   "elements": 148,
+   "visible": 131,
    "fontSizes": [
+    [
+     "13.3333px",
+     32
+    ],
+    [
+     "10.5px",
+     24
+    ],
+    [
+     "12.5px",
+     17
+    ],
+    [
+     "11px",
+     12
+    ],
     [
      "16px",
      10
@@ -428,15 +493,19 @@
      10
     ],
     [
-     "11px",
-     4
+     "7.4px",
+     8
     ],
     [
-     "15.5px",
-     3
+     "14.5px",
+     8
     ],
     [
      "20px",
+     2
+    ],
+    [
+     "15.5px",
      2
     ],
     [
@@ -452,10 +521,6 @@
      1
     ],
     [
-     "12.5px",
-     1
-    ],
-    [
      "14px",
      1
     ],
@@ -467,15 +532,15 @@
    "fontWeights": [
     [
      "400",
-     24
+     95
     ],
     [
      "700",
-     6
+     22
     ],
     [
      "800",
-     5
+     13
     ],
     [
      "500",
@@ -485,7 +550,7 @@
    "letterSpacings": [
     [
      "normal",
-     30
+     125
     ],
     [
      "-0.2px",
@@ -510,6 +575,18 @@
    ],
    "radii": [
     [
+     "7px",
+     9
+    ],
+    [
+     "12px",
+     8
+    ],
+    [
+     "4px",
+     8
+    ],
+    [
      "10px",
      3
     ],
@@ -522,15 +599,15 @@
      1
     ],
     [
-     "7px",
-     1
-    ],
-    [
      "30px",
      1
     ]
    ],
    "lineHeights": [
+    [
+     "normal",
+     66
+    ],
     [
      "24.8px",
      9
@@ -540,19 +617,31 @@
      9
     ],
     [
-     "17.05px",
-     4
+     "16px",
+     8
     ],
     [
-     "24.025px",
-     3
+     "11.1px",
+     8
+    ],
+    [
+     "18.85px",
+     8
+    ],
+    [
+     "18.75px",
+     8
+    ],
+    [
+     "17.05px",
+     4
     ],
     [
      "31px",
      2
     ],
     [
-     "normal",
+     "24.025px",
      2
     ],
     [
@@ -587,23 +676,31 @@
    "colors": [
     [
      "rgb(242, 243, 245)",
-     17
-    ],
-    [
-     "rgb(163, 168, 176)",
-     7
+     57
     ],
     [
      "rgb(109, 114, 122)",
-     4
+     28
+    ],
+    [
+     "rgb(163, 168, 176)",
+     14
+    ],
+    [
+     "rgb(212, 255, 26)",
+     10
+    ],
+    [
+     "rgb(43, 42, 38)",
+     8
+    ],
+    [
+     "rgb(85, 83, 75)",
+     8
     ],
     [
      "rgb(51, 44, 34)",
      3
-    ],
-    [
-     "rgb(212, 255, 26)",
-     2
     ],
     [
      "rgb(37, 31, 22)",
@@ -620,10 +717,11 @@
    ],
    "backdropFilters": [
     "blur(18px) saturate(1.6)",
+    "blur(8px)",
     "blur(0px) saturate(1)",
     "blur(34px) saturate(1.6)"
    ],
-   "backdropCount": 3,
+   "backdropCount": 11,
    "nestedGlass": 1,
    "runtimeInline": [],
    "sheets": [
@@ -640,7 +738,7 @@
      "rules": 13
     }
    ],
-   "docHeight": 1024,
+   "docHeight": 2807,
    "fontFamily": "Inter, -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
    "tokens": {
     "--accent": "",
@@ -655,9 +753,25 @@
    "errors": []
   },
   "1240": {
-   "elements": 53,
-   "visible": 36,
+   "elements": 148,
+   "visible": 131,
    "fontSizes": [
+    [
+     "13.3333px",
+     32
+    ],
+    [
+     "10.5px",
+     24
+    ],
+    [
+     "12.5px",
+     17
+    ],
+    [
+     "11px",
+     12
+    ],
     [
      "13px",
      10
@@ -667,15 +781,19 @@
      9
     ],
     [
-     "11px",
-     4
+     "14.5px",
+     9
     ],
     [
-     "15.5px",
-     3
+     "7.4px",
+     8
     ],
     [
      "20px",
+     2
+    ],
+    [
+     "15.5px",
      2
     ],
     [
@@ -691,34 +809,26 @@
      1
     ],
     [
-     "12.5px",
-     1
-    ],
-    [
      "14px",
      1
     ],
     [
      "24px",
      1
-    ],
-    [
-     "14.5px",
-     1
     ]
    ],
    "fontWeights": [
     [
      "400",
-     24
+     95
     ],
     [
      "700",
-     6
+     22
     ],
     [
      "800",
-     5
+     13
     ],
     [
      "500",
@@ -728,7 +838,7 @@
    "letterSpacings": [
     [
      "normal",
-     30
+     125
     ],
     [
      "-0.2px",
@@ -753,6 +863,18 @@
    ],
    "radii": [
     [
+     "7px",
+     9
+    ],
+    [
+     "12px",
+     8
+    ],
+    [
+     "4px",
+     8
+    ],
+    [
      "10px",
      3
     ],
@@ -765,15 +887,15 @@
      1
     ],
     [
-     "7px",
-     1
-    ],
-    [
      "24px",
      1
     ]
    ],
    "lineHeights": [
+    [
+     "normal",
+     66
+    ],
     [
      "24.8px",
      9
@@ -783,19 +905,31 @@
      9
     ],
     [
-     "17.05px",
-     4
+     "16px",
+     8
     ],
     [
-     "24.025px",
-     3
+     "11.1px",
+     8
+    ],
+    [
+     "18.85px",
+     8
+    ],
+    [
+     "18.75px",
+     8
+    ],
+    [
+     "17.05px",
+     4
     ],
     [
      "31px",
      2
     ],
     [
-     "normal",
+     "24.025px",
      2
     ],
     [
@@ -830,23 +964,31 @@
    "colors": [
     [
      "rgb(242, 243, 245)",
-     17
-    ],
-    [
-     "rgb(163, 168, 176)",
-     7
+     57
     ],
     [
      "rgb(109, 114, 122)",
-     4
+     28
+    ],
+    [
+     "rgb(163, 168, 176)",
+     14
+    ],
+    [
+     "rgb(212, 255, 26)",
+     10
+    ],
+    [
+     "rgb(43, 42, 38)",
+     8
+    ],
+    [
+     "rgb(85, 83, 75)",
+     8
     ],
     [
      "rgb(51, 44, 34)",
      3
-    ],
-    [
-     "rgb(212, 255, 26)",
-     2
     ],
     [
      "rgb(37, 31, 22)",
@@ -863,10 +1005,11 @@
    ],
    "backdropFilters": [
     "blur(18px) saturate(1.6)",
+    "blur(8px)",
     "blur(0px) saturate(1)",
     "blur(34px) saturate(1.6)"
    ],
-   "backdropCount": 3,
+   "backdropCount": 11,
    "nestedGlass": 1,
    "runtimeInline": [],
    "sheets": [
@@ -883,7 +1026,7 @@
      "rules": 13
     }
    ],
-   "docHeight": 900,
+   "docHeight": 2807,
    "fontFamily": "Inter, -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
    "tokens": {
     "--accent": "",
@@ -896,6 +1039,1066 @@
     "--app-text": ""
    },
    "errors": []
+  }
+ },
+ "reader": {
+  "390": {
+   "elements": 209,
+   "visible": 193,
+   "fontSizes": [
+    [
+     "19px",
+     42
+    ],
+    [
+     "13.3333px",
+     32
+    ],
+    [
+     "10.5px",
+     24
+    ],
+    [
+     "12.5px",
+     17
+    ],
+    [
+     "16px",
+     15
+    ],
+    [
+     "11px",
+     13
+    ],
+    [
+     "13px",
+     10
+    ],
+    [
+     "14.5px",
+     9
+    ],
+    [
+     "7.4px",
+     8
+    ],
+    [
+     "22px",
+     8
+    ],
+    [
+     "15px",
+     4
+    ],
+    [
+     "20px",
+     2
+    ],
+    [
+     "15.5px",
+     2
+    ],
+    [
+     "16.5px",
+     2
+    ],
+    [
+     "28px",
+     1
+    ],
+    [
+     "14px",
+     1
+    ],
+    [
+     "11.5px",
+     1
+    ],
+    [
+     "26px",
+     1
+    ],
+    [
+     "24px",
+     1
+    ]
+   ],
+   "fontWeights": [
+    [
+     "400",
+     139
+    ],
+    [
+     "700",
+     40
+    ],
+    [
+     "800",
+     13
+    ],
+    [
+     "500",
+     1
+    ]
+   ],
+   "letterSpacings": [
+    [
+     "normal",
+     177
+    ],
+    [
+     "-0.22px",
+     8
+    ],
+    [
+     "-0.2px",
+     2
+    ],
+    [
+     "1.1px",
+     1
+    ],
+    [
+     "-0.56px",
+     1
+    ],
+    [
+     "0.45px",
+     1
+    ],
+    [
+     "0.23px",
+     1
+    ],
+    [
+     "0.88px",
+     1
+    ],
+    [
+     "0.48px",
+     1
+    ]
+   ],
+   "radii": [
+    [
+     "7px",
+     9
+    ],
+    [
+     "12px",
+     8
+    ],
+    [
+     "4px",
+     8
+    ],
+    [
+     "50%",
+     4
+    ],
+    [
+     "10px",
+     3
+    ],
+    [
+     "14px",
+     2
+    ],
+    [
+     "24px",
+     1
+    ]
+   ],
+   "lineHeights": [
+    [
+     "normal",
+     69
+    ],
+    [
+     "34.58px",
+     42
+    ],
+    [
+     "24.8px",
+     15
+    ],
+    [
+     "20.15px",
+     9
+    ],
+    [
+     "16px",
+     8
+    ],
+    [
+     "11.1px",
+     8
+    ],
+    [
+     "18.85px",
+     8
+    ],
+    [
+     "18.75px",
+     8
+    ],
+    [
+     "40.04px",
+     8
+    ],
+    [
+     "17.05px",
+     4
+    ],
+    [
+     "31px",
+     2
+    ],
+    [
+     "24.025px",
+     2
+    ],
+    [
+     "32.48px",
+     1
+    ],
+    [
+     "23.25px",
+     1
+    ],
+    [
+     "19.375px",
+     1
+    ],
+    [
+     "21.7px",
+     1
+    ],
+    [
+     "17.825px",
+     1
+    ],
+    [
+     "20.02px",
+     1
+    ],
+    [
+     "31.72px",
+     1
+    ],
+    [
+     "37.2px",
+     1
+    ],
+    [
+     "23.2px",
+     1
+    ],
+    [
+     "25.575px",
+     1
+    ]
+   ],
+   "colors": [
+    [
+     "rgb(242, 243, 245)",
+     58
+    ],
+    [
+     "rgb(43, 42, 38)",
+     55
+    ],
+    [
+     "rgb(109, 114, 122)",
+     28
+    ],
+    [
+     "rgb(85, 83, 75)",
+     15
+    ],
+    [
+     "rgb(163, 168, 176)",
+     14
+    ],
+    [
+     "rgb(212, 255, 26)",
+     10
+    ],
+    [
+     "rgb(128, 128, 128)",
+     7
+    ],
+    [
+     "rgb(51, 44, 34)",
+     3
+    ],
+    [
+     "rgb(37, 31, 22)",
+     1
+    ],
+    [
+     "rgb(58, 52, 40)",
+     1
+    ],
+    [
+     "rgb(28, 56, 38)",
+     1
+    ]
+   ],
+   "backdropFilters": [
+    "blur(18px) saturate(1.6)",
+    "blur(8px)",
+    "blur(0px) saturate(1)",
+    "blur(34px) saturate(1.6)"
+   ],
+   "backdropCount": 11,
+   "nestedGlass": 1,
+   "runtimeInline": [
+    "body[overflow: hidden;]",
+    "div#readerFill[width: 0%;]"
+   ],
+   "sheets": [
+    {
+     "href": "/fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@400;500;600;700;1,500;1,600&display=swap",
+     "rules": -1
+    },
+    {
+     "href": "inline",
+     "rules": 112
+    },
+    {
+     "href": "inline",
+     "rules": 13
+    }
+   ],
+   "docHeight": 2606,
+   "fontFamily": "Inter, -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+   "tokens": {
+    "--accent": "",
+    "--bg": "#0e0f12",
+    "--text": "",
+    "--muted": "",
+    "--surface": "#16181c",
+    "--app-accent": "",
+    "--app-ground": "",
+    "--app-text": ""
+   },
+   "proseFace": "Cormorant Garamond",
+   "proseParagraphs": 18,
+   "proseGround": "rgb(234, 231, 221)",
+   "proseSize": "19px",
+   "proseMeasure": 350,
+   "proseChars": 6844,
+   "errors": [],
+   "opened": true
+  },
+  "768": {
+   "elements": 209,
+   "visible": 193,
+   "fontSizes": [
+    [
+     "19px",
+     42
+    ],
+    [
+     "13.3333px",
+     32
+    ],
+    [
+     "10.5px",
+     24
+    ],
+    [
+     "12.5px",
+     17
+    ],
+    [
+     "16px",
+     16
+    ],
+    [
+     "11px",
+     13
+    ],
+    [
+     "13px",
+     10
+    ],
+    [
+     "7.4px",
+     8
+    ],
+    [
+     "14.5px",
+     8
+    ],
+    [
+     "22px",
+     8
+    ],
+    [
+     "15px",
+     4
+    ],
+    [
+     "20px",
+     2
+    ],
+    [
+     "15.5px",
+     2
+    ],
+    [
+     "18px",
+     2
+    ],
+    [
+     "42px",
+     1
+    ],
+    [
+     "14px",
+     1
+    ],
+    [
+     "11.5px",
+     1
+    ],
+    [
+     "34px",
+     1
+    ],
+    [
+     "29px",
+     1
+    ]
+   ],
+   "fontWeights": [
+    [
+     "400",
+     139
+    ],
+    [
+     "700",
+     40
+    ],
+    [
+     "800",
+     13
+    ],
+    [
+     "500",
+     1
+    ]
+   ],
+   "letterSpacings": [
+    [
+     "normal",
+     177
+    ],
+    [
+     "-0.22px",
+     8
+    ],
+    [
+     "-0.2px",
+     2
+    ],
+    [
+     "1.1px",
+     1
+    ],
+    [
+     "-0.84px",
+     1
+    ],
+    [
+     "0.45px",
+     1
+    ],
+    [
+     "0.23px",
+     1
+    ],
+    [
+     "0.88px",
+     1
+    ],
+    [
+     "0.58px",
+     1
+    ]
+   ],
+   "radii": [
+    [
+     "7px",
+     9
+    ],
+    [
+     "12px",
+     8
+    ],
+    [
+     "4px",
+     8
+    ],
+    [
+     "50%",
+     4
+    ],
+    [
+     "10px",
+     3
+    ],
+    [
+     "16px",
+     2
+    ],
+    [
+     "6px",
+     1
+    ],
+    [
+     "30px",
+     1
+    ]
+   ],
+   "lineHeights": [
+    [
+     "normal",
+     69
+    ],
+    [
+     "34.58px",
+     42
+    ],
+    [
+     "24.8px",
+     15
+    ],
+    [
+     "20.15px",
+     9
+    ],
+    [
+     "16px",
+     8
+    ],
+    [
+     "11.1px",
+     8
+    ],
+    [
+     "18.85px",
+     8
+    ],
+    [
+     "18.75px",
+     8
+    ],
+    [
+     "40.04px",
+     8
+    ],
+    [
+     "17.05px",
+     4
+    ],
+    [
+     "31px",
+     2
+    ],
+    [
+     "24.025px",
+     2
+    ],
+    [
+     "48.72px",
+     1
+    ],
+    [
+     "23.25px",
+     1
+    ],
+    [
+     "19.375px",
+     1
+    ],
+    [
+     "21.7px",
+     1
+    ],
+    [
+     "17.825px",
+     1
+    ],
+    [
+     "20.02px",
+     1
+    ],
+    [
+     "41.48px",
+     1
+    ],
+    [
+     "44.95px",
+     1
+    ],
+    [
+     "25.6px",
+     1
+    ],
+    [
+     "27.9px",
+     1
+    ]
+   ],
+   "colors": [
+    [
+     "rgb(242, 243, 245)",
+     58
+    ],
+    [
+     "rgb(43, 42, 38)",
+     55
+    ],
+    [
+     "rgb(109, 114, 122)",
+     28
+    ],
+    [
+     "rgb(85, 83, 75)",
+     15
+    ],
+    [
+     "rgb(163, 168, 176)",
+     14
+    ],
+    [
+     "rgb(212, 255, 26)",
+     10
+    ],
+    [
+     "rgb(128, 128, 128)",
+     7
+    ],
+    [
+     "rgb(51, 44, 34)",
+     3
+    ],
+    [
+     "rgb(37, 31, 22)",
+     1
+    ],
+    [
+     "rgb(58, 52, 40)",
+     1
+    ],
+    [
+     "rgb(28, 56, 38)",
+     1
+    ]
+   ],
+   "backdropFilters": [
+    "blur(18px) saturate(1.6)",
+    "blur(8px)",
+    "blur(0px) saturate(1)",
+    "blur(34px) saturate(1.6)"
+   ],
+   "backdropCount": 11,
+   "nestedGlass": 1,
+   "runtimeInline": [
+    "body[overflow: hidden;]",
+    "div#readerFill[width: 0%;]"
+   ],
+   "sheets": [
+    {
+     "href": "/fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@400;500;600;700;1,500;1,600&display=swap",
+     "rules": -1
+    },
+    {
+     "href": "inline",
+     "rules": 112
+    },
+    {
+     "href": "inline",
+     "rules": 13
+    }
+   ],
+   "docHeight": 2807,
+   "fontFamily": "Inter, -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+   "tokens": {
+    "--accent": "",
+    "--bg": "#0e0f12",
+    "--text": "",
+    "--muted": "",
+    "--surface": "#16181c",
+    "--app-accent": "",
+    "--app-ground": "",
+    "--app-text": ""
+   },
+   "proseFace": "Cormorant Garamond",
+   "proseParagraphs": 18,
+   "proseGround": "rgb(234, 231, 221)",
+   "proseSize": "19px",
+   "proseMeasure": 376,
+   "proseChars": 6844,
+   "errors": [],
+   "opened": true
+  },
+  "1240": {
+   "elements": 209,
+   "visible": 193,
+   "fontSizes": [
+    [
+     "19px",
+     42
+    ],
+    [
+     "13.3333px",
+     32
+    ],
+    [
+     "10.5px",
+     24
+    ],
+    [
+     "12.5px",
+     17
+    ],
+    [
+     "16px",
+     15
+    ],
+    [
+     "11px",
+     13
+    ],
+    [
+     "13px",
+     10
+    ],
+    [
+     "14.5px",
+     9
+    ],
+    [
+     "7.4px",
+     8
+    ],
+    [
+     "22px",
+     8
+    ],
+    [
+     "15px",
+     4
+    ],
+    [
+     "20px",
+     2
+    ],
+    [
+     "15.5px",
+     2
+    ],
+    [
+     "16.5px",
+     2
+    ],
+    [
+     "42px",
+     1
+    ],
+    [
+     "14px",
+     1
+    ],
+    [
+     "11.5px",
+     1
+    ],
+    [
+     "34px",
+     1
+    ],
+    [
+     "24px",
+     1
+    ]
+   ],
+   "fontWeights": [
+    [
+     "400",
+     139
+    ],
+    [
+     "700",
+     40
+    ],
+    [
+     "800",
+     13
+    ],
+    [
+     "500",
+     1
+    ]
+   ],
+   "letterSpacings": [
+    [
+     "normal",
+     177
+    ],
+    [
+     "-0.22px",
+     8
+    ],
+    [
+     "-0.2px",
+     2
+    ],
+    [
+     "1.1px",
+     1
+    ],
+    [
+     "-0.84px",
+     1
+    ],
+    [
+     "0.45px",
+     1
+    ],
+    [
+     "0.23px",
+     1
+    ],
+    [
+     "0.88px",
+     1
+    ],
+    [
+     "0.48px",
+     1
+    ]
+   ],
+   "radii": [
+    [
+     "7px",
+     9
+    ],
+    [
+     "12px",
+     8
+    ],
+    [
+     "4px",
+     8
+    ],
+    [
+     "50%",
+     4
+    ],
+    [
+     "10px",
+     3
+    ],
+    [
+     "14px",
+     2
+    ],
+    [
+     "6px",
+     1
+    ],
+    [
+     "24px",
+     1
+    ]
+   ],
+   "lineHeights": [
+    [
+     "normal",
+     69
+    ],
+    [
+     "34.58px",
+     42
+    ],
+    [
+     "24.8px",
+     15
+    ],
+    [
+     "20.15px",
+     9
+    ],
+    [
+     "16px",
+     8
+    ],
+    [
+     "11.1px",
+     8
+    ],
+    [
+     "18.85px",
+     8
+    ],
+    [
+     "18.75px",
+     8
+    ],
+    [
+     "40.04px",
+     8
+    ],
+    [
+     "17.05px",
+     4
+    ],
+    [
+     "31px",
+     2
+    ],
+    [
+     "24.025px",
+     2
+    ],
+    [
+     "48.72px",
+     1
+    ],
+    [
+     "23.25px",
+     1
+    ],
+    [
+     "19.375px",
+     1
+    ],
+    [
+     "21.7px",
+     1
+    ],
+    [
+     "17.825px",
+     1
+    ],
+    [
+     "20.02px",
+     1
+    ],
+    [
+     "41.48px",
+     1
+    ],
+    [
+     "37.2px",
+     1
+    ],
+    [
+     "23.2px",
+     1
+    ],
+    [
+     "25.575px",
+     1
+    ]
+   ],
+   "colors": [
+    [
+     "rgb(242, 243, 245)",
+     58
+    ],
+    [
+     "rgb(43, 42, 38)",
+     55
+    ],
+    [
+     "rgb(109, 114, 122)",
+     28
+    ],
+    [
+     "rgb(85, 83, 75)",
+     15
+    ],
+    [
+     "rgb(163, 168, 176)",
+     14
+    ],
+    [
+     "rgb(212, 255, 26)",
+     10
+    ],
+    [
+     "rgb(128, 128, 128)",
+     7
+    ],
+    [
+     "rgb(51, 44, 34)",
+     3
+    ],
+    [
+     "rgb(37, 31, 22)",
+     1
+    ],
+    [
+     "rgb(58, 52, 40)",
+     1
+    ],
+    [
+     "rgb(28, 56, 38)",
+     1
+    ]
+   ],
+   "backdropFilters": [
+    "blur(18px) saturate(1.6)",
+    "blur(8px)",
+    "blur(0px) saturate(1)",
+    "blur(34px) saturate(1.6)"
+   ],
+   "backdropCount": 11,
+   "nestedGlass": 1,
+   "runtimeInline": [
+    "body[overflow: hidden;]",
+    "div#readerFill[width: 0%;]"
+   ],
+   "sheets": [
+    {
+     "href": "/fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@400;500;600;700;1,500;1,600&display=swap",
+     "rules": -1
+    },
+    {
+     "href": "inline",
+     "rules": 112
+    },
+    {
+     "href": "inline",
+     "rules": 13
+    }
+   ],
+   "docHeight": 2807,
+   "fontFamily": "Inter, -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+   "tokens": {
+    "--accent": "",
+    "--bg": "#0e0f12",
+    "--text": "",
+    "--muted": "",
+    "--surface": "#16181c",
+    "--app-accent": "",
+    "--app-ground": "",
+    "--app-text": ""
+   },
+   "proseFace": "Cormorant Garamond",
+   "proseParagraphs": 18,
+   "proseGround": "rgb(234, 231, 221)",
+   "proseSize": "19px",
+   "proseMeasure": 376,
+   "proseChars": 6844,
+   "errors": [],
+   "opened": true
   }
  },
  "supabaseRequests": [
