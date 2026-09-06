@@ -164,11 +164,6 @@
   --motion-ease:cubic-bezier(.22,1,.36,1);
   --motion-ease-inout:ease-in-out; /* a page or a navbar set moving into place */
   --motion-fade:linear;
-}
-
-@media (prefers-reduced-motion:reduce){
-  :root{ --motion-ms:1ms; --motion-reveal:1ms; --motion-view:1ms; }
-
   /* Sindhorn has no document surfaces: a page of writing inside the app would
      be the same glass as everything else. Answered explicitly rather than
      inherited, because the core asks (r41). */
@@ -176,4 +171,15 @@
   --app-document-border:var(--app-glass-border);
   --app-document-filter:var(--app-glass-filter);
   --app-document-ink:var(--app-text);
+
+  /* The mark. Opaque and high-contrast whatever the interface is made of: the
+     card's QR is scanned off a phone screen, so it may not be glass. These are
+     the values it has always drawn, previously literals inside qr-v6.js. */
+  --app-qr-ink:#0D1110;
+  --app-qr-ground:#F4F1EB;
 }
+
+@media (prefers-reduced-motion:reduce){
+  :root{ --motion-ms:1ms; --motion-reveal:1ms; --motion-view:1ms; }
+}
+

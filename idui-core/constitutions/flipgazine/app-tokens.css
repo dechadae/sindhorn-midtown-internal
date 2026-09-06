@@ -128,15 +128,21 @@
   --motion-ease:cubic-bezier(.22,1,.36,1);
   --motion-ease-inout:cubic-bezier(.4,0,.2,1);
   --motion-fade:linear;
-}
-
-@media (prefers-reduced-motion:reduce){
-  :root{ --motion-ms:1ms; --motion-reveal:1ms; --motion-view:1ms; }
-
   /* Flipgazine puts no document inside its chrome either; a document here is
      the same glass the rest of the product is (r41). */
   --app-document-fill:var(--app-glass-fill);
   --app-document-border:var(--app-glass-border);
   --app-document-filter:var(--app-glass-filter);
   --app-document-ink:var(--app-text);
+
+  /* The mark. Flipgazine renders no QR today; a machine-readable mark is
+     opaque black on white until it has one, which is a decision this file is
+     free to change and the core cannot. */
+  --app-qr-ink:#0B0B0B;
+  --app-qr-ground:#FFFFFF;
 }
+
+@media (prefers-reduced-motion:reduce){
+  :root{ --motion-ms:1ms; --motion-reveal:1ms; --motion-view:1ms; }
+}
+

@@ -1019,6 +1019,15 @@ body[data-public] .app-masthead-home:active{transform:none}
 
 /* ---- Figure -----------------------------------------------------------------
    Official imagery keeps an intentional aspect ratio and labels its provenance. */
+/* A machine-readable mark. It is not a surface and takes no material: it must
+   stay opaque and high-contrast to be scannable whatever the interface is made
+   of, so the constitution names its ink and its ground rather than deriving
+   them from the page. The module that draws it declares no colour at all. */
+.app-qr{display:block;width:100%;height:auto}
+.app-qr .app-qr-ground{fill:var(--app-qr-ground)}
+.app-qr .app-qr-ink{fill:var(--app-qr-ink)}
+.app-qr .app-qr-frame{fill:none;stroke:var(--app-qr-ink);stroke-width:1}
+
 .app-figure{margin:0;overflow:hidden;border-radius:var(--radius-surface)}
 .app-figure img{display:block;width:100%;height:auto}
 .app-figure figcaption{padding:10px 14px;color:var(--app-muted);font-size:var(--type-small)}

@@ -139,6 +139,10 @@
   --motion-ease:cubic-bezier(.22,1,.36,1);
   --motion-ease-inout:cubic-bezier(.4,0,.2,1);
   --motion-fade:linear;
+  /* The mark. Origarium's documents are opaque paper, so a machine-readable
+     mark here is printed on the paper rather than given a ground of its own. */
+  --app-qr-ink:var(--app-document-ink);
+  --app-qr-ground:var(--app-document-fill);
 }
 
 @media (prefers-reduced-motion:reduce){

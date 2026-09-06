@@ -13,7 +13,7 @@ import fs from 'node:fs';
 
 const FOUNDATION = ['site/app-tokens.css', 'site/app-glass.css', 'site/app-components.css', 'site/app-compositions.css', 'site/app-shell.css'];
 const PAGES = [
-  { name: '/ (app shell)', files: ['site/index.html', 'site/push-client.js', 'site/shell.js', 'site/today.js', 'site/fnb-page.js', 'site/fnb-artwork-copy.js', 'site/ci-page.js', 'site/ci-library.js', 'site/voice-page.js', 'site/app-format.js', 'site/brand-page.js', 'site/signin-page.js', 'site/settings-page.js', 'site/messages-page.js', 'site/jobs-page.js', 'site/app-code.js', 'site/app-view.js', 'site/app-dialog.js', 'site/app-toast.js', 'site/app-disclosure.js', 'site/app-drag-sort.js', 'site/app-html.js', 'site/settings-me.js', 'site/settings-admin.js', 'site/settings-broadcast.js', 'site/broadcast-inbox.js', 'site/readability-page.js', 'site/betta-readability.js', 'site/betta-random.js'], css: FOUNDATION },
+  { name: '/ (app shell)', files: ['site/index.html', 'site/push-client.js', 'site/shell.js', 'site/today.js', 'site/fnb-page.js', 'site/fnb-artwork-copy.js', 'site/ci-page.js', 'site/ci-library.js', 'site/voice-page.js', 'site/app-format.js', 'site/brand-page.js', 'site/signin-page.js', 'site/settings-page.js', 'site/messages-page.js', 'site/jobs-page.js', 'site/app-code.js', 'site/app-view.js', 'site/app-dialog.js', 'site/app-toast.js', 'site/app-disclosure.js', 'site/app-drag-sort.js', 'site/app-html.js', 'site/app-select.js', 'site/business-card-page.js', 'site/business-card-core.js', 'site/public-page.js', 'site/qr-v6.js', 'site/settings-me.js', 'site/settings-admin.js', 'site/settings-broadcast.js', 'site/broadcast-inbox.js', 'site/readability-page.js', 'site/betta-readability.js', 'site/betta-random.js'], css: FOUNDATION },
   { name: '/ci (UI Library)', files: ['site/ci.html'], css: [...FOUNDATION, 'site/ci-library.css'] },
   { name: '/voice (Voice)', files: ['site/voice.html'], css: [...FOUNDATION, 'site/ci-library.css'] },
   // The public document pages (r34): built from docs/idui by
@@ -82,6 +82,36 @@ for (const page of PAGES) {
   }
   results.push({ page: page.name, files: page.files, classes: [...page.files].reduce((n, f) => n + usedClasses(stripComments(read(f))).size, 0), findings });
 }
+
+/* The registry is hand-written, so its real failure mode is omission: a page
+   nobody added is a page the rules never see. betta-vignette-test.html was
+   exactly that for three releases. So the audit now audits itself - every
+   shipped page and every module that renders markup must be registered here or
+   declared as an exception with a reason and a date. Nothing may be neither. */
+const EXCEPTIONS = [
+  { file: 'site/betta-vignette-test.html', since: '2026-09-06',
+    reason: 'The r37b camera playground: a developer-only page carrying its own <style> block and 19 page-local classes. It predates this gate and fails the standard. Registered as a known exception so it is visible rather than unaudited; to be rebuilt on the library or deleted.' },
+  { file: 'site/betta-vignette-test.js', since: '2026-09-06',
+    reason: 'Renders the page above, and its markup uses that page-local vocabulary.' },
+];
+const coverage = [];
+{
+  const registered = new Set(PAGES.flatMap(p => p.files));
+  const excepted = new Map(EXCEPTIONS.map(e => [e.file, e]));
+  const shipped = fs.readdirSync('site').filter(f => f.endsWith('.html')).map(f => `site/${f}`)
+    .concat(fs.readdirSync('site').filter(f => f.endsWith('.js')).map(f => `site/${f}`)
+      .filter(f => /class=(?:"|')/.test(read(f))));
+  for (const file of shipped) {
+    if (registered.has(file) || excepted.has(file)) continue;
+    coverage.push(`${file}: renders markup and is in no page of this audit - register it or declare it an exception`);
+  }
+  for (const e of EXCEPTIONS) {
+    if (!fs.existsSync(e.file)) coverage.push(`${e.file}: declared an exception but is not there - remove the exception`);
+    else if (registered.has(e.file)) coverage.push(`${e.file}: both registered and excepted - one or the other`);
+  }
+}
+if (coverage.length) results.push({ page: 'coverage (every shipped page is audited)', files: [], classes: 0, findings: coverage });
+else results.push({ page: `coverage — ${PAGES.flatMap(p => p.files).length} files registered, ${EXCEPTIONS.length} declared exceptions`, files: [], classes: 0, findings: [] });
 
 const failed = results.filter(r => r.findings.length);
 if (process.argv.includes('--json')) console.log(JSON.stringify(results, null, 2));

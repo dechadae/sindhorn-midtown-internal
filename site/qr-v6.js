@@ -168,24 +168,28 @@ export function qrMatrix(text){
   return best;
 }
 
-export function qrSvg(text,{foreground='#2E273B',background='#FAF7F5',quiet=4}={}){
+/* The mark carries no colour of its own. Ink and ground are the constitution's
+   (--app-qr-ink / --app-qr-ground, applied by .app-qr in app-components.css),
+   because a machine-readable mark is a product's decision like any other and a
+   literal here would be one no page could reach. r50. */
+export function qrSvg(text,{quiet=4}={}){
   const matrix=qrMatrix(text),size=SIZE+quiet*2;
   let path='';
   for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(matrix[y][x])path+=`M${x+quiet} ${y+quiet}h1v1h-1z`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" role="img" aria-label="One-time sign-in QR code" shape-rendering="crispEdges"><rect width="${size}" height="${size}" fill="${background}"/><path d="${path}" fill="${foreground}"/></svg>`;
+  return `<svg class="app-qr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" role="img" aria-label="One-time sign-in QR code" shape-rendering="crispEdges"><rect class="app-qr-ground" width="${size}" height="${size}"/><path class="app-qr-ink" d="${path}"/></svg>`;
 }
 
-// Flipgazine-style presentation renderer. It deliberately reuses the exact
+// The presentation renderer. It deliberately reuses the exact
 // Version-6/M matrix above so existing QR capacity, masking and scan behavior
 // stay unchanged; only the SVG presentation changes.
-export function qrStyledSvg(text,{foreground='#0D1110',background='#F4F1EB',quiet=3,dotRadius=.46,finderRadius=2.1,cornerRatio=.06}={}){
+export function qrStyledSvg(text,{quiet=3,dotRadius=.46,finderRadius=2.1,cornerRatio=.06}={}){
   const matrix=qrMatrix(text),size=SIZE+quiet*2,cornerRadius=size*cornerRatio;
   const isFinder=(x,y)=>(x<7&&y<7)||(x>=SIZE-7&&y<7)||(x<7&&y>=SIZE-7);
-  const finder=(x,y)=>`<rect x="${x}" y="${y}" width="7" height="7" rx="${finderRadius}" fill="none" stroke="${foreground}" stroke-width="1"/><rect x="${x+2}" y="${y+2}" width="3" height="3" rx="1" fill="${foreground}"/>`;
+  const finder=(x,y)=>`<rect class="app-qr-frame" x="${x}" y="${y}" width="7" height="7" rx="${finderRadius}"/><rect class="app-qr-ink" x="${x+2}" y="${y+2}" width="3" height="3" rx="1"/>`;
   let dots='';
   for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){
     if(!matrix[y][x]||isFinder(x,y))continue;
     dots+=`<circle cx="${x+quiet+.5}" cy="${y+quiet+.5}" r="${dotRadius}"/>`;
   }
-  return `<svg class="fg-qr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" preserveAspectRatio="xMinYMin meet" role="img" aria-label="QR code" shape-rendering="geometricPrecision"><rect width="${size}" height="${size}" rx="${cornerRadius}" fill="${background}"/><g fill="${foreground}">${dots}</g>${finder(quiet,quiet)}${finder(quiet+SIZE-7,quiet)}${finder(quiet,quiet+SIZE-7)}</svg>`;
+  return `<svg class="app-qr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" preserveAspectRatio="xMinYMin meet" role="img" aria-label="QR code" shape-rendering="geometricPrecision"><rect class="app-qr-ground" width="${size}" height="${size}" rx="${cornerRadius}"/><g class="app-qr-ink">${dots}</g>${finder(quiet,quiet)}${finder(quiet+SIZE-7,quiet)}${finder(quiet,quiet+SIZE-7)}</svg>`;
 }
