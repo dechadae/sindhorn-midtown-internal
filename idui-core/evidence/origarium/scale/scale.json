@@ -1,0 +1,75 @@
+{
+ "test": "IDUI Test 02.2 — one hundred papers",
+ "fixture": {
+  "count": 100,
+  "seed": "0x416a21",
+  "md5": "0a63c0bda455254ff20fa5f2a1679b11"
+ },
+ "measuredAt": "2026-09-06T10:15:26.856Z",
+ "origarium": {
+  "label": "origarium",
+  "viewports": {
+   "390": {
+    "failures": [],
+    "cards": 100,
+    "distinctCardWidths": 1,
+    "distinctPreviewSizes": 1,
+    "renderedMs": 693,
+    "nodes": 1272,
+    "overflow": 0,
+    "errors": 0
+   },
+   "1240": {
+    "failures": [],
+    "cards": 100,
+    "distinctCardWidths": 1,
+    "distinctPreviewSizes": 1,
+    "renderedMs": 652,
+    "nodes": 1272,
+    "overflow": 0,
+    "errors": 0
+   }
+  },
+  "reader": {
+   "opened": 100,
+   "failures": []
+  }
+ },
+ "idui": {
+  "label": "idui",
+  "viewports": {
+   "390": {
+    "failures": [],
+    "cards": 100,
+    "distinctCardWidths": 1,
+    "distinctPreviewSizes": 1,
+    "renderedMs": 749,
+    "nodes": 1543,
+    "overflow": 0,
+    "errors": 0
+   },
+   "1240": {
+    "failures": [],
+    "cards": 100,
+    "distinctCardWidths": 1,
+    "distinctPreviewSizes": 1,
+    "renderedMs": 693,
+    "nodes": 1543,
+    "overflow": 0,
+    "errors": 0
+   }
+  },
+  "reader": {
+   "opened": 100,
+   "failures": []
+  }
+ },
+ "appearanceAuthority": {
+  "origarium": 243,
+  "idui": 0,
+  "note": "unchanged by content volume: the page code is the same file that rendered eight"
+ },
+ "vocabulary": {
+  "idui": 28
+ }
+}
