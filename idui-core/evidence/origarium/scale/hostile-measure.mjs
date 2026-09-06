@@ -5,6 +5,8 @@ import {readFile, writeFile, mkdir} from 'node:fs/promises';
 import {createServer} from 'node:http';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {execSync} from 'node:child_process';
 import {chromium} from 'playwright';
 import {CONTRACTS} from './contracts.mjs';
 
@@ -12,6 +14,15 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../../../..');
 const papers = JSON.parse(await readFile(path.join(here, 'papers-hostile.json'), 'utf8'));
 const COUNT = papers.length;
+const state = process.env.ORIGARIUM_ROUTE === '/papers-fixed' ? 'repaired' : 'baseline';
+const stateFile = path.join(here, `hostile-${state}.json`);
+if (!process.env.EVIDENCE_NEW_STATE && await readFile(stateFile, 'utf8').then(() => true, () => false)) {
+  console.error(`refusing to overwrite ${path.basename(stateFile)} - it is a recorded observation.\n` +
+    `A later run supersedes an interpretation, never the observation it corrected.\n` +
+    `To record a further run, give it a state of its own: EVIDENCE_NEW_STATE=<name>.`);
+  process.exit(1);
+}
+
 const VIEWPORTS = [{name: '390', width: 390, height: 844}, {name: '1240', width: 1240, height: 900}];
 
 const types = {'.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json'};
@@ -93,17 +104,30 @@ const idui = await run('idui', {url: `${base}/idui-core/evidence/origarium/after
   openSel: '[data-open]', readerReady: () => document.querySelector('[data-reader]')?.hidden === false, closeSel: '[data-reader-close]'});
 
 await mkdir(path.join(here, 'shots'), {recursive: true});
-/* Written into a named phase, never over the whole file: re-running after a
-   repair once erased the failing numbers, and a record that shows only 22/22
-   says nothing happened. ORIGARIUM_ROUTE=/papers-fixed selects afterRepair. */
-const phase = process.env.ORIGARIUM_ROUTE === '/papers-fixed' ? 'afterRepair' : 'beforeRepair';
-const file = path.join(here, 'hostile.json');
-const existing = JSON.parse(await readFile(file, 'utf8').catch(() => '{}'));
-existing.test = 'IDUI Test 02.3 — hostile content';
-existing.fixture = {count: COUNT, md5: 'b676142dda0567a4fda9f1d67a2d6c47'};
-existing[phase] = {origarium, idui, measuredAt: new Date().toISOString()};
-await writeFile(file, JSON.stringify(existing, null, 1));
-console.log(`written to ${phase}`);
+/* Evidence is append-only by experimental state. A run writes its own state
+   file and refuses to touch one that already exists: re-running after a repair
+   once erased the failing numbers, and a record showing only 22/22 says nothing
+   happened. hostile.json is a manifest over the states and holds no
+   measurements. ORIGARIUM_ROUTE=/papers-fixed selects the repaired state. */
+const named = process.env.EVIDENCE_NEW_STATE || state;
+const target = path.join(here, `hostile-${named}.json`);
+const fixture = {count: COUNT, md5: 'b676142dda0567a4fda9f1d67a2d6c47', file: 'papers-hostile.json',
+  sha256: createHash('sha256').update(await readFile(path.join(here, 'papers-hostile.json'))).digest('hex')};
+const measuredAt = new Date().toISOString();
+const commit = execSync('git rev-parse --short HEAD', {cwd: repo}).toString().trim();
+await writeFile(target, JSON.stringify({test: 'IDUI Test 02.3 - hostile content', state: named, commit,
+  fixture, outcome: '', origarium, idui, measuredAt}, null, 1));
+
+const manifestFile = path.join(here, 'hostile.json');
+const manifest = JSON.parse(await readFile(manifestFile, 'utf8').catch(() => '{}'));
+manifest.test = 'IDUI Test 02.3 - hostile content';
+manifest.note = 'Evidence is append-only by experimental state. A later run may supersede an interpretation, never overwrite the observation it corrected. This file is a manifest; it holds no measurements.';
+manifest.fixture = fixture;
+manifest.states = (manifest.states || []).filter(s => s.state !== named);
+manifest.states.push({state: named, file: path.basename(target), commit, measuredAt,
+  sha256: createHash('sha256').update(await readFile(target)).digest('hex')});
+await writeFile(manifestFile, JSON.stringify(manifest, null, 1));
+console.log(`written to ${path.basename(target)}, manifest updated`);
 await browser.close(); server.close();
 
 for (const r of [origarium, idui]) {

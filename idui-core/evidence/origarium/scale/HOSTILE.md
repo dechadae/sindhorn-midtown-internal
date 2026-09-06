@@ -139,3 +139,29 @@ reconstruction was missing a property of the original.
 
 Fixed where it belonged — a reading context occupies the view — and recorded
 here rather than quietly corrected, because the first reading was published.
+
+## How this record is kept
+
+Both runs of the same frozen fixture are separate, immutable files:
+
+| State | File | Commit | Outcome |
+|---|---|---|---|
+| baseline | `hostile-baseline.json` | `faf6609` | failures observed, both architectures |
+| repaired | `hostile-repaired.json` | `d3104a3` | 22/22 both |
+
+`hostile.json` holds no measurements. It is a manifest: the fixture and its
+sha256, and one entry per state with file, commit, timestamp and sha256.
+
+This is amendment A7, and it exists because re-running the harness after the
+repair once overwrote the failing numbers, leaving a file that reported only
+22/22 — the observation that produced the finding, destroyed by the run that
+followed it. The numbers were recovered from `faf6609`.
+
+> Evidence is append-only by experimental state. A later run may supersede an
+> interpretation; it may never overwrite the observation it corrected.
+
+The harness now refuses to write over a state that already exists — a further
+run must name a state of its own with `EVIDENCE_NEW_STATE=<name>` — and
+`scripts/evidence-append-only.mjs` proves on every build that no recorded state
+has moved and that no manifest has grown measurements of its own.
+

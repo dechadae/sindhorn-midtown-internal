@@ -294,3 +294,33 @@ owner's acceptance — before it can be called held.
 
 This is the strongest methodological finding the series has produced, and it
 came from a rejection rather than a pass.
+
+### A7 — 6 September 2026: evidence is append-only by experimental state
+
+Re-running the Test 02.3 hostile harness after the repair overwrote
+`hostile.json` and erased the failing numbers, leaving a file that reported
+only 22/22 — a record whose meaning depended on which run happened most
+recently. The observation that motivated the whole finding was gone, and it had
+to be recovered from commit `faf6609`.
+
+> **Evidence is append-only by experimental state. A later run may supersede an
+> interpretation; it may never overwrite the observation it corrected.**
+
+Mechanically, for this series:
+
+- Each experimental state is its own immutable file, carrying its state name,
+  the commit it was measured at, the fixture hash, and its outcome —
+  `hostile-baseline.json` (pre-repair, failures observed) and
+  `hostile-repaired.json` (post-repair, 22/22 both).
+- A result file with a generic name holds no measurements. `hostile.json` is a
+  manifest: fixture, and one entry per state with its file, commit, timestamp
+  and sha256.
+- The harness refuses to write over a state that exists; a further run must
+  name a state of its own (`EVIDENCE_NEW_STATE=<name>`).
+- `scripts/evidence-append-only.mjs` proves on every build that no recorded
+  state has changed and that no manifest has grown measurements. The rule has a
+  gate, like every other rule here.
+
+The fix is mechanical, not editorial: nothing about what was observed changes,
+only that it can no longer be destroyed by the next run.
+

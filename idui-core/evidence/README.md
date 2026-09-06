@@ -7,7 +7,7 @@ before implementation" is checkable rather than asserted.
 | | Test | Subject | State | Frozen at |
 |---|---|---|---|---|
 | **01** | The Rebuild Test | Flipgazine, "Moving to Claude Code" | Done — published at `/evidence` | r33 |
-| **02** | Origarium Papers | An editorial archive and long-form reader | **Held With Nine Corrections; editorial parity partial, ~70%** | `828ee41` |
+| **02** | Origarium Papers | An editorial archive and long-form reader | **Architecture Held With Nine Corrections; Editorial Parity Partial (~70%)** | `828ee41` |
 | **03** | Apple | Three modules of the homepage, no Apple imagery or type | Protocol frozen | `79d34cd` |
 
 Those three are the interface rebuilds, and they are what the `/idui` footer

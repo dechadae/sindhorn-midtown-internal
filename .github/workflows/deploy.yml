@@ -230,6 +230,7 @@ jobs:
           node scripts/build-idui.mjs --check
           node scripts/build-evidence.mjs --check
           node scripts/build-origarium.mjs --check
+          node scripts/evidence-append-only.mjs
 
       - name: Deploy to Cloudflare Pages
         env:

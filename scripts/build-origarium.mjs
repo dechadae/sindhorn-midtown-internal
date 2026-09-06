@@ -35,7 +35,14 @@ const swShort=sw.replace(/^sindhorn-midtown-internal-pwa-/,'');
 
 const before=JSON.parse(read(path.join(RUN,'before.json')));
 const scale=JSON.parse(read(path.join(RUN,'scale/scale.json')));
-const hostile=JSON.parse(read(path.join(RUN,'scale/hostile.json')));
+/* hostile.json is a manifest, not a result: each experimental state is its own
+   immutable file, so the page cannot silently report whichever run happened
+   last. scripts/evidence-append-only.mjs proves neither has moved. */
+const manifest=JSON.parse(read(path.join(RUN,'scale/hostile.json')));
+const state=name=>{const s=manifest.states.find(s=>s.state===name);
+  if(!s)throw new Error(`hostile manifest declares no "${name}" state`);
+  return JSON.parse(read(path.join(RUN,'scale',s.file)));};
+const baseline=state('baseline'),repaired=state('repaired');
 const n=v=>Number(v).toLocaleString('en-US');
 /* how many of a run's cards carried no failure at all */
 const valid=(run,view,total)=>total-new Set(run.viewports[view].failures.map(f=>f.index)).size;
@@ -64,10 +71,10 @@ const values={
     origariumReader:n(scale.origarium.reader.opened),iduiReader:n(scale.idui.reader.opened),
   },
   hostile:{
-    origariumBefore:n(valid(hostile.beforeRepair.origarium,'390',22)),iduiBefore:n(valid(hostile.beforeRepair.idui,'390',22)),
-    origariumAfter:n(valid(hostile.afterRepair.origarium,'390',22)),iduiAfter:n(valid(hostile.afterRepair.idui,'390',22)),
-    origariumOverflow:n(hostile.beforeRepair.origarium.viewports['390'].overflow),
-    iduiOverflow:n(hostile.beforeRepair.idui.viewports['390'].overflow),
+    origariumBefore:n(valid(baseline.origarium,'390',22)),iduiBefore:n(valid(baseline.idui,'390',22)),
+    origariumAfter:n(valid(repaired.origarium,'390',22)),iduiAfter:n(valid(repaired.idui,'390',22)),
+    origariumOverflow:n(baseline.origarium.viewports['390'].overflow),
+    iduiOverflow:n(baseline.idui.viewports['390'].overflow),
   },
 };
 
@@ -77,7 +84,7 @@ const body=read(SRC).replace(/\{\{([\w.]+)\}\}/g,(_m,key)=>{const v=lookup(key);
 if(missing.length){console.error('origarium-body.html: unknown placeholders '+[...new Set(missing)].join(', '));process.exit(1)}
 
 const html=docPage({
-  title:'Held With Nine Corrections | Sindhorn Midtown',
+  title:'Architecture Held With Nine Corrections; Editorial Parity Partial | Sindhorn Midtown',
   description:'IDUI Test 02: an editorial archive and long-form reader rebuilt on the core. Structural conformance complete, editorial parity partial at seventy per cent, with both scale runs and the rejected candidate kept.',
   slug:'origarium',
   body:body.trim(),

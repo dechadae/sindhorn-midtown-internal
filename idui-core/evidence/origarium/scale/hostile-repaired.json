@@ -1,0 +1,79 @@
+{
+ "test": "IDUI Test 02.3 - hostile content",
+ "state": "repaired",
+ "commit": "d3104a3",
+ "fixture": {
+  "count": 22,
+  "md5": "b676142dda0567a4fda9f1d67a2d6c47",
+  "file": "papers-hostile.json",
+  "sha256": "273e348df3dd409b5b1c28ce1711a197ceb2e7a8168bd65ec5d9caceaf0cc6e7"
+ },
+ "outcome": "The same frozen fixture once each side carried one declaration - the core rule for IDUI, and for Origarium a scratch copy written outside the repository and never back to its source.",
+ "origarium": {
+  "label": "origarium",
+  "viewports": {
+   "390": {
+    "failures": [],
+    "cards": 22,
+    "distinctCardWidths": 1,
+    "distinctPreviewSizes": 1,
+    "errors": 0,
+    "overflow": 0
+   },
+   "1240": {
+    "failures": [],
+    "cards": 22,
+    "distinctCardWidths": 1,
+    "distinctPreviewSizes": 1,
+    "errors": 0,
+    "overflow": 0
+   }
+  },
+  "escaping": {
+   "titleExecuted": false,
+   "bodyExecuted": false,
+   "injectedImages": 0,
+   "injectedScripts": 0
+  },
+  "reader": {
+   "opened": 22,
+   "of": 22,
+   "failures": []
+  }
+ },
+ "idui": {
+  "label": "idui",
+  "viewports": {
+   "390": {
+    "failures": [],
+    "cards": 22,
+    "distinctCardWidths": 1,
+    "distinctPreviewSizes": 1,
+    "errors": 0,
+    "overflow": 0
+   },
+   "1240": {
+    "failures": [],
+    "cards": 22,
+    "distinctCardWidths": 1,
+    "distinctPreviewSizes": 1,
+    "errors": 0,
+    "overflow": 0
+   }
+  },
+  "escaping": {
+   "titleExecuted": false,
+   "bodyExecuted": false,
+   "injectedImages": 0,
+   "injectedScripts": 0
+  },
+  "reader": {
+   "opened": 22,
+   "of": 22,
+   "failures": []
+  }
+ },
+ "measuredAt": "2026-09-06T10:28:38.175Z",
+ "origariumFix": "scratch copy, one declaration over 13 selectors, never written to the source",
+ "iduiFix": "idui-core/app-components.css, one declaration over 20 roles at zero specificity"
+}

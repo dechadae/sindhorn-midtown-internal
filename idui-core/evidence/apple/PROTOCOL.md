@@ -237,3 +237,52 @@ owner's acceptance — before it can be called held.
 This is the strongest methodological finding the series has produced, and it
 came from a rejection rather than a pass.
 
+### A2 — 6 September 2026: the inferred intent brief, frozen before implementation
+
+Test 02 ended on a finding this protocol cannot survive unamended. Two
+reconstructions of Origarium passed every contract; the owner rejected one and
+accepted the other at 70%, and what separated them was a single sentence of
+design intent — *the thumbnail is an e-ink reader, and pressing it bounces to
+full screen*. The instruments had already read every value on the page. They
+could not read what the thing **was**.
+
+> Rendered outcomes expose values. They do not necessarily expose reasons.
+
+Origarium had a designer to ask. **Apple will not.** That difference forces two
+questions apart which this protocol had been treating as one:
+
+- ❌ *Given the designer's intent, can IDUI encode Apple?* — untestable here.
+  Apple's internal brief is not available and inventing one would be fiction.
+- ✅ **Given public rendered evidence and public behaviour, how much of a
+  design's governing intent can be reconstructed, and what remains
+  underdetermined?**
+
+The second is the honest question, and it is more adversarial than the first.
+
+**Requirement.** Before any Apple reconstruction begins, the source study must
+produce a frozen **inferred intent brief** — concepts and relationships, in the
+shape of Origarium's four lines, not values — committed on its own hash and
+labelled in the file itself:
+
+> **Inferred, not authoritative.** Reconstructed from public rendered evidence.
+> No Apple design documentation was consulted, because none is available.
+
+The reconstruction is then built **from that brief**, not from the screenshots
+directly. Afterwards two things can be inspected separately, which is the whole
+point:
+
+1. Was the inferred intent model any good?
+2. Given that model, did IDUI implement it without local appearance authority?
+
+**Consequence for the verdict.** A fidelity failure must now be attributed to
+one of those before the test may name a result. An intent-recovery failure is
+**not** an IDUI-governance failure, and reporting it as one would overstate the
+architecture's weakness exactly as reporting the reverse would overstate its
+strength. Both are published either way.
+
+This also bounds what the whole method may claim, and the bound belongs in this
+protocol rather than only in Test 02's results:
+
+> Centralising the wrong interpretation only makes the wrong interpretation
+> systematic. Contracts cannot rescue misunderstood intent.
+

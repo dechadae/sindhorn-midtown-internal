@@ -523,7 +523,7 @@ else {
 const DOCS = [
   { route: '/idui', title: 'Invariant-Driven UI', sections: 9 },
   { route: '/evidence', title: 'The Rebuild Test', sections: 10 },
-  { route: '/origarium', title: 'Held With Nine Corrections', sections: 10 }
+  { route: '/origarium', title: 'Architecture Held With Nine Corrections; Editorial Parity Partial', sections: 10 }
 ];
 const docReport = {};
 for (const doc of DOCS) {

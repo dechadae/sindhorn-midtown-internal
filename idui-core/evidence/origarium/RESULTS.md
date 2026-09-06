@@ -1,12 +1,34 @@
 # Test 02 — results
 
-> **Held With Nine Corrections. Editorial parity partial, ~70%, owner-assessed.**
+> **Test 02 — Architecture Held With Nine Corrections; Editorial Parity Partial.**
+
+The architecture held. The complete hypothesis did not: the frozen success
+condition required editorial parity, and at ~70% — the owner's number — it is
+not met. Naming this a hold would turn a partial result into a pass, so the two
+halves are reported separately and the headline carries both.
+
+**The nine corrections, by kind**, because the raw number invites reading them
+as nine arbitrary patches:
+
+- **7** reusable capabilities
+- **1** misowned product assumption removed from the core
+- **1** defect introduced and detected during this test
+- **0** product-specific presentation
 
 Structural conformance is complete — 22,912 B of page CSS to 0, 243 appearance
 decisions to 0, no product-specific presentation. Editorial parity is partial
 and the owner has named the three defects that keep it there. Both halves are
 required before a result may be called held, per amendment A6, so this is
 **not** a hold: it is a structural pass with an editorial verdict of 70%.
+
+**The finding that outranks every number below.** Rendered outcomes expose
+values; they do not necessarily expose reasons. A constitution cannot reliably
+be reconstructed from rendered output alone, because some invariants encode
+design intent rather than observable appearance — and the consequence bounds
+what this methodology may claim: *centralising the wrong interpretation only
+makes the wrong interpretation systematic.* Contracts cannot rescue
+misunderstood intent. Full argument below, under "The finding that matters
+most".
 
 Origarium Papers, `/papers.html` v59, measured at 390 in both modes. Both sides
 by the same code: `idui-core/evidence/metrics.mjs`, which the Flipgazine test
@@ -196,9 +218,48 @@ faithfully and recovers *intent* not at all. Candidate A was a correct reading
 of every measurement and the wrong object. The gap between them was closed by a
 designer saying what he had meant.
 
-Test 03 should assume the same: a reconstruction of Apple from measurement
-alone will reproduce Apple's values and miss whatever Apple meant, and no
-amount of instrumentation will tell us which.
+### What a constitution is missing
+
+A constitution as practised here is a structured extraction of visual
+properties. This test says it needs a layer above that — small, explicit, and
+not derivable from a screenshot. The whole brief that closed the A → B gap:
+
+```
+concept:  papers are e-ink reading objects
+archive:  a paper is an object in the Origarium environment
+reader:   opening transforms that object into the reading environment
+purpose:  the ivory field supports sustained long-form reading
+```
+
+Four relationships, no values. A compiler can derive from that; an analyser of
+rendered output cannot invent it. Recorded as the finding, **not** as a shipped
+format: no intent layer is implemented, and designing one from a single case
+would be the same overreach this test is warning about.
+
+### And the consequence for the whole method
+
+> Centralising the wrong interpretation only makes the wrong interpretation
+> systematic.
+
+Contracts cannot rescue misunderstood intent; they enforce whatever
+understanding they were given, faithfully, everywhere. That limitation is
+stated here so it is on the record before any starter kit or general claim is
+built on this work.
+
+### What it does to Test 03
+
+Apple's designers will not be there to give a brief, which splits a question
+the protocol had been blending. It cannot honestly ask *given the designer's
+intent, can IDUI encode Apple* — that intent is not available. It can ask:
+
+> Given public rendered evidence and public behaviour, how much of a design's
+> governing intent can be reconstructed, and what remains underdetermined?
+
+So that test now owes a frozen **inferred intent brief**, labelled *inferred,
+not authoritative*, written before any reconstruction. Without it, a fidelity
+failure cannot be attributed: a bad intent model and a good model that
+governance failed to implement are indistinguishable. Entered as amendment A2
+there.
 
 ## Change propagation
 
