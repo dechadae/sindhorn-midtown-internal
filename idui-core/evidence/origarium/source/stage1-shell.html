@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0e0f12">
+<title>ORIGARIUM</title>
+<link rel="preconnect" href="https://sjpvhgxacsiorrtijqua.supabase.co" crossorigin>
+<!-- PageSpeed Insights (2026-07-21, mobile): measured ~310ms LCP savings from this - every page fetch starts with a request to this origin, so warming the connection during initial parse instead of after JS discovers it matters. -->
+
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>
+  html,body{margin:0;height:100%;background:#0e0f12;color:#d7dade;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  #boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+  #boot b{color:#d4ff1a}
+  .cur{display:inline-block;width:8px;height:14px;background:#d4ff1a;margin-left:6px;vertical-align:-2px;animation:b 1s steps(1) infinite}
+  @keyframes b{50%{opacity:0}}
+  #bootErr{display:none;position:fixed;left:0;right:0;bottom:24px;text-align:center;font-size:12px;color:#8a8f98}
+
+  /* ===================================================================
+     EDITURN boot — editorial/neon variant, shown instead of #boot for
+     anything under /editurn. Fonts are loaded on demand (see script
+     below) so the common terminal-boot path never pays for them.
+     Kept deliberately spare: five lines of content plus a lit-neon
+     backdrop, nothing else. See project notes for why.
+     =================================================================== */
+  #bootEditurn{
+    display:none;position:fixed;inset:0;z-index:2;
+    align-items:center;justify-content:center;
+    font-family:'Cormorant Garamond',Georgia,serif;
+    background:#050506;
+  }
+  #ed-void{
+    position:fixed;inset:0;z-index:0;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(30,40,20,.26), transparent 60%),
+      radial-gradient(ellipse at 50% 100%, rgba(20,25,10,.32), transparent 65%),
+      #050506;
+  }
+  #ed-grid{
+    position:fixed;left:50%;bottom:0;z-index:0;
+    width:220vw;height:46vh;
+    transform:translateX(-50%) perspective(420px) rotateX(72deg);
+    transform-origin:50% 100%;
+    background-image:
+      repeating-linear-gradient(90deg, rgba(212,255,26,.14) 0 1px, transparent 1px 54px),
+      repeating-linear-gradient(0deg, rgba(212,255,26,.12) 0 1px, transparent 1px 54px);
+    -webkit-mask-image:linear-gradient(to top, rgba(0,0,0,.9), transparent 92%);
+            mask-image:linear-gradient(to top, rgba(0,0,0,.9), transparent 92%);
+    opacity:.5;
+  }
+  #ed-horizon{
+    position:fixed;left:0;right:0;bottom:0;height:34vh;z-index:0;
+    background:radial-gradient(ellipse at 50% 100%, rgba(212,255,26,.12), transparent 70%);
+    pointer-events:none;
+  }
+  #ed-content{ position:relative;z-index:2;text-align:center;padding:0 30px; }
+  #ed-flag{
+    font-family:'Playfair Display',serif;font-weight:800;
+    font-size:2.2em;letter-spacing:4px;color:#f3e6c8;margin:0 0 18px;
+    text-shadow:0 0 6px rgba(255,255,255,.5),0 0 20px rgba(212,255,26,.55),0 0 42px rgba(212,255,26,.28);
+    animation:edFlicker 6.5s ease-in-out infinite;
+  }
+  @keyframes edFlicker{0%,3%,6%,100%{opacity:1}4%{opacity:.72}5%{opacity:.94}}
+  #ed-rule{
+    font-family:'Playfair Display',serif;font-size:.85em;letter-spacing:3px;
+    color:#d4ff1a;text-shadow:0 0 8px rgba(212,255,26,.5);margin-bottom:22px;opacity:.85;
+  }
+  #ed-tagline{
+    font-style:italic;font-size:1.06em;line-height:1.55;
+    color:rgba(243,230,200,.82);max-width:320px;margin:0 auto 26px;
+  }
+  #ed-mark{
+    font-size:22px;color:#d4ff1a;margin-bottom:20px;
+    text-shadow:0 0 6px rgba(255,255,255,.5),0 0 16px rgba(212,255,26,.7);
+    animation:edPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes edPulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.15)}}
+  #ed-status{
+    font-family:'Playfair Display',serif;font-size:10px;letter-spacing:3px;
+    text-transform:uppercase;color:rgba(212,255,26,.75);
+  }
+  #ed-status span span{ opacity:0;animation:edDot 1.4s ease-in-out infinite; }
+  #ed-status span span:nth-child(1){animation-delay:0s}
+  #ed-status span span:nth-child(2){animation-delay:.25s}
+  #ed-status span span:nth-child(3){animation-delay:.5s}
+  @keyframes edDot{0%,100%{opacity:0}40%{opacity:1}}
+  @media (max-width:420px){
+    #ed-flag{font-size:1.7em;letter-spacing:3px}
+    #ed-tagline{font-size:.96em}
+  }
+  @media (prefers-reduced-motion:reduce){
+    #ed-flag,#ed-mark{animation:none}
+    #ed-status span span{animation:none;opacity:1}
+  }
+</style>
+</head>
+<body>
+<div id="boot"><p><b id="bootUser">pioneer@origarium:~$</b> boot<span class="cur"></span></p></div>
+<div id="bootEditurn">
+  <div id="ed-void"></div>
+  <div id="ed-horizon"></div>
+  <div id="ed-grid"></div>
+  <div id="ed-content">
+    <h1 id="ed-flag">EDITURN</h1>
+    <div id="ed-rule">=====</div>
+    <p id="ed-tagline">Where each memory is set,<br>folded, and turned again.</p>
+    <div id="ed-mark">*</div>
+    <div id="ed-status">Composing<span><span>.</span><span>.</span><span>.</span></span></div>
+  </div>
+</div>
+<div id="bootErr">boot failed — check connection and reload</div>
+<script>
+/* ORIGARIUM stage-1 shell. Job: config, boot screen, register the PWA
+   service worker, fetch the stage-2 loader from the database, hand over.
+   All routing/page logic lives in the DB loader — never here.
+
+   Boot prompt: no auth library exists at this stage, so the visitor name
+   is read from localStorage — wl_prompt_name (cached by index.html and
+   vault.html after every auth check), then the raw supabase session
+   token, then wl_claimed_name, then "pioneer". */
+window.__WL = {
+  BASE: "https://sjpvhgxacsiorrtijqua.supabase.co/rest/v1",
+  KEY: "ORIGARIUM_ANON_KEY_REDACTED"
+};
+(function(){
+  var n = "";
+  try{ n = localStorage.getItem("wl_prompt_name") || ""; }catch(e){}
+  if(!n){
+    try{
+      var t = JSON.parse(localStorage.getItem("sb-sjpvhgxacsiorrtijqua-auth-token") || "null");
+      var u = t && (t.user || (t.currentSession && t.currentSession.user));
+      n = (u && ((u.user_metadata || {}).display_name || (u.email || "").split("@")[0])) || "";
+    }catch(e){}
+  }
+  if(!n){ try{ n = localStorage.getItem("wl_claimed_name") || ""; }catch(e){} }
+  n = n.toString().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9_-]/g, "").slice(0, 20) || "pioneer";
+  document.getElementById("bootUser").textContent = n + "@origarium:~$";
+})();
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("/sw.js").catch(function(){}); }
+
+var __wlPath = location.pathname;
+
+/* EDITURN: editorial/neon boot instead of the terminal one. Fonts are
+   fetched only on this branch so the far more common public-site boot
+   never pays for a request it doesn't use. Everything else about the
+   load — the loader.js fetch below, the DB routing — is unchanged;
+   this only swaps which boot markup is visible while that happens. */
+if(/^\/editurn(\/|$)/.test(__wlPath)){
+  document.getElementById("boot").style.display = "none";
+  var __edFont = document.createElement("link");
+  __edFont.rel = "stylesheet";
+  __edFont.href = "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Playfair+Display:wght@600;700;800&display=swap";
+  document.head.appendChild(__edFont);
+  document.getElementById("bootEditurn").style.display = "flex";
+}
+
+/* CRM fast path: /crm and /crm-* skip the boot line and the stage-2 loader
+   entirely - one direct fetch of the page row, blank dark screen meanwhile.
+   The CRM app is built for real navigations (top-level consts + load-once
+   guards), so tab switches must be real loads; this makes them near-invisible. */
+if(/^\/crm(-[a-z0-9-]+)?$/.test(__wlPath)){
+  document.getElementById("boot").style.display = "none";
+  fetch(window.__WL.BASE + "/site_files?path=eq." + encodeURIComponent(__wlPath + ".html") + "&select=content", {
+    headers: { apikey: window.__WL.KEY, Authorization: "Bearer " + window.__WL.KEY },
+    cache: "no-store"
+  }).then(function(r){ return r.json(); })
+    .then(function(rows){
+      if(rows && rows[0] && rows[0].content){ document.open(); document.write(rows[0].content); document.close(); }
+      else { document.getElementById("bootErr").style.display = "block"; }
+    })
+    .catch(function(){ document.getElementById("bootErr").style.display = "block"; });
+} else {
+fetch(window.__WL.BASE + "/site_files?path=eq.%2Floader.js&select=content", {
+  headers: { apikey: window.__WL.KEY, Authorization: "Bearer " + window.__WL.KEY },
+  cache: "no-store"
+}).then(function(r){ return r.json(); })
+  .then(function(rows){ (0, eval)(rows[0].content); })
+  .catch(function(){ document.getElementById("bootErr").style.display = "block"; });
+}
+</script>
+<!-- Cloudflare Pages Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "076d80be52fc4d3cae0925d9c5bd21df"}'></script><!-- Cloudflare Pages Analytics --></body>
+</html>

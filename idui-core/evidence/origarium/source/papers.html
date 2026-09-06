@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0e0f12">
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiT3JpZ2FyaXVtIiwic2hvcnRfbmFtZSI6Ik9yaWdhcml1bSIsImRlc2NyaXB0aW9uIjoiQSBncmFwaGljIGRlc2lnbmVyLCBvbmUgQW5kcm9pZCBwaG9uZSwgYW5kIHRocmVlIEFJcy4gSG93IE9yaWdhcml1bSBnb3QgYnVpbHQuIiwic3RhcnRfdXJsIjoiLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwZTBmMTIiLCJ0aGVtZV9jb2xvciI6IiMwZTBmMTIiLCJpY29ucyI6W3sic3JjIjoiZGF0YTppbWFnZS9wbmc7YmFzZTY0LGlWQk9SdzBLR2dvQUFBQU5TVWhFVWdBQUFNQUFBQURBQ0FZQUFBRERQbUhMQUFBZ0FFbEVRVlI0bk8yZFhZaGtSMUxIZzVsUlZWZFBmODYyMlY1RTJ4Z2JDWjF3SmR2R21DKzMxaWM5cm4wVzcvUE1oaTNjQnhtelU3TE0yZ2p2UzJ0alcydjNkbTZYWEdEUU1EUFRQVGZWM2QxZFB4Sm5RZG44b3BUcDhqNGpjaU1oOHFmL3o1TnhKa3paL29OT0Y2QUkzWU00YU9janhtTlY2N1U4QmJnRHZBOUFDbTFRSEF4dU1QQU4zZ1MvSDRJczRUdkFBOEIvQVBnUUFDbUFEZUFmd0plQjV3WGl3Rkc2WlgvUUNmMXBiOFlmSXk4Y0VkMnZBMk1BbmVIbVBBSnZBQjhCTGdOM0ZEeHdEZmc4OEZuZ1BQQ2c0RVdBQzhCbGdKNW9EbmdQK0dQaWZBbi9EUE9DYnhaeitDdEFRRi9OTHdCM0Fzek0rZC94ZC9qbmtwZHBaMDlNS3ZBejRDckM1NlB0aDR3TS9Bd0k1bmVBcnhVQ25Ucnl6QVQvZ1Q4ZDZidWZ3RTgxUE9Bd2FGWWNaTGhTdUFyeFFXakh3ZitkUUtjRDl3T2ZLdmg4RS9pV0F2N1E4WlYzNUtWRzMxTitJZm45SGJnRjhOaDJ2ejM4bEJnR2Z1YlErUXhBQnJRRmZBWjRhY0hOa3JHRWNMYUJXQnB5cENURWJZWTVzYlZ3RS9NNklQSVBjWFY0MTFEQnV3Y1lTeVR3TzFrbFAzc0FoRVdMY0FOQU5MUXNZWXBqbzFHVzB6enBmVTdndS9OMkVzeE9BSDVXVUFic0EvS3ppWjE3RXhoRFdBUEdrQ3ZSN2dQK0MzcW5DWEFuNWNVR2FIeEdRbVJDNmpxNzZqcWxhVzRDL1JEeUlPQXY0Um1CQ3lWaEE0d0IrQUZFdmFPUmMwZ0M2WVAxbTFDWnVxSDBaK1YyeE5wbmoxUmU3RmFVNU9CV1JTNkxYQVhjSHRoNzR3TG1zVFFCVDR0OExZa3IraWFYbmxxenBuejlWaWpLU2RSVXFrVjA2bXZOUXlnQm1WcU1Bd2ZoR0k4ODhkNlM3VVJXaU85bmRTTVZibDFCZlJMaS9TZWtIQU5oR0NGaXNJb2lqYU5VaXZQV3JXeHFabnBBWDMxNGgxK1Q1a0hjTlliWmc3anZPT1ZmL01xdzVKcmNveTBCcTFtWXFtSk1UQXhrZWlLM0YrVWFqYzZQZTRVeGZTa1lXanRxeGtla0lFdlM4a3Q4a3lPbTFrTThoQlJKa3JucGxTOGVQdGxJMmtVODdyVE4wV1RtZjNSWEZjV3AyRzZQd0k1RmU2SmI2b1c5RmRhQ2RCV3JBcGNsN1FndzhLVUpaOEVsWGl2M2FwR3ZBLzZlMHZEbmpQMTF4SVU5eDlwSW5UN1Blemp3ZE9ZbXFTeVU5Nk9Db1IvUmc4M2M5Y0lLM1RiUmRhWGtOczEwLzR4RldwUmhnZUpubkY0M0dRVGJyaUlnT29Ea1cwWU5UZ0R5S0pjS0d4RTA1cnJUOFJadDBIQlBTU2VHRlpVODZDaU9naGZuMU00WHZoaUpsTkVKWEdWczh3bDlLK3l5cU16d3lHNXVzNGJoNjdhSjhqVUM3WkdrTUhqVURWTUJIVXpxNFB4aEhFa0RIaFZ5U0ROOFRHRlRDN2VkOWZUWWRHWlBQOGRabmR6bHY3M2FUcUxQdi9lVGtxaUExMzhLZk5nTFNiUjNKMFI2MEZ2NVpvbUxlKzRVSzNMU2hZTHJqYW1yaG1nQklVUXpCK1lYNzhpMTh2K2R2NkVaTGNWVEJDMzB6VFROSm42ODVzTUNWWWpTQnI1UWpDdW5GcXdXTUZhOFhmU3JlaVdocjNKNTAvTmxVR2xESmR6enJqZUFvOWNTbTBoS2N4ampVN0FQelo2Nm9RY0dqTFJITEVFOU1jTUM2MnVYZmJ6TmR6UnV0R25FUExDeEZaVzJIajRlSC9NM3ZCOVJmVCswaHVaTVNRWkNXRHdENUdiSlBhQnpMV3JDMHNVVmc1QW9YZlBLVjhaeERBTytkVjM4SXFvcENGNW0yV3Zsc21EMklkbzdCekV4S3lHQ0FhZE5DQnRabk1SVW9lQ0RXcmxIcmM3MFROMEo4blRHTHRKZm5lWDhKcm93bnpGSDNRT2FoZndPQm1EaGkybUwyckFDNVQ3aVBLcVc4dEFhY2NoZzR6QjdEbUFyOG02QUJPMzJKOWJadWJlUFo0T25QWTFqVy9OWnZaZlBiajlOc0R5eDF6bVFETlZUZlBhcHZmenBQUCtBSGgzcHRhOEdmemZQaUR3Y2M2blB1ZmRTZlBjTHF6VUlKZUlTdVpKNzc3ampzeUx1SlFXQ0lqMTJRNTdEQmlxUlJlTHRIWSs4ZjRQTVFxeHhSQnpTa2xkQ2FoOXpZTzR2VW54YW1kUklKcW9wRlluQVdRTGNhTDBRc0ZBRjZBaGZlOTEyOENlS3d5cWFmRy9pZFJZY01WQ2xlWFVWMzJ6MnJJcWZBcE9WNUpwYUUxaVpzQVBQdmVBb2FMK3lRVjZKUVJnZ29mSHhVdU9BSmwrWWtFN0YyaXBXcHFHZFB5aGh3SjhtWXJVaVBGVzYyQm4vc3RmQVI0aFVIZERiRlNqK1RySU5jT1RCanhXd0hQV0tUdndYU2xIRWNCQjhOZnZUUzk1Q3ppbUZUaC9tQkJRWkg2VU5lQ293MFJPd1RSMFVHSDRIQzFwRlIyVjZoZnZBdndZMWJqUlBQdnVGSC9YVFYyRVRVL0FEbFExSWNSVnRnR0hUY3JlSk1FbTIvNlY5T1JOZUFwOFVpU0R5T1lIRmlDWG5PczhCazdlM3ZWSVE5UExneWFEK2h6R2RNQU9CMitiOStGN2FyOEpFYU1XWXNSTG9EUFRFdEppNXo1UFVKMHZDNW5wOUxjTVJoK1BHV0FQUUdVOVRXNTFCVzZzOWJhKzFVWEcxRVVOOFI4a3d3RVdpTlR6ZDRhOWlIdDBBOTNtWTNQdkxaZ2tCTlR6ZUdKcmNENjBnODF1MDU2SVJ6ZE5vRFVKQVdMK09Nc0lNTHdMV1IyZEwyVzZ6MmNYWU5oTGNRc0FzcnVIWTVoSHZ0SnhBZzFXVlF0aGhlMGVRcDFjc0doYXk3TDBOOGpGV2RGV1FGYVN2Zk94ekdjZ0J6WlBOOVdIbXlXVjNPZWhTM1QreWtNRkxDcTdESmpVaHVYYzUwNStKQzRoNGY1eDBBQTF2K1hRVHFRZm5aQ0RxSVBLUUM0Z0IyMWJITVpmQjNPQ0h2MUhCTHZFT1kzWHFpZTZUUlYzZFVzODNRSVIzcWl5Y2Fla1BqbndPRHF1RGZWcC9nb3l1dzhoT0dEbUpVUDdaVy9ycmwrY1RxaVRpUlpwbTdQQXV5NEFwaFhQZ2NIVnNjb1AzY2dyZWJZQmk2cXlDR3JmY1V4WW9BOTdBemJTUUE0dEdOc0FBZmpWamgvcVpQOU00Zk9pUmZueUdnZjZ2dHZOa2lud3AwczA1SkllcE1Halh0OUQ2K3lQMWZySEMzYnk4RS9DblFCLzZoRkFxaU1LK2ZTdkFrVFdlNC9WRFB0dlU5NHFENlBSVkxsQTFYaGNSbVZuOTA2NmJmVU5NcHVqdG9McitrOTNPdHZlYlp0MnkyRDA0eDgvRERjRXY2WVpQMUFCdmVneENhbmp3S3NEbDlLM3B2emxlWm5vN2NGbjQ2Zy8vUCtwUmRZbTBEQlJlNEJKb0NmR2R3S0RBWGYzL3l1eHVDRGRVOTZQaCtjSTZKNjRPZlpOSUpxc0RyaHFneFhaeHZKNy9NSDdmZDlYK3luZDdrZTIzUFVKbUFwOHovT2poVFlDdlNaUExQODQ4T2NGZ0dxSm9GYnU5UEo0RE41UVFuNTBmL3lPMzZlM3pzTWtQajUvaG5RWFA2SmVDOUE5MzhCUEFrZzUwcFBBUDhIUEwzaFB4VkR6NTVwdWlEdEFBQUFBRWxGVGtTdVFtQ0MiLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIiwicHVycG9zZSI6ImFueSJ9XX0=">
+<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAADyklEQVR4nNWX/28bRRDFP7O7d2fHSVziJqFNCUggBP//f4LUAhJVIFAJWtHSEn+5u90dfhjbseOzY6hQ1ZUsW3u7+96+mXlzlrLsKx9wuA8J/pERkK45sc8+a9+LgAjEBHonXVS752LqJvafCIigTYsbDZGy2ARcHVmRqsCNhmjT7kViNwERtG4Ijx8SLk4heNhVM8FDCISzE8LFKVo395LYTmAB/uQMNzyk/u65xfYuCVVwAt7bd87UT5/jjgcUl+eErDtJdBNYBT8e0Hz/M1IEaBNSBtYYBA/OQYxI8GibkKKwPYcH8Gi0U4lNAgvwi1PccEDzwy8GLqAx2RrvQAQJ3hRoo82B/QakCEZi0NsZjnUCImgbCY9P8Q+HNE+vDGSlrrRucYO+rY0JsqnhDnr2Ozgj4z3SK2l+vMafnxAuztA2bpDYVCBn/GhIenODHPQstjmb6qq4Qc8yPKW1bdompFcaiayQEuIcbtAj/f4a/+AQNO8ZgukMnc6srAqPP+wj3uGOB2gb0Wm9fpPFnroxdVAj4x1at+h4aqQ7HKo7CZ2DlAFFZw15ViOHfUgJndS38V51QufQSY2q4k+GBjxrzJTcFscEQucsWHKljFSF3Xha3x6mAEKuG8MuS2Bejk2LendrWO/jA6R57ENYP0yEnCNHX15y/NUlOce1ZxqTlecebrydgC4Oi8uyW3+uNiXS3Q9SQsIdz+gY20OwSiQmpF9ZGc0BnC9499M1CviyvCWx+I7JlPO77Xs3gZWNUhaQM1q3EOzWripvQQVICmVheVO3RnhHAsK2ECzarBekVyK9kvT6HSDIQQUx2/Oc5x6hEDPSr8yOb6ZIVVgpIhbCLV20QwFFigIZ9JCUIOWlg+XxFHc8MFlX263Ob+6E/PfE5usWioB4MWL9qpNEhxE50tsbwqcjdDJDc543HLFan9Z2s+CNSPDQK3H9ijyezc/A1qdEHs/wnxyZgq4DbuOteKUZhQdH1M+uoJgLlRU5qCwPYpp7vpv7g5vHvlkambaR8pvPyTcT4q8vkarcUGGTkipSlcQXr4jvxhTffmGlCOtEqsIaVc5rpShzz1iCj6dbwbsVuKvEZ+e4owOaZ1fIoHdrTjkvOyGCzXlTgUlN8fUlaTwhXv+xFXw3gVUST87wJ8ekP9+i0xrN8yq5W17ZuqV/NCK9fEP8bfvNF+MeH1iE4yUo+NHQ+kJHMi3XlwXp1V/EF/eDw30KLFfZiwo5G/i2Q0UsLE7sLeoecNjHisFuVuy3dHXPPmP/U/c88N+Oj+i/4f80/gFV+/ElE3lmfgAAAABJRU5ErkJggg==" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@400;500;600;700;1,500;1,600&display=swap" rel="stylesheet">
+<title>Papers — Origarium</title>
+<meta name="description" content="Longer essays from the Origarium build — read the way an e-reader would show them.">
+<style>
+/* ============ tokens — identical to index.html ============ */
+:root{
+  --bg:#ffffff;
+  --surface:#ffffff;
+  --border:#e9e9ec;
+  --ink:#15171b;
+  --ink-soft:#4c505a;
+  --ink-faint:#6f737b;
+  --lime:#c8ff2b;
+  --lime-ink:#2b3300;
+  --lime-dim:#eeffb8;
+  --card-bg:#ffffff;
+  --topbar-bg:rgba(255,255,255,.92);
+  --glass-bg:rgba(255,255,255,.82);
+  --glass-border:rgba(0,0,0,.08);
+  --glass-blur:blur(18px) saturate(180%);
+  --radius:14px;
+  --radius-sm:10px;
+  --shadow:0 1px 2px rgba(20,20,20,.04), 0 8px 24px rgba(20,20,20,.05);
+  --term-bg:#101216;
+  --term-border:#2a2d33;
+  --term-ink:#d7dade;
+  --term-soft:#8a8f98;
+  --term-lime:#d4ff1a;
+  --term-red:#ff5f57;
+  --term-yellow:#febc2e;
+  --term-green:#28c840;
+  /* e-ink reading surface — warm, matte, deliberately not "screen" colors */
+  --eink-bg:#eae7dd;
+  --eink-ink:#2b2a26;
+  --eink-ink-soft:#55534b;
+  --eink-rule:#c9c5b6;
+  font-size:16px;
+}
+[data-theme="dark"]{
+  --bg:#0e0f12;
+  --surface:#16181c;
+  --border:#2a2d33;
+  --ink:#f2f3f5;
+  --ink-soft:#a3a8b0;
+  --ink-faint:#6d727a;
+  --lime:#d4ff1a;
+  --lime-ink:#1c2200;
+  --lime-dim:#3a4a08;
+  --card-bg:#16181c;
+  --topbar-bg:rgba(14,15,18,.9);
+  --glass-bg:rgba(22,24,28,.58);
+  --glass-border:rgba(255,255,255,.08);
+  --glass-blur:blur(18px) saturate(160%);
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  /* e-ink stays the same warm paper in both themes — it's paper, not chrome */
+}
+
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html{margin:0; padding:0; scroll-behavior:smooth;}
+body{
+  margin:0; padding:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  line-height:1.55;
+  transition:background .25s ease, color .25s ease;
+}
+a{color:inherit;}
+.mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;}
+
+/* ============ topbar — identical to index.html ============ */
+.topbar{
+  position:sticky; top:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:nowrap; gap:8px;
+  padding:12px 18px;
+  background:var(--topbar-bg);
+  backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+  border-bottom:1px solid var(--border);
+}
+.wordmark{font-weight:800; font-size:20px; letter-spacing:-.01em; display:flex; align-items:center; gap:8px; white-space:nowrap; flex:none; text-transform:uppercase; text-decoration:none;}
+.wordmark .dot{
+  position:relative; width:8px; height:8px; border-radius:50%;
+  background:var(--lime); box-shadow:0 0 0 3px var(--lime-dim), 0 0 10px rgba(212,255,26,.5);
+  flex:none; margin-left:2px;
+}
+.wordmark .dot::after{
+  content:""; position:absolute; inset:-3px; border-radius:50%;
+  background:var(--lime); opacity:.55;
+  animation:wmPulse 2.1s ease-out infinite;
+}
+@keyframes wmPulse{
+  0%{ transform:scale(.6); opacity:.55; }
+  70%{ transform:scale(2.1); opacity:0; }
+  100%{ transform:scale(2.1); opacity:0; }
+}
+@media (prefers-reduced-motion: reduce){
+  .wordmark .dot::after{ animation:none; display:none; }
+}
+.wordmark small{font-weight:600; color:var(--ink-faint); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase;}
+.icon-btn{
+  background:none; border:1.5px solid var(--border); border-radius:10px;
+  width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; color:var(--ink-soft); font-size:13px; transition:border-color .15s, color .15s;
+  flex:none;
+}
+.icon-btn:hover{border-color:var(--ink-faint); color:var(--ink);}
+.icon-btn:focus-visible{outline:2px solid var(--lime); outline-offset:2px;}
+.topbar-actions{display:flex; align-items:center; gap:8px; flex:none;}
+.nav-link{
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:11px; font-weight:700; color:var(--ink-soft); text-decoration:none;
+  border:1.5px solid var(--border); border-radius:10px; padding:6px 10px;
+  white-space:nowrap;
+  transition:border-color .15s, color .15s;
+}
+.nav-link:hover, .nav-link:focus-visible{border-color:var(--lime); color:var(--lime); outline:none;}
+.nav-link.current{border-color:var(--lime); color:var(--lime);}
+@media (max-width:380px){
+  .topbar{ padding:10px 12px; gap:6px; }
+  .wordmark{ font-size:17px; gap:6px; }
+  .wordmark small{ font-size:10.5px; }
+  .topbar-actions{ gap:6px; }
+  .nav-link{ font-size:11.5px; padding:7px 9px; }
+  .icon-btn{ width:32px; height:32px; font-size:13px; }
+}
+
+/* ============ layout ============ */
+.wrap{max-width:720px; margin:0 auto; padding-left:18px; padding-right:18px;}
+section, footer.site-footer{padding-top:44px; padding-bottom:44px;}
+.eyebrow{
+  font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-faint); margin:0 0 10px;
+}
+h1{font-size:clamp(28px, 6vw, 42px); line-height:1.16; letter-spacing:-.02em; margin:0 0 14px; font-weight:800;}
+h2{font-size:clamp(20px, 4.4vw, 26px); letter-spacing:-.01em; margin:0 0 12px; font-weight:800;}
+p{margin:0 0 14px; color:var(--ink-soft); font-size:15.5px;}
+p strong{color:var(--ink);}
+
+/* ============ scroll reveal ============ */
+.reveal{
+  opacity:0; transform:translateY(28px);
+  transition:opacity .7s cubic-bezier(.16,.8,.24,1), transform .7s cubic-bezier(.16,.8,.24,1);
+  will-change:opacity, transform;
+}
+.reveal.in-view{opacity:1; transform:translateY(0);}
+@media (prefers-reduced-motion: reduce){
+  .reveal{opacity:1; transform:none; transition:none;}
+  .cursor{animation:none;} html{scroll-behavior:auto;}
+}
+.cursor{display:inline-block; width:8px; height:15px; background:var(--term-lime); vertical-align:-2px; animation:blink 1.05s steps(1) infinite;}
+@keyframes blink{0%,49%{opacity:1;} 50%,100%{opacity:0;}}
+
+/* ============ paper cards — same chrome language as log-card ============ */
+.papers-grid{
+  display:grid; grid-template-columns:repeat(2, 1fr);
+  gap:16px; margin-top:28px;
+}
+.papers-grid.single{ display:flex; justify-content:center; }
+.papers-grid.single .paper-card{ width:calc(50% - 8px); max-width:240px; }
+/* the card itself carries no chrome any more — the border/shadow live on
+   .pc-frame instead, so the frame can visibly end after the caption line
+   and the title/description/cta sit underneath it, unenclosed. */
+.paper-card{
+  background:none; border:none; padding:0; box-shadow:none;
+  cursor:pointer; text-align:left; font-family:inherit; color:inherit;
+  display:flex; flex-direction:column; gap:11px;
+  transition:transform .15s;
+}
+.pc-frame{
+  background:var(--topbar-bg); border:1px solid var(--border); border-radius:12px;
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); padding:9px 9px 0; overflow:hidden;
+  transition:border-color .15s;
+}
+.paper-card:hover .pc-frame{border-color:var(--ink-faint);}
+.paper-card:hover{transform:translateY(-2px);}
+.paper-card:focus-visible{outline:2px solid var(--lime); outline-offset:2px;}
+.paper-card.paper-skel{cursor:default;}
+.paper-card.paper-skel:hover{transform:none;}
+
+/* the A4 thumbnail: a live miniature of the actual first lines, not a
+   generic icon — same idea as a document-preview thumbnail, generated
+   from real content so it never goes stale when a new paper is added. */
+.paper-thumb{
+  position:relative; width:100%;
+  aspect-ratio:210 / 297;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.03), transparent 14%),
+    var(--eink-bg);
+  border-radius:4px;
+  border:1px solid rgba(0,0,0,.08);
+  box-shadow:0 3px 10px rgba(20,20,20,.14), inset 0 0 0 1px rgba(255,255,255,.25);
+  overflow:hidden;
+  padding:9% 10% 8%;
+  display:flex; flex-direction:column;
+}
+.paper-thumb::after{
+  /* fade the excerpt out — signals "there's more" like a real preview */
+  content:""; position:absolute; left:0; right:0; bottom:0; height:34%;
+  background:linear-gradient(180deg, transparent, var(--eink-bg) 82%);
+  pointer-events:none;
+}
+.paper-thumb .pt-mark{
+  width:22%; height:3px; background:var(--lime); margin-bottom:9%;
+  box-shadow:0 0 6px rgba(200,255,43,.5);
+}
+/* a real, live preview — the paper's own title and opening lines,
+   clamped with line-clamp (not percentage heights, so nothing collapses
+   to zero the way the old simulated bars did). This sits inside a bordered
+   frame that ends right after the caption below; the actual description
+   lives outside it, underneath, unenclosed. */
+.paper-thumb .pt-title{
+  font-family:'Cormorant Garamond', serif; font-weight:700; color:var(--eink-ink);
+  font-size:12.5px; line-height:1.28; margin-bottom:7%;
+  display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+}
+.paper-thumb .pt-body{
+  font-family:'Cormorant Garamond', serif; color:var(--eink-ink-soft);
+  font-size:7.4px; line-height:1.5;
+  display:-webkit-box; -webkit-line-clamp:11; -webkit-box-orient:vertical; overflow:hidden;
+}
+/* the caption plate — still inside the frame, right under the preview.
+   The frame's border ends immediately after this row. */
+.pc-frame .pc-top{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:10.5px; color:var(--ink-faint);
+  margin-top:8px; padding:8px 1px 9px; border-top:1px dashed var(--border);
+}
+.paper-card .pc-top .dot2{width:5px; height:5px; border-radius:50%; background:var(--lime); box-shadow:0 0 6px rgba(212,255,26,.6); flex:none;}
+.paper-card h3{margin:0; font-size:14.5px; font-weight:800; line-height:1.3;}
+.paper-card p.pc-sum{font-size:12.5px; margin:0; color:var(--ink-soft); line-height:1.5; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;}
+.paper-card .pc-cta{
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:11px; color:var(--lime-ink); background:var(--lime-dim);
+  display:inline-block; padding:4px 8px; border-radius:7px; font-weight:700; align-self:flex-start;
+}
+[data-theme="dark"] .paper-card .pc-cta{color:var(--term-lime); background:rgba(212,255,26,.1);}
+.paper-card.paper-skel .paper-thumb{opacity:.5;}
+.paper-card.paper-skel h3, .paper-card.paper-skel p{opacity:.4;}
+
+/* fixed 2-column grid at all sizes — no wide-screen expansion */
+
+/* ============ e-ink reader modal ============ */
+.reader-overlay{
+  position:fixed; inset:0; z-index:300; display:none;
+  align-items:flex-start; justify-content:center;
+  background:rgba(8,9,11,.6);
+  padding:0;
+}
+.reader-overlay.open{display:flex;}
+.reader-sheet{
+  width:100%; max-width:680px; height:100%;
+  background:var(--eink-bg); color:var(--eink-ink);
+  display:flex; flex-direction:column;
+  position:relative;
+}
+/* spring open — a subtle overshoot past rest, then settle */
+.reader-overlay.open .reader-sheet{
+  animation:readerSpringIn .48s cubic-bezier(.3,1.4,.4,1) both;
+}
+/* closing reverses the same arc: a small lift, then the sheet drops
+   away and fades, rather than just vanishing */
+.reader-overlay.closing .reader-sheet{
+  animation:readerSpringOut .3s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes readerSpringIn{
+  0%{ opacity:0; transform:translateY(42px) scale(.965); }
+  62%{ opacity:1; transform:translateY(-5px) scale(1.006); }
+  100%{ opacity:1; transform:translateY(0) scale(1); }
+}
+@keyframes readerSpringOut{
+  0%{ opacity:1; transform:translateY(0) scale(1); }
+  35%{ opacity:1; transform:translateY(-5px) scale(1.006); }
+  100%{ opacity:0; transform:translateY(42px) scale(.965); }
+}
+@media (min-width:720px){
+  .reader-overlay{padding:26px; align-items:center;}
+  .reader-sheet{height:92vh; border-radius:6px; box-shadow:0 30px 70px rgba(0,0,0,.45);}
+}
+
+/* the e-ink "refresh flash" — a quick full-panel invert then settle,
+   the one deliberate bit of motion this whole surface allows itself,
+   because it's the one thing that actually reads as "e-reader" rather
+   than "web page styled beige." */
+/* the e-ink "refresh flash" was removed — it read as a bug (flicker) on
+   open, not as a feature. The sheet's calm slide-up (readerIn) is the
+   only motion left when the reader opens. */
+@media (prefers-reduced-motion: reduce){
+  .reader-overlay.open .reader-sheet, .reader-overlay.closing .reader-sheet{ animation:none; }
+}
+
+/* faint paper grain — texture, not decoration; e-ink has a physical surface */
+.reader-sheet::after{
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
+  opacity:.05; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.reader-bar{
+  position:relative; z-index:2; flex:none;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:14px 18px; border-bottom:1px solid var(--eink-rule);
+}
+.reader-bar .rb-title{
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:11.5px; color:var(--eink-ink-soft); letter-spacing:.02em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.reader-close{
+  flex:none; width:30px; height:30px; border-radius:50%; border:1px solid var(--eink-rule);
+  background:transparent; color:var(--eink-ink-soft); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; font-size:15px;
+}
+.reader-close:hover{border-color:var(--eink-ink-soft); color:var(--eink-ink);}
+.reader-close:focus-visible{outline:2px solid var(--eink-ink); outline-offset:2px;}
+.reader-bar-actions{ display:flex; align-items:center; gap:8px; flex:none; }
+
+/* the reader's own night mode — independent of the site's light/dark
+   toggle. Defaults to light (the warm paper) every fresh visit; the
+   choice, once made, is remembered like any other reading preference. */
+.reader-sheet[data-reader-theme="dark"]{
+  --eink-bg:#1c1b18; --eink-ink:#e8e4d8; --eink-ink-soft:#a19d8f; --eink-rule:#3a382f;
+}
+.reader-sheet[data-reader-theme="dark"]::after{ mix-blend-mode:overlay; opacity:.06; }
+
+.reader-body{
+  position:relative; z-index:2; flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  padding:34px 20px 70px; /* tightened from 26px (2026-07-21) - real narrow phones were landing at ~34 chars/line, tight even for mobile reading */
+}
+@media (min-width:560px){ .reader-body{padding:48px 56px 90px;} }
+.reader-content{
+  max-width:560px; margin:0 auto;
+  font-family:'Cormorant Garamond', serif; font-size:19px; line-height:1.82;
+  color:var(--eink-ink);
+}
+.reader-content .rc-eyebrow{
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--eink-ink-soft); margin-bottom:18px;
+}
+.reader-content h1{
+  font-family:'Cormorant Garamond', serif; font-weight:700; font-style:italic;
+  font-size:clamp(26px,5vw,34px); line-height:1.22; color:var(--eink-ink);
+  margin:0 0 22px; letter-spacing:0;
+}
+.reader-content h2{
+  font-family:'Cormorant Garamond', serif; font-weight:700;
+  font-size:22px; color:var(--eink-ink); margin:34px 0 14px;
+}
+.reader-content p{ margin:0 0 20px; color:var(--eink-ink); font-size:19px; }
+.reader-content p.rc-italic{ font-style:italic; color:var(--eink-ink-soft); }
+.reader-content strong{ color:var(--eink-ink); font-weight:700; }
+.reader-content em{ font-style:italic; }
+.reader-content blockquote{
+  margin:0 0 20px; padding-left:16px; border-left:2px solid var(--eink-rule);
+  color:var(--eink-ink-soft); font-style:italic;
+}
+.reader-content hr{
+  border:none; border-top:1px solid var(--eink-rule); margin:30px 0;
+}
+.reader-content .rc-signoff{
+  margin-top:36px; font-style:italic; color:var(--eink-ink-soft); font-size:16px;
+}
+.reader-progress{
+  position:relative; z-index:2; flex:none; height:2px; background:var(--eink-rule);
+}
+.reader-progress .fill{height:100%; width:0%; background:var(--eink-ink-soft); transition:width .1s linear;}
+
+/* ============ footer — identical to index.html ============ */
+footer.site-footer{
+  border-top:1px solid var(--border); margin-top:20px;
+}
+footer.site-footer .fterm{
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:13px;
+}
+footer.site-footer .frule{border-top:1px dashed var(--border); margin:16px 0;}
+footer.site-footer .fname{color:var(--ink); font-weight:800; letter-spacing:.03em; font-size:15px;}
+footer.site-footer .fcopy{margin-top:16px; font-size:11px; color:var(--ink-faint); text-align:center;}
+footer.site-footer .fprompt-row{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+footer.site-footer .fprompt-row .fprompt{margin:0;}
+.fvisits{font-size:10.5px; color:var(--ink-faint); text-align:right; opacity:.75; white-space:nowrap;}
+.fvisits{margin-top:6px; font-size:10.5px; color:var(--ink-faint); text-align:center; opacity:.7;}
+footer.site-footer .femail{margin:5px 0 0;}
+footer.site-footer .femail a{color:var(--ink-soft); text-decoration:none; font-size:12.5px;}
+footer.site-footer .femail a:hover, footer.site-footer .femail a:focus-visible{color:var(--lime); text-decoration:underline; outline:none;}
+footer.site-footer .fmeta{color:var(--ink-soft); margin-top:6px;}
+footer.site-footer .fstatus{margin-top:10px;}
+footer.site-footer .fstatus .val{
+  color:var(--lime-ink); background:var(--lime-dim); padding:2px 8px; border-radius:7px; font-weight:700;
+}
+[data-theme="dark"] footer.site-footer .fstatus .val{color:var(--term-lime); background:rgba(212,255,26,.1);}
+footer.site-footer .fquote{font-size:14px; font-style:italic; color:var(--ink); text-align:center;}
+footer.site-footer .fprompt{color:var(--ink-faint);}
+footer.site-footer .fprompt .cursor{background:var(--lime);}
+/* ============ desktop presents as a phone (2026-07-19) \u2014 shared frame, see index ============ */
+@media (min-width:480px) and (hover:hover) and (pointer:fine){
+  html{ background:#08050d; }
+  html::before{
+    content:""; position:fixed; inset:0; z-index:0;
+    background:
+      radial-gradient(520px 460px at 88% 10%, rgba(190,80,155,.16), transparent 70%),
+      radial-gradient(520px 460px at 6% 86%, rgba(130,45,150,.15), transparent 70%),
+      #08050d;
+  }
+  html::after{
+    content:""; position:fixed; inset:-340px 0 0 -340px; z-index:0; pointer-events:none;
+    background-image:
+      radial-gradient(1.5px 1.5px at 25px 35px, rgba(255,255,255,.85), transparent),
+      radial-gradient(1px 1px at 120px 90px, rgba(255,255,255,.55), transparent),
+      radial-gradient(1px 1px at 200px 160px, rgba(255,255,255,.4), transparent),
+      radial-gradient(1.5px 1.5px at 310px 60px, rgba(255,255,255,.65), transparent),
+      radial-gradient(1px 1px at 70px 220px, rgba(255,255,255,.5), transparent),
+      radial-gradient(1px 1px at 260px 260px, rgba(255,255,255,.35), transparent);
+    background-size:340px 340px;
+    animation:wlStarDrift 160s linear infinite;
+  }
+  body{
+    position:relative; z-index:1;
+    width:min(470px, calc(100vw - 48px));
+    height:calc(100svh - 48px);
+    margin:24px auto;
+    overflow-y:auto; overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
+    border-radius:34px;
+    border:1px solid #2a2d33;
+    box-shadow:0 0 0 1px rgba(212,255,26,.08), 0 40px 90px rgba(0,0,0,.6), 0 0 80px rgba(130,45,150,.12);
+    transform:translateZ(0);
+    scrollbar-width:none;
+  }
+  body::-webkit-scrollbar{ display:none; }
+  /* the min-width:560px reader-body rule below checks real viewport width,
+     not the frame's rendered width - inside the mask the frame is
+     phone-sized regardless, so reset back to the mobile padding or the
+     wide-screen rule pads it like an actual desktop page shrunk into a
+     phone, making desktop reading narrower than mobile (2026-07-21). */
+  .reader-body{ padding:34px 20px 70px !important; }
+}
+@keyframes wlStarDrift{ 0%{background-position:0 0;} 100%{background-position:340px 680px;} }
+@media (prefers-reduced-motion: reduce){ html::after{ animation:none; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="wordmark" href="/">ORIGARIUM<span class="dot"></span></a>
+  <div class="topbar-actions">
+    <a class="nav-link" href="/vault">DREAM</a>
+    <a class="nav-link current" href="/papers" aria-current="page">Papers</a>
+    <button class="icon-btn" id="themeToggle" aria-label="Toggle light and dark theme" title="Toggle theme">◐</button>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="reveal">
+    <p class="eyebrow">Longer form</p>
+    <h1>Papers</h1>
+    <p class="lede">The essays that didn't fit in a log entry — read the way an e-reader shows them: matte, warm, and built to sit still on the page rather than sell you the next scroll.</p>
+    <div class="papers-grid" id="papersGrid">
+      <div class="paper-card paper-skel" aria-hidden="true">
+        <div class="pc-frame">
+          <div class="paper-thumb"><div class="pt-mark"></div><div class="pt-title">&nbsp;</div><div class="pt-body">&nbsp;</div></div>
+          <div class="pc-top"><span>Loading…</span></div>
+        </div>
+        <h3>&nbsp;</h3>
+      </div>
+      <div class="paper-card paper-skel" aria-hidden="true">
+        <div class="pc-frame">
+          <div class="paper-thumb"><div class="pt-mark"></div><div class="pt-title">&nbsp;</div><div class="pt-body">&nbsp;</div></div>
+          <div class="pc-top"><span>Loading…</span></div>
+        </div>
+        <h3>&nbsp;</h3>
+      </div>
+      <div class="paper-card paper-skel" aria-hidden="true">
+        <div class="pc-frame">
+          <div class="paper-thumb"><div class="pt-mark"></div><div class="pt-title">&nbsp;</div><div class="pt-body">&nbsp;</div></div>
+          <div class="pc-top"><span>Loading…</span></div>
+        </div>
+        <h3>&nbsp;</h3>
+      </div>
+      <div class="paper-card paper-skel" aria-hidden="true">
+        <div class="pc-frame">
+          <div class="paper-thumb"><div class="pt-mark"></div><div class="pt-title">&nbsp;</div><div class="pt-body">&nbsp;</div></div>
+          <div class="pc-top"><span>Loading…</span></div>
+        </div>
+        <h3>&nbsp;</h3>
+      </div>
+      <div class="paper-card paper-skel" aria-hidden="true">
+        <div class="pc-frame">
+          <div class="paper-thumb"><div class="pt-mark"></div><div class="pt-title">&nbsp;</div><div class="pt-body">&nbsp;</div></div>
+          <div class="pc-top"><span>Loading…</span></div>
+        </div>
+        <h3>&nbsp;</h3>
+      </div>
+      <div class="paper-card paper-skel" aria-hidden="true">
+        <div class="pc-frame">
+          <div class="paper-thumb"><div class="pt-mark"></div><div class="pt-title">&nbsp;</div><div class="pt-body">&nbsp;</div></div>
+          <div class="pc-top"><span>Loading…</span></div>
+        </div>
+        <h3>&nbsp;</h3>
+      </div>
+      <div class="paper-card paper-skel" aria-hidden="true">
+        <div class="pc-frame">
+          <div class="paper-thumb"><div class="pt-mark"></div><div class="pt-title">&nbsp;</div><div class="pt-body">&nbsp;</div></div>
+          <div class="pc-top"><span>Loading…</span></div>
+        </div>
+        <h3>&nbsp;</h3>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer wrap reveal">
+  <div class="fterm mono">
+    <div class="fname">ORIGARIUM</div>
+    <p class="femail"><a href="mailto:decha.dae@gmail.com">decha.dae@gmail.com</a></p>
+    <div class="fmeta">Designed on an Android phone.<br>Built with AI.<br>Maintained by curiosity.</div>
+    <div class="fstatus">Current status → <span class="val">Still Building...</span></div>
+    <div class="frule"></div>
+    <p class="fquote">"Chat Less.<br>Build More."</p>
+    <div class="frule"></div>
+    <div class="fprompt-row"><div class="fprompt">dae@origarium:~$ <span class="cursor" aria-hidden="true"></span></div><span class="fvisits mono" id="fVisits" aria-live="off"></span></div>
+    <p class="fcopy">© 2026 Dae · Origarium. All rights reserved.</p>
+    <p class="fvisits" id="fVisits" aria-live="off"></p>
+  </div>
+</footer>
+<script>
+(function(){
+  var W = window.__WL || {};
+  if(!W.BASE || !W.KEY) return;
+  var H = { apikey: W.KEY, Authorization: "Bearer " + W.KEY, "Content-Type": "application/json" };
+  var el = document.getElementById("fVisits");
+  if(!el) return;
+  function show(n){ el.textContent = Number(n).toLocaleString() + " visits"; }
+  if(sessionStorage.getItem("wl_visit_counted")){
+    fetch(W.BASE + "/site_stats?key=eq.visits&select=value", { headers:H, cache:"no-store" })
+      .then(function(r){ return r.ok ? r.json() : []; })
+      .then(function(rows){ if(rows && rows[0]) show(rows[0].value); })
+      .catch(function(){});
+  } else {
+    fetch(W.BASE + "/rpc/increment_site_visits", { method:"POST", headers:H, body:"{}" })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(n){ if(n!=null){ show(n); sessionStorage.setItem("wl_visit_counted","1"); } })
+      .catch(function(){});
+  }
+})();
+</script>
+
+<!-- ============ e-ink reader ============ -->
+<div class="reader-overlay" id="readerOverlay" role="dialog" aria-modal="true" aria-labelledby="readerTitle">
+  <div class="reader-sheet" id="readerSheet">
+    <div class="reader-bar">
+      <span class="rb-title mono" id="readerBarTitle">origarium / papers</span>
+      <div class="reader-bar-actions">
+        <button type="button" class="reader-close" id="readerShare" aria-label="Share this paper" title="Share">↗</button>
+        <button type="button" class="reader-close" id="readerThemeToggle" aria-label="Toggle night reading mode" title="Toggle night reading mode">☾</button>
+        <button type="button" class="reader-close" id="readerClose" aria-label="Close paper">✕</button>
+      </div>
+    </div>
+    <div class="reader-body" id="readerBody">
+      <div class="reader-content" id="readerContent"></div>
+    </div>
+    <div class="reader-progress"><div class="fill" id="readerFill"></div></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// theme toggle — same behavior/storage key as index.html, so switching
+// theme on one page and visiting the other stays consistent
+(function(){
+  var root = document.documentElement;
+  var btn = document.getElementById('themeToggle');
+  try{
+    var saved = localStorage.getItem('wl-theme');
+    if(saved) root.setAttribute('data-theme', saved);
+  }catch(e){}
+  btn.addEventListener('click', function(){
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try{ localStorage.setItem('wl-theme', next); }catch(e){}
+  });
+})();
+
+// scroll reveal
+(function(){
+  var els = document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){
+    els.forEach(function(el){ el.classList.add('in-view'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){ entry.target.classList.add('in-view'); io.unobserve(entry.target); }
+    });
+  }, { threshold: 0.08 });
+  els.forEach(function(el){ io.observe(el); });
+})();
+
+// ============ Papers data layer + tiny markdown-lite renderer ============
+(function(){
+  var SUPABASE_URL = "https://sjpvhgxacsiorrtijqua.supabase.co";
+  var SUPABASE_ANON_KEY = "ORIGARIUM_ANON_KEY_REDACTED";
+  var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Minimal, safe markdown-lite -> HTML. Supports exactly what the
+  // papers actually use: # / ## headings, **bold**, *italic*, > block-
+  // quotes, --- rules, and blank-line paragraphs. Everything is escaped
+  // first, so no raw HTML from the body ever executes.
+  function renderPaperBody(raw){
+    var text = String(raw || '').replace(/\r\n/g,'\n').trim();
+    var blocks = text.split(/\n{2,}/);
+    var html = '';
+    var firstParaDone = false;
+
+    function inline(s){
+      s = esc(s);
+      s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      return s;
+    }
+
+    blocks.forEach(function(block){
+      var trimmed = block.trim();
+      if(!trimmed) return;
+
+      if(/^-{3,}$/.test(trimmed)){ html += '<hr>'; return; }
+
+      if(/^##\s+/.test(trimmed)){
+        html += '<h2>' + inline(trimmed.replace(/^##\s+/, '')) + '</h2>';
+        return;
+      }
+      if(/^#\s+/.test(trimmed)){
+        html += '<h1>' + inline(trimmed.replace(/^#\s+/, '')) + '</h1>';
+        return;
+      }
+      if(/^>/.test(trimmed)){
+        var quoteLines = trimmed.split('\n').map(function(l){ return inline(l.replace(/^>\s?/, '')); });
+        html += '<blockquote>' + quoteLines.join('<br>') + '</blockquote>';
+        return;
+      }
+
+      // the essay's own italic dek (opens with *...*) reads as a lede
+      var isItalicLede = !firstParaDone && /^\*[^*]+\*$/.test(trimmed.replace(/\n/g,' '));
+      var para = '<p' + (isItalicLede ? ' class="rc-italic"' : '') + '>' +
+                 trimmed.split('\n').map(inline).join('<br>') + '</p>';
+      html += para;
+      firstParaDone = true;
+    });
+
+    return html;
+  }
+
+  function renderThumbExcerpt(raw){
+    // strip markdown syntax down to plain-ish text for the tiny preview
+    var text = String(raw || '')
+      .replace(/^#.*$/gm, '')
+      .replace(/[*_>#-]/g, '')
+      .replace(/\n{2,}/g, ' ')
+      .replace(/\n/g, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    return esc(text).slice(0, 600);
+  }
+
+  function renderCard(paper, idx){
+    var btn = document.createElement('button');
+    btn.className = 'paper-card'; /* reverted (2026-07-21) - the featured/cover treatment went through 3 visual iterations without landing; back to the plain uniform grid per Dae */
+    btn.type = 'button';
+    btn.setAttribute('aria-haspopup', 'dialog');
+    btn.setAttribute('aria-controls', 'readerOverlay');
+    var num = String(idx + 1).padStart(2, '0');
+    btn.innerHTML =
+      '<div class="pc-frame">' +
+        '<div class="paper-thumb">' +
+          '<div class="pt-mark"></div>' +
+          '<div class="pt-title">' + esc(paper.title) + '</div>' +
+          '<div class="pt-body">' + renderThumbExcerpt(paper.body) + '</div>' +
+        '</div>' +
+        '<div class="pc-top"><span>paper-' + num + '</span><span class="mono">' + esc(paper.date_label || '') + '</span></div>' +
+      '</div>' +
+      '<h3>' + esc(paper.title) + '</h3>' +
+      '<p class="pc-sum">' + esc(paper.summary || '') + '</p>' +
+      '<span class="pc-cta">[+] read_</span>';
+    return btn;
+  }
+
+  var grid = document.getElementById('papersGrid');
+  var overlay = document.getElementById('readerOverlay');
+  var sheet = document.getElementById('readerSheet');
+  var body = document.getElementById('readerBody');
+  var content = document.getElementById('readerContent');
+  var barTitle = document.getElementById('readerBarTitle');
+  var closeBtn = document.getElementById('readerClose');
+  var fill = document.getElementById('readerFill');
+  var lastFocused = null;
+  var readerThemeBtn = document.getElementById('readerThemeToggle');
+  var shareBtn = document.getElementById('readerShare');
+
+  function applyReaderTheme(t){
+    if(t === 'dark'){ sheet.setAttribute('data-reader-theme', 'dark'); readerThemeBtn.textContent = '☀'; }
+    else { sheet.removeAttribute('data-reader-theme'); readerThemeBtn.textContent = '☾'; }
+  }
+  (function(){
+    var saved = null;
+    try{ saved = localStorage.getItem('wl-reader-theme'); }catch(e){}
+    applyReaderTheme(saved === 'dark' ? 'dark' : 'light'); // light unless the reader chose dark before
+  })();
+  readerThemeBtn.addEventListener('click', function(){
+    var next = sheet.getAttribute('data-reader-theme') === 'dark' ? 'light' : 'dark';
+    applyReaderTheme(next);
+    try{ localStorage.setItem('wl-reader-theme', next); }catch(e){}
+  });
+
+  var currentPaperKey = null;
+  var currentPaper = null;
+  var saveTimer = null;
+
+  function posKey(paper){ return 'wl-read-pos:' + (paper.slug || paper.id || ''); }
+
+  function openPaper(paper){
+    lastFocused = document.activeElement;
+    barTitle.textContent = 'origarium / papers / ' + (paper.slug || 'untitled');
+    content.innerHTML =
+      '<div class="rc-eyebrow">Paper · ' + esc(paper.date_label || '') + '</div>' +
+      renderPaperBody(paper.body);
+    overlay.classList.remove('closing');
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    currentPaperKey = posKey(paper);
+    currentPaper = paper;
+
+    // resume where the reader left off — a real bookmark, not a fresh
+    // start every time. Stored as a percentage, not a pixel offset, so
+    // it still lands close to the right spot if line-wrapping shifts
+    // between visits (different viewport, font load timing, etc).
+    var savedPct = 0;
+    try{
+      var raw = localStorage.getItem(currentPaperKey);
+      if(raw) savedPct = parseFloat(raw) || 0;
+    }catch(e){}
+
+    fill.style.width = savedPct + '%';
+    requestAnimationFrame(function(){
+      var max = body.scrollHeight - body.clientHeight;
+      body.scrollTop = max > 0 ? (savedPct / 100) * max : 0;
+    });
+
+    closeBtn.focus();
+  }
+
+  function saveProgress(){
+    if(!currentPaperKey) return;
+    var max = body.scrollHeight - body.clientHeight;
+    var pct = max > 0 ? (body.scrollTop / max) * 100 : 0;
+    try{
+      if(pct >= 97){
+        // finished — next visit starts fresh, like a book back on the shelf
+        localStorage.removeItem(currentPaperKey);
+      } else {
+        localStorage.setItem(currentPaperKey, String(pct));
+      }
+    }catch(e){}
+  }
+
+  function shut(){
+    if(overlay.classList.contains('closing')) return; // already leaving
+    saveProgress();
+    overlay.classList.add('closing');
+    setTimeout(function(){
+      overlay.classList.remove('open');
+      overlay.classList.remove('closing');
+      document.body.style.overflow = '';
+      currentPaperKey = null;
+      currentPaper = null;
+      if(lastFocused) lastFocused.focus();
+    }, 300); // matches readerSpringOut's duration
+  }
+
+  closeBtn.addEventListener('click', shut);
+  shareBtn.addEventListener('click', function(){
+    if(!currentPaper) return;
+    var shareData = { title: currentPaper.title, text: currentPaper.summary || '', url: window.location.origin + '/papers' };
+    if(navigator.share){
+      navigator.share(shareData).catch(function(){});
+    } else if(navigator.clipboard){
+      navigator.clipboard.writeText(shareData.url).then(function(){
+        var prev = shareBtn.textContent;
+        shareBtn.textContent = '✓';
+        setTimeout(function(){ shareBtn.textContent = prev; }, 1400);
+      }).catch(function(){});
+    }
+  });
+  overlay.addEventListener('click', function(e){ if(e.target === overlay) shut(); });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && overlay.classList.contains('open')) shut();
+  });
+  body.addEventListener('scroll', function(){
+    var max = body.scrollHeight - body.clientHeight;
+    var pct = max > 0 ? (body.scrollTop / max) * 100 : 0;
+    fill.style.width = pct + '%';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveProgress, 400);
+  });
+
+  client
+    .from('papers')
+    .select('id, sort_order, slug, title, summary, body, published_at')
+    .eq('status', 'published')
+    .order('sort_order', { ascending: true })
+    .then(function(res){
+      if(res.error){
+        grid.innerHTML = '<p class="note">Couldn\'t load papers right now. Refresh to try again.</p>';
+        return;
+      }
+      var papers = res.data || [];
+      if(!papers.length){
+        grid.innerHTML = '<p class="note">No papers published yet.</p>';
+        return;
+      }
+      papers.forEach(function(p){
+        if(p.published_at){
+          var d = new Date(p.published_at);
+          p.date_label = d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+        }
+      });
+      grid.classList.toggle('single', papers.length === 1);
+      grid.innerHTML = '';
+      papers.forEach(function(paper, idx){
+        var card = renderCard(paper, idx);
+        card.addEventListener('click', function(){ openPaper(paper); });
+        grid.appendChild(card);
+      });
+    });
+})();
+</script>
+
+<!-- ============ dream gate — same door as home (added 2026-07-20) ============ -->
+<style>
+#dreamGate{
+  position:fixed; inset:0; z-index:1500;
+  display:flex; align-items:center; justify-content:center; padding:24px;
+  opacity:0; pointer-events:none;
+  background:rgba(246,242,234,0);
+  -webkit-backdrop-filter:blur(0px) saturate(100%);
+  backdrop-filter:blur(0px) saturate(100%);
+  transition:opacity .9s ease, background .9s ease,
+             -webkit-backdrop-filter .9s ease, backdrop-filter .9s ease;
+}
+#dreamGate.on{
+  opacity:1; pointer-events:auto;
+  background:rgba(246,242,234,.30);
+  -webkit-backdrop-filter:blur(24px) saturate(150%);
+  backdrop-filter:blur(24px) saturate(150%);
+}
+.dg-card{
+  width:100%; max-width:400px; text-align:center;
+  background:linear-gradient(160deg, rgba(255,255,255,0.58), rgba(255,255,255,0.34));
+  -webkit-backdrop-filter:blur(34px) saturate(160%);
+  backdrop-filter:blur(34px) saturate(160%);
+  border:1px solid rgba(255,255,255,0.55);
+  border-radius:24px;
+  box-shadow:0 26px 60px rgba(60,50,40,.30), 0 6px 14px rgba(60,50,40,.20),
+             inset 0 1px 0 rgba(255,255,255,.65), inset 0 -1px 0 rgba(0,0,0,.05);
+  padding:34px 26px 28px;
+  font-family:'Inter', sans-serif; color:#332c22;
+  opacity:0;
+}
+.dg-title{ font-size:24px; font-weight:800; margin:0 0 8px; letter-spacing:.02em; color:#251f16; text-shadow:0 1px 0 rgba(255,255,255,.4); }
+.dg-sub{ font-size:14.5px; line-height:1.6; font-weight:500; color:#3a3428; margin:0 0 24px; text-shadow:0 1px 0 rgba(255,255,255,.35); }
+.dg-actions{ display:flex; gap:10px; }
+.dg-btn{
+  flex:1; display:flex; align-items:center; justify-content:center;
+  padding:16px 0; border:1px solid rgba(255,255,255,.5); border-radius:14px;
+  background:linear-gradient(160deg, rgba(255,255,255,.7), rgba(255,255,255,.4));
+  box-shadow:0 5px 12px rgba(60,50,40,.16), inset 0 1px 0 rgba(255,255,255,.7), inset 0 -2px 4px rgba(0,0,0,.05);
+  font-family:'Inter', sans-serif; font-size:16.5px; font-weight:700; color:#332c22;
+  cursor:pointer; text-decoration:none;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.dg-btn.primary{ border:none; color:#1c3826; }
+.dg-btn:active{ transform:scale(.97); box-shadow:0 2px 6px rgba(60,50,40,.2), inset 0 2px 5px rgba(0,0,0,.12); }
+@keyframes dgSpringIn{
+  0%  { opacity:0; transform:translateY(46px) scale(.7); }
+  55% { opacity:1; transform:translateY(-10px) scale(1.05); }
+  74% {            transform:translateY(4px)  scale(.98); }
+  88% {            transform:translateY(-1px) scale(1.006); }
+  100%{ opacity:1; transform:translateY(0)    scale(1); }
+}
+#dreamGate.on .dg-card{ animation:dgSpringIn 1s cubic-bezier(.3,.9,.35,1) .9s both; }
+@media (min-width:768px) and (max-width:899px){
+  .dg-card{ max-width:460px; padding:42px 34px 34px; border-radius:30px; }
+  .dg-title{ font-size:29px; }
+  .dg-sub{ font-size:16px; }
+  .dg-btn{ font-size:18px; padding:18px 0; border-radius:16px; }
+}
+@media (prefers-reduced-motion: reduce){
+  #dreamGate{ transition:opacity .4s ease; }
+  #dreamGate.on .dg-card{ animation:none; opacity:1; transform:none; }
+}
+</style>
+<div id="dreamGate" role="dialog" aria-label="Enter the dream" aria-hidden="true">
+  <div class="dg-card">
+    <p class="dg-title">You're still awake.</p>
+    <p class="dg-sub">Past this door the terminal stops making sense. One real dream from the archive plays until you pull the plug.</p>
+    <div class="dg-actions">
+      <button type="button" class="dg-btn" id="dgUndrift">Undrift</button>
+      <a class='dg-btn primary' href='/vault' id='dgDrift'>Drift</a>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var gate = document.getElementById("dreamGate");
+  var undrift = document.getElementById("dgUndrift");
+  var drift = document.getElementById("dgDrift");
+  if(!gate) return;
+  var DG_PASTELS = ["#bdeccb","#8fd6a6","#a8d8f0","#8fc2ea","#f0c9e8","#e8a8dc","#ffe0a8","#ffcc85","#c9d8ff","#a8bdf5","#ffd0d0","#f5a8a8"];
+  function paintDrift(){
+    var c1 = DG_PASTELS[Math.floor(Math.random() * DG_PASTELS.length)];
+    var rest = DG_PASTELS.filter(function(c){ return c !== c1; });
+    var c2 = rest[Math.floor(Math.random() * rest.length)];
+    drift.style.background = "linear-gradient(160deg, " + c1 + ", " + c2 + ")";
+  }
+  function open(){
+    paintDrift();
+    gate.classList.add("on");
+    gate.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    setTimeout(function(){ drift.focus(); }, 700);
+  }
+  function close(){
+    gate.classList.remove("on");
+    gate.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+  // every road to the dream passes the gate: any link resolving to the
+  // vault opens the popup instead of navigating. Drift itself excluded.
+  document.addEventListener("click", function(e){
+    var a = e.target && e.target.closest ? e.target.closest("a") : null;
+    if(!a || a.id === "dgDrift") return;
+    var href = a.getAttribute("href") || "";
+    if(/(^|\/)vault(\.html)?$/.test(href)){
+      e.preventDefault();
+      open();
+    }
+  }, true);
+  undrift.addEventListener("click", close);
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && gate.classList.contains("on")) close();
+  });
+  gate.addEventListener("click", function(e){ if(e.target === gate) close(); });
+})();
+</script>
+</body>
+</html>
