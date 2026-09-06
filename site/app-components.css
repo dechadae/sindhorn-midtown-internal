@@ -410,6 +410,15 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    and passes it when actual beats it. Geometry is SVG attributes, never an
    inline style. The bar draws itself in once the host flags data-ready;
    data-stagger lets a grid of tracks arrive one after another. */
+/* A mark: the short accent rule that says a surface is spoken for. One
+   spacing step long, a hairline tall, carrying the constitution's glow. It
+   names nothing and measures nothing - it is the accent, applied (r46). */
+.app-mark{display:block;width:var(--space-8);height:3px;background:var(--app-accent);box-shadow:var(--app-accent-glow)}
+/* The same decision at a point rather than a line: a dot that says a thing is
+   live. Circular where the constitution allows a circle, and Sindhorn's does
+   not - it resolves the pill token to its own radius and gets a rounded
+   square, which is its rule keeping itself (r46). */
+.app-dot{display:inline-block;width:8px;height:8px;border-radius:var(--radius-pill);background:var(--app-accent);box-shadow:var(--app-accent-glow);vertical-align:baseline}
 .app-track{display:block;width:100%;height:10px;margin-top:6px;overflow:visible}
 .app-track-rail{fill:var(--app-line)}
 .app-track-mark{fill:var(--app-text);fill-opacity:.55}
@@ -504,6 +513,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-badge[data-tone="quiet"]{background:var(--app-inset-fill);color:var(--app-muted)}
 .app-badge[data-tone="danger"]{background:color-mix(in srgb,var(--app-danger) 18%,transparent);color:var(--app-danger)}
 .app-badge[data-tone="success"]{background:color-mix(in srgb,var(--app-success) 18%,transparent);color:var(--app-success)}
+.app-badge[data-tone="accent"]{background:color-mix(in srgb,var(--app-accent) 18%,transparent);color:var(--app-accent)}
 
 /* ---- List -------------------------------------------------------------------
    Rows separated by a hairline, never by a gap that pretends to be a card each.
@@ -787,7 +797,7 @@ body[data-public] .app-masthead-home:active{transform:none}
 /* Reading progress on the masthead's lower edge: a 2px rule in the accent
    that a page's behavior widens as the reader goes. */
 .app-masthead-progress{position:absolute;left:0;right:0;bottom:0;height:2px}
-.app-masthead-progress i{display:block;height:100%;width:0;background:var(--app-accent);box-shadow:0 0 10px var(--app-accent);transition:width var(--motion-fast) var(--motion-fade)}
+.app-masthead-progress i{display:block;height:100%;width:0;background:var(--app-accent);box-shadow:var(--app-accent-glow);transition:width var(--motion-fast) var(--motion-fade)}
 
 /* Fixed, not sticky. A sticky footer can only stick inside its containing
    block, so it depends on body actually reaching the bottom of the screen -
@@ -902,6 +912,12 @@ body[data-public] .app-masthead-home:active{transform:none}
 .app-stack{display:grid;gap:var(--space-5)}
 .app-stack[data-columns="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
 .app-stack[data-columns="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+/* A grid item is min-width:auto by default, so one long unbroken word makes an
+   item wider than its track and a two-across row stops being equal. A stack
+   arranges peers; a peer that will not fit its share is not arranged. This
+   holds for every stack, not only the ones in columns, because a single-column
+   stack inside a column is where it actually bit (r46). */
+.app-stack>*{min-width:0}
 .app-section>.app-stack,
 .app-section>.app-card,
 .app-section>.app-row,

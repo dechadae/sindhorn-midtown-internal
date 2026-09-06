@@ -54,6 +54,9 @@
   --app-muted:var(--muted,#858887);
   --app-line:var(--line,rgba(244,241,235,.09));
   --app-inset-fill:var(--surface,#151918);
+  --app-accent-glow:0 0 10px var(--app-accent);
+  --type-prose-style:normal;
+
   --app-accent:var(--accent,#00F0D1);
   --app-accent-rgb:var(--accent-rgb,0,240,209);
   --app-ground:var(--bg,#0D1110);
@@ -78,6 +81,8 @@
   /* ---- Shape ------------------------------------------------------------
      14 on the table of contents, 12 on notes, commands and quotes, 8 on
      the copy chip, and a pill on every control. */
+  --ratio-page:210/297;
+
   --radius-surface:14px;
   --radius-inset:12px;
   --radius-tight:8px;

@@ -189,6 +189,8 @@
 [data-context="reader"] .app-close-control{color:var(--app-document-ink)}
 [data-context="reader"] .app-card,
 [data-context="reader"] .app-surface{border-color:var(--app-document-border)}
+/* A control in a reading context is round here because Origarium's is; the
+   shape is the constitution's, scoped to the context in its own file. */
 [data-context="reader"] .app-control{
   background-color:transparent;
   backdrop-filter:none;-webkit-backdrop-filter:none;
@@ -198,7 +200,17 @@
    the same face the prose is. A page still writes .app-hero-title; what that
    means here is the constitution's to say. */
 [data-context="reader"] .app-hero-title,
-[data-context="reader"] .app-surface-title{font-family:var(--font-prose)}
+[data-context="reader"] .app-surface-title{font-family:var(--font-prose);font-style:var(--type-prose-style)}
+
+/* A document in preview keeps a page's proportion. The original's thumbnail is
+   aspect-ratio 210/297 - it is not a card with text in it, it is a sheet of
+   paper, and every paper is the same shape however long its text runs. The
+   ratio is the constitution's, because a product previewing letter or a card
+   would say something else (r46). */
+[data-surface="document"][data-mode="preview"]{
+  aspect-ratio:var(--ratio-page);
+  overflow:hidden;
+}
 
 [data-surface="document"]{
   background-color:var(--app-document-fill);

@@ -32,10 +32,16 @@
 <body>
 
 <header class="app-masthead">
-  <div class="app-masthead-home">ORIGARIUM</div>
+  <div class="app-masthead-home">ORIGARIUM <span class="app-dot"></span></div>
   <div class="app-masthead-tools">
     <button class="app-chip app-control" type="button">Dream</button>
     <button class="app-chip app-control" type="button" aria-current="page">Papers</button>
+    <!-- The original carries a theme control here. The rebuild renders it and
+         does nothing: Origarium is dark and its paper is ivory, which is the
+         material model, not a second theme (owner, 6 Sep 2026). -->
+    <button class="app-close-control app-control" type="button" aria-label="Theme" aria-disabled="true">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M10 3a7 7 0 0 0 0 14z" fill="currentColor" stroke="none"/></svg>
+    </button>
   </div>
 </header>
 

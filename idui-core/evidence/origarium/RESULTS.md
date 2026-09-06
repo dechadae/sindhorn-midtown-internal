@@ -31,7 +31,9 @@ ground, the lime accent and the warm paper thumbnails.
 
 ## What the core needed
 
-Six entries, five reusable capabilities and one misowned assumption returned to where it belonged. None product-specific. No **D** at all, and
+Nine entries: seven reusable capabilities, one misowned assumption returned to
+where it belonged, and one defect in a capability this test had itself added.
+None product-specific. No **D** at all, and
 no **D-P**.
 
 **That number is not evidence on its own.** Candidate A also reported D-P = 0
@@ -49,6 +51,10 @@ fidelity is not a win — it is unresolved.
 | 4 | A stack can flow in columns | **C** | Two rules, no token. `data-columns`, already in the vocabulary |
 | 5 | Material has scope: a context can make a material the ground | **C** | One rule block, no token. `data-context="reader"` |
 | 6 | A view may scale and fade where its material draws no blur | **A** | The core held a Sindhorn constraint as universal. One keyframe, 3 tokens, and a gate that enforces the condition |
+| 7 | A document in preview keeps a page's proportion | **C** | One rule + 1 token. The thumbnail is a sheet, `aspect-ratio: 210/297` |
+| 8 | The accent can emit light | **C** | 1 token. The core already glowed its progress bar, hardcoded; now it is named |
+| 9 | A mark and a dot: the accent as a short rule and as a point | **C** | Two rules, no token |
+| — | Stack items must fit their track | **defect** | `min-width:auto` let one long word make a column wider than its share; two-across was not equal |
 | — | Miniature prose at caption scale | **free** | Existing token, existing variant word |
 | — | Meta at micro scale | **free** | Existing token, existing variant word |
 | — | A third blur weight | **not spent** | The rebuild renders on one |

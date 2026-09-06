@@ -55,6 +55,9 @@
   --app-muted:#8a8f98;
   --app-line:#2a2d33;
   --app-inset-fill:#101216;
+  --app-accent-glow:0 0 6px rgba(212,255,26,.5);
+  --type-prose-style:italic;
+   /* the lime mark and the brand dot emit; the reader sets its title in italic */
   --app-accent:#d4ff1a;
   --app-accent-rgb:212,255,26;
   --app-ground:#0e0f12;
@@ -92,6 +95,8 @@
      Rendered radii: 4, 7, 10, 12, 14, 24 — and 50% on the round controls.
      Origarium draws circles; that is its rule to make, and the core draws its
      one circle through the pill token, so nothing had to change for it. */
+  --ratio-page:210/297;
+   /* the thumbnail is a sheet: A4, measured from the original */
   --radius-surface:14px;
   --radius-inset:10px;
   --radius-tight:4px;
@@ -138,4 +143,13 @@
 
 @media (prefers-reduced-motion:reduce){
   :root{ --motion-ms:1ms; --motion-reveal:1ms; --motion-view:1ms; }
+}
+
+/* A constitution may vary its own values by context. Origarium's interface
+   controls are rounded squares; the reader's are circles, which is a decision
+   about that place rather than about controls. Scoped here, so the core still
+   declares no value. */
+[data-context="reader"]{
+  --radius-control:var(--radius-pill);
+  --size-icon-control:30px;
 }

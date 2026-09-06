@@ -48,7 +48,8 @@ function cardMarkup(paper, index) {
   return `<div class="app-stack" data-paper="${index}">
     <article class="app-card app-surface">
       <div class="app-card-section">
-        <div class="app-card app-surface" data-surface="document">
+        <div class="app-card app-surface" data-surface="document" data-mode="preview">
+          <span class="app-mark"></span>
           <p class="app-surface-title">${esc(paper.title)}</p>
           <div class="app-prose" data-size="caption"><p>${esc(opening(paper.body))}</p></div>
         </div>
@@ -61,7 +62,7 @@ function cardMarkup(paper, index) {
     <h3 class="app-surface-title">${esc(paper.title)}</h3>
     <p class="app-surface-copy">${esc(paper.summary || '')}</p>
     <div class="app-utility-row">
-      <button class="app-utility-action" type="button" data-open="${index}">[+] read_</button>
+      <button class="app-badge app-control" type="button" data-tone="accent" data-open="${index}">[+] read_</button>
     </div>
   </div>`;
 }
