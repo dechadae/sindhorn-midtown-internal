@@ -8,7 +8,7 @@ before implementation" is checkable rather than asserted.
 |---|---|---|---|---|
 | **01** | The Rebuild Test | Flipgazine, "Moving to Claude Code" | Done — published at `/evidence` | r33 |
 | **02** | Origarium Papers | An editorial archive and long-form reader | Measured — not yet published | `828ee41` |
-| **03** | Apple | Three modules of the homepage, no Apple imagery or type | Protocol frozen | `PENDING` |
+| **03** | Apple | Three modules of the homepage, no Apple imagery or type | Protocol frozen | `79d34cd` |
 
 Those three are the interface rebuilds, and they are what the `/idui` footer
 lists. Two further tests are **on hold** (owner, 6 Sep 2026):
