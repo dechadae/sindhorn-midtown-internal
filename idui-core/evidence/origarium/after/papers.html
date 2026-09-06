@@ -51,28 +51,23 @@
   </section>
 </main>
 
-<!-- The reader. A native dialog, which is the library's way of putting a
-     layer over the page: the scrim and the positioning are the primitive's,
-     the sheet inside it is a document, and its prose is .app-prose. -->
-<dialog class="app-dialog app-overlay" data-reader>
-  <div class="app-dialog-body">
-    <div class="app-dialog-head">
-      <span class="app-surface-label" data-reader-crumb></span>
-      <button class="app-close-control app-control" type="button" data-reader-close aria-label="Close">
-        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>
-      </button>
-    </div>
-    <article class="app-card app-surface" data-surface="document" data-reader-sheet>
-      <div class="app-card-section">
-        <p class="app-surface-label" data-reader-eyebrow></p>
-        <h2 class="app-surface-title" data-reader-title></h2>
-      </div>
-      <div class="app-card-section">
-        <div class="app-prose" data-reader-body></div>
-      </div>
-    </article>
+<!-- The reader. Not a layer over the archive but a place you enter: the view
+     declares a reading context and the constitution makes paper the ground,
+     so the article sits on the page rather than in a container on top of one.
+     The chrome belongs to the reading context and recedes into it. -->
+<div class="app-page" data-context="reader" data-reader hidden>
+  <div class="app-utility-row">
+    <span class="app-surface-label" data-reader-crumb></span>
+    <button class="app-close-control app-control" type="button" data-reader-close aria-label="Close">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>
+    </button>
   </div>
-</dialog>
+  <article>
+    <p class="app-surface-label" data-reader-eyebrow></p>
+    <h2 class="app-hero-title" data-reader-title></h2>
+    <div class="app-prose" data-reader-body></div>
+  </article>
+</div>
 
 <script type="module" src="./papers.js"></script>
 </body>

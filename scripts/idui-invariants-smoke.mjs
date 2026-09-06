@@ -24,7 +24,7 @@ const FOUNDATION=['app-tokens.css','app-glass.css','app-components.css','app-com
 /* r35 adds one variant and one state, for the first list whose order is the
    employee's own: sortable says the order is theirs to change, dragging says
    an item is held right now. */
-const VARIANTS=['tone','size','width','columns','mode','open','compact','direction','split','rule','icon','stagger','sortable','surface'];
+const VARIANTS=['tone','size','width','columns','mode','open','compact','direction','split','rule','icon','stagger','sortable','surface','context'];
 const STATES=['view','run','set','locked','ready','public','view-demo','dragging'];
 const ROWS=['app-row','app-utility-row','app-action-card-actions','app-dialog-actions','app-hero-head'];
 const NEITHER=['app-hero-head','app-dialog-actions'];

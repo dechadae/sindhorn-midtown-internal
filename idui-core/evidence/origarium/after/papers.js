@@ -31,9 +31,11 @@ function prose(body, title) {
   return body.split(/\n{2,}/).map(block => {
     const text = block.trim();
     if (!text || /^-{3,}$/.test(text)) return '';
-    /* The body repeats its own title as the first line; the sheet already
-       carries it, so it is not set twice. */
-    if (text === title) return '';
+    /* The body opens by repeating its own title; the page already carries it,
+       so it is not set twice. Compared loosely, because the stored copy
+       differs in punctuation and case from the row's title field. */
+    const flat = t => t.replace(/[^a-z0-9]+/gi, '').toLowerCase();
+    if (flat(text) === flat(title)) return '';
     const heading = text.match(/^(#{1,3})\s+(.*)$/);
     if (heading) return `<h3 class="app-surface-title">${inline(heading[2])}</h3>`;
     if (text.startsWith('> ')) return `<p class="app-note">${inline(text.replace(/^>\s?/gm, ''))}</p>`;
@@ -67,6 +69,7 @@ function cardMarkup(paper, index) {
 const archive = document.querySelector('[data-papers]');
 archive.innerHTML = papers.map(cardMarkup).join('');
 
+const archiveView = document.getElementById('archive');
 const reader = document.querySelector('[data-reader]');
 const field = name => reader.querySelector(`[data-reader-${name}]`);
 
@@ -76,15 +79,18 @@ function open(index) {
   field('eyebrow').textContent = `Paper · ${dayLabel(paper.published_at)}`;
   field('title').textContent = paper.title;
   field('body').innerHTML = prose(paper.body, paper.title);
-  if (!reader.open) reader.showModal();
-  reader.scrollTop = 0;
+  reader.hidden = false;
+  archiveView.hidden = true;
+  scrollTo(0, 0);
 }
 
 document.addEventListener('click', event => {
   const opener = event.target.closest('[data-open]');
   if (opener) { open(Number(opener.dataset.open)); return; }
-  if (event.target.closest('[data-reader-close]')) reader.close();
+  if (event.target.closest('[data-reader-close]')) { reader.hidden = true; archiveView.hidden = false; }
 });
-/* Escape is the dialog element's own; nothing here has to add it. */
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !reader.hidden) { reader.hidden = true; archiveView.hidden = false; }
+});
 
 document.documentElement.dataset.ready = 'true';

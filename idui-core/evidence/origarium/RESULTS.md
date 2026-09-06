@@ -31,8 +31,15 @@ ground, the lime accent and the warm paper thumbnails.
 
 ## What the core needed
 
-Four capabilities, all reusable, none product-specific. No **D** at all, and
-no **D-P** — the number the stopping rule watches.
+Five capabilities, all reusable, none product-specific. No **D** at all, and
+no **D-P**.
+
+**That number is not evidence on its own.** Candidate A also reported D-P = 0
+while failing editorially, which is how an architecture can score perfectly by
+declining to reproduce the hard part of an identity. Amendment A6 fixes the
+rule for the whole series: *product-specific presentation burden is evaluated
+only against an editorially accepted reconstruction.* Zero D-P with rejected
+fidelity is not a win — it is unresolved.
 
 | # | Requirement | Class | What it cost |
 |---|---|---|---|
@@ -40,6 +47,7 @@ no **D-P** — the number the stopping rule watches.
 | 2 | Prose has its own face | **C** | One declaration + 1 token. `--font-prose` |
 | 3 | Prose has its own reading size | **C** | Two declarations + 1 token. `--type-prose` |
 | 4 | A stack can flow in columns | **C** | Two rules, no token. `data-columns`, already in the vocabulary |
+| 5 | Material has scope: a context can make a material the ground | **C** | One rule block, no token. `data-context="reader"` |
 | — | Miniature prose at caption scale | **free** | Existing token, existing variant word |
 | — | Meta at micro scale | **free** | Existing token, existing variant word |
 | — | A third blur weight | **not spent** | The rebuild renders on one |
@@ -51,6 +59,52 @@ chrome. Origarium puts documents inside chrome, so the same element kind must
 be a different material depending on what it **is**. Membership now answers
 "does this draw a surface" and one semantic variant answers "what surface is
 it"; the constitution decides what a document is made of.
+
+## Candidate A, and why it was rejected
+
+The first reconstruction passed every contract and the owner rejected its
+reader. It is frozen in `candidate-a/`, uncorrected.
+
+The original says *the paper is the page*: the warm material occupies the
+environment and the interface sits quietly on it. Candidate A said *the paper
+is a surface inside the app* — dark shell, rounded dark container, cream
+document within. A different composition, not a styling difference.
+
+It happened because the reader was built on `.app-dialog`, the library's way of
+putting a layer over a page — which carries Sindhorn's compositional model:
+scrim, floating panel, chrome wrapping content. Reaching for it imported an
+assumption that had nothing to do with Origarium. That is the failure Test 03
+predicts as **A05, identity does not converge**, arriving through a primitive
+rather than a value, and showing up in a real experiment before the test
+written to look for it.
+
+## What that found: material has scope
+
+Material by role answers *what is this surface made of*. It does not answer
+*how much of the world is it*. An embedded preview and a full reader are the
+same material at different scope — an object in a dark interface, or the
+environment itself.
+
+No token could have fixed Candidate A, because the difference is not what the
+material is; it is where it applies. So context is declared once, by the scene,
+and the constitution derives the ground from it:
+
+```
+role = document, context = archive   → embedded paper
+role = document, context = reader    → environmental paper
+```
+
+A page says "this is a reading context". It never says warm, or cream, or
+`#eae7dd`. Chrome inside that context belongs to the paper — it takes the
+document's ink and edge, drops the interface's glass, and its titles are set in
+the document's face, because the voice of a reading context is the document's.
+
+**Candidate B** is that repair. The governing rule changed; the page did not.
+
+| | Conformance | Editorial selection |
+|---|---|---|
+| **A** | PASS | REJECTED — the document became an object inside the app |
+| **B** | PASS | *awaiting the owner* |
 
 ## Change propagation
 

@@ -163,6 +163,43 @@
 
    Text colour travels with it, because paper carries its own ink: a document
    may be light in a dark product, and the writing on it has to follow. */
+/* ---- and a document may be the place, not a thing in it -------------------
+   Material by role answers "what is this surface made of". It does not answer
+   "how much of the world is it". An embedded preview and a full reader are the
+   same material at different scope: one is an object in a dark interface, the
+   other is the environment, with the interface sitting quietly on top of it.
+
+   Candidate A got this wrong and the owner rejected it. It built the reader as
+   a document surface inside the app's dialog, so the paper became an object in
+   a dark room; the original makes the paper the room. No token could fix that,
+   because the difference is not what the material is - it is where it applies.
+
+   So context is declared once, by the scene, and the constitution derives the
+   ground from it. A page says "this is a reading context"; it never says warm,
+   or cream, or #eae7dd (r44). */
+[data-context="reader"]{
+  background-color:var(--app-document-fill);
+  color:var(--app-document-ink);
+}
+/* Chrome inside a reading context belongs to the paper: it borrows the
+   document's own ink and edge instead of the interface's, so it sits on the
+   page rather than framing it. */
+[data-context="reader"] .app-surface-label,
+[data-context="reader"] .app-utility-action,
+[data-context="reader"] .app-close-control{color:var(--app-document-ink)}
+[data-context="reader"] .app-card,
+[data-context="reader"] .app-surface{border-color:var(--app-document-border)}
+[data-context="reader"] .app-control{
+  background-color:transparent;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  border-color:var(--app-document-border);
+}
+/* The voice of a reading context is the document's, so its titles are set in
+   the same face the prose is. A page still writes .app-hero-title; what that
+   means here is the constitution's to say. */
+[data-context="reader"] .app-hero-title,
+[data-context="reader"] .app-surface-title{font-family:var(--font-prose)}
+
 [data-surface="document"]{
   background-color:var(--app-document-fill);
   backdrop-filter:var(--app-document-filter);

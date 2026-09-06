@@ -213,4 +213,27 @@ words.
 
 ## Amendments
 
-None.
+### A1 — 6 September 2026: D-P is only meaningful against an accepted reconstruction
+
+The owner rejected Candidate A's reader on editorial parity while every
+contract passed, and that exposes a hole in how this test — and Test 03 —
+reports its headline number.
+
+Candidate A reported **D-P = 0**: no product-specific presentation was needed.
+That is technically true and, as a claim of success, worthless, because an
+architecture can reach zero D-P **by refusing to reproduce the difficult part
+of the identity**. Normalise away what is hard and the ledger looks perfect.
+
+So the interpretation rule changes, for every test in this series:
+
+> **Product-specific presentation burden is evaluated only against an
+> editorially accepted reconstruction.** Zero D-P with rejected fidelity is not
+> a win. It is *unresolved*.
+
+Nothing about how D-P is counted changes; what changes is when the number is
+allowed to mean anything. A result now needs both halves — the ledger and the
+owner's acceptance — before it can be called held.
+
+This is the strongest methodological finding the series has produced, and it
+came from a rejection rather than a pass.
+
