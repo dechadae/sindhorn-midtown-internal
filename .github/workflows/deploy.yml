@@ -10,6 +10,18 @@ on:
       - "scripts/generate-fnb-share.mjs"
       - "scripts/generate-pwa-icons.mjs"
       - "scripts/*-smoke.mjs"
+      # The contracts, and what they read. Before r53a a change to a gate
+      # script, to the core sheets or to the governed registry could ship
+      # without the guard ever running it - r53a itself triggered nothing.
+      - "scripts/*-gate.mjs"
+      - "scripts/*audit*.mjs"
+      - "scripts/ci-library-coverage.mjs"
+      - "scripts/idui-*.mjs"
+      - "scripts/build-*.mjs"
+      - "scripts/public-doc-page.mjs"
+      - "idui-core/**"
+      - "governance/**"
+      - "CODEOWNERS"
       - ".github/tests/**"
       - ".github/workflows/deploy.yml"
       - "supabase/migrations/**"
