@@ -31,6 +31,38 @@ import { showToast } from './app-toast.js';
 import { formatClock, formatDate } from './app-format.js';
 import { BETTA_DAY_PERIODS, periodByKey, nextPeriod } from './betta-day-periods.js';
 import { generateBettaStyle, originalBettaStyle, randomSeed, parseSeed, seedLabel } from './betta-random.js';
+
+/* Composition, for the two periods the owner reopened (r37). The seed never
+   touches these: generateBettaStyle keeps every CAMERA_KEY from the period's
+   own preset, so framing is the one thing Random cannot change. The ranges are
+   the ones already tuned in betta-vignette-test.js, which edited exactly these
+   numbers but could only keep them in this browser. */
+const COMPOSITION_PERIODS = new Set(['golden-hour', 'blue-hour']);
+const CAMERA_FIELDS = [
+  { key: 'offsetX', label: 'Position X', min: -2.6, max: 2.6, step: .02 },
+  { key: 'offsetY', label: 'Position Y', min: -2.2, max: 2.2, step: .02 },
+  { key: 'cameraDepth', label: 'Position Z', min: -.5, max: .8, step: .01 },
+  { key: 'scale', label: 'Scale', min: .55, max: 1.4, step: .01 },
+  { key: 'rotationX', label: 'Rotate X', min: -1.25, max: 1.25, step: .01 },
+  { key: 'rotationY', label: 'Rotate Y', min: -1.25, max: 1.25, step: .01 },
+  { key: 'rotation', label: 'Rotate Z', min: -3.14, max: 3.14, step: .01 },
+  { key: 'tiltStrength', label: 'Tilt', min: 0, max: 1.2, step: .01 },
+];
+const cameraValue = (style, field) => Number(style?.params?.[field.key] ?? 0);
+function cameraMarkup(period, style) {
+  if (!COMPOSITION_PERIODS.has(period.key)) return '';
+  return `<div class="app-stack app-card-section" data-camera="${esc(period.key)}">
+    <p class="app-surface-label">Composition</p>
+    ${CAMERA_FIELDS.map(field => {
+      const id = `readability-${esc(period.key)}-${field.key}`, value = cameraValue(style, field);
+      return `<div class="app-field">
+        <div class="app-field-head"><label for="${id}">${esc(field.label)}</label><output for="${id}" data-camera-out="${field.key}">${value.toFixed(2)}</output></div>
+        <input id="${id}" type="range" min="${field.min}" max="${field.max}" step="${field.step}" value="${value}" data-camera-input="${field.key}">
+      </div>`;
+    }).join('')}
+    <div class="app-utility-row"><button class="app-utility-action" type="button" data-camera-reset="${esc(period.key)}">Reset composition</button></div>
+  </div>`;
+}
 import { measureFrame, lowerReading, periodColors, ratioLabel, READABILITY_ROLES, READABILITY_MINIMUM } from './betta-readability.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -103,8 +135,9 @@ function cardMarkup(period, entry) {
       <div data-swatches>${swatches(style)}</div>
     </div>
     <div class="app-metric-grid app-card-section" data-columns="3" data-mode="text" data-reading-grid>${readingMarkup(entry.reading)}</div>
+    ${cameraMarkup(period, style)}
     <div class="app-stack app-card-section">
-      <div class="app-field"><label for="readability-seed-${esc(period.key)}">Seed <span>${original ? 'original fish' : 'six hex digits draw the same fish'}</span></label><input id="readability-seed-${esc(period.key)}" type="text" inputmode="text" autocomplete="off" spellcheck="false" maxlength="16" placeholder="Original" value="${original ? '' : esc(seedLabel(entry.style.seed))}" data-seed="${esc(period.key)}"></div>
+      <div class="app-field"><label for="readability-seed-${esc(period.key)}">Seed <span data-seed-note>${original ? 'original fish' : 'six hex digits draw the same fish'}</span></label><input id="readability-seed-${esc(period.key)}" type="text" inputmode="text" autocomplete="off" spellcheck="false" maxlength="16" placeholder="Original" value="${original ? '' : esc(seedLabel(entry.style.seed))}" data-seed="${esc(period.key)}"></div>
       <div class="app-row">
         <button class="app-utility-action" type="button" data-show="${esc(period.key)}">Show</button>
         <button class="app-utility-action" type="button" data-random="${esc(period.key)}">Random</button>
@@ -162,9 +195,29 @@ export async function mountReadability(host) {
     node.querySelector('[data-swatches]').innerHTML = swatches(style);
     const input = node.querySelector('[data-seed]');
     input.value = entry.style ? seedLabel(entry.style.seed) : '';
-    node.querySelector('label span').textContent = entry.style ? 'six hex digits draw the same fish' : 'original fish';
+    node.querySelector('[data-seed-note]').textContent = entry.style ? 'six hex digits draw the same fish' : 'original fish';
     node.querySelector('[data-original]').disabled = !entry.style && !entry.saved;
+    paintCamera(key, style);
     paintReading(key);
+  }
+
+  /* Original and a typed seed both replace the whole style, so the sliders
+     follow whatever is now in force. The one being dragged is left alone. */
+  function paintCamera(key, style) {
+    const node = card(key); if (!node || !COMPOSITION_PERIODS.has(key)) return;
+    for (const field of CAMERA_FIELDS) {
+      const input = node.querySelector(`[data-camera-input="${field.key}"]`); if (!input || input === document.activeElement) continue;
+      const value = cameraValue(style, field);
+      input.value = String(value);
+      node.querySelector(`[data-camera-out="${field.key}"]`).textContent = value.toFixed(2);
+    }
+  }
+
+  /* The style with one camera number replaced. The rest of it - palette, fins,
+     motion - is untouched, so the seed still describes everything it ever did. */
+  function withCamera(key, changes) {
+    const base = entries.get(key).style || originalBettaStyle(periodByKey(key).baseline);
+    return { ...base, params: { ...base.params, ...changes } };
   }
 
   /* A style change resets the reading and, if the period is on screen,
@@ -199,6 +252,13 @@ export async function mountReadability(host) {
     paintReading(key);
   }
 
+  /* Dragging reads back instantly; the runtime and the reading answer to the
+     release, so one gesture is one fade and one watermark, not fifty. */
+  host.addEventListener('input', event => {
+    const slider = event.target.closest('[data-camera-input]'); if (!slider) return;
+    const out = slider.closest('[data-period]')?.querySelector(`[data-camera-out="${slider.dataset.cameraInput}"]`);
+    if (out) out.textContent = Number(slider.value).toFixed(2);
+  });
   host.addEventListener('click', event => {
     if (event.target.closest('[data-back]')) { location.hash = '#settings/system'; return; }
     const transport = event.target.closest('[data-transport]');
@@ -209,6 +269,13 @@ export async function mountReadability(host) {
       else if (transport.dataset.transport === 'play') { playing = !playing; if (playing) api.previewBettaDayCycle(PLAY_SECONDS); else api.setBettaPeriod(shownKey()); settleAt = performance.now() + SETTLE_MS; paintShown(); }
       else if (transport.dataset.transport === 'live') { playing = false; api.useLiveBettaDayCycle(); settleAt = performance.now() + SETTLE_MS; paintShown(); }
       else if (transport.dataset.transport === 'sky') { api.setBettaMode(skyShown() ? 'betta' : 'sky'); for (const entry of entries.values()) entry.reading = null; settleAt = performance.now() + SETTLE_MS; paintShown(); for (const period of BETTA_DAY_PERIODS) paintReading(period.key); }
+      return;
+    }
+    const cameraReset = event.target.closest('[data-camera-reset]');
+    if (cameraReset) {
+      const key = cameraReset.dataset.cameraReset, preset = originalBettaStyle(periodByKey(key).baseline);
+      setStyle(key, withCamera(key, Object.fromEntries(CAMERA_FIELDS.map(f => [f.key, preset.params[f.key]]))));
+      if (shownKey() !== key) show(key);
       return;
     }
     const showButton = event.target.closest('[data-show]');
@@ -264,6 +331,13 @@ export async function mountReadability(host) {
 
   /* A typed seed draws that fish; anything else leaves the card as it was. */
   host.addEventListener('change', event => {
+    const slider = event.target.closest('[data-camera-input]');
+    if (slider) {
+      const key = slider.closest('[data-period]').dataset.period;
+      setStyle(key, withCamera(key, { [slider.dataset.cameraInput]: Number(slider.value) }));
+      if (shownKey() !== key) show(key);
+      return;
+    }
     const input = event.target.closest('[data-seed]'); if (!input) return;
     const key = input.dataset.seed, seed = parseSeed(input.value);
     if (input.value.trim() === '') { setStyle(key, null); if (shownKey() !== key) show(key); return; }

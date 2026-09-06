@@ -197,7 +197,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-field{display:grid;gap:6px;min-width:0}
 .app-field label{color:var(--app-muted);font-size:var(--type-small);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 .app-field label span{opacity:.72;text-transform:none}
-.app-field input,.app-field textarea,.app-field select{
+.app-field input:not([type="range"]),.app-field textarea,.app-field select{
   width:100%;min-height:var(--control-row);padding:10px 12px;
   border:1px solid var(--app-line);border-radius:var(--radius-inset);
   background:var(--app-inset-fill);
@@ -205,11 +205,47 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
   outline:none;
   transition:border-color var(--motion-ms) ease,box-shadow var(--motion-ms) var(--motion-ease);
 }
-.app-field input:focus,.app-field textarea:focus,.app-field select:focus{
+.app-field input:not([type="range"]):focus,.app-field textarea:focus,.app-field select:focus{
   border-color:rgba(var(--app-accent-rgb),.55);
   box-shadow:0 0 0 3px rgba(var(--app-accent-rgb),.08);
 }
 .app-field input:disabled,.app-field textarea:disabled,.app-field select:disabled{opacity:.45;cursor:default}
+
+/* ---- Range ------------------------------------------------------------------
+   A number the hand sets by feel rather than by typing: the same well as a
+   field, drawn as a track, with the value read back beside its label. The
+   thumb is the accent because it is the thing being moved; the track is the
+   inset fill every other input uses, so a range reads as one of them. The
+   thumb is a grip, taller than it is wide: rounded, never circular, and a
+   shape the finger reads as something to hold (r37). */
+.app-field-head{display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-5)}
+.app-field-head output{color:var(--app-text);font-size:var(--type-body-s);font-variant-numeric:tabular-nums}
+.app-field input[type="range"]{
+  width:100%;height:var(--control-inline);margin:0;padding:0;
+  appearance:none;-webkit-appearance:none;background:transparent;
+  color:var(--app-accent);cursor:pointer;
+}
+.app-field input[type="range"]::-webkit-slider-runnable-track{
+  height:4px;border-radius:var(--radius-tight);
+  background:var(--app-inset-fill);border:1px solid var(--app-line);
+}
+.app-field input[type="range"]::-moz-range-track{
+  height:4px;border-radius:var(--radius-tight);
+  background:var(--app-inset-fill);border:1px solid var(--app-line);
+}
+.app-field input[type="range"]::-webkit-slider-thumb{
+  appearance:none;-webkit-appearance:none;
+  width:22px;height:22px;margin-top:-10px;
+  border:0;border-radius:var(--radius-tight);
+  background:var(--app-accent);
+}
+.app-field input[type="range"]::-moz-range-thumb{
+  width:22px;height:22px;
+  border:0;border-radius:var(--radius-tight);
+  background:var(--app-accent);
+}
+.app-field input[type="range"]:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
+.app-field input[type="range"]:disabled{opacity:.45;cursor:default}
 /* Longer text: the same well, tall enough for a paragraph, grown by the
    employee and never by the browser's corner grip alone. */
 .app-field textarea{line-height:var(--leading-body);resize:vertical}
