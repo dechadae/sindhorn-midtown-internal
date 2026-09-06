@@ -1,7 +1,7 @@
 {
- "test": "IDUI Test 03 — Origarium Papers",
- "side": "before",
- "measuredAt": "2026-09-06T07:07:26.333Z",
+ "test": "IDUI Test 02 — Origarium Papers",
+ "side": "before+after",
+ "measuredAt": "2026-09-06T08:16:53.266Z",
  "source": {
   "path": "/papers.html",
   "version": 59,
@@ -2099,6 +2099,1226 @@
    "proseChars": 6844,
    "errors": [],
    "opened": true
+  }
+ },
+ "after": {
+  "markup": {
+   "bytes": 3424,
+   "styleBlocks": 0,
+   "pageCss": {
+    "bytes": 0,
+    "rules": 0,
+    "important": 0,
+    "media": 0,
+    "literalFontSizes": 0,
+    "literalRadii": 0,
+    "backdropFilters": 0,
+    "hexColors": 0
+   },
+   "inlineStyleAttrs": 0,
+   "distinctClasses": 24,
+   "classList": [
+    "app-card",
+    "app-card-section",
+    "app-chip",
+    "app-close-control",
+    "app-control",
+    "app-dialog",
+    "app-dialog-body",
+    "app-dialog-head",
+    "app-hero",
+    "app-hero-copy",
+    "app-hero-eyebrow",
+    "app-hero-title",
+    "app-masthead",
+    "app-masthead-home",
+    "app-masthead-tools",
+    "app-overlay",
+    "app-page",
+    "app-prose",
+    "app-section",
+    "app-stack",
+    "app-surface",
+    "app-surface-label",
+    "app-surface-title",
+    "is-shell"
+   ]
+  },
+  "discretionary": {
+   "cssDecisions": 0,
+   "inlineDecisions": 0,
+   "total": 0,
+   "byProperty": {}
+  },
+  "semantic": {
+   "classes": 30,
+   "dataAttributeNames": 14,
+   "dataAttributeValues": 15,
+   "total": 44,
+   "classList": [
+    "app-card",
+    "app-card-section",
+    "app-chip",
+    "app-close-control",
+    "app-control",
+    "app-dialog",
+    "app-dialog-body",
+    "app-dialog-head",
+    "app-hero",
+    "app-hero-copy",
+    "app-hero-eyebrow",
+    "app-hero-title",
+    "app-list-row-meta",
+    "app-masthead",
+    "app-masthead-home",
+    "app-masthead-tools",
+    "app-note",
+    "app-overlay",
+    "app-page",
+    "app-prose",
+    "app-row",
+    "app-section",
+    "app-stack",
+    "app-surface",
+    "app-surface-copy",
+    "app-surface-label",
+    "app-surface-title",
+    "app-utility-action",
+    "app-utility-row",
+    "is-shell"
+   ],
+   "attrList": [
+    "data-columns=2",
+    "data-open=${index}",
+    "data-paper=${index}",
+    "data-papers",
+    "data-reader",
+    "data-reader-body",
+    "data-reader-close",
+    "data-reader-crumb",
+    "data-reader-eyebrow",
+    "data-reader-sheet",
+    "data-reader-title",
+    "data-size=caption",
+    "data-size=micro",
+    "data-split=true",
+    "data-surface=document"
+   ]
+  },
+  "scriptStyle": 0,
+  "rendered": {
+   "390": {
+    "elements": 135,
+    "visible": 124,
+    "fontSizes": [
+     [
+      "13.3333px",
+      63
+     ],
+     [
+      "16px",
+      17
+     ],
+     [
+      "10.5px",
+      16
+     ],
+     [
+      "12.5px",
+      16
+     ],
+     [
+      "7.4px",
+      8
+     ],
+     [
+      "11px",
+      3
+     ],
+     [
+      "34px",
+      1
+     ]
+    ],
+    "fontWeights": [
+     [
+      "400",
+      123
+     ],
+     [
+      "700",
+      1
+     ]
+    ],
+    "letterSpacings": [
+     [
+      "normal",
+      122
+     ],
+     [
+      "0.88px",
+      1
+     ],
+     [
+      "-0.68px",
+      1
+     ]
+    ],
+    "radii": [
+     [
+      "14px",
+      16
+     ],
+     [
+      "10px",
+      2
+     ],
+     [
+      "4px",
+      1
+     ]
+    ],
+    "lineHeights": [
+     [
+      "22.9333px",
+      63
+     ],
+     [
+      "17.92px",
+      16
+     ],
+     [
+      "18.06px",
+      16
+     ],
+     [
+      "12.728px",
+      8
+     ],
+     [
+      "21.5px",
+      8
+     ],
+     [
+      "12.5px",
+      8
+     ],
+     [
+      "18.92px",
+      3
+     ],
+     [
+      "38.08px",
+      1
+     ],
+     [
+      "27.52px",
+      1
+     ]
+    ],
+    "colors": [
+     [
+      "rgb(215, 218, 222)",
+      56
+     ],
+     [
+      "rgb(138, 143, 152)",
+      34
+     ],
+     [
+      "rgb(43, 42, 38)",
+      32
+     ],
+     [
+      "rgb(212, 255, 26)",
+      2
+     ]
+    ],
+    "backdropFilters": [
+     "blur(18px) saturate(1.6)"
+    ],
+    "backdropCount": 9,
+    "nestedGlass": 0,
+    "runtimeInline": [],
+    "sheets": [
+     {
+      "href": "constitutions/origarium/fonts.css",
+      "rules": 3
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-glass.css",
+      "rules": 11
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-components.css",
+      "rules": 379
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-compositions.css",
+      "rules": 49
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-shell.css",
+      "rules": 8
+     },
+     {
+      "href": "constitutions/origarium/app-tokens.css",
+      "rules": 2
+     }
+    ],
+    "docHeight": 3299,
+    "fontFamily": "Inter, -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+    "tokens": {
+     "--accent": "",
+     "--bg": "",
+     "--text": "",
+     "--muted": "",
+     "--surface": "",
+     "--app-accent": "#d4ff1a",
+     "--app-ground": "#0e0f12",
+     "--app-text": "#d7dade"
+    },
+    "errors": []
+   },
+   "768": {
+    "elements": 135,
+    "visible": 124,
+    "fontSizes": [
+     [
+      "13.3333px",
+      63
+     ],
+     [
+      "16px",
+      17
+     ],
+     [
+      "10.5px",
+      16
+     ],
+     [
+      "12.5px",
+      16
+     ],
+     [
+      "7.4px",
+      8
+     ],
+     [
+      "11px",
+      3
+     ],
+     [
+      "54px",
+      1
+     ]
+    ],
+    "fontWeights": [
+     [
+      "400",
+      123
+     ],
+     [
+      "700",
+      1
+     ]
+    ],
+    "letterSpacings": [
+     [
+      "normal",
+      122
+     ],
+     [
+      "0.88px",
+      1
+     ],
+     [
+      "-1.08px",
+      1
+     ]
+    ],
+    "radii": [
+     [
+      "14px",
+      16
+     ],
+     [
+      "10px",
+      2
+     ],
+     [
+      "4px",
+      1
+     ]
+    ],
+    "lineHeights": [
+     [
+      "22.9333px",
+      63
+     ],
+     [
+      "17.92px",
+      16
+     ],
+     [
+      "18.06px",
+      16
+     ],
+     [
+      "12.728px",
+      8
+     ],
+     [
+      "21.5px",
+      8
+     ],
+     [
+      "12.5px",
+      8
+     ],
+     [
+      "18.92px",
+      3
+     ],
+     [
+      "60.48px",
+      1
+     ],
+     [
+      "27.52px",
+      1
+     ]
+    ],
+    "colors": [
+     [
+      "rgb(215, 218, 222)",
+      56
+     ],
+     [
+      "rgb(138, 143, 152)",
+      34
+     ],
+     [
+      "rgb(43, 42, 38)",
+      32
+     ],
+     [
+      "rgb(212, 255, 26)",
+      2
+     ]
+    ],
+    "backdropFilters": [
+     "blur(18px) saturate(1.6)"
+    ],
+    "backdropCount": 9,
+    "nestedGlass": 0,
+    "runtimeInline": [],
+    "sheets": [
+     {
+      "href": "constitutions/origarium/fonts.css",
+      "rules": 3
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-glass.css",
+      "rules": 11
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-components.css",
+      "rules": 379
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-compositions.css",
+      "rules": 49
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-shell.css",
+      "rules": 8
+     },
+     {
+      "href": "constitutions/origarium/app-tokens.css",
+      "rules": 2
+     }
+    ],
+    "docHeight": 2188,
+    "fontFamily": "Inter, -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+    "tokens": {
+     "--accent": "",
+     "--bg": "",
+     "--text": "",
+     "--muted": "",
+     "--surface": "",
+     "--app-accent": "#d4ff1a",
+     "--app-ground": "#0e0f12",
+     "--app-text": "#d7dade"
+    },
+    "errors": []
+   },
+   "1240": {
+    "elements": 135,
+    "visible": 124,
+    "fontSizes": [
+     [
+      "13.3333px",
+      63
+     ],
+     [
+      "16px",
+      17
+     ],
+     [
+      "10.5px",
+      16
+     ],
+     [
+      "12.5px",
+      16
+     ],
+     [
+      "7.4px",
+      8
+     ],
+     [
+      "11px",
+      3
+     ],
+     [
+      "54px",
+      1
+     ]
+    ],
+    "fontWeights": [
+     [
+      "400",
+      123
+     ],
+     [
+      "700",
+      1
+     ]
+    ],
+    "letterSpacings": [
+     [
+      "normal",
+      122
+     ],
+     [
+      "0.88px",
+      1
+     ],
+     [
+      "-1.08px",
+      1
+     ]
+    ],
+    "radii": [
+     [
+      "14px",
+      16
+     ],
+     [
+      "10px",
+      2
+     ],
+     [
+      "4px",
+      1
+     ]
+    ],
+    "lineHeights": [
+     [
+      "22.9333px",
+      63
+     ],
+     [
+      "17.92px",
+      16
+     ],
+     [
+      "18.06px",
+      16
+     ],
+     [
+      "12.728px",
+      8
+     ],
+     [
+      "21.5px",
+      8
+     ],
+     [
+      "12.5px",
+      8
+     ],
+     [
+      "18.92px",
+      3
+     ],
+     [
+      "60.48px",
+      1
+     ],
+     [
+      "27.52px",
+      1
+     ]
+    ],
+    "colors": [
+     [
+      "rgb(215, 218, 222)",
+      56
+     ],
+     [
+      "rgb(138, 143, 152)",
+      34
+     ],
+     [
+      "rgb(43, 42, 38)",
+      32
+     ],
+     [
+      "rgb(212, 255, 26)",
+      2
+     ]
+    ],
+    "backdropFilters": [
+     "blur(18px) saturate(1.6)"
+    ],
+    "backdropCount": 9,
+    "nestedGlass": 0,
+    "runtimeInline": [],
+    "sheets": [
+     {
+      "href": "constitutions/origarium/fonts.css",
+      "rules": 3
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-glass.css",
+      "rules": 11
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-components.css",
+      "rules": 379
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-compositions.css",
+      "rules": 49
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-shell.css",
+      "rules": 8
+     },
+     {
+      "href": "constitutions/origarium/app-tokens.css",
+      "rules": 2
+     }
+    ],
+    "docHeight": 1892,
+    "fontFamily": "Inter, -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+    "tokens": {
+     "--accent": "",
+     "--bg": "",
+     "--text": "",
+     "--muted": "",
+     "--surface": "",
+     "--app-accent": "#d4ff1a",
+     "--app-ground": "#0e0f12",
+     "--app-text": "#d7dade"
+    },
+    "errors": []
+   }
+  },
+  "reader": {
+   "390": {
+    "elements": 185,
+    "visible": 185,
+    "fontSizes": [
+     [
+      "13.3333px",
+      71
+     ],
+     [
+      "19px",
+      41
+     ],
+     [
+      "16px",
+      27
+     ],
+     [
+      "10.5px",
+      16
+     ],
+     [
+      "12.5px",
+      16
+     ],
+     [
+      "7.4px",
+      8
+     ],
+     [
+      "11px",
+      5
+     ],
+     [
+      "34px",
+      1
+     ]
+    ],
+    "fontWeights": [
+     [
+      "400",
+      175
+     ],
+     [
+      "500",
+      7
+     ],
+     [
+      "700",
+      3
+     ]
+    ],
+    "letterSpacings": [
+     [
+      "normal",
+      181
+     ],
+     [
+      "0.88px",
+      3
+     ],
+     [
+      "-0.68px",
+      1
+     ]
+    ],
+    "radii": [
+     [
+      "14px",
+      17
+     ],
+     [
+      "10px",
+      2
+     ],
+     [
+      "4px",
+      1
+     ],
+     [
+      "24px",
+      1
+     ],
+     [
+      "7px",
+      1
+     ]
+    ],
+    "lineHeights": [
+     [
+      "22.9333px",
+      71
+     ],
+     [
+      "32.68px",
+      41
+     ],
+     [
+      "17.92px",
+      26
+     ],
+     [
+      "18.06px",
+      16
+     ],
+     [
+      "12.728px",
+      8
+     ],
+     [
+      "21.5px",
+      8
+     ],
+     [
+      "12.5px",
+      8
+     ],
+     [
+      "18.92px",
+      5
+     ],
+     [
+      "38.08px",
+      1
+     ],
+     [
+      "27.52px",
+      1
+     ]
+    ],
+    "colors": [
+     [
+      "rgb(43, 42, 38)",
+      85
+     ],
+     [
+      "rgb(215, 218, 222)",
+      60
+     ],
+     [
+      "rgb(138, 143, 152)",
+      36
+     ],
+     [
+      "rgb(212, 255, 26)",
+      4
+     ]
+    ],
+    "backdropFilters": [
+     "blur(18px) saturate(1.6)"
+    ],
+    "backdropCount": 10,
+    "nestedGlass": 0,
+    "runtimeInline": [],
+    "sheets": [
+     {
+      "href": "constitutions/origarium/fonts.css",
+      "rules": 3
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-glass.css",
+      "rules": 11
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-components.css",
+      "rules": 379
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-compositions.css",
+      "rules": 49
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-shell.css",
+      "rules": 8
+     },
+     {
+      "href": "constitutions/origarium/app-tokens.css",
+      "rules": 2
+     }
+    ],
+    "docHeight": 3299,
+    "fontFamily": "Inter, -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+    "tokens": {
+     "--accent": "",
+     "--bg": "",
+     "--text": "",
+     "--muted": "",
+     "--surface": "",
+     "--app-accent": "#d4ff1a",
+     "--app-ground": "#0e0f12",
+     "--app-text": "#d7dade"
+    },
+    "opened": true,
+    "proseFace": "Cormorant Garamond",
+    "proseSize": "19px",
+    "proseGround": "rgb(234, 231, 221)",
+    "proseChars": 6621
+   },
+   "768": {
+    "elements": 185,
+    "visible": 185,
+    "fontSizes": [
+     [
+      "13.3333px",
+      71
+     ],
+     [
+      "19px",
+      41
+     ],
+     [
+      "16px",
+      27
+     ],
+     [
+      "10.5px",
+      16
+     ],
+     [
+      "12.5px",
+      16
+     ],
+     [
+      "7.4px",
+      8
+     ],
+     [
+      "11px",
+      5
+     ],
+     [
+      "54px",
+      1
+     ]
+    ],
+    "fontWeights": [
+     [
+      "400",
+      175
+     ],
+     [
+      "500",
+      7
+     ],
+     [
+      "700",
+      3
+     ]
+    ],
+    "letterSpacings": [
+     [
+      "normal",
+      181
+     ],
+     [
+      "0.88px",
+      3
+     ],
+     [
+      "-1.08px",
+      1
+     ]
+    ],
+    "radii": [
+     [
+      "14px",
+      17
+     ],
+     [
+      "10px",
+      2
+     ],
+     [
+      "4px",
+      1
+     ],
+     [
+      "24px",
+      1
+     ],
+     [
+      "7px",
+      1
+     ]
+    ],
+    "lineHeights": [
+     [
+      "22.9333px",
+      71
+     ],
+     [
+      "32.68px",
+      41
+     ],
+     [
+      "17.92px",
+      26
+     ],
+     [
+      "18.06px",
+      16
+     ],
+     [
+      "12.728px",
+      8
+     ],
+     [
+      "21.5px",
+      8
+     ],
+     [
+      "12.5px",
+      8
+     ],
+     [
+      "18.92px",
+      5
+     ],
+     [
+      "60.48px",
+      1
+     ],
+     [
+      "27.52px",
+      1
+     ]
+    ],
+    "colors": [
+     [
+      "rgb(43, 42, 38)",
+      85
+     ],
+     [
+      "rgb(215, 218, 222)",
+      60
+     ],
+     [
+      "rgb(138, 143, 152)",
+      36
+     ],
+     [
+      "rgb(212, 255, 26)",
+      4
+     ]
+    ],
+    "backdropFilters": [
+     "blur(18px) saturate(1.6)"
+    ],
+    "backdropCount": 10,
+    "nestedGlass": 0,
+    "runtimeInline": [],
+    "sheets": [
+     {
+      "href": "constitutions/origarium/fonts.css",
+      "rules": 3
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-glass.css",
+      "rules": 11
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-components.css",
+      "rules": 379
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-compositions.css",
+      "rules": 49
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-shell.css",
+      "rules": 8
+     },
+     {
+      "href": "constitutions/origarium/app-tokens.css",
+      "rules": 2
+     }
+    ],
+    "docHeight": 2188,
+    "fontFamily": "Inter, -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+    "tokens": {
+     "--accent": "",
+     "--bg": "",
+     "--text": "",
+     "--muted": "",
+     "--surface": "",
+     "--app-accent": "#d4ff1a",
+     "--app-ground": "#0e0f12",
+     "--app-text": "#d7dade"
+    },
+    "opened": true,
+    "proseFace": "Cormorant Garamond",
+    "proseSize": "19px",
+    "proseGround": "rgb(234, 231, 221)",
+    "proseChars": 6621
+   },
+   "1240": {
+    "elements": 185,
+    "visible": 185,
+    "fontSizes": [
+     [
+      "13.3333px",
+      71
+     ],
+     [
+      "19px",
+      41
+     ],
+     [
+      "16px",
+      27
+     ],
+     [
+      "10.5px",
+      16
+     ],
+     [
+      "12.5px",
+      16
+     ],
+     [
+      "7.4px",
+      8
+     ],
+     [
+      "11px",
+      5
+     ],
+     [
+      "54px",
+      1
+     ]
+    ],
+    "fontWeights": [
+     [
+      "400",
+      175
+     ],
+     [
+      "500",
+      7
+     ],
+     [
+      "700",
+      3
+     ]
+    ],
+    "letterSpacings": [
+     [
+      "normal",
+      181
+     ],
+     [
+      "0.88px",
+      3
+     ],
+     [
+      "-1.08px",
+      1
+     ]
+    ],
+    "radii": [
+     [
+      "14px",
+      17
+     ],
+     [
+      "10px",
+      2
+     ],
+     [
+      "4px",
+      1
+     ],
+     [
+      "24px",
+      1
+     ],
+     [
+      "7px",
+      1
+     ]
+    ],
+    "lineHeights": [
+     [
+      "22.9333px",
+      71
+     ],
+     [
+      "32.68px",
+      41
+     ],
+     [
+      "17.92px",
+      26
+     ],
+     [
+      "18.06px",
+      16
+     ],
+     [
+      "12.728px",
+      8
+     ],
+     [
+      "21.5px",
+      8
+     ],
+     [
+      "12.5px",
+      8
+     ],
+     [
+      "18.92px",
+      5
+     ],
+     [
+      "60.48px",
+      1
+     ],
+     [
+      "27.52px",
+      1
+     ]
+    ],
+    "colors": [
+     [
+      "rgb(43, 42, 38)",
+      85
+     ],
+     [
+      "rgb(215, 218, 222)",
+      60
+     ],
+     [
+      "rgb(138, 143, 152)",
+      36
+     ],
+     [
+      "rgb(212, 255, 26)",
+      4
+     ]
+    ],
+    "backdropFilters": [
+     "blur(18px) saturate(1.6)"
+    ],
+    "backdropCount": 10,
+    "nestedGlass": 0,
+    "runtimeInline": [],
+    "sheets": [
+     {
+      "href": "constitutions/origarium/fonts.css",
+      "rules": 3
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-glass.css",
+      "rules": 11
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-components.css",
+      "rules": 379
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-compositions.css",
+      "rules": 49
+     },
+     {
+      "href": "127.0.0.1:61217/idui-core/app-shell.css",
+      "rules": 8
+     },
+     {
+      "href": "constitutions/origarium/app-tokens.css",
+      "rules": 2
+     }
+    ],
+    "docHeight": 1892,
+    "fontFamily": "Inter, -apple-system, \"system-ui\", \"Segoe UI\", sans-serif",
+    "tokens": {
+     "--accent": "",
+     "--bg": "",
+     "--text": "",
+     "--muted": "",
+     "--surface": "",
+     "--app-accent": "#d4ff1a",
+     "--app-ground": "#0e0f12",
+     "--app-text": "#d7dade"
+    },
+    "opened": true,
+    "proseFace": "Cormorant Garamond",
+    "proseSize": "19px",
+    "proseGround": "rgb(234, 231, 221)",
+    "proseChars": 6621
+   }
   }
  },
  "supabaseRequests": [

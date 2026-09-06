@@ -252,3 +252,21 @@ class count low: a product of this range legitimately needs more primitives,
 and reluctance to add one is not a virtue when the complexity is intrinsic.
 What the protocol still forbids is unchanged — a primitive for appearance
 alone, and any presentation owned by the page.
+
+### A5 — 6 September 2026: Papers is the whole scope, and why
+
+The owner has scoped this test to `/papers`, finally. The reason is not
+convenience:
+
+- the **game view** and the **dream state** are mostly WebGL. A transfer test
+  asks whether a constitution can own appearance a page would otherwise author
+  in CSS; a scene rendered in a shader does not put that question. It is much
+  closer to what Test 03 asks of the Betta generator.
+- the **CRM application** is the mode that does put the question, and it is
+  reserved for a separate test rather than folded into this one. A CRM is dense
+  interface — tables, forms, states, density — a different adversary from an
+  editorial archive, and mixing the two would make neither result legible.
+
+So Test 02's claim stands as A4 bounded it, and the exclusion is now a
+statement about what each mode can teach rather than an admission of partial
+coverage.

@@ -11,6 +11,11 @@ before implementation" is checkable rather than asserted.
 | **03** | Outside the interface | The Betta generator: design with no UI in it | Protocol frozen, not started | `93971ec` |
 | **04** | Voice | Editorial voice transfer | On hold | — |
 
+Candidate, unnumbered: **Origarium's CRM**. Dense interface — tables, forms,
+states, density — a different adversary from an editorial archive, and the mode
+of Origarium that puts the transfer question most sharply. Its game view and
+dream state are mostly WebGL and belong nearer Test 03 than here.
+
 Tests 02 and 03 were written under an earlier numbering, as "Test 03" and
 "Test 04", when the r32a specimen transfer counted as 01. Their headings were
 corrected and the reason recorded as an amendment in each; the commits above

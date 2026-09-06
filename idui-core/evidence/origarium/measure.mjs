@@ -36,9 +36,15 @@ const srcDir=path.join(here,'source');
 const VIEWPORTS=[{name:'390',width:390,height:844},{name:'768',width:768,height:1024},{name:'1240',width:1240,height:900}];
 
 const types={'.html':'text/html','.css':'text/css','.js':'text/javascript','.json':'application/json','.svg':'image/svg+xml','.png':'image/png'};
+const repo=path.resolve(here,'../../..');
 const server=createServer(async(req,res)=>{
   const name=decodeURIComponent(req.url.split('?')[0]);
-  const file=path.join(srcDir,name==='/'||name==='/papers'?'papers.html':name);
+  /* Both sides are served from the repository root: the snapshot by its own
+     path, the rebuild by its, so the rebuild reaches the core sheets exactly
+     as a page would. */
+  const file=name==='/'||name==='/papers'
+    ? path.join(srcDir,'papers.html')
+    : path.join(repo,name);
   try{
     const body=await readFile(file);
     res.writeHead(200,{'content-type':types[path.extname(file)]||'application/octet-stream'});
@@ -51,7 +57,7 @@ const base=`http://127.0.0.1:${server.address().port}`;
 const browser=await chromium.launch().catch(()=>chromium.launch({channel:'chrome'}));
 const writesAttempted=[],supabaseSeen=[],probes=[];
 
-async function open({width,height}){
+async function open({width,height},url){
   const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:1,reducedMotion:'reduce'});
   const page=await context.newPage();
   const errors=[];
@@ -75,7 +81,7 @@ async function open({width,height}){
     if(/site_stats/.test(url))return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify([{key:'visits',value:1}])});
     return route.fulfill({status:200,contentType:'application/json',body:'[]'});
   });
-  await page.goto(`${base}/papers`,{waitUntil:'networkidle'});
+  await page.goto(url,{waitUntil:'networkidle'});
   /* Long enough for the page's deferred calls. */
   await page.waitForTimeout(4000);
   return {context,page,errors};
@@ -87,7 +93,7 @@ const pageCss=[...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m=>m[1]
 
 const results={
   test:'IDUI Test 02 — Origarium Papers',
-  side:'before',
+  side:'before+after',
   measuredAt:new Date().toISOString(),
   source:{path:'/papers.html',version:59,characters:58319,md5:'7fc246e81d09a1e9a84488b5b068f15e'},
   hermetic:false,
@@ -102,7 +108,7 @@ const results={
 
 await mkdir(path.join(here,'shots'),{recursive:true});
 for(const viewport of VIEWPORTS){
-  const {context,page,errors}=await open(viewport);
+  const {context,page,errors}=await open(viewport,`${base}/papers`);
   /* Measure first: the probe below deliberately fails a fetch, and its console
      error is the harness's, not the page's. */
   results.rendered[viewport.name]={...await page.evaluate(RENDER),errors:[...errors]};
@@ -143,6 +149,38 @@ for(const viewport of VIEWPORTS){
   }));
   await context.close();
 }
+/* ---- the after side, measured by the same code -------------------------- */
+const afterHtml=await readFile(path.join(here,'after/papers.html'),'utf8');
+const afterJs=await readFile(path.join(here,'after/papers.js'),'utf8');
+const afterCss=[...afterHtml.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m=>m[1]).join('\n');
+const after={
+  markup:markupMetrics(afterHtml),
+  discretionary:discretionary(afterCss,afterHtml),
+  semantic:semantic(afterHtml+afterJs),
+  /* Presentation a page can smuggle past a CSS count: style set from script. */
+  scriptStyle:(afterJs.match(/\.style\.|cssText|setProperty/g)||[]).length,
+  rendered:{},reader:{},
+};
+for(const viewport of VIEWPORTS){
+  const {context,page,errors}=await open(viewport,`${base}/idui-core/evidence/origarium/after/papers.html`);
+  await page.waitForFunction(()=>document.querySelectorAll('[data-paper]').length>0,null,{timeout:20000});
+  after.rendered[viewport.name]={...await page.evaluate(RENDER),errors:[...errors]};
+  await page.screenshot({path:path.join(here,`shots/after-${viewport.name}-top.png`)});
+  await page.evaluate(()=>document.querySelector('[data-open]').click());
+  const opened=await page.waitForFunction(()=>document.querySelector('[data-reader]')?.open===true,null,{timeout:10000}).then(()=>true).catch(()=>false);
+  if(opened){
+    await page.waitForTimeout(900);
+    after.reader[viewport.name]={...await page.evaluate(RENDER),opened:true,
+      ...await page.evaluate(()=>{const p=document.querySelector('[data-reader-body] p'),s=p&&getComputedStyle(p);
+        const sh=document.querySelector('[data-reader-sheet]'),ss=sh&&getComputedStyle(sh);
+        return{proseFace:s?s.fontFamily.split(',')[0].replace(/["\']/g,''):null,proseSize:s?s.fontSize:null,
+               proseGround:ss?ss.backgroundColor:null,proseChars:(document.querySelector('[data-reader-body]')?.textContent||'').length}})};
+    if(viewport.name==='390')await page.screenshot({path:path.join(here,'shots/after-reader-390-top.png')});
+  }else after.reader[viewport.name]={opened:false};
+  await context.close();
+}
+results.after=after;
+
 results.supabaseRequests=[...new Set(supabaseSeen)];
 results.writesRefused=[...new Set(writesAttempted)];
 /* Valid only if the guard was exercised and nothing got through it. */
@@ -177,4 +215,20 @@ console.log(JSON.stringify({
   readerProseSize:results.reader['390']?.proseSize??null,
   readerProseChars:results.reader['390']?.proseChars??null,
   archiveBodyFace:r.fontFamily?.split(',')[0],
+  after:{
+    pageCssBytes:results.after.markup.pageCss.bytes,
+    styleBlocks:results.after.markup.styleBlocks,
+    inlineStyleAttrs:results.after.markup.inlineStyleAttrs,
+    scriptStyle:results.after.scriptStyle,
+    appearanceDecisions:results.after.discretionary.total,
+    semanticDeclarations:results.after.semantic.total,
+    fontSizes:results.after.rendered['390'].fontSizes.length,
+    radii:results.after.rendered['390'].radii.length,
+    blurRecipes:results.after.rendered['390'].backdropFilters.length,
+    nestedGlass:results.after.rendered['390'].nestedGlass.length??results.after.rendered['390'].nestedGlass,
+    errors:results.after.rendered['390'].errors.length,
+    readerProseFace:results.after.reader['390']?.proseFace,
+    readerProseSize:results.after.reader['390']?.proseSize,
+    readerProseGround:results.after.reader['390']?.proseGround,
+  },
 },null,1));
