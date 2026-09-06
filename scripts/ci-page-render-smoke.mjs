@@ -521,7 +521,7 @@ else {
 
 // The public document pages, r34.
 const DOCS = [
-  { route: '/idui', title: 'Invariant-Driven UI', sections: 9 },
+  { route: '/idui', title: 'Invariant-Driven UI', sections: 10 },
   { route: '/evidence', title: 'The Rebuild Test', sections: 10 },
   { route: '/origarium', title: 'Architecture Held With Nine Corrections; Editorial Parity Partial', sections: 10 }
 ];
