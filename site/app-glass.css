@@ -180,6 +180,12 @@
 [data-context="reader"]{
   background-color:var(--app-document-fill);
   color:var(--app-document-ink);
+  /* A reading context is the place, so it occupies the view. A paper of one
+     sentence still fills the screen it was opened into - which is what the
+     original does, and what "it bounces full screen" means. Found by handing
+     the archive an empty body and watching the reader end halfway down
+     (r47). */
+  min-height:100dvh;
 }
 /* Chrome inside a reading context belongs to the paper: it borrows the
    document's own ink and edge instead of the interface's, so it sits on the

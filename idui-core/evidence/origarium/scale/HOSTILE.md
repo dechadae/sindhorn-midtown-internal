@@ -74,3 +74,68 @@ something more precise than either alone:
 
 Neither is repaired here. The repair, and whether it can be made in the
 governing rule rather than the page, is the next thing to test.
+
+---
+
+# The repair, and which architecture was harder to fix
+
+Both failures were repaired, and the repairs were measured rather than
+estimated. Origarium's was applied to a **scratch copy written outside the
+repository** — never back to the source, never to its rows — purely so the
+cost could be counted on both sides without editing another application's code.
+
+## After the repair
+
+| | Valid @390 | Valid @1240 | Reader | Page overflow |
+|---|---|---|---|---|
+| Origarium | **22 / 22** | **22 / 22** | **22 / 22** | 0 |
+| IDUI | **22 / 22** | **22 / 22** | **22 / 22** | 0 |
+
+Both hold completely. Neither needed a per-record exception.
+
+## The fix was the same size on both
+
+| | The change | Where it lands |
+|---|---|---|
+| Origarium | one declaration, 13 selectors | `papers.html`'s own style block |
+| IDUI | one declaration, 20 roles, zero specificity | `idui-core/app-components.css` |
+
+**So "harder to fix" is not about the edit.** It is one declaration either way,
+and anyone claiming IDUI made this repair smaller would be wrong.
+
+## It is about reach
+
+The core rule reaches every product built on it. Sindhorn and Flipgazine got it
+at the same moment, and P05 proves it cost them nothing: **0 differing pixels**
+on `/`, `/voice` and `/ci`.
+
+Origarium's fix reaches `papers.html`. The site has **53 HTML pages, 45 of them
+carrying their own style block, 93 style blocks in total.** Whether the dream
+state, the CRM and the game view need the same declaration is unknown and
+untested here — but if they do, the repair is not one declaration. It is one
+declaration *per place that styles text*, and nothing in the architecture
+tells you which of the 45 those are.
+
+That is the difference the numbers actually support:
+
+> The same repair, in one architecture, is a rule. In the other, it is a task.
+
+## And the core had already made this decision three times
+
+Before Test 02.3, `overflow-wrap: anywhere` appeared in the core in exactly
+three places — a list row title, a business card name, a card link — each added
+where someone had hit the problem. The rule existed as a habit and had never
+been stated. Hostile content is what turned three coincidences into an
+invariant.
+
+## One failure I had misread
+
+Fourteen of IDUI's fifteen reader failures were recorded in the first pass as
+*"the contract being wrong about legitimate content"* — a short paper making a
+short document. That was wrong. Origarium's reader sheet is `height:100%`: a
+one-sentence paper still fills the screen, because the reader is a **place**
+rather than a container that fits its contents. The contract was right and the
+reconstruction was missing a property of the original.
+
+Fixed where it belonged — a reading context occupies the view — and recorded
+here rather than quietly corrected, because the first reading was published.

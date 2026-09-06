@@ -17,7 +17,13 @@ const VIEWPORTS = [{name: '390', width: 390, height: 844}, {name: '1240', width:
 const types = {'.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.json': 'application/json'};
 const server = createServer(async (req, res) => {
   const name = decodeURIComponent(req.url.split('?')[0]);
-  const file = name === '/papers' ? path.join(repo, 'idui-core/evidence/origarium/source/papers.html') : path.join(repo, name);
+  /* /papers is the frozen snapshot; /papers-fixed is a scratch copy carrying
+     the equivalent of the core's rule, written outside the repository and
+     never back to the source, so the cost of the fix can be measured on both
+     sides without editing another application's code. */
+  const file = name === '/papers' ? path.join(repo, 'idui-core/evidence/origarium/source/papers.html')
+    : name === '/papers-fixed' ? process.env.ORIGARIUM_FIXED
+    : path.join(repo, name);
   try { const body = await readFile(file); res.writeHead(200, {'content-type': types[path.extname(file)] || 'application/octet-stream'}); res.end(body); }
   catch { res.writeHead(404).end(); }
 });
@@ -80,7 +86,8 @@ async function run(label, {url, cardSel, thumbSel, openSel, readerReady, closeSe
   return result;
 }
 
-const origarium = await run('origarium', {url: `${base}/papers`, cardSel: '.paper-card', thumbSel: '.paper-thumb',
+const route = process.env.ORIGARIUM_ROUTE || '/papers';
+const origarium = await run('origarium', {url: `${base}${route}`, cardSel: '.paper-card', thumbSel: '.paper-thumb',
   openSel: '.paper-card', readerReady: () => !!document.querySelector('#readerOverlay.open'), closeSel: '.reader-close'});
 const idui = await run('idui', {url: `${base}/idui-core/evidence/origarium/after/papers.html`, cardSel: '[data-paper]', thumbSel: '[data-mode="preview"]',
   openSel: '[data-open]', readerReady: () => document.querySelector('[data-reader]')?.hidden === false, closeSel: '[data-reader-close]'});

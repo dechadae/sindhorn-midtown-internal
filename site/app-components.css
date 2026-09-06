@@ -526,7 +526,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-list-row+.app-list-row{border-top:1px solid var(--app-line)}
 a.app-list-row{color:inherit;text-decoration:none}
 .app-list-row-main{min-width:0;display:grid;gap:3px}
-.app-list-row-title{font-size:var(--type-body);line-height:var(--leading-label);overflow-wrap:anywhere}
+.app-list-row-title{font-size:var(--type-body);line-height:var(--leading-label)}
 .app-list-row-meta{color:var(--app-muted);font-size:var(--type-body-s)}
 /* Meta set down a step, where a row is narrow and the fact is a stamp rather
    than a sentence - a paper's number and date beside each other in a column
@@ -556,6 +556,26 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
    length is set larger than the interface around it, and by how much is the
    constitution's to say. Both answer var(--type-body), which is what they
    were already doing implicitly. */
+/* ---- Text stays inside its box --------------------------------------------
+   A word with nothing to break on - a hash, a URL, a Thai or Japanese phrase,
+   which have no spaces at all - is wider than its container, and the container
+   is wider than the page. The core already knew this and had answered it three
+   times, ad hoc, wherever someone hit it: on a list row title, on a business
+   card name, on a card link. Test 02.3 found the other places by handing the
+   archive a 90-character token and watching the document grow 459px (r47).
+
+   Stated once, over the roles that carry author text, at zero specificity so
+   nothing it touches changes precedence. This is an invariant, not a fix: no
+   text a product is given may leave the box the layout gave it. */
+:where(.app-hero-title,.app-hero-copy,.app-hero-eyebrow,
+       .app-surface-label,.app-surface-title,.app-surface-copy,
+       .app-prose p,.app-prose li,.app-prose h3,
+       .app-list-row-title,.app-list-row-meta,.app-list-row-copy,
+       .app-metric-label,.app-metric-value,.app-metric-note,
+       .app-disclosure-title,.app-disclosure-copy,
+       .app-state-title,.app-state-copy,
+       .app-badge,.app-chip){overflow-wrap:anywhere}
+
 .app-prose{max-width:var(--measure-prose);display:grid;gap:14px;font-family:var(--font-prose)}
 .app-prose p{margin:0;font-size:var(--type-prose);line-height:var(--leading-body)}
 .app-prose h3{margin:8px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight)}
