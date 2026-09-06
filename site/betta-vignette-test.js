@@ -30,7 +30,11 @@ const FIELDS=[
   {key:'scale',label:'Scale',min:.55,max:1.4,step:.01,digits:2},
   {key:'rotationX',label:'Rotate X',min:-1.25,max:1.25,step:.01,digits:2},
   {key:'rotationY',label:'Rotate Y',min:-1.25,max:1.25,step:.01,digits:2},
-  {key:'rotation',label:'Rotate Z',min:-3.14,max:3.14,step:.01,digits:2}
+  {key:'rotation',label:'Rotate Z',min:-3.14,max:3.14,step:.01,digits:2},
+  /* The eighth number the engine reads as composition: how far the fish leans
+     with the device. Added with r37a, when style.camera became the way a
+     chosen framing reaches the app. */
+  {key:'tiltStrength',label:'Tilt',min:0,max:1.2,step:.01,digits:2}
 ];
 
 function readStore(storage,key){try{return JSON.parse(storage.getItem(key)||'{}')||{}}catch(_){return {}}}
