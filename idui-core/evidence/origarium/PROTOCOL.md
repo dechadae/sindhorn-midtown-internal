@@ -169,4 +169,40 @@ Not "passed". Named by what held:
 
 ## Amendments
 
-None.
+### A1 — 6 September 2026, at step C1: the harness cannot be shared, the definitions can
+
+**Found.** The protocol says to measure with
+`idui-core/evidence/rebuild/measure.mjs` **unchanged**. It cannot be: that
+script composes the Flipgazine page from three specific files, serves a
+specific source directory, and pins a specific Betta period. Pointing it at
+Origarium is impossible without editing it, so the instruction as written was
+unachievable.
+
+**Resolved.** The *intent* was that metric definitions must not move between
+tests, and that is preserved literally rather than by discipline: the pure
+measurement functions — `cssMetrics`, `markupMetrics`, `declarations`,
+`discretionary`, `semantic`, `propagation`, and the `CHANGES` propagation list
+— now live in `idui-core/evidence/metrics.mjs`, which both harnesses import.
+The harness around them stays per-product, because each source page is composed
+and served differently. `CHANGES` is shared deliberately: a test that invents
+its own list of "representative changes" can pick flattering ones.
+
+**Proof the move was faithful.** The pre-extraction script and the
+post-extraction script were both run against the same working tree and produce
+identical output once the ephemeral server port is normalised. The
+extraction changed no metric.
+
+### A2 — 6 September 2026: the Flipgazine evidence is a dated run, and the script overwrites it
+
+Re-running `measure.mjs` today does **not** reproduce the committed
+`comparison.json`. The after-side has grown — shared CSS 82,011 → 87,201 bytes,
+434 → 451 rules, 5 → 6 media queries — because the core itself has grown since
+r33 (the range control, the sortable list, the disclosure toggle, the lifted
+material). The published `/evidence` page is stamped with the release it was
+measured at, so it is honest; but it is a **pinned historical run, not a live
+number**, and running the script silently overwrites `comparison.json` and the
+four screenshots. Both were restored from git here.
+
+Consequence for this test: Origarium's before/after must be its own pinned run
+with its own stamp, and any comparison with Flipgazine's figures must state
+that they were measured against an earlier core.
