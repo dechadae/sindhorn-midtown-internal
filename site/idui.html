@@ -16,7 +16,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/app-192.png?v=2">
 <!--
   Invariant-Driven UI (IDUI) v0.1 - the public document, built by scripts/build-idui.mjs from
-  docs/idui/idui-body.html with sindhorn-midtown-internal-pwa-v115-public-docs-r34. Library classes only; the atmosphere is live.
+  docs/idui/idui-body.html with sindhorn-midtown-internal-pwa-v116-doc-metrics-r34a. Library classes only; the atmosphere is live.
 -->
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="stylesheet" href="/fonts.css?v=2">
@@ -41,7 +41,7 @@
   <p class="app-hero-eyebrow">Sindhorn Midtown Internal · Design and development method</p>
   <h1 class="app-hero-title">Invariant-Driven UI</h1>
   <p class="app-hero-copy">Pages compose. Primitives behave. Invariants style. Contracts validate. A working method formalized from the Sindhorn Midtown Internal rebuild of 2–5 September 2026, written from the production code rather than ahead of it.</p>
-  <p class="app-note">Draft v0.1, 5 September 2026. Nothing in this document changes production. Every rule is marked implemented, partial or proposed. Numbers were first measured from the repository at commit <code>558ab67</code> and the export is rebuilt from the library at every release (this copy: service worker <code>v115-public-docs-r34</code>); where evidence does not exist the value is marked unknown. The recommendations in 03 and 06 are proposals for the owner to challenge before any cleanup begins.</p>
+  <p class="app-note">Draft v0.1, 5 September 2026. Nothing in this document changes production. Every rule is marked implemented, partial or proposed. Numbers were first measured from the repository at commit <code>558ab67</code> and the export is rebuilt from the library at every release (this copy: service worker <code>v116-doc-metrics-r34a</code>); where evidence does not exist the value is marked unknown. The recommendations in 03 and 06 are proposals for the owner to challenge before any cleanup begins.</p>
   <nav class="ci-index" aria-label="Sections">
     <a class="app-chip app-control" href="#set">00 The Set</a>
     <a class="app-chip app-control" href="#method">01 Method</a>
@@ -619,29 +619,22 @@
   <p class="app-note">Foundation residue, named so it is not mistaken for permission. Until r31: 7 <code>!important</code> in <code>fonts.css</code> and 10 in <code>app-glass.css</code>, the dialog scrim's 7px kernel outside the material file, and two radius literals (<code>0</code> and one 6px). r32 removed all of it without a visual change: the typeface lock holds by cascade order and the font test, the material aliases had no consumer, the frameless-utility guard is a plain rule the glass file owns, the scrim is two tokens in <code>app-glass.css</code>, the check box is <code>--radius-tight</code> and the option inside a menu is <code>--radius-none</code>. What remains: the one inline <code>&lt;style&gt;</code> is <code>betta-vignette-test.html</code>, a developer instrument its own preview workflow fetches, and the two <code>#000</code> mask stops. Since r31 there is nothing outside the foundation to count.</p>
 
   <h3 class="app-section-subhead">Method metrics</h3>
-  <div class="app-stack">
-    <article class="app-card app-surface">
-      <div class="app-card-section"><div class="app-metric-grid" data-mode="text">
-        <div class="app-metric"><span class="app-metric-label">Appearance rule coverage</span><span class="app-metric-value">3 of 3 pages · 0 findings</span><span class="app-metric-note">Every class rendered by the shell (546), the library (166) and Voice (59) is defined in the foundation; no page presentation. Proxy measure: the audit proves no local decision was written, not that every pixel is explained.</span></div>
-        <div class="app-metric"><span class="app-metric-label">ADPE · discretionary</span><span class="app-metric-value">0</span><span class="app-metric-note">Author decisions per element that pick a look: none in the 11 shell page modules.</span></div>
-        <div class="app-metric"><span class="app-metric-label">ADPE · necessary</span><span class="app-metric-value">≈ 0.11</span><span class="app-metric-note">1,059 elements in the page modules carry about 115 semantic declarations (tone 27, columns 16, values 14, span 13, rule 13, width 18, size 5, gap 4, direction 3, scale 1, stagger 1).</span></div>
-      </div></div>
-      <div class="app-card-section"><div class="app-metric-grid" data-mode="text">
-        <div class="app-metric"><span class="app-metric-label">Exception rate</span><span class="app-metric-value">3 known</span><span class="app-metric-note">The selector's three lifted-menu custom properties (runtime geometry); the swatch's SVG fill (data); <code>--app-view-scroll</code> (unused). The library's own 22 <code>!important</code> were the fourth until r32. All in library or behavior code, none in a page.</span></div>
-        <div class="app-metric"><span class="app-metric-label">Behavioral primitives</span><span class="app-metric-value">12 → 10</span><span class="app-metric-note">Counted in 03; ten after naming button priorities and folding the sheet. Not a target.</span></div>
-        <div class="app-metric"><span class="app-metric-label">Appearance-only primitives</span><span class="app-metric-value">2</span><span class="app-metric-note">Sheet vs dialog; primary vs utility as separate names. The alias <code>.app-quiet-action</code> went in r32.</span></div>
-      </div></div>
-      <div class="app-card-section"><div class="app-metric-grid" data-mode="text">
-        <div class="app-metric"><span class="app-metric-label">Invariant maturity</span><span class="app-metric-value">2 · 11 · 1 of 14</span><span class="app-metric-note">Level 1 only: control height, action weight. Level 2: material surface, weight, nesting, token locality, type, tone (page side), motion, page presentation, format, library-first (partial), atmosphere mode (r30). Level 3: readability - at authoring, at the server (r29b) and at release (r29c).</span></div>
-        <div class="app-metric"><span class="app-metric-label">Literal design values in pages</span><span class="app-metric-value">0</span><span class="app-metric-note">Audit, 5 Sep 2026.</span></div>
-        <div class="app-metric"><span class="app-metric-label">Behavior duplicates</span><span class="app-metric-value">3 + 1</span><span class="app-metric-note">Disclosure toggle ×3, clamp toggle ×1. The only duplication the rebuild left in the shell's behavior.</span></div>
-      </div></div>
-    </article>
-    <article class="app-card app-surface" data-tone="quiet">
-      <p class="app-surface-label">Unknown</p>
-      <h3 class="app-surface-title">Not manufactured</h3>
-      <p class="app-surface-copy">The hours and cost of the earlier AI-assisted attempts. The exact number of legacy classes ("roughly 200 card classes", "a 61-name registry" are the documents' figures, not remeasured). Time-to-build per page before and after. Defect rates. Whether any of these numbers transfer to another codebase.</p>
-    </article>
+  <div class="app-metric-grid" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Appearance rule coverage</p><p class="app-metric-value">3 of 3 pages · 0 findings</p><p class="app-metric-note">Every class rendered by the shell (546), the library (166) and Voice (59) is defined in the foundation; no page presentation. Proxy measure: the audit proves no local decision was written, not that every pixel is explained.</p></div>
+    <div class="app-metric"><p class="app-metric-label">ADPE · discretionary</p><p class="app-metric-value">0</p><p class="app-metric-note">Author decisions per element that pick a look: none in the 11 shell page modules.</p></div>
+    <div class="app-metric"><p class="app-metric-label">ADPE · necessary</p><p class="app-metric-value">≈ 0.11</p><p class="app-metric-note">1,059 elements in the page modules carry about 115 semantic declarations (tone 27, columns 16, values 14, span 13, rule 13, width 18, size 5, gap 4, direction 3, scale 1, stagger 1).</p></div>
+  </div>
+
+  <div class="app-metric-grid" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Exception rate</p><p class="app-metric-value">3 known</p><p class="app-metric-note">The selector's three lifted-menu custom properties (runtime geometry); the swatch's SVG fill (data); <code>--app-view-scroll</code> (unused). The library's own 22 <code>!important</code> were the fourth until r32. All in library or behavior code, none in a page.</p></div>
+    <div class="app-metric"><p class="app-metric-label">Behavioral primitives</p><p class="app-metric-value">12 → 10</p><p class="app-metric-note">Counted in 03; ten after naming button priorities and folding the sheet. Not a target.</p></div>
+    <div class="app-metric"><p class="app-metric-label">Appearance-only primitives</p><p class="app-metric-value">2</p><p class="app-metric-note">Sheet vs dialog; primary vs utility as separate names. The alias <code>.app-quiet-action</code> went in r32.</p></div>
+  </div>
+
+  <div class="app-metric-grid" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Invariant maturity</p><p class="app-metric-value">2 · 11 · 1 of 14</p><p class="app-metric-note">Level 1 only: control height, action weight. Level 2: material surface, weight, nesting, token locality, type, tone (page side), motion, page presentation, format, library-first (partial), atmosphere mode (r30). Level 3: readability - at authoring, at the server (r29b) and at release (r29c).</p></div>
+    <div class="app-metric"><p class="app-metric-label">Literal design values in pages</p><p class="app-metric-value">0</p><p class="app-metric-note">Audit, 5 Sep 2026.</p></div>
+    <div class="app-metric"><p class="app-metric-label">Behavior duplicates</p><p class="app-metric-value">3 + 1</p><p class="app-metric-note">Disclosure toggle ×3, clamp toggle ×1. The only duplication the rebuild left in the shell's behavior.</p></div>
   </div>
 </section>
 
@@ -822,14 +815,13 @@
   <h2 class="app-section-title">What This Is, and Is Not</h2>
   <p class="app-section-lede">IDUI did not invent design systems, design grammar, model-driven UI, algorithmic layout, semantic tokens, generative UI, property-based testing or generative design. It proposes a practical architecture in which a minimal behavioral vocabulary is combined with small, orthogonal, machine-enforceable invariants so that appearance is derived rather than repeatedly authored. Sindhorn is a production case study, not proof of universal superiority.</p>
 
+  <div class="app-metric-grid" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Observed</p><p class="app-metric-value">In Sindhorn</p><p class="app-metric-note">The ratchet numbers. Zero page literals across eleven modules. One duplicated behavior. Two rules settled by measurement. Pages landing one a day once the library existed. A contract that refuses to save the current atmosphere's muted ink.</p></div>
+    <div class="app-metric"><p class="app-metric-label">Inferred</p><p class="app-metric-value">Explained by the method</p><p class="app-metric-note">That a membership test outlives a registry; that a ratchet lets migration finish; that an agent given rules stops generating local decisions; that random sampling against a contract is property-based testing applied to appearance.</p></div>
+    <div class="app-metric"><p class="app-metric-label">Hypothesized</p><p class="app-metric-value">To test elsewhere</p><p class="app-metric-note">That the four-layer split and either/or/neither shape hold in an unrelated product, with a different material, on desktop, in a light theme, with a larger team; that the validation harness generalizes beyond contrast. First test in §08: the material, scale and face held under a second identity; seven findings against the core. Second test, same day: one real Flipgazine page with its own engines, rebuilt with no CSS in the page; nine core assumptions moved to the constitutions.</p></div>
+  </div>
+
   <div class="app-stack">
-    <article class="app-card app-surface">
-      <div class="app-metric-grid" data-mode="text">
-        <div class="app-metric"><span class="app-metric-label">Observed</span><span class="app-metric-value">In Sindhorn</span><span class="app-metric-note">The ratchet numbers. Zero page literals across eleven modules. One duplicated behavior. Two rules settled by measurement. Pages landing one a day once the library existed. A contract that refuses to save the current atmosphere's muted ink.</span></div>
-        <div class="app-metric"><span class="app-metric-label">Inferred</span><span class="app-metric-value">Explained by the method</span><span class="app-metric-note">That a membership test outlives a registry; that a ratchet lets migration finish; that an agent given rules stops generating local decisions; that random sampling against a contract is property-based testing applied to appearance.</span></div>
-        <div class="app-metric"><span class="app-metric-label">Hypothesized</span><span class="app-metric-value">To test elsewhere</span><span class="app-metric-note">That the four-layer split and either/or/neither shape hold in an unrelated product, with a different material, on desktop, in a light theme, with a larger team; that the validation harness generalizes beyond contrast. First test in §08: the material, scale and face held under a second identity; seven findings against the core. Second test, same day: one real Flipgazine page with its own engines, rebuilt with no CSS in the page; nine core assumptions moved to the constitutions.</span></div>
-      </div>
-    </article>
 
     <article class="app-card app-surface">
       <div class="app-card-section">
@@ -1001,7 +993,7 @@
   <div class="app-utility-row">
     <a class="app-utility-action" href="#top">Back to top</a>
   </div>
-  <p class="app-note">Invariant-Driven UI v0.1 · Sindhorn Midtown Internal · 5 September 2026. This document is composed from the app's own library — <code>app-tokens.css</code>, <code>app-glass.css</code>, <code>app-components.css</code>, <code>app-compositions.css</code>, <code>app-shell.css</code>, <code>ci-library.css</code> as shipped with service worker <code>v115-public-docs-r34</code> — and declares no presentation of its own. The atmosphere is a still gradient in place of the Betta.</p>
+  <p class="app-note">Invariant-Driven UI v0.1 · Sindhorn Midtown Internal · 5 September 2026. This document is composed from the app's own library — <code>app-tokens.css</code>, <code>app-glass.css</code>, <code>app-components.css</code>, <code>app-compositions.css</code>, <code>app-shell.css</code>, <code>ci-library.css</code> as shipped with service worker <code>v116-doc-metrics-r34a</code> — and declares no presentation of its own. The atmosphere is a still gradient in place of the Betta.</p>
 </section>
 
 </main>
