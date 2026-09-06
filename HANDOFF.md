@@ -101,18 +101,15 @@ deployment by minutes — poll `/sw.js` for the new VERSION before verifying.
 
 ## 5. The queue, in order
 
-### 5.1 Jobs tracker — compact cards, expand, drag (owner's request; report first)
-
-Asked for: job cards compact by default with the job info hidden; an expand
-arrow at the top right of the card; cards drag-rearrangeable "same as in
-Flipgazine".
-
-What is already true:
-- The card is `cardMarkup()` in `site/jobs-page.js` — `.app-card.app-surface` with three `.app-card-section`s (ask / facts / actions). The job card invariant (`AGENTS.md`, r23/r23c/r28) says a job is *not* a component; keep it an assembly of primitives.
-- The library already has a disclosure primitive: `.app-disclosure`, `.app-disclosure-button`, `.app-disclosure-head` (`site/app-components.css:127`), specimen at `site/ci.html:237` ("tap to expand"). The expand arrow should be that, not a new thing. Four modules bind `[data-disclosure]` with their own copy of the toggle (`brand-page.js`, `fnb-page.js`, `today.js`, `signin-page.js`; `ci-library.js` has the fifth) — the IDUI doc counts this as "disclosure toggle ×3", the only behavior duplication left in the shell. Folding them into one module as you add the Jobs use is the right move; recount and correct that number in `docs/idui/idui-body.html` in the same release.
-- **The server side of drag is already built and unused.** `supabase/migrations/20260905120000_sindhorn_jobs_v1.sql` gives `sindhorn_jobs` a `sort_order integer not null default 0`, indexes `(owner_employee_id, sort_order, created_at desc)`, orders `sindhorn_jobs_list_v1` by it, exposes it as `sortOrder` in `job_json`, and defines **`sindhorn_jobs_reorder_v1(p_ids uuid[])`** which rewrites the order from an array of ids. `site/jobs-page.js` never calls it. So rearrange needs **no schema change, no new RPC, no live write to approve** — only the client behavior plus one `supabaseRpc('sindhorn_jobs_reorder_v1', { p_ids })` after a drop. (A new job is inserted at `min(sort_order) - 1`, i.e. the top.)
-- "Same as in Flipgazine": read Flipgazine's job board drag behavior from its `site_files` (read only, the way the shell reads it — the rebuild test's `snapshot` step shows how) to match the interaction: long-press or handle, what moves, what the drop looks like. Do not copy code with the key in it.
-- Before building, show the owner a 390-wide mockup of: collapsed card (what stays visible — title, status badge, deadline?), expanded card, the arrow position, and the drag affordance. Wait for the go.
+### 5.1 Jobs tracker — done in r35 (SW v117, 6 Sep 2026)
+Compact cards shipped: the card keeps the received label, title, Sent by /
+Deadline, the status selector and Update on its face and folds **only the
+description** behind a `.app-disclosure-toggle` at the top right (the owner's
+correction to a first version that had moved more off the face). No
+description means no arrow. Press and hold reorders the list through
+`site/app-drag-sort.js` and the pre-existing `sindhorn_jobs_reorder_v1`.
+`site/app-disclosure.js` is now the single disclosure toggle. Swipe gestures
+were deliberately **not** ported. Left undone: no keyboard path for reordering.
 
 ### 5.2 Today cache / `app-html.js` refactor
 Agreed, unscheduled, no visual change. Reads: `site/today.js`, `site/shell.js`. Goal is one HTML-fragment helper instead of per-page string building. Pixel-diff `/` before and after (the scratchpad `visual-diff.mjs` pattern: render HEAD's `site/` and the working tree's on two local servers, compare screenshots per route).
