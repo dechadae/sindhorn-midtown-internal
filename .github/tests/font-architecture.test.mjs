@@ -63,7 +63,8 @@ for(const file of walk(site)){
     for(const match of text.matchAll(/(?<![-\w])font-family\s*:\s*([^;}]+)/gi)){
       const value=match[1].replace(/!important/gi,'').trim();
       // r33: --font-code is the constitution's code face, consumed by .app-code-block only.
-      if(value!=='var(--font-ui)'&&value!=='var(--font-code)'&&value!=='inherit')errors.push(`${rel(file)} non-canonical font-family: ${value}`);
+      // r41: --font-prose is the constitution's long-form face, consumed by .app-prose only.
+      if(value!=='var(--font-ui)'&&value!=='var(--font-code)'&&value!=='var(--font-prose)'&&value!=='inherit')errors.push(`${rel(file)} non-canonical font-family: ${value}`);
     }
     // Anchor on a property boundary: without it these also match the tail of custom
       // properties such as --app-utility-font, which is a font-size token, not a

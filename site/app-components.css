@@ -533,7 +533,11 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 /* ---- Prose ------------------------------------------------------------------
    Long-form editorial copy: the History and Brand narratives. Constrained
    measure, because a full-width line of body text on a tablet is unreadable. */
-.app-prose{max-width:var(--measure-prose);display:grid;gap:14px}
+/* Running text a person reads at length is its own role. Most products set it
+   in the interface face and say so; one that sets long-form prose in a serif
+   while its chrome stays a sans needs somewhere to say that, and this is it.
+   Sindhorn and Flipgazine answer var(--font-ui), and render unchanged (r41). */
+.app-prose{max-width:var(--measure-prose);display:grid;gap:14px;font-family:var(--font-prose)}
 .app-prose p{margin:0;font-size:var(--type-body);line-height:var(--leading-body)}
 .app-prose h3{margin:8px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight)}
 .app-prose ul,.app-prose ol{margin:0;padding-left:var(--space-7);display:grid;gap:6px;font-size:var(--type-body);line-height:var(--leading-body)}

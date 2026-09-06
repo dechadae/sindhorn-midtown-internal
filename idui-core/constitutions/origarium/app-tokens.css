@@ -1,0 +1,133 @@
+/* Origarium — the constitution, written 6 September 2026 for IDUI Test 02
+   (idui-core/evidence/origarium/). Every value is read from what the frozen
+   snapshot of /papers.html v59 actually renders, measured at 390 in both the
+   archive and the reader — not from its class names, and not from Sindhorn.
+
+   Origarium is an editorial archive with a reader inside it. Two things follow
+   that Sindhorn never had to say. Its chrome is near-black and its documents
+   are warm paper, so the answer to "what is a document made of" is not "the
+   same as everything else" — which is the whole reason the core learned to ask
+   (r41). And it sets long-form prose in a serif while its interface is a sans
+   and its metadata a monospace, so --font-ui alone cannot describe it.
+
+   What this file does not do is decide anything. It answers the questions the
+   core asks, with the numbers the product already had. */
+:root{
+
+  /* ---- Type scale ---------------------------------------------------------
+     Rendered sizes, in order of how much text each carries: 19 is the reader's
+     prose, 16 the archive's lede, 13.33 the interface default, 10.5 the mono
+     metadata, 7.4 the thumbnail's miniature body. */
+  --type-caption:7.4px;      /* the paper thumbnail's set-down body */
+  --type-micro:10.5px;       /* paper—01, dates, terminal lines */
+  --type-small:11px;         /* eyebrow: LONGER FORM */
+  --type-body-s:12.5px;      /* card summaries */
+  --type-body:13.3333px;     /* interface default */
+  --type-lead:16px;          /* the archive's opening paragraph */
+  --type-title:19px;         /* reader prose, and the card titles */
+  --type-section:clamp(22px,5vw,30px);
+  --type-display:clamp(34px,8vw,54px);
+
+  --leading-tight:1.12;
+  --leading-label:1.35;
+  --leading-body:1.72;       /* the reader's measure is set long */
+
+  /* ---- Weight and tracking ------------------------------------------------
+     Four weights render: 400 carries almost everything, 700 the titles, 800
+     the masthead, 500 once. Tracking is normal nearly everywhere; the negative
+     values are optical, on large type only. */
+  --weight-thin:400;
+  --weight-regular:400;
+  --weight-medium:500;
+  --weight-bold:700;
+  --weight-label:700;
+  --tracking:normal;
+  --tracking-label:.08em;    /* the mono labels and the masthead */
+  --tracking-display:-.02em; /* -0.56px on the display sizes, as a ratio */
+  --case-display:none;       /* Origarium sets its titles as written */
+
+  /* ---- Colour -------------------------------------------------------------
+     The interface is near-black with an acid lime; the ink is warm grey, not
+     white. */
+  --app-text:#d7dade;
+  --app-muted:#8a8f98;
+  --app-line:#2a2d33;
+  --app-inset-fill:#101216;
+  --app-accent:#d4ff1a;
+  --app-accent-rgb:212,255,26;
+  --app-ground:#0e0f12;
+  /* Origarium has no status vocabulary. The accent stands in for success and
+     the terminal red for danger, and this test records that these two slots
+     are demanded rather than supplied — the same finding Flipgazine gave. */
+  --app-success:#28c840;
+  --app-danger:#ff5f57;
+
+  /* ---- Material: chrome ---------------------------------------------------
+     Measured: rgba(14,15,18,.9) under blur(18px) saturate(1.6) on the topbar,
+     the same fill under blur(8px) on the card frames, and a 34px blur on the
+     lifted dialog. Three weights where the core has two; the lighter frame
+     blur is recorded in the ledger as an open question rather than invented
+     into the core here. */
+  --app-glass-fill:rgba(14,15,18,.9);
+  --app-glass-border:rgba(255,255,255,.08);
+  --app-glass-filter:blur(18px) saturate(1.6);
+  --app-glass-overlay-fill:rgba(16,18,22,.96);
+  --app-glass-nested-fill:#101216;
+  --app-glass-scrim-fill:rgba(8,9,11,.6);
+  --app-glass-scrim-filter:blur(8px);
+
+  /* ---- Material: document -------------------------------------------------
+     The reason this constitution exists. A paper is opaque, warm, and carries
+     its own ink: measured rgb(234,231,221) behind #2b2a26, with no blur at
+     all, on both the archive's thumbnails and the reader's sheet. A document
+     here is not a lighter kind of glass — it is not glass. */
+  --app-document-fill:#eae7dd;
+  --app-document-border:#c9c5b6;
+  --app-document-filter:none;
+  --app-document-ink:#2b2a26;
+
+  /* ---- Shape --------------------------------------------------------------
+     Rendered radii: 4, 7, 10, 12, 14, 24 — and 50% on the round controls.
+     Origarium draws circles; that is its rule to make, and the core draws its
+     one circle through the pill token, so nothing had to change for it. */
+  --radius-surface:14px;
+  --radius-inset:10px;
+  --radius-tight:4px;
+  --radius-dialog:24px;
+  --radius-control:7px;
+  --radius-pill:50%;
+  --radius-none:0;
+
+  --control-row:44px;
+  --control:38px;
+  --control-inline:30px;
+  --app-shell-band:56px;     /* the topbar's rendered height */
+  --measure-page:1100px;     /* the archive grid's outer measure */
+  --measure-prose:34rem;     /* the reader is set to a reading measure */
+
+  --space-2:4px;
+  --space-3:8px;
+  --space-4:10px;
+  --space-5:12px;
+  --space-6:16px;
+  --space-7:20px;
+  --space-8:28px;
+
+  --size-icon-control:34px;
+  --font-code:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+
+  /* ---- Motion -------------------------------------------------------------
+     The page reveals on scroll and the reader opens as a sheet. */
+  --motion-ms:220ms;
+  --motion-fast:130ms;
+  --motion-reveal:700ms;
+  --motion-view:320ms;
+  --motion-view-travel:24px;
+  --motion-ease:cubic-bezier(.22,1,.36,1);
+  --motion-ease-inout:cubic-bezier(.4,0,.2,1);
+  --motion-fade:linear;
+}
+
+@media (prefers-reduced-motion:reduce){
+  :root{ --motion-ms:1ms; --motion-reveal:1ms; --motion-view:1ms; }
+}

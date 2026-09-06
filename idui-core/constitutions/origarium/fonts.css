@@ -1,0 +1,18 @@
+/* Origarium's faces: three, where the other constitutions have one.
+
+   Inter is the interface, Cormorant Garamond is what a paper is set in, and
+   the monospace carries metadata — paper—01, dates, the terminal foot. All
+   three are measured from the rendered page, not chosen here.
+
+   This file cannot do what Sindhorn's and Flipgazine's do. Those lock one face
+   onto `body *` and are right to: a product with a single face wants no
+   accidental second one. Origarium's prose is deliberately a different face
+   from its chrome, so the lock would be a lie. The interface face is set on
+   the root and inherits; `.app-prose` takes --font-prose from the core, which
+   is the one place the difference is allowed to exist (r41). */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap");
+:root{
+  --font-ui:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-prose:'Cormorant Garamond',Georgia,'Times New Roman',serif;
+}
+html,body,button,input,select,textarea,option,dialog{font-family:var(--font-ui);font-synthesis:none}

@@ -107,6 +107,30 @@
   -webkit-backdrop-filter:var(--app-glass-filter);
 }
 
+/* ---- A surface may be a document ------------------------------------------
+   THE RULE above assigns one material by membership: a card is anything that
+   draws an edge, and it is glass. That holds while every surface in a product
+   is chrome. It stops holding the moment a product puts a document inside its
+   chrome - a page of a paper, a sheet in a reader - because the same element
+   kind must then be a different material depending on what it is, not on
+   whether it draws an edge.
+
+   So membership answers "does this draw a surface", and one semantic variant
+   answers "what surface is it". data-surface="document" is the page saying
+   what the thing is, never what it should look like: the constitution decides
+   whether a document is warm opaque paper, or glass like everything else.
+   Sindhorn and Flipgazine answer "glass", and render unchanged (r41).
+
+   Text colour travels with it, because paper carries its own ink: a document
+   may be light in a dark product, and the writing on it has to follow. */
+[data-surface="document"]{
+  background-color:var(--app-document-fill);
+  backdrop-filter:var(--app-document-filter);
+  -webkit-backdrop-filter:var(--app-document-filter);
+  border-color:var(--app-document-border);
+  color:var(--app-document-ink);
+}
+
 /* A lifted item floats over the list it came from rather than sitting on the
    atmosphere, so for as long as it is held it takes the overlay weight - the
    same one a sheet and a menu take. One material, the heavier of its two
