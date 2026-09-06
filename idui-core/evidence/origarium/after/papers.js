@@ -4,11 +4,11 @@
    size, radius or face, and adds no class the library does not define. The
    only attributes it writes are the library's own semantic variants.
 
-   The miniature on each card is a document surface carrying summary-scale
-   text, not .app-prose: prose takes the constitution's reading size, and a
-   thumbnail is a representation of a document rather than something to read.
-   The original sets its miniature smaller still, at 7.4px, and that gap is
-   recorded as a deviation rather than closed with a new primitive. */
+   The miniature on each card is a document surface carrying prose at caption
+   scale - the same primitive the reader uses, sized down because a thumbnail
+   depicts a document rather than being one to read. The card follows the
+   original's shape: the framed part holds the paper and its number and date,
+   and the title, summary and action sit loose beneath it. */
 const papers = await fetch('../source/papers.fixture.json').then(r => r.json());
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -43,25 +43,25 @@ function prose(body, title) {
 }
 
 function cardMarkup(paper, index) {
-  return `<article class="app-card app-surface" data-paper="${index}">
-    <div class="app-card-section">
-      <div class="app-card app-surface" data-surface="document">
-        <p class="app-surface-title">${esc(paper.title)}</p>
-        <p class="app-surface-copy">${esc(opening(paper.body))}</p>
+  return `<div class="app-stack" data-paper="${index}">
+    <article class="app-card app-surface">
+      <div class="app-card-section">
+        <div class="app-card app-surface" data-surface="document">
+          <p class="app-surface-title">${esc(paper.title)}</p>
+          <div class="app-prose" data-size="caption"><p>${esc(opening(paper.body))}</p></div>
+        </div>
       </div>
-    </div>
-    <div class="app-card-section">
-      <div class="app-row" data-split="true">
-        <span class="app-surface-label">${number(index)}</span>
-        <span class="app-surface-label">${esc(dayLabel(paper.published_at))}</span>
+      <div class="app-row app-card-section" data-split="true">
+        <span class="app-list-row-meta" data-size="micro">${number(index)}</span>
+        <span class="app-list-row-meta" data-size="micro">${esc(dayLabel(paper.published_at))}</span>
       </div>
-      <h3 class="app-surface-title">${esc(paper.title)}</h3>
-      <p class="app-surface-copy">${esc(paper.summary || '')}</p>
-    </div>
-    <div class="app-row app-card-section" data-split="true">
+    </article>
+    <h3 class="app-surface-title">${esc(paper.title)}</h3>
+    <p class="app-surface-copy">${esc(paper.summary || '')}</p>
+    <div class="app-utility-row">
       <button class="app-utility-action" type="button" data-open="${index}">[+] read_</button>
     </div>
-  </article>`;
+  </div>`;
 }
 
 const archive = document.querySelector('[data-papers]');

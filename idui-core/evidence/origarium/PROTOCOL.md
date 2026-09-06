@@ -224,3 +224,31 @@ The earlier r32a specimen transfer (`idui-core/evidence/transfer-smoke.mjs`,
 `specimens.html`) stays unnumbered. It predates the adversarial series and was
 self-confirming by design — IDUI markup rendered under a second constitution —
 so it reads as background to 01 rather than as a test of its own.
+
+### A4 — 6 September 2026: the scope is one mode of four
+
+The owner states that Origarium is not the Papers archive. One site carries
+**four very different modes**: the papers, a Pokémon-Go-like game view, a dream
+state, and a CRM application.
+
+This test measured `/papers` and nothing else. That does not invalidate what it
+found — the before-metrics, the material break, the reconstruction and P05 are
+all real for the mode they cover — but it bounds what may be claimed. **"The
+core met Origarium and mostly stayed still" is not a conclusion this test can
+reach.** The defensible claim is narrower:
+
+> The core met Origarium's editorial archive and reader, and the changes it
+> needed were four reusable capabilities and no product-specific presentation.
+
+The other three modes are untested surface. A game view in particular is the
+kind of thing that would be expected to need genuine product behaviour — a
+large **D-B**, which the protocol already says can be large without concern.
+Whether it also needs product-specific *presentation* — **D-P**, the alarm — is
+simply unknown, and the evidence page must say so rather than imply coverage it
+does not have.
+
+The owner also lifted the implicit constraint that the rebuild should keep its
+class count low: a product of this range legitimately needs more primitives,
+and reluctance to add one is not a virtue when the complexity is intrinsic.
+What the protocol still forbids is unchanged — a primitive for appearance
+alone, and any presentation owned by the page.

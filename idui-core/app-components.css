@@ -518,6 +518,10 @@ a.app-list-row{color:inherit;text-decoration:none}
 .app-list-row-main{min-width:0;display:grid;gap:3px}
 .app-list-row-title{font-size:var(--type-body);line-height:var(--leading-label);overflow-wrap:anywhere}
 .app-list-row-meta{color:var(--app-muted);font-size:var(--type-body-s)}
+/* Meta set down a step, where a row is narrow and the fact is a stamp rather
+   than a sentence - a paper's number and date beside each other in a column
+   half a phone wide. Existing token, existing variant word (r41). */
+.app-list-row-meta[data-size="micro"]{font-size:var(--type-micro)}
 /* An inbox row shows the first lines of its message under the meta, clamped
    to two so the list stays a list; the full text opens in the dialog. */
 .app-list-row-copy{color:var(--app-text);font-size:var(--type-body-s);line-height:var(--leading-body);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
@@ -546,6 +550,10 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 .app-prose p{margin:0;font-size:var(--type-prose);line-height:var(--leading-body)}
 .app-prose h3{margin:8px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight)}
 .app-prose ul,.app-prose ol{margin:0;padding-left:var(--space-7);display:grid;gap:6px;font-size:var(--type-prose);line-height:var(--leading-body)}
+/* A miniature of a document: the same prose, set at caption scale because it
+   is a depiction rather than something to read. The constitution already had
+   the size and the vocabulary already had the word (r41). */
+.app-prose[data-size="caption"] p,.app-prose[data-size="caption"] li{font-size:var(--type-caption)}
 .app-prose strong,.app-prose b{font-weight:var(--weight-medium)}
 /* A link in running text or in a note is the accent; nothing else in the
    library lets the UA's blue through (r34). */
