@@ -165,3 +165,15 @@ The owner set the series numbering: **01 Flipgazine, 02 Origarium, 03 Betta
 The heading is corrected; nothing else is. The predictions Q01–Q05 were frozen
 in **`93971ec`**, before any result was measured, and that commit is unedited in
 history.
+
+### A2 — 6 September 2026: on hold, and its number is from an earlier scheme
+
+The owner has put this test and the Voice test on hold, and has numbered the
+interface-rebuild series **01 Flipgazine, 02 Origarium, 03 Apple** — which is
+what the `/idui` footer shows.
+
+This document's heading still reads "Test 03" from the scheme before that.
+It is left alone rather than renumbered a second time: the heading is not where
+the meaning lives, and churning it again would cost more than the ambiguity. If
+this test resumes it takes the next free number in whatever series it belongs
+to. Q01–Q05 remain frozen in `93971ec`.
