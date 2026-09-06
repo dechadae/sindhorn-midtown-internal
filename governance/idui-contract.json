@@ -267,8 +267,12 @@
         "sha256": "bfc1df3e478225ef",
         "assertions": 9
       },
+      "scripts/release-brief.mjs": {
+        "sha256": "ed72462cde42040d",
+        "assertions": 0
+      },
       "scripts/contract-integrity.mjs": {
-        "sha256": "384c8d21a4794527",
+        "sha256": "300771b275328aa4",
         "assertions": 11
       }
     },

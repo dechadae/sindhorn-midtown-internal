@@ -41,6 +41,7 @@ const GATES = [
   'scripts/idui-invariants-smoke.mjs',
   'scripts/ui-shape-source-audit.mjs',
   'scripts/evidence-append-only.mjs',
+  'scripts/release-brief.mjs',
   'scripts/contract-integrity.mjs',
 ];
 
