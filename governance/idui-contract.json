@@ -244,7 +244,7 @@
         "assertions": 3
       },
       "scripts/no-horizontal-overflow.mjs": {
-        "sha256": "34ac250230d882f2",
+        "sha256": "f5ab41cbeae90f96",
         "assertions": 2
       },
       "scripts/page-centralization-audit.mjs": {

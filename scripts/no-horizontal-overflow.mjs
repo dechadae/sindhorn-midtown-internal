@@ -41,9 +41,14 @@ for (const route of ROUTES) {
   await page.route('**/rest/v1/rpc/sindhorn_current_employee_profile', r => r.fulfill({status: 200, contentType: 'application/json',
     body: JSON.stringify({id:'00000000-0000-0000-0000-000000000001', employee_number:'10639', display_name:'CI Developer', role:'super_admin', account_type:'developer', work_email:null, pin_configured_at:new Date().toISOString(), active:true})}));
   await page.route(/supabase\.co\/rest\/v1\/(?!rpc\/sindhorn_current_employee_profile)/, r => r.fulfill({status: 200, contentType: 'application/json', body: '[]'}));
-  await page.goto(base + route, {waitUntil: 'networkidle'});
+  /* Not networkidle: the Betta runtime keeps the connection busy, so /ci never
+     settles and the navigation times out on a runner. Wait for the document,
+     then for the page's own mount, the way the render smoke does. */
+  await page.goto(base + route, {waitUntil: 'load'});
+  await page.waitForSelector('main', {timeout: 20000}).catch(() => {});
+  await page.waitForSelector('.app-page[data-ready="true"]', {timeout: 8000}).catch(() => {});
   await page.evaluate(() => document.fonts.ready);
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(1200);
   const found = await page.evaluate(() => {
     const out = [];
     const page = document.documentElement.scrollWidth - document.documentElement.clientWidth;
