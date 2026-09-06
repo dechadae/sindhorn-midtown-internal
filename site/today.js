@@ -16,6 +16,7 @@
    bug to route around. */
 import { loadBusinessDashboard } from './business-dashboard-data.js';
 import { initAuth } from './auth-client.js';
+import { toggleDisclosure } from './app-disclosure.js';
 import { formatMoney as money, formatInteger as integer, formatPercent as percent, formatDate, formatDateTime } from './app-format.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
@@ -274,13 +275,7 @@ export async function mountToday(host) {
   const onClick = event => {
     if (event.target.closest('[data-today-retry]')) { refresh(host, { force: true, alive }); return; }
     if (event.target.closest('[data-today-top]')) { window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); return; }
-    const button = event.target.closest('.app-disclosure-button');
-    if (!button) return;
-    const root = button.closest('[data-disclosure]');
-    if (!root) return;
-    const open = root.dataset.open === 'true';
-    root.dataset.open = String(!open);
-    button.setAttribute('aria-expanded', String(!open));
+    toggleDisclosure(event.target);
   };
   host.addEventListener('click', onClick);
   // The shell calls this when it routes away, so a report that answers late

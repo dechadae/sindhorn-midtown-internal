@@ -11,6 +11,7 @@
    is not left in the address bar or history. */
 import { getState, signInWithPin, activate, setPermanentPin } from './auth-client.js';
 import { bindCode, codeValue, clearCode } from './app-code.js';
+import { toggleDisclosure } from './app-disclosure.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
@@ -153,12 +154,7 @@ export async function mountSignin(host) {
   host.addEventListener('click', event => {
     const switcher = event.target.closest('[data-signin-mode]');
     if (switcher) { mode = switcher.dataset.signinMode; employee = host.querySelector('#signin-employee')?.value.trim() || employee; render(); return; }
-    const disclosure = event.target.closest('[data-disclosure]');
-    if (disclosure && event.target.closest('.app-disclosure-button')) {
-      const open = disclosure.dataset.open === 'true';
-      disclosure.dataset.open = String(!open);
-      disclosure.querySelector('.app-disclosure-button').setAttribute('aria-expanded', String(!open));
-    }
+    toggleDisclosure(event.target);
   }, { signal });
 
   render();

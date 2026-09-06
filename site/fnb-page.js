@@ -18,6 +18,7 @@ import { initAuth } from './auth-client.js';
 import { formatDate, formatDateTime } from './app-format.js';
 import { loadFnbPromotions, readArtworkStatus, writeArtworkStatus, isArtworkEditor, readLocalLinks, writeLocalLinks, safeFolderUrl, parseUpdated } from './fnb-read-model.js';
 import { OUTLET_ORDER, artworkCopy } from './fnb-artwork-copy.js';
+import { toggleDisclosure } from './app-disclosure.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -424,11 +425,9 @@ export async function mountFnb(host, { public: isPublic = false } = {}) {
     if (section) { const el = q(`#${section.dataset.section}`); setActiveSection(section.dataset.section); el?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' }); return; }
     const clamp = t.closest('[data-clamp-toggle]');
     if (clamp) { const box = clamp.previousElementSibling, isOpen = box?.dataset.open === 'true'; if (box) box.dataset.open = String(!isOpen); clamp.setAttribute('aria-expanded', String(!isOpen)); clamp.textContent = isOpen ? 'Show full' : 'Show less'; return; }
-    const disclosure = t.closest('.app-disclosure-button');
-    if (disclosure) {
-      const root = disclosure.closest('[data-disclosure]'), isOpen = root.dataset.open === 'true';
-      root.dataset.open = String(!isOpen); disclosure.setAttribute('aria-expanded', String(!isOpen));
-      if (root.dataset.activation) { if (isOpen) openActivations.delete(root.dataset.activation); else openActivations.add(root.dataset.activation); }
+    const toggled = toggleDisclosure(t);
+    if (toggled && toggled.root.dataset.activation) {
+      if (toggled.open) openActivations.add(toggled.root.dataset.activation); else openActivations.delete(toggled.root.dataset.activation);
     }
   };
   const onChange = event => { const input = event.target.closest('[data-task]'); if (input && editor) toggleTask(input); };

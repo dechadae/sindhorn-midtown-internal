@@ -9,6 +9,7 @@
 import { IHG_HISTORY_PERIODS, IHG_HISTORY_SOURCE } from './ihg-history-data.js';
 import { HOTEL_FACTSHEET, HOTEL_FACTSHEET_IMAGES, HOTEL_FACTSHEET_SOURCES, HOTEL_FACTSHEET_SOURCE_NOTES } from './hotel-factsheet-data.js';
 import { formatDate, formatClock } from './app-format.js';
+import { toggleDisclosure } from './app-disclosure.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
@@ -205,11 +206,10 @@ export async function mountBrand(host) {
     if (t.closest('[data-brand-top]')) { window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' }); return; }
     const section = t.closest('[data-section]');
     if (section) { const el = q(`#${section.dataset.section}`); setActiveSection(section.dataset.section); el?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' }); return; }
-    const button = t.closest('.app-disclosure-button');
-    if (button) {
-      const root = button.closest('[data-disclosure]'), isOpen = root.dataset.open === 'true';
-      root.dataset.open = String(!isOpen); button.setAttribute('aria-expanded', String(!isOpen));
-      const key = `${view()}:${root.dataset.item}`; if (isOpen) openItems.delete(key); else openItems.add(key);
+    const toggled = toggleDisclosure(t);
+    if (toggled) {
+      const key = `${view()}:${toggled.root.dataset.item}`;
+      if (toggled.open) openItems.add(key); else openItems.delete(key);
     }
   };
   const onHash = () => { if (!disposed && /^#brand(\/|$)/.test(location.hash)) render(); };

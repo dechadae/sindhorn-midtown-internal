@@ -13,15 +13,28 @@
    the status on the card (r23c - a dropdown whose menu the library lifts out
    of the card's glass while open), the dialog standard with a form grid and
    the shared selector for the status, the confirm dialog before archiving,
-   the toast. No class of its own, no material of its own. */
+   the toast. No class of its own, no material of its own.
+
+   Since r35 the card is compact: everything the tracker is read for stays on
+   its face - the title, who sent it, the deadline, the status dropdown and
+   Update - and only the description folds behind the arrow at the top right.
+   The card stays a card and takes the disclosure's panel through the open
+   variant, because its foot has controls of its own and it cannot itself be
+   a button. Press and hold a card to reorder the list;
+   sindhorn_jobs has carried sort_order and sindhorn_jobs_reorder_v1 since
+   r21, so the order is the employee's own and it follows them to any device.
+   Which cards are open is this device's business and is not saved. */
 import { supabaseRpc } from './auth-client.js';
 import { appSelect, appSelectValue, setAppSelectValue, bindAppSelects } from './app-select.js';
 import { openDialog, dialogHead, confirmDialog } from './app-dialog.js';
 import { showToast } from './app-toast.js';
 import { formatDate, formatDateTime, daysUntil } from './app-format.js';
+import { toggleDisclosure } from './app-disclosure.js';
+import { sortDrag } from './app-drag-sort.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const PLUS_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>';
+const CHEVRON_ICON = '<svg class="app-disclosure-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5l5 5-5 5"/></svg>';
 
 const STATUSES = [['not-started', 'Not started', 'quiet'], ['working', 'Working', ''], ['stuck', 'Stuck', 'danger'], ['done', 'Done', 'success']];
 const STATUS_LABEL = Object.fromEntries(STATUSES.map(([key, label]) => [key, label]));
@@ -70,13 +83,21 @@ function statusMarkup(job, canManage) {
   return appSelect({ kind: `status:${job.id}`, label: 'Status', options: STATUS_OPTIONS, selected: job.status, compact: true });
 }
 
-function cardMarkup(job, canManage) {
+function cardMarkup(job, canManage, open) {
   const tight = isTight(job);
-  return `<article class="app-card app-surface" data-job="${esc(job.id)}" data-status="${esc(job.status)}"${job.status === 'done' ? ' data-tone="quiet"' : ''}>
+  /* Only the description folds away. A job with none has nothing to open, so
+     it carries no arrow rather than an arrow that does nothing. */
+  const foldable = Boolean(job.description);
+  return `<article class="app-card app-surface"${foldable ? ' data-disclosure' : ''} data-id="${esc(job.id)}" data-job="${esc(job.id)}" data-status="${esc(job.status)}"${foldable && open ? ' data-open="true"' : ''}${job.status === 'done' ? ' data-tone="quiet"' : ''}>
     <div class="app-card-section">
-      <p class="app-surface-label">${job.receivedOn ? `Received ${esc(dayLabel(job.receivedOn))}` : 'Received'}</p>
-      <h3 class="app-surface-title">${esc(job.title)}</h3>
-      ${job.description ? `<p class="app-surface-copy">${esc(job.description)}</p>` : ''}
+      <div class="app-row" data-split="true">
+        <div class="app-disclosure-head">
+          <p class="app-surface-label">${job.receivedOn ? `Received ${esc(dayLabel(job.receivedOn))}` : 'Received'}</p>
+          <h3 class="app-surface-title">${esc(job.title)}</h3>
+        </div>
+        ${foldable ? `<button class="app-disclosure-toggle" type="button" aria-expanded="${open ? 'true' : 'false'}" aria-label="Job description">${CHEVRON_ICON}</button>` : ''}
+      </div>
+      ${foldable ? `<div class="app-disclosure-panel"><div class="app-disclosure-panel-inner"><p class="app-surface-copy">${esc(job.description)}</p></div></div>` : ''}
     </div>
     <div class="app-metric-grid app-card-section" data-columns="2" data-mode="text">
       <div class="app-metric"><span class="app-metric-label">Sent by</span><span class="app-metric-value">${esc(job.senderName || '—')}</span>${job.senderRole ? `<span class="app-metric-note">${esc(job.senderRole)}</span>` : ''}</div>
@@ -88,13 +109,17 @@ function cardMarkup(job, canManage) {
 
 const matches = (job, filter) => filter === 'all' || (filter === 'open' ? job.status === 'not-started' || job.status === 'working' : job.status === filter);
 
+/* Which cards are open is this device's business, so it lives here and not in
+   the row. A repaint keeps them open; a sign-out or a reload starts closed. */
+const openJobs = new Set();
+
 function listMarkup(jobs, filter, canManage, updatedAt) {
   const shown = jobs.filter(job => matches(job, filter));
   const rail = `<div class="app-rail" role="tablist" aria-label="Filter jobs">${FILTERS.map(([key, label]) => { const n = jobs.filter(job => matches(job, key)).length; return `<button class="app-chip app-control" type="button" role="tab" data-job-filter="${key}" aria-pressed="${key === filter}">${label}${n ? ` ${n}` : ''}</button>`; }).join('')}</div>`;
   if (!jobs.length) return `${hero(canManage ? addAction : '')}<section class="app-section"><div class="app-stack">${state('Empty', 'No jobs yet', canManage ? 'Add a job when someone asks you for something, and it stays here until it is done.' : 'Jobs added to your list will appear here.')}</div></section>`;
   const empty = { open: ['Nothing open', 'Everything on your list is stuck or done.'], stuck: ['Nothing stuck', 'No job is waiting on someone else.'], done: ['Nothing done yet', 'Finished jobs will collect here.'], all: ['No jobs', ''] }[filter];
   const note = updatedAt ? `<div class="app-utility-row"><span class="app-utility-note">Updated ${esc(stampLabel(updatedAt))} · ${jobs.length} ${jobs.length === 1 ? 'job' : 'jobs'} on the list</span></div>` : '';
-  return `${hero(canManage ? addAction : '')}${rail}<section class="app-section"><div class="app-stack">${shown.length ? shown.map(job => cardMarkup(job, canManage)).join('') : state(empty[0], empty[0], empty[1])}${note}</div></section>`;
+  return `${hero(canManage ? addAction : '')}${rail}<section class="app-section"><div class="app-stack"${canManage ? ' data-sortable="true"' : ''}>${shown.length ? shown.map(job => cardMarkup(job, canManage, openJobs.has(job.id))).join('') : state(empty[0], empty[0], empty[1])}${note}</div></section>`;
 }
 
 function dialogMarkup(job) {
@@ -210,7 +235,36 @@ export async function mountJobs(host) {
     }
   } });
 
+  /* Reordering saves the whole visible order through the RPC that has been
+     waiting since r21. A failure repaints from what the server still holds. */
+  const commitOrder = async ids => {
+    const before = jobs.slice();
+    const rank = new Map(ids.map((id, i) => [id, i]));
+    jobs.sort((a, z) => (rank.get(a.id) ?? Infinity) - (rank.get(z.id) ?? Infinity));
+    try {
+      await supabaseRpc('sindhorn_jobs_reorder_v1', { p_ids: ids });
+      if (alive) showToast('Order saved');
+    } catch (error) {
+      if (!alive) return;
+      jobs = before;
+      paint();
+      showToast(explain(error), { duration: 4000 });
+    }
+  };
+  sortDrag(host, {
+    item: '[data-job]',
+    // A press that lands on the status selector, the arrow or a button is that
+    // control's, never a lift.
+    handleFrom: target => !target.closest('.app-select, button, a'),
+    onCommit: commitOrder,
+    signal,
+  });
+
   host.addEventListener('click', event => {
+    // The release that ended a drag is not a tap.
+    if (event.target.closest('[data-dragged]')) return;
+    const toggled = toggleDisclosure(event.target);
+    if (toggled) { const id = toggled.root.dataset.job; if (id) { if (toggled.open) openJobs.add(id); else openJobs.delete(id); } return; }
     const chip = event.target.closest('[data-job-filter]');
     if (chip) { filter = chip.dataset.jobFilter; try { sessionStorage.setItem('sindhorn.jobs.filter', filter); } catch (_) {} paint(); return; }
     if (event.target.closest('[data-job-add]')) { edit({ id: null, title: '', description: '', senderName: '', senderRole: '', receivedOn: '', deadlineOn: '', deadlineNote: '', status: 'not-started' }); return; }

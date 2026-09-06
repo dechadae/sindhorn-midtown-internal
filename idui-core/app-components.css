@@ -144,17 +144,52 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-disclosure[data-tone="success"]{border-left:2px solid var(--app-success)}
 .app-disclosure[data-tone="success"] .app-disclosure-end{color:var(--app-success)}
 .app-disclosure-chevron{width:18px;height:18px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.5;transition:transform var(--motion-ms) var(--motion-ease)}
-.app-disclosure[data-open="true"] .app-disclosure-chevron{transform:rotate(90deg)}
+/* The panel and the chevron answer to the open variant alone, not to the
+   surface class, so a surface whose head already carries a control - a job
+   card with a status selector - can disclose without becoming a disclosure.
+   Keyed on data-open, which is what actually changes, so the behavior hook
+   stays in the modules where hooks belong (r35). */
+[data-open="true"] .app-disclosure-chevron{transform:rotate(90deg)}
 .app-disclosure-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--motion-ms) var(--motion-ease)}
-.app-disclosure[data-open="true"] .app-disclosure-panel{grid-template-rows:1fr}
+[data-open="true"] .app-disclosure-panel{grid-template-rows:1fr}
 .app-disclosure-panel-inner{overflow:hidden}
+/* Either the whole head is the button, or the head carries its own controls
+   and the chevron alone is the toggle. Same rotation, same panel; only the
+   hit area differs. Rounded, never circular. */
+.app-disclosure-toggle{
+  width:var(--size-icon-control);height:var(--size-icon-control);flex:0 0 auto;
+  display:inline-grid;place-items:center;
+  margin:0;padding:0;border:0;background:transparent;border-radius:var(--radius-control);
+  color:var(--app-muted);cursor:pointer;
+  transition:transform var(--motion-fast) var(--motion-ease),color var(--motion-ms) ease;
+}
+.app-disclosure-toggle:active{transform:scale(.94)}
+.app-disclosure-toggle:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
 /* The open content sits under one hairline, so the head reads as a row of
    its own; the hairline is inside the clipped panel, so a closed disclosure
    shows none. */
-.app-disclosure-panel-inner>*{padding:14px 16px 16px;border-top:1px solid var(--app-line)}
+.app-disclosure>.app-disclosure-panel .app-disclosure-panel-inner>*{padding:14px 16px 16px;border-top:1px solid var(--app-line)}
 .app-disclosure-detail{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-disclosure-detail span{display:block;margin-bottom:6px;color:var(--app-accent);font-size:var(--type-small);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 .app-disclosure-detail ul{margin:0;padding-left:18px;display:grid;gap:var(--space-2)}
+
+/* ---- Sortable list ---------------------------------------------------------
+   A list whose order is the employee's own. The lifted item is the only thing
+   that changes: it rises on the same material, its siblings slide under it.
+   The list suppresses text selection and the browser's own touch panning only
+   while a drag is live, so ordinary scrolling and copying are untouched. The
+   lifted item's material - the overlay weight it takes while it floats over
+   its siblings - is app-glass.css's, like every other fill. */
+[data-sortable][data-dragging="true"]{touch-action:none;user-select:none;-webkit-user-select:none}
+[data-sortable]>[data-dragging="true"]{
+  position:relative;z-index:2;
+  transform:scale(1.02);
+  transition:transform var(--motion-fast) var(--motion-ease);
+}
+[data-sortable][data-dragging="true"]>:not([data-dragging="true"]){transition:transform var(--motion-ms) var(--motion-ease)}
+@media (prefers-reduced-motion:reduce){
+  [data-sortable]>[data-dragging="true"]{transform:none}
+}
 
 /* ---- Form field ------------------------------------------------------------
    An input reads as a well, not a raised surface, so it takes the inset fill

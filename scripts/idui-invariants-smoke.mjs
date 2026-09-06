@@ -21,8 +21,11 @@ import {join,relative} from 'node:path';
    opens a row and closes it in the same string is what the modules write). */
 const SITE=new URL('../site/',import.meta.url).pathname;
 const FOUNDATION=['app-tokens.css','app-glass.css','app-components.css','app-compositions.css','app-shell.css','fonts.css','ci-library.css'];
-const VARIANTS=['tone','size','width','columns','mode','open','compact','direction','split','rule','icon','stagger'];
-const STATES=['view','run','set','locked','ready','public','view-demo'];
+/* r35 adds one variant and one state, for the first list whose order is the
+   employee's own: sortable says the order is theirs to change, dragging says
+   an item is held right now. */
+const VARIANTS=['tone','size','width','columns','mode','open','compact','direction','split','rule','icon','stagger','sortable'];
+const STATES=['view','run','set','locked','ready','public','view-demo','dragging'];
 const ROWS=['app-row','app-utility-row','app-action-card-actions','app-dialog-actions','app-hero-head'];
 const NEITHER=['app-hero-head','app-dialog-actions'];
 const PRIMARY='app-primary',UTILITY='app-utility-action';

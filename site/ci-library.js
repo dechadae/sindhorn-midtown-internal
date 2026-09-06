@@ -11,6 +11,7 @@ import { transitionView, viewKind } from './app-view.js';
 import { confirmDialog, openDialog, dialogHead } from './app-dialog.js';
 import { appSelect, bindAppSelects } from './app-select.js';
 import { qrStyledSvg } from './qr-v6.js';
+import { bindDisclosures } from './app-disclosure.js';
 
 /* The view-transition specimen's mock pages: the shell's vocabulary, small
    enough to sit inside a bounded frame. */
@@ -161,15 +162,8 @@ export function bindLibrary(root, { page = root } = {}) {
     try { figure.innerHTML = qrStyledSvg('https://sindhorn-midtown-internal.pages.dev/decha-dae'); } catch (_) {}
   }
 
-  // Disclosure
-  for (const item of root.querySelectorAll('[data-disclosure]')) {
-    const button = item.querySelector('.app-disclosure-button');
-    if (button) on(button, 'click', () => {
-      const open = item.dataset.open === 'true';
-      item.dataset.open = String(!open);
-      button.setAttribute('aria-expanded', String(!open));
-    });
-  }
+  // Disclosure - the specimens behave through the same module a page uses.
+  bindDisclosures(root, { signal });
 
   // Selector - the library's own binding, so the specimens behave exactly as
   // a page's do, the compact one in a card lifting its menu out of the glass.
