@@ -140,6 +140,8 @@
      free to change and the core cannot. */
   --app-qr-ink:#0B0B0B;
   --app-qr-ground:#FFFFFF;
+  /* The step between one metric bar filling and the next. */
+  --motion-stagger:45ms;
 }
 
 @media (prefers-reduced-motion:reduce){

@@ -14,7 +14,10 @@ import {readFile,readdir} from 'node:fs/promises';
    consumed them in those products, so nothing looked wrong for six releases.
    A declaration outside a rule is now a failure, not a silence (r50). */
 const ROOT=new URL('../',import.meta.url);
-const core=['app-glass.css','app-components.css','app-compositions.css','app-shell.css'];
+/* app-extended.css is core too - capabilities Sindhorn does not link but other
+   constitutions use - so its tokens stay governed by the same completeness
+   rule. Only the shipped stylesheet list changed in r52, not what is core. */
+const core=['app-glass.css','app-components.css','app-compositions.css','app-shell.css','app-extended.css'];
 let coreText='';
 for(const f of core)coreText+=await readFile(new URL(`idui-core/${f}`,ROOT),'utf8');
 const declared=new Set([...coreText.matchAll(/(--[\w-]+)\s*:/g)].map(m=>m[1]));

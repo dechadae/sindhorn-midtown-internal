@@ -177,6 +177,8 @@
      the values it has always drawn, previously literals inside qr-v6.js. */
   --app-qr-ink:#0D1110;
   --app-qr-ground:#F4F1EB;
+  /* The step between one metric bar filling and the next. */
+  --motion-stagger:45ms;
 }
 
 @media (prefers-reduced-motion:reduce){

@@ -109,8 +109,12 @@
    page's width, and its heads in the accent. No row head, so no sticky
    column and no cell takes the material. */
 .app-table[data-mode="text"]{width:100%}
-.app-table[data-mode="text"] th,.app-table[data-mode="text"] td{text-align:left;white-space:normal;vertical-align:top;padding:10px 12px}
-.app-table[data-mode="text"] thead th{width:auto;min-width:0;max-width:none;color:var(--app-accent);white-space:nowrap}
+/* A text table holds sentences, so a long unbroken run - a selector, a token
+   name, a URL - must not set the column's minimum width and push the table
+   past the screen. Same containment r47 gave the text roles, where a table
+   cell is not one of them. */
+.app-table[data-mode="text"] th,.app-table[data-mode="text"] td{text-align:left;white-space:normal;overflow-wrap:anywhere;vertical-align:top;padding:10px 12px}
+.app-table[data-mode="text"] thead th{width:auto;min-width:0;max-width:none;color:var(--app-accent);white-space:normal}
 .app-table[data-mode="text"] td{color:var(--app-muted);line-height:var(--leading-body)}
 .app-table[data-mode="text"] td b{color:var(--app-text);font-weight:var(--weight-medium)}
 

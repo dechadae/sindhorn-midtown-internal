@@ -390,6 +390,17 @@
         </div>
       </div>
       <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-select-menu[data-mode="floating"]</span><span>lifted to the body so glass never nests</span></div>
+        <div class="ci-shell-frame">
+          <div class="app-select-menu app-overlay" data-mode="floating" role="listbox" aria-label="Status">
+            <button class="app-select-option" type="button" role="option" aria-selected="true">Working on it</button>
+            <button class="app-select-option" type="button" role="option" aria-selected="false">Done</button>
+            <button class="app-select-option" type="button" role="option" aria-selected="false">On hold</button>
+          </div>
+        </div>
+        <p class="app-note">A selector inside a card would put its menu on glass inside glass, so <code>bindAppSelects</code> moves the open menu to <code>&lt;body&gt;</code> and anchors it with the three <code>--app-select-*</code> properties. This specimen shows the lifted menu in place.</p>
+      </div>
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-select[data-compact]</span><span>in a card · the menu lifts</span></div>
         <article class="app-card app-surface">
           <div class="app-row" data-split="true"><p class="app-surface-label">Compact, inside a card</p>
@@ -525,6 +536,19 @@
         <p class="app-note">Same native &lt;dialog&gt; and overlay material as above; only the geometry changes, because this one belongs to the thumb.</p>
       </div>
       <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-dialog-grid · -section · -status</span><span>the parts openDialog() builds</span></div>
+        <div class="app-card app-surface">
+          <div class="app-dialog-grid">
+            <div class="app-field"><label for="ci-dg-a">Employee ID</label><input id="ci-dg-a" type="text" value="10639" readonly></div>
+            <div class="app-field"><label for="ci-dg-b">Display name</label><input id="ci-dg-b" type="text" value="Decha Daengsubha" readonly></div>
+            <div class="app-field" data-width="full"><label for="ci-dg-c">Hotel email</label><input id="ci-dg-c" type="text" value="decha.d@sindhornmidtown.com" readonly></div>
+            <div class="app-dialog-section"><span>Access</span><small>What this employee may open, and who may change it.</small></div>
+          </div>
+          <p class="app-dialog-status">Saved 6 Sep 2026 · 7:12 pm</p>
+          <p class="app-dialog-status" data-tone="error">That Employee ID is already assigned.</p>
+        </div>
+      </div>
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-dialog-actions-split</span><span>destructive left · confirm right</span></div>
         <div class="app-card ci-inset">
           <div class="app-dialog-actions app-dialog-actions-split ci-flush">
@@ -570,9 +594,9 @@
         <div class="ci-specimen-label"><span>.app-track</span><span>actual against a reference</span></div>
         <div class="app-card app-surface">
           <div class="app-metric-grid">
-            <div class="app-metric"><p class="app-metric-label">Today revenue</p><p class="app-metric-value">171K</p><p class="app-metric-delta" data-direction="down">&minus;43.7% vs forecast</p><svg class="app-track" aria-hidden="true"><rect class="app-track-rail" x="0" y="3.5" width="100%" height="3" rx="1.5"/><rect class="app-track-bar" x="0" y="3.5" width="45%" height="3" rx="1.5"/><rect class="app-track-mark" x="80%" y="0" width="1.5" height="10" rx=".75"/></svg></div>
-            <div class="app-metric"><p class="app-metric-label">Occupancy</p><p class="app-metric-value">68.0%</p><p class="app-metric-delta" data-direction="flat">On forecast</p><svg class="app-track" data-stagger="1" aria-hidden="true"><rect class="app-track-rail" x="0" y="3.5" width="100%" height="3" rx="1.5"/><rect class="app-track-bar" x="0" y="3.5" width="80%" height="3" rx="1.5"/><rect class="app-track-mark" x="80%" y="0" width="1.5" height="10" rx=".75"/></svg></div>
-            <div class="app-metric"><p class="app-metric-label">IRD</p><p class="app-metric-value">10,900</p><p class="app-metric-delta" data-direction="up">+21.2% vs forecast</p><svg class="app-track" data-stagger="2" aria-hidden="true"><rect class="app-track-rail" x="0" y="3.5" width="100%" height="3" rx="1.5"/><rect class="app-track-bar" x="0" y="3.5" width="97%" height="3" rx="1.5"/><rect class="app-track-mark" x="80%" y="0" width="1.5" height="10" rx=".75"/></svg></div>
+            <div class="app-metric"><p class="app-metric-label">Today revenue</p><p class="app-metric-value">171K</p><p class="app-metric-delta" data-direction="down">&minus;43.7% vs forecast</p><svg class="app-track" data-stagger="1" aria-hidden="true"><rect class="app-track-rail" x="0" y="3.5" width="100%" height="3" rx="1.5"/><rect class="app-track-bar" x="0" y="3.5" width="45%" height="3" rx="1.5"/><rect class="app-track-mark" x="80%" y="0" width="1.5" height="10" rx=".75"/></svg></div>
+            <div class="app-metric"><p class="app-metric-label">Occupancy</p><p class="app-metric-value">68.0%</p><p class="app-metric-delta" data-direction="flat">On forecast</p><svg class="app-track" data-stagger="2" aria-hidden="true"><rect class="app-track-rail" x="0" y="3.5" width="100%" height="3" rx="1.5"/><rect class="app-track-bar" x="0" y="3.5" width="80%" height="3" rx="1.5"/><rect class="app-track-mark" x="80%" y="0" width="1.5" height="10" rx=".75"/></svg></div>
+            <div class="app-metric"><p class="app-metric-label">IRD</p><p class="app-metric-value">10,900</p><p class="app-metric-delta" data-direction="up">+21.2% vs forecast</p><svg class="app-track" data-stagger="3" aria-hidden="true"><rect class="app-track-rail" x="0" y="3.5" width="100%" height="3" rx="1.5"/><rect class="app-track-bar" x="0" y="3.5" width="97%" height="3" rx="1.5"/><rect class="app-track-mark" x="80%" y="0" width="1.5" height="10" rx=".75"/></svg></div>
           </div>
         </div>
         <p class="app-note">The mark sits at 80% and is the reference. A bar that reaches it is on forecast; short of it, under; past it, over. Width is an SVG attribute, so no inline style. The bar draws in over <code>--motion-reveal</code> once the page sets <code>data-track-ready</code>, staggered 45ms per <code>data-stagger</code> step.</p>
@@ -709,6 +733,10 @@
     <p class="app-section-lede">A badge marks a count or a status. Pair it with text a screen reader can read — never rely on the badge alone.</p>
     <div class="ci-stack">
       <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-badge[data-tone="accent"]</span><span>the accent as a fill, not only as ink</span></div>
+        <div class="app-row"><span class="app-badge" data-tone="accent">Developer</span><span class="app-badge" data-tone="accent">Sky</span></div>
+      </div>
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-badge</span><span>default · quiet · danger · success</span></div>
         <div class="app-row">
           <span class="app-badge">3</span>
@@ -736,6 +764,29 @@
             <p>The property carries <strong>IHG</strong>'s Vignette Collection standard: independent character inside a global network.</p>
             <ul><li>Guided by local craft</li><li>Anchored to Sindhorn Village</li></ul>
           </div>
+        </div>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-surface[data-mode="quote"]</span><span>what someone said, on a dashed edge</span></div>
+        <div class="app-card app-surface" data-mode="quote">
+          <p class="app-surface-label">Owner editorial assessment</p>
+          <p class="app-surface-copy">Around 70% close to the original. Acceptable as a repeatable template — yes. But it does not totally match my original intent.</p>
+        </div>
+        <p class="app-note">A quote reports speech, so the copy takes the text ink and the edge is dashed. A statement the document itself is making is a plain surface with <code>.app-prose</code>, not this.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-code-block</span><span>content shown exactly as written</span></div>
+        <pre class="app-code-block"><code>CORE
+  must not import a product
+  must not contain product
+    identifiers</code></pre>
+        <p class="app-note">A verbatim well in the code face, where the alignment is part of the content — a diagram, a command, a value. It scrolls rather than wraps, because wrapping would destroy the thing it is showing.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-prose[data-tone="quiet"] · p[data-tone="lead"]</span><span>quiet prose, one paragraph in the text ink</span></div>
+        <div class="app-prose" data-tone="quiet">
+          <p data-tone="lead">A lead paragraph reads in the text ink while the prose around it stays quiet.</p>
+          <p>The rest of the passage keeps the muted ink, so the emphasis is carried by one declaration rather than by a second component.</p>
         </div>
       </div>
       <div class="ci-specimen">
@@ -887,6 +938,32 @@ Ask the team about the pairing board: three small plates built for the three dri
         <p class="app-note">Only the incoming page moves, and only by a transform — nothing recedes, scales or fades. A crossfade is not available to this shell: opacity, filter or clip-path on the moving page, or on anything above it, switches off the backdrop blur beneath and the glass would flash flat mid-move. The host holds its start pose hidden through <code>data-view</code> until the swap lands, so a new page never appears in place and then jumps.</p>
       </div>
       <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>[data-view]</span><span>push · pop · cover · dismiss — the four arrivals</span></div>
+        <div class="app-stack" data-columns="2">
+          <div class="app-card app-surface" data-view="push"><div class="app-card-section"><p class="app-surface-label">push</p><p class="app-surface-copy">A page deeper in the same set.</p></div></div>
+          <div class="app-card app-surface" data-view="pop"><div class="app-card-section"><p class="app-surface-label">pop</p><p class="app-surface-copy">Back the way it came.</p></div></div>
+          <div class="app-card app-surface" data-view="cover"><div class="app-card-section"><p class="app-surface-label">cover</p><p class="app-surface-copy">A layer over the page.</p></div></div>
+          <div class="app-card app-surface" data-view="dismiss"><div class="app-card-section"><p class="app-surface-label">dismiss</p><p class="app-surface-copy">That layer leaving.</p></div></div>
+        </div>
+        <p class="app-note">Only the incoming page moves, and only by a transform. Each panel plays its arrival once when this page loads.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-navbar[data-mode="settings"]</span><span>the settings set in place of the app set</span></div>
+        <div class="ci-shell-frame">
+          <nav class="app-navbar" aria-label="Settings" data-mode="settings">
+            <div class="app-navbar-set" data-set="app">
+              <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M4 6h16M4 18h10"/></svg><span>Today</span></button>
+            </div>
+            <div class="app-navbar-set" data-set="settings">
+              <button class="app-navbar-button" type="button" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.2-3.6 4-5.4 7-5.4S17.8 16.4 19 20"/></svg><span>Me</span></button>
+              <button class="app-navbar-button" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Admin</span></button>
+            </div>
+          </nav>
+        </div>
+        <p class="app-note">The account control in a settings layer is <code>.app-masthead-account[data-mode="close"]</code>: the accent, and the name hidden so only the close remains.</p>
+        <div class="app-row"><button class="app-masthead-account" type="button" data-mode="close" aria-label="Close settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span>Decha</span></button></div>
+      </div>
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-navbar[data-locked]</span><span>signed out · routes visible, dormant</span></div>
         <nav class="app-navbar" aria-label="Primary (locked)" data-locked>
           <button class="app-navbar-button" type="button" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16M4 6h16M4 18h10"/></svg><span>Today</span></button>
@@ -967,6 +1044,14 @@ Ask the team about the pairing board: three small plates built for the three dri
           </div>
         </div>
         <p class="app-note">Reduced motion stops the pulse without removing the reserved space.</p>
+      </div>
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>.app-skeleton-line · data-size</span><span>title · square · default</span></div>
+        <div class="app-skeleton">
+          <div class="app-skeleton-line" data-size="title" data-width="medium"></div>
+          <div class="app-skeleton-line" data-width="short"></div>
+          <div class="app-row"><div class="app-skeleton-line" data-size="square"></div><div class="app-skeleton-line" data-size="square"></div></div>
+        </div>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-skeleton in the page's own anatomy</span><span>data-size · data-compact</span></div>
@@ -1054,6 +1139,13 @@ Ask the team about the pairing board: three small plates built for the three dri
     <h2 class="app-section-title">One Job, Where It Stands</h2>
     <p class="app-section-lede">The Jobs tab lists what was asked of an employee: the task, who sent it and when, the deadline and the status. A job is a layout inside a plain card, the way the business card is - the status is the compact selector, a badge whose tone says the state and, tapped, drops its menu; a tight deadline reads in the danger tone, and everything else editable opens in the dialog.</p>
     <div class="ci-stack">
+      <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>[data-sortable] · [data-dragging]</span><span>press and hold reorders; the lifted row takes the overlay fill</span></div>
+        <div class="app-stack" data-sortable="true">
+          <article class="app-card app-surface"><div class="app-card-section"><p class="app-surface-label">Received 4 Sep 2026</p><h3 class="app-surface-title">A job at rest</h3></div></article>
+          <article class="app-card app-surface" data-dragging="true"><div class="app-card-section"><p class="app-surface-label">Received 3 Sep 2026</p><h3 class="app-surface-title">The same job, lifted</h3></div></article>
+        </div>
+      </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-card · sections</span><span>data-status working · deadline in the danger tone · hairline groups</span></div>
         <article class="app-card app-surface" data-status="working">

@@ -44,3 +44,12 @@ test of its own.
   reproduces them, because the core has grown since r33.
 - `origarium/` — Test 02.
 - `generative/` — Test 03.
+
+## Operational trials
+
+Beside the numbered sequence, and not part of it. A trial governs a real
+feature while it is being built rather than reconstructing a finished one.
+
+| | Feature | Question | Status |
+|---|---|---|---|
+| **A** | Moodboard transplant, Flipgazine to Sindhorn | Can IDUI govern a behaviour-heavy feature during development? | Protocol frozen 6 Sep 2026; **not started** |

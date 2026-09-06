@@ -231,6 +231,7 @@ jobs:
           node scripts/build-evidence.mjs --check
           node scripts/build-origarium.mjs --check
           node scripts/evidence-append-only.mjs
+          node scripts/ci-library-coverage.mjs
 
       - name: Deploy to Cloudflare Pages
         env:

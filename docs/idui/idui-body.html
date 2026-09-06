@@ -861,7 +861,7 @@
   <h3 class="app-section-subhead">Measured</h3>
   <p class="app-note">Computed style from a 390px headless Chromium, the same selector under each constitution. The full set is <code>idui-core/evidence/measurements.json</code>.</p>
   <div class="app-table-wrap">
-    <table class="app-table">
+    <table class="app-table" data-mode="text">
       <thead><tr><th scope="col">Selector · property</th><th scope="col">Sindhorn</th><th scope="col">Flipgazine</th></tr></thead>
       <tbody>
         <tr><th scope="row">body · font</th><td>LINE Seed Sans TH 400 · 13px / 19.5</td><td>Poppins 300 · 14px / 23.1</td></tr>
@@ -991,45 +991,66 @@
   <h2 class="app-section-title">The Shape, Provisional After Tests 01 And 02</h2>
   <p class="app-section-lede">Everything above describes rules and how they are enforced. This describes what the system <em>is</em> — the layers, which of them may decide what, and which direction they may depend in. It is stated now because it is finally derived from transfer evidence rather than from theory: Flipgazine removed the obvious Sindhorn assumptions, and Origarium exposed the deeper ones — material scope, a motion prohibition that was really a material one, text containment, and the gap between a rendered value and a design intent.</p>
 
-  <div class="app-card app-surface" data-mode="quote">
-    <p class="app-surface-copy">The core defines how design decisions are governed. The constitution defines which design decisions a product permits. The product composes meaning. None of them may quietly assume the taste of another.</p>
+  <div class="app-card app-surface">
+    <div class="app-prose"><p>The core defines how design decisions are governed. The constitution defines which design decisions a product permits. The product composes meaning. None of them may quietly assume the taste of another.</p></div>
   </div>
 
   <p class="app-note"><strong>v0.1, provisional.</strong> Test 03 and the tests still on hold can falsify any of this. What is frozen here is the <em>shape</em> of the system, not every field inside it.</p>
 
   <h3 class="app-section-subhead">The layers</h3>
-  <pre class="app-code-block"><code>DESIGN INTENT          an input, never an output - see below
-      |
-CONSTITUTION           product meaning + the permitted design space
-      |                tokens · semantic roles · contextual derivation
-      |                material families and their scope · typography
-      |                spacing, shape, motion · product invariants
-      v
-============================================================
-                       IDUI CORE
-============================================================
-      |                semantic and context resolution
-      |                behavioural primitive contracts
-      |                invariant application
-      |                material and context mechanics
-      |                shared structural mechanics
-      |                accessibility and runtime mechanics
-      |                executable contracts
-      v
-PRODUCT COMPOSITION    content · hierarchy · semantic declarations
-      |                pages and scenes · product data
-      |                product engines - D-B allowed, D-P suspect
-      v
-RUNTIME                DOM / CSS / WebGL
+  <pre class="app-code-block"><code>DESIGN INTENT
+  an input, never an output
+     |
+CONSTITUTION
+  product meaning, and the
+  permitted design space
+  · tokens
+  · semantic roles
+  · contextual derivation
+  · material families + scope
+  · typography
+  · spacing, shape, motion
+  · product invariants
+     |
+=============================
+IDUI CORE
+=============================
+  · semantic + context
+    resolution
+  · behavioural primitive
+    contracts
+  · invariant application
+  · material + context
+    mechanics
+  · shared structural
+    mechanics
+  · accessibility + runtime
+  · executable contracts
+     |
+PRODUCT COMPOSITION
+  content, hierarchy,
+  semantic declarations
+  · pages and scenes
+  · product data
+  · product engines
+    D-B allowed, D-P suspect
+     |
+RUNTIME
+  DOM / CSS / WebGL
 
-CONTRACTS run across all of it, not beneath it:
-  constitution validity · primitive admission · page discretion
-  accessibility · layout · materials · behaviour
-  product-specific burden · regression · evidence</code></pre>
+CONTRACTS run across all of
+it, never beneath it:
+  constitution validity
+  primitive admission
+  page discretion
+  accessibility · layout
+  materials · behaviour
+  product-specific burden
+  regression · evidence</code></pre>
 
   <h3 class="app-section-subhead">Who may decide what</h3>
   <p class="app-section-lede">The cleanest boundary the method has: <strong>composition has semantic authority, not appearance authority.</strong></p>
-  <div class="app-table-wrap"><table class="app-table">
+  <div class="app-table-wrap"><table class="app-table" data-mode="text">
     <thead><tr><th>Layer</th><th>May decide</th><th>May not decide</th></tr></thead>
     <tbody>
       <tr><th scope="row">Constitution</th><td>Every value, and the relationships between them; what a material is; what a context means</td><td>Which page renders what; anything naming an instance</td></tr>
@@ -1042,21 +1063,36 @@ CONTRACTS run across all of it, not beneath it:
 
   <h3 class="app-section-subhead">Dependency direction</h3>
   <p class="app-section-lede">Stated as rules rather than a folder diagram, because rules can become checks.</p>
-  <pre class="app-code-block"><code>CORE          must not import a product
-              must not import a named constitution
-              must not contain product identifiers
+  <pre class="app-code-block"><code>CORE
+  must not import a product
+  must not import a named
+    constitution
+  must not contain product
+    identifiers
 
-CONSTITUTION  may reference generic core concepts
-              may scope by semantic context
-              must not scope by page, route or instance
-              must not contain screenshot coordinates
+CONSTITUTION
+  may reference generic core
+    concepts
+  may scope by semantic
+    context
+  must not scope by page,
+    route or instance
+  must not contain
+    screenshot coordinates
 
-PAGE / SCENE  may reference semantic roles
-              may use admitted behavioural primitives
-              must not contain appearance literals
+PAGE / SCENE
+  may reference semantic
+    roles
+  may use admitted
+    behavioural primitives
+  must not contain
+    appearance literals
 
-ENGINE        may implement intrinsic behaviour
-              must not set presentation on library elements</code></pre>
+ENGINE
+  may implement intrinsic
+    behaviour
+  must not set presentation
+    on library elements</code></pre>
   <p class="app-note">The constitution rule is worded precisely because a blunter version would fail this system's own best work: Origarium's constitution legitimately contains <code>[data-context="reader"]</code>. Scoping by <em>meaning</em> is what a constitution is for. Scoping by <em>instance</em> is page CSS wearing a costume.</p>
 
   <h3 class="app-section-subhead">Core neutrality, and where it is currently violated</h3>
@@ -1082,8 +1118,8 @@ ENGINE        may implement intrinsic behaviour
 
   <h3 class="app-section-subhead">Design intent is an input</h3>
   <p class="app-section-lede">The top of the diagram is the layer this method cannot generate for itself, and Test 02 is the proof: two reconstructions passed every contract, and what separated them was one sentence of intent that no instrument on the page could read.</p>
-  <div class="app-card app-surface" data-mode="quote">
-    <p class="app-surface-copy">Rendered outcomes expose values. They do not necessarily expose reasons. A constitution cannot reliably be reconstructed from rendered output alone, because some invariants encode design intent rather than observable appearance.</p>
+  <div class="app-card app-surface">
+    <div class="app-prose"><p>Rendered outcomes expose values. They do not necessarily expose reasons. A constitution cannot reliably be reconstructed from rendered output alone, because some invariants encode design intent rather than observable appearance.</p></div>
   </div>
   <p class="app-note">Which bounds every claim the architecture can make: <strong>centralising the wrong interpretation only makes the wrong interpretation systematic.</strong> Contracts enforce whatever understanding they were given, faithfully, everywhere. Where intent is unavailable — a third-party product — it must be <em>inferred and labelled as inferred</em> before reconstruction, so that a fidelity failure can be told apart from a governance failure. <a href="/origarium">Test 02</a> records the finding; the Apple protocol carries it as an amendment.</p>
 

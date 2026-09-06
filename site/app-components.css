@@ -32,11 +32,6 @@
    user knows where they are. */
 a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlight-color:transparent}
 
-/* The first thing a keyboard reaches: off-canvas until focused, then a
-   control at the top left of the page. .app-control supplies the material. */
-.app-skip-link{position:absolute;left:-999em;top:16px;z-index:200;padding:10px 14px;border-radius:var(--radius-control);color:var(--app-text);font-size:var(--type-body-s);text-decoration:none}
-.app-skip-link:focus{left:16px;outline:2px solid var(--app-accent);outline-offset:2px}
-
 /* Text elements inside library structure carry no user-agent margin. Every
    component states the space it needs; a paragraph must never add its own.
    Zero-specificity so any component rule wins without a fight. */
@@ -101,11 +96,10 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 /* Tone is the one thing a card says about its content: quiet steps the title back. */
 .app-card[data-tone="quiet"] .app-surface-title{color:var(--app-muted)}
 
-/* A note is a surface whose copy is the point, so the copy reads in the
-   text ink; a quote is a note that reports what someone said, on a dashed
-   edge with a quiet label. A warning keeps the accent on its edge instead
-   of its label, so the edge is what the eye catches. */
-.app-surface[data-mode="note"] .app-surface-copy,.app-surface[data-mode="quote"] .app-surface-copy{color:var(--app-text)}
+/* A quote reports what someone said: the copy reads in the text ink, on a
+   dashed edge with a quiet label. A warning keeps the accent on its edge
+   instead of its label, so the edge is what the eye catches. */
+.app-surface[data-mode="quote"] .app-surface-copy{color:var(--app-text)}
 .app-surface[data-mode="quote"]{border-style:dashed}
 .app-surface[data-mode="quote"] .app-surface-label{color:var(--app-muted)}
 .app-surface[data-tone="warn"]{border-color:rgba(var(--app-accent-rgb),.45)}
@@ -274,14 +268,6 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-code-block code{display:block;color:var(--app-accent);font-family:var(--font-code);font-size:var(--type-body-s);line-height:var(--leading-body);white-space:pre}
 .app-code-block>.app-chip{position:absolute;top:8px;right:8px}
 
-/* ---- Step -------------------------------------------------------------------
-   One step of a procedure: a hairline down the left, a dot in the accent
-   where it starts, an uppercase label, then the instruction. */
-.app-step{position:relative;padding:2px 0 2px 20px;border-left:1px solid var(--app-line)}
-.app-step::before{content:"";position:absolute;left:-4px;top:9px;width:7px;height:7px;border-radius:var(--radius-pill);background:var(--app-accent)}
-.app-step-label{display:block;margin-bottom:4px;color:var(--app-accent);font-size:var(--type-micro);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
-.app-step p{margin:0;color:var(--app-muted)}
-
 /* ---- Selector --------------------------------------------------------------
    Behavior lives in app-select.js. The trigger is a control; the menu floats
    above content, so it is an overlay rather than a card. Inside a card the
@@ -403,22 +389,6 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-metric-grid[data-columns="3"]{grid-template-columns:repeat(3,1fr);gap:18px 12px}
 .app-metric-grid[data-mode="text"] .app-metric-value{font-size:var(--type-lead);line-height:var(--leading-tight);font-variant-numeric:tabular-nums}
 .app-metric-grid[data-rule="true"] .app-metric{padding-bottom:14px;border-bottom:1px solid var(--app-line)}
-
-/* ---- Track -------------------------------------------------------------------
-   Actual against a reference, under a metric. A rail, a mark at 80% for the
-   reference, and a bar that reaches the mark when actual meets the reference
-   and passes it when actual beats it. Geometry is SVG attributes, never an
-   inline style. The bar draws itself in once the host flags data-ready;
-   data-stagger lets a grid of tracks arrive one after another. */
-/* A mark: the short accent rule that says a surface is spoken for. One
-   spacing step long, a hairline tall, carrying the constitution's glow. It
-   names nothing and measures nothing - it is the accent, applied (r46). */
-.app-mark{display:block;width:var(--space-8);height:3px;background:var(--app-accent);box-shadow:var(--app-accent-glow)}
-/* The same decision at a point rather than a line: a dot that says a thing is
-   live. Circular where the constitution allows a circle, and Sindhorn's does
-   not - it resolves the pill token to its own radius and gets a rounded
-   square, which is its rule keeping itself (r46). */
-.app-dot{display:inline-block;width:8px;height:8px;border-radius:var(--radius-pill);background:var(--app-accent);box-shadow:var(--app-accent-glow);vertical-align:baseline}
 .app-track{display:block;width:100%;height:10px;margin-top:6px;overflow:visible}
 .app-track-rail{fill:var(--app-line)}
 .app-track-mark{fill:var(--app-text);fill-opacity:.55}
@@ -426,14 +396,21 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
   fill:var(--app-accent);
   transform:scaleX(0);transform-box:fill-box;transform-origin:left center;
   transition:transform var(--motion-reveal) var(--motion-ease);
+  transition-delay:calc(var(--app-stagger,0) * var(--motion-stagger));
 }
-.app-track[data-stagger="1"] .app-track-bar{transition-delay:45ms}
-.app-track[data-stagger="2"] .app-track-bar{transition-delay:90ms}
-.app-track[data-stagger="3"] .app-track-bar{transition-delay:135ms}
-.app-track[data-stagger="4"] .app-track-bar{transition-delay:180ms}
-.app-track[data-stagger="5"] .app-track-bar{transition-delay:225ms}
-.app-track[data-stagger="6"] .app-track-bar{transition-delay:270ms}
-.app-track[data-stagger="7"] .app-track-bar{transition-delay:315ms}
+/* The bars fill in sequence rather than together. One rule owns the timing -
+   the step is the constitution's, not a number repeated seven times - and the
+   attribute carries only the index. A literal single rule is not reachable in
+   CSS: attr() into calc() is too new to rely on, and a page may not set a
+   custom property inline, so the seven lines below are index plumbing and
+   nothing else. Adding an eighth costs one line and no arithmetic. */
+.app-track[data-stagger="1"]{--app-stagger:1}
+.app-track[data-stagger="2"]{--app-stagger:2}
+.app-track[data-stagger="3"]{--app-stagger:3}
+.app-track[data-stagger="4"]{--app-stagger:4}
+.app-track[data-stagger="5"]{--app-stagger:5}
+.app-track[data-stagger="6"]{--app-stagger:6}
+.app-track[data-stagger="7"]{--app-stagger:7}
 [data-ready="true"] .app-track-bar{transform:scaleX(1)}
 
 /* ---- Sheet ------------------------------------------------------------------
@@ -475,28 +452,6 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 /* A check that chooses rather than completes - "show this field" - keeps its
    label upright when checked; only a task strikes through. */
 .app-check[data-mode="option"] input:checked~.app-check-label{color:inherit;text-decoration:none}
-
-/* ---- Switch -----------------------------------------------------------------
-   An on/off control: an optional glyph, then a track with a knob that sits
-   at the far end while pressed. .app-control supplies the material; the
-   track is a well on the ground and the knob the one circle the core draws,
-   by the pill token, so a constitution that draws no circles keeps its rule
-   by never using the switch. */
-.app-switch{
-  min-height:var(--control-inline);padding:0 9px;
-  display:inline-flex;align-items:center;gap:var(--space-3);
-  border-radius:var(--radius-control);
-  color:var(--app-text);font:inherit;cursor:pointer;
-  transition:transform var(--motion-fast) var(--motion-ease);
-}
-.app-switch:active{transform:scale(.96)}
-.app-switch:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
-.app-switch svg{width:14px;height:14px;flex:0 0 auto;fill:none;stroke:var(--app-accent);stroke-width:1.7;stroke-linecap:round}
-.app-switch-track{position:relative;flex:0 0 auto;width:28px;height:15px;border:1px solid var(--app-line);border-radius:var(--radius-pill);background:var(--app-ground)}
-.app-switch-knob{position:absolute;top:1.5px;left:1.5px;width:10px;height:10px;border-radius:var(--radius-pill);background:var(--app-accent);transition:left var(--motion-ms) var(--motion-ease),background var(--motion-ms) ease}
-.app-switch[aria-pressed="true"] .app-switch-knob{left:14.5px}
-.app-switch[aria-pressed="false"] .app-switch-knob{background:var(--app-muted)}
-.app-switch[aria-pressed="false"] svg{stroke:var(--app-muted)}
 
 /* ---- Badge ------------------------------------------------------------------
    A count or a status marker. Never the only carrier of meaning: pair it with
@@ -579,6 +534,7 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 .app-prose{max-width:var(--measure-prose);display:grid;gap:14px;font-family:var(--font-prose)}
 .app-prose p{margin:0;font-size:var(--type-prose);line-height:var(--leading-body)}
 .app-prose h3{margin:8px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight)}
+.app-prose>.app-code-block,.app-prose>.app-table-wrap,.app-prose>.app-surface{margin:0}
 .app-prose ul,.app-prose ol{margin:0;padding-left:var(--space-7);display:grid;gap:6px;font-size:var(--type-prose);line-height:var(--leading-body)}
 /* A miniature of a document: the same prose, set at caption scale because it
    is a depiction rather than something to read. The constitution already had
@@ -588,11 +544,6 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 /* A link in running text or in a note is the accent; nothing else in the
    library lets the UA's blue through (r34). */
 .app-prose a,.app-note a{color:var(--app-accent);text-underline-offset:3px}
-/* A contents list is navigation, not reference: its links read as the
-   text they point to, not as citations, so they take the text color and no
-   underline. The wrapping list keeps whatever tone the prose has. */
-.app-prose[data-mode="contents"] a{color:var(--app-text);text-decoration:none}
-.app-prose[data-mode="contents"] a:hover{color:var(--app-accent)}
 .app-prose[data-mode="verbatim"]{white-space:pre-line}
 /* A ruled prose closes each entry with the list hairline, so a run of
    heading + paragraph pairs reads as a list, not one long column. */
@@ -608,8 +559,6 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 /* A long list reads in two columns where there is room. */
 /* A list in columns flows as a block, not a grid: grid rows cannot break across columns. */
 @media (min-width:640px){.app-prose[data-columns="2"] ol,.app-prose[data-columns="2"] ul{display:block;columns:2;column-gap:34px}.app-prose[data-columns="2"] li{break-inside:avoid;margin:6px 0}}
-/* A code block, step, table or surface inside prose is one paragraph of it. */
-.app-prose>.app-code-block,.app-prose>.app-step,.app-prose>.app-table-wrap,.app-prose>.app-surface{margin:0}
 
 /* Long copy opens collapsed to a readable height and fades out at the bottom;
    the toggle is a utility action, and open removes the limit rather than
@@ -802,22 +751,7 @@ body[data-public] .app-masthead-home:active{transform:none}
    it keeps the badge tint; the masthead beneath is already glass, so
    app-glass.css drops its blur. */
 .app-masthead-badge{position:absolute;top:-6px;right:-7px}
-
-/* A wordmark home (r33): the mark in the accent beside the name, at the
-   lead size and the bold weight, one control. */
-.app-masthead-home[data-mode="wordmark"]{display:inline-flex;align-items:center;gap:var(--space-4);font:inherit;font-size:var(--type-lead);font-weight:var(--weight-bold);text-decoration:none}
-.app-masthead-home[data-mode="wordmark"] svg{display:block;height:30px;width:auto;flex:0 0 auto;color:var(--app-accent);fill:currentColor}
-/* A pressed masthead action shows the glyph of its state: data-icon="off"
-   while unpressed, data-icon="on" while pressed - fullscreen, dark. A
-   disabled one dims and takes no press. */
-.app-masthead-action svg[data-icon="on"]{display:none}
-.app-masthead-action[aria-pressed="true"] svg[data-icon="off"]{display:none}
-.app-masthead-action[aria-pressed="true"] svg[data-icon="on"]{display:block}
 .app-masthead-action[aria-disabled="true"]{opacity:.34;pointer-events:none}
-/* Reading progress on the masthead's lower edge: a 2px rule in the accent
-   that a page's behavior widens as the reader goes. */
-.app-masthead-progress{position:absolute;left:0;right:0;bottom:0;height:2px}
-.app-masthead-progress i{display:block;height:100%;width:0;background:var(--app-accent);box-shadow:var(--app-accent-glow);transition:width var(--motion-fast) var(--motion-fade)}
 
 /* Fixed, not sticky. A sticky footer can only stick inside its containing
    block, so it depends on body actually reaching the bottom of the screen -
@@ -848,19 +782,6 @@ body[data-public] .app-masthead-home:active{transform:none}
 .app-navbar-button:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
 .app-navbar-button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5}
 .app-navbar-button:disabled{cursor:default}
-
-/* A rail navbar (r33): one scrolling row of section chips instead of four
-   route buttons, for a long page that is read rather than operated. The
-   chips read as kickers - uppercase, at the label weight - and take the
-   material; the navbar beneath is already glass, so app-glass.css drops
-   their blur. No scrollbar: the row is a control, not a document. */
-.app-navbar[data-mode="rail"]{
-  display:flex;gap:var(--space-3);align-items:center;justify-content:safe center;
-  padding:10px max(20px,env(safe-area-inset-left)) calc(10px + env(safe-area-inset-bottom));
-  overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;
-}
-.app-navbar[data-mode="rail"]::-webkit-scrollbar{display:none}
-.app-navbar[data-mode="rail"] .app-chip{flex:0 0 auto;font-size:var(--type-micro);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 
 /* The footer holds two sets of buttons in the same cell: the app set (Today,
    F&B, Jobs, Brand) and the settings set (Me, Admin, Broadcast, System).
@@ -919,8 +840,6 @@ body[data-public] .app-masthead-home:active{transform:none}
 /* A count or status at the far end of the kicker rule, after the line. */
 .app-section-kicker-end{order:1;color:var(--app-muted);font-variant-numeric:tabular-nums}
 .app-section-title{margin:8px 0 0;font-size:var(--type-section);font-weight:var(--weight-thin);letter-spacing:var(--tracking-display);line-height:var(--leading-tight)}
-/* A numbered section carries its index in the accent, bold, before the title. */
-.app-section-index{margin-right:12px;color:var(--app-accent);font-weight:var(--weight-bold)}
 .app-section-lede{margin:10px 0 0;max-width:60ch;color:var(--app-muted);font-size:var(--type-body);line-height:var(--leading-body)}
 .app-row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-5)}
 .app-row[data-split="true"]{justify-content:space-between}
@@ -955,6 +874,10 @@ body[data-public] .app-masthead-home:active{transform:none}
 .app-row>.app-select[data-compact="true"]{flex:0 0 auto}
 .app-section-subhead{margin:28px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-label)}
 .app-section-subhead+.app-stack{margin-top:12px}
+/* A code block sets its own margin to 0 so a page can place it; inside a
+   section it still follows a heading or a lede, and needs the gap the rest of
+   the section's children get. */
+:where(.app-section-subhead,.app-section-lede)+.app-code-block{margin-top:12px}
 .app-note{margin:12px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 
 /* ---- Route hero -------------------------------------------------------------
@@ -981,6 +904,10 @@ body[data-public] .app-masthead-home:active{transform:none}
 .app-hero-head+.app-hero-eyebrow{margin-top:16px}
 .app-hero-head+.app-hero-title{margin-top:10px}
 .app-hero>.app-note{margin-top:6px}
+/* A hero may carry a strip of figures under its copy - the headline numbers a
+   document leads with. The hero gives every child it knows its own top margin,
+   so a child it had never met sat flush against the paragraph above it. */
+.app-hero>.app-metric-grid{margin-top:16px}
 .app-hero>.app-skeleton{margin-top:16px}
 
 /* ---- Operational states -----------------------------------------------------
@@ -1065,32 +992,12 @@ body[data-public] .app-masthead-home:active{transform:none}
 [data-view="pop"]{animation-name:app-view-pop-in}
 [data-view="cover"]{animation-name:app-view-cover-in}
 [data-view="dismiss"]{animation-name:app-view-dismiss-in}
-
-/* ---- and one that may scale, because its material does not blur ------------
-   The law above - nothing recedes, scales or fades - is not a law about
-   motion. It is a consequence of glass: opacity or scale on anything above a
-   backdrop-filter makes the frost flash flat mid-move, measured in Chrome.
-   Sindhorn's surfaces are glass, so Sindhorn may not scale. That was written
-   into the core as though it were universal, and it is not (Test 02, r45).
-
-   A surface whose material declares no filter has no frost to flatten. It may
-   spring: rise, overshoot a little past rest, settle. Origarium's reader does
-   exactly this - opaque paper on a plain scrim, no blur anywhere in the moving
-   subtree - and it is what makes a thumbnail feel like it became the page
-   rather than being replaced by one.
-
-   The condition is the contract: a view may spring only where the material it
-   carries declares --app-document-filter: none. A constitution whose document
-   is glass keeps the old restriction, and Sindhorn's does. */
-[data-view="spring"]{animation-name:app-view-spring-in;animation-duration:var(--motion-spring);animation-timing-function:var(--motion-overshoot)}
 @keyframes app-view-spring-in{
   0%{opacity:0;transform:translateY(var(--motion-spring-travel)) scale(.965)}
   62%{opacity:1;transform:translateY(-5px) scale(1.006)}
   100%{opacity:1;transform:none}
 }
-@media (prefers-reduced-motion:reduce){
-  [data-view="spring"]{animation-name:none}
-}
+@media (prefers-reduced-motion:reduce){}
 
 @keyframes app-view-push-in{from{transform:translateX(var(--motion-view-travel))}to{transform:none}}
 @keyframes app-view-pop-in{from{transform:translateX(calc(-1 * var(--motion-view-travel)))}to{transform:none}}

@@ -143,6 +143,8 @@
      mark here is printed on the paper rather than given a ground of its own. */
   --app-qr-ink:var(--app-document-ink);
   --app-qr-ground:var(--app-document-fill);
+  /* The step between one metric bar filling and the next. */
+  --motion-stagger:45ms;
 }
 
 @media (prefers-reduced-motion:reduce){
