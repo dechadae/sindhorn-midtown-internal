@@ -25,8 +25,10 @@ html{-webkit-text-size-adjust:100%}
    mounts) never actually reaches the bottom of the screen - a sticky footer
    then floats right after the short content instead of pinning to view.
    100dvh plus a flex column makes body itself always at least viewport-tall,
-   and .app-page.is-shell (below) grows to fill what's left, so the footer's
-   position:sticky always has real space to stick within. */
+   and .app-page.is-shell grows to fill what's left, so a short route still
+   paints the ground to the bottom. The footer no longer depends on this: it
+   is fixed to the viewport (r36), because 100dvh does not resolve to the
+   visible height everywhere, and where it fell short the bar floated. */
 body{
   min-height:100dvh;margin:0;
   display:flex;flex-direction:column;

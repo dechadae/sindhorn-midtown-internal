@@ -89,8 +89,10 @@
    .app-masthead and .app-navbar are sticky by definition — that only reads on
    this page inside a bounded, scrollable frame instead of the page itself, so
    this frame is chrome specific to how the reference page shows them, not a
-   library component. */
-.ci-shell-frame{position:relative;height:280px;overflow:auto;border:1px solid var(--app-line);border-radius:var(--radius-inset)}
+   library component. contain:paint makes the frame a containing block, so the
+   navbar - fixed to the viewport since r36 - is bounded by the specimen here
+   instead of escaping to the foot of the reference page. */
+.ci-shell-frame{position:relative;contain:paint;height:280px;overflow:auto;border:1px solid var(--app-line);border-radius:var(--radius-inset)}
 .ci-shell-frame-body{padding:16px;display:grid;gap:12px}
 /* The view-transition frame is a bounded stage rather than a scroller: the
    arriving page is clipped at its edge, and the body host grows so the

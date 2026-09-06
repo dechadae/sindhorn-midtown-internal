@@ -734,8 +734,15 @@ body[data-public] .app-masthead-home:active{transform:none}
 .app-masthead-progress{position:absolute;left:0;right:0;bottom:0;height:2px}
 .app-masthead-progress i{display:block;height:100%;width:0;background:var(--app-accent);box-shadow:0 0 10px var(--app-accent);transition:width var(--motion-fast) var(--motion-fade)}
 
+/* Fixed, not sticky. A sticky footer can only stick inside its containing
+   block, so it depends on body actually reaching the bottom of the screen -
+   which depends on 100dvh resolving to the visible height. Where it resolves
+   short, the bar floats above the ground with the page's own background
+   below it, and a short page (the frame before content mounts) is where that
+   shows. Fixed to the viewport it cannot float, whatever dvh says; .app-page
+   already reserves its height in padding, so nothing moves (r36). */
 .app-navbar{
-  position:sticky;bottom:0;z-index:80;
+  position:fixed;left:0;right:0;bottom:0;z-index:80;
   min-height:var(--app-navbar-height);
   padding:0 max(8px,env(safe-area-inset-left)) env(safe-area-inset-bottom);
   display:grid;grid-auto-flow:column;grid-auto-columns:1fr;align-items:center;
