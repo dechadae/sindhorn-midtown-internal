@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v121-camera-playground-r37b';
+const VERSION='sindhorn-midtown-internal-pwa-v122-today-copy-r38';
 // v85: sindhorn-midtown-internal-pwa-v85-metric-track-r4
 // v84: sindhorn-midtown-internal-pwa-v84-today-readability-r4
 // v83: sindhorn-midtown-internal-pwa-v83-sticky-footer-fix-r1

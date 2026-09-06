@@ -14,7 +14,7 @@
    returns in a later phase), so today a fresh visitor sees the real error
    state below, not a fake success - which is the correct behavior, not a
    bug to route around. */
-import { loadBusinessDashboard } from './business-dashboard-data.js';
+import { loadBusinessDashboard, readCachedDashboard } from './business-dashboard-data.js';
 import { initAuth } from './auth-client.js';
 import { toggleDisclosure } from './app-disclosure.js';
 import { formatMoney as money, formatInteger as integer, formatPercent as percent, formatDate, formatDateTime } from './app-format.js';
@@ -62,10 +62,21 @@ function disclosure({ kicker, title, copy = '', body }) {
   return `<article class="app-disclosure" data-disclosure><button class="app-disclosure-button" type="button" aria-expanded="false"><span class="app-disclosure-head"><span class="app-disclosure-kicker">${esc(kicker)}</span><span class="app-disclosure-title">${esc(title)}</span>${copy ? `<span class="app-disclosure-copy">${esc(copy)}</span>` : ''}</span><svg class="app-disclosure-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5l5 5-5 5"/></svg></button><div class="app-disclosure-panel"><div class="app-disclosure-panel-inner">${body}</div></div></article>`;
 }
 
-function renderHero(data) {
+/* What the page says while it is showing the copy it kept. It names the copy,
+   the moment it was read and what is happening now, so a saved number is never
+   mistaken for a live one (r38). */
+function savedNote(saved) {
+  if (!saved) return '';
+  const when = formatDateTime(new Date(saved.savedAt).toISOString());
+  return `<p class="app-note" data-today-saved>${esc(saved.failed
+    ? `Saved copy, read ${when}. Couldn't reach the server, so these numbers may have moved.`
+    : `Saved copy, read ${when}. Checking for a newer report.`)}</p>`;
+}
+
+function renderHero(data, saved) {
   const fnbSource = sourceFor(data, 'fnb_xlsx'), roomsSource = sourceFor(data, 'rooms_pdf');
   const roomsCarried = Boolean(roomsSource?.metadata?.carriedForwardFromRun), pickupTo = roomsSource?.metadata?.pickupTo;
-  return `<header class="app-hero"><p class="app-hero-eyebrow">Today</p><h1 class="app-hero-title">Hotel Business</h1><p class="app-hero-copy">${esc(dateLabel(data.businessDate))} · Daily operating pulse from approved F&amp;B and Rooms reports.</p></header>
+  return `<header class="app-hero"><p class="app-hero-eyebrow">Today</p><h1 class="app-hero-title">Hotel Business</h1>${savedNote(saved)}<p class="app-hero-copy">${esc(dateLabel(data.businessDate))} · Daily operating pulse from approved F&amp;B and Rooms reports.</p></header>
   <section class="app-section"><div class="app-card app-surface"><div class="app-card-section"><div class="app-list">
     <div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">Data updated</span><span class="app-list-row-meta">${esc(data.validationStatus === 'passed_with_warnings' ? 'Validated with source warnings' : 'Validated')}</span></span><span class="app-list-row-end">${esc(dateTimeLabel(data.publishedAt || data.importedAt))}</span></div>
     <div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">F&amp;B report</span><span class="app-list-row-meta">Revision ${esc(data.revision)}</span></span><span class="app-list-row-end">${esc(shortDateLabel(fnbSource?.detectedReportDate || data.businessDate))}</span></div>
@@ -223,8 +234,8 @@ function renderSources(data) {
       <button class="app-utility-action" type="button" data-today-top><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15V5M5 9l5-5 5 5"/></svg>Back to top</button>
     </div></section>`;
 }
-function render(data) {
-  return `${renderHero(data)}${renderGlance(data)}${renderFlags(data)}${renderFnb(data)}${renderRooms(data)}${renderOutlook(data)}${renderSegments(data)}${renderNotes(data)}${renderSources(data)}`;
+function render(data, saved = null) {
+  return `${renderHero(data, saved)}${renderGlance(data)}${renderFlags(data)}${renderFnb(data)}${renderRooms(data)}${renderOutlook(data)}${renderSegments(data)}${renderNotes(data)}${renderSources(data)}`;
 }
 
 function skeletonMarkup() {
@@ -249,21 +260,34 @@ function errorMarkup(error) {
 }
 
 async function refresh(host, { force = false, alive = () => true } = {}) {
-  host.innerHTML = skeletonMarkup();
+  /* A copy is better than a skeleton and worse than the report: it paints
+     first, says what it is, and is replaced the moment the live one lands. */
+  const saved = readCachedDashboard();
+  host.innerHTML = saved ? render(saved.data, saved) : skeletonMarkup();
+  paintTracks(host, alive);
   try {
     const data = await loadBusinessDashboard({ force });
     if (!alive()) return;
     host.innerHTML = render(data);
-    // Tracks draw themselves in after first paint; reduced motion arrives drawn.
-    delete host.dataset.ready;
-    requestAnimationFrame(() => requestAnimationFrame(() => { if (alive()) host.dataset.ready = 'true'; }));
+    paintTracks(host, alive);
   } catch (error) {
-    if (alive()) host.innerHTML = errorMarkup(error);
+    if (!alive()) return;
+    /* With a copy on screen the report is not gone, only old: keep the numbers
+       and say the refresh failed. With nothing, the error is the page. */
+    if (saved) { host.innerHTML = render(saved.data, { ...saved, failed: true }); paintTracks(host, alive); return; }
+    host.innerHTML = errorMarkup(error);
   }
 }
 
+/* Tracks draw themselves in after first paint; reduced motion arrives drawn. */
+function paintTracks(host, alive) {
+  delete host.dataset.ready;
+  requestAnimationFrame(() => requestAnimationFrame(() => { if (alive()) host.dataset.ready = 'true'; }));
+}
+
 export async function mountToday(host) {
-  host.innerHTML = skeletonMarkup();
+  const opening = readCachedDashboard();
+  host.innerHTML = opening ? render(opening.data, opening) : skeletonMarkup();
   // The shell has no sign-in UI of its own yet - this only recognizes a
   // session that already exists in localStorage (e.g. from signing into the
   // live app in this same browser), the same way every other authenticated

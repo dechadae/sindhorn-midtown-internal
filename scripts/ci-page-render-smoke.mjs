@@ -475,7 +475,11 @@ else {
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
     };
   });
-  const settledCard = () => card.waitForFunction(() => !document.querySelector('.app-skeleton') && document.querySelector('.app-business-card, .app-state'), null, { timeout: 15000 });
+  /* The card asks the worker for its row before it can draw, so like the
+     shared page above it can sit in its skeleton longer than a fixed wait on
+     a slow runner - 15s failed twice on a runner where binding Voice alone
+     took 12s. The assertion is unchanged; only the patience is. */
+  const settledCard = () => card.waitForFunction(() => !document.querySelector('.app-skeleton') && document.querySelector('.app-business-card, .app-state'), null, { timeout: 45000 });
   await card.goto(`http://127.0.0.1:${port}/${CARD_FIXTURE.slug}`, { waitUntil: 'load' });
   await settledCard().catch(() => failures.push('card: /smoke1 never left its skeleton'));
   await card.waitForTimeout(1500);
