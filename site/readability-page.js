@@ -48,7 +48,7 @@ const CAMERA_FIELDS = [
   { key: 'rotation', label: 'Rotate Z', min: -3.14, max: 3.14, step: .01 },
   { key: 'tiltStrength', label: 'Tilt', min: 0, max: 1.2, step: .01 },
 ];
-const cameraValue = (style, field) => Number(style?.params?.[field.key] ?? 0);
+const cameraValue = (style, field) => Number(style?.camera?.[field.key] ?? style?.params?.[field.key] ?? 0);
 function cameraMarkup(period, style) {
   if (!COMPOSITION_PERIODS.has(period.key)) return '';
   return `<div class="app-stack app-card-section" data-camera="${esc(period.key)}">
@@ -213,11 +213,23 @@ export async function mountReadability(host) {
     }
   }
 
-  /* The style with one camera number replaced. The rest of it - palette, fins,
-     motion - is untouched, so the seed still describes everything it ever did. */
+  /* The chosen framing rides in style.camera, never in style.params: the
+     engine ignores a camera in params by design, and keeping it separate
+     means the seed still describes palette, fins and motion exactly. */
   function withCamera(key, changes) {
-    const base = entries.get(key).style || originalBettaStyle(periodByKey(key).baseline);
-    return { ...base, params: { ...base.params, ...changes } };
+    const entry = entries.get(key), period = periodByKey(key);
+    const base = entry.style || originalBettaStyle(period.baseline);
+    const preset = originalBettaStyle(period.baseline);
+    const current = base.camera || Object.fromEntries(CAMERA_FIELDS.map(f => [f.key, preset.params[f.key]]));
+    return { ...base, camera: { ...current, ...changes } };
+  }
+
+  /* Reset drops the chosen framing, so the period falls back to its preset. */
+  function withoutCamera(key) {
+    const entry = entries.get(key);
+    if (!entry.style) return null;
+    const { camera, ...rest } = entry.style;
+    return rest;
   }
 
   /* A style change resets the reading and, if the period is on screen,
@@ -273,8 +285,8 @@ export async function mountReadability(host) {
     }
     const cameraReset = event.target.closest('[data-camera-reset]');
     if (cameraReset) {
-      const key = cameraReset.dataset.cameraReset, preset = originalBettaStyle(periodByKey(key).baseline);
-      setStyle(key, withCamera(key, Object.fromEntries(CAMERA_FIELDS.map(f => [f.key, preset.params[f.key]]))));
+      const key = cameraReset.dataset.cameraReset;
+      setStyle(key, withoutCamera(key));
       if (shownKey() !== key) show(key);
       return;
     }

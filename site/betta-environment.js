@@ -13,6 +13,10 @@ const WEATHER_CACHE_MAX_AGE=45*60*1000;
 const BASELINE_KEYS=Object.freeze(Object.keys(BETTA_PRESETS));
 const MAX_RAYS=Math.max(...BASELINE_KEYS.map(key=>BETTA_PRESETS[key].params.rayCount));
 const COMPOSITION_KEYS=Object.freeze(['offsetX','offsetY','cameraDepth','scale','rotationX','rotationY','rotation']);
+/* What a hand-set composition may carry: the seven the camera reads, plus the
+   strength of the device tilt, which is the eighth thing that decides how the
+   fish sits. */
+const CAMERA_STYLE_KEYS=Object.freeze([...COMPOSITION_KEYS,'tiltStrength']);
 const clamp=(value,min=0,max=1)=>Math.min(max,Math.max(min,Number(value)||0));
 const lerp=(a,b,t)=>a+(b-a)*t;
 const lerpAngle=(a,b,t)=>{let d=(b-a)%(Math.PI*2);if(d>Math.PI)d-=Math.PI*2;if(d<-Math.PI)d+=Math.PI*2;return a+d*t};
@@ -149,13 +153,20 @@ function easeSatellite(deltaMs){const seconds=deltaMs*.001,boost=satellite.trans
    betta-random.js, or one saved on the server - and never its camera: the
    composition keys, ray count and tilt stay the preset's own. Keyed by
    baseline, applied wherever a preset is read, so every transition, pin,
-   preview and export sees the styled fish. */
+   preview and export sees the styled fish.
+
+   One exception, and it is explicit: a composition set by hand travels in
+   style.camera, never in style.params, so a seed-derived style still cannot
+   move the camera and an older saved style - which carries the preset's own
+   numbers in params - is left exactly as it was. Only a style that says
+   "this framing was chosen" is allowed to change the framing (r37a). */
 const styles=new Map();
 function styled(preset,style){
   if(!style)return preset;
   if(Array.isArray(style.palette)&&style.palette.length>=4)preset.palette=style.palette.slice(0,4).map(String);
   if(Array.isArray(style.backgroundGradient)&&style.backgroundGradient.length>=3){preset.backgroundGradient=style.backgroundGradient.slice(0,3).map(String);preset.background=String(style.background||style.backgroundGradient[0])}
   if(style.params&&typeof style.params==='object')for(const key of Object.keys(preset.params)){if(COMPOSITION_KEYS.includes(key)||key==='rayCount'||key==='tiltStrength')continue;const value=Number(style.params[key]);if(Number.isFinite(value))preset.params[key]=value}
+  if(style.camera&&typeof style.camera==='object')for(const key of CAMERA_STYLE_KEYS){const value=Number(style.camera[key]);if(Number.isFinite(value))preset.params[key]=value}
   if(Array.isArray(style.layers)&&style.layers.length)preset.layers=style.layers.map((layer,index)=>{const base=preset.layers[index]||preset.layers[0]||{};return{...base,...layer,offset:[...(layer.offset||base.offset||[0,0,0])]}});
   preset.__seed=style.seed==null?null:String(style.seed);
   return preset;

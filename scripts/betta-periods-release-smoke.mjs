@@ -10,7 +10,9 @@
    reads the live map the way a phone does - the anon read, the publishable
    key from auth-client.js, no credential - and checks each saved style
    against the current code: the seed is well-formed, the period exists, and
-   generateBettaStyle(baseline, seed) reproduces the saved style. Periods
+   generateBettaStyle(baseline, seed) reproduces the saved style apart from a
+   hand-set composition (style.camera, r37a), which is chosen rather than drawn
+   and is checked on its own terms. Periods
    without a saved style are reported; with --require-all they fail, the
    setting for the day all eight are saved.
 
@@ -49,6 +51,10 @@ function same(a,b){
   return a===b;
 }
 
+/* The keys a hand-set composition may carry, the same list betta-environment.js
+   applies (COMPOSITION_KEYS plus the tilt strength). */
+const CAMERA_STYLE_KEYS=['offsetX','offsetY','cameraDepth','scale','rotationX','rotationY','rotation','tiltStrength'];
+
 const failures=[],rows=[];
 for(const key of Object.keys(styles))if(!BETTA_DAY_PERIODS.some(p=>p.key===key))failures.push(`${key}: saved style for a period the app no longer has`);
 for(const period of BETTA_DAY_PERIODS){
@@ -57,9 +63,21 @@ for(const period of BETTA_DAY_PERIODS){
   const seed=String(style.seed??'');
   if(!/^[0-9]{1,20}$/.test(seed)){failures.push(`${period.key}: seed "${seed}" is not a decimal uint64`);rows.push({period:period.key,saved:true,seed,reproducible:false});continue}
   const drawn=generateBettaStyle(period.baseline,BigInt(seed));
-  const reproducible=Boolean(drawn)&&same(drawn,style);
+  /* A composition is chosen by hand and is deliberately not derived from the
+     seed (r37a), so it is checked on its own terms and excluded from the
+     reproduction test - otherwise every composed period would report as "the
+     randomizer changed", which is the one thing this gate exists to catch. */
+  const {camera,...fromSeed}=style;
+  const reproducible=Boolean(drawn)&&same(drawn,fromSeed);
   if(!reproducible)failures.push(`${period.key}: seed ${seed} no longer draws the saved fish - the randomizer changed after the save; re-run the Readability Test for this period`);
-  rows.push({period:period.key,saved:true,seed,reproducible});
+  if(camera!==undefined){
+    if(!camera||typeof camera!=='object'||Array.isArray(camera))failures.push(`${period.key}: camera must be an object of composition numbers`);
+    else for(const [k,v] of Object.entries(camera)){
+      if(!CAMERA_STYLE_KEYS.includes(k))failures.push(`${period.key}: camera carries "${k}", which is not a composition key`);
+      else if(!Number.isFinite(Number(v)))failures.push(`${period.key}: camera.${k} is not a number`);
+    }
+  }
+  rows.push({period:period.key,saved:true,seed,reproducible,composed:camera!==undefined});
 }
 
 const saved=rows.filter(r=>r.saved).length;
