@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v123-shell-from-disk-r39';
+const VERSION='sindhorn-midtown-internal-pwa-v124-shell-from-disk-r39a';
 // v85: sindhorn-midtown-internal-pwa-v85-metric-track-r4
 // v84: sindhorn-midtown-internal-pwa-v84-today-readability-r4
 // v83: sindhorn-midtown-internal-pwa-v83-sticky-footer-fix-r1
@@ -104,6 +104,14 @@ async function precacheShell(){
 async function activateShell(){const keys=await caches.keys();await Promise.all(keys.filter(key=>key!==VERSION).map(key=>caches.delete(key)));await self.clients.claim()}
 self.addEventListener('install',event=>event.waitUntil(precacheShell().then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(activateShell()));
+/* A navigation may not be answered with a redirected response - the browser
+   fails it outright - and the host 308s /index.html to / and /ci.html to /ci,
+   so the precached copies of both carry that flag. Rebuilding the response
+   from its body drops it. Learned the hard way in r39a: r39 served the cached
+   document directly and every controlled launch failed, which no local test
+   could see because a static server answers /index.html with a plain 200. */
+const document_=response=>new Response(response.body,{status:200,statusText:'OK',headers:response.headers});
+
 /* Which precached document answers a navigation. Every shell route is
    index.html; the two standalone pages are their own documents. */
 function documentFor(pathname){
@@ -122,7 +130,7 @@ self.addEventListener('fetch',event=>{const request=event.request;if(request.met
    installed worker still holds. Freshness is the worker's job - a release
    changes VERSION, the new worker precaches and claims, and the launch
    after that opens on it (r39). */
-event.respondWith((async()=>{const cached=await caches.match(documentFor(url.pathname));if(cached)return cached;try{return await fetch(request)}catch(_){return(await caches.match('/index.html'))||(await caches.match('/'))}})());return}if(url.origin!==location.origin)return;if(url.pathname==='/api/betta-satellite'){event.respondWith(fetch(request));return}event.respondWith((async()=>{const cached=await caches.match(request);if(cached&&validResponse(url.pathname,cached))return cached;try{const response=await fetch(request);if(!validResponse(url.pathname,response))throw new Error('Invalid MIME for '+url.pathname);const cache=await caches.open(VERSION);await cache.put(request,response.clone());return response}catch(error){if(cached)return cached;throw error}})())});
+event.respondWith((async()=>{const cached=await caches.match(documentFor(url.pathname));if(cached)return document_(cached);try{return await fetch(request)}catch(_){const fallback=(await caches.match('/index.html'))||(await caches.match('/'));return fallback?document_(fallback):Response.error()}})());return}if(url.origin!==location.origin)return;if(url.pathname==='/api/betta-satellite'){event.respondWith(fetch(request));return}event.respondWith((async()=>{const cached=await caches.match(request);if(cached&&validResponse(url.pathname,cached))return cached;try{const response=await fetch(request);if(!validResponse(url.pathname,response))throw new Error('Invalid MIME for '+url.pathname);const cache=await caches.open(VERSION);await cache.put(request,response.clone());return response}catch(error){if(cached)return cached;throw error}})())});
 function safePushPayload(event){if(!event.data)return{};try{return event.data.json()||{}}catch(_){try{return{bodyEn:event.data.text()}}catch(__){return{}}}}
 function sameOriginRoute(route){try{const url=new URL(route||'/',self.location.origin);if(url.origin!==self.location.origin)return'/';if(url.pathname.startsWith('/guidance')||url.pathname.startsWith('/details'))return'/';if(url.pathname.startsWith('/fnb'))return'/#fnb';if(url.pathname.startsWith('/messages'))return'/#messages';return'/'}catch(_){return'/'}}
 function openNotificationDb(){return new Promise((resolve,reject)=>{const request=indexedDB.open(NOTIFICATION_DB,1);request.onupgradeneeded=()=>{const db=request.result,store=db.objectStoreNames.contains(NOTIFICATION_STORE)?request.transaction.objectStore(NOTIFICATION_STORE):db.createObjectStore(NOTIFICATION_STORE,{keyPath:'id'});if(!store.indexNames.contains('receivedAt'))store.createIndex('receivedAt','receivedAt',{unique:false});if(!store.indexNames.contains('read'))store.createIndex('read','read',{unique:false})};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||new Error('Notification inbox unavailable'))})}

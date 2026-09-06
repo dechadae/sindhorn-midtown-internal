@@ -31,7 +31,14 @@ let blocked=[];   // path substrings the server refuses, set per trial
 const server=http.createServer((req,res)=>{
   const url=new URL(req.url,'http://127.0.0.1');
   if(blocked.some(fragment=>url.pathname.includes(fragment))){res.writeHead(503).end();return}
-  let file=path.join(SITE,decodeURIComponent(url.pathname));
+  /* The host 308s a .html path to its extensionless form, so a precached
+     document is a redirected response and a worker may not answer a
+     navigation with one. Reproduced here because a plain static server never
+     shows it, and r39 shipped an app that would not open because of it. */
+  const REDIRECTS={'/index.html':'/','/ci.html':'/ci','/voice.html':'/voice'};
+  if(REDIRECTS[url.pathname]){res.writeHead(308,{Location:REDIRECTS[url.pathname]}).end();return}
+  const ALIAS={'/ci':'/ci.html','/voice':'/voice.html','/next':'/index.html','/login':'/index.html'};
+  let file=path.join(SITE,decodeURIComponent(ALIAS[url.pathname]||url.pathname));
   if(url.pathname==='/'||url.pathname.endsWith('/'))file=path.join(SITE,'index.html');
   if(!file.startsWith(SITE)||!fs.existsSync(file)||fs.statSync(file).isDirectory()){res.writeHead(404).end();return}
   res.writeHead(200,{'Content-Type':MIME[path.extname(file).toLowerCase()]||'application/octet-stream'});
@@ -86,6 +93,35 @@ if(!(font.cachedEntries<base.cachedEntries&&many.cachedEntries<font.cachedEntrie
   ok=false;
 }
 
+/* With the worker installed and controlling, every app route must still open.
+   This is the check r39 lacked: it served the precached document as it came
+   out of the cache, redirect flag and all, and every controlled launch failed
+   with ERR_FAILED. */
+const ROUTES=['/','/next','/ci','/voice'];
+blocked=[];
+const navigation=await (async()=>{
+  let browser;try{browser=await chromium.launch()}catch(_){browser=await chromium.launch({channel:'chrome'})}
+  try{
+    const context=await browser.newContext();
+    const warm=await context.newPage();
+    await warm.goto(`${BASE}/`,{waitUntil:'load'});
+    await warm.waitForFunction(()=>navigator.serviceWorker?.controller!=null,null,{timeout:30000});
+    await warm.close();
+    const failures=[];
+    for(const route of ROUTES){
+      const page=await context.newPage();
+      try{await page.goto(`${BASE}${route}`,{waitUntil:'commit',timeout:20000});
+        const title=await page.title();
+        if(!title)failures.push(`${route}: opened with no title`);
+      }catch(error){failures.push(`${route}: ${String(error.message).split('\n')[0]}`)}
+      await page.close();
+    }
+    return failures;
+  }finally{await browser.close()}
+})();
+for(const failure of navigation){console.error(`FAIL  controlled navigation  ${failure}`);ok=false}
+if(!navigation.length)console.log(`PASS  controlled navigation  ${ROUTES.join(' ')}`);
+
 if(!ok){console.error('\nService worker install resilience regressed.');process.exitCode=1}
-else console.log(JSON.stringify({ok:true,origin:BASE,trials:5,baselineCached:base.cachedEntries}));
+else console.log(JSON.stringify({ok:true,origin:BASE,trials:5,baselineCached:base.cachedEntries,routes:ROUTES.length}));
 }finally{ server.close(); }
