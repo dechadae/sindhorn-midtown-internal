@@ -527,8 +527,18 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
        .app-list-row-title,.app-list-row-meta,.app-list-row-copy,
        .app-metric-label,.app-metric-value,.app-metric-note,
        .app-disclosure-title,.app-disclosure-copy,
-       .app-state-title,.app-state-copy,
-       .app-badge,.app-chip){overflow-wrap:anywhere}
+       .app-state-title,.app-state-copy){overflow-wrap:anywhere}
+
+/* A badge and a chip are one short label, not author text. `anywhere` shrinks
+   an element's min-content to a single character, so the layout gives it a box
+   narrower than its own word and it breaks mid-word - "Implemented" as three
+   stacked fragments, live since r47. They keep the safety net for a genuinely
+   unbreakable token and lose the eager breaking: break-word does not change
+   min-content sizing, so the label gets the width it needs. They also stop
+   shrinking - a badge beside longer content in a row was being squeezed two
+   pixels under its own word and breaking there. A label is not the part of a
+   row that gives way. */
+.app-badge,.app-chip{overflow-wrap:break-word;flex-shrink:0}
 
 .app-prose{max-width:var(--measure-prose);display:grid;gap:14px;font-family:var(--font-prose)}
 .app-prose p{margin:0;font-size:var(--type-prose);line-height:var(--leading-body)}

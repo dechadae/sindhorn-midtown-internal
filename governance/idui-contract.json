@@ -243,6 +243,10 @@
         "sha256": "c35ab8b6f08d1a5b",
         "assertions": 3
       },
+      "scripts/no-horizontal-overflow.mjs": {
+        "sha256": "34ac250230d882f2",
+        "assertions": 2
+      },
       "scripts/page-centralization-audit.mjs": {
         "sha256": "92fe23107f52e2f8",
         "assertions": 12
@@ -268,11 +272,11 @@
         "assertions": 9
       },
       "scripts/release-brief.mjs": {
-        "sha256": "ed72462cde42040d",
+        "sha256": "e9eed60eb2f39ca0",
         "assertions": 0
       },
       "scripts/contract-integrity.mjs": {
-        "sha256": "300771b275328aa4",
+        "sha256": "8c3674f275a6a730",
         "assertions": 11
       }
     },
@@ -280,6 +284,7 @@
       "scripts/material-authority-gate.mjs",
       "scripts/vocabulary-admission-gate.mjs",
       "scripts/ci-library-coverage.mjs",
+      "scripts/no-horizontal-overflow.mjs",
       "scripts/page-centralization-audit.mjs",
       "scripts/idui-constitution-completeness.mjs",
       "scripts/idui-core-parity-smoke.mjs",

@@ -40,7 +40,7 @@ const swWas = (() => { try { return (execSync('git show HEAD:site/sw.js', {cwd: 
 const GATES = ['contract-integrity', 'ui-centralization-budget', 'page-centralization-audit', 'shell-precache-parity-smoke',
   'sw-install-resilience-smoke', 'ci-page-render-smoke', 'idui-invariants-smoke', 'ui-shape-source-audit',
   'idui-core-parity-smoke', 'idui-constitution-completeness', 'nested-glass-smoke', 'evidence-append-only',
-  'material-authority-gate', 'ci-library-coverage'];
+  'material-authority-gate', 'ci-library-coverage', 'no-horizontal-overflow'];
 const gateResults = GATES.map(g => ({gate: g, ...run('node', [`scripts/${g}.mjs`])}));
 const broken = gateResults.filter(g => !g.ok);
 

@@ -35,6 +35,7 @@ const GATES = [
   'scripts/material-authority-gate.mjs',
   'scripts/vocabulary-admission-gate.mjs',
   'scripts/ci-library-coverage.mjs',
+  'scripts/no-horizontal-overflow.mjs',
   'scripts/page-centralization-audit.mjs',
   'scripts/idui-constitution-completeness.mjs',
   'scripts/idui-core-parity-smoke.mjs',

@@ -108,12 +108,19 @@
 /* A reading table (a manual, a comparison): left aligned, wrapping, the
    page's width, and its heads in the accent. No row head, so no sticky
    column and no cell takes the material. */
+/* A text table fits the screen. Wide content scrolls only where the content is
+   genuinely a multi-column matrix - the numeric tables, which keep the 650px
+   floor below. If a text table cannot fit, the answer is a different
+   composition, not a sideways page. */
 .app-table[data-mode="text"]{width:100%}
 /* A text table holds sentences, so a long unbroken run - a selector, a token
    name, a URL - must not set the column's minimum width and push the table
-   past the screen. Same containment r47 gave the text roles, where a table
-   cell is not one of them. */
-.app-table[data-mode="text"] th,.app-table[data-mode="text"] td{text-align:left;white-space:normal;overflow-wrap:anywhere;vertical-align:top;padding:10px 12px}
+   past the screen. break-word, not anywhere: anywhere shrinks the cell's
+   min-content to one character, so a narrow column starves and ordinary words
+   shatter down the page - which is how a one-word status column rendered as
+   "Cl / os / ed". break-word only breaks a token that cannot fit a line, and
+   an unbreakable one scrolls inside .app-table-wrap, which is what it is for. */
+.app-table[data-mode="text"] th,.app-table[data-mode="text"] td{text-align:left;white-space:normal;overflow-wrap:break-word;vertical-align:top;padding:10px 12px}
 .app-table[data-mode="text"] thead th{width:auto;min-width:0;max-width:none;color:var(--app-accent);white-space:normal}
 .app-table[data-mode="text"] td{color:var(--app-muted);line-height:var(--leading-body)}
 .app-table[data-mode="text"] td b{color:var(--app-text);font-weight:var(--weight-medium)}

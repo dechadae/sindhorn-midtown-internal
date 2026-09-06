@@ -254,6 +254,7 @@ jobs:
           node scripts/material-authority-gate.mjs
           node scripts/vocabulary-admission-gate.mjs
           node scripts/ci-library-coverage.mjs
+          node scripts/no-horizontal-overflow.mjs
 
       - name: Deploy to Cloudflare Pages
         if: github.event_name != 'pull_request'

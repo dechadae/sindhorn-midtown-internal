@@ -16,7 +16,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/app-192.png?v=2">
 <!--
   Invariant-Driven UI (IDUI) v0.1 - the public document, built by scripts/build-idui.mjs from
-  docs/idui/idui-body.html with sindhorn-midtown-internal-pwa-v134-contract-integrity-r54. Library classes only; the atmosphere is live.
+  docs/idui/idui-body.html with sindhorn-midtown-internal-pwa-v135-docs-current-r56. Library classes only; the atmosphere is live.
 -->
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="stylesheet" href="/fonts.css?v=2">
@@ -41,7 +41,7 @@
   <p class="app-hero-eyebrow">Sindhorn Midtown Internal · Design and development method</p>
   <h1 class="app-hero-title">Invariant-Driven UI</h1>
   <p class="app-hero-copy">Pages compose. Primitives behave. Invariants style. Contracts validate. A working method formalized from the Sindhorn Midtown Internal rebuild of 2–5 September 2026, written from the production code rather than ahead of it.</p>
-  <p class="app-note">Draft v0.1, 5 September 2026. Nothing in this document changes production. Every rule is marked implemented, partial or proposed. Numbers were first measured from the repository at commit <code>558ab67</code> and the export is rebuilt from the library at every release (this copy: service worker <code>v134-contract-integrity-r54</code>); where evidence does not exist the value is marked unknown. The recommendations in 03 and 06 are proposals for the owner to challenge before any cleanup begins.</p>
+  <p class="app-note">Draft v0.1, 5 September 2026. Nothing in this document changes production. Every rule is marked implemented, partial or proposed. Numbers were first measured from the repository at commit <code>558ab67</code> and the export is rebuilt from the library at every release (this copy: service worker <code>v135-docs-current-r56</code>); where evidence does not exist the value is marked unknown. The recommendations in 03 and 06 are proposals for the owner to challenge before any cleanup begins.</p>
   <nav class="ci-index" aria-label="Sections">
     <a class="app-chip app-control" href="#set">00 The Set</a>
     <a class="app-chip app-control" href="#method">01 Method</a>
@@ -338,11 +338,11 @@
 
     <article class="app-card app-surface">
       <div class="app-row" data-split="true"><p class="app-surface-label">INV-TOKEN-LOCALITY</p><span class="app-badge" data-tone="success">Implemented</span></div>
-      <h3 class="app-surface-title">Values live in two files</h3>
+      <h3 class="app-surface-title">Values live where the constitution says</h3>
       <table class="ci-ref ci-ref-table"><tbody>
         <tr><th>Concern</th><td>Where a design value may be written.</td></tr>
         <tr><th>Question</th><td>Is this a design value — a color, size, radius, duration, opacity, blur?</td></tr>
-        <tr><th>Either</th><td>Yes: it exists once, as a token in <code>app-tokens.css</code> or as the material in <code>app-glass.css</code>, and is referenced by name everywhere else.</td></tr>
+        <tr><th>Either</th><td>Yes: it exists once, as a token in the constitution’s <code>app-tokens.css</code>, and is referenced by name everywhere else. Since r53 the material is not an exception to that but an instance of it: a registered material authority derives fill, edge and blur from those tokens, and which file is an authority is the registry’s answer, not the core’s.</td></tr>
         <tr><th>Or</th><td>No: it is geometry or structure (a grid, a padding, a gap) and may be declared by the component in <code>app-components.css</code>, preferably through a space or radius token.</td></tr>
         <tr><th>Neither</th><td>Data rendered into markup: a swatch's SVG <code>fill</code>, an image's ratio.</td></tr>
         <tr><th>Consequence</th><td>Eight type steps, three weights, zero tracking, six radii, seven spaces, three control heights, two durations and one easing. A page module contains no literal at all.</td></tr>
@@ -447,7 +447,7 @@
         <tr><th>Either</th><td>A page: it renders library classes and semantic attributes, and nothing else. No style attribute, no style block, no color, no pixel, no class the library does not define.</td></tr>
         <tr><th>Or</th><td>A library file: <code>app-components.css</code> owns the primitives' geometry and structure and <code>app-compositions.css</code> (r32) the page-shaped assemblies of them; <code>app-glass.css</code> owns material; <code>app-tokens.css</code> owns values.</td></tr>
         <tr><th>Neither</th><td>A behavior module (<code>app-select.js</code>, <code>app-dialog.js</code>) — it may set the three runtime custom properties a lifted menu needs, and nothing else.</td></tr>
-        <tr><th>Consequence</th><td>This is the appearance-coverage gate in practice: 546 classes rendered by the shell, 166 by the library page, 59 by Voice — every one defined in the foundation, zero findings.</td></tr>
+        <tr><th>Consequence</th><td>This is the appearance-coverage gate in practice: 566 classes rendered by the shell, 172 by the library page, 59 by Voice — every one defined in the foundation, zero findings.</td></tr>
         <tr><th>Inputs</th><td>File role.</td></tr>
         <tr><th>Forbidden</th><td>"Just this once" inline CSS. The owner's standing instruction: if a change requires inline, say so first.</td></tr>
         <tr><th>Exceptions</th><td>None.</td></tr>
@@ -623,7 +623,7 @@
 
   <h3 class="app-section-subhead">Method metrics</h3>
   <div class="app-metric-grid" data-mode="text" data-rule="true">
-    <div class="app-metric"><p class="app-metric-label">Appearance rule coverage</p><p class="app-metric-value">3 of 3 pages · 0 findings</p><p class="app-metric-note">Every class rendered by the shell (546), the library (166) and Voice (59) is defined in the foundation; no page presentation. Proxy measure: the audit proves no local decision was written, not that every pixel is explained.</p></div>
+    <div class="app-metric"><p class="app-metric-label">Appearance rule coverage</p><p class="app-metric-value">3 of 3 pages · 0 findings</p><p class="app-metric-note">Every class rendered by the shell (566), the library (172) and Voice (59) is defined in the foundation; no page presentation. Proxy measure: the audit proves no local decision was written, not that every pixel is explained.</p></div>
     <div class="app-metric"><p class="app-metric-label">ADPE · discretionary</p><p class="app-metric-value">0</p><p class="app-metric-note">Author decisions per element that pick a look: none in the 11 shell page modules.</p></div>
     <div class="app-metric"><p class="app-metric-label">ADPE · necessary</p><p class="app-metric-value">≈ 0.11</p><p class="app-metric-note">1,059 elements in the page modules carry about 115 semantic declarations (tone 27, columns 16, values 14, span 13, rule 13, width 18, size 5, gap 4, direction 3, scale 1, stagger 1).</p></div>
   </div>
@@ -729,87 +729,50 @@
 <section class="app-section" id="enforcement">
   <p class="app-section-kicker">06 · Enforcement</p>
   <h2 class="app-section-title">Rules That Run</h2>
-  <p class="app-section-lede">A rule that exists only in a document is incomplete. What already runs, what is missing, what would be brittle, and a recommended order. Nothing here is built until authorized.</p>
+  <p class="app-section-lede">A rule that exists only in a document is incomplete. Nineteen checks run before anything ships, and each one exists because something got past its absence.</p>
 
-  <h3 class="app-section-subhead">Existing checks</h3>
+  <div class="app-table-wrap"><table class="app-table" data-mode="text">
+    <thead><tr><th>Check</th><th>What it refuses</th></tr></thead>
+    <tbody>
+      <tr><th scope="row"><code>contract-integrity</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>A gate edited, weakened, or dropped from CI; an admitted vocabulary that grew; an exception list that widened. Runs first, so a tampered gate is caught before the others are trusted</td></tr>
+      <tr><th scope="row"><code>material-authority-gate</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>Material treatment authored anywhere but a registered authority. Declining material is not authoring it; a surface is a registered role, not a name prefix</td></tr>
+      <tr><th scope="row"><code>vocabulary-admission-gate</code><br><span class="app-badge" data-tone="accent">Stop-gated</span></th><td>A primitive identity, variant attribute or variant value nobody admitted. It detects; it does not judge</td></tr>
+      <tr><th scope="row"><code>ci-library-coverage</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>Anything a page renders that <a href="/ci">/ci</a> does not specimen. Reads the rendered page under a developer session, waits for the library’s own ready flag, and never clicks</td></tr>
+      <tr><th scope="row"><code>no-horizontal-overflow</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>A page that scrolls sideways, a text table that does not fit, and a word broken where a word offers no break point</td></tr>
+      <tr><th scope="row"><code>page-centralization-audit</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>Per page: a style attribute or block, a colour or pixel literal, an undefined class. Plus coverage — a shipped page in no audit is itself a finding</td></tr>
+      <tr><th scope="row"><code>idui-constitution-completeness</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>A token the core consumes that a constitution does not declare, an orphan it declares and nothing reads, and a declaration written outside any rule where the parser drops it</td></tr>
+      <tr><th scope="row"><code>idui-core-parity-smoke</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>Any byte of drift between <code>idui-core/</code> and <code>site/</code> across ten pairs</td></tr>
+      <tr><th scope="row"><code>idui-invariants-smoke</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>A variant outside the vocabulary, a modifier class, a <code>min-height</code> literal, a row mixing a framed action with a utility, a spring on a material that carries a blur</td></tr>
+      <tr><th scope="row"><code>ui-shape-source-audit</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>A radius literal, and a circle where the constitution allows none</td></tr>
+      <tr><th scope="row"><code>ui-centralization-budget</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>Any of eleven ratchet metrics getting worse</td></tr>
+      <tr><th scope="row"><code>ci-page-render-smoke</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>A real browser over <a href="/ci">/ci</a>, <a href="/voice">/voice</a>, the share pages, the business card and the three document pages: computed material, motion, format specimens, chrome, overflow</td></tr>
+      <tr><th scope="row"><code>nested-glass-smoke</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>A blurred element inside a glass surface, across thirteen routes</td></tr>
+      <tr><th scope="row"><code>evidence-append-only</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>A recorded observation that changed, and a manifest that grew measurements of its own</td></tr>
+      <tr><th scope="row"><code>build-idui</code> · <code>build-evidence</code> · <code>build-origarium</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>A document page that has drifted from the evidence it reports</td></tr>
+      <tr><th scope="row"><code>shell-precache-parity-smoke</code> · <code>sw-install-resilience-smoke</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>An asset the shell needs and the worker does not hold; a worker that cannot install, or answers a navigation with a redirect</td></tr>
+      <tr><th scope="row"><code>betta-periods-release-smoke</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>A saved atmosphere that no longer reproduces from its seed</td></tr>
+      <tr><th scope="row"><code>font-architecture</code><br><span class="app-badge" data-tone="quiet">Closed</span></th><td>One family, three weights, zero tracking — its own workflow</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="app-section-subhead">What runs at the desk, not in CI</h3>
   <div class="app-card app-surface">
     <div class="app-list">
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>ui-centralization-budget.mjs</code></span><span class="app-list-row-meta">The ratchet · eleven metrics may only fall · run before every push touching shared UI</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>page-centralization-audit.mjs</code></span><span class="app-list-row-meta">Per page: no style attributes or blocks, no color or pixel literals, no undefined classes, no <code>backdrop-filter</code> outside the material file. Since r34 it audits the public document pages <code>/idui</code> and <code>/evidence</code> too, and text quoted inside <code>&lt;code&gt;</code> is not a declaration</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>ci-page-render-smoke.mjs</code></span><span class="app-list-row-meta">Headless render of <code>/ci</code>, <code>/voice</code>, since r30 the generated <code>/share</code> index and one promotion, and since r31 the business card and an unknown slug, cut locally by the worker's own transformation over a fixture · computed material of every canonical selector · computed motion · format specimens · public mode (no chrome, no service worker, no checklist; the card on glass with its QR, contact actions and vCard)</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>nested-glass-smoke.mjs</code></span><span class="app-list-row-meta">13 routes with a stand-in session · fails on a blurred element inside a glass surface</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Readability Test · <code>#readability</code></span><span class="app-list-row-meta">Authoring-time contract on the live atmosphere · Save gated on 4.5:1 for ink, muted, accent · human-driven, not in CI</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>idui-invariants-smoke.mjs</code></span><span class="app-list-row-meta">r32 · the variant and state vocabulary, no modifier class, no <code>min-height</code> literal, no row with a primary beside a utility · static, in the deploy guard</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">CI</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>font-architecture.test.mjs</code></span><span class="app-list-row-meta">One family, three weights, zero tracking</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>shell-precache-parity-smoke.mjs</code>, <code>build-betta-runtime.mjs --check</code></span><span class="app-list-row-meta">Release integrity: every shell asset precached; the Betta bundle byte-reproducible</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Live sign-in smoke, Launch Hardening, Typography gate</span><span class="app-list-row-meta">Deploy-time browser walks on production · no live writes</span></div><div class="app-list-row-end"><span class="app-badge" data-tone="success">Runs</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">The pixel diff</span><span class="app-list-row-meta">Every live route screenshotted against the previous commit. CI cannot do it — a fresh runner has no previous deploy to compare with. It is the only check that caught a destroyed containment rule and a library regression while every gate was green</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>release-brief.mjs</code></span><span class="app-list-row-meta">Runs the gates and the pixel diff, reduces them to three questions — new vocabulary, a governed file, moved pixels — and refuses to push. A flagged release waits for the owner</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">The Readability Test</span><span class="app-list-row-meta">An authoring contract on the live atmosphere: a period cannot be saved below 4.5:1 for ink, muted and accent. Human-driven by design</span></div></div>
     </div>
   </div>
 
-  <h3 class="app-section-subhead">Missing, and worth adding</h3>
-  <div class="app-stack">
-    <article class="app-card app-surface">
-      <p class="app-surface-label">1 · Control-height floor <span class="app-badge" data-tone="success">Added, r32</span></p>
-      <h3 class="app-surface-title">No <code>min-height</code> literal outside <code>app-tokens.css</code></h3>
-      <p class="app-surface-copy">A grep in <code>idui-invariants-smoke.mjs</code>. Locks INV-CONTROL-HEIGHT. Trivial, no false positives.</p>
-    </article>
-    <article class="app-card app-surface">
-      <p class="app-surface-label">2 · Action weight <span class="app-badge" data-tone="success">Added, r32</span></p>
-      <h3 class="app-surface-title">No <code>.app-row</code> that holds both <code>.app-primary</code> and <code>.app-utility-action</code></h3>
-      <p class="app-surface-copy">Built as a static tag walk over markup and module templates rather than a DOM check, so it needs no browser and sees rows a route only renders on data. Locks INV-ACTION-WEIGHT. A hero head and a dialog foot are allowed, where the rule says neither.</p>
-    </article>
-    <article class="app-card app-surface">
-      <p class="app-surface-label">3 · Library color literals</p>
-      <h3 class="app-surface-title">Only tokens paint in <code>app-components.css</code></h3>
-      <p class="app-surface-copy">Extend the audit's literal check to the library file with an explicit allowlist (the two mask stops, the scrim). Closes the library side of INV-TONE and INV-TOKEN-LOCALITY.</p>
-    </article>
-    <article class="app-card app-surface">
-      <p class="app-surface-label">4 · Behavior single-source</p>
-      <h3 class="app-surface-title">After the disclosure binder lands, no page handles <code>.app-disclosure-button</code> itself</h3>
-      <p class="app-surface-copy">A grep over page modules. Prevents the one duplication that survived from returning.</p>
-    </article>
-    <article class="app-card app-surface">
-      <p class="app-surface-label">5 · Per-period readability at release <span class="app-badge" data-tone="success">Added, r29c</span></p>
-      <h3 class="app-surface-title">Every saved Betta period must still be drawn by its seed under the code about to ship</h3>
-      <p class="app-surface-copy">Built the day after this list was written. The saved reading itself needs no re-check at release - the server refused any save below 4.5:1 - so the gate checks what can still break: <code>scripts/betta-periods-release-smoke.mjs</code> reads the live map anonymously and fails if a saved style is no longer reproduced by <code>generateBettaStyle</code>, if its seed is malformed, or if its period no longer exists. Unsaved periods are reported; <code>--require-all</code> fails them once all eight are saved.</p>
-    </article>
-    <article class="app-card app-surface" data-tone="quiet">
-      <p class="app-surface-label">6 · A second harness · hypothesized</p>
-      <h3 class="app-surface-title">Long strings and extreme values through the real components</h3>
-      <p class="app-surface-copy">The same shape as the Betta validator applied to content: generate Thai and English strings at the long end, counts and money at the extreme end, render the library specimens, and assert that no control drops below its floor and no surface gains a nested blur. Not scheduled; listed because the pattern exists and the cost is known to be low.</p>
-    </article>
+  <h3 class="app-section-subhead">Where a machine stops instead of deciding</h3>
+  <p class="app-section-lede">Three checks detect a situation they cannot classify, and hand it over rather than guessing. That is not a gap in the automation; it is the automation being honest about its limit.</p>
+  <div class="app-list">
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">A new primitive appeared</span><span class="app-list-row-meta">The build halts with <em>NEW VOCABULARY DETECTED</em>. Behaviour, interaction, accessibility or a state model earns it; looking different does not, and no script can tell those apart</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">A constitution key may be a coordinate</span><span class="app-list-row-meta">Relocating a page’s visual decision into a product key does not centralise it. Name shapes can be caught; semantics cannot</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">The pixels moved</span><span class="app-list-row-meta">A number, not a verdict. Whether a changed page is better is editorial, and stays with the owner</span></div></div>
   </div>
 
-  <h3 class="app-section-subhead">Brittle or counterproductive</h3>
-  <div class="app-stack">
-    <article class="app-card app-surface" data-tone="quiet">
-      <div class="app-prose">
-        <ul>
-          <li><strong>A headless contrast gate over live WebGL.</strong> Headless Chrome already disagrees with real phones on glass; a gate on its pixels would fail for the wrong reasons.</li>
-          <li><strong>A primitive-count ceiling.</strong> A lower count is not better; the gate would encourage merging distinct behaviors.</li>
-          <li><strong>A class-count or file-count target.</strong> Zero classes and zero modules are not goals. The goal is zero discretionary appearance decisions.</li>
-          <li><strong>Screenshot diffs of whole routes.</strong> The Betta is live; every frame differs. Computed-style assertions, which the render smoke already uses, are the stable form.</li>
-        </ul>
-      </div>
-    </article>
-  </div>
-
-  <h3 class="app-section-subhead">Recommended sequence</h3>
-  <div class="app-stack">
-    <article class="app-card app-surface">
-      <div class="app-prose">
-        <ol>
-          <li>Checks 1 and 3 — grep-level, same afternoon, no product change.</li>
-          <li>Disclosure binder and the sheet fold into <code>app-dialog.js</code>, each a normal release with the library specimen updated first; then check 4.</li>
-          <li>Check 2 in the nested-glass walk.</li>
-          <li>Phase 7 retires <code>/share</code>'s legacy files; the ratchet baseline drops to the foundation numbers above and the legacy selector pair is deleted. <strong>Done, r30 (5 September, night).</strong></li>
-          <li>The muted-ink decision, then r29b, then check 5.</li>
-          <li>The business card rebuilt as the shell in public mode, served by the Pages worker; the last stylesheet outside the foundation deleted. <strong>Done, r31 (5 September, late night).</strong></li>
-        </ol>
-        <p>Each step is reported before it is built. The method's own origin is the reason: no hour of classification or restructuring before the owner has challenged whether the problem needs to exist.</p>
-      </div>
-    </article>
-  </div>
+  <p class="app-note">Every check above is <strong>enforced but not agent-closed</strong>. They live in the repository the builder writes to, so the builder can weaken them — what it cannot do is weaken them quietly, because <code>contract-integrity</code> forces every such change into a visible diff in <code>governance/idui-contract.json</code>. Closure needs an authority outside the builder: a branch ruleset requiring review on the governed paths. Until that exists this document says <em>enforced</em>, and does not say closed.</p>
 </section>
 
 <!-- ================================================================ 07 -->
@@ -874,27 +837,22 @@
 
   <h3 class="app-section-subhead">Measured</h3>
   <p class="app-note">Computed style from a 390px headless Chromium, the same selector under each constitution. The full set is <code>idui-core/evidence/measurements.json</code>.</p>
-  <div class="app-table-wrap">
-    <table class="app-table" data-mode="text">
-      <thead><tr><th scope="col">Selector · property</th><th scope="col">Sindhorn</th><th scope="col">Flipgazine</th></tr></thead>
-      <tbody>
-        <tr><th scope="row">body · font</th><td>LINE Seed Sans TH 400 · 13px / 19.5</td><td>Poppins 300 · 14px / 23.1</td></tr>
-        <tr><th scope="row">.app-surface · fill</th><td><code>rgba(46,39,59,.30)</code></td><td><code>rgba(21,25,24,.55)</code></td></tr>
-        <tr><th scope="row">.app-surface · <code>backdrop-filter</code></th><td>blur(18px) saturate(1.18)</td><td>blur(18px) saturate(1.3)</td></tr>
-        <tr><th scope="row">.app-hero-title · weight</th><td>100</td><td>200</td></tr>
-        <tr><th scope="row">.app-section-kicker · color</th><td>#E5ECBE</td><td>#00F0D1</td></tr>
-        <tr><th scope="row">.app-section-kicker · letter-spacing</th><td>normal</td><td>normal</td></tr>
-        <tr><th scope="row">.app-primary · height · radius</th><td>40px · 10px</td><td>36px · 11px</td></tr>
-        <tr><th scope="row">.app-utility-action · height</th><td>32px</td><td>28px</td></tr>
-        <tr><th scope="row">.app-check-box · radius</th><td>8px</td><td>3px</td></tr>
-        <tr><th scope="row">.app-badge[danger] · ink</th><td>#E3A2A8</td><td>#E8792B</td></tr>
-        <tr><th scope="row">.app-list-row · height</th><td>62px</td><td>67px</td></tr>
-        <tr><th scope="row">.app-field input · weight</th><td>400</td><td>400</td></tr>
-        <tr><th scope="row">.environment-stage · ground</th><td>#2E273B</td><td>#2E273B</td></tr>
-        <tr><th scope="row">.app-stack · gap</th><td>12px</td><td>12px</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <div class="app-list">
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">body · font</span><span class="app-list-row-meta">Sindhorn — LINE Seed Sans TH 400 · 13px / 19.5</span><span class="app-list-row-copy">Flipgazine — Poppins 300 · 14px / 23.1</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">.app-surface · fill</span><span class="app-list-row-meta">Sindhorn — <code>rgba(46,39,59,.30)</code></span><span class="app-list-row-copy">Flipgazine — <code>rgba(21,25,24,.55)</code></span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">.app-surface · <code>backdrop-filter</code></span><span class="app-list-row-meta">Sindhorn — blur(18px) saturate(1.18)</span><span class="app-list-row-copy">Flipgazine — blur(18px) saturate(1.3)</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">.app-hero-title · weight</span><span class="app-list-row-meta">Sindhorn — 100</span><span class="app-list-row-copy">Flipgazine — 200</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">.app-section-kicker · color</span><span class="app-list-row-meta">Sindhorn — #E5ECBE</span><span class="app-list-row-copy">Flipgazine — #00F0D1</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">.app-section-kicker · letter-spacing</span><span class="app-list-row-meta">Sindhorn — normal</span><span class="app-list-row-copy">Flipgazine — normal</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">.app-primary · height · radius</span><span class="app-list-row-meta">Sindhorn — 40px · 10px</span><span class="app-list-row-copy">Flipgazine — 36px · 11px</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">.app-utility-action · height</span><span class="app-list-row-meta">Sindhorn — 32px</span><span class="app-list-row-copy">Flipgazine — 28px</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">.app-check-box · radius</span><span class="app-list-row-meta">Sindhorn — 8px</span><span class="app-list-row-copy">Flipgazine — 3px</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">.app-badge[danger] · ink</span><span class="app-list-row-meta">Sindhorn — #E3A2A8</span><span class="app-list-row-copy">Flipgazine — #E8792B</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">.app-list-row · height</span><span class="app-list-row-meta">Sindhorn — 62px</span><span class="app-list-row-copy">Flipgazine — 67px</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">.app-field input · weight</span><span class="app-list-row-meta">Sindhorn — 400</span><span class="app-list-row-copy">Flipgazine — 400</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">.environment-stage · ground</span><span class="app-list-row-meta">Sindhorn — #2E273B</span><span class="app-list-row-copy">Flipgazine — #2E273B</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">.app-stack · gap</span><span class="app-list-row-meta">Sindhorn — 12px</span><span class="app-list-row-copy">Flipgazine — 12px</span></div></div>
+    </div>
 
   <h3 class="app-section-subhead">Transferred</h3>
   <div class="app-card app-surface">
@@ -964,20 +922,15 @@
 
   <h3 class="app-section-subhead">What the rebuild disproved</h3>
   <p class="app-note">Every value the core carried as its own that turned out to be Sindhorn's. Each moved to the constitutions; Sindhorn renders 0 differing pixels after every move. The full log is <code>idui-core/evidence/rebuild/FALSIFICATIONS.md</code>.</p>
-  <div class="app-table-wrap">
-    <table class="app-table" data-mode="text">
-      <thead><tr><th scope="col">Initial core assumption</th><th scope="col">Flipgazine required</th><th scope="col">Result</th></tr></thead>
-      <tbody>
-        <tr><th scope="row">Zero tracking, regular labels, display case kept</th><td>Tracked uppercase labels at 600, 300 as the body's regular</td><td><code>--tracking --tracking-label --tracking-display --case-display --weight-label --weight-medium</code>; the core declares none (T1, T5)</td></tr>
-        <tr><th scope="row">Ground <code>#2E273B</code> in the shell sheet</th><td>Ground written by the theme engine</td><td><code>--app-ground</code> (T3)</td></tr>
-        <tr><th scope="row">A control's radius is the inset radius</th><td>A pill on every control</td><td><code>--radius-control</code>; "never circular" is Sindhorn's rule, checked by its shape audit (T5)</td></tr>
-        <tr><th scope="row">The material's fill, edge, blur and scrim on the core's <code>:root</code></th><td>The engine's glass, <code>saturate(1.3)</code></td><td>Seven <code>--app-glass-*</code> tokens; <code>app-glass.css</code> declares the rule and no value</td></tr>
-        <tr><th scope="row">Shell band 56px, page 720px, prose 64ch, code face</th><td>54px, 760px, no prose measure</td><td><code>--app-shell-band --measure-page --measure-prose --font-code</code></td></tr>
-        <tr><th scope="row">Font files in <code>site/assets/fonts/</code></th><td>A face that travels</td><td><code>constitutions/&lt;name&gt;/assets/</code>; <code>fonts.css</code> names them relative to itself (T6)</td></tr>
-        <tr><th scope="row">Inputs and icon controls at the UA's weight</th><td>300 everywhere</td><td><code>font: inherit</code> on fields and controls (T4)</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <div class="app-list">
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Zero tracking, regular labels, display case kept</span><span class="app-list-row-meta">Flipgazine required — Tracked uppercase labels at 600, 300 as the body's regular</span><span class="app-list-row-copy"><code>--tracking --tracking-label --tracking-display --case-display --weight-label --weight-medium</code>; the core declares none (T1, T5)</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Ground <code>#2E273B</code> in the shell sheet</span><span class="app-list-row-meta">Flipgazine required — Ground written by the theme engine</span><span class="app-list-row-copy"><code>--app-ground</code> (T3)</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">A control's radius is the inset radius</span><span class="app-list-row-meta">Flipgazine required — A pill on every control</span><span class="app-list-row-copy"><code>--radius-control</code>; "never circular" is Sindhorn's rule, checked by its shape audit (T5)</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">The material's fill, edge, blur and scrim on the core's <code>:root</code></span><span class="app-list-row-meta">Flipgazine required — The engine's glass, <code>saturate(1.3)</code></span><span class="app-list-row-copy">Seven <code>--app-glass-*</code> tokens; <code>app-glass.css</code> declares the rule and no value</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Shell band 56px, page 720px, prose 64ch, code face</span><span class="app-list-row-meta">Flipgazine required — 54px, 760px, no prose measure</span><span class="app-list-row-copy"><code>--app-shell-band --measure-page --measure-prose --font-code</code></span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Font files in <code>site/assets/fonts/</code></span><span class="app-list-row-meta">Flipgazine required — A face that travels</span><span class="app-list-row-copy"><code>constitutions/&lt;name&gt;/assets/</code>; <code>fonts.css</code> names them relative to itself (T6)</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Inputs and icon controls at the UA's weight</span><span class="app-list-row-meta">Flipgazine required — 300 everywhere</span><span class="app-list-row-copy"><code>font: inherit</code> on fields and controls (T4)</span></div></div>
+    </div>
   <p class="app-note">Refused, because they fail the question <em>is this a reusable semantic degree of freedom required by multiple legitimate constitutions, or one application's historical exception?</em>: the catalog thumbnail tilt, the header's second saturate, the editorial palette switch. Still demanded by the core and not supplied by Flipgazine: <code>--app-success</code> and <code>--app-danger</code> (T7) - the one place the core's shape shows through a constitution, left visible on purpose. T2 (rhythm) is half-answered: the core now reads a space token wherever its gap sits on a step (40 literal gaps → 18); the 3, 5, 6, 14 and 18px gaps between the steps are still literals, and folding them is the next honest move.</p>
 
   <h3 class="app-section-subhead">Three tiers, after the test</h3>
@@ -996,7 +949,7 @@
   <div class="app-utility-row">
     <a class="app-utility-action" href="#top">Back to top</a>
   </div>
-  <p class="app-note">Invariant-Driven UI v0.1 · Sindhorn Midtown Internal · 5 September 2026. This document is composed from the app's own library — <code>app-tokens.css</code>, <code>app-glass.css</code>, <code>app-components.css</code>, <code>app-compositions.css</code>, <code>app-shell.css</code>, <code>ci-library.css</code> as shipped with service worker <code>v134-contract-integrity-r54</code> — and declares no presentation of its own. The atmosphere is a still gradient in place of the Betta.</p>
+  <p class="app-note">Invariant-Driven UI v0.1 · Sindhorn Midtown Internal · 5 September 2026. This document is composed from the app's own library — <code>app-tokens.css</code>, <code>app-glass.css</code>, <code>app-components.css</code>, <code>app-compositions.css</code>, <code>app-shell.css</code>, <code>ci-library.css</code> as shipped with service worker <code>v135-docs-current-r56</code> — and declares no presentation of its own. The atmosphere is a still gradient in place of the Betta.</p>
 </section>
 
 <!-- ================================================================ 09 -->
