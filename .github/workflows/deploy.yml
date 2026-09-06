@@ -222,6 +222,7 @@ jobs:
           npx playwright install chromium >/dev/null 2>&1
           # These need no deployed URL, so they block the deploy rather than
           # reporting after production has already changed.
+          node scripts/contract-integrity.mjs
           node scripts/ui-centralization-budget.mjs
           node scripts/page-centralization-audit.mjs
           node scripts/shell-precache-parity-smoke.mjs
@@ -250,7 +251,6 @@ jobs:
           node scripts/build-evidence.mjs --check
           node scripts/build-origarium.mjs --check
           node scripts/evidence-append-only.mjs
-          node scripts/contract-integrity.mjs
           node scripts/material-authority-gate.mjs
           node scripts/vocabulary-admission-gate.mjs
           node scripts/ci-library-coverage.mjs
