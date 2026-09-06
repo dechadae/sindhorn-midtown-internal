@@ -714,7 +714,9 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
    mark, not Home: the page reserves no room for a footer, the toast sits on
    the safe area, and the mark takes no press. One body attribute, set by
    the generated page, is the whole difference. */
-body[data-public]{--app-navbar-height:0px}
+/* A shared page has no navbar and reserves nothing. A document page carries
+   the transfer-test navbar and reserves it like any app route (r43). */
+body[data-public]:not([data-public="doc"]){--app-navbar-height:0px}
 body[data-public] .app-masthead-home{cursor:default}
 body[data-public] .app-masthead-home:active{transform:none}
 
@@ -852,8 +854,11 @@ body[data-public] .app-masthead-home:active{transform:none}
 /* Signed out, the routes stay visible but dormant: the shell shows where the
    app goes without letting anyone go there. The router disables the
    buttons; data-locked lets a specimen show the state without a script. */
-.app-navbar-button:disabled,.app-navbar[data-locked] .app-navbar-button{color:var(--app-muted);opacity:.4;cursor:default}
-.app-navbar-button:disabled:active,.app-navbar[data-locked] .app-navbar-button:active{transform:none}
+/* A destination that does not exist yet is not a link, so it cannot be
+   disabled the way a button is; aria-disabled says the same thing about a
+   span and reads the same (r43). */
+.app-navbar-button:disabled,.app-navbar-button[aria-disabled="true"],.app-navbar[data-locked] .app-navbar-button{color:var(--app-muted);opacity:.4;cursor:default}
+.app-navbar-button:disabled:active,.app-navbar-button[aria-disabled="true"]:active,.app-navbar[data-locked] .app-navbar-button:active{transform:none}
 
 /* A page inside the shell reserves room for the sticky footer. */
 /* flex:1 0 auto is the other half of the sticky-footer fix in app-shell.css:

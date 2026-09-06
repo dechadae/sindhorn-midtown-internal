@@ -541,6 +541,8 @@ for (const doc of DOCS) {
     manifest: !!document.querySelector('link[rel="manifest"]'), swController: !!navigator.serviceWorker?.controller,
     styleBlocks: document.querySelectorAll('style').length, inlineStyles: document.querySelectorAll('main [style]').length,
     navbarHeight: getComputedStyle(document.body).getPropertyValue('--app-navbar-height').trim(),
+    navTabs: document.querySelectorAll('.app-navbar .app-navbar-button').length,
+    navCurrent: !!document.querySelector('.app-navbar [aria-current="page"]'),
     title: document.querySelector('.app-hero-title')?.textContent?.trim() || '', sections: document.querySelectorAll('main > .app-section').length,
     chips: document.querySelectorAll('.ci-index .app-chip').length,
     bettaMode: document.body.dataset.bettaMode || '', canvas: (() => { const c = document.getElementById('environmentCanvas'); return c ? `${c.width}x${c.height}` : 'none'; })(),
@@ -548,12 +550,18 @@ for (const doc of DOCS) {
     overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
   }));
   if (seen.publicMode !== 'doc') failures.push(`${doc.route}: body[data-public] is "${seen.publicMode}", expected doc`);
-  if (seen.navbar || seen.account || seen.tools) failures.push(`${doc.route}: page carries app chrome (navbar ${seen.navbar}, account ${seen.account}, tools ${seen.tools})`);
+  /* r43: a document page carries the transfer-test navbar - the app's own
+     primitive, listing the series - so the chrome it must not carry is the
+     account chip and the masthead tools, never the navbar. */
+  if (seen.account || seen.tools) failures.push(`${doc.route}: page carries app chrome (account ${seen.account}, tools ${seen.tools})`);
+  if (!seen.navbar) failures.push(`${doc.route}: the transfer-test navbar is missing`);
+  if (seen.navTabs !== 4) failures.push(`${doc.route}: navbar has ${seen.navTabs} tabs, expected 4`);
+  if (!seen.navCurrent) failures.push(`${doc.route}: no tab is aria-current`);
   if (!seen.masthead || seen.homeIsLink !== 'DIV') failures.push(`${doc.route}: the masthead must be the share pages' inert logo (found ${seen.masthead}, home is ${seen.homeIsLink})`);
   if (seen.manifest) failures.push(`${doc.route}: a document page must not carry the PWA manifest`);
   if (seen.swController) failures.push(`${doc.route}: a document page must not be controlled by the service worker`);
   if (seen.styleBlocks || seen.inlineStyles) failures.push(`${doc.route}: page CSS found (${seen.styleBlocks} style blocks, ${seen.inlineStyles} inline styles)`);
-  if (seen.navbarHeight !== '0px') failures.push(`${doc.route}: --app-navbar-height is ${seen.navbarHeight}, expected 0px with no navbar`);
+  if (seen.navbarHeight === '0px') failures.push(`${doc.route}: --app-navbar-height is 0px, so the navbar's height is not reserved`);
   if (seen.title !== doc.title) failures.push(`${doc.route}: hero title is "${seen.title}"`);
   if (seen.sections !== doc.sections || seen.chips !== doc.sections) failures.push(`${doc.route}: ${seen.sections} sections and ${seen.chips} index chips, expected ${doc.sections} of each`);
   if (seen.bettaMode !== 'sky') failures.push(`${doc.route}: body[data-betta-mode] is "${seen.bettaMode}", expected sky`);
