@@ -37,7 +37,13 @@ import { generateBettaStyle, originalBettaStyle, randomSeed, parseSeed, seedLabe
    own preset, so framing is the one thing Random cannot change. The ranges are
    the ones already tuned in betta-vignette-test.js, which edited exactly these
    numbers but could only keep them in this browser. */
-const COMPOSITION_PERIODS = new Set(['golden-hour', 'blue-hour']);
+/* Golden hour and blue hour were composed on 6 Sep 2026 and the numbers are
+   on the server, so the sliders are put away (r39). The engine still reads a
+   saved style.camera and the release gate still checks one; only the editor
+   is gone. Reopen a period by naming it here, or use the standalone camera
+   playground (/betta-vignette-test?period=<key>&camera=1), which judges a
+   framing by eye and copies the numbers out. */
+const COMPOSITION_PERIODS = new Set();
 const CAMERA_FIELDS = [
   { key: 'offsetX', label: 'Position X', min: -2.6, max: 2.6, step: .02 },
   { key: 'offsetY', label: 'Position Y', min: -2.2, max: 2.2, step: .02 },

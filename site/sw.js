@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v122-today-copy-r38';
+const VERSION='sindhorn-midtown-internal-pwa-v123-shell-from-disk-r39';
 // v85: sindhorn-midtown-internal-pwa-v85-metric-track-r4
 // v84: sindhorn-midtown-internal-pwa-v84-today-readability-r4
 // v83: sindhorn-midtown-internal-pwa-v83-sticky-footer-fix-r1
@@ -104,7 +104,25 @@ async function precacheShell(){
 async function activateShell(){const keys=await caches.keys();await Promise.all(keys.filter(key=>key!==VERSION).map(key=>caches.delete(key)));await self.clients.claim()}
 self.addEventListener('install',event=>event.waitUntil(precacheShell().then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(activateShell()));
-self.addEventListener('fetch',event=>{const request=event.request;if(request.method!=='GET')return;const url=new URL(request.url);if(request.mode==='navigate'){const isAppRoute=url.pathname==='/'||url.pathname==='/next'||url.pathname==='/next.html'||url.pathname==='/login'||url.pathname==='/login.html'||url.pathname.startsWith('/guidance')||url.pathname.startsWith('/details')||url.pathname.startsWith('/fnb')||url.pathname.startsWith('/messages')||url.pathname.startsWith('/brand')||url.pathname.startsWith('/ihg-history')||url.pathname.startsWith('/hotel-factsheet')||url.pathname.startsWith('/settings')||url.pathname.startsWith('/ci')||url.pathname.startsWith('/voice')||url.pathname.startsWith('/account')||url.pathname.startsWith('/admin');if(!isAppRoute){event.respondWith(fetch(request));return}event.respondWith((async()=>{try{return await fetch(request)}catch(_){return(await caches.match('/index.html'))||(await caches.match('/'))}})());return}if(url.origin!==location.origin)return;if(url.pathname==='/api/betta-satellite'){event.respondWith(fetch(request));return}event.respondWith((async()=>{const cached=await caches.match(request);if(cached&&validResponse(url.pathname,cached))return cached;try{const response=await fetch(request);if(!validResponse(url.pathname,response))throw new Error('Invalid MIME for '+url.pathname);const cache=await caches.open(VERSION);await cache.put(request,response.clone());return response}catch(error){if(cached)return cached;throw error}})())});
+/* Which precached document answers a navigation. Every shell route is
+   index.html; the two standalone pages are their own documents. */
+function documentFor(pathname){
+  if(pathname==='/ci'||pathname==='/ci.html')return '/ci.html';
+  if(pathname==='/voice'||pathname==='/voice.html')return '/voice.html';
+  return '/index.html';
+}
+self.addEventListener('fetch',event=>{const request=event.request;if(request.method!=='GET')return;const url=new URL(request.url);if(request.mode==='navigate'){const isAppRoute=url.pathname==='/'||url.pathname==='/next'||url.pathname==='/next.html'||url.pathname==='/login'||url.pathname==='/login.html'||url.pathname.startsWith('/guidance')||url.pathname.startsWith('/details')||url.pathname.startsWith('/fnb')||url.pathname.startsWith('/messages')||url.pathname.startsWith('/brand')||url.pathname.startsWith('/ihg-history')||url.pathname.startsWith('/hotel-factsheet')||url.pathname.startsWith('/settings')||url.pathname.startsWith('/ci')||url.pathname.startsWith('/voice')||url.pathname.startsWith('/account')||url.pathname.startsWith('/admin');if(!isAppRoute){event.respondWith(fetch(request));return}
+/* The shell opens from disk. It used to be fetched first and fall back to
+   the cache only when the network failed, with no timeout - so a launch
+   could not be faster than the network answered, for a document already
+   precached, and a cold start paid a full round trip before any script
+   ran. Serving the precached document is also the more honest of the two:
+   the cache holds one release's shell and its assets together, while
+   fetching the document fresh could pair a newer shell with the assets the
+   installed worker still holds. Freshness is the worker's job - a release
+   changes VERSION, the new worker precaches and claims, and the launch
+   after that opens on it (r39). */
+event.respondWith((async()=>{const cached=await caches.match(documentFor(url.pathname));if(cached)return cached;try{return await fetch(request)}catch(_){return(await caches.match('/index.html'))||(await caches.match('/'))}})());return}if(url.origin!==location.origin)return;if(url.pathname==='/api/betta-satellite'){event.respondWith(fetch(request));return}event.respondWith((async()=>{const cached=await caches.match(request);if(cached&&validResponse(url.pathname,cached))return cached;try{const response=await fetch(request);if(!validResponse(url.pathname,response))throw new Error('Invalid MIME for '+url.pathname);const cache=await caches.open(VERSION);await cache.put(request,response.clone());return response}catch(error){if(cached)return cached;throw error}})())});
 function safePushPayload(event){if(!event.data)return{};try{return event.data.json()||{}}catch(_){try{return{bodyEn:event.data.text()}}catch(__){return{}}}}
 function sameOriginRoute(route){try{const url=new URL(route||'/',self.location.origin);if(url.origin!==self.location.origin)return'/';if(url.pathname.startsWith('/guidance')||url.pathname.startsWith('/details'))return'/';if(url.pathname.startsWith('/fnb'))return'/#fnb';if(url.pathname.startsWith('/messages'))return'/#messages';return'/'}catch(_){return'/'}}
 function openNotificationDb(){return new Promise((resolve,reject)=>{const request=indexedDB.open(NOTIFICATION_DB,1);request.onupgradeneeded=()=>{const db=request.result,store=db.objectStoreNames.contains(NOTIFICATION_STORE)?request.transaction.objectStore(NOTIFICATION_STORE):db.createObjectStore(NOTIFICATION_STORE,{keyPath:'id'});if(!store.indexNames.contains('receivedAt'))store.createIndex('receivedAt','receivedAt',{unique:false});if(!store.indexNames.contains('read'))store.createIndex('read','read',{unique:false})};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||new Error('Notification inbox unavailable'))})}
