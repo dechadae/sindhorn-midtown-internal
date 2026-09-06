@@ -1,5 +1,13 @@
 # Test 02 — results
 
+> **Held With Nine Corrections. Editorial parity partial, ~70%, owner-assessed.**
+
+Structural conformance is complete — 22,912 B of page CSS to 0, 243 appearance
+decisions to 0, no product-specific presentation. Editorial parity is partial
+and the owner has named the three defects that keep it there. Both halves are
+required before a result may be called held, per amendment A6, so this is
+**not** a hold: it is a structural pass with an editorial verdict of 70%.
+
 Origarium Papers, `/papers.html` v59, measured at 390 in both modes. Both sides
 by the same code: `idui-core/evidence/metrics.mjs`, which the Flipgazine test
 imports too.
@@ -145,6 +153,52 @@ surface may not carry a blur.*
 
 Verified in flight: at 120ms the reader sits at scale 1.007, 6px above rest —
 the overshoot — and the moving subtree contains zero backdrop-filters.
+
+## Owner editorial assessment — subjective
+
+Given 6 September 2026 on Candidate B as measured. Recorded as given, and B was
+not altered afterwards: correcting it now would invalidate the judgement, so
+the three defects below stay open and any repair becomes a Candidate C with a
+verdict of its own.
+
+> **Around 70% close to the original. Acceptable as a repeatable template —
+> yes. But it does not totally match my original intent.**
+>
+> The font in the thumbnail is still wrong. The black bezel is too wide. The
+> styling of the full-screen e-ink is still wrong, and it is not really
+> full-screen — it should hide the header.
+>
+> B is totally better than A because you got a brief of the inspiration.
+
+Three named defects, all open:
+
+1. **Thumbnail face** — wrong, despite rendering Cormorant Garamond at the
+   measured 7.4px.
+2. **The bezel is too wide** — the dark frame around the preview takes more
+   room than the original's, so the sheet sits smaller inside its card.
+3. **The reader is not full-screen** — it should hide the masthead. The rebuild
+   fills the viewport beneath a header that the original removes, so the
+   document is the place only from the masthead down.
+
+## The finding that matters most, and it is not a number
+
+> *B is totally better than A because you got a brief of the inspiration.*
+
+Everything between A and B came from one sentence of design intent — *the
+thumbnail is an e-ink reader, and pressing it bounces to full screen* — not
+from further measurement. The instruments had already read every value on the
+page: the colours, the type scale, the radii, the spring curve to three decimal
+places. They could not read what the thing **was**.
+
+That is a limit of the method as practised here, and it is worth more than the
+243 → 0. A constitution written from rendered outcomes recovers *values*
+faithfully and recovers *intent* not at all. Candidate A was a correct reading
+of every measurement and the wrong object. The gap between them was closed by a
+designer saying what he had meant.
+
+Test 03 should assume the same: a reconstruction of Apple from measurement
+alone will reproduce Apple's values and miss whatever Apple meant, and no
+amount of instrumentation will tell us which.
 
 ## Change propagation
 
