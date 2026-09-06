@@ -44,7 +44,10 @@ for(const file of walk(site)){
   // page audit), so in HTML a family is a declaration only inside a
   // font-family value or a Google Fonts link - which the checks below and
   // externalFont catch - and the whole-text rule applies to the code files.
-  const declared=ext==='.html'?[...text.matchAll(/font-family\s*:\s*([^;}"]+)/gi)].map(m=>m[1]).join('\n'):text;
+  // The value may be quoted ("Poppins",sans-serif), so a quoted string is
+  // taken whole; the value ends at ; or } or at a quote that closes a
+  // style attribute.
+  const declared=ext==='.html'?[...text.matchAll(/font-family\s*:\s*((?:"[^"]*"|'[^']*'|[^;}"'])+)/gi)].map(m=>m[1]).join('\n'):text;
   if(bannedFamily.test(declared))errors.push(`${rel(file)} contains retired font family`);
   if(bannedAsset.test(text))errors.push(`${rel(file)} contains retired font asset`);
   if(externalFont.test(text))errors.push(`${rel(file)} contains runtime external font dependency`);
