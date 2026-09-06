@@ -48,7 +48,12 @@ jobs:
           for path in Path('site').rglob('*'):
               if not path.is_file():continue
               if path.suffix.lower() not in {'.css','.html','.js','.mjs','.json','.webmanifest'}:continue
-              if banned.search(path.read_text(errors='ignore')):offenders.append(str(path))
+              text=path.read_text(errors='ignore')
+              # A public document page may name a retired family in prose
+              # (/idui, /evidence discuss Poppins and Noto Sans Thai); in HTML
+              # only a font-family value is a declaration (r34, as in the test).
+              if path.suffix.lower()=='.html':text='\n'.join(m.group(1) for m in re.finditer(r'font-family\s*:\s*([^;}"]+)',text,re.I))
+              if banned.search(text):offenders.append(str(path))
           if offenders: raise SystemExit('Retired production font references: '+', '.join(offenders))
           print('Production site has no retired font-family references.')
           PY
