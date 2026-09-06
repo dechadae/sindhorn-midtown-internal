@@ -226,5 +226,72 @@
       "$comment": "Flipgazine's material family is glass too, parameterised by its own constitution. It consumes the same authority with different tokens.",
       "constitution": "flipgazine"
     }
+  },
+  "integrity": {
+    "$comment": "Recorded state of the contracts. Changing any number here is the visible act of changing what the architecture enforces; scripts/contract-integrity.mjs fails until it is re-seeded, and re-seeding is a registry diff the owner reviews.",
+    "seeded": "2026-09-06",
+    "gates": {
+      "scripts/material-authority-gate.mjs": {
+        "sha256": "9c321f72c9cc63b0",
+        "assertions": 3
+      },
+      "scripts/vocabulary-admission-gate.mjs": {
+        "sha256": "43cdfa1a8b13a953",
+        "assertions": 4
+      },
+      "scripts/ci-library-coverage.mjs": {
+        "sha256": "c35ab8b6f08d1a5b",
+        "assertions": 3
+      },
+      "scripts/page-centralization-audit.mjs": {
+        "sha256": "92fe23107f52e2f8",
+        "assertions": 12
+      },
+      "scripts/idui-constitution-completeness.mjs": {
+        "sha256": "84f3c5aaf43a6a71",
+        "assertions": 1
+      },
+      "scripts/idui-core-parity-smoke.mjs": {
+        "sha256": "4ba0ab9eab048b07",
+        "assertions": 2
+      },
+      "scripts/idui-invariants-smoke.mjs": {
+        "sha256": "4469ef641aad34df",
+        "assertions": 3
+      },
+      "scripts/ui-shape-source-audit.mjs": {
+        "sha256": "69d0df835566cb7b",
+        "assertions": 2
+      },
+      "scripts/evidence-append-only.mjs": {
+        "sha256": "bfc1df3e478225ef",
+        "assertions": 9
+      },
+      "scripts/contract-integrity.mjs": {
+        "sha256": "7aa6222bc23f2989",
+        "assertions": 10
+      }
+    },
+    "guardInvokes": [
+      "scripts/material-authority-gate.mjs",
+      "scripts/vocabulary-admission-gate.mjs",
+      "scripts/ci-library-coverage.mjs",
+      "scripts/page-centralization-audit.mjs",
+      "scripts/idui-constitution-completeness.mjs",
+      "scripts/idui-core-parity-smoke.mjs",
+      "scripts/idui-invariants-smoke.mjs",
+      "scripts/ui-shape-source-audit.mjs",
+      "scripts/evidence-append-only.mjs",
+      "scripts/contract-integrity.mjs"
+    ],
+    "limits": {
+      "admittedRoots": 50,
+      "variantValues": 63,
+      "variantAttributes": 19,
+      "exceptions": {
+        "scripts/page-centralization-audit.mjs": 2,
+        "scripts/ci-library-coverage.mjs": 2
+      }
+    }
   }
 }

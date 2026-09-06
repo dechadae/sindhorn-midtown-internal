@@ -14,6 +14,7 @@ on:
       # script, to the core sheets or to the governed registry could ship
       # without the guard ever running it - r53a itself triggered nothing.
       - "scripts/*-gate.mjs"
+      - "scripts/contract-*.mjs"
       - "scripts/*audit*.mjs"
       - "scripts/ci-library-coverage.mjs"
       - "scripts/idui-*.mjs"
@@ -27,6 +28,12 @@ on:
       - "supabase/migrations/**"
       - "docs/**"
       - "AGENTS.md"
+  # The architecture guard has to be runnable on a pull request, or it can
+  # never be a required check: a PR would sit forever waiting for a workflow
+  # that only fires on push. The deploy steps below stay push-only.
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -243,17 +250,20 @@ jobs:
           node scripts/build-evidence.mjs --check
           node scripts/build-origarium.mjs --check
           node scripts/evidence-append-only.mjs
+          node scripts/contract-integrity.mjs
           node scripts/material-authority-gate.mjs
           node scripts/vocabulary-admission-gate.mjs
           node scripts/ci-library-coverage.mjs
 
       - name: Deploy to Cloudflare Pages
+        if: github.event_name == 'push'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4.125.0 pages deploy site --project-name=sindhorn-midtown-internal --branch="${GITHUB_REF_NAME}"
 
       - name: Smoke deployed shell
+        if: github.event_name == 'push'
         shell: bash
         run: |
           set -euo pipefail
@@ -353,6 +363,7 @@ jobs:
 
 
       - name: Sign into the live shell with the CI test account
+        if: github.event_name == 'push'
         if: github.ref == 'refs/heads/main'
         shell: bash
         env:
@@ -367,6 +378,7 @@ jobs:
           node scripts/next-signin-smoke.mjs
 
       - name: Guard the glass material on the live app
+        if: github.event_name == 'push'
         shell: bash
         env:
           BASE_URL: https://sindhorn-midtown-internal.pages.dev

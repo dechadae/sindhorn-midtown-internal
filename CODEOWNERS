@@ -1,37 +1,20 @@
 # Governance, not code.
 #
-# The builder must not be its own approver. Everything below defines or
-# enforces the architecture, so an agent changing it would be changing the law
-# and the police in the same commit. These paths require the owner's review.
+# Four paths, deliberately. The builder must not be its own approver, but it
+# also must not need an approver to do ordinary work — so what is owned here is
+# only what defines or enforces the architecture, never what builds on it.
 #
-# This file is documentation until GitHub enforces it. The authority boundary
-# is the branch ruleset on main - pull request required, code-owner review
-# required, architectural checks required, no direct push and no bypass from an
-# agent credential. Until that is configured, the gates below are enforced but
-# NOT agent-closed, and they are labelled that way in /idui rather than
-# described as closed.
+# Everything else about enforcement is covered indirectly and on purpose:
+# scripts/contract-integrity.mjs records the hash, the check count and the CI
+# invocation of every contract script in governance/idui-contract.json, so a
+# gate cannot be edited, weakened or dropped from CI without a visible diff to
+# the registry below. One reviewed file instead of ten owned ones, and it
+# catches more than owning the scripts would.
+#
+# This file is documentation until the branch ruleset enforces it. Until then
+# the gates are enforced but NOT agent-closed, and are described that way.
 
-# The governed registry: material authorities, admitted vocabulary, exceptions.
 /governance/**                          @dechadae
-
-# The contracts that enforce the architecture.
-/scripts/material-authority-gate.mjs    @dechadae
-/scripts/vocabulary-admission-gate.mjs  @dechadae
-/scripts/ci-library-coverage.mjs        @dechadae
-/scripts/page-centralization-audit.mjs  @dechadae
-/scripts/idui-constitution-completeness.mjs @dechadae
-/scripts/idui-core-parity-smoke.mjs     @dechadae
-/scripts/idui-invariants-smoke.mjs      @dechadae
-/scripts/ui-shape-source-audit.mjs      @dechadae
-/scripts/ui-centralization-budget.mjs   @dechadae
-/scripts/evidence-append-only.mjs       @dechadae
-
-# CI itself, and the ratchet it reads.
 /.github/workflows/**                   @dechadae
 /scripts/ui-centralization-budget.json  @dechadae
-
-# The normative instructions an agent reads before touching UI code.
-/AGENTS.md                              @dechadae
-
-# This file.
 /CODEOWNERS                             @dechadae
