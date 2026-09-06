@@ -26,6 +26,21 @@ const consumed=new Set([...coreText.matchAll(/var\((--[\w-]+)/g)].map(m=>m[1]));
 const runtime=t=>t.startsWith('--app-select-');
 const required=[...consumed].filter(t=>!declared.has(t)&&!runtime(t)).sort();
 const report={ok:true,required:required.length,constitutions:{}};
+/* A material belongs to the product that has it. Since r53 a registered
+   material authority is read against its own scope's constitution only: paper
+   is Origarium's answer, and Sindhorn is no longer asked to give one. The
+   registry says which authority answers to which constitution - governance
+   decides that, not this script. */
+const contract=JSON.parse(await readFile(new URL('governance/idui-contract.json',ROOT),'utf8'));
+const scoped=new Map();
+for(const group of ['products','evidence'])for(const scope of Object.values(contract[group]||{})){
+  if(!scope.constitution)continue;
+  let text='';
+  for(const f of scope.materialAuthorities||[])text+=await readFile(new URL(f,ROOT),'utf8').catch(()=>'');
+  const seen=scoped.get(scope.constitution)||new Set();
+  for(const m of text.matchAll(/var\((--[\w-]+)/g))seen.add(m[1]);
+  scoped.set(scope.constitution,seen);
+}
 const names=(await readdir(new URL('idui-core/constitutions/',ROOT),{withFileTypes:true})).filter(d=>d.isDirectory()).map(d=>d.name);
 for(const name of names){
   let text='';
@@ -50,8 +65,9 @@ for(const name of names){
       sel+=ch;
     }
   }
-  const missing=required.filter(t=>!has.has(t));
-  const unused=[...has].filter(t=>!consumed.has(t)).sort();
+  const own=scoped.get(name)||new Set();
+  const missing=[...new Set([...required,...own])].filter(t=>!has.has(t)&&!declared.has(t)).sort();
+  const unused=[...has].filter(t=>!consumed.has(t)&&!own.has(t)).sort();
   report.constitutions[name]={missing,unconsumed:unused,...(bare.length?{outsideAnyRule:[...new Set(bare)]}:{})};
   if(missing.length||unused.length||bare.length)report.ok=false;
 }

@@ -1,0 +1,38 @@
+/* Origarium — the document material.
+
+   A registered material authority under the Origarium evidence scope. It is
+   the only place the paper is derived: the core states that a surface may be a
+   document and that a context may be a place, and this file answers what a
+   document is made of here.
+
+   It lives beside the reconstruction rather than in idui-core/ because paper is
+   Origarium's taste, exactly as glass is Sindhorn's. Core may define the
+   grammar of authority; it may never own the authorities themselves.
+
+   Values come from constitutions/origarium/app-tokens.css. Nothing here is a
+   literal. */
+
+[data-surface="document"]{
+  background-color:var(--app-document-fill);
+  backdrop-filter:var(--app-document-filter);
+  -webkit-backdrop-filter:var(--app-document-filter);
+  border-color:var(--app-document-border);
+  color:var(--app-document-ink);
+}
+[data-context="reader"]{
+  background-color:var(--app-document-fill);
+  color:var(--app-document-ink);
+  /* A reading context is the place, so it occupies the view. A paper of one
+     sentence still fills the screen it was opened into - which is what the
+     original does, and what "it bounces full screen" means. Found by handing
+     the archive an empty body and watching the reader end halfway down
+     (r47). */
+  min-height:100dvh;
+}
+[data-context="reader"] .app-card,
+[data-context="reader"] .app-surface{border-color:var(--app-document-border)}
+[data-context="reader"] .app-control{
+  background-color:transparent;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
+  border-color:var(--app-document-border);
+}

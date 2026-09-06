@@ -164,12 +164,9 @@
   --motion-ease:cubic-bezier(.22,1,.36,1);
   --motion-ease-inout:ease-in-out; /* a page or a navbar set moving into place */
   --motion-fade:linear;
-  /* Sindhorn has no document surfaces: a page of writing inside the app would
-     be the same glass as everything else. Answered explicitly rather than
-     inherited, because the core asks (r41). */
-  --app-document-fill:var(--app-glass-fill);
-  --app-document-border:var(--app-glass-border);
-  --app-document-filter:var(--app-glass-filter);
+  /* Sindhorn has no document material. Since r53 the core no longer asks: a
+     material is derived by a registered authority, and Sindhorn's is glass.
+     Only the document's ink survives here, because ink is not material. */
   --app-document-ink:var(--app-text);
 
   /* The mark. Opaque and high-contrast whatever the interface is made of: the

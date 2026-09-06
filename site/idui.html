@@ -16,7 +16,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/app-192.png?v=2">
 <!--
   Invariant-Driven UI (IDUI) v0.1 - the public document, built by scripts/build-idui.mjs from
-  docs/idui/idui-body.html with sindhorn-midtown-internal-pwa-v132-ci-coverage-r52. Library classes only; the atmosphere is live.
+  docs/idui/idui-body.html with sindhorn-midtown-internal-pwa-v133-material-authority-r53. Library classes only; the atmosphere is live.
 -->
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="stylesheet" href="/fonts.css?v=2">
@@ -41,7 +41,7 @@
   <p class="app-hero-eyebrow">Sindhorn Midtown Internal · Design and development method</p>
   <h1 class="app-hero-title">Invariant-Driven UI</h1>
   <p class="app-hero-copy">Pages compose. Primitives behave. Invariants style. Contracts validate. A working method formalized from the Sindhorn Midtown Internal rebuild of 2–5 September 2026, written from the production code rather than ahead of it.</p>
-  <p class="app-note">Draft v0.1, 5 September 2026. Nothing in this document changes production. Every rule is marked implemented, partial or proposed. Numbers were first measured from the repository at commit <code>558ab67</code> and the export is rebuilt from the library at every release (this copy: service worker <code>v132-ci-coverage-r52</code>); where evidence does not exist the value is marked unknown. The recommendations in 03 and 06 are proposals for the owner to challenge before any cleanup begins.</p>
+  <p class="app-note">Draft v0.1, 5 September 2026. Nothing in this document changes production. Every rule is marked implemented, partial or proposed. Numbers were first measured from the repository at commit <code>558ab67</code> and the export is rebuilt from the library at every release (this copy: service worker <code>v133-material-authority-r53</code>); where evidence does not exist the value is marked unknown. The recommendations in 03 and 06 are proposals for the owner to challenge before any cleanup begins.</p>
   <nav class="ci-index" aria-label="Sections">
     <a class="app-chip app-control" href="#set">00 The Set</a>
     <a class="app-chip app-control" href="#method">01 Method</a>
@@ -63,7 +63,7 @@
   <p class="app-section-lede">The whole of IDUI as it ships in r32: nine rules, each enforced by a gate the deploy runs before production changes. The formal cards in 02 give each its concern, its question and its consequences; this is the short form a second project would start from. Rules that belong to this app and not to the method - Title Case hero titles, a skeleton on Today, no retried page transition - stay with Sindhorn and are not in the set.</p>
   <div class="app-card app-surface">
     <div class="app-list">
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">1 · One material</span><span class="app-list-row-meta">Every fill, border and blur of a surface comes from <code>app-glass.css</code>; no <code>backdrop-filter</code> is written anywhere else, the dialog scrim included.</span><span class="app-list-row-meta">Checked by ratchet · nested-glass</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">1 · Material has one authority</span><span class="app-list-row-meta">A consumer declares semantic role and context; only a registered material authority may derive fill, edge, blur, shadow or related material treatment. Which files are authorities is governance, not core. <em>Sindhorn's constitution adds: Sindhorn admits one material family, glass.</em> Gate: <code>material-authority-gate.mjs</code></span><span class="app-list-row-meta">Checked by ratchet · nested-glass</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">2 · A card is anything that draws an edge</span><span class="app-list-row-meta">An edge is glass; glass never nests. Structure inside a card is a rule, a section, a row - never a second surface.</span><span class="app-list-row-meta">Checked by nested-glass · page audit</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">3 · One scale</span><span class="app-list-row-meta">Every size, radius, space, weight, leading, duration and control height is a token in <code>app-tokens.css</code>; a literal in a component is a finding.</span><span class="app-list-row-meta">Checked by ratchet · page audit · invariants</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">4 · One face</span><span class="app-list-row-meta">The constitution declares the family, the weights, the tracking and the case; the core consumes them and declares none of its own. Zero tracking, one family and three weights are Sindhorn's constitution, not the core's (restated r33 after the Flipgazine rebuild).</span><span class="app-list-row-meta">Checked by font-architecture and constitution completeness</span></div></div>
@@ -996,7 +996,7 @@
   <div class="app-utility-row">
     <a class="app-utility-action" href="#top">Back to top</a>
   </div>
-  <p class="app-note">Invariant-Driven UI v0.1 · Sindhorn Midtown Internal · 5 September 2026. This document is composed from the app's own library — <code>app-tokens.css</code>, <code>app-glass.css</code>, <code>app-components.css</code>, <code>app-compositions.css</code>, <code>app-shell.css</code>, <code>ci-library.css</code> as shipped with service worker <code>v132-ci-coverage-r52</code> — and declares no presentation of its own. The atmosphere is a still gradient in place of the Betta.</p>
+  <p class="app-note">Invariant-Driven UI v0.1 · Sindhorn Midtown Internal · 5 September 2026. This document is composed from the app's own library — <code>app-tokens.css</code>, <code>app-glass.css</code>, <code>app-components.css</code>, <code>app-compositions.css</code>, <code>app-shell.css</code>, <code>ci-library.css</code> as shipped with service worker <code>v133-material-authority-r53</code> — and declares no presentation of its own. The atmosphere is a still gradient in place of the Betta.</p>
 </section>
 
 <!-- ================================================================ 09 -->
@@ -1117,6 +1117,38 @@ ENGINE
     <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">A product motif in the core — 7 classes, 14 occurrences</span><span class="app-list-row-meta"><code>.app-business-card-*</code> in <code>app-compositions.css</code>, including <code>.app-business-card-hotel</code>. This is a named product artefact living where mechanisms belong</span></div></div>
     <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Product names in comments — kept</span><span class="app-list-row-meta">"Sindhorn's surfaces are glass, so Sindhorn may not scale" is the record of <em>why</em> a mechanism is conditional. Classified evidence-only. Deleting it would make the core look neutral and be less honest</span></div></div>
   </div>
+
+  <h3 class="app-section-subhead">Material has one authority</h3>
+  <p class="app-section-lede">The first invariant used to name a file: <em>every fill, border and blur comes from <code>app-glass.css</code></em>. Origarium falsified the universal reading of that, and r52 broke it outright — moving the document material into an extended sheet left three declarations outside the named file, and no gate saw it because the check only ever read pages.</p>
+  <div class="app-card app-surface"><div class="app-prose">
+    <p>The repair is not to move paper back into a sheet called glass so an old sentence stays literally true. That is the taxonomy distortion this method exists to prevent. The invariant splits instead:</p>
+    <p><strong>Generic law.</strong> A consumer declares semantic role and context; only a registered material authority may derive fill, edge, blur, shadow or related material treatment.</p>
+    <p><strong>Sindhorn's constitution.</strong> Sindhorn admits one runtime material family: glass.</p>
+    <p>So Origarium has paper, Sindhorn has glass, a third product may bring a third conception, and the core knows only that authorities exist. Which is what stripping Sindhorn out of the core was supposed to mean:</p>
+  </div></div>
+  <div class="app-card app-surface" data-mode="quote">
+    <p class="app-surface-copy">Core may define the grammar of authority. It may never own the product-specific authorities themselves.</p>
+  </div>
+  <p class="app-note">The gate reads declarations, not filenames, against <code>governance/idui-contract.json</code>. Two distinctions make it decidable: <strong>authoring is not declining</strong> — assigning a material value is a decision, <code>background:none</code> on a control is a refusal — and <strong>a surface is a registered role, not a name prefix</strong>, because <code>.app-navbar-button</code> shares four characters with <code>.app-navbar</code> and is a control.</p>
+
+  <h3 class="app-section-subhead">Three enforcement statuses, not two</h3>
+  <p class="app-section-lede">A law is not simply gated or ungated. Saying so honestly is what separates an architecture an agent cannot silently cross from one that merely looks enforced.</p>
+  <div class="app-table-wrap"><table class="app-table" data-mode="text">
+    <thead><tr><th>Status</th><th>Meaning</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Closed</th><td>The violating path cannot ship through the normal workflow</td><td>Material only through authorities · no page CSS · new vocabulary represented in /ci · core-site parity · constitution completeness · evidence append-only</td></tr>
+      <tr><th scope="row">Stop-gated</th><td>The machine detects the decision and refuses to make it. The build halts and the owner classifies</td><td>A new primitive identity · a new variant attribute or value · relocation that may not be centralisation</td></tr>
+      <tr><th scope="row">Judgment</th><td>Inherently semantic or perceptual. Recorded, never mechanically decided</td><td>Whether a primitive is genuinely behaviourally distinct · whether a constitution key is semantics or a screenshot coordinate · editorial quality</td></tr>
+    </tbody>
+  </table></div>
+  <p class="app-note">What "an agent cannot break IDUI" means is not that it never writes a bad line. It is that <strong>it cannot silently cross an objective architectural boundary, and cannot silently make a subjective architectural decision that belongs to the owner.</strong></p>
+
+  <h3 class="app-section-subhead">Enforced is not closed</h3>
+  <div class="app-card app-surface"><div class="app-prose">
+    <p>An agent that can edit application code, gate scripts, the registry and CI configuration can alter the police as well as the law. No arrangement of files inside a repository closes that; only an authority boundary outside the builder does.</p>
+    <p><code>CODEOWNERS</code> now covers the registry, the contract scripts, the workflows, the ratchet and this document\'s normative source. <strong>That is documentation until the branch ruleset enforces it</strong> — pull request required, code-owner review required, architectural checks required, no direct push and no bypass from an agent credential. Configuring that is the owner\'s, and it is deliberately not something the builder can do for itself.</p>
+    <p>Until it exists, every gate here is <strong>enforced but not agent-closed</strong>, and is labelled that way rather than described as closed.</p>
+  </div></div>
 
   <h3 class="app-section-subhead">The test that decides it — proposed</h3>
   <div class="app-card app-surface"><div class="app-prose">

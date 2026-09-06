@@ -102,7 +102,6 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-surface[data-mode="quote"] .app-surface-copy{color:var(--app-text)}
 .app-surface[data-mode="quote"]{border-style:dashed}
 .app-surface[data-mode="quote"] .app-surface-label{color:var(--app-muted)}
-.app-surface[data-tone="warn"]{border-color:rgba(var(--app-accent-rgb),.45)}
 .app-surface[data-tone="warn"] .app-surface-label{color:var(--app-text)}
 /* Text inside a surface after its label: a list a card carries. */
 .app-surface-label+.app-prose{margin-top:12px}

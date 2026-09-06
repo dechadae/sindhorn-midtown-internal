@@ -166,3 +166,10 @@
   backdrop-filter:none;
   -webkit-backdrop-filter:none;
 }
+
+/* A warning states itself on the edge, and an edge is material, so the
+   material authority derives it rather than a primitive sheet. The tone is
+   semantic and stays a page's word; what that tone looks like on this material
+   is this file's decision. Moved here in r53 - it was the one material
+   declaration left in app-components.css. */
+.app-surface[data-tone="warn"]{border-color:rgba(var(--app-accent-rgb),.45)}
