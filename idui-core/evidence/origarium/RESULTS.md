@@ -31,7 +31,7 @@ ground, the lime accent and the warm paper thumbnails.
 
 ## What the core needed
 
-Five capabilities, all reusable, none product-specific. No **D** at all, and
+Six entries, five reusable capabilities and one misowned assumption returned to where it belonged. None product-specific. No **D** at all, and
 no **D-P**.
 
 **That number is not evidence on its own.** Candidate A also reported D-P = 0
@@ -48,6 +48,7 @@ fidelity is not a win — it is unresolved.
 | 3 | Prose has its own reading size | **C** | Two declarations + 1 token. `--type-prose` |
 | 4 | A stack can flow in columns | **C** | Two rules, no token. `data-columns`, already in the vocabulary |
 | 5 | Material has scope: a context can make a material the ground | **C** | One rule block, no token. `data-context="reader"` |
+| 6 | A view may scale and fade where its material draws no blur | **A** | The core held a Sindhorn constraint as universal. One keyframe, 3 tokens, and a gate that enforces the condition |
 | — | Miniature prose at caption scale | **free** | Existing token, existing variant word |
 | — | Meta at micro scale | **free** | Existing token, existing variant word |
 | — | A third blur weight | **not spent** | The rebuild renders on one |
@@ -105,6 +106,39 @@ the document's face, because the voice of a reading context is the document's.
 |---|---|---|
 | **A** | PASS | REJECTED — the document became an object inside the app |
 | **B** | PASS | *awaiting the owner* |
+
+## The first A: a motion law that was really a material law
+
+The core said it plainly, in `app-view.js` and beside the keyframes:
+
+> Nothing recedes, scales or parallaxes… Opacity, filter, mask or clip-path
+> defeats `backdrop-filter` and the glass flashes flat mid-move.
+
+That is true, measured in Chrome, and it is **not a law about motion**. It is a
+consequence of glass. Sindhorn's surfaces are frosted, so Sindhorn may not
+scale — and that was written into the core as though it held everywhere.
+
+Origarium's reader is opaque paper on a plain `rgba(8,9,11,.6)` scrim, with no
+`backdrop-filter` anywhere in the moving subtree. It has no frost to flatten,
+and the original springs: rise 42px, overshoot a little past rest, settle, on
+`cubic-bezier(.3,1.4,.4,1)` over 480ms. That overshoot is what makes a
+thumbnail feel like it *became* the page rather than being replaced by one —
+the e-ink reader opening, which is the design the product was built around.
+
+Classification **A** — a Sindhorn assumption that leaked into the core — and
+the first of that kind in this test. The repair is not to delete the rule,
+which is correct where it applies, but to make it state its condition:
+
+> A view may spring only where the material it carries declares no filter.
+
+**And the condition is enforced, not documented.** `idui-invariants-smoke.mjs`
+check 10 fails any constitution that gives its spring real travel while its
+document material carries a blur. Given Sindhorn a 42px spring, it reports:
+*springs 42px but its document material is `var(--app-glass-filter)`; a scaling
+surface may not carry a blur.*
+
+Verified in flight: at 120ms the reader sits at scale 1.007, 6px above rest —
+the overshoot — and the moving subtree contains zero backdrop-filters.
 
 ## Change propagation
 

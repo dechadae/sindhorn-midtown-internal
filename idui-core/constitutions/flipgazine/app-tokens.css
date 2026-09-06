@@ -115,6 +115,11 @@
   --motion-reveal:1200ms;
   --motion-view:300ms;
   --motion-view-travel:32px;
+  
+  /* Flipgazine is glass too; no spring. */
+  --motion-spring:var(--motion-view);
+  --motion-overshoot:var(--motion-ease-inout);
+  --motion-spring-travel:0px;
   --motion-ease:cubic-bezier(.22,1,.36,1);
   --motion-ease-inout:cubic-bezier(.4,0,.2,1);
   --motion-fade:linear;

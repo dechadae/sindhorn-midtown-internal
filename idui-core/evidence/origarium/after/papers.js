@@ -82,15 +82,24 @@ function open(index) {
   reader.hidden = false;
   archiveView.hidden = true;
   scrollTo(0, 0);
+  /* The thumbnail became the page: the reader rises, overshoots a little and
+     settles. The library runs it; the constitution decides whether it may. */
+  reader.removeAttribute('data-run');
+  reader.dataset.view = 'spring';
+  requestAnimationFrame(() => { reader.dataset.run = 'true'; });
 }
 
 document.addEventListener('click', event => {
   const opener = event.target.closest('[data-open]');
   if (opener) { open(Number(opener.dataset.open)); return; }
-  if (event.target.closest('[data-reader-close]')) { reader.hidden = true; archiveView.hidden = false; }
+  if (event.target.closest('[data-reader-close]')) close();
 });
-document.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && !reader.hidden) { reader.hidden = true; archiveView.hidden = false; }
-});
+function close() {
+  reader.hidden = true;
+  reader.removeAttribute('data-run');
+  reader.removeAttribute('data-view');
+  archiveView.hidden = false;
+}
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && !reader.hidden) close(); });
 
 document.documentElement.dataset.ready = 'true';

@@ -1021,6 +1021,32 @@ body[data-public] .app-masthead-home:active{transform:none}
 [data-view="cover"]{animation-name:app-view-cover-in}
 [data-view="dismiss"]{animation-name:app-view-dismiss-in}
 
+/* ---- and one that may scale, because its material does not blur ------------
+   The law above - nothing recedes, scales or fades - is not a law about
+   motion. It is a consequence of glass: opacity or scale on anything above a
+   backdrop-filter makes the frost flash flat mid-move, measured in Chrome.
+   Sindhorn's surfaces are glass, so Sindhorn may not scale. That was written
+   into the core as though it were universal, and it is not (Test 02, r45).
+
+   A surface whose material declares no filter has no frost to flatten. It may
+   spring: rise, overshoot a little past rest, settle. Origarium's reader does
+   exactly this - opaque paper on a plain scrim, no blur anywhere in the moving
+   subtree - and it is what makes a thumbnail feel like it became the page
+   rather than being replaced by one.
+
+   The condition is the contract: a view may spring only where the material it
+   carries declares --app-document-filter: none. A constitution whose document
+   is glass keeps the old restriction, and Sindhorn's does. */
+[data-view="spring"]{animation-name:app-view-spring-in;animation-duration:var(--motion-spring);animation-timing-function:var(--motion-overshoot)}
+@keyframes app-view-spring-in{
+  0%{opacity:0;transform:translateY(var(--motion-spring-travel)) scale(.965)}
+  62%{opacity:1;transform:translateY(-5px) scale(1.006)}
+  100%{opacity:1;transform:none}
+}
+@media (prefers-reduced-motion:reduce){
+  [data-view="spring"]{animation-name:none}
+}
+
 @keyframes app-view-push-in{from{transform:translateX(var(--motion-view-travel))}to{transform:none}}
 @keyframes app-view-pop-in{from{transform:translateX(calc(-1 * var(--motion-view-travel)))}to{transform:none}}
 @keyframes app-view-cover-in{from{transform:translateY(var(--motion-view-travel))}to{transform:none}}

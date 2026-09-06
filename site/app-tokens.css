@@ -150,6 +150,12 @@
   --motion-reveal:920ms;   /* a data track drawing itself in */
   --motion-view:300ms;     /* one page giving way to the next */
   --motion-view-travel:32px; /* how far off its place a page arrives from */
+  
+  /* Sindhorn's surfaces are glass, so it does not spring: the overshoot is
+     its plain curve and the travel is none. Answered because the core asks. */
+  --motion-spring:var(--motion-view);
+  --motion-overshoot:var(--motion-ease-inout);
+  --motion-spring-travel:0px;
   --motion-ease:cubic-bezier(.22,1,.36,1);
   --motion-ease-inout:ease-in-out; /* a page or a navbar set moving into place */
   --motion-fade:linear;

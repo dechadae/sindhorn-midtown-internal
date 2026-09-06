@@ -125,6 +125,12 @@
   --motion-reveal:700ms;
   --motion-view:320ms;
   --motion-view-travel:24px;
+  
+  /* The reader springs, because paper draws no blur: measured .48s on a
+     curve that overshoots, rising 42px. */
+  --motion-spring:480ms;
+  --motion-overshoot:cubic-bezier(.3,1.4,.4,1);
+  --motion-spring-travel:42px;
   --motion-ease:cubic-bezier(.22,1,.36,1);
   --motion-ease-inout:cubic-bezier(.4,0,.2,1);
   --motion-fade:linear;

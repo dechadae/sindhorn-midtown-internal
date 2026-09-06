@@ -30,6 +30,29 @@ const ROWS=['app-row','app-utility-row','app-action-card-actions','app-dialog-ac
 const NEITHER=['app-hero-head','app-dialog-actions'];
 const PRIMARY='app-primary',UTILITY='app-utility-action';
 
+/* 10 · a view may spring only where its material draws no blur.
+   Opacity or scale above a backdrop-filter flattens the frost mid-move, which
+   is why the core forbids both by default. A constitution that gives its
+   spring real travel is claiming its document material has no filter to
+   flatten; this checks the claim rather than trusting the comment (r45). */
+async function springSafety(){
+  const out=[];
+  const {readdir}=await import('node:fs/promises');
+  const dir=new URL('../idui-core/constitutions/',import.meta.url);
+  for(const entry of await readdir(dir,{withFileTypes:true})){
+    if(!entry.isDirectory())continue;
+    const css=await readFile(new URL(`${entry.name}/app-tokens.css`,dir),'utf8');
+    const travel=(css.match(/--motion-spring-travel\s*:\s*([^;}]+)/)||[])[1]?.trim();
+    const filter=(css.match(/--app-document-filter\s*:\s*([^;}]+)/)||[])[1]?.trim();
+    if(!travel)continue;
+    const springs=!/^0(px|rem|%)?$/.test(travel);
+    if(springs&&filter&&filter!=='none')
+      out.push({file:`constitutions/${entry.name}/app-tokens.css`,rule:'10 spring',
+        detail:`springs ${travel} but its document material is ${filter}; a scaling surface may not carry a blur`});
+  }
+  return out;
+}
+
 const findings=[];
 const note=(file,rule,detail)=>findings.push({file,rule,detail});
 
@@ -85,5 +108,6 @@ for(const path of ['../docs/idui/idui-body.html']){
   walk(await readFile(abs,'utf8'),relative(join(SITE,'..'),abs));
 }
 
+findings.push(...await springSafety());
 console.log(JSON.stringify({ok:findings.length===0,foundation:FOUNDATION.length,variants:VARIANTS,states:STATES,findings},null,2));
 if(findings.length)process.exitCode=1;
