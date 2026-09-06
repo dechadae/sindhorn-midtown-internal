@@ -56,12 +56,10 @@ await page.route('**/rest/v1/rpc/sindhorn_current_employee_profile', r => r.fulf
 await page.route(/supabase\.co\/rest\/v1\/(?!rpc\/sindhorn_current_employee_profile)/, r => r.fulfill({status: 200, contentType: 'application/json', body: '[]'}));
 await page.goto(`${base}/ci.html`, {waitUntil: 'networkidle'});
 await page.waitForTimeout(1200);
-/* A library page shows some things only when opened - a dialog built on click,
-   a select's menu, a disclosure's panel. Read it the way a person does. */
-for (const sel of ['[data-dialog-demo]', '.app-select-trigger', '.app-disclosure-toggle', '[data-open-dialog]', 'button.app-button']) {
-  for (const el of await page.$$(sel)) { await el.click({timeout: 800}).catch(() => {}); await page.waitForTimeout(120); }
-}
-await page.waitForTimeout(400);
+/* No interaction. A contract that has to click to find something is not
+   deterministic - this gate passed locally and failed in CI on exactly that,
+   because the clicks landed differently. If the library only shows a state
+   when someone opens it, the library does not show it: specimen it open. */
 const shown = await page.evaluate(() => {
   const classes = new Set(), variants = new Set();
   for (const el of document.querySelectorAll('*')) {

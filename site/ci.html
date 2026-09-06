@@ -234,6 +234,16 @@
     <p class="app-section-lede">Content stays in the DOM when collapsed, so search and screen readers still find it. The control owns <code>aria-expanded</code>.</p>
     <div class="ci-stack is-single">
       <div class="ci-specimen">
+        <div class="ci-specimen-label"><span>[data-open="true"]</span><span>the open state, shown open</span></div>
+        <div class="app-card app-surface app-disclosure" data-open="true">
+          <div class="app-card-section">
+            <div class="app-row"><h3 class="app-surface-title">A job with its description showing</h3><button class="app-disclosure-toggle" type="button" aria-expanded="true" aria-label="Hide description"><svg class="app-disclosure-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div>
+            <div class="app-disclosure-panel"><div><p class="app-surface-copy">The panel is a grid whose row goes to 1fr when the card is open, so it animates from nothing to its own height without a measured pixel value.</p></div></div>
+          </div>
+        </div>
+        <p class="app-note">The chevron and the panel key off <code>data-open</code>, not a class, so a card, a selector and a clamp all take the same state word.</p>
+      </div>
+      <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-disclosure</span><span>tap to expand</span></div>
         <article class="app-disclosure" data-disclosure>
           <button class="app-disclosure-button" type="button" aria-expanded="false">
