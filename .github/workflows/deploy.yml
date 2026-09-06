@@ -363,8 +363,7 @@ jobs:
 
 
       - name: Sign into the live shell with the CI test account
-        if: github.event_name == 'push'
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
           BASE_URL: https://sindhorn-midtown-internal.pages.dev

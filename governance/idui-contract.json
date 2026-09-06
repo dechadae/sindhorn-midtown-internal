@@ -268,8 +268,8 @@
         "assertions": 9
       },
       "scripts/contract-integrity.mjs": {
-        "sha256": "7aa6222bc23f2989",
-        "assertions": 10
+        "sha256": "384c8d21a4794527",
+        "assertions": 11
       }
     },
     "guardInvokes": [

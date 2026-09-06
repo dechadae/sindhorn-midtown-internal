@@ -89,6 +89,21 @@ else {
     if (now < want.assertions) findings.push(`${f}: ${want.assertions} checks recorded, ${now} present — a check was removed`);
   }
   for (const f of rec.guardInvokes) if (!workflow.includes(f)) findings.push(`${f}: the deploy guard no longer runs it`);
+  /* A duplicate key inside a step is accepted by most YAML readers - last one
+     wins - and rejected by the workflow parser, which fails the whole file and
+     runs nothing. r54 shipped exactly that: two `if:` keys on one step, a local
+     parse that passed for the wrong reason, and a guard that never ran. */
+  {
+    let step = null, seen = new Set();
+    workflow.split('\n').forEach((line, i) => {
+      const name = /^ {6}- name: (.+)$/.exec(line);
+      if (name) { step = name[1]; seen = new Set(); return; }
+      const key = /^ {8}([a-z-]+):/.exec(line);
+      if (!key || !step) return;
+      if (seen.has(key[1])) findings.push(`.github/workflows/deploy.yml line ${i + 1}: "${key[1]}" is defined twice on step "${step}" — the workflow parser rejects the file and nothing runs`);
+      seen.add(key[1]);
+    });
+  }
   const lim = rec.limits;
   if (vocab.primitiveRoots.length > lim.admittedRoots) findings.push(`admitted primitives grew ${lim.admittedRoots} → ${vocab.primitiveRoots.length} — admission is the owner's`);
   if (vocab.variantValues.length > lim.variantValues) findings.push(`admitted variant values grew ${lim.variantValues} → ${vocab.variantValues.length} — admission is the owner's`);
