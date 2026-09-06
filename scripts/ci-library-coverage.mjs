@@ -55,7 +55,14 @@ await page.route('**/rest/v1/rpc/sindhorn_current_employee_profile', r => r.fulf
   body: JSON.stringify({id: '00000000-0000-0000-0000-000000000001', employee_number: '10639', display_name: 'CI Developer', role: 'super_admin', account_type: 'developer', work_email: null, pin_configured_at: new Date().toISOString(), active: true})}));
 await page.route(/supabase\.co\/rest\/v1\/(?!rpc\/sindhorn_current_employee_profile)/, r => r.fulfill({status: 200, contentType: 'application/json', body: '[]'}));
 await page.goto(`${base}/ci.html`, {waitUntil: 'networkidle'});
-await page.waitForTimeout(1200);
+/* Wait for the page's own readiness flag, not a guessed number of
+   milliseconds. ci-library.js mounts specimens - including the QR it draws
+   with qrStyledSvg - and only then sets data-ready. A fixed timeout passed
+   locally and missed four classes on a slower runner, which is the same defect
+   as a contract that has to click: the check must observe a stated state, not
+   hope enough time has gone by. */
+await page.waitForSelector('.app-page[data-ready="true"]', {timeout: 30000});
+await page.waitForTimeout(200);
 /* No interaction. A contract that has to click to find something is not
    deterministic - this gate passed locally and failed in CI on exactly that,
    because the clicks landed differently. If the library only shows a state
