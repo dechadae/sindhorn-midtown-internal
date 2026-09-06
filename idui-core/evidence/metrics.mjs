@@ -85,3 +85,24 @@ export function propagation(sources){
   }
   return out;
 }
+
+/* The rendered probe: what the browser actually computed, as opposed to what
+   the source declared. Shared for the same reason the rest is. */
+export const RENDER=`(()=>{
+  const els=[...document.querySelectorAll('body *')].filter(e=>!e.closest('#bgLetters,#glCanvas,.environment-stage,script,style,svg'));
+  const vis=els.filter(e=>{const r=e.getBoundingClientRect();return r.width>0&&r.height>0});
+  const set=k=>{const s=new Map();for(const e of vis){const v=getComputedStyle(e)[k];s.set(v,(s.get(v)||0)+1)}return [...s].sort((a,b)=>b[1]-a[1])};
+  const bf=vis.map(e=>getComputedStyle(e).backdropFilter||getComputedStyle(e).webkitBackdropFilter).filter(v=>v&&v!=='none');
+  const nested=vis.filter(e=>{const f=getComputedStyle(e).backdropFilter;if(!f||f==='none')return false;let p=e.parentElement;while(p){const g=getComputedStyle(p).backdropFilter;if(g&&g!=='none')return true;p=p.parentElement}return false}).length;
+  const runtimeInline=[...document.querySelectorAll('[style]')].filter(e=>!e.closest('#bgLetters,.environment-stage')&&e.id!=='glCanvas').map(e=>e.tagName.toLowerCase()+(e.id?'#'+e.id:'')+'['+e.getAttribute('style').slice(0,60)+']');
+  const sheets=[...document.styleSheets].map(s=>({href:s.href?s.href.split('/').slice(-3).join('/'):(s.ownerNode&&s.ownerNode.id)||'inline',rules:(()=>{try{return s.cssRules.length}catch{return -1}})()}));
+  return {
+    elements:els.length, visible:vis.length,
+    fontSizes:set('fontSize'), fontWeights:set('fontWeight'), letterSpacings:set('letterSpacing'),
+    radii:set('borderRadius').filter(([v])=>v!=='0px'), lineHeights:set('lineHeight'),
+    colors:set('color'), backdropFilters:[...new Set(bf)], backdropCount:bf.length, nestedGlass:nested,
+    runtimeInline, sheets, docHeight:document.documentElement.scrollHeight,
+    fontFamily:getComputedStyle(document.body).fontFamily,
+    tokens:Object.fromEntries(['--accent','--bg','--text','--muted','--surface','--app-accent','--app-ground','--app-text'].map(k=>[k,getComputedStyle(document.documentElement).getPropertyValue(k).trim()]))
+  };
+})()`;
