@@ -1,4 +1,4 @@
-# IDUI Test 03 — Origarium Papers
+# IDUI Test 02 — Origarium Papers
 
 Frozen 6 September 2026, before the source was snapshotted and before any
 Origarium code existed. This file is committed on its own hash so that
@@ -206,3 +206,21 @@ four screenshots. Both were restored from git here.
 Consequence for this test: Origarium's before/after must be its own pinned run
 with its own stamp, and any comparison with Flipgazine's figures must state
 that they were measured against an earlier core.
+
+### A3 — 6 September 2026: renumbered to Test 02
+
+The owner set the series numbering: **01 Flipgazine, 02 Origarium, 03 Betta
+(generative), 04 Voice**. This document was written and committed as "Test 03"
+under an earlier numbering in which the r32a specimen transfer counted as 01.
+
+The heading is corrected rather than left wrong, because a document that
+misnames its own experiment is worse than one whose title moved. Nothing else
+is touched. The property that matters — that the predictions existed before the
+work — rests on the commit, not on the title: **P01–P05 were frozen in
+`828ee41`, before the source was snapshotted and before any Origarium code
+existed**, and that commit is unedited in history.
+
+The earlier r32a specimen transfer (`idui-core/evidence/transfer-smoke.mjs`,
+`specimens.html`) stays unnumbered. It predates the adversarial series and was
+self-confirming by design — IDUI markup rendered under a second constitution —
+so it reads as background to 01 rather than as a test of its own.

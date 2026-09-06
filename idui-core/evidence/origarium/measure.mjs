@@ -1,4 +1,4 @@
-/* Measures the Origarium "Papers" page — Test 03, before side.
+/* Measures the Origarium "Papers" page — Test 02, before side.
 
    The harness is Origarium's; the metric definitions are not. Everything that
    produces a number comes from ../metrics.mjs, the same module the Flipgazine
@@ -86,7 +86,7 @@ const html=await readFile(path.join(srcDir,'papers.html'),'utf8');
 const pageCss=[...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map(m=>m[1]).join('\n');
 
 const results={
-  test:'IDUI Test 03 — Origarium Papers',
+  test:'IDUI Test 02 — Origarium Papers',
   side:'before',
   measuredAt:new Date().toISOString(),
   source:{path:'/papers.html',version:59,characters:58319,md5:'7fc246e81d09a1e9a84488b5b068f15e'},

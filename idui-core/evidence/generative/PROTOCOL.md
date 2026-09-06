@@ -1,4 +1,4 @@
-# IDUI Test 04 — outside the interface
+# IDUI Test 03 — outside the interface
 
 Frozen 6 September 2026, before any result was measured. Nothing in this file
 may be edited once a baseline has been run; a change of mind is recorded as an
@@ -158,4 +158,10 @@ prediction of how the split should behave, not as a convenience.
 
 ## Amendments
 
-None.
+### A1 — 6 September 2026: renumbered to Test 03
+
+The owner set the series numbering: **01 Flipgazine, 02 Origarium, 03 Betta
+(generative), 04 Voice**. This document was written and committed as "Test 04".
+The heading is corrected; nothing else is. The predictions Q01–Q05 were frozen
+in **`93971ec`**, before any result was measured, and that commit is unedited in
+history.
