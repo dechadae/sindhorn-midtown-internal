@@ -70,6 +70,13 @@ export const CHANGES={
   'glass recipe':{prop:/^(-webkit-)?backdrop-filter$/,sel:/./,token:/^--app-glass-filter$/},
   'body face':{prop:/^font-family$/,sel:/./,token:/^--font-ui$/},
   'label weight':{prop:/^font-weight$/,sel:/eyebrow|nt|st|sy|chip|btn|brand|num|label/i,token:/^--weight-label$/},
+  /* Added for Test 02 and kept general, so any later test measures the same
+     three. An optional value matcher narrows a change to the declarations that
+     actually carry it - "the accent" is a colour, not every colour. Entries
+     without one behave exactly as before. */
+  'document material':{prop:/^(background|background-color)$/,sel:/./,value:/#(eae7dd|f6f2ea)|rgb\(\s*234/i,token:/^--app-document-fill$/},
+  'accent colour':{prop:/^(color|background|background-color|border-color)$/,sel:/./,value:/#d4ff1a|#c8ff2b|rgba?\(\s*212\s*,\s*255/i,token:/^--app-accent$/},
+  'reading measure':{prop:/^max-width$/,sel:/prose|read|paper|sheet|article/i,token:/^--measure-prose$/},
 };
 export function propagation(sources){
   const out={};
@@ -78,7 +85,7 @@ export function propagation(sources){
     for(const [src,css] of Object.entries(sources)){
       /* a literal declaration is one edit; a token definition is one edit;
          a declaration that consumes a token is none */
-      const hits=declarations(css).filter(d=>(c.prop.test(d.prop)&&c.sel.test(d.sel)&&!/var\(/.test(d.value)&&!/^(none|0|inherit)$/.test(d.value))||c.token.test(d.prop));
+      const hits=declarations(css).filter(d=>(c.prop.test(d.prop)&&c.sel.test(d.sel)&&(!c.value||c.value.test(d.value))&&!/var\(/.test(d.value)&&!/^(none|0|inherit)$/.test(d.value))||c.token.test(d.prop));
       out[name][src]=hits.length;
     }
     out[name].total=Object.values(out[name]).reduce((a,b)=>a+b,0);

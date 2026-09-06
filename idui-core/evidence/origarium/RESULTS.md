@@ -52,6 +52,40 @@ be a different material depending on what it **is**. Membership now answers
 "does this draw a surface" and one semantic variant answers "what surface is
 it"; the constitution decides what a document is made of.
 
+## Change propagation
+
+*Locations that must be edited for one named visual change.* Computed by the
+shared `propagation()` in `metrics.mjs`, so the five changes Test 01 measured
+are measured identically here.
+
+| Change | Before | After |
+|---|---|---|
+| Chip radius | 3 | **1** |
+| Label tracking | 9 | **1** |
+| Glass recipe | 8 | **1** |
+| Body face | 15 | **1** |
+| Label weight | 6 | **1** |
+| Reading measure | 3 | 2 |
+
+Three numbers deserve their caveats rather than a table row that flatters:
+
+- **Document material — 1 → 1, no improvement.** The shared matcher reported
+  0 → 1, which is an artifact: it cannot know a product's own token names, and
+  Origarium had already tokenised its paper colour as `--eink-bg`, declared
+  once with no literal uses. One edit before, one edit after. This is a place
+  the original was **already doing what IDUI asks**, and it is recorded as such
+  rather than dressed as a win.
+- **Accent colour — 2 → 1.** The original declares the lime twice, as `--lime`
+  and `--term-lime`, with no literal uses. Two tokens become one.
+- **Reading measure — 3 → 2.** The remaining two are core declarations, not
+  page ones. The matcher is the weakest of the eight, because "the measure of
+  running text" is expressed by several properties, and the number should be
+  read as indicative rather than exact.
+
+The five shared changes are the trustworthy ones, and they are unambiguous:
+**a visual decision that took three to fifteen edits in the page now takes
+one.**
+
 ## Core stability elsewhere — P05
 
 Enforced, not assessed. After every change:
