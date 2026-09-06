@@ -30,6 +30,8 @@
   --type-display:clamp(30px,8.5vw,44px);   /* existing hero clamp, unchanged */
 
   /* Line heights. Labels sit tight, running text breathes. */
+
+  --type-prose:var(--type-body);   /* reading size */
   --leading-tight:1.15;
   --leading-label:1.30;
   --leading-body:1.50;

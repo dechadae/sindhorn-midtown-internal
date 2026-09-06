@@ -536,11 +536,16 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
 /* Running text a person reads at length is its own role. Most products set it
    in the interface face and say so; one that sets long-form prose in a serif
    while its chrome stays a sans needs somewhere to say that, and this is it.
-   Sindhorn and Flipgazine answer var(--font-ui), and render unchanged (r41). */
+   Sindhorn and Flipgazine answer var(--font-ui), and render unchanged (r41).
+
+   Size travels with the face for the same reason: text meant to be read at
+   length is set larger than the interface around it, and by how much is the
+   constitution's to say. Both answer var(--type-body), which is what they
+   were already doing implicitly. */
 .app-prose{max-width:var(--measure-prose);display:grid;gap:14px;font-family:var(--font-prose)}
-.app-prose p{margin:0;font-size:var(--type-body);line-height:var(--leading-body)}
+.app-prose p{margin:0;font-size:var(--type-prose);line-height:var(--leading-body)}
 .app-prose h3{margin:8px 0 0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-tight)}
-.app-prose ul,.app-prose ol{margin:0;padding-left:var(--space-7);display:grid;gap:6px;font-size:var(--type-body);line-height:var(--leading-body)}
+.app-prose ul,.app-prose ol{margin:0;padding-left:var(--space-7);display:grid;gap:6px;font-size:var(--type-prose);line-height:var(--leading-body)}
 .app-prose strong,.app-prose b{font-weight:var(--weight-medium)}
 /* A link in running text or in a note is the accent; nothing else in the
    library lets the UA's blue through (r34). */
@@ -876,7 +881,14 @@ body[data-public] .app-masthead-home:active{transform:none}
 .app-section-lede{margin:10px 0 0;max-width:60ch;color:var(--app-muted);font-size:var(--type-body);line-height:var(--leading-body)}
 .app-row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--space-5)}
 .app-row[data-split="true"]{justify-content:space-between}
+/* Peers in a row rather than a column. The count is the author's semantic
+   claim - "these belong side by side, two across" - not a measurement, and it
+   does not collapse: a product that wants two on a phone gets two, the way an
+   archive of paper thumbnails does. Existing stacks name no count and are
+   unchanged (r41). */
 .app-stack{display:grid;gap:var(--space-5)}
+.app-stack[data-columns="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.app-stack[data-columns="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
 .app-section>.app-stack,
 .app-section>.app-card,
 .app-section>.app-row,

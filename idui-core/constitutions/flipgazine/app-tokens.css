@@ -29,6 +29,8 @@
   --type-section:clamp(20px,4.4vw,27px);
   --type-display:clamp(30px,7.4vw,52px);
 
+
+  --type-prose:var(--type-body);   /* reading size */
   --leading-tight:1.08;
   --leading-label:1.30;
   --leading-body:1.75;

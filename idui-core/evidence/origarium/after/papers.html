@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Papers — ORIGARIUM</title>
+<meta name="theme-color" content="#0e0f12">
+<!--
+  IDUI Test 02 — the Origarium archive and reader rebuilt on idui-core.
+
+  The page brings markup and behaviour and no presentation: no style block, no
+  style attribute, no class of its own. Every surface, size, colour and shape
+  comes from the six sheets below, and every value in them from
+  constitutions/origarium/, which was written from the rendered original.
+
+  The two things this page could not have said before r41 are the whole point
+  of the test. A paper is data-surface="document" - the markup saying what the
+  thing is, and the constitution deciding that a document here is opaque warm
+  paper rather than glass. And the reader's prose is .app-prose, which takes
+  the constitution's long-form face while the chrome around it stays the
+  interface face.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="../../../constitutions/origarium/fonts.css">
+<link rel="stylesheet" href="../../../app-glass.css">
+<link rel="stylesheet" href="../../../app-components.css">
+<link rel="stylesheet" href="../../../app-compositions.css">
+<link rel="stylesheet" href="../../../app-shell.css">
+<link rel="stylesheet" href="../../../constitutions/origarium/app-tokens.css">
+</head>
+<body>
+
+<header class="app-masthead">
+  <div class="app-masthead-home">ORIGARIUM</div>
+  <div class="app-masthead-tools">
+    <button class="app-chip app-control" type="button">Dream</button>
+    <button class="app-chip app-control" type="button" aria-current="page">Papers</button>
+  </div>
+</header>
+
+<main class="app-page is-shell" id="archive">
+  <header class="app-hero">
+    <p class="app-hero-eyebrow">Longer form</p>
+    <h1 class="app-hero-title">Papers</h1>
+    <p class="app-hero-copy">The essays that didn't fit in a log entry — read the way an e-reader shows them: matte, warm, and built to sit still on the page rather than sell you the next scroll.</p>
+  </header>
+
+  <section class="app-section">
+    <div class="app-stack" data-columns="2" data-papers></div>
+  </section>
+</main>
+
+<!-- The reader. A native dialog, which is the library's way of putting a
+     layer over the page: the scrim and the positioning are the primitive's,
+     the sheet inside it is a document, and its prose is .app-prose. -->
+<dialog class="app-dialog app-overlay" data-reader>
+  <div class="app-dialog-body">
+    <div class="app-dialog-head">
+      <span class="app-surface-label" data-reader-crumb></span>
+      <button class="app-close-control app-control" type="button" data-reader-close aria-label="Close">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>
+      </button>
+    </div>
+    <article class="app-card app-surface" data-surface="document" data-reader-sheet>
+      <div class="app-card-section">
+        <p class="app-surface-label" data-reader-eyebrow></p>
+        <h2 class="app-surface-title" data-reader-title></h2>
+      </div>
+      <div class="app-card-section">
+        <div class="app-prose" data-reader-body></div>
+      </div>
+    </article>
+  </div>
+</dialog>
+
+<script type="module" src="./papers.js"></script>
+</body>
+</html>
