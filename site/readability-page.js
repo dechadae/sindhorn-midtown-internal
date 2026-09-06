@@ -70,8 +70,8 @@ function cameraMarkup(period, style) {
   </div>`;
 }
 import { measureFrame, lowerReading, periodColors, ratioLabel, READABILITY_ROLES, READABILITY_MINIMUM } from './betta-readability.js';
+import { esc } from './app-html.js';
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
 /* The fade the runtime runs between periods; a reading starts after it. */
 const SETTLE_MS = 1100;

@@ -18,8 +18,8 @@ import { loadBusinessDashboard, readCachedDashboard } from './business-dashboard
 import { initAuth } from './auth-client.js';
 import { toggleDisclosure } from './app-disclosure.js';
 import { formatMoney as money, formatInteger as integer, formatPercent as percent, formatDate, formatDateTime } from './app-format.js';
+import { esc } from './app-html.js';
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const num = value => Number.isFinite(Number(value)) ? Number(value) : null;
 const directionOf = delta => delta === null || delta === undefined || Number.isNaN(delta) ? null : delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat';
 

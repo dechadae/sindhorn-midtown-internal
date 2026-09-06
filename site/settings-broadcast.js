@@ -18,14 +18,13 @@ import { openDialog, dialogHead, confirmDialog } from './app-dialog.js';
 import { showToast } from './app-toast.js';
 import { categoryLabel, priorityLabel, categoryOptions, priorityOptions } from './broadcast-inbox.js';
 import { formatDateTime } from './app-format.js';
+import { esc, state } from './app-html.js';
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
 const ROLES = [['employee', 'Employees'], ['supervisor', 'Supervisors'], ['manager', 'Managers'], ['admin', 'Admins'], ['super_admin', 'Super admins']];
 const ROLE_LABEL = Object.fromEntries(ROLES);
 const STATUS = { published: ['Published', ''], scheduled: ['Scheduled', 'quiet'], draft: ['Draft', 'quiet'], revoked: ['Revoked', 'danger'] };
 
-const state = (label, title, copy, tone = 'empty') => `<div class="app-state app-card" data-tone="${tone}"><p class="app-state-label">${esc(label)}</p><p class="app-state-title">${esc(title)}</p>${copy ? `<p class="app-state-copy">${esc(copy)}</p>` : ''}</div>`;
 const field = (id, name, label, value, { type = 'text', note = '', required = false, maxlength = 140, disabled = false, span = 'full' } = {}) =>
   `<div class="app-field"${span ? ` data-width="${span}"` : ''}><label for="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><input id="${id}" name="${name}" type="${type}" value="${esc(value ?? '')}"${type === 'text' ? ` maxlength="${maxlength}"` : ''} autocomplete="off"${required ? ' required' : ''}${disabled ? ' disabled' : ''}></div>`;
 const area = (id, name, label, value, { note = '', required = false, disabled = false } = {}) =>

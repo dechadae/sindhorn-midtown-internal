@@ -17,6 +17,7 @@
 import { businessCardUrl, businessCardVcfUrl, primaryPhone } from './business-card-core.js';
 import { qrStyledSvg } from './qr-v6.js';
 import { showToast } from './app-toast.js';
+import { esc, state } from './app-html.js';
 
 const SUPABASE_URL = 'https://sjpvhgxacsiorrtijqua.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_NcIExScIXkqsK1ZNNu5a-Q_zZ4afIHz';
@@ -24,7 +25,6 @@ const PUBLIC_RPC = 'sindhorn_public_business_card';
 export const HOTEL_NAME = 'Sindhorn Midtown Hotel Bangkok, Vignette Collection by IHG';
 export const HOTEL_LOGO = '/assets/brand/sindhorn-midtown-vignette-white.png';
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 export const telHref = value => { const raw = String(value || '').trim(); return raw ? `tel:${raw.startsWith('+') ? '+' : ''}${raw.replace(/\D/g, '')}` : ''; };
 const hostOf = url => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch (_) { return url; } };
 const brandLogo = path => /^\/assets\/brand\/[a-z0-9._-]+$/i.test(path || '') ? path : HOTEL_LOGO;
@@ -117,7 +117,6 @@ export async function shareCard(view, url) {
   showToast(await copyText(payload.url) ? 'Link copied' : 'Couldn\'t copy the link');
 }
 
-const state = (label, title, copy, tone = 'empty') => `<div class="app-state app-card" data-tone="${tone}"><p class="app-state-label">${esc(label)}</p><p class="app-state-title">${esc(title)}</p>${copy ? `<p class="app-state-copy">${esc(copy)}</p>` : ''}</div>`;
 const skeleton = () => `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line" data-size="square"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;
 
 function bootstrapCard() {

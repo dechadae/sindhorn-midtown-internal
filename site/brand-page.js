@@ -10,8 +10,8 @@ import { IHG_HISTORY_PERIODS, IHG_HISTORY_SOURCE } from './ihg-history-data.js';
 import { HOTEL_FACTSHEET, HOTEL_FACTSHEET_IMAGES, HOTEL_FACTSHEET_SOURCES, HOTEL_FACTSHEET_SOURCE_NOTES } from './hotel-factsheet-data.js';
 import { formatDate, formatClock } from './app-format.js';
 import { toggleDisclosure } from './app-disclosure.js';
+import { esc } from './app-html.js';
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
 const DISCLOSURE_CHEVRON = '<svg class="app-disclosure-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5l5 5-5 5"/></svg>';
 const LINK_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 11.5l3-3M7 13l-1.5 1.5a2.5 2.5 0 0 1-3.5-3.5L4.5 8.5a2.5 2.5 0 0 1 3.5 0M13 7l1.5-1.5a2.5 2.5 0 0 1 3.5 3.5L15.5 11.5a2.5 2.5 0 0 1-3.5 0"/></svg>';

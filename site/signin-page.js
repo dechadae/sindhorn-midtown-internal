@@ -12,8 +12,8 @@
 import { getState, signInWithPin, activate, setPermanentPin } from './auth-client.js';
 import { bindCode, codeValue, clearCode } from './app-code.js';
 import { toggleDisclosure } from './app-disclosure.js';
+import { esc } from './app-html.js';
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
 const COPY = {
   eyebrow: 'Employee access',

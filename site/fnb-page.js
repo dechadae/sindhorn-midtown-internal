@@ -19,8 +19,8 @@ import { formatDate, formatDateTime } from './app-format.js';
 import { loadFnbPromotions, readArtworkStatus, writeArtworkStatus, isArtworkEditor, readLocalLinks, writeLocalLinks, safeFolderUrl, parseUpdated } from './fnb-read-model.js';
 import { OUTLET_ORDER, artworkCopy } from './fnb-artwork-copy.js';
 import { toggleDisclosure } from './app-disclosure.js';
+import { esc, skeletonLine } from './app-html.js';
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const SECTIONS = [['overview', 'Overview'], ['brief', 'Brief'], ['copy', 'Copy'], ['artwork-copy', 'Artwork copy'], ['artwork', 'Artwork']];
 const SHARE_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v9M7 6l3-3 3 3M5 11v4a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-4"/></svg>';
@@ -109,27 +109,26 @@ function heroMarkup(copy, { action = '', note = '' } = {}) {
 }
 /* The skeleton is the page with its text taken out: the same hero, strip,
    filters and card anatomy, so nothing moves when the data lands. */
-const line = (width = '', size = '') => `<div class="app-skeleton-line"${width ? ` data-width="${width}"` : ''}${size ? ` data-size="${size}"` : ''}></div>`;
 function skeletonCard() {
   return `<article class="app-action-card"><div class="app-skeleton" data-compact="true">
-    <div class="app-action-card-head">${line('tiny')}${line('tiny')}</div>
-    ${line('medium', 'lead')}${line('half')}${line('short')}
-    <div class="app-action-card-meta">${line('tiny')}${line('tiny')}</div>${line('', 'track')}${line('')}
-  </div><div class="app-action-card-actions">${line('short')}${line('tiny')}</div></article>`;
+    <div class="app-action-card-head">${skeletonLine('tiny')}${skeletonLine('tiny')}</div>
+    ${skeletonLine('medium', 'lead')}${skeletonLine('half')}${skeletonLine('short')}
+    <div class="app-action-card-meta">${skeletonLine('tiny')}${skeletonLine('tiny')}</div>${skeletonLine('', 'track')}${skeletonLine('')}
+  </div><div class="app-action-card-actions">${skeletonLine('short')}${skeletonLine('tiny')}</div></article>`;
 }
 function skeletonMarkup() {
-  const metric = () => `<div class="app-metric"><div class="app-skeleton" data-compact="true">${line('medium')}${line('short', 'lead')}</div></div>`;
+  const metric = () => `<div class="app-metric"><div class="app-skeleton" data-compact="true">${skeletonLine('medium')}${skeletonLine('short', 'lead')}</div></div>`;
   return `${heroMarkup('Loading this season’s promotions…', { action: shareButton('page'), note: '<p class="app-note">Checking for the latest update…</p>' })}
   <section class="app-section" aria-busy="true">
     <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">${metric()}${metric()}${metric()}</div>
-    <div class="app-row"><div class="app-skeleton">${line('short')}${line('', 'control')}</div><div class="app-skeleton">${line('short')}${line('', 'control')}</div></div>
+    <div class="app-row"><div class="app-skeleton">${skeletonLine('short')}${skeletonLine('', 'control')}</div><div class="app-skeleton">${skeletonLine('short')}${skeletonLine('', 'control')}</div></div>
     <h3 class="app-section-subhead">Promotions</h3>
     <div class="app-stack">${skeletonCard()}${skeletonCard()}${skeletonCard()}</div>
   </section>`;
 }
 function detailSkeletonMarkup() {
-  const fact = () => `<div class="app-metric"><div class="app-skeleton" data-compact="true">${line('medium')}${line('short', 'lead')}</div></div>`;
-  const block = () => `<div class="app-card app-surface"><div class="app-skeleton">${line('tiny')}${line('')}${line('')}${line('medium')}</div></div>`;
+  const fact = () => `<div class="app-metric"><div class="app-skeleton" data-compact="true">${skeletonLine('medium')}${skeletonLine('short', 'lead')}</div></div>`;
+  const block = () => `<div class="app-card app-surface"><div class="app-skeleton">${skeletonLine('tiny')}${skeletonLine('')}${skeletonLine('')}${skeletonLine('medium')}</div></div>`;
   return `<header class="app-hero"><div class="app-hero-head"><button class="app-back-control app-control" type="button" data-back aria-label="Back to promotions"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button></div>
     <div class="app-skeleton"><div class="app-skeleton-line" data-width="tiny"></div><div class="app-skeleton-line" data-width="medium" data-size="title"></div><div class="app-skeleton-line" data-width="half" data-size="lead"></div></div></header>
   <nav class="app-rail" aria-label="Promotion sections" aria-busy="true">${SECTIONS.map(([id, label], i) => `<span class="app-chip app-control${i === 0 ? ' is-active' : ''}">${label}</span>`).join('')}</nav>

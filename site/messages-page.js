@@ -10,8 +10,8 @@ import { listMessages, markAllRead, clearAll, kindLabel } from './notification-i
 import { loadInbox, cachedInbox, markBroadcastsRead, categoryLabel, priorityLabel, preferredText, otherText } from './broadcast-inbox.js';
 import { formatDateTime } from './app-format.js';
 import { openDialog, dialogHead } from './app-dialog.js';
+import { esc } from './app-html.js';
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
 const hero = `<header class="app-hero"><p class="app-hero-eyebrow">Messages</p><h1 class="app-hero-title">Inbox</h1><p class="app-hero-copy">Broadcasts from the hotel and alerts delivered to this device.</p></header>`;
 const skeleton = `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;

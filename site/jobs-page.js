@@ -31,8 +31,8 @@ import { showToast } from './app-toast.js';
 import { formatDate, formatDateTime, daysUntil } from './app-format.js';
 import { toggleDisclosure } from './app-disclosure.js';
 import { sortDrag } from './app-drag-sort.js';
+import { esc, state, skeletonLine } from './app-html.js';
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const PLUS_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>';
 const CHEVRON_ICON = '<svg class="app-disclosure-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5l5 5-5 5"/></svg>';
 
@@ -43,9 +43,7 @@ const FILTERS = [['open', 'Open'], ['stuck', 'Stuck'], ['done', 'Done'], ['all',
 
 const hero = action => `<header class="app-hero"><div class="app-hero-head"><p class="app-hero-eyebrow">Jobs</p>${action}</div><h1 class="app-hero-title">Job Tracker</h1><p class="app-hero-copy">What was asked, who sent it, the deadline and where it stands.</p></header>`;
 const addAction = `<button class="app-utility-action" type="button" data-job-add>${PLUS_ICON}Add job</button>`;
-const line = (width = '', size = '') => `<div class="app-skeleton-line"${width ? ` data-width="${width}"` : ''}${size ? ` data-size="${size}"` : ''}></div>`;
-const skeleton = `<article class="app-card app-surface"><div class="app-skeleton" data-compact="true">${line('tiny')}${line('medium', 'lead')}${line('')}${line('half')}<div class="app-metric-grid" data-columns="2"><div class="app-metric">${line('tiny')}${line('short')}</div><div class="app-metric">${line('tiny')}${line('short')}</div></div></div></article>`;
-const state = (label, title, copy, tone = 'empty', attrs = '') => `<div class="app-state app-card" data-tone="${tone}"${attrs}><p class="app-state-label">${esc(label)}</p><p class="app-state-title">${esc(title)}</p>${copy ? `<p class="app-state-copy">${esc(copy)}</p>` : ''}</div>`;
+const skeleton = `<article class="app-card app-surface"><div class="app-skeleton" data-compact="true">${skeletonLine('tiny')}${skeletonLine('medium', 'lead')}${skeletonLine('')}${skeletonLine('half')}<div class="app-metric-grid" data-columns="2"><div class="app-metric">${skeletonLine('tiny')}${skeletonLine('short')}</div><div class="app-metric">${skeletonLine('tiny')}${skeletonLine('short')}</div></div></div></article>`;
 const field = (id, name, label, value, { type = 'text', note = '', required = false, maxlength = 160, span = '' } = {}) =>
   `<div class="app-field"${span ? ` data-width="${span}"` : ''}><label for="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><input id="${id}" name="${name}" type="${type}" value="${esc(value ?? '')}" maxlength="${maxlength}" autocomplete="off"${required ? ' required' : ''}></div>`;
 const textarea = (id, name, label, value) => `<div class="app-field" data-width="full"><label for="${id}">${esc(label)}</label><textarea id="${id}" name="${name}" rows="4" maxlength="4000">${esc(value ?? '')}</textarea></div>`;

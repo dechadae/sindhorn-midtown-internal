@@ -11,8 +11,8 @@ import { signOut } from './auth-client.js';
 import { loadSettingsAuthority, hasCapability } from './capabilities.js';
 import { confirmDialog } from './app-dialog.js';
 import { appSelect, bindAppSelects } from './app-select.js';
+import { esc, state } from './app-html.js';
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
 const LOGOUT_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 3H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h3M13 6l4 4-4 4M17 10H8"/></svg>';
 
@@ -28,7 +28,6 @@ const tabOf = () => { const tab = (location.hash.match(/^#settings\/([a-z]+)/) |
    one utility sits beside the eyebrow rather than at the foot of the page. */
 const signOutButton = () => `<button class="app-utility-action" type="button" data-settings-signout>${LOGOUT_ICON}Sign out</button>`;
 const hero = tab => `<header class="app-hero"><div class="app-hero-head"><p class="app-hero-eyebrow">${esc(TABS[tab].eyebrow)}</p>${tab === 'me' ? signOutButton() : ''}</div><h1 class="app-hero-title">${esc(TABS[tab].title)}</h1><p class="app-hero-copy">${esc(TABS[tab].copy)}</p></header>`;
-const state = (label, title, copy, tone = 'empty', attrs = '') => `<div class="app-state app-card" data-tone="${tone}"${attrs}><p class="app-state-label">${esc(label)}</p><p class="app-state-title">${esc(title)}</p>${copy ? `<p class="app-state-copy">${esc(copy)}</p>` : ''}</div>`;
 const fact = (label, value) => `<div class="app-metric"><span class="app-metric-label">${esc(label)}</span><span class="app-metric-value">${esc(value || '—')}</span></div>`;
 const skeleton = () => `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;
 

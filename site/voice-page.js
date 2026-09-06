@@ -9,6 +9,7 @@
 import { bindLibrary } from './ci-library.js';
 import { formatDate, formatDateRange, formatTime, formatDateTime, formatClock, formatMoney, formatPercent, formatCount } from './app-format.js';
 import { artworkCopy } from './fnb-artwork-copy.js';
+import { esc } from './app-html.js';
 
 const LIBRARY_URL = '/voice.html';
 const LIBRARY_CSS = '/ci-library.css?v=10';
@@ -67,7 +68,6 @@ const SPECIMEN_PROMOTION = {
     { id: 'lounge', outlet: 'The Lobby Lounge', time: 'TBC', discount: '20%', artworks: [] }
   ]
 };
-const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 
 function writeArtworkCopy(root) {
   const card = root.querySelector('[data-artwork-copy]'); if (!card) return;

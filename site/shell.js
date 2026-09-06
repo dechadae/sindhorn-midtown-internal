@@ -16,7 +16,7 @@
    then registers no service worker, opens no session, counts no inbox and
    mounts the one page the document is. Same stylesheets, same atmosphere,
    same page modules. */
-import { initAuth, getState, supabaseRpc } from './auth-client.js';
+import { initAuth, getState, supabaseRpc, hasStoredSession } from './auth-client.js';
 import { updateBadge } from './notification-inbox.js';
 import { loadInbox, serverUnread } from './broadcast-inbox.js';
 
@@ -155,6 +155,12 @@ const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* An employee is signed in once a session, a profile and a permanent code
    all exist; an activated account still choosing its code stays on sign-in. */
 const signedIn = () => { const state = getState(); return Boolean(state.authenticated && state.profile?.pin_configured_at); };
+/* Before auth answers, a device that already holds a session opens the page it
+   was using rather than a skeleton: the profile round trip decides what the
+   shell could have guessed from storage. The guess is only ever optimistic -
+   when auth lands unauthenticated the auth-changed listener routes to sign-in,
+   the same correction a session expiring mid-use already makes (r40). */
+const opening = () => !getState().initialized && hasStoredSession();
 
 const initials = name => {
   const words = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -165,7 +171,7 @@ const initials = name => {
 /* The hash names the wanted view; the gate decides what actually mounts. */
 const wantedName = () => { const name = (location.hash.match(/^#([a-z]+)/) || [])[1]; return ROUTES[name] ? name : 'today'; };
 const settingsTab = () => { const tab = (location.hash.match(/^#settings\/([a-z]+)/) || [])[1]; return SETTINGS_TABS.includes(tab) ? tab : 'me'; };
-const resolve = () => { if (PUBLIC) return PUBLIC; const name = wantedName(); if (!signedIn()) return 'signin'; if (DEVELOPER_ROUTES.has(name) && !isDeveloper()) { history.replaceState(null, '', '#settings/system'); return 'settings'; } return name === 'signin' ? 'today' : name; };
+const resolve = () => { if (PUBLIC) return PUBLIC; const name = wantedName(); if (!signedIn()) { if (!opening()) return 'signin'; if (DEVELOPER_ROUTES.has(name)) return 'today'; return name; } if (DEVELOPER_ROUTES.has(name) && !isDeveloper()) { history.replaceState(null, '', '#settings/system'); return 'settings'; } return name === 'signin' ? 'today' : name; };
 /* A view is a route plus, for Settings, its tab - so a tab change is a view change. */
 const viewOf = name => name === 'settings' ? `settings/${settingsTab()}` : name;
 
@@ -282,4 +288,10 @@ addEventListener('hashchange', route);
 host.innerHTML = `<header class="app-hero"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line" data-width="medium"></div></div></header>
 <section class="app-section"><div class="app-stack"><div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-block"></div></div></div></div></section>`;
 paintNavbar('signin');
-if (PUBLIC) route(); else initAuth().finally(() => { route(); refreshInbox(); });
+/* Route first when this device already holds a session, so the page paints
+   while auth is in flight instead of after it; auth then confirms it or the
+   auth-changed listener corrects to sign-in. A device with no session waits,
+   because there is nothing to guess (r40). */
+if (PUBLIC) route();
+else if (hasStoredSession()) { route(); initAuth().finally(() => { route(); refreshInbox(); }); }
+else initAuth().finally(() => { route(); refreshInbox(); });

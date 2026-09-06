@@ -17,8 +17,8 @@ import { openDialog, dialogHead, confirmDialog } from './app-dialog.js';
 import { qrStyledSvg } from './qr-v6.js';
 import { showToast } from './app-toast.js';
 import { formatDateTime, formatCount } from './app-format.js';
+import { esc, state } from './app-html.js';
 
-const esc = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const SEARCH_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="M13.2 13.2L17 17"/></svg>';
 const CLEAR_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>';
 
@@ -27,7 +27,6 @@ const ACCOUNT_TYPES = [['employee', 'Employee'], ['developer', 'Developer'], ['c
 const LANGUAGES = [['th', 'Thai'], ['en', 'English']];
 const ROLE_LABEL = Object.fromEntries(ROLES);
 const initials = name => String(name || '').trim().split(/\s+/).slice(0, 2).map(part => part[0] || '').join('') || '·';
-const state = (label, title, copy, tone = 'empty', attrs = '') => `<div class="app-state app-card" data-tone="${tone}"${attrs}><p class="app-state-label">${esc(label)}</p><p class="app-state-title">${esc(title)}</p>${copy ? `<p class="app-state-copy">${esc(copy)}</p>` : ''}</div>`;
 const field = (id, name, label, value, { type = 'text', note = '', required = false, maxlength = 120, autocomplete = 'off', inputmode = '', disabled = false, span = '' } = {}) =>
   `<div class="app-field"${span ? ` data-width="${span}"` : ''}><label for="${id}">${esc(label)}${note ? ` <span>${esc(note)}</span>` : ''}</label><input id="${id}" name="${name}" type="${type}" value="${esc(value ?? '')}" maxlength="${maxlength}" autocomplete="${autocomplete}"${inputmode ? ` inputmode="${inputmode}"` : ''}${required ? ' required' : ''}${disabled ? ' disabled' : ''}></div>`;
 const check = (name, label, checked) => `<label class="app-check" data-mode="option"><input type="checkbox" name="${esc(name)}"${checked ? ' checked' : ''}><span class="app-check-box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg></span><span class="app-check-label">${esc(label)}</span></label>`;

@@ -45,6 +45,12 @@ export async function supabaseRpc(name,params={}, {accessToken=session?.access_t
 
 export function getState(){return{initialized,authenticated:Boolean(session&&profile),session:session?{expires_at:session.expires_at,user:session.user}:null,profile:profile?structuredClone(profile):null,authBackend:'supabase'}}
 export function getAccessToken(){return session?.access_token||null}
+/* Whether this device holds a session, answered from storage without a
+   network call. The shell asks before auth has finished so it can open the
+   page an employee was already using instead of waiting a round trip to be
+   told what it could have guessed (r40). A stored session is a strong hint,
+   never a grant: every RPC still proves it. */
+export function hasStoredSession(){return Boolean(session||loadStored())}
 export function getProfile(){return profile?structuredClone(profile):null}
 
 export async function refreshSession({force=false}={}){
