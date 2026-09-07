@@ -177,3 +177,20 @@ It is left alone rather than renumbered a second time: the heading is not where
 the meaning lives, and churning it again would cost more than the ambiguity. If
 this test resumes it takes the next free number in whatever series it belongs
 to. Q01–Q05 remain frozen in `93971ec`.
+
+### A3 — 7 September 2026: resumed as Test 04, on a new platform
+
+The owner has resumed this test. Per A2's deferred clause — "if this test
+resumes it takes the next free number in whatever series it belongs to" — and
+with Apple now holding 03 in the interface-rebuild series, this test is
+**Test 04**.
+
+It resumes as a new, standalone Android native live wallpaper app (Kotlin,
+`WallpaperService`, OpenGL ES) — not part of the Sindhorn Midtown Internal app,
+sharing no code with it, and **not** a continuation of the JS `betta-random-2.js`
+sequence described above in this file; that sequence was never run. The claim
+under test is the same one frozen in `93971ec` and reproduced at the top of
+this file; Q01–Q05 remain frozen there and are read by the new work as
+background, not as a task list it executes. Evidence for the Android test is
+collected in the new app's own repository, under the same evidence-law
+discipline as Tests 01–03.

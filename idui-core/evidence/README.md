@@ -11,17 +11,20 @@ before implementation" is checkable rather than asserted.
 | **03** | Apple | Three modules of the homepage, no Apple imagery or type | Protocol frozen | `79d34cd` |
 
 Those three are the interface rebuilds, and they are what the `/idui` footer
-lists. Two further tests are **on hold** (owner, 6 Sep 2026):
+lists. One further test is **on hold** (owner, 6 Sep 2026):
 
 | Test | Subject | State | Frozen at |
 |---|---|---|---|
-| Betta | The generator: design with no UI in it | Protocol frozen, on hold | `93971ec` |
 | Voice | Editorial voice transfer | On hold | — |
 
-The Betta protocol's heading still says "Test 03" from an earlier numbering.
-It is deliberately not renumbered again — the heading is not where the meaning
-lives, and the commit that froze its predictions is unedited. If it resumes it
-takes the next free number then.
+**04 Betta** resumed 7 September 2026 as a new, standalone Android native live
+wallpaper app — its own repository, no code shared with this one — testing the
+same claim frozen at `93971ec` on a platform with no CSS, no DOM and no
+stylesheet cascade. Its protocol's heading still reads "Test 03" from the
+numbering scheme before this one; that is deliberately left alone (the heading
+is not where the meaning lives, and the commit that froze its predictions is
+unedited) and the renumbering to 04 is recorded as amendment A3 in
+`idui-core/evidence/generative/PROTOCOL.md`, not as an edit to the frozen text.
 
 Tests 02 and 03 were written under an earlier numbering, as "Test 03" and
 "Test 04", when the r32a specimen transfer counted as 01. Their headings were
@@ -43,7 +46,9 @@ test of its own.
   historical run**: re-running `measure.mjs` overwrites them and no longer
   reproduces them, because the core has grown since r33.
 - `origarium/` — Test 02.
-- `generative/` — Test 03.
+- `generative/` — Test 04's frozen protocol only. The resumed Android
+  implementation and its own evidence live in that app's own repository, not
+  here (see `PROTOCOL.md` amendment A3).
 
 ## Operational trials
 
