@@ -166,22 +166,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-disclosure-detail span{display:block;margin-bottom:6px;color:var(--app-accent);font-size:var(--type-small);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 .app-disclosure-detail ul{margin:0;padding-left:18px;display:grid;gap:var(--space-2)}
 
-/* ---- Sortable list ---------------------------------------------------------
-   A list whose order is the employee's own. The lifted item is the only thing
-   that changes: it rises on the same material, its siblings slide under it.
-   The list suppresses text selection and the browser's own touch panning only
-   while a drag is live, so ordinary scrolling and copying are untouched. The
-   lifted item's material - the overlay weight it takes while it floats over
-   its siblings - is app-glass.css's, like every other fill. */
-[data-sortable][data-dragging="true"]{touch-action:none;user-select:none;-webkit-user-select:none}
-[data-sortable]>[data-dragging="true"]{
-  position:relative;z-index:2;
-  transform:scale(1.02);
-  transition:transform var(--motion-fast) var(--motion-ease);
-}
-[data-sortable][data-dragging="true"]>:not([data-dragging="true"]){transition:transform var(--motion-ms) var(--motion-ease)}
 @media (prefers-reduced-motion:reduce){
-  [data-sortable]>[data-dragging="true"]{transform:none}
 }
 
 /* ---- Form field ------------------------------------------------------------

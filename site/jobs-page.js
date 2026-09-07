@@ -20,9 +20,14 @@
    Update - and only the description folds behind the arrow at the top right.
    The card stays a card and takes the disclosure's panel through the open
    variant, because its foot has controls of its own and it cannot itself be
-   a button. Press and hold a card to reorder the list;
-   sindhorn_jobs has carried sort_order and sindhorn_jobs_reorder_v1 since
-   r21, so the order is the employee's own and it follows them to any device.
+   a button. The list lays out two-up above 700px.
+
+   r61 removed press-and-hold reordering. It was the shell's one drag gesture
+   and it computed its drop position from the vertical midpoint alone, which
+   two columns make meaningless - two cards share a band. The order is the one
+   the server returns; sindhorn_jobs keeps sort_order and
+   sindhorn_jobs_reorder_v1, untouched, so a reorder could be given a
+   different gesture later without a migration.
    Which cards are open is this device's business and is not saved. */
 import { supabaseRpc } from './auth-client.js';
 import { appSelect, appSelectValue, setAppSelectValue, bindAppSelects } from './app-select.js';
@@ -30,7 +35,6 @@ import { openDialog, dialogHead, confirmDialog } from './app-dialog.js';
 import { showToast } from './app-toast.js';
 import { formatDate, formatDateTime, daysUntil } from './app-format.js';
 import { toggleDisclosure } from './app-disclosure.js';
-import { sortDrag } from './app-drag-sort.js';
 import { esc, state, skeletonLine } from './app-html.js';
 
 const PLUS_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>';
@@ -117,7 +121,7 @@ function listMarkup(jobs, filter, canManage, updatedAt) {
   if (!jobs.length) return `${hero(canManage ? addAction : '')}<section class="app-section"><div class="app-stack">${state('Empty', 'No jobs yet', canManage ? 'Add a job when someone asks you for something, and it stays here until it is done.' : 'Jobs added to your list will appear here.')}</div></section>`;
   const empty = { open: ['Nothing open', 'Everything on your list is stuck or done.'], stuck: ['Nothing stuck', 'No job is waiting on someone else.'], done: ['Nothing done yet', 'Finished jobs will collect here.'], all: ['No jobs', ''] }[filter];
   const note = updatedAt ? `<div class="app-utility-row"><span class="app-utility-note">Updated ${esc(stampLabel(updatedAt))} · ${jobs.length} ${jobs.length === 1 ? 'job' : 'jobs'} on the list</span></div>` : '';
-  return `${hero(canManage ? addAction : '')}${rail}<section class="app-section"><div class="app-stack"${canManage ? ' data-sortable="true"' : ''}>${shown.length ? shown.map(job => cardMarkup(job, canManage, openJobs.has(job.id))).join('') : state(empty[0], empty[0], empty[1])}${note}</div></section>`;
+  return `${hero(canManage ? addAction : '')}${rail}<section class="app-section"><div class="app-stack" data-columns="2">${shown.length ? shown.map(job => cardMarkup(job, canManage, openJobs.has(job.id))).join('') : state(empty[0], empty[0], empty[1])}${note}</div></section>`;
 }
 
 function dialogMarkup(job) {
@@ -149,6 +153,18 @@ export async function mountJobs(host) {
   try { filter = sessionStorage.getItem('sindhorn.jobs.filter') || 'open'; } catch (_) {}
   if (!FILTERS.some(([key]) => key === filter)) filter = 'open';
 
+/* The order is the received date, oldest first, since r61 - the employee's own
+   order went with the drag gesture, and a frozen manual order reads as
+   arbitrary once nobody can change it. Oldest first because this is a list of
+   work still owed: the request that has waited longest, and the deadline most
+   likely to be overdue, belong at the top. A job with no received date sorts
+   last rather than first, because an absent date is not an old one, and the id
+   breaks ties so the order never depends on what the server happened to
+   return. */
+const byReceived = list => [...list].sort((a, z) =>
+  String(a.receivedOn || '9999-12-31').localeCompare(String(z.receivedOn || '9999-12-31'))
+  || String(a.id).localeCompare(String(z.id)));
+
   const paint = () => { if (alive) host.innerHTML = listMarkup(jobs, filter, canManage, updatedAt); };
 
   async function load() {
@@ -163,7 +179,7 @@ export async function mountJobs(host) {
       return;
     }
     if (!alive) return;
-    jobs = Array.isArray(result?.jobs) ? result.jobs : [];
+    jobs = byReceived(Array.isArray(result?.jobs) ? result.jobs : []);
     canManage = Boolean(result?.canManage);
     updatedAt = result?.updatedAt || null;
     paint();
@@ -233,34 +249,7 @@ export async function mountJobs(host) {
     }
   } });
 
-  /* Reordering saves the whole visible order through the RPC that has been
-     waiting since r21. A failure repaints from what the server still holds. */
-  const commitOrder = async ids => {
-    const before = jobs.slice();
-    const rank = new Map(ids.map((id, i) => [id, i]));
-    jobs.sort((a, z) => (rank.get(a.id) ?? Infinity) - (rank.get(z.id) ?? Infinity));
-    try {
-      await supabaseRpc('sindhorn_jobs_reorder_v1', { p_ids: ids });
-      if (alive) showToast('Order saved');
-    } catch (error) {
-      if (!alive) return;
-      jobs = before;
-      paint();
-      showToast(explain(error), { duration: 4000 });
-    }
-  };
-  sortDrag(host, {
-    item: '[data-job]',
-    // A press that lands on the status selector, the arrow or a button is that
-    // control's, never a lift.
-    handleFrom: target => !target.closest('.app-select, button, a'),
-    onCommit: commitOrder,
-    signal,
-  });
-
   host.addEventListener('click', event => {
-    // The release that ended a drag is not a tap.
-    if (event.target.closest('[data-dragged]')) return;
     const toggled = toggleDisclosure(event.target);
     if (toggled) { const id = toggled.root.dataset.job; if (id) { if (toggled.open) openJobs.add(id); else openJobs.delete(id); } return; }
     const chip = event.target.closest('[data-job-filter]');

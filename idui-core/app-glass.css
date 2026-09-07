@@ -107,11 +107,6 @@
   -webkit-backdrop-filter:var(--app-glass-filter);
 }
 
-/* A lifted item floats over the list it came from rather than sitting on the
-   atmosphere, so for as long as it is held it takes the overlay weight - the
-   same one a sheet and a menu take. One material, the heavier of its two
-   weights, for the one moment the item is above the page (r35). */
-[data-sortable]>[data-dragging="true"]{background-color:var(--app-glass-overlay-fill)}
 
 /* A card inside a card cannot sample the page - see THE RULE above - so it
    keeps the tint and drops the blur. Structural, so no guard is needed to

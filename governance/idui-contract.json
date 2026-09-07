@@ -109,7 +109,6 @@
         "compact",
         "context",
         "direction",
-        "dragging",
         "icon",
         "mode",
         "open",
@@ -133,7 +132,6 @@
         "direction=down",
         "direction=flat",
         "direction=up",
-        "dragging=true",
         "icon=close",
         "icon=messages",
         "icon=off",
@@ -248,7 +246,7 @@
         "assertions": 2
       },
       "scripts/page-centralization-audit.mjs": {
-        "sha256": "92fe23107f52e2f8",
+        "sha256": "6eed346bf287a329",
         "assertions": 12
       },
       "scripts/idui-constitution-completeness.mjs": {
@@ -295,8 +293,8 @@
     ],
     "limits": {
       "admittedRoots": 50,
-      "variantValues": 63,
-      "variantAttributes": 19,
+      "variantValues": 62,
+      "variantAttributes": 18,
       "exceptions": {
         "scripts/page-centralization-audit.mjs": 2,
         "scripts/ci-library-coverage.mjs": 6
