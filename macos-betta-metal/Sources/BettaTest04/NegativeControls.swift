@@ -47,17 +47,15 @@ enum NegativeControls {
         let base = baseline(constitution: constitution)
 
         // Fully transparent: nothing reaches the frame at all.
-        let invisible = GeneratedStyle(
-            seed: base.seed, baseHueDeg: base.baseHueDeg, accentHueDeg: base.accentHueDeg,
-            baseSaturation: base.baseSaturation, baseLightness: base.baseLightness,
-            accentLightness: base.accentLightness, backgroundLightness: base.backgroundLightness,
-            motionSpeed: base.motionSpeed, motionAmplitude: base.motionAmplitude,
-            turbulence: base.turbulence, currentStrength: base.currentStrength,
-            opacity: 0.0, transmission: base.transmission,
-            rimStrength: base.rimStrength, bloom: base.bloom,
-            spread: base.spread, foldDensity: base.foldDensity, curl: base.curl,
-            twist: base.twist, edgeFlutter: base.edgeFlutter, depth: base.depth
-        )
+        var invisible = base
+        invisible.opacity = 0.0
+        // A flat ground too, so the frame really is empty. With a gradient
+        // ground the difference between "no organism" and "no picture" is the
+        // ground itself - which is the point of building it.
+        invisible.groundSaturation = 0.0
+        invisible.groundLightnessA = 0.02
+        invisible.groundLightnessB = 0.02
+        invisible.groundVignette = 0.0
 
         // Form and ground at one lightness, with the shading model tuned to
         // pass the base colour through unchanged.
@@ -68,17 +66,21 @@ enum NegativeControls {
         // against a 0.5 ground - genuinely distinguishable, and the check was
         // right to say so. Camouflage needs transmission=1 so the coefficient
         // sums to 1, and a near-zero depth so the fold term stops adding light.
-        let camouflaged = GeneratedStyle(
-            seed: base.seed, baseHueDeg: base.baseHueDeg, accentHueDeg: base.accentHueDeg,
-            baseSaturation: 0.0, baseLightness: 0.5,
-            accentLightness: 0.5, backgroundLightness: 0.5,
-            motionSpeed: base.motionSpeed, motionAmplitude: base.motionAmplitude,
-            turbulence: base.turbulence, currentStrength: base.currentStrength,
-            opacity: 1.0, transmission: 1.0,
-            rimStrength: 0.0, bloom: 0.0,
-            spread: base.spread, foldDensity: base.foldDensity, curl: base.curl,
-            twist: base.twist, edgeFlutter: base.edgeFlutter, depth: 0.001
-        )
+        var camouflaged = base
+        camouflaged.saturation = 0.0
+        camouflaged.lightness0 = 0.5
+        camouflaged.lightness1 = 0.5
+        camouflaged.lightness2 = 0.5
+        camouflaged.lightness3 = 0.5
+        camouflaged.opacity = 1.0
+        camouflaged.transmission = 1.0
+        camouflaged.rimStrength = 0.0
+        camouflaged.bloom = 0.0
+        camouflaged.depth = 0.001
+        camouflaged.groundSaturation = 0.0
+        camouflaged.groundLightnessA = 0.5
+        camouflaged.groundLightnessB = 0.5
+        camouflaged.groundVignette = 0.0
 
         return [
             Control(

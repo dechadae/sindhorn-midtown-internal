@@ -16,13 +16,44 @@ struct Bounds: Codable, Equatable {
     }
 }
 
+/// Four stops: 0-1 a dark-to-mid base family, 2-3 a bright-to-pale accent
+/// family. That is the structure the locked palettes actually have - not a
+/// monotonic ramp but two hue families - so the constitution declares it
+/// rather than inventing a different one.
 struct PaletteRanges: Codable {
     let baseHueDeg: Bounds
     let accentHueOffsetDeg: Bounds
-    let baseSaturation: Bounds
-    let baseLightness: Bounds
-    let accentLightness: Bounds
-    let backgroundLightness: Bounds
+    let saturation: Bounds
+    let accentSaturationScale: Bounds
+    let lightness0: Bounds
+    let lightness1: Bounds
+    let lightness2: Bounds
+    let lightness3: Bounds
+}
+
+/// The ground is a place, not a fill: three stops composed by a radial falloff,
+/// a sweep and a vignette. A frame whose organism is cropped almost entirely
+/// away can still be a good wallpaper, but only if what remains is atmosphere.
+struct GroundRanges: Codable {
+    let hueOffsetDeg: Bounds
+    let hueSpreadDeg: Bounds
+    let saturation: Bounds
+    let lightnessEnd: Bounds
+    let minimumSpread: Bounds
+    let midBias: Bounds
+    let centerX: Bounds
+    let centerY: Bounds
+    let sweepAngleDeg: Bounds
+    let vignette: Bounds
+}
+
+struct FormRanges: Codable {
+    let spread: Bounds
+    let foldDensity: Bounds
+    let curl: Bounds
+    let twist: Bounds
+    let edgeFlutter: Bounds
+    let depth: Bounds
 }
 
 struct MotionRanges: Codable {
@@ -36,32 +67,67 @@ struct MaterialRanges: Codable {
     let opacity: Bounds
     let transmission: Bounds
     let rimStrength: Bounds
+    let foldHighlight: Bounds
+    let iridescence: Bounds
     let bloom: Bounds
 }
 
-struct FormRanges: Codable {
-    let spread: Bounds
-    let foldDensity: Bounds
-    let curl: Bounds
-    let twist: Bounds
-    let edgeFlutter: Bounds
-    let depth: Bounds
+/// Grading multipliers. These sit well above 1 in the engine - brightness
+/// around 1.75, saturation around 1.3 - and their absence from earlier versions
+/// is a large part of why output rendered flat.
+struct GradingRanges: Codable {
+    let saturation: Bounds
+    let brightness: Bounds
+    let gradientPosition: Bounds
 }
 
-/// The constitution: palette, motion envelope and material of light, as ranges.
-/// Deliberately silent on framing (fixed, never sampled) and on live external
-/// input (there is none at this stage).
-///
-/// This is byte-identical to the file the Android core reads. One shared JSON
-/// file consumed by two independent implementations is what makes portability
-/// measurable rather than asserted - the frozen protocol names cross-platform
-/// determinism as a contract in its own right.
+/// The fine-structure controls. These are what give the membrane its ray
+/// definition, vein and grain; a constitution that omits them cannot produce
+/// the engine's look however well it handles colour.
+struct DetailRanges: Codable {
+    let rayCount: Bounds
+    let microFold: Bounds
+    let rayDefinition: Bounds
+    let edgeRuffle: Bounds
+    let veinStrength: Bounds
+    let membraneGrain: Bounds
+    let fineFlutter: Bounds
+    let normalDetail: Bounds
+}
+
+/// Two membranes, front and back. The overlap between them is where the
+/// engine's depth comes from.
+struct LayerRanges: Codable {
+    let backScale: Bounds
+    let backAlpha: Bounds
+    let frontAlpha: Bounds
+    let phaseOffset: Bounds
+    let seedOffset: Bounds
+}
+
+/// The constitution: the whole space a seed may select within, and nothing
+/// else. Framing is absent - it comes from the owner's locked compositions.
+/// Live input is absent - there is none at this stage.
 struct Constitution: Codable {
     let version: Int
     let palette: PaletteRanges
+    let ground: GroundRanges
+    let form: FormRanges
     let motion: MotionRanges
     let material: MaterialRanges
-    let form: FormRanges
+    let grading: GradingRanges
+    let detail: DetailRanges
+    let layers: LayerRanges
+
+    /// The shading modes the engine implements. A seed selects among declared
+    /// modes; it never invents one.
+    private let _morphModes: [Double]
+    var morphModes: [Double] { _morphModes }
+
+    enum CodingKeys: String, CodingKey {
+        case version, palette, ground, form, motion, material, grading, detail, layers
+        case _morphModes = "_morphModes"
+    }
 
     static func load(from url: URL) throws -> Constitution {
         try JSONDecoder().decode(Constitution.self, from: Data(contentsOf: url))

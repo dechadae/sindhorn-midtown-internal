@@ -62,14 +62,18 @@ func runTierA(count: UInt64) {
 
 func dumpSeeds(count: UInt64) {
     let constitution = loadConstitution()
-    print("seed,baseHueDeg,accentHueDeg,baseSaturation,baseLightness,accentLightness,backgroundLightness,motionSpeed,motionAmplitude,turbulence,currentStrength,opacity,transmission,rimStrength,bloom,spread,foldDensity,curl,twist,edgeFlutter,depth")
+    print("seed,baseHueDeg,accentHueDeg,saturation,lightness0,lightness1,lightness2,lightness3,groundLightnessA,groundLightnessB,motionSpeed,motionAmplitude,turbulence,currentStrength,opacity,transmission,rimStrength,foldHighlight,iridescence,bloom,gradingSaturation,brightness,spread,foldDensity,curl,twist,edgeFlutter,depth,rayCount,rayDefinition,veinStrength,morphMode")
     for seed in 0..<count {
         let s = SeedSampler.generate(seed: seed, constitution: constitution)
         let values: [Double] = [
-            s.baseHueDeg, s.accentHueDeg, s.baseSaturation, s.baseLightness, s.accentLightness,
-            s.backgroundLightness, s.motionSpeed, s.motionAmplitude, s.turbulence, s.currentStrength,
-            s.opacity, s.transmission, s.rimStrength, s.bloom, s.spread, s.foldDensity, s.curl,
-            s.twist, s.edgeFlutter, s.depth,
+            s.baseHueDeg, s.accentHueDeg, s.saturation,
+            s.lightness0, s.lightness1, s.lightness2, s.lightness3,
+            s.groundLightnessA, s.groundLightnessB,
+            s.motionSpeed, s.motionAmplitude, s.turbulence, s.currentStrength,
+            s.opacity, s.transmission, s.rimStrength, s.foldHighlight,
+            s.iridescence, s.bloom, s.gradingSaturation, s.brightness,
+            s.spread, s.foldDensity, s.curl, s.twist, s.edgeFlutter, s.depth,
+            s.rayCount, s.rayDefinition, s.veinStrength, s.morphMode,
         ]
         // Raw IEEE-754 bit patterns, not decimal text. Java's %g and C's %g
         // differ in trailing-zero and exponent handling, so a decimal diff
@@ -91,9 +95,9 @@ let frozenMoments: [Double] = [0, 1.7, 4.1, 9.3, 21.0]
 
 func runNegativeControls() {
     let constitution = loadConstitution()
-    let renderer: OffscreenRenderer
+    let renderer: EngineRenderer
     do {
-        renderer = try OffscreenRenderer()
+        renderer = try EngineRenderer()
     } catch {
         FileHandle.standardError.write("Renderer unavailable: \(error)\n".data(using: .utf8)!)
         exit(2)
@@ -155,6 +159,37 @@ case "--dump-seeds":
     dumpSeeds(count: requestedCount ?? 1_000)
 case "--negative-controls":
     runNegativeControls()
+case "--taste-set":
+    let seedsPath = arguments.dropFirst().first ?? "seeds.json"
+    let outPath = arguments.dropFirst(2).first ?? "taste-set"
+    let constitution = loadConstitution()
+    do {
+        let seeds = try TierB.loadSeeds(path: seedsPath)
+        let compositions = try LockedCompositions.load()
+        let renderer = try EngineRenderer()
+        let outDir = URL(fileURLWithPath: outPath)
+        // Landscape: the eight locked compositions were tuned for a Mac display.
+        let surface = Surface(name: "mac-landscape", width: 1600, height: 1000)
+        let manifest = try TasteSet.build(
+            seeds: seeds,
+            constitution: constitution,
+            compositions: compositions,
+            renderer: renderer,
+            surface: surface,
+            perComposition: 5,
+            outputDirectory: outDir
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        try encoder.encode(manifest).write(to: outDir.appendingPathComponent("manifest.json"))
+        FileHandle.standardError.write(
+            "wrote \(manifest.count) frames to \(outDir.path)\n".data(using: .utf8)!
+        )
+        print("\(manifest.count) frames, manifest at \(outDir.appendingPathComponent("manifest.json").path)")
+    } catch {
+        FileHandle.standardError.write("Taste set failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
 case "--fingerprints":
     // P3 asks for determinism across process restarts, which an in-process
     // double render cannot answer. Run this twice and diff the output.
@@ -163,13 +198,13 @@ case "--fingerprints":
     let constitution = loadConstitution()
     do {
         let seeds = try TierB.loadSeeds(path: seedsPath).prefix(limit)
-        let renderer = try OffscreenRenderer()
+        let renderer = try EngineRenderer()
         print("seed,surface,moment,fingerprint")
         for seed in seeds {
             let style = SeedSampler.generate(seed: seed, constitution: constitution)
             for surface in frozenSurfaces {
                 for moment in frozenMoments {
-                    let phase = OffscreenRenderer.phase(for: style, atSeconds: moment)
+                    let phase = EngineRenderer.phase(for: style, atSeconds: moment)
                     let frame = try renderer.render(style: style, surface: surface, phase: phase)
                     print("\(seed),\(surface.name),\(moment),\(FrameChecks.fingerprint(frame))")
                 }
@@ -185,7 +220,7 @@ case "--tier-b":
     let constitution = loadConstitution()
     do {
         let seeds = try TierB.loadSeeds(path: seedsPath)
-        let renderer = try OffscreenRenderer()
+        let renderer = try EngineRenderer()
         FileHandle.standardError.write(
             "Tier B: \(seeds.count) seeds x \(frozenSurfaces.count) surfaces x \(frozenMoments.count) moments = \(seeds.count * frozenSurfaces.count * frozenMoments.count) frames\n"
                 .data(using: .utf8)!

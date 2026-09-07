@@ -1,23 +1,23 @@
 import Foundation
 import simd
 
-/// The Framing primitive: fixed, never touched by a seed (owner decision,
-/// 2026-09-07), matching the existing engine's precedent of keeping camera
-/// keys preset-owned.
+/// The camera. Fixed, never seed-touched.
 ///
-/// Because it is fixed while `form.spread` varies the angular sweep, framing
-/// robustness across surface shapes is this primitive's burden to carry - which
-/// is what prediction P1 expects to fail.
+/// These are BettaMetalLab's frustum values, not chosen here: 32 degree
+/// vertical FOV, near 0.1, far 50, landscape camera Z 9, as recorded in
+/// BETTA-METAL-PARITY.md. They must match, because the eight locked
+/// compositions are authored against this frustum - their translations run to
+/// +/-8 and read correctly only at this camera.
 enum Framing {
-    static let cameraDistance: Float = 5.5
-    static let verticalFieldOfViewDegrees: Float = 45
+    static let cameraDistance: Float = 9
+    static let verticalFieldOfViewDegrees: Float = 32
 
     static func mvp(aspect: Float) -> simd_float4x4 {
         perspective(
             fovyRadians: verticalFieldOfViewDegrees * .pi / 180,
             aspect: aspect,
-            near: 0.5,
-            far: 20
+            near: 0.1,
+            far: 50
         ) * lookAt(
             eye: SIMD3<Float>(0, 0, cameraDistance),
             center: SIMD3<Float>(0, 0, 0),

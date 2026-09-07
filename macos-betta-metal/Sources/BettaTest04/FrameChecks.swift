@@ -44,8 +44,7 @@ enum FrameChecks {
     static let minimumRenderedSeparation = 0.08
 
     static func measure(frame: Frame, style: GeneratedStyle) -> FrameMeasurement {
-        let ground = OffscreenRenderer.backgroundColor(for: style)
-        let groundLuminance = 0.2126 * ground.0 + 0.7152 * ground.1 + 0.0722 * ground.2
+        let groundLuminance = EngineRenderer.groundLuminance(for: style)
 
         var formLuminances: [Double] = []
         formLuminances.reserveCapacity(frame.width * frame.height / 8)

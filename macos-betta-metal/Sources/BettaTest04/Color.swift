@@ -26,6 +26,14 @@ func hslToRgb(hueDeg: Double, saturation: Double, lightness: Double) -> (Double,
     return (hueToRgb(h + 1.0 / 3.0), hueToRgb(h), hueToRgb(h - 1.0 / 3.0))
 }
 
+/// sRGB -> linear, matching the engine's own conversion. Its shader works in
+/// linear space and its presets are converted on the way in; a generator that
+/// hands it display-space values produces a dull, washed result.
+func srgbToLinear(_ value: Double) -> Double {
+    if value <= 0.04045 { return value / 12.92 }
+    return pow((value + 0.055) / 1.055, 2.4)
+}
+
 /// Relative luminance of an 8-bit RGB triple, in [0,1].
 func luminance(r: UInt8, g: UInt8, b: UInt8) -> Double {
     0.2126 * Double(r) / 255.0 + 0.7152 * Double(g) / 255.0 + 0.0722 * Double(b) / 255.0

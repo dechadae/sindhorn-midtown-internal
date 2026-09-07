@@ -26,7 +26,8 @@ let package = Package(
             name: "BettaTest04",
             path: "Sources/BettaTest04",
             resources: [
-                .copy("constitution.json")
+                .copy("constitution.json"),
+                .copy("locked-compositions.json")
             ]
         )
     ]

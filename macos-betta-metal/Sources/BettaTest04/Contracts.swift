@@ -1,135 +1,123 @@
 import Foundation
 
-/// The frozen failure taxonomy (idui-core/evidence/generative/PROTOCOL.md), as
-/// far as it applies to a single generated style. T8 (temporal) belongs to
-/// render-time testing, not this pure-arithmetic pass. T9 (framing) does not
-/// apply: framing is fixed, never generated. A violation fitting none of these
-/// is unclassified and the taxonomy must be amended, dated - never silently
-/// widened here.
-///
-/// The thresholds below are deliberately identical to the Kotlin
-/// implementation's. If they ever drift, the two platforms stop being
-/// comparable and the determinism contract becomes unmeasurable.
+/// The frozen failure taxonomy, as far as it applies to a single generated
+/// style. T8 (temporal) belongs to render-time sampling. T9 (framing) does not
+/// apply: framing comes from the owner's locked compositions, and those are
+/// editorial crops - a form running past the frame edge is the intent, not a
+/// fault.
 enum Violation: String, CaseIterable {
     case t1NonFinite = "T1_NON_FINITE"
     case t2OutOfGamut = "T2_OUT_OF_GAMUT"
     case t3DegenerateMaterial = "T3_DEGENERATE_MATERIAL"
     case t4OutOfVocabulary = "T4_OUT_OF_VOCABULARY"
     case t5PaletteCollapse = "T5_PALETTE_COLLAPSE"
-    case t6FigureGroundCollapse = "T6_FIGURE_GROUND_COLLAPSE"
+    case t6GroundFlat = "T6_GROUND_FLAT"
 }
 
 struct ContractResult {
     let seed: UInt64
     let violations: [Violation]
-
     var isValid: Bool { violations.isEmpty }
 }
 
 enum Contracts {
     static let clampEpsilon = 1e-6
-    static let minHueSeparationDeg = 20.0
-    static let minLightnessSeparation = 0.10
-    static let minGroundSeparation = 0.08
+    /// The palette's four stops must not collapse into one value. This is about
+    /// the palette having range, not about the organism standing out from its
+    /// ground - white on white is legal by the owner's decision.
+    static let minimumPaletteSpread = 0.08
+    /// The ground must be a gradient, never a flat fill.
+    static let minimumGroundSpread = 0.05
 
-    static func evaluate(style: GeneratedStyle, constitution: Constitution) -> ContractResult {
+    static func evaluate(style s: GeneratedStyle, constitution c: Constitution) -> ContractResult {
         var violations: [Violation] = []
 
-        let allValues = [
-            style.baseHueDeg, style.accentHueDeg, style.baseSaturation, style.baseLightness,
-            style.accentLightness, style.backgroundLightness, style.motionSpeed, style.motionAmplitude,
-            style.turbulence, style.currentStrength, style.opacity, style.transmission,
-            style.rimStrength, style.bloom, style.spread, style.foldDensity, style.curl,
-            style.twist, style.edgeFlutter, style.depth,
+        let all: [Double] = [
+            s.baseHueDeg, s.accentHueDeg, s.saturation, s.accentSaturationScale,
+            s.lightness0, s.lightness1, s.lightness2, s.lightness3,
+            s.groundHueDeg, s.groundHueSpreadDeg, s.groundSaturation,
+            s.groundLightnessA, s.groundLightnessB, s.groundMidBias,
+            s.groundCenterX, s.groundCenterY, s.groundSweepAngleDeg, s.groundVignette,
+            s.spread, s.foldDensity, s.curl, s.twist, s.edgeFlutter, s.depth,
+            s.motionSpeed, s.motionAmplitude, s.turbulence, s.currentStrength,
+            s.opacity, s.transmission, s.rimStrength, s.foldHighlight,
+            s.iridescence, s.bloom,
+            s.gradingSaturation, s.brightness, s.gradientPosition,
+            s.rayCount, s.microFold, s.rayDefinition, s.edgeRuffle,
+            s.veinStrength, s.membraneGrain, s.fineFlutter, s.normalDetail,
+            s.backScale, s.backAlpha, s.frontAlpha, s.phaseOffset, s.seedOffset,
         ]
-        if allValues.contains(where: { !$0.isFinite }) {
-            violations.append(.t1NonFinite)
-        }
+        if all.contains(where: { !$0.isFinite }) { violations.append(.t1NonFinite) }
 
-        let inUnit = { (value: Double) in value >= 0.0 && value <= 1.0 }
-        if !(style.baseHueDeg >= 0 && style.baseHueDeg <= 360)
-            || !(style.accentHueDeg >= 0 && style.accentHueDeg <= 360)
-            || !inUnit(style.baseSaturation) || !inUnit(style.baseLightness)
-            || !inUnit(style.accentLightness) || !inUnit(style.backgroundLightness) {
+        let unit: (Double) -> Bool = { $0 >= 0 && $0 <= 1 }
+        if !(s.baseHueDeg >= 0 && s.baseHueDeg <= 360)
+            || !(s.accentHueDeg >= 0 && s.accentHueDeg <= 360)
+            || !unit(s.saturation) || !unit(s.lightness0) || !unit(s.lightness1)
+            || !unit(s.lightness2) || !unit(s.lightness3)
+            || !unit(s.groundLightnessA) || !unit(s.groundLightnessB) {
             violations.append(.t2OutOfGamut)
         }
 
-        if style.opacity <= clampEpsilon || style.opacity >= 1.0 - clampEpsilon
-            || style.transmission <= clampEpsilon || style.transmission >= 1.0 - clampEpsilon {
+        if s.opacity <= clampEpsilon || s.opacity >= 1 - clampEpsilon
+            || s.transmission <= clampEpsilon || s.transmission >= 1 - clampEpsilon {
             violations.append(.t3DegenerateMaterial)
         }
 
-        let p = constitution.palette
-        let m = constitution.motion
-        let mat = constitution.material
-        let f = constitution.form
-        let outOfVocabulary =
-            !p.baseSaturation.contains(style.baseSaturation)
-            || !p.baseLightness.contains(style.baseLightness)
-            || !p.accentLightness.contains(style.accentLightness)
-            || !p.backgroundLightness.contains(style.backgroundLightness)
-            || !m.speed.contains(style.motionSpeed)
-            || !m.amplitude.contains(style.motionAmplitude)
-            || !m.turbulence.contains(style.turbulence)
-            || !m.currentStrength.contains(style.currentStrength)
-            || !mat.opacity.contains(style.opacity)
-            || !mat.transmission.contains(style.transmission)
-            || !mat.rimStrength.contains(style.rimStrength)
-            || !mat.bloom.contains(style.bloom)
-            || !f.spread.contains(style.spread)
-            || !f.foldDensity.contains(style.foldDensity)
-            || !f.curl.contains(style.curl)
-            || !f.twist.contains(style.twist)
-            || !f.edgeFlutter.contains(style.edgeFlutter)
-            || !f.depth.contains(style.depth)
-        if outOfVocabulary {
+        let p = c.palette, g = c.ground, f = c.form, m = c.motion
+        let mat = c.material, gr = c.grading, d = c.detail, l = c.layers
+        let inRange: [(Bounds, Double)] = [
+            (p.saturation, s.saturation), (p.accentSaturationScale, s.accentSaturationScale),
+            (p.lightness0, s.lightness0), (p.lightness1, s.lightness1),
+            (p.lightness2, s.lightness2), (p.lightness3, s.lightness3),
+            (g.hueSpreadDeg, s.groundHueSpreadDeg), (g.saturation, s.groundSaturation),
+            (g.midBias, s.groundMidBias), (g.centerX, s.groundCenterX),
+            (g.centerY, s.groundCenterY), (g.vignette, s.groundVignette),
+            (f.spread, s.spread), (f.foldDensity, s.foldDensity), (f.curl, s.curl),
+            (f.twist, s.twist), (f.edgeFlutter, s.edgeFlutter), (f.depth, s.depth),
+            (m.speed, s.motionSpeed), (m.amplitude, s.motionAmplitude),
+            (m.turbulence, s.turbulence), (m.currentStrength, s.currentStrength),
+            (mat.opacity, s.opacity), (mat.transmission, s.transmission),
+            (mat.rimStrength, s.rimStrength), (mat.foldHighlight, s.foldHighlight),
+            (mat.iridescence, s.iridescence), (mat.bloom, s.bloom),
+            (gr.saturation, s.gradingSaturation), (gr.brightness, s.brightness),
+            (gr.gradientPosition, s.gradientPosition),
+            (d.rayCount, s.rayCount), (d.microFold, s.microFold),
+            (d.rayDefinition, s.rayDefinition), (d.edgeRuffle, s.edgeRuffle),
+            (d.veinStrength, s.veinStrength), (d.membraneGrain, s.membraneGrain),
+            (d.fineFlutter, s.fineFlutter), (d.normalDetail, s.normalDetail),
+            (l.backScale, s.backScale), (l.backAlpha, s.backAlpha),
+            (l.frontAlpha, s.frontAlpha), (l.phaseOffset, s.phaseOffset),
+            (l.seedOffset, s.seedOffset),
+        ]
+        if inRange.contains(where: { !$0.0.contains($0.1) }) {
             violations.append(.t4OutOfVocabulary)
         }
 
-        let hueSeparation = angularSeparationDeg(style.baseHueDeg, style.accentHueDeg)
-        let lightnessSeparation = abs(style.baseLightness - style.accentLightness)
-        if hueSeparation < minHueSeparationDeg && lightnessSeparation < minLightnessSeparation {
+        let lightnesses = [s.lightness0, s.lightness1, s.lightness2, s.lightness3]
+        if (lightnesses.max()! - lightnesses.min()!) < minimumPaletteSpread {
             violations.append(.t5PaletteCollapse)
         }
 
-        let groundSeparation = Swift.min(
-            abs(style.baseLightness - style.backgroundLightness),
-            abs(style.accentLightness - style.backgroundLightness)
-        )
-        if groundSeparation < minGroundSeparation {
-            violations.append(.t6FigureGroundCollapse)
+        if abs(s.groundLightnessA - s.groundLightnessB) < minimumGroundSpread {
+            violations.append(.t6GroundFlat)
         }
 
-        return ContractResult(seed: style.seed, violations: violations)
+        return ContractResult(seed: s.seed, violations: violations)
     }
 
-    /// T7: two seeds collide if every constitution-owned parameter matches
-    /// within floating tolerance.
+    /// T7: two seeds collide if every constitution-owned parameter matches.
     static func findSeedCollisions(_ styles: [GeneratedStyle]) -> [(UInt64, UInt64)] {
-        func key(_ s: GeneratedStyle) -> String {
-            [
-                s.baseHueDeg, s.accentHueDeg, s.baseSaturation, s.baseLightness, s.accentLightness,
-                s.backgroundLightness, s.motionSpeed, s.motionAmplitude, s.turbulence, s.currentStrength,
-                s.opacity, s.transmission, s.rimStrength, s.bloom, s.spread, s.foldDensity, s.curl,
-                s.twist, s.edgeFlutter, s.depth,
-            ].map { String(format: "%.9f", $0) }.joined(separator: ",")
-        }
-
         var seen: [String: UInt64] = [:]
         var collisions: [(UInt64, UInt64)] = []
-        for style in styles {
-            let k = key(style)
-            if let prior = seen[k] {
-                collisions.append((prior, style.seed))
-            } else {
-                seen[k] = style.seed
-            }
+        for s in styles {
+            let key = [
+                s.baseHueDeg, s.accentHueDeg, s.saturation, s.lightness0, s.lightness1,
+                s.lightness2, s.lightness3, s.groundLightnessA, s.groundLightnessB,
+                s.spread, s.foldDensity, s.curl, s.twist, s.depth, s.opacity,
+                s.transmission, s.brightness, s.rayCount, s.veinStrength, s.morphMode,
+            ].map { String(format: "%.9f", $0) }.joined(separator: ",")
+            if let prior = seen[key] { collisions.append((prior, s.seed)) } else { seen[key] = s.seed }
         }
         return collisions
-    }
-
-    private static func angularSeparationDeg(_ a: Double, _ b: Double) -> Double {
-        let diff = abs(a - b).truncatingRemainder(dividingBy: 360.0)
-        return Swift.min(diff, 360.0 - diff)
     }
 }

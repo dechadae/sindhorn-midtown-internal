@@ -55,7 +55,7 @@ enum TierB {
         constitution: Constitution,
         surfaces: [Surface],
         moments: [Double],
-        renderer: OffscreenRenderer,
+        renderer: EngineRenderer,
         recordsOut: URL?
     ) throws -> Summary {
         let started = Date()
@@ -76,7 +76,7 @@ enum TierB {
             let style = SeedSampler.generate(seed: seed, constitution: constitution)
             for surface in surfaces {
                 for moment in moments {
-                    let phase = OffscreenRenderer.phase(for: style, atSeconds: moment)
+                    let phase = EngineRenderer.phase(for: style, atSeconds: moment)
                     let frame = try renderer.render(style: style, surface: surface, phase: phase)
                     let measurement = FrameChecks.measure(frame: frame, style: style)
                     framesRendered += 1
@@ -115,7 +115,7 @@ enum TierB {
         for seed in determinismSeeds {
             let style = SeedSampler.generate(seed: seed, constitution: constitution)
             let surface = surfaces[0]
-            let phase = OffscreenRenderer.phase(for: style, atSeconds: moments[0])
+            let phase = EngineRenderer.phase(for: style, atSeconds: moments[0])
             let a = FrameChecks.fingerprint(try renderer.render(style: style, surface: surface, phase: phase))
             let b = FrameChecks.fingerprint(try renderer.render(style: style, surface: surface, phase: phase))
             if a != b { determinismMismatches += 1 }
