@@ -1,0 +1,91 @@
+{
+  "state": "tier-b-20260907-metal",
+  "recorded": "2026-09-07",
+  "test": "IDUI Test 04 (see PROTOCOL.md amendment A3)",
+  "tier": "B",
+  "tier_description": "Rendered, sampled. Reported separately from Tier A. The Tier A result must not lend this one its credibility, nor the reverse.",
+  "predictions_frozen_at": "b9e40df",
+  "predictions_file": "predictions-20260907-tier-b.md",
+  "implementation": {
+    "language": "Swift / Metal",
+    "target": "BettaTest04",
+    "repository": "dechadae/sindhorn-midtown-internal",
+    "branch": "macos-betta-display-1.2",
+    "commit": "ea2fd4c0fa15a3040d0f60150cdc1d44738c5eb3",
+    "rendering": "Offscreen MTLTexture, rgba8Unorm, read back to CPU. No window, no display. Shaders compiled at runtime via makeLibrary(source:) because this machine has no offline Metal compiler."
+  },
+  "sample": {
+    "seeds": 2000,
+    "seeds_file": "seeds.json",
+    "seeds_sha256": "801aa5b866a3da1590329ee2924437927dc76a162693ff6baef77c0198f31e09",
+    "surfaces": ["phone-portrait 1080x2400", "mac-landscape 2560x1600", "square 1024x1024"],
+    "moments_seconds": [0, 1.7, 4.1, 9.3, 21.0],
+    "phase_note": "Phase computed as wrap(t * motionSpeed) and set directly. The clock is never waited on.",
+    "frames_rendered": 30000,
+    "elapsed_seconds": 513.05
+  },
+  "constitution_sha256": "48e239067408428afbc4e3dd85b8f6da28cc1d89e8d78d98a4924ee1cf152299",
+  "negative_controls": {
+    "state": "negative-controls-20260907.md",
+    "all_fired_before_this_run": true,
+    "note": "Two controls failed to fire on their first attempt and were corrected. Both failures were in the control designs, not the checks. Detail in that file."
+  },
+  "results": {
+    "frames_with_violation": 10382,
+    "violations_by_category": {
+      "R1_FORM_NOT_WHOLLY_VISIBLE": 10000,
+      "R2_RENDERED_FIGURE_GROUND_COLLAPSE": 584
+    },
+    "records_by_surface": {
+      "phone-portrait": 10000,
+      "mac-landscape": 191,
+      "square": 191
+    },
+    "seeds_with_any_violation": 2000,
+    "constructional_validity": false,
+    "constructional_validity_note": "Every one of the 2,000 sampled seeds fails on at least one surface. Constructional validity, as the protocol defines it, does not hold at Tier B."
+  },
+  "predictions": [
+    {
+      "id": "P1",
+      "text": "Containment fails for at least one seed. Predicted: FAIL.",
+      "outcome": "FAILED as predicted, but by a mechanism the prediction got wrong.",
+      "measured": "10,000 of 10,000 phone-portrait frames clip - every seed, every moment. Zero clipping on mac-landscape and zero on square.",
+      "why_the_prediction_was_wrong": "The prediction expected a seed-dependent failure, worst on the square surface. It is not seed-dependent at all, and square had none. At camera distance 5.5 with a 45 degree vertical field of view the visible half-width at z=0 is about 1.025 on a 1080x2400 aspect, which is below the primitive's fixed maximum radius of 1.1. No style parameter can change the form's extent, so the form cannot fit that aspect for any seed.",
+      "scored_as": "Right about the outcome, wrong about the mechanism. Recorded as such rather than claimed as a hit."
+    },
+    {
+      "id": "P2",
+      "text": "Rendered figure/ground collapse occurs even though Tier A passes T6. Predicted: FAIL, small count.",
+      "outcome": "FAILED as predicted.",
+      "measured": "584 frames across 43 distinct seeds (2.15% of the sample). Separations 0.0319 to 0.0798 against a 0.08 floor - below the line, none catastrophic. Distributed evenly across surfaces (202/191/191) and across moments (116-119 each), so it is a property of the seed's colour rather than of framing or timing.",
+      "significance": "Tier A separates HSL parameters and passed all 100,000 seeds on T6. The rendered pixel additionally passes through opacity, transmission, rim and blending, and 2.15% of seeds lose their separation there. A parameter-level contract is not a substitute for a rendered one.",
+      "note_on_the_frozen_suspicion": "The freeze committed to suspecting this check if it returned zero. It did not return zero, and its negative control fires, so the check is doing work."
+    },
+    {
+      "id": "P3",
+      "text": "Render determinism holds. Predicted: PASS.",
+      "outcome": "PASSED.",
+      "measured": "0 mismatches over 100 seeds re-rendered in-process. 1,500 frames (100 seeds x 3 surfaces x 5 moments) fingerprinted in two separate process invocations and byte-identical, which is the 'across process restarts' the freeze asked for."
+    },
+    {
+      "id": "P4",
+      "text": "Coverage is broad, not clustered. Predicted: PASS, weakly held.",
+      "outcome": "PASSED, but the luminance margin is thin.",
+      "measured": "Hue: 36 of 36 buckets occupied. Luminance: p05 0.1470, p95 0.3869, span 0.2398 against a falsification threshold of 0.2233 (a third of the 0.67 declared lightness span).",
+      "caveat": "The luminance span clears the threshold by about 7%. Coverage is not comfortable here, and a constitution change that narrows the lightness ranges could push it under."
+    },
+    {
+      "id": "P5",
+      "text": "No rejection path exists. Predicted: PASS.",
+      "outcome": "PASSED, by inspection rather than by measurement.",
+      "measured": "Every occurrence of retry/resample/reject/repair vocabulary in the target is a comment. Every use of a violation list is a count, a record, or a control assertion; none is a branch that redraws or discards.",
+      "caveat": "This is a reading of the source, not an observation of behaviour. It is the weakest evidence in this file."
+    }
+  ],
+  "what_this_does_not_establish": [
+    "Nothing here says the output is any good. Geometric containment and pixel distinctness are measurable; whether the fish reads as a fish, or is worth looking at, is not. D-P-01 remains open and unaccepted.",
+    "The 2,000-seed sample is small against a 64-bit seed space, and Tier A's 100,000-seed pass says nothing about these rendered failures.",
+    "R2's 0.08 floor is inherited from the Tier A threshold. Whether 0.08 of luminance separation is the right floor for a rendered membrane over a dark ground has not been established by anything except consistency with the parameter check."
+  ]
+}

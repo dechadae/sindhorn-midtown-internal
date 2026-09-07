@@ -31,7 +31,10 @@ asserted.
 | `tier-a-20260907-metal.json` | Tier A on Swift. |
 | `determinism-20260907.json` | Swift/Kotlin bit-level agreement across a sampled seed range. |
 | `observations-20260907-render-smoke.md` | A single manual Android emulator capture. **Not Tier B.** |
-| `findings-20260907.md` | Difficulties classified A / B / C / D-B / D-P. |
+| `findings-20260907.md` | Difficulties classified A / B / C / D-B / D-P, as known before any rendered sample existed. |
+| `negative-controls-20260907.md` | Whether each rendered contract can fail. Two of four did not fire on first run. |
+| `tier-b-20260907-metal.json` | Tier B against the frozen sample: 30,000 frames, P1–P5 scored. |
+| `findings-20260907-tier-b.md` | Difficulties from Tier B: A-01, B-03, C-02, and D-P-01 still open. |
 
 ## Frozen ahead of the next phase
 
@@ -40,15 +43,22 @@ asserted.
 | `predictions-20260907-tier-b.md` | P1–P5 for the specimen surface and Tier B, frozen at `b9e40df` before any rendered sample was measured. P1 and P2 predict failures. |
 | `seeds.json` | The 2,000-seed Tier B sample, written before the first run. Not to be regenerated. |
 
+## Where the result stands
+
+**Constructional validity holds at Tier A and does not hold at Tier B.** All
+100,000 sampled seeds pass on parameters; all 2,000 sampled seeds fail a
+rendered contract on at least one surface. The two numbers are reported
+separately and neither lends the other its credibility.
+
 ## What has not been done
 
-- **Tier B has not been run on any platform.** No sampled, rendered measurement
-  exists. The one render observation on record is a single seed, single moment,
-  single aspect ratio.
 - **The states measured before `b9e40df` are baseline observations, not tests of
   a prediction**, and none of them may be cited as a prediction confirmed.
   `PROTOCOL.md`'s Q01–Q05 belong to the JS sequence A3 records as never run.
-- **No contract has been exercised by a negative control**, so no green result
-  here has yet been shown to be green for the right reason.
-- **The specimen surface does not exist on Metal.** A primitive is finished when
-  the specimen surface shows it, not when it renders.
+- **The specimen surface does not exist on either platform.** A primitive is
+  finished when the specimen surface shows it, not when it renders. Nothing here
+  has been laid out for a person to look at.
+- **No rendered result has been editorially accepted.** D-P-01 is open, and a
+  D-P count stands only against a result the owner has accepted.
+- **A-01 and B-03 propose constitution changes that have not been made**, because
+  changing the constitution requires the owner's approval.
