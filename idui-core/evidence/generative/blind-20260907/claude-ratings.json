@@ -1,0 +1,21 @@
+{
+  "rater": "Claude",
+  "rated": "2026-09-07",
+  "scale": "1-5, 5 best",
+  "method": "From the images alone. The manifest was not opened, seeds and parameters were not consulted, and these scores are committed before the owner's are seen.",
+  "ratings": {
+    "b-01": 4, "b-02": 1, "b-03": 5, "b-04": 5, "b-05": 2,
+    "b-06": 2, "b-07": 3, "b-08": 2, "b-09": 4, "b-10": 2,
+    "b-11": 3, "b-12": 2, "b-13": 5, "b-14": 1, "b-15": 5,
+    "b-16": 2, "b-17": 2, "b-18": 2, "b-19": 4, "b-20": 3
+  },
+  "notes": {
+    "b-02": "near-flat sage grey, a smudge top-left, nothing to look at - suspected control",
+    "b-14": "flat grey with faint ghosts, almost nothing - suspected control",
+    "b-03": "magenta on emerald, near-complementary, excellent ray structure",
+    "b-13": "luminous cyan on deep teal-grey",
+    "b-15": "magenta wing on cornflower, clean composition",
+    "b-17": "acid green against dusty pink reads harsh to me",
+    "b-10": "a clean warm gradient but no incident at all"
+  }
+}
