@@ -17,9 +17,15 @@ enum SeedSampler {
         let accentHue = (baseHue + p.accentHueOffsetDeg.sample(&rng))
             .truncatingRemainder(dividingBy: 360.0)
 
+        // The ground's second stop. With exclusions on, it is drawn from the
+        // region at least minimumSpread away from the first, so the ground is
+        // always a gradient. With them off it is drawn freely and may land
+        // anywhere, including flat.
         let minimumSpread = g.minimumSpread.sample(&rng)
         let lightnessA = g.lightnessEnd.sample(&rng)
-        let lightnessB = secondEnd(from: lightnessA, minimumSpread: minimumSpread, rng: &rng)
+        let lightnessB = c.exclusionsApply
+            ? secondEnd(from: lightnessA, minimumSpread: minimumSpread, rng: &rng)
+            : g.lightnessEnd.sample(&rng)
 
         // The rigid family. A seed chooses how many parts and which, from the
         // declared set - it never invents a topology. Parts are drawn in a
@@ -49,7 +55,9 @@ enum SeedSampler {
         let pModes = c.presenceModes
         let departed = !pModes.isEmpty
             && pModes[Int(rng.unit() * Double(pModes.count)) % pModes.count] == "departed"
-        let exitDistance = departed ? pr.exitDistance.sample(&rng) : 0
+        // Without exclusions there is no departure rule: the organism sits
+        // wherever its scale leaves it, timid middle included.
+        let exitDistance = (c.exclusionsApply && departed) ? pr.exitDistance.sample(&rng) : 0
 
         // A mode is selected from the set the engine implements, never invented.
         let modes = c.morphModes

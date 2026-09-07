@@ -1,0 +1,269 @@
+{
+  "version": 5,
+  "_note": "RAW RANDOM ARM. Every parameter uniform across its full meaningful domain, with no constitution and no exclusions. The null baseline: what the engine produces when nothing governs it.",
+  "palette": {
+    "baseHueDeg": {
+      "min": 0,
+      "max": 360
+    },
+    "accentHueOffsetDeg": {
+      "min": 0,
+      "max": 360
+    },
+    "saturation": {
+      "min": 0,
+      "max": 1
+    },
+    "accentSaturationScale": {
+      "min": 0,
+      "max": 1
+    },
+    "lightness0": {
+      "min": 0,
+      "max": 1
+    },
+    "lightness1": {
+      "min": 0,
+      "max": 1
+    },
+    "lightness2": {
+      "min": 0,
+      "max": 1
+    },
+    "lightness3": {
+      "min": 0,
+      "max": 1
+    }
+  },
+  "ground": {
+    "hueOffsetDeg": {
+      "min": -180,
+      "max": 180
+    },
+    "hueSpreadDeg": {
+      "min": 0,
+      "max": 180
+    },
+    "saturation": {
+      "min": 0,
+      "max": 1
+    },
+    "lightnessEnd": {
+      "min": 0,
+      "max": 1
+    },
+    "minimumSpread": {
+      "min": 0,
+      "max": 0
+    },
+    "midBias": {
+      "min": 0,
+      "max": 1
+    },
+    "centerX": {
+      "min": 0,
+      "max": 1
+    },
+    "centerY": {
+      "min": 0,
+      "max": 1
+    },
+    "sweepAngleDeg": {
+      "min": 0,
+      "max": 360
+    },
+    "vignette": {
+      "min": 0,
+      "max": 1
+    }
+  },
+  "form": {
+    "spread": {
+      "min": 0,
+      "max": 6.283
+    },
+    "foldDensity": {
+      "min": 0,
+      "max": 24
+    },
+    "curl": {
+      "min": -2,
+      "max": 2
+    },
+    "twist": {
+      "min": -2,
+      "max": 2
+    },
+    "edgeFlutter": {
+      "min": 0,
+      "max": 0.5
+    },
+    "depth": {
+      "min": 0,
+      "max": 1.5
+    }
+  },
+  "motion": {
+    "speed": {
+      "min": 0,
+      "max": 1
+    },
+    "amplitude": {
+      "min": 0,
+      "max": 1
+    },
+    "turbulence": {
+      "min": 0,
+      "max": 1
+    },
+    "currentStrength": {
+      "min": 0,
+      "max": 1
+    }
+  },
+  "material": {
+    "opacity": {
+      "min": 0,
+      "max": 1
+    },
+    "transmission": {
+      "min": 0,
+      "max": 1
+    },
+    "rimStrength": {
+      "min": 0,
+      "max": 3
+    },
+    "foldHighlight": {
+      "min": 0,
+      "max": 3
+    },
+    "iridescence": {
+      "min": 0,
+      "max": 1
+    },
+    "bloom": {
+      "min": 0,
+      "max": 1
+    }
+  },
+  "grading": {
+    "saturation": {
+      "min": 0,
+      "max": 3
+    },
+    "brightness": {
+      "min": 0,
+      "max": 3
+    },
+    "gradientPosition": {
+      "min": -0.5,
+      "max": 0.5
+    }
+  },
+  "detail": {
+    "rayCount": {
+      "min": 24,
+      "max": 160
+    },
+    "microFold": {
+      "min": 0,
+      "max": 1
+    },
+    "rayDefinition": {
+      "min": 0,
+      "max": 1
+    },
+    "edgeRuffle": {
+      "min": 0,
+      "max": 1
+    },
+    "veinStrength": {
+      "min": 0,
+      "max": 1
+    },
+    "membraneGrain": {
+      "min": 0,
+      "max": 1
+    },
+    "fineFlutter": {
+      "min": 0,
+      "max": 1
+    },
+    "normalDetail": {
+      "min": 0,
+      "max": 1
+    }
+  },
+  "layers": {
+    "backScale": {
+      "min": 0,
+      "max": 1.5
+    },
+    "backAlpha": {
+      "min": 0,
+      "max": 1
+    },
+    "frontAlpha": {
+      "min": 0,
+      "max": 1
+    },
+    "phaseOffset": {
+      "min": 0,
+      "max": 60
+    },
+    "seedOffset": {
+      "min": 0,
+      "max": 20
+    }
+  },
+  "_morphModes": [
+    0,
+    1,
+    2,
+    4
+  ],
+  "shapes": {
+    "count": {
+      "min": 1,
+      "max": 4
+    },
+    "partScale": {
+      "min": 0,
+      "max": 1.5
+    },
+    "orbitRadius": {
+      "min": 0,
+      "max": 4
+    },
+    "orbitAngleDeg": {
+      "min": 0,
+      "max": 360
+    },
+    "tiltDeg": {
+      "min": -180,
+      "max": 180
+    },
+    "phaseOffset": {
+      "min": 0,
+      "max": 12
+    }
+  },
+  "presence": {
+    "_note": "Two declared modes, selected by the seed the way a morph mode is - never invented. The organism is always oversized; what differs is whether it sits in frame or has travelled out of it. Shrinking was the earlier mistake: a shrunk organism is a small object pulled into frame, which is precisely the timid fragment the owner rejects. To show nothing, the organism must leave, not shrink.",
+    "scale": {
+      "min": 0.05,
+      "max": 4
+    },
+    "exitDistance": {
+      "min": 0,
+      "max": 0
+    }
+  },
+  "_presenceModes": [
+    "dominant",
+    "departed"
+  ],
+  "arm": "A",
+  "exclusions": false
+}

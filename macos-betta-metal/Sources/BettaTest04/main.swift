@@ -279,6 +279,74 @@ case "--blind-set":
         FileHandle.standardError.write("Blind set failed: \(error)\n".data(using: .utf8)!)
         exit(2)
     }
+case "--judge":
+    // The product and the instrument are the same thing: randomize, glance,
+    // keep or reject. Frames are drawn from the three arms in silent rotation,
+    // so the comparison accumulates as a byproduct of ordinary use.
+    let logPath = arguments.dropFirst().first ?? "judgements.csv"
+    do {
+        let arms = try ["a", "b", "c"].map { try Constitution.loadArm($0) }
+        let judge = try PreviewWindow(
+            judgingWith: arms,
+            log: URL(fileURLWithPath: logPath),
+            constitution: arms[0]
+        )
+        judge.run()
+    } catch {
+        FileHandle.standardError.write("Judge failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
+case "--review":
+    // Judge a fixed seed list in motion, recording verdicts by keystroke.
+    let seedsPath = arguments.dropFirst().first ?? "seeds.json"
+    let outPath = arguments.dropFirst(2).first ?? "verdicts.json"
+    let offset = arguments.dropFirst(3).first.flatMap { Int($0) } ?? 27
+    let count = arguments.dropFirst(4).first.flatMap { Int($0) } ?? 20
+    let constitution = loadConstitution()
+    do {
+        let all = try TierB.loadSeeds(path: seedsPath)
+        let slice = Array(all[offset..<min(offset + count, all.count)])
+        let preview = try PreviewWindow(
+            reviewing: slice,
+            writingTo: URL(fileURLWithPath: outPath),
+            constitution: constitution
+        )
+        preview.run()
+    } catch {
+        FileHandle.standardError.write("Review failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
+case "--predict":
+    // The contract's own verdict on each seed, which is the written rule
+    // applied mechanically. No taste is involved: R1 fires or it does not.
+    let seedsPath = arguments.dropFirst().first ?? "seeds.json"
+    let offset = arguments.dropFirst(2).first.flatMap { Int($0) } ?? 27
+    let count = arguments.dropFirst(3).first.flatMap { Int($0) } ?? 20
+    let constitution = loadConstitution()
+    do {
+        let all = try TierB.loadSeeds(path: seedsPath)
+        let slice = Array(all[offset..<min(offset + count, all.count)])
+        let compositions = try LockedCompositions.load()
+        let ids = compositions.keys.sorted()
+        let renderer = try EngineRenderer(rays: 320, segments: 288, sampleCount: 1)
+        let surface = Surface(name: "predict", width: 1920, height: 1080)
+        print("index,seed,presence,coverage,violations,ruleVerdict")
+        for (i, seed) in slice.enumerated() {
+            let style = SeedSampler.generate(seed: seed, constitution: constitution)
+            let comp = compositions[ids[i % ids.count]] ?? .neutralLandscape
+            let frame = try renderer.render(style: style, surface: surface, phase: 0, composition: comp)
+            let bg = try renderer.render(
+                style: style, surface: surface, phase: 0, composition: comp, includeOrganism: false
+            )
+            let m = FrameChecks.measure(frame: frame, ground: bg, style: style)
+            let verdict = m.violations.isEmpty ? "keep" : "reject"
+            let presence = style.exitDistance > 0 ? "departed" : "present"
+            print("\(i + 1),\(seed),\(presence),\(String(format: "%.4f", m.formCoverage)),\(m.violations.map(\.rawValue).joined(separator: "|")),\(verdict)")
+        }
+    } catch {
+        FileHandle.standardError.write("Predict failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
 case "--preview":
     // A live window. A still cannot show pacing, breathing or drift, and a
     // score given on a still is a score given on the wrong thing.

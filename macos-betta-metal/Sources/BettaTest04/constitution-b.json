@@ -1,0 +1,269 @@
+{
+  "version": 5,
+  "_note": "ALLOWLIST ARM. Bands enumerated from where the eight locked presets sit - a possibility library. This is what the constitution was before the subtractive principle was applied, and it is the control that matters: if IDUI cannot beat this, the constitution is doing nothing a curated list does not already do.",
+  "palette": {
+    "baseHueDeg": {
+      "min": 0,
+      "max": 360
+    },
+    "accentHueOffsetDeg": {
+      "min": 25,
+      "max": 165
+    },
+    "saturation": {
+      "min": 0.3,
+      "max": 1.0
+    },
+    "accentSaturationScale": {
+      "min": 0.55,
+      "max": 1.0
+    },
+    "lightness0": {
+      "min": 0.02,
+      "max": 0.22
+    },
+    "lightness1": {
+      "min": 0.15,
+      "max": 0.5
+    },
+    "lightness2": {
+      "min": 0.4,
+      "max": 0.72
+    },
+    "lightness3": {
+      "min": 0.6,
+      "max": 0.97
+    }
+  },
+  "ground": {
+    "hueOffsetDeg": {
+      "min": -70,
+      "max": 70
+    },
+    "hueSpreadDeg": {
+      "min": 5,
+      "max": 90
+    },
+    "saturation": {
+      "min": 0.0,
+      "max": 0.8
+    },
+    "lightnessEnd": {
+      "min": 0.0,
+      "max": 1.0
+    },
+    "minimumSpread": {
+      "min": 0.06,
+      "max": 0.5
+    },
+    "midBias": {
+      "min": 0.15,
+      "max": 0.85
+    },
+    "centerX": {
+      "min": 0.15,
+      "max": 0.85
+    },
+    "centerY": {
+      "min": 0.15,
+      "max": 0.85
+    },
+    "sweepAngleDeg": {
+      "min": 0,
+      "max": 360
+    },
+    "vignette": {
+      "min": 0.0,
+      "max": 0.4
+    }
+  },
+  "form": {
+    "spread": {
+      "min": 2.55,
+      "max": 3.5
+    },
+    "foldDensity": {
+      "min": 8.0,
+      "max": 12.0
+    },
+    "curl": {
+      "min": 0.2,
+      "max": 1.1
+    },
+    "twist": {
+      "min": -0.5,
+      "max": 0.5
+    },
+    "edgeFlutter": {
+      "min": 0.04,
+      "max": 0.18
+    },
+    "depth": {
+      "min": 0.48,
+      "max": 0.82
+    }
+  },
+  "motion": {
+    "speed": {
+      "min": 0.26,
+      "max": 0.4
+    },
+    "amplitude": {
+      "min": 0.3,
+      "max": 0.45
+    },
+    "turbulence": {
+      "min": 0.1,
+      "max": 0.3
+    },
+    "currentStrength": {
+      "min": 0.14,
+      "max": 0.24
+    }
+  },
+  "material": {
+    "opacity": {
+      "min": 0.48,
+      "max": 0.7
+    },
+    "transmission": {
+      "min": 0.64,
+      "max": 0.92
+    },
+    "rimStrength": {
+      "min": 1.02,
+      "max": 1.28
+    },
+    "foldHighlight": {
+      "min": 1.04,
+      "max": 1.34
+    },
+    "iridescence": {
+      "min": 0.05,
+      "max": 0.4
+    },
+    "bloom": {
+      "min": 0.32,
+      "max": 0.44
+    }
+  },
+  "grading": {
+    "saturation": {
+      "min": 1.18,
+      "max": 1.46
+    },
+    "brightness": {
+      "min": 1.64,
+      "max": 1.88
+    },
+    "gradientPosition": {
+      "min": -0.1,
+      "max": 0.06
+    }
+  },
+  "detail": {
+    "rayCount": {
+      "min": 68,
+      "max": 82
+    },
+    "microFold": {
+      "min": 0.25,
+      "max": 0.85
+    },
+    "rayDefinition": {
+      "min": 0.45,
+      "max": 1.0
+    },
+    "edgeRuffle": {
+      "min": 0.2,
+      "max": 0.8
+    },
+    "veinStrength": {
+      "min": 0.2,
+      "max": 0.75
+    },
+    "membraneGrain": {
+      "min": 0.1,
+      "max": 0.55
+    },
+    "fineFlutter": {
+      "min": 0.15,
+      "max": 0.7
+    },
+    "normalDetail": {
+      "min": 0.3,
+      "max": 0.9
+    }
+  },
+  "layers": {
+    "backScale": {
+      "min": 0.78,
+      "max": 0.98
+    },
+    "backAlpha": {
+      "min": 0.2,
+      "max": 0.55
+    },
+    "frontAlpha": {
+      "min": 0.88,
+      "max": 1.0
+    },
+    "phaseOffset": {
+      "min": 8.0,
+      "max": 40.0
+    },
+    "seedOffset": {
+      "min": 2.0,
+      "max": 9.0
+    }
+  },
+  "_morphModes": [
+    0,
+    1,
+    2,
+    4
+  ],
+  "shapes": {
+    "count": {
+      "min": 1,
+      "max": 4
+    },
+    "partScale": {
+      "min": 0.22,
+      "max": 0.7
+    },
+    "orbitRadius": {
+      "min": 0.0,
+      "max": 1.7
+    },
+    "orbitAngleDeg": {
+      "min": 0,
+      "max": 360
+    },
+    "tiltDeg": {
+      "min": -60,
+      "max": 60
+    },
+    "phaseOffset": {
+      "min": 0.0,
+      "max": 6.0
+    }
+  },
+  "presence": {
+    "_note": "Two declared modes, selected by the seed the way a morph mode is - never invented. The organism is always oversized; what differs is whether it sits in frame or has travelled out of it. Shrinking was the earlier mistake: a shrunk organism is a small object pulled into frame, which is precisely the timid fragment the owner rejects. To show nothing, the organism must leave, not shrink.",
+    "scale": {
+      "min": 1.3,
+      "max": 3.0
+    },
+    "exitDistance": {
+      "min": 7.0,
+      "max": 13.0
+    }
+  },
+  "_presenceModes": [
+    "dominant",
+    "departed"
+  ],
+  "arm": "B",
+  "exclusions": false
+}

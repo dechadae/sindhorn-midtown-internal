@@ -150,6 +150,17 @@ struct Constitution: Codable {
     let shapes: ShapeRanges
     let presence: PresenceRanges
 
+    /// Which arm this constitution is, and whether its exclusions apply.
+    /// A - raw random, no constitution. B - an enumerated allowlist.
+    /// C - the same wide domains as A with only the exclusions that name a
+    /// real failure. A against C isolates what the exclusions buy; B against C
+    /// asks whether a curated list does the same job.
+    let arm: String?
+    let exclusions: Bool?
+
+    var exclusionsApply: Bool { exclusions ?? true }
+    var armName: String { arm ?? "C" }
+
     /// The shading modes the engine implements. A seed selects among declared
     /// modes; it never invents one.
     private let _morphModes: [Double]
@@ -161,12 +172,25 @@ struct Constitution: Codable {
 
     enum CodingKeys: String, CodingKey {
         case version, palette, ground, form, motion, material, grading, detail, layers, shapes, presence
+        case arm, exclusions
         case _morphModes = "_morphModes"
         case _presenceModes = "_presenceModes"
     }
 
     static func load(from url: URL) throws -> Constitution {
         try JSONDecoder().decode(Constitution.self, from: Data(contentsOf: url))
+    }
+
+    /// Loads one arm by name, from beside the default constitution.
+    static func loadArm(_ arm: String) throws -> Constitution {
+        guard let url = Bundle.module.url(
+            forResource: "constitution-\(arm.lowercased())", withExtension: "json"
+        ) else {
+            throw NSError(domain: "BettaTest04", code: 5, userInfo: [
+                NSLocalizedDescriptionKey: "constitution-\(arm).json missing from the bundle"
+            ])
+        }
+        return try load(from: url)
     }
 
     static func loadBundled() throws -> Constitution {
