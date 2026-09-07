@@ -33,14 +33,21 @@ asserted.
 | `observations-20260907-render-smoke.md` | A single manual Android emulator capture. **Not Tier B.** |
 | `findings-20260907.md` | Difficulties classified A / B / C / D-B / D-P. |
 
+## Frozen ahead of the next phase
+
+| File | What it fixes |
+|---|---|
+| `predictions-20260907-tier-b.md` | P1–P5 for the specimen surface and Tier B, frozen at `b9e40df` before any rendered sample was measured. P1 and P2 predict failures. |
+| `seeds.json` | The 2,000-seed Tier B sample, written before the first run. Not to be regenerated. |
+
 ## What has not been done
 
 - **Tier B has not been run on any platform.** No sampled, rendered measurement
   exists. The one render observation on record is a single seed, single moment,
   single aspect ratio.
-- **No predictions are frozen for this incarnation.** `PROTOCOL.md`'s Q01–Q05
-  belong to the JS sequence A3 records as never run, so nothing measured so far
-  may be cited as a prediction confirmed.
+- **The states measured before `b9e40df` are baseline observations, not tests of
+  a prediction**, and none of them may be cited as a prediction confirmed.
+  `PROTOCOL.md`'s Q01–Q05 belong to the JS sequence A3 records as never run.
 - **No contract has been exercised by a negative control**, so no green result
   here has yet been shown to be green for the right reason.
 - **The specimen surface does not exist on Metal.** A primitive is finished when
