@@ -42,6 +42,12 @@ const GATES = ['contract-integrity', 'ui-centralization-budget', 'page-centraliz
   'idui-core-parity-smoke', 'idui-constitution-completeness', 'nested-glass-smoke', 'evidence-append-only',
   'material-authority-gate', 'ci-library-coverage', 'no-horizontal-overflow'];
 const gateResults = GATES.map(g => ({gate: g, ...run('node', [`scripts/${g}.mjs`])}));
+/* The document pages stamp the service worker they were built with, so a
+   builder run before the VERSION bump leaves them stale and the deploy guard
+   rejects the release. That happened in r61 and cost a red build; the brief
+   checks it here, where it is a one-line fix rather than a failed deploy. */
+for (const b of ['build-idui', 'build-evidence', 'build-origarium'])
+  gateResults.push({gate: `${b} --check`, ...run('node', [`scripts/${b}.mjs`, '--check'])});
 const broken = gateResults.filter(g => !g.ok);
 
 /* Vocabulary is reported, never merely failed: a stop is a question. */
