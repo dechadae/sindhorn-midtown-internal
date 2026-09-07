@@ -18,25 +18,27 @@ struct EngineGeometry {
     let indexBuffer: MTLBuffer
     let indexCount: Int
 
-    init(device: MTLDevice) throws {
+    init(device: MTLDevice,
+         rays: Int = EngineGeometry.rays,
+         radialSegments: Int = EngineGeometry.radialSegments) throws {
         struct Vertex { var u: Float; var v: Float; var rayJitter: Float }
 
         var vertices: [Vertex] = []
-        vertices.reserveCapacity((Self.rays + 1) * (Self.radialSegments + 1))
+        vertices.reserveCapacity((rays + 1) * (radialSegments + 1))
 
-        var jitters = [Float](repeating: 0, count: Self.rays + 1)
-        for j in 0...Self.rays {
+        var jitters = [Float](repeating: 0, count: rays + 1)
+        for j in 0...rays {
             let jf = Double(j)
             let n = sin((jf + 1) * 12.9898 + 78.233) * 43758.5453
             let m = sin((jf + 7) * 4.123 + 21.731) * 15731.743
             jitters[j] = Float(((n - floor(n)) - 0.5) * 1.4 + ((m - floor(m)) - 0.5) * 0.6)
         }
 
-        for j in 0...Self.rays {
-            let v = Float(j) / Float(Self.rays)
-            for i in 0...Self.radialSegments {
+        for j in 0...rays {
+            let v = Float(j) / Float(rays)
+            for i in 0...radialSegments {
                 vertices.append(Vertex(
-                    u: Float(i) / Float(Self.radialSegments),
+                    u: Float(i) / Float(radialSegments),
                     v: v,
                     rayJitter: jitters[j]
                 ))
@@ -44,11 +46,11 @@ struct EngineGeometry {
         }
 
         var indices: [UInt32] = []
-        indices.reserveCapacity(Self.rays * Self.radialSegments * 6)
-        for j in 0..<Self.rays {
-            for i in 0..<Self.radialSegments {
-                let a = UInt32(j * (Self.radialSegments + 1) + i)
-                let b = a + UInt32(Self.radialSegments + 1)
+        indices.reserveCapacity(rays * radialSegments * 6)
+        for j in 0..<rays {
+            for i in 0..<radialSegments {
+                let a = UInt32(j * (radialSegments + 1) + i)
+                let b = a + UInt32(radialSegments + 1)
                 indices.append(contentsOf: [a, b, a + 1, b, b + 1, a + 1])
             }
         }

@@ -16,7 +16,7 @@ import simd
 final class EngineRenderer {
     private let device: MTLDevice
     private let queue: MTLCommandQueue
-    private let finPipeline: MTLRenderPipelineState
+    private var pipelines: [FormPrimitive: MTLRenderPipelineState] = [:]
     private let backgroundPipeline: MTLRenderPipelineState
     private let depthState: MTLDepthStencilState
     private let geometry: EngineGeometry
@@ -29,7 +29,14 @@ final class EngineRenderer {
             .appendingPathComponent("BettaMetalLab/Shaders.metal")
     }
 
-    init() throws {
+    let sampleCount: Int
+
+    /// `rays`/`segments` control mesh density; `sampleCount` is MSAA. The
+    /// defaults match the engine. Maximum fidelity raises both.
+    init(rays: Int = EngineGeometry.rays,
+         segments: Int = EngineGeometry.radialSegments,
+         sampleCount: Int = 1) throws {
+        self.sampleCount = sampleCount
         guard let device = MTLCreateSystemDefaultDevice(),
               let queue = device.makeCommandQueue() else {
             throw RendererError.noDevice
@@ -48,39 +55,51 @@ final class EngineRenderer {
 
         let library: MTLLibrary
         do {
-            library = try device.makeLibrary(source: source, options: nil)
+            // The engine's source, plus Test 04's rigid primitives appended.
+            // The engine's file on disk is never modified.
+            library = try device.makeLibrary(source: source + shapeShaderAppendix, options: nil)
         } catch {
             throw RendererError.libraryFailed("\(error)")
         }
 
-        geometry = try EngineGeometry(device: device)
+        geometry = try EngineGeometry(device: device, rays: rays, radialSegments: segments)
 
-        let fin = MTLRenderPipelineDescriptor()
-        fin.vertexFunction = library.makeFunction(name: "finVertex")
-        fin.fragmentFunction = library.makeFunction(name: "finFragment")
-        fin.vertexDescriptor = EngineGeometry.vertexDescriptor()
-        fin.depthAttachmentPixelFormat = .depth32Float
-        let attachment = fin.colorAttachments[0]!
-        attachment.pixelFormat = .rgba8Unorm
-        attachment.isBlendingEnabled = true
-        attachment.rgbBlendOperation = .add
-        attachment.alphaBlendOperation = .add
-        attachment.sourceRGBBlendFactor = .sourceAlpha
-        attachment.sourceAlphaBlendFactor = .sourceAlpha
-        attachment.destinationRGBBlendFactor = .oneMinusSourceAlpha
-        attachment.destinationAlphaBlendFactor = .oneMinusSourceAlpha
+        // Every primitive shares finFragment: different topology, one material.
+        // That shared skin is what makes the parts read as one organism.
+        for primitive in FormPrimitive.allCases {
+            let fin = MTLRenderPipelineDescriptor()
+            fin.vertexFunction = library.makeFunction(name: primitive.vertexFunction)
+            fin.fragmentFunction = library.makeFunction(name: "finFragment")
+            fin.vertexDescriptor = EngineGeometry.vertexDescriptor()
+            fin.depthAttachmentPixelFormat = .depth32Float
+            fin.rasterSampleCount = sampleCount
+            let attachment = fin.colorAttachments[0]!
+            attachment.pixelFormat = .rgba8Unorm
+            attachment.isBlendingEnabled = true
+            attachment.rgbBlendOperation = .add
+            attachment.alphaBlendOperation = .add
+            attachment.sourceRGBBlendFactor = .sourceAlpha
+            attachment.sourceAlphaBlendFactor = .sourceAlpha
+            attachment.destinationRGBBlendFactor = .oneMinusSourceAlpha
+            attachment.destinationAlphaBlendFactor = .oneMinusSourceAlpha
+            do {
+                pipelines[primitive] = try device.makeRenderPipelineState(descriptor: fin)
+            } catch {
+                throw RendererError.pipelineFailed("\(primitive.rawValue): \(error)")
+            }
+        }
 
         let background = MTLRenderPipelineDescriptor()
         background.vertexFunction = library.makeFunction(name: "backgroundVertex")
         background.fragmentFunction = library.makeFunction(name: "backgroundFragment")
         background.colorAttachments[0].pixelFormat = .rgba8Unorm
         background.depthAttachmentPixelFormat = .depth32Float
+        background.rasterSampleCount = sampleCount
 
         do {
-            finPipeline = try device.makeRenderPipelineState(descriptor: fin)
             backgroundPipeline = try device.makeRenderPipelineState(descriptor: background)
         } catch {
-            throw RendererError.pipelineFailed("\(error)")
+            throw RendererError.pipelineFailed("background: \(error)")
         }
 
         let depth = MTLDepthStencilDescriptor()
@@ -135,16 +154,42 @@ final class EngineRenderer {
         )
         depthDescriptor.usage = [.renderTarget]
         depthDescriptor.storageMode = .private
+        if sampleCount > 1 {
+            depthDescriptor.textureType = .type2DMultisample
+            depthDescriptor.sampleCount = sampleCount
+        }
 
         guard let color = device.makeTexture(descriptor: colorDescriptor),
               let depth = device.makeTexture(descriptor: depthDescriptor) else {
             throw RendererError.encodingFailed
         }
 
+        // With MSAA the fins are drawn into a multisample target and resolved
+        // into `color`. The ray tips are the sharpest edges in the image and
+        // are where aliasing shows first.
+        var msaaColor: MTLTexture?
+        if sampleCount > 1 {
+            let d = MTLTextureDescriptor.texture2DDescriptor(
+                pixelFormat: .rgba8Unorm,
+                width: surface.width, height: surface.height, mipmapped: false
+            )
+            d.textureType = .type2DMultisample
+            d.sampleCount = sampleCount
+            d.usage = [.renderTarget]
+            d.storageMode = .private
+            msaaColor = device.makeTexture(descriptor: d)
+        }
+
         let pass = MTLRenderPassDescriptor()
-        pass.colorAttachments[0].texture = color
+        if let msaaColor {
+            pass.colorAttachments[0].texture = msaaColor
+            pass.colorAttachments[0].resolveTexture = color
+            pass.colorAttachments[0].storeAction = .multisampleResolve
+        } else {
+            pass.colorAttachments[0].texture = color
+            pass.colorAttachments[0].storeAction = .store
+        }
         pass.colorAttachments[0].loadAction = .clear
-        pass.colorAttachments[0].storeAction = .store
         pass.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
         pass.depthAttachment.texture = depth
         pass.depthAttachment.loadAction = .clear
@@ -169,18 +214,13 @@ final class EngineRenderer {
         // Two membrane layers, as the engine draws: the second sits behind at a
         // different phase and alpha, and the overlap is where the depth comes
         // from.
-        encoder.setRenderPipelineState(finPipeline)
         encoder.setVertexBuffer(geometry.vertexBuffer, offset: 0, index: 0)
-        for layer in 0..<2 {
-            var fin = UniformBuilder.fin(
-                for: style,
-                phase: phase,
-                composition: composition,
-                surface: surface,
-                layer: layer
-            )
-            encoder.setVertexBytes(&fin, length: MemoryLayout<FinUniforms>.stride, index: 1)
-            encoder.setFragmentBytes(&fin, length: MemoryLayout<FinUniforms>.stride, index: 1)
+
+        func draw(_ primitive: FormPrimitive, _ uniforms: inout FinUniforms) {
+            guard let pipeline = pipelines[primitive] else { return }
+            encoder.setRenderPipelineState(pipeline)
+            encoder.setVertexBytes(&uniforms, length: MemoryLayout<FinUniforms>.stride, index: 1)
+            encoder.setFragmentBytes(&uniforms, length: MemoryLayout<FinUniforms>.stride, index: 1)
             encoder.drawIndexedPrimitives(
                 type: .triangle,
                 indexCount: geometry.indexCount,
@@ -188,6 +228,25 @@ final class EngineRenderer {
                 indexBuffer: geometry.indexBuffer,
                 indexBufferOffset: 0
             )
+        }
+
+        // The rigid parts sit behind the membrane so the fin reads as the body
+        // and they read as appendages - the scale hierarchy an organism has.
+        for part in style.parts {
+            var u = UniformBuilder.part(
+                for: style, part: part, phase: phase,
+                composition: composition, surface: surface
+            )
+            draw(part.primitive, &u)
+        }
+
+        // Two membrane layers, as the engine draws.
+        for layer in 0..<2 {
+            var fin = UniformBuilder.fin(
+                for: style, phase: phase,
+                composition: composition, surface: surface, layer: layer
+            )
+            draw(.membrane, &fin)
         }
 
         encoder.endEncoding()

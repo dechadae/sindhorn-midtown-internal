@@ -11,7 +11,7 @@ enum SeedSampler {
         var rng = SplitMix64(seed: seed)
         let p = c.palette, g = c.ground, f = c.form
         let m = c.motion, mat = c.material, gr = c.grading
-        let d = c.detail, l = c.layers
+        let d = c.detail, l = c.layers, sh = c.shapes
 
         let baseHue = p.baseHueDeg.sample(&rng)
         let accentHue = (baseHue + p.accentHueOffsetDeg.sample(&rng))
@@ -20,6 +20,28 @@ enum SeedSampler {
         let minimumSpread = g.minimumSpread.sample(&rng)
         let lightnessA = g.lightnessEnd.sample(&rng)
         let lightnessB = secondEnd(from: lightnessA, minimumSpread: minimumSpread, rng: &rng)
+
+        // The rigid family. A seed chooses how many parts and which, from the
+        // declared set - it never invents a topology. Parts are drawn in a
+        // fixed order so the composition stays reproducible.
+        let partCount = Swift.max(1, Swift.min(
+            FormPrimitive.rigid.count,
+            Int(sh.count.sample(&rng).rounded())
+        ))
+        var available = FormPrimitive.rigid
+        var parts: [ShapePart] = []
+        for _ in 0..<partCount {
+            let pick = Int(rng.unit() * Double(available.count)) % available.count
+            let primitive = available.remove(at: pick)
+            parts.append(ShapePart(
+                primitive: primitive,
+                scale: sh.partScale.sample(&rng),
+                orbitRadius: sh.orbitRadius.sample(&rng),
+                orbitAngleDeg: sh.orbitAngleDeg.sample(&rng),
+                tiltDeg: sh.tiltDeg.sample(&rng),
+                phaseOffset: sh.phaseOffset.sample(&rng)
+            ))
+        }
 
         // A mode is selected from the set the engine implements, never invented.
         let modes = c.morphModes
@@ -87,7 +109,8 @@ enum SeedSampler {
             phaseOffset: l.phaseOffset.sample(&rng),
             seedOffset: l.seedOffset.sample(&rng),
 
-            morphMode: modes.isEmpty ? 0 : modes[modeIndex]
+            morphMode: modes.isEmpty ? 0 : modes[modeIndex],
+            parts: parts
         )
     }
 

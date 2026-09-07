@@ -1,6 +1,18 @@
 import Foundation
 import simd
 
+/// One rigid part of the organism: which topology, and where it sits on the
+/// shared body axis. Scale is subordinate to the membrane by construction -
+/// the constitution's partScale never reaches 1.
+struct ShapePart: Equatable {
+    var primitive: FormPrimitive
+    var scale: Double
+    var orbitRadius: Double
+    var orbitAngleDeg: Double
+    var tiltDeg: Double
+    var phaseOffset: Double
+}
+
 /// The complete output of one seed: a point in the constitution's space.
 ///
 /// Framing is deliberately absent - it comes from the owner's eight locked
@@ -75,6 +87,9 @@ struct GeneratedStyle: Equatable {
     var seedOffset: Double
 
     var morphMode: Double
+
+    /// The rigid parts accompanying the membrane. Never empty.
+    var parts: [ShapePart]
 
     /// The four palette stops, in the linear space the engine's shader expects.
     /// The engine converts its hex presets with `srgbToLinear` before upload;

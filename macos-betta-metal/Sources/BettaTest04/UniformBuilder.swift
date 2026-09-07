@@ -94,6 +94,43 @@ enum UniformBuilder {
         return u
     }
 
+    /// A rigid part. Same palette, same grading, same material as the
+    /// membrane - only the model transform and the motion phase differ. Sharing
+    /// everything else is what makes the parts read as one creature.
+    static func part(
+        for style: GeneratedStyle,
+        part: ShapePart,
+        phase: Double,
+        composition: Composition,
+        surface: Surface
+    ) -> FinUniforms {
+        var u = fin(
+            for: style, phase: phase + part.phaseOffset,
+            composition: composition, surface: surface, layer: 0
+        )
+
+        // Placed on the shared body axis: an offset from the same origin the
+        // membrane uses, never an independent position in the frame.
+        let angle = Float(part.orbitAngleDeg) * .pi / 180
+        let radius = Float(part.orbitRadius)
+        let offset = SIMD3<Float>(cos(angle) * radius, sin(angle) * radius, 0)
+
+        var placement = matrix_identity_float4x4
+        placement.columns.3 = SIMD4<Float>(offset.x, offset.y, offset.z, 1)
+        let tilt = Float(part.tiltDeg) * .pi / 180
+        let c = cos(tilt), sn = sin(tilt)
+        var rotation = matrix_identity_float4x4
+        rotation.columns.0 = SIMD4<Float>(c, sn, 0, 0)
+        rotation.columns.1 = SIMD4<Float>(-sn, c, 0, 0)
+
+        u.modelMatrix = composition.modelMatrix()
+            * placement * rotation * uniformScale(Float(part.scale))
+
+        // Parts sit behind the membrane and read quieter.
+        u.grading.w = Float(part.scale)
+        return u
+    }
+
     static func background(for style: GeneratedStyle) -> BackgroundUniforms {
         let stops = style.groundLinear.map { SIMD4<Float>($0.x, $0.y, $0.z, 1) }
         let satelliteMix = 0.025 + 0.025 * NeutralDrivers.cloud + 0.018 * NeutralDrivers.visible

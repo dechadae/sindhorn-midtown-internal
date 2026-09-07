@@ -1,80 +1,252 @@
 {
-  "version": 3,
-  "_note": "v3 covers the production engine's full appearance surface. v1 and v2 drove a renderer written here, which was a scope error: the frozen claim is about the generator holding zero appearance decisions, not about replacing the engine. Test 01 settled it - IDUI governs an interface's relationship with an engine, it does not absorb one. Ranges below are derived from the space the eight locked presets occupy, widened where the space is plainly narrower than the design allows. No preset value is copied; the presets remain locked and untouched.",
-
+  "version": 4,
+  "_note": "v4 adds the rigid family beside the membrane, which the frozen protocol predicted as Q03: a new topology needs a new primitive, not a new parameter. The parts are held subordinate in scale and clustered on a shared body axis, with correlated motion, so they read as one organism rather than four objects sharing a canvas. Ranges derived from the space the eight locked presets occupy; no preset value is copied and no locked period is touched.",
   "palette": {
-    "baseHueDeg": {"min": 0, "max": 360},
-    "accentHueOffsetDeg": {"min": 25, "max": 165},
-    "saturation": {"min": 0.30, "max": 1.0},
-    "accentSaturationScale": {"min": 0.55, "max": 1.0},
-    "lightness0": {"min": 0.02, "max": 0.22},
-    "lightness1": {"min": 0.15, "max": 0.50},
-    "lightness2": {"min": 0.40, "max": 0.72},
-    "lightness3": {"min": 0.60, "max": 0.97}
+    "baseHueDeg": {
+      "min": 0,
+      "max": 360
+    },
+    "accentHueOffsetDeg": {
+      "min": 25,
+      "max": 165
+    },
+    "saturation": {
+      "min": 0.3,
+      "max": 1.0
+    },
+    "accentSaturationScale": {
+      "min": 0.55,
+      "max": 1.0
+    },
+    "lightness0": {
+      "min": 0.02,
+      "max": 0.22
+    },
+    "lightness1": {
+      "min": 0.15,
+      "max": 0.5
+    },
+    "lightness2": {
+      "min": 0.4,
+      "max": 0.72
+    },
+    "lightness3": {
+      "min": 0.6,
+      "max": 0.97
+    }
   },
-
   "ground": {
-    "hueOffsetDeg": {"min": -70, "max": 70},
-    "hueSpreadDeg": {"min": 5, "max": 90},
-    "saturation": {"min": 0.0, "max": 0.8},
-    "lightnessEnd": {"min": 0.0, "max": 1.0},
-    "minimumSpread": {"min": 0.06, "max": 0.50},
-    "midBias": {"min": 0.15, "max": 0.85},
-    "centerX": {"min": 0.15, "max": 0.85},
-    "centerY": {"min": 0.15, "max": 0.85},
-    "sweepAngleDeg": {"min": 0, "max": 360},
-    "vignette": {"min": 0.0, "max": 0.4}
+    "hueOffsetDeg": {
+      "min": -70,
+      "max": 70
+    },
+    "hueSpreadDeg": {
+      "min": 5,
+      "max": 90
+    },
+    "saturation": {
+      "min": 0.0,
+      "max": 0.8
+    },
+    "lightnessEnd": {
+      "min": 0.0,
+      "max": 1.0
+    },
+    "minimumSpread": {
+      "min": 0.06,
+      "max": 0.5
+    },
+    "midBias": {
+      "min": 0.15,
+      "max": 0.85
+    },
+    "centerX": {
+      "min": 0.15,
+      "max": 0.85
+    },
+    "centerY": {
+      "min": 0.15,
+      "max": 0.85
+    },
+    "sweepAngleDeg": {
+      "min": 0,
+      "max": 360
+    },
+    "vignette": {
+      "min": 0.0,
+      "max": 0.4
+    }
   },
-
   "form": {
-    "spread": {"min": 2.55, "max": 3.50},
-    "foldDensity": {"min": 8.0, "max": 12.0},
-    "curl": {"min": 0.20, "max": 1.10},
-    "twist": {"min": -0.50, "max": 0.50},
-    "edgeFlutter": {"min": 0.04, "max": 0.18},
-    "depth": {"min": 0.48, "max": 0.82}
+    "spread": {
+      "min": 2.55,
+      "max": 3.5
+    },
+    "foldDensity": {
+      "min": 8.0,
+      "max": 12.0
+    },
+    "curl": {
+      "min": 0.2,
+      "max": 1.1
+    },
+    "twist": {
+      "min": -0.5,
+      "max": 0.5
+    },
+    "edgeFlutter": {
+      "min": 0.04,
+      "max": 0.18
+    },
+    "depth": {
+      "min": 0.48,
+      "max": 0.82
+    }
   },
-
   "motion": {
-    "speed": {"min": 0.26, "max": 0.40},
-    "amplitude": {"min": 0.30, "max": 0.45},
-    "turbulence": {"min": 0.10, "max": 0.30},
-    "currentStrength": {"min": 0.14, "max": 0.24}
+    "speed": {
+      "min": 0.26,
+      "max": 0.4
+    },
+    "amplitude": {
+      "min": 0.3,
+      "max": 0.45
+    },
+    "turbulence": {
+      "min": 0.1,
+      "max": 0.3
+    },
+    "currentStrength": {
+      "min": 0.14,
+      "max": 0.24
+    }
   },
-
   "material": {
-    "opacity": {"min": 0.48, "max": 0.70},
-    "transmission": {"min": 0.64, "max": 0.92},
-    "rimStrength": {"min": 1.02, "max": 1.28},
-    "foldHighlight": {"min": 1.04, "max": 1.34},
-    "iridescence": {"min": 0.05, "max": 0.40},
-    "bloom": {"min": 0.32, "max": 0.44}
+    "opacity": {
+      "min": 0.48,
+      "max": 0.7
+    },
+    "transmission": {
+      "min": 0.64,
+      "max": 0.92
+    },
+    "rimStrength": {
+      "min": 1.02,
+      "max": 1.28
+    },
+    "foldHighlight": {
+      "min": 1.04,
+      "max": 1.34
+    },
+    "iridescence": {
+      "min": 0.05,
+      "max": 0.4
+    },
+    "bloom": {
+      "min": 0.32,
+      "max": 0.44
+    }
   },
-
   "grading": {
-    "saturation": {"min": 1.18, "max": 1.46},
-    "brightness": {"min": 1.64, "max": 1.88},
-    "gradientPosition": {"min": -0.10, "max": 0.06}
+    "saturation": {
+      "min": 1.18,
+      "max": 1.46
+    },
+    "brightness": {
+      "min": 1.64,
+      "max": 1.88
+    },
+    "gradientPosition": {
+      "min": -0.1,
+      "max": 0.06
+    }
   },
-
   "detail": {
-    "rayCount": {"min": 68, "max": 82},
-    "microFold": {"min": 0.25, "max": 0.85},
-    "rayDefinition": {"min": 0.45, "max": 1.0},
-    "edgeRuffle": {"min": 0.20, "max": 0.80},
-    "veinStrength": {"min": 0.20, "max": 0.75},
-    "membraneGrain": {"min": 0.10, "max": 0.55},
-    "fineFlutter": {"min": 0.15, "max": 0.70},
-    "normalDetail": {"min": 0.30, "max": 0.90}
+    "rayCount": {
+      "min": 68,
+      "max": 82
+    },
+    "microFold": {
+      "min": 0.25,
+      "max": 0.85
+    },
+    "rayDefinition": {
+      "min": 0.45,
+      "max": 1.0
+    },
+    "edgeRuffle": {
+      "min": 0.2,
+      "max": 0.8
+    },
+    "veinStrength": {
+      "min": 0.2,
+      "max": 0.75
+    },
+    "membraneGrain": {
+      "min": 0.1,
+      "max": 0.55
+    },
+    "fineFlutter": {
+      "min": 0.15,
+      "max": 0.7
+    },
+    "normalDetail": {
+      "min": 0.3,
+      "max": 0.9
+    }
   },
-
   "layers": {
-    "backScale": {"min": 0.78, "max": 0.98},
-    "backAlpha": {"min": 0.20, "max": 0.55},
-    "frontAlpha": {"min": 0.88, "max": 1.0},
-    "phaseOffset": {"min": 8.0, "max": 40.0},
-    "seedOffset": {"min": 2.0, "max": 9.0}
+    "backScale": {
+      "min": 0.78,
+      "max": 0.98
+    },
+    "backAlpha": {
+      "min": 0.2,
+      "max": 0.55
+    },
+    "frontAlpha": {
+      "min": 0.88,
+      "max": 1.0
+    },
+    "phaseOffset": {
+      "min": 8.0,
+      "max": 40.0
+    },
+    "seedOffset": {
+      "min": 2.0,
+      "max": 9.0
+    }
   },
-
-  "_morphModes": [0, 1, 2, 4]
+  "_morphModes": [
+    0,
+    1,
+    2,
+    4
+  ],
+  "shapes": {
+    "count": {
+      "min": 1,
+      "max": 4
+    },
+    "partScale": {
+      "min": 0.22,
+      "max": 0.7
+    },
+    "orbitRadius": {
+      "min": 0.0,
+      "max": 1.7
+    },
+    "orbitAngleDeg": {
+      "min": 0,
+      "max": 360
+    },
+    "tiltDeg": {
+      "min": -60,
+      "max": 60
+    },
+    "phaseOffset": {
+      "min": 0.0,
+      "max": 6.0
+    }
+  }
 }

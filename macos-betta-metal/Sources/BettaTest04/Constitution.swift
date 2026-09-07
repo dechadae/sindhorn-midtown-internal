@@ -95,6 +95,18 @@ struct DetailRanges: Codable {
     let normalDetail: Bounds
 }
 
+/// How the rigid parts assemble into one body. Scale is held subordinate to
+/// the membrane and orbit radius keeps parts near a shared axis: an organism
+/// has a body and appendages, not four equal blobs scattered in a frame.
+struct ShapeRanges: Codable {
+    let count: Bounds
+    let partScale: Bounds
+    let orbitRadius: Bounds
+    let orbitAngleDeg: Bounds
+    let tiltDeg: Bounds
+    let phaseOffset: Bounds
+}
+
 /// Two membranes, front and back. The overlap between them is where the
 /// engine's depth comes from.
 struct LayerRanges: Codable {
@@ -118,6 +130,7 @@ struct Constitution: Codable {
     let grading: GradingRanges
     let detail: DetailRanges
     let layers: LayerRanges
+    let shapes: ShapeRanges
 
     /// The shading modes the engine implements. A seed selects among declared
     /// modes; it never invents one.
@@ -125,7 +138,7 @@ struct Constitution: Codable {
     var morphModes: [Double] { _morphModes }
 
     enum CodingKeys: String, CodingKey {
-        case version, palette, ground, form, motion, material, grading, detail, layers
+        case version, palette, ground, form, motion, material, grading, detail, layers, shapes
         case _morphModes = "_morphModes"
     }
 

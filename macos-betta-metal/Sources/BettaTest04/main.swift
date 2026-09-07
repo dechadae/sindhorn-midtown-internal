@@ -157,6 +157,43 @@ case "--tier-a":
     runTierA(count: requestedCount ?? 100_000)
 case "--dump-seeds":
     dumpSeeds(count: requestedCount ?? 1_000)
+case "--max-fidelity":
+    // Everything this machine will comfortably carry: 5120x2880, four times the
+    // engine's mesh density, 4x MSAA on the ray tips.
+    let seedsPath = arguments.dropFirst().first ?? "seeds.json"
+    let outPath = arguments.dropFirst(2).first ?? "max-fidelity"
+    let howMany = arguments.dropFirst(3).first.flatMap { Int($0) } ?? 6
+    let constitution = loadConstitution()
+    do {
+        let seeds = try TierB.loadSeeds(path: seedsPath)
+        let compositions = try LockedCompositions.load()
+        let renderer = try EngineRenderer(rays: 640, segments: 576, sampleCount: 4)
+        let surface = Surface(name: "max", width: 5120, height: 2880)
+        let outDir = URL(fileURLWithPath: outPath)
+        try FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
+        let ids = compositions.keys.sorted()
+        for i in 0..<howMany {
+            let seed = seeds[i % seeds.count]
+            let style = SeedSampler.generate(seed: seed, constitution: constitution)
+            let composition = compositions[ids[i % ids.count]] ?? .neutralLandscape
+            let started = Date()
+            let frame = try renderer.render(
+                style: style, surface: surface, phase: 0, composition: composition
+            )
+            let name = String(format: "max-%02d.png", i + 1)
+            try writePNG(frame, to: outDir.appendingPathComponent(name))
+            let parts = style.parts.map(\.primitive.rawValue).joined(separator: "+")
+            FileHandle.standardError.write(
+                String(format: "%@  seed %llu  membrane+%@  %.1fs\n",
+                       name, seed, parts, Date().timeIntervalSince(started))
+                    .data(using: .utf8)!
+            )
+        }
+        print("wrote \(howMany) frames at 5120x2880 to \(outDir.path)")
+    } catch {
+        FileHandle.standardError.write("Max fidelity failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
 case "--negative-controls":
     runNegativeControls()
 case "--taste-set":
