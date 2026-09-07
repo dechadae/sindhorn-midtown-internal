@@ -1,0 +1,40 @@
+{
+  "state": "determinism-20260907",
+  "recorded": "2026-09-07",
+  "test": "IDUI Test 04 (see PROTOCOL.md amendment A3)",
+  "measures": "The frozen protocol's determinism contract: the same seed yields the same style across runs and across platforms. PROTOCOL.md calls this 'a contract in its own right, and the precondition for the Mac port consuming the same constitution.'",
+  "method": {
+    "sample": "seeds 0..999, all 20 constitution-owned parameters (20,000 values)",
+    "encoding": "raw IEEE-754 bit patterns, hex, 16 digits",
+    "encoding_reason": "Decimal text was rejected as the comparison format. Java's %g and C's %g differ in trailing-zero and exponent handling, so a decimal diff would report formatting differences as arithmetic divergence and a real divergence could hide inside rounding.",
+    "comparison": "byte-for-byte diff of the two CSV dumps"
+  },
+  "implementations": [
+    {
+      "language": "Swift",
+      "commit": "eedd5f1343fd2eb05335abbcb720e65bdebfcfa8",
+      "command": "swift run BettaTest04 --dump-seeds 1000"
+    },
+    {
+      "language": "Kotlin",
+      "commit": "c84bb15933eb548aacb5541fa00fe909f8b3a7a3",
+      "command": "gradlew :core:test --tests *SeedDumpTest*"
+    }
+  ],
+  "constitution_sha256": "48e239067408428afbc4e3dd85b8f6da28cc1d89e8d78d98a4924ee1cf152299",
+  "result": {
+    "values_compared": 20000,
+    "differing_values": 0,
+    "verdict": "identical to the bit"
+  },
+  "why_this_was_not_free": {
+    "observation": "The existing macOS generator, BettaRandomStyleStore.swift, returns Float (32-bit) from unit() and range(). The web engine uses a JS Number (64-bit). Both implementations measured here deliberately use 64-bit doubles.",
+    "consequence": "Had the Swift implementation followed the existing store's Float convention, the raw u64 stream would still have matched while the derived values diverged in the low bits. A value sitting on a contract boundary could then pass on one platform and fail on the other.",
+    "conclusion": "The arithmetic precision the ranges are sampled in belongs to the constitution, not to each implementation. It is currently undeclared. Recorded as finding B-01 in findings-20260907.md."
+  },
+  "caveats": [
+    "1,000 seeds is a small sample against a 64-bit seed space. It demonstrates the two implementations agree on the sampled range; it does not prove agreement everywhere.",
+    "Both implementations were written by the same author in the same session, from the same design. Agreement is weaker evidence than it would be between independently derived implementations.",
+    "This measures style determinism only. Render determinism (same seed and phase yielding the same pixels) is untested."
+  ]
+}

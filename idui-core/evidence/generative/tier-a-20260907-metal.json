@@ -1,0 +1,44 @@
+{
+  "state": "tier-a-20260907-metal",
+  "recorded": "2026-09-07",
+  "test": "IDUI Test 04 (see PROTOCOL.md amendment A3)",
+  "tier": "A",
+  "tier_description": "Pure arithmetic on the generated style. No renderer, no GPU. Says nothing about Tier B.",
+  "implementation": {
+    "language": "Swift",
+    "target": "BettaTest04",
+    "repository": "dechadae/sindhorn-midtown-internal",
+    "branch": "macos-betta-display-1.2",
+    "commit": "eedd5f1343fd2eb05335abbcb720e65bdebfcfa8",
+    "path": "macos-betta-metal/Sources/BettaTest04",
+    "isolation": "A separate executable target beside BettaMetalLab. Neither imports the other. BettaMetalLab is held to parity with the locked production presets; this target must have zero appearance decisions in its generator, and the two claims would be unreadable if mixed in one module."
+  },
+  "constitution": {
+    "file": "macos-betta-metal/Sources/BettaTest04/constitution.json",
+    "version": 1,
+    "sha256": "48e239067408428afbc4e3dd85b8f6da28cc1d89e8d78d98a4924ee1cf152299",
+    "note": "Byte-identical to the file the Kotlin implementation reads. Two independent implementations consuming one file is what makes the portability claim measurable."
+  },
+  "run": {
+    "command": "swift run BettaTest04 --tier-a 100000",
+    "seeds": 100000,
+    "seed_range": "0..99999",
+    "violations_total": 0,
+    "violations_by_category": {},
+    "seed_collisions": 0,
+    "violation_rate": 0.0,
+    "elapsed_seconds": 2.56,
+    "constructional_validity": true
+  },
+  "environment": {
+    "swift": "Apple Swift 6.3.3 (swiftlang-6.3.3.1.3)",
+    "target_triple": "arm64-apple-macosx26.0",
+    "xcode": "not installed; Command Line Tools only",
+    "metal_offline_compiler": "unavailable (xcrun metal not present). Not required for this tier, which draws nothing. Relevant to Tier B, which must compile shaders at runtime via makeLibrary(source:) as BettaRenderer.swift already does."
+  },
+  "no_retry_path": "Contracts are evaluated after generation and only counted. No code path discards a seed and draws another.",
+  "caveats": [
+    "This tier draws nothing. It cannot speak to whether any seed looks like anything.",
+    "Contracts were not exercised by negative controls at the time of this run."
+  ]
+}

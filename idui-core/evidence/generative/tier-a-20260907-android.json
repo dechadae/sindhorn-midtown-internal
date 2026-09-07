@@ -1,0 +1,66 @@
+{
+  "state": "tier-a-20260907-android",
+  "recorded": "2026-09-07",
+  "test": "IDUI Test 04 (see PROTOCOL.md amendment A3)",
+  "tier": "A",
+  "tier_description": "Pure arithmetic on the generated style. No renderer, no GPU. Says nothing about Tier B.",
+  "implementation": {
+    "language": "Kotlin",
+    "module": ":core",
+    "repository": "betta-wallpaper (standalone, local)",
+    "note": "Not part of the Sindhorn app and sharing no code with it."
+  },
+  "constitution": {
+    "file": "app/src/main/assets/constitution.json",
+    "version": 1,
+    "sha256": "48e239067408428afbc4e3dd85b8f6da28cc1d89e8d78d98a4924ee1cf152299",
+    "note": "This sha256 is the POST-FIX constitution. The pre-fix run used the same file with baseLightness.min = 0.15."
+  },
+  "runs": [
+    {
+      "label": "pre-fix baseline",
+      "commit": null,
+      "commit_note": "No commit exists for this state. The failure was found and corrected before the repository's first commit, so it cannot be recovered from git. It is reproducible from 3f5a2a1a1544bf02d75fa31ef399930711c368b9 by reverting exactly one value: palette.baseLightness.min 0.18 -> 0.15. Recorded here rather than dropped, because the failing numbers are the point.",
+      "seeds": 100000,
+      "seed_range": "0..99999",
+      "violations_total": 180,
+      "violations_by_category": {
+        "T6_FIGURE_GROUND_COLLAPSE": 180
+      },
+      "seed_collisions": 0,
+      "violation_rate": 0.0018,
+      "cause": "palette.baseLightness.min (0.15) and palette.backgroundLightness.max (0.08) could be sampled 0.07 apart, under the 0.08 MIN_GROUND_SEPARATION threshold the contract applies. The generator held no literal bound; the constitution's declared range permitted the collapse.",
+      "constructional_validity": false
+    },
+    {
+      "label": "after tightening the range",
+      "commit": "3f5a2a1a1544bf02d75fa31ef399930711c368b9",
+      "seeds": 100000,
+      "seed_range": "0..99999",
+      "violations_total": 0,
+      "violations_by_category": {},
+      "seed_collisions": 0,
+      "violation_rate": 0.0,
+      "change": "palette.baseLightness.min 0.15 -> 0.18, so that min(baseLightness) - max(backgroundLightness) >= MIN_GROUND_SEPARATION holds by construction rather than by the luck of the draw.",
+      "constructional_validity": true
+    }
+  ],
+  "contracts_evaluated": [
+    "T1_NON_FINITE",
+    "T2_OUT_OF_GAMUT",
+    "T3_DEGENERATE_MATERIAL",
+    "T4_OUT_OF_VOCABULARY",
+    "T5_PALETTE_COLLAPSE",
+    "T6_FIGURE_GROUND_COLLAPSE",
+    "T7 (seed collision, batch level)"
+  ],
+  "contracts_not_evaluated": {
+    "T8_TEMPORAL": "Belongs to render-time sampling, not this pass.",
+    "T9_FRAMING": "Does not apply. Framing is fixed and never seed-touched (owner decision, 2026-09-07)."
+  },
+  "no_retry_path": "Contracts are evaluated after generation and only counted. No code path discards a seed and draws another.",
+  "caveats": [
+    "Zero violations here is not constructional validity for the product. It is constructional validity for the parameters, measured without drawing anything.",
+    "The contracts were not, at the time of these runs, exercised by negative controls. A contract that has never failed on purpose has not been shown to work. Negative controls are planned before any Tier B result is trusted."
+  ]
+}
