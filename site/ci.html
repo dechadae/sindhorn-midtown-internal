@@ -947,18 +947,7 @@ Ask the team about the pairing board: three small plates built for the three dri
         <p class="app-note">Tap the tabs, the chip, then the tabs again. The old page cuts; the new one arrives <code>--motion-view-travel</code> off its place and settles over <code>--motion-view</code> on plain ease-in-out. A tab to the right <b>pushes</b> in from the right; to the left it <b>pops</b> in from the left. The chip <b>covers</b>: Settings arrives from the foot while the navbar's app set slides out left and the settings set slides in from the right; closing it <b>dismisses</b> — the page beneath returns from the head and the sets slide back. Since r14e the shell itself changes pages with a plain swap — the movements tried on a phone (r13–r14d) each stuttered or switched the glass off — so this specimen is the library’s reference, not what the shell does today; the navbar push is live.</p>
         <p class="app-note">Only the incoming page moves, and only by a transform — nothing recedes, scales or fades. A crossfade is not available to this shell: opacity, filter or clip-path on the moving page, or on anything above it, switches off the backdrop blur beneath and the glass would flash flat mid-move. The host holds its start pose hidden through <code>data-view</code> until the swap lands, so a new page never appears in place and then jumps.</p>
       </div>
-      <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>[data-view]</span><span>push · pop · cover · dismiss — the four arrivals</span></div>
-        <div class="app-stack" data-columns="2">
-          <div class="app-card app-surface" data-view="push"><div class="app-card-section"><p class="app-surface-label">push</p><p class="app-surface-copy">A page deeper in the same set.</p></div></div>
-          <div class="app-card app-surface" data-view="pop"><div class="app-card-section"><p class="app-surface-label">pop</p><p class="app-surface-copy">Back the way it came.</p></div></div>
-          <div class="app-card app-surface" data-view="cover"><div class="app-card-section"><p class="app-surface-label">cover</p><p class="app-surface-copy">A layer over the page.</p></div></div>
-          <div class="app-card app-surface" data-view="dismiss"><div class="app-card-section"><p class="app-surface-label">dismiss</p><p class="app-surface-copy">That layer leaving.</p></div></div>
-        </div>
-        <p class="app-note">Only the incoming page moves, and only by a transform. Each panel plays its arrival once when this page loads.</p>
-      </div>
-      <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-navbar[data-mode="settings"]</span><span>the settings set in place of the app set</span></div>
+      
         <div class="ci-shell-frame">
           <nav class="app-navbar" aria-label="Settings" data-mode="settings">
             <div class="app-navbar-set" data-set="app">

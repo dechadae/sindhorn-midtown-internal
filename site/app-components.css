@@ -867,8 +867,14 @@ body[data-public] .app-masthead-home:active{transform:none}
    archive of paper thumbnails does. Existing stacks name no count and are
    unchanged (r41). */
 .app-stack{display:grid;gap:var(--space-5)}
-.app-stack[data-columns="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
-.app-stack[data-columns="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+/* A declared column count applies where there is room for it. Two columns on a
+   390px screen is two 165px columns, which is not what "two columns" was ever
+   asked for - the page is saying "these read side by side", and on a phone
+   nothing does. Same 700px the reference sheet has always used. */
+@media (min-width:700px){
+  .app-stack[data-columns="2"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .app-stack[data-columns="3"]{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
 /* A grid item is min-width:auto by default, so one long unbroken word makes an
    item wider than its track and a two-across row stops being equal. A stack
    arranges peers; a peer that will not fit its share is not arranged. This

@@ -123,7 +123,7 @@ function skeletonMarkup() {
     <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">${metric()}${metric()}${metric()}</div>
     <div class="app-row"><div class="app-skeleton">${skeletonLine('short')}${skeletonLine('', 'control')}</div><div class="app-skeleton">${skeletonLine('short')}${skeletonLine('', 'control')}</div></div>
     <h3 class="app-section-subhead">Promotions</h3>
-    <div class="app-stack">${skeletonCard()}${skeletonCard()}${skeletonCard()}</div>
+    <div class="app-stack" data-columns="2">${skeletonCard()}${skeletonCard()}${skeletonCard()}</div>
   </section>`;
 }
 function detailSkeletonMarkup() {
@@ -218,7 +218,7 @@ export async function mountFnb(host, { public: isPublic = false } = {}) {
       <div class="app-metric-grid" data-columns="${isPublic ? 2 : 3}" data-mode="text" data-rule="true">${metric('Promotions', list.length)}${metric('Live now', live)}${isPublic ? '' : metric('Artwork done', `${n}/${total}`)}</div>
       <div class="app-row">${select('outlet', 'Outlet', outletOptions, filter)}${select('month', 'Month', monthOptions, month)}</div>
       <h3 class="app-section-subhead">${list.length === 1 ? '1 promotion' : `${list.length} promotions`}</h3>
-      <div class="app-stack">${list.length ? list.map(cardMarkup).join('') : '<div class="app-state app-card" data-tone="empty"><p class="app-state-label">Empty</p><p class="app-state-title">No promotions match these filters</p><p class="app-state-copy">Choose another outlet or month.</p></div>'}</div>
+      <div class="app-stack" data-columns="2">${list.length ? list.map(cardMarkup).join('') : '<div class="app-state app-card" data-tone="empty"><p class="app-state-label">Empty</p><p class="app-state-title">No promotions match these filters</p><p class="app-state-copy">Choose another outlet or month.</p></div>'}</div>
     </section>`;
   }
 

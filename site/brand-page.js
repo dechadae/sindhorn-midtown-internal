@@ -71,7 +71,7 @@ function indexMarkup() {
   <section class="app-section">
     <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${fact('Hotel', 'Sindhorn Midtown')}${fact('Collection', 'Vignette Collection by IHG')}</div>
     <h3 class="app-section-subhead">Reference</h3>
-    <div class="app-stack">
+    <div class="app-stack" data-columns="2">
       ${card('history', '01 · IHG Hotels & Resorts', 'Our History', 'From the origins of Bass in 1777 to today’s global IHG portfolio.', `${milestones} milestones`)}
       ${card('factsheet', '02 · Sindhorn Midtown', 'Hotel Factsheet', 'The essential employee reference for rooms, dining, facilities, meetings and location.', `${h.roomsAndSuites} rooms & suites`)}
     </div>

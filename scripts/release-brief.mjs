@@ -51,6 +51,10 @@ try { newVocabulary = JSON.parse(vocab.out.slice(vocab.out.indexOf('{'))).stops 
 
 /* ---- pixels ------------------------------------------------------------- */
 const ROUTES = ['/index.html', '/ci.html', '/voice.html', '/idui.html', '/evidence.html', '/origarium.html'];
+/* Two widths. A change that only appears on a wide screen is invisible to a
+   phone-only diff, and the brief would report "no pixels moved" about a page
+   it had just rearranged. */
+const WIDTHS = [390, 1280];
 let pixels = null, pixelError = null;
 async function measurePixels() {
   /* playwright-core is vendored into this repository - 458 tracked files - so
@@ -86,11 +90,12 @@ async function measurePixels() {
     }); s.listen(0, '127.0.0.1', () => res({port: s.address().port, close: () => s.close()})); });
   const a = await serve(path.join(base, 'site')), b = await serve(path.join(root, 'site'));
   const browser = await chromium.launch().catch(() => chromium.launch({channel: 'chrome'}));
-  const ctx = await browser.newContext({viewport: {width: 390, height: 844}, deviceScaleFactor: 1, reducedMotion: 'reduce'});
+  const contexts = {};
+  for (const w of WIDTHS) contexts[w] = await browser.newContext({viewport: {width: w, height: 844}, deviceScaleFactor: 1, reducedMotion: 'reduce'});
   const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
   const token = `${b64({alg:'none',typ:'JWT'})}.${b64({sub:'00000000-0000-0000-0000-000000000001',role:'authenticated',exp:Math.floor(Date.now()/1000)+86400})}.brief`;
-  const shot = async (server, route) => {
-    const page = await ctx.newPage();
+  const shot = async (server, route, width) => {
+    const page = await contexts[width].newPage();
     await page.addInitScript(t => localStorage.setItem('sindhorn-midtown-auth-session-v1', JSON.stringify(
       {access_token: t, refresh_token: 'brief', expires_at: Math.floor(Date.now()/1000)+86400, token_type: 'bearer', user: null})), token);
     await page.route('**/rest/v1/rpc/sindhorn_current_employee_profile', r => r.fulfill({status: 200, contentType: 'application/json',
@@ -123,14 +128,15 @@ async function measurePixels() {
     await page.close(); return png;
   };
   pixels = {};
-  for (const route of ROUTES) {
+  for (const width of WIDTHS) for (const route of ROUTES) {
+    const key = `${route} @${width}`;
     try {
-      const [x, y] = [await shot(a, route), await shot(b, route)];
-      if (x.width !== y.width || x.height !== y.height) { pixels[route] = {size: [x.width, x.height, y.width, y.height]}; continue; }
+      const [x, y] = [await shot(a, route, width), await shot(b, route, width)];
+      if (x.width !== y.width || x.height !== y.height) { pixels[key] = {size: [x.width, x.height, y.width, y.height]}; continue; }
       const diff = new PNG({width: x.width, height: x.height});
-      pixels[route] = {differing: pixelmatch(x.data, y.data, diff.data, x.width, x.height, {threshold: 0.1}), of: x.width * x.height};
-      if (pixels[route].differing) writeFileSync(path.join(root, `.brief-${route.replace(/\W/g, '_')}.png`), PNG.sync.write(diff));
-    } catch (e) { pixels[route] = {error: String(e.message).slice(0, 60)}; }
+      pixels[key] = {differing: pixelmatch(x.data, y.data, diff.data, x.width, x.height, {threshold: 0.1}), of: x.width * x.height};
+      if (pixels[key].differing) writeFileSync(path.join(root, `.brief-${key.replace(/\W/g, '_')}.png`), PNG.sync.write(diff));
+    } catch (e) { pixels[key] = {error: String(e.message).slice(0, 60)}; }
   }
   await browser.close(); a.close(); b.close(); rmSync(base, {recursive: true, force: true});
 }
@@ -148,7 +154,7 @@ else {
   console.log(`  ${pad('NEW VOCABULARY', 18)}${newVocabulary.length ? newVocabulary.map(s => s.replace(/^NEW [A-Z ]+— /, '')).join('\n' + ' '.repeat(20)) : 'none'}`);
   console.log(`  ${pad('GOVERNED FILES', 18)}${governed.length ? governed.join('\n' + ' '.repeat(20)) : 'none'}`);
   if (pixelError) console.log(`  ${pad('PIXELS MOVED', 18)}not measured — ${pixelError}`);
-  else console.log(`  ${pad('PIXELS MOVED', 18)}${moved.length ? moved.map(([r, v]) => `${r} ${v.size ? `size ${v.size.slice(0,2).join('x')} → ${v.size.slice(2).join('x')}` : v.differing + ' px'}`).join('\n' + ' '.repeat(20)) : `none across ${ROUTES.length} routes`}`);
+  else console.log(`  ${pad('PIXELS MOVED', 18)}${moved.length ? moved.map(([r, v]) => `${r} ${v.size ? `size ${v.size.slice(0,2).join('x')} → ${v.size.slice(2).join('x')}` : v.differing + ' px'}`).join('\n' + ' '.repeat(20)) : `none across ${ROUTES.length} routes at ${WIDTHS.join(' and ')}`}`);
   console.log('');
   if (broken.length) { console.log(`  BROKEN: ${broken.map(b => b.gate).join(', ')}\n`); for (const b of broken) console.log(b.out.trim().split('\n').slice(-4).map(l => '    ' + l).join('\n')); }
   else console.log(`  ${GATES.length} gates green`);

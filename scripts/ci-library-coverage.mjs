@@ -25,6 +25,10 @@ const site = path.join(root, 'site');
 const EXCEPTIONS = [
   { key: 'data-public="doc"', since: '2026-09-06',
     reason: 'A <body> attribute that zeroes the navbar height on a public document page. Page plumbing, not a component; there is nothing to specimen.' },
+  { key: 'data-view=push', since: '2026-09-07', reason: 'A movement, not an appearance. The panels only become visible while the view machinery runs them, so a static specimen shows an invisible element parked at its keyframe start - which is what r52 added and what r60 removed. /ci demonstrates all four through the interactive view demo, which a static read cannot observe.' },
+  { key: 'data-view=pop', since: '2026-09-07', reason: 'As data-view=push.' },
+  { key: 'data-view=cover', since: '2026-09-07', reason: 'As data-view=push.' },
+  { key: 'data-view=dismiss', since: '2026-09-07', reason: 'As data-view=push.' },
   { key: 'data-betta-mode', since: '2026-09-06',
     reason: 'The atmosphere runtime stamps the period on <body>; the renderer is not a library component.' },
 ];
@@ -106,7 +110,8 @@ for (const [, attr, value] of stylesheet.matchAll(/\[data-(\w[\w-]*)="([\w-]+)"\
   if (set.test(src) && new RegExp(`['"\`]${value}['"\`]`).test(src)) used.variants.add(key);
 }
 
-const excepted = new Set(EXCEPTIONS.map(e => e.key));
+const excepted = new Set(EXCEPTIONS.map(e => e.key.includes('=') && !e.key.includes('"')
+  ? `${e.key.split('=')[0]}="${e.key.split('=')[1]}"` : e.key));
 const findings = [];
 for (const c of [...used.classes].sort()) if (!shown.classes.includes(c) && !excepted.has(c)) findings.push(`.${c}: the app renders it, /ci does not`);
 for (const v of [...used.variants].sort()) if (!shown.variants.includes(v) && !excepted.has(v) && !excepted.has(v.split('=')[0])) findings.push(`${v}: the app renders it, /ci does not`);

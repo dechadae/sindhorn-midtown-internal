@@ -240,7 +240,7 @@
         "assertions": 4
       },
       "scripts/ci-library-coverage.mjs": {
-        "sha256": "c35ab8b6f08d1a5b",
+        "sha256": "69561bc9e5de4b3e",
         "assertions": 3
       },
       "scripts/no-horizontal-overflow.mjs": {
@@ -272,7 +272,7 @@
         "assertions": 9
       },
       "scripts/release-brief.mjs": {
-        "sha256": "f6dc0d99651f1f41",
+        "sha256": "175e7e81b07bee2a",
         "assertions": 0
       },
       "scripts/contract-integrity.mjs": {
@@ -299,7 +299,7 @@
       "variantAttributes": 19,
       "exceptions": {
         "scripts/page-centralization-audit.mjs": 2,
-        "scripts/ci-library-coverage.mjs": 2
+        "scripts/ci-library-coverage.mjs": 6
       }
     }
   }
