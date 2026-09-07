@@ -547,7 +547,16 @@ for (const doc of DOCS) {
     navCurrent: !!document.querySelector('.app-navbar [aria-current="page"]'),
     title: document.querySelector('.app-hero-title')?.textContent?.trim() || '', sections: document.querySelectorAll('main > .app-section').length,
     chips: document.querySelectorAll('.ci-index .app-chip').length,
-    bettaMode: document.body.dataset.bettaMode || '', bettaModeReason: document.body.dataset.bettaModeReason || '', canvas: (() => { const c = document.getElementById('environmentCanvas'); return c ? `${c.width}x${c.height}` : 'none'; })(),
+    bettaMode: document.body.dataset.bettaMode || '', bettaModeReason: document.body.dataset.bettaModeReason || '', doubleLines: (() => { let n = 0;
+      for (const el of document.querySelectorAll('*')) {
+        const cs = getComputedStyle(el);
+        if (parseFloat(cs.borderBottomWidth) < 0.5 || cs.borderBottomStyle === 'none') continue;
+        const card = el.parentElement?.closest('.app-card,.app-surface,.app-disclosure');
+        if (!card || card === el) continue;
+        const gap = card.getBoundingClientRect().bottom - el.getBoundingClientRect().bottom;
+        if (gap >= 0 && gap <= 22) n++;
+      }
+      return n; })(), canvas: (() => { const c = document.getElementById('environmentCanvas'); return c ? `${c.width}x${c.height}` : 'none'; })(),
     brokenImages: [...document.images].filter(img => img.complete && img.naturalWidth === 0).length, images: document.images.length,
     overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
   }));
@@ -572,6 +581,11 @@ for (const doc of DOCS) {
      asked for one. */
   if (!['betta', 'sky'].includes(seen.bettaMode)) failures.push(`${doc.route}: body[data-betta-mode] is "${seen.bettaMode}"`);
   if (seen.bettaModeReason === 'requested') failures.push(`${doc.route}: the atmosphere was forced, not resolved`);
+  /* A hairline closes a group; a card's edge closes the last one. A rule drawn
+     within a few pixels of the edge that already closes it is the same line
+     said twice, and it is the kind of thing only a person notices - the owner
+     found sixteen of them on /idui after the first fix looked right. */
+  if (seen.doubleLines) failures.push(`${doc.route}: ${seen.doubleLines} hairline${seen.doubleLines === 1 ? '' : 's'} drawn against a card's own edge`);
   if (seen.canvas === 'none' || seen.canvas === '300x150') failures.push(`${doc.route}: atmosphere canvas ${seen.canvas}`);
   if (seen.brokenImages) failures.push(`${doc.route}: ${seen.brokenImages} of ${seen.images} images failed to load`);
   if (seen.overflow > 1) failures.push(`${doc.route}: horizontal overflow ${seen.overflow}px`);

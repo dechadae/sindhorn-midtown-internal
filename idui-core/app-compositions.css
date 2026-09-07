@@ -97,6 +97,13 @@
 .app-table-wrap{overflow-x:auto;contain:inline-size;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
 .app-table{width:max(650px,100%);border-collapse:collapse;font-size:var(--type-body-s);font-variant-numeric:tabular-nums}
 .app-table th,.app-table td{padding:10px 8px;border-bottom:1px solid var(--app-line);text-align:center;white-space:nowrap}
+/* Same rule as a ruled metric grid: a hairline closes a group, and inside a
+   card the card's own edge already closes the last one. The last row of a
+   table in a card was drawing a second line seventeen pixels above the first.
+   On the ground the table keeps its closing rule, because there is no edge
+   there to borrow. */
+:where(.app-card,.app-surface) .app-table tr:last-child>th,
+:where(.app-card,.app-surface) .app-table tr:last-child>td{border-bottom:0}
 .app-table thead th{color:var(--app-muted);font-size:var(--type-small);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 .app-table thead th:first-child{width:108px;min-width:108px;max-width:108px}
 .app-table tbody th{
