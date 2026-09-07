@@ -35,6 +35,7 @@ asserted.
 | `negative-controls-20260907.md` | Whether each rendered contract can fail. Two of four did not fire on first run. |
 | `tier-b-20260907-metal.json` | Tier B against the frozen sample: 30,000 frames, P1–P5 scored. |
 | `findings-20260907-tier-b.md` | Difficulties from Tier B: A-01, B-03, C-02, and D-P-01 still open. |
+| `findings-20260907-scope.md` | **A-02: the renderer was rebuilt and was never under test.** Also A-03 (R1 encoded a completeness assumption the owner's editorial crops contradict), B-04, B-05, C-03. Supersedes the *interpretation* of the Tier B numbers, not the numbers. |
 
 ## Frozen ahead of the next phase
 
@@ -45,10 +46,14 @@ asserted.
 
 ## Where the result stands
 
-**Constructional validity holds at Tier A and does not hold at Tier B.** All
-100,000 sampled seeds pass on parameters; all 2,000 sampled seeds fail a
-rendered contract on at least one surface. The two numbers are reported
-separately and neither lends the other its credibility.
+**Both tiers must be re-run.** The Tier A pass covered a smaller parameter set
+than the constitution now declares, and the Tier B pass measured a renderer that
+has since been deleted — Test 04 had rebuilt the production engine, which was
+never the half under test (`findings-20260907-scope.md`, A-02). The numbers on
+record stand as measured; what they were measuring has changed.
+
+Test 04 now supplies the generator only. The renderer is the product's own
+shader, compiled from its source file and driven directly.
 
 ## What has not been done
 
