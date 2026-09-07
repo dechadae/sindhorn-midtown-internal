@@ -171,6 +171,13 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    its own; the hairline is inside the clipped panel, so a closed disclosure
    shows none. */
 .app-disclosure>.app-disclosure-panel .app-disclosure-panel-inner>*{padding:14px 16px 16px;border-top:1px solid var(--app-line)}
+/* One divider or the other, never both. A group of text closed by its own
+   hairline does not also need a line drawn across the whole card above it -
+   that is the card dividing itself twice, and it reads as a bug even when
+   every line is deliberate. Where a section rules its own groups, the section
+   divider goes and the hairlines do the work. */
+.app-disclosure>.app-disclosure-panel .app-disclosure-panel-inner>:has(.app-metric-grid[data-rule="true"]){border-top:0}
+.app-card-section:has(.app-metric-grid[data-rule="true"])+.app-card-section{border-top:0}
 .app-disclosure-detail{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-disclosure-detail span{display:block;margin-bottom:6px;color:var(--app-accent);font-size:var(--type-small);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 .app-disclosure-detail ul{margin:0;padding-left:18px;display:grid;gap:var(--space-2)}
