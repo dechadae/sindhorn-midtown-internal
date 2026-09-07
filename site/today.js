@@ -59,7 +59,7 @@ function comparisonRow(label, actual, reference, { kind = 'money', referenceLabe
   return `<div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">${esc(label)}: ${esc(f(a))}</span><span class="app-list-row-meta">${esc(referenceLabel)} ${esc(f(r))}</span></span><span class="app-list-row-end">${esc(delta)}</span></div>`;
 }
 function disclosure({ kicker, title, copy = '', body }) {
-  return `<article class="app-disclosure" data-disclosure><button class="app-disclosure-button" type="button" aria-expanded="false"><span class="app-disclosure-head"><span class="app-disclosure-kicker">${esc(kicker)}</span><span class="app-disclosure-title">${esc(title)}</span>${copy ? `<span class="app-disclosure-copy">${esc(copy)}</span>` : ''}</span><svg class="app-disclosure-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5l5 5-5 5"/></svg></button><div class="app-disclosure-panel"><div class="app-disclosure-panel-inner">${body}</div></div></article>`;
+  return `<article class="app-disclosure" data-disclosure><button class="app-disclosure-button" type="button" aria-expanded="false"><span class="app-disclosure-head"><span class="app-disclosure-kicker">${esc(kicker)}</span><span class="app-disclosure-title">${esc(title)}</span>${copy ? `<span class="app-disclosure-copy">${esc(copy)}</span>` : ''}</span><svg class="app-disclosure-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5l5 5-5 5"/></svg></button><div class="app-disclosure-panel"><div class="app-disclosure-panel-inner"><div>${body}</div></div></div></article>`;
 }
 
 /* What the page says while it is showing the copy it kept. It names the copy,
@@ -149,7 +149,7 @@ function renderFlags(data) {
 }
 function renderOutlet(outlet) {
   const dayparts = Array.isArray(outlet.dayparts) ? outlet.dayparts : [];
-  const body = `<div>
+  const body = `
     <div class="app-card-section"><div class="app-metric-grid" data-rule="true">
       ${metric({ label: 'Forecast', value: num(outlet.forecast) > 0 ? money(outlet.forecast, { compact: true }) : '—' })}
       ${metric({ label: 'Covers', value: integer(outlet.covers) })}
@@ -157,7 +157,7 @@ function renderOutlet(outlet) {
     <div class="app-card-section"><div class="app-metric-grid" data-rule="true">
       ${metric({ label: 'Food', value: money(outlet.foodNet, { compact: true }) })}
       ${metric({ label: 'Beverage', value: money(outlet.beverageNet, { compact: true }) })}
-    </div></div>${dayparts.length ? `<div class="app-card-section"><div class="app-list">${dayparts.map(day => `<div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">${esc(day.label)}</span><span class="app-list-row-meta">${esc(integer(day.covers))} covers · Food ${esc(money(day.foodNet, { compact: true }))} · Beverage ${esc(money(day.beverageNet, { compact: true }))}</span></span><span class="app-list-row-end">${esc(money(day.revenue, { compact: true }))}</span></div>`).join('')}</div></div>` : ''}</div>`;
+    </div></div>${dayparts.length ? `<div class="app-card-section"><div class="app-list">${dayparts.map(day => `<div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">${esc(day.label)}</span><span class="app-list-row-meta">${esc(integer(day.covers))} covers · Food ${esc(money(day.foodNet, { compact: true }))} · Beverage ${esc(money(day.beverageNet, { compact: true }))}</span></span><span class="app-list-row-end">${esc(money(day.revenue, { compact: true }))}</span></div>`).join('')}</div></div>` : ''}`;
   return disclosure({ kicker: outlet.label, title: money(outlet.revenue, { compact: true }), copy: num(outlet.forecast) > 0 ? variance(outlet.revenue, outlet.forecast) : 'Forecast not loaded', body });
 }
 function renderFnb(data) {

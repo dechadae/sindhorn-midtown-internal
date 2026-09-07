@@ -3,3 +3,6 @@
 phase82-artifacts/
 node_modules/
 /site/share/
+
+# release-brief pixel-diff masks: scratch output, never tracked (two slipped in at r58)
+.brief-*.png

@@ -177,7 +177,10 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    every line is deliberate. Where a section rules its own groups, the section
    divider goes and the hairlines do the work. */
 .app-disclosure>.app-disclosure-panel .app-disclosure-panel-inner>:has(.app-metric-grid[data-rule="true"]){border-top:0}
-.app-card-section:has(.app-metric-grid[data-rule="true"])+.app-card-section{border-top:0}
+/* And the room made for the divider goes with it: the seam after a ruled
+   section is the grid's own row gap, so two ruled sections read as one grid
+   and a list under one hangs from its last hairline (r66). */
+.app-card-section:has(.app-metric-grid[data-rule="true"])+.app-card-section{border-top:0;margin-top:0;padding-top:18px}
 .app-disclosure-detail{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-disclosure-detail span{display:block;margin-bottom:6px;color:var(--app-accent);font-size:var(--type-small);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 .app-disclosure-detail ul{margin:0;padding-left:18px;display:grid;gap:var(--space-2)}
@@ -394,22 +397,18 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    On the ground there is no edge to borrow and the rule stays. The even-count
    guard is the second column of a last row, which only exists while the grid
    resolves to two tracks - phone width, where these are read. */
-/* Only the last one. r59 suppressed the rule on every grid inside a card, which
-   is right for the grid at the bottom and wrong for one with another section
-   under it - there the hairline is the thing separating them. And it named only
-   .app-card and .app-surface, so a grid inside an open disclosure kept drawing a
-   second line above the panel's own edge, which is where the owner found it. */
-:where(.app-card,.app-surface,.app-disclosure-panel-inner)>:last-child .app-metric-grid[data-rule="true"] .app-metric:last-child,
-:where(.app-card,.app-surface,.app-disclosure-panel-inner)>.app-metric-grid[data-rule="true"]:last-child .app-metric:last-child{border-bottom:0;padding-bottom:0}
-/* The cells of the last row, not of the last viewport. A grid of two is two
-   tracks at every width, so guarding this on a breakpoint left the second-to-last
-   cell drawing a rule on a desktop and not on a phone. The count is what decides
-   it: a grid of exactly two is entirely its own last row, and an even count puts
-   its final pair there. */
-:where(.app-card,.app-surface,.app-disclosure-panel-inner)>:last-child .app-metric-grid[data-rule="true"]:has(>.app-metric:nth-child(2):last-child) .app-metric,
-:where(.app-card,.app-surface,.app-disclosure-panel-inner)>.app-metric-grid[data-rule="true"]:last-child:has(>.app-metric:nth-child(2):last-child) .app-metric,
-:where(.app-card,.app-surface,.app-disclosure-panel-inner)>:last-child .app-metric-grid[data-rule="true"]:has(>.app-metric:nth-child(even):last-child) .app-metric:nth-last-child(2),
-:where(.app-card,.app-surface,.app-disclosure-panel-inner)>.app-metric-grid[data-rule="true"]:last-child:has(>.app-metric:nth-child(even):last-child) .app-metric:nth-last-child(2){border-bottom:0;padding-bottom:0}
+/* Only the grid at the bottom edge: last among its siblings, in a group that is
+   last, in a wrapper that is last - three levels, as deep as a card composes.
+   r64 reached it with a descendant match, which also took every grid inside a
+   wrapper that happened to be last: the outlet card lost all of its hairlines,
+   not only the one above its edge (r66). A grid of exactly two is its own final
+   pair, so the even guard already covers it. */
+:where(.app-card,.app-surface,.app-disclosure-panel-inner)>.app-metric-grid[data-rule="true"]:last-child .app-metric:last-child,
+:where(.app-card,.app-surface,.app-disclosure-panel-inner)>:last-child>.app-metric-grid[data-rule="true"]:last-child .app-metric:last-child,
+:where(.app-card,.app-surface,.app-disclosure-panel-inner)>:last-child>:last-child>.app-metric-grid[data-rule="true"]:last-child .app-metric:last-child,
+:where(.app-card,.app-surface,.app-disclosure-panel-inner)>.app-metric-grid[data-rule="true"]:last-child:has(>.app-metric:nth-child(even):last-child) .app-metric:nth-last-child(2),
+:where(.app-card,.app-surface,.app-disclosure-panel-inner)>:last-child>.app-metric-grid[data-rule="true"]:last-child:has(>.app-metric:nth-child(even):last-child) .app-metric:nth-last-child(2),
+:where(.app-card,.app-surface,.app-disclosure-panel-inner)>:last-child>:last-child>.app-metric-grid[data-rule="true"]:last-child:has(>.app-metric:nth-child(even):last-child) .app-metric:nth-last-child(2){border-bottom:0;padding-bottom:0}
 
 .app-track{display:block;width:100%;height:10px;margin-top:6px;overflow:visible}
 .app-track-rail{fill:var(--app-line)}

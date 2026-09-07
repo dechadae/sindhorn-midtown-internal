@@ -16,7 +16,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/app-192.png?v=2">
 <!--
   Invariant-Driven UI (IDUI) v0.1 - the public document, built by scripts/build-idui.mjs from
-  docs/idui/idui-body.html with sindhorn-midtown-internal-pwa-v144-one-divider-r65. Library classes only; the atmosphere is live.
+  docs/idui/idui-body.html with sindhorn-midtown-internal-pwa-v145-ruled-seams-r66. Library classes only; the atmosphere is live.
 -->
 <link rel="preload" as="font" type="font/woff2" crossorigin href="/assets/fonts/line-seed-sans-th-regular.woff2">
 <link rel="stylesheet" href="/fonts.css?v=2">
@@ -41,7 +41,7 @@
   <p class="app-hero-eyebrow">Sindhorn Midtown Internal · Design and development method</p>
   <h1 class="app-hero-title">Invariant-Driven UI</h1>
   <p class="app-hero-copy">Pages compose. Primitives behave. Invariants style. Contracts validate. A working method formalized from the Sindhorn Midtown Internal rebuild of 2–5 September 2026, written from the production code rather than ahead of it.</p>
-  <p class="app-note">Draft v0.1, 5 September 2026. Nothing in this document changes production. Every rule is marked implemented, partial or proposed. Numbers were first measured from the repository at commit <code>558ab67</code> and the export is rebuilt from the library at every release (this copy: service worker <code>v144-one-divider-r65</code>); where evidence does not exist the value is marked unknown. The recommendations in 03 and 06 are proposals for the owner to challenge before any cleanup begins.</p>
+  <p class="app-note">Draft v0.1, 5 September 2026. Nothing in this document changes production. Every rule is marked implemented, partial or proposed. Numbers were first measured from the repository at commit <code>558ab67</code> and the export is rebuilt from the library at every release (this copy: service worker <code>v145-ruled-seams-r66</code>); where evidence does not exist the value is marked unknown. The recommendations in 03 and 06 are proposals for the owner to challenge before any cleanup begins.</p>
   <nav class="ci-index" aria-label="Sections">
     <a class="app-chip app-control" href="#set">00 The Set</a>
     <a class="app-chip app-control" href="#method">01 Method</a>
@@ -64,7 +64,7 @@
   <div class="app-card app-surface">
     <div class="app-list">
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">1 · Material has one authority</span><span class="app-list-row-meta">A consumer declares semantic role and context; only a registered material authority may derive fill, edge, blur, shadow or related material treatment. Which files are authorities is governance, not core. <em>Sindhorn's constitution adds: Sindhorn admits one material family, glass.</em> Gate: <code>material-authority-gate.mjs</code></span><span class="app-list-row-meta">Checked by ratchet · nested-glass</span></div></div>
-      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">2 · A card is anything that draws an edge</span><span class="app-list-row-meta">An edge is glass; glass never nests. Structure inside a card is a rule, a section, a row - never a second surface. And one divider or the other, never both: where a section rules its own groups the section divider goes, because a card that divides itself twice reads as a defect even when every line was deliberate (r65).</span><span class="app-list-row-meta">Checked by nested-glass · page audit</span></div></div>
+      <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">2 · A card is anything that draws an edge</span><span class="app-list-row-meta">An edge is glass; glass never nests. Structure inside a card is a rule, a section, a row - never a second surface. And one divider or the other, never both: where a section rules its own groups the section divider goes, because a card that divides itself twice reads as a defect even when every line was deliberate (r65). The room made for the divider goes with it: the seam after a ruled group is the grid’s own row gap, so two ruled groups read as one and only the grid at the card’s bottom edge lends its last rule to the edge (r66).</span><span class="app-list-row-meta">Checked by nested-glass · page audit</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">3 · One scale</span><span class="app-list-row-meta">Every size, radius, space, weight, leading, duration and control height is a token in <code>app-tokens.css</code>; a literal in a component is a finding.</span><span class="app-list-row-meta">Checked by ratchet · page audit · invariants</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">4 · One face</span><span class="app-list-row-meta">The constitution declares the family, the weights, the tracking and the case; the core consumes them and declares none of its own. Zero tracking, one family and three weights are Sindhorn's constitution, not the core's (restated r33 after the Flipgazine rebuild).</span><span class="app-list-row-meta">Checked by font-architecture and constitution completeness</span></div></div>
       <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">5 · One shape system</span><span class="app-list-row-meta">Every radius is a token and the core declares no radius literal. Rounded, never circular - no 50%, no pill on a control - is Sindhorn's constitution (<code>--radius-control: var(--radius-inset)</code>); a circle is allowed only where it draws a natural thing (restated r33).</span><span class="app-list-row-meta">Checked by shape audit</span></div></div>
@@ -949,7 +949,7 @@
   <div class="app-utility-row">
     <a class="app-utility-action" href="#top">Back to top</a>
   </div>
-  <p class="app-note">Invariant-Driven UI v0.1 · Sindhorn Midtown Internal · 5 September 2026. This document is composed from the app's own library — <code>app-tokens.css</code>, <code>app-glass.css</code>, <code>app-components.css</code>, <code>app-compositions.css</code>, <code>app-shell.css</code>, <code>ci-library.css</code> as shipped with service worker <code>v144-one-divider-r65</code> — and declares no presentation of its own. The offline export carries a still gradient in place of the Betta; the live page runs the full runtime.</p>
+  <p class="app-note">Invariant-Driven UI v0.1 · Sindhorn Midtown Internal · 5 September 2026. This document is composed from the app's own library — <code>app-tokens.css</code>, <code>app-glass.css</code>, <code>app-components.css</code>, <code>app-compositions.css</code>, <code>app-shell.css</code>, <code>ci-library.css</code> as shipped with service worker <code>v145-ruled-seams-r66</code> — and declares no presentation of its own. The offline export carries a still gradient in place of the Betta; the live page runs the full runtime.</p>
 </section>
 
 <!-- ================================================================ 09 -->
