@@ -194,6 +194,105 @@ case "--max-fidelity":
         FileHandle.standardError.write("Max fidelity failed: \(error)\n".data(using: .utf8)!)
         exit(2)
     }
+case "--blind-set":
+    // A rating set. Neutral filenames, deterministic shuffle, manifest written
+    // but not to be opened by a rater before scoring. Two deliberately degraded
+    // frames are mixed in: a rater who scores those well is not discriminating,
+    // and the comparison would be void.
+    let seedsPath = arguments.dropFirst().first ?? "seeds.json"
+    let outPath = arguments.dropFirst(2).first ?? "blind-set"
+    let total = arguments.dropFirst(3).first.flatMap { Int($0) } ?? 20
+    let skip = arguments.dropFirst(4).first.flatMap { Int($0) } ?? 8
+    let constitution = loadConstitution()
+    do {
+        let seeds = try TierB.loadSeeds(path: seedsPath)
+        let compositions = try LockedCompositions.load()
+        let ids = compositions.keys.sorted()
+        let renderer = try EngineRenderer(rays: 640, segments: 576, sampleCount: 4)
+        let surface = Surface(name: "blind", width: 3840, height: 2160)
+        let outDir = URL(fileURLWithPath: outPath)
+        try FileManager.default.createDirectory(at: outDir, withIntermediateDirectories: true)
+
+        struct Item { let kind: String; let seed: UInt64?; let style: GeneratedStyle
+                      let composition: Composition; let note: String? }
+        var items: [Item] = []
+
+        // Genuine samples, skipping the seeds already judged.
+        let sampleCount = total - 2
+        for i in 0..<sampleCount {
+            let seed = seeds[(skip + i) % seeds.count]
+            items.append(Item(
+                kind: "sample", seed: seed,
+                style: SeedSampler.generate(seed: seed, constitution: constitution),
+                composition: compositions[ids[i % ids.count]] ?? .neutralLandscape,
+                note: nil
+            ))
+        }
+
+        // Two degraded controls.
+        let base = SeedSampler.generate(seed: seeds[skip % seeds.count], constitution: constitution)
+        var flat = base
+        flat.groundSaturation = 0.02
+        flat.groundLightnessA = 0.42; flat.groundLightnessB = 0.46
+        flat.groundVignette = 0
+        flat.opacity = 0.02
+        items.append(Item(kind: "control-flat", seed: nil, style: flat,
+                          composition: .neutralLandscape,
+                          note: "near-empty frame on an almost flat mid grey"))
+
+        var muddy = base
+        muddy.saturation = 0.06
+        muddy.gradingSaturation = 1.18
+        muddy.brightness = 1.64
+        muddy.lightness0 = 0.34; muddy.lightness1 = 0.38
+        muddy.lightness2 = 0.42; muddy.lightness3 = 0.46
+        muddy.groundSaturation = 0.05
+        muddy.groundLightnessA = 0.38; muddy.groundLightnessB = 0.45
+        items.append(Item(kind: "control-muddy", seed: nil, style: muddy,
+                          composition: compositions[ids[0]] ?? .neutralLandscape,
+                          note: "desaturated organism on a desaturated mid ground"))
+
+        var rng = SplitMix64(seed: 0xB11D5E7)
+        for i in stride(from: items.count - 1, to: 0, by: -1) {
+            let j = Int(rng.unit() * Double(i + 1)) % (i + 1)
+            items.swapAt(i, j)
+        }
+
+        struct Entry: Encodable { let file: String; let kind: String
+                                  let seed: UInt64?; let note: String? }
+        var manifest: [Entry] = []
+        for (index, item) in items.enumerated() {
+            let name = String(format: "b-%02d.png", index + 1)
+            let frame = try renderer.render(style: item.style, surface: surface,
+                                            phase: 0, composition: item.composition)
+            try writePNG(frame, to: outDir.appendingPathComponent(name))
+            manifest.append(Entry(file: name, kind: item.kind, seed: item.seed, note: item.note))
+        }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        try encoder.encode(manifest).write(to: outDir.appendingPathComponent("MANIFEST-DO-NOT-OPEN.json"))
+        print("wrote \(manifest.count) frames at 3840x2160 to \(outDir.path)")
+    } catch {
+        FileHandle.standardError.write("Blind set failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
+case "--preview":
+    // A live window. A still cannot show pacing, breathing or drift, and a
+    // score given on a still is a score given on the wrong thing.
+    let seedArg = arguments.dropFirst().first.flatMap { UInt64($0) }
+    let compArg = arguments.dropFirst(2).first.flatMap { Int($0) }
+    let constitution = loadConstitution()
+    do {
+        let seeds = try? TierB.loadSeeds(
+            path: "/Users/Graphic/Documents/sindhorn-midtown-internal-claude/idui-core/evidence/generative/seeds.json"
+        )
+        let seed = seedArg ?? seeds?.first ?? 0
+        let preview = try PreviewWindow(seed: seed, compositionId: compArg, constitution: constitution)
+        preview.run()
+    } catch {
+        FileHandle.standardError.write("Preview failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
 case "--negative-controls":
     runNegativeControls()
 case "--taste-set":
@@ -285,6 +384,7 @@ default:
       BettaTest04 --tier-a [count]        run the pure-arithmetic contract pass
       BettaTest04 --dump-seeds [count]    emit styles as CSV for cross-platform diffing
       BettaTest04 --negative-controls     prove each rendered contract can fail
+      BettaTest04 --preview [seed] [1-8]  live window; watch the motion
     """)
     exit(64)
 }
