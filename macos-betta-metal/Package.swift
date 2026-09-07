@@ -7,7 +7,8 @@ let package = Package(
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "BettaMetalLab", targets: ["BettaMetalLab"])
+        .executable(name: "BettaMetalLab", targets: ["BettaMetalLab"]),
+        .executable(name: "BettaTest04", targets: ["BettaTest04"])
     ],
     targets: [
         .executableTarget(
@@ -15,6 +16,17 @@ let package = Package(
             path: "Sources/BettaMetalLab",
             resources: [
                 .copy("Shaders.metal")
+            ]
+        ),
+        // IDUI Test 04. Separate from BettaMetalLab on purpose: that target is
+        // held to parity with the locked production presets, this one must have
+        // zero appearance decisions in its generator. They share a package and
+        // nothing else - no imports in either direction.
+        .executableTarget(
+            name: "BettaTest04",
+            path: "Sources/BettaTest04",
+            resources: [
+                .copy("constitution.json")
             ]
         )
     ]
