@@ -94,42 +94,67 @@ function renderGlance(data) {
     <div class="app-stack">
       <div class="app-card app-surface">
         <div class="app-card-section"><p class="app-surface-label">Food &amp; Beverage · ${esc(shortDateLabel(fnbSource?.detectedReportDate || data.businessDate))}</p></div>
-        <div class="app-card-section"><div class="app-metric-grid">
+        <div class="app-card-section"><div class="app-metric-grid" data-rule="true">
           ${metric({ label: 'Today Revenue', value: money(daily.revenue, { compact: true }), comparison: variance(daily.revenue, daily.forecast), direction: directionOf(num(daily.revenue) - num(daily.forecast)), track: track(daily.revenue, daily.forecast, 0) })}
           ${metric({ label: 'MTD Revenue', value: money(mtd.revenue, { compact: true }), comparison: variance(mtd.revenue, mtd.forecast), direction: directionOf(num(mtd.revenue) - num(mtd.forecast)), track: track(mtd.revenue, mtd.forecast, 1) })}
         </div></div>
       </div>
       <div class="app-card app-surface">
         <div class="app-card-section"><p class="app-surface-label">Rooms · ${esc(shortDateLabel(roomsSource?.detectedReportDate || data.businessDate))}</p></div>
-        <div class="app-card-section"><div class="app-metric-grid">
+        <div class="app-card-section"><div class="app-metric-grid" data-rule="true">
           ${metric({ label: 'Occupancy OTB', value: percent(otb.occupancy), comparison: occDelta === null ? '' : `${occDelta >= 0 ? '+' : '−'}${Math.abs(occDelta * 100).toFixed(1)} pp vs forecast`, direction: directionOf(occDelta), track: track(otb.occupancy, rooms?.forecast?.occupancy, 2) })}
           ${metric({ label: 'ADR', value: money(otb.adr), comparison: rooms ? `${money(adrDelta, { compact: true, signed: true })} vs forecast` : '', direction: directionOf(adrDelta), track: track(otb.adr, rooms?.forecast?.adr, 3) })}
         </div></div>
-        <div class="app-card-section"><div class="app-metric-grid">
+        <div class="app-card-section"><div class="app-metric-grid" data-rule="true">
           ${metric({ label: 'RevPAR', value: money(otb.revpar), comparison: rooms ? `${money(revparDelta, { compact: true, signed: true })} vs forecast` : '', direction: directionOf(revparDelta), track: track(otb.revpar, rooms?.forecast?.revpar, 4) })}
           ${metric({ label: '24h Pickup', value: `${integer(pickup.rns, { signed: true })} RN`, comparison: money(pickup.revenue, { compact: true, signed: true }), meta: pickup.adr ? `Pickup ADR ${money(pickup.adr)}` : '', direction: directionOf(num(pickup.rns)) })}
         </div></div>
       </div>
     </div></section>`;
 }
+/* An exception's variance reads as a badge rather than plain text, so its direction is
+   visible before the number is. The sign is the dataset's own - "variance preserves sign
+   from comparison semantics" - so nothing is interpreted here: below the comparison is
+   danger, above it is success, and a flag with no variance gets no badge rather than a
+   neutral one that would imply a measurement. */
+const varianceBadge = flag => {
+  const variance = Number(flag.payload?.variancePct);
+  if (!Number.isFinite(variance)) return '';
+  const tone = variance < 0 ? ' data-tone="danger"' : variance > 0 ? ' data-tone="success"' : ' data-tone="quiet"';
+  return `<span class="app-badge"${tone}>${esc(percent(variance, { signed: true }))}</span>`;
+};
 function renderFlags(data) {
   const flags = Array.isArray(data.flags) ? data.flags : [];
   if (!flags.length) return '';
   const groups = new Map();
   for (const flag of flags) { const key = String(flag.domain || 'other').toLowerCase(); if (!groups.has(key)) groups.set(key, []); groups.get(key).push(flag); }
   const domainLabel = d => d === 'fnb' ? 'Food & Beverage' : d === 'rooms' ? 'Rooms' : d;
+  /* The worst gap first, so a -46.7% does not sit under a -6.0%. business_dashboard_flags
+     carries a severity of its own; the read model does not pass it through today, so the
+     ordering falls back to the size of the variance and picks severity up automatically if
+     the field ever arrives. No threshold is invented, only an order, and a flag with no
+     variance keeps its place at the end rather than being ranked on a number it lacks. */
+  const weight = flag => {
+    const declared = Number(flag.severity);
+    if (Number.isFinite(declared)) return declared;
+    const variance = Number(flag.payload?.variancePct);
+    return Number.isFinite(variance) ? Math.abs(variance) : -1;
+  };
+  for (const items of groups.values()) items.sort((a, z) => weight(z) - weight(a));
+  const worst = items => items.reduce((n, f) => Math.max(n, weight(f)), -1);
+  const ordered = [...groups.entries()].sort((a, z) => worst(z[1]) - worst(a[1]));
   return `<section class="app-section" id="today-flags"><p class="app-section-kicker">02 · Exceptions</p><h2 class="app-section-title">Needs Attention</h2><p class="app-section-lede">Rule-based exceptions from the approved daily dataset.</p>
-    <div class="app-stack">${[...groups.entries()].map(([domain, items]) => `<div class="app-card app-surface"><div class="app-card-section"><p class="app-surface-label">${esc(domainLabel(domain))} · ${items.length} exception${items.length === 1 ? '' : 's'}</p></div><div class="app-card-section"><div class="app-list">${items.map(flag => `<div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">${esc(flag.title)}</span><span class="app-list-row-meta">${esc(flag.detail)}</span></span><span class="app-list-row-end">${flag.payload?.variancePct !== undefined ? esc(percent(flag.payload.variancePct, { signed: true })) : ''}</span></div>`).join('')}</div></div></div>`).join('')}</div>
+    <div class="app-stack">${[...groups.entries()].map(([domain, items]) => `<div class="app-card app-surface"><div class="app-card-section"><p class="app-surface-label">${esc(domainLabel(domain))} · ${items.length} exception${items.length === 1 ? '' : 's'}</p></div><div class="app-card-section"><div class="app-list">${items.map(flag => `<div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">${esc(flag.title)}</span><span class="app-list-row-meta">${esc(flag.detail)}</span></span><span class="app-list-row-end">${varianceBadge(flag)}</span></div>`).join('')}</div></div></div>`).join('')}</div>
   </section>`;
 }
 function renderOutlet(outlet) {
   const dayparts = Array.isArray(outlet.dayparts) ? outlet.dayparts : [];
   const body = `<div>
-    <div class="app-card-section"><div class="app-metric-grid">
+    <div class="app-card-section"><div class="app-metric-grid" data-rule="true">
       ${metric({ label: 'Forecast', value: num(outlet.forecast) > 0 ? money(outlet.forecast, { compact: true }) : '—' })}
       ${metric({ label: 'Covers', value: integer(outlet.covers) })}
     </div></div>
-    <div class="app-card-section"><div class="app-metric-grid">
+    <div class="app-card-section"><div class="app-metric-grid" data-rule="true">
       ${metric({ label: 'Food', value: money(outlet.foodNet, { compact: true }) })}
       ${metric({ label: 'Beverage', value: money(outlet.beverageNet, { compact: true }) })}
     </div></div>${dayparts.length ? `<div class="app-card-section"><div class="app-list">${dayparts.map(day => `<div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">${esc(day.label)}</span><span class="app-list-row-meta">${esc(integer(day.covers))} covers · Food ${esc(money(day.foodNet, { compact: true }))} · Beverage ${esc(money(day.beverageNet, { compact: true }))}</span></span><span class="app-list-row-end">${esc(money(day.revenue, { compact: true }))}</span></div>`).join('')}</div></div>` : ''}</div>`;
@@ -148,7 +173,7 @@ function renderFnb(data) {
       </div></div>
     </div>
     <h3 class="app-section-subhead">Outlet Performance</h3>
-    <div class="app-stack">${outlets.map(renderOutlet).join('')}</div>
+    <div class="app-stack" data-columns="2">${outlets.map(renderOutlet).join('')}</div>
   </section>`;
 }
 function renderRooms(data) {
@@ -165,17 +190,15 @@ function renderRooms(data) {
           ${comparisonRow('Room Nights', o.rns, f.rns, { kind: 'integer' })}
         </div></div>
       </div>
-      <div class="app-card app-surface">
-        <div class="app-card-section"><p class="app-surface-label">Benchmarks</p></div>
-        <div class="app-card-section"><div class="app-metric-grid">
+      ${disclosure({ kicker: 'Reference', title: 'Benchmarks', copy: 'Budget, STLY, last year and 24-hour pickup', body: `
+        <div class="app-card-section"><div class="app-metric-grid" data-rule="true">
           ${metric({ label: 'Budget revenue', value: money(b.revenue, { compact: true }) })}
           ${metric({ label: 'STLY revenue', value: money(s.revenue, { compact: true }) })}
         </div></div>
-        <div class="app-card-section"><div class="app-metric-grid">
+        <div class="app-card-section"><div class="app-metric-grid" data-rule="true">
           ${metric({ label: 'Last year revenue', value: money(ly.revenue, { compact: true }) })}
           ${metric({ label: '24h pickup', value: `${integer(p.rns, { signed: true })} RN`, comparison: money(p.revenue, { compact: true, signed: true }) })}
-        </div></div>
-      </div>
+        </div></div>` })}
     </div>
   </section>`;
 }
@@ -203,10 +226,8 @@ function renderOutlook(data) {
   const pairs = [];
   for (let i = 0; i < months.length; i += 2) pairs.push(months.slice(i, i + 2).map((m, j) => monthMetric(m, i + j)));
   return `<section class="app-section" id="today-outlook"><p class="app-section-kicker">05 · Forward outlook</p><h2 class="app-section-title">Next Months</h2><p class="app-section-lede">OTB position against forecast; detailed market segments stay collapsed below.</p>
-    <div class="app-card app-surface">
-      <div class="app-card-section"><p class="app-surface-label">Rooms · occupancy on the books</p></div>
-      ${pairs.map(pair => `<div class="app-card-section"><div class="app-metric-grid">${pair.join('')}</div></div>`).join('')}
-    </div>
+    ${disclosure({ kicker: 'Reference', title: 'Next months', copy: 'Rooms on the books against forecast', body: `
+      ${pairs.map(pair => `<div class="app-card-section"><div class="app-metric-grid" data-rule="true">${pair.join('')}</div></div>`).join('')}` })}
   </section>`;
 }
 function renderSegments(data) {
@@ -224,7 +245,7 @@ function renderNotes(data) {
   for (const note of notes) { if (!groups.has(note.outletKey)) groups.set(note.outletKey, { key: note.outletKey, label: note.outlet, items: [] }); groups.get(note.outletKey).items.push(note); }
   if (!groups.size) return '';
   return `<section class="app-section" id="today-notes"><p class="app-section-kicker">07 · Daily operations</p><h2 class="app-section-title">Operations Notes</h2><p class="app-section-lede">Original hotel comments, grouped by outlet and daypart.</p>
-    <div class="app-stack">${[...groups.values()].map(group => disclosure({ kicker: 'Outlet', title: group.label, copy: `${group.items.length} note${group.items.length === 1 ? '' : 's'}`, body: `<div class="app-prose">${group.items.map(note => `<p><strong>${esc(note.daypart)}</strong> — ${esc(note.displayText)}</p>`).join('')}</div>` })).join('')}</div>
+    <div class="app-stack" data-columns="2">${[...groups.values()].map(group => disclosure({ kicker: 'Outlet', title: group.label, copy: `${group.items.length} note${group.items.length === 1 ? '' : 's'}`, body: `<div class="app-prose">${group.items.map(note => `<p><strong>${esc(note.daypart)}</strong> — ${esc(note.displayText)}</p>`).join('')}</div>` })).join('')}</div>
   </section>`;
 }
 function renderSources(data) {
@@ -242,7 +263,7 @@ function skeletonMarkup() {
   const card = () => `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;
   return `<header class="app-hero"><p class="app-hero-eyebrow">Today</p><h1 class="app-hero-title">Hotel Business</h1><p class="app-hero-copy">Loading the latest approved daily business report…</p></header>
   <section class="app-section"><div class="app-stack">
-    <div class="app-metric-grid">${Array.from({ length: 4 }, card).join('')}</div>
+    <div class="app-metric-grid" data-rule="true">${Array.from({ length: 4 }, card).join('')}</div>
     <div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-block"></div></div></div>
     <div class="app-state app-card" data-tone="loading"><p class="app-state-label">Loading</p><p class="app-state-title">Loading today's approved business data…</p></div>
   </div></section>`;
