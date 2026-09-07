@@ -98,6 +98,24 @@ async function measurePixels() {
     await page.route(/supabase\.co\/rest\/v1\/(?!rpc\/sindhorn_current_employee_profile)/, r => r.fulfill({status: 200, contentType: 'application/json', body: '[]'}));
     await page.goto(`http://127.0.0.1:${server.port}${route}`, {waitUntil: 'networkidle'});
     await page.addStyleTag({content: '.environment-stage,#glCanvas,.environment-canvas,canvas{visibility:hidden!important}*{animation:none!important;transition:none!important}'});
+    /* Pin the atmosphere. Since r57 the document pages run the live Betta, and
+       two screenshots taken seconds apart catch it mid-transition - a sparse
+       difference across every row that means nothing and hides the ones that
+       do. Both sides are pinned to the same period, so a real change still
+       shows and a moving sky does not. */
+    await page.evaluate(() => window.SindhornEnvironment?.setBettaPeriod?.('midnight')).catch(() => {});
+    /* Mask the version stamp. Every document page prints the service worker it
+       was built with, twice, so a release that changes nothing else still
+       reports a few hundred differing pixels and the number stops meaning
+       anything. Hidden on both sides, so a real change to that line would still
+       change the layout around it. */
+    await page.evaluate(() => {
+      for (const el of document.querySelectorAll('code, .app-note, .app-metric-value')) {
+        /* Both forms: the full worker name, and the short v137-slug-r58 that
+           build-origarium stamps. */
+        if (/(sindhorn-midtown-internal-pwa-)?v\d+-[a-z0-9-]*r\d+/.test(el.textContent || '')) el.style.visibility = 'hidden';
+      }
+    }).catch(() => {});
     await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(2500);
     await page.evaluate(() => { const c = document.querySelector('.environment-canvas'); if (c) c.remove(); });

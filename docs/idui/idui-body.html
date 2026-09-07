@@ -154,7 +154,7 @@
     <article class="app-card app-surface">
       <div class="app-card-section">
       <p class="app-surface-label">Invariant maturity</p>
-      <div class="app-metric-grid" data-mode="text">
+      <div class="app-metric-grid" data-mode="text" data-rule="true">
         <div class="app-metric"><span class="app-metric-label">Level 1 · Documented</span><span class="app-metric-value">A written rule</span><span class="app-metric-note">"Glass must not nest." Followed by discipline; broken politely.</span></div>
         <div class="app-metric"><span class="app-metric-label">Level 2 · Machine-enforced</span><span class="app-metric-value">A check rejects violations</span><span class="app-metric-note">The nested-glass smoke fails the build on a blurred element inside glass.</span></div>
         <div class="app-metric"><span class="app-metric-label">Level 3 · Adversarially exercised</span><span class="app-metric-value">The system searches for violations</span><span class="app-metric-note">Conditions that might break the rule are generated on purpose, and the rule must survive them. The Betta contract validator (05) is the one Sindhorn example.</span></div>
@@ -171,7 +171,7 @@
         <h3 class="app-surface-title">Does this element draw a bounded foreground surface?</h3>
       </div>
       <div class="app-card-section">
-        <div class="app-metric-grid" data-mode="text">
+        <div class="app-metric-grid" data-mode="text" data-rule="true">
           <div class="app-metric"><span class="app-metric-label">Either</span><span class="app-metric-value">Surface</span><span class="app-metric-note">It draws an edge, a border or a fill. It takes the canonical material.</span></div>
           <div class="app-metric"><span class="app-metric-label">Or</span><span class="app-metric-value">Structure</span><span class="app-metric-note">It only arranges its children. It stays transparent and draws nothing.</span></div>
           <div class="app-metric"><span class="app-metric-label">Neither</span><span class="app-metric-value">Outside</span><span class="app-metric-note">Text, an icon, a hairline, a chart line, a color swatch. The rule does nothing.</span></div>
