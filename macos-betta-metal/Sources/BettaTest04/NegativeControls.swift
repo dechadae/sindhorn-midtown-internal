@@ -40,7 +40,14 @@ enum NegativeControls {
 
     /// A style that is valid enough to draw, used as the base for perturbation.
     private static func baseline(constitution: Constitution) -> GeneratedStyle {
-        SeedSampler.generate(seed: 0, constitution: constitution)
+        var base = SeedSampler.generate(seed: 0, constitution: constitution)
+        // Pin presence. A control inherits whatever the seed drew otherwise,
+        // and v5 can draw a departed organism - which puts the form off frame
+        // and leaves the control testing nothing while still reporting a
+        // result. A control must fix every parameter its claim depends on.
+        base.exitDistance = 0
+        base.presenceScale = 1.6
+        return base
     }
 
     static func all(constitution: Constitution) -> [Control] {

@@ -3,6 +3,24 @@ import Foundation
 /// Contracts evaluated on a rendered frame. Diagnostic only - nothing here
 /// rejects a seed or asks for another. A failure is a finding about the
 /// constitution or the primitives, never a reason to redraw.
+/// The rendered contracts, each stated as a question with its outcomes.
+///
+/// IDUI's shape: either, or, neither. Non-participation is a valid outcome and
+/// the rule says so out loud rather than hiding it in a guard clause - "IDUI
+/// does not require every element to take part in every rule, and it refuses to
+/// invent a category just so that everything can be classified."
+///
+/// R1 · Does the organism carry the frame?
+///   Either   dominant   - it fills enough of the frame to be the subject
+///   Or       departed   - it has left; the ground is the picture
+///   Neither  -            (none; every frame answers this one)
+///
+/// R2 · Must the organism separate from its ground?
+///   Either   dominant   - yes, and it must clear the separation floor
+///   Or       departed   - no organism is present to separate
+///   Neither  ground-only - the ground alone is the picture. The rule does
+///                          nothing. This is not a pass and not an exemption;
+///                          the question does not arise.
 enum FrameViolation: String {
     /// The organism must be dominant or effectively absent, never a timid
     /// fragment in between.
@@ -121,8 +139,11 @@ enum FrameChecks {
             violations.append(.r1TimidFragment)
         }
 
-        // Only asked of a frame the organism actually carries. When the ground
-        // is the picture there is no figure to separate from it.
+        // R2's third outcome, stated rather than implied: when the ground is
+        // the picture there is no figure, so the rule does not apply. Recording
+        // this as "neither" rather than as a silent pass matters - a green
+        // result here would claim the frame separates, which is not what was
+        // measured.
         if dominant && abs(median - groundLuminance) < minimumRenderedSeparation {
             violations.append(.r2RenderedFigureGroundCollapse)
         }
