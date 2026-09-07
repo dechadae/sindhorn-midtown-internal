@@ -1,0 +1,9 @@
+{
+  "rater": "owner",
+  "rated": "2026-09-07",
+  "form": "binary verdict, given as rejections",
+  "rejected": ["b-02", "b-04", "b-06", "b-07", "b-16", "b-20"],
+  "accepted": ["b-01", "b-03", "b-05", "b-08", "b-09", "b-10", "b-11",
+               "b-12", "b-13", "b-14", "b-15", "b-17", "b-18", "b-19"],
+  "note": "Given after Claude's ratings were committed at c6a1f14. The owner was told two degraded controls were present but not which."
+}

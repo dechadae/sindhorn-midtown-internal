@@ -35,6 +35,7 @@ asserted.
 | `negative-controls-20260907.md` | Whether each rendered contract can fail. Two of four did not fire on first run. |
 | `tier-b-20260907-metal.json` | Tier B against the frozen sample: 30,000 frames, P1–P5 scored. |
 | `findings-20260907-tier-b.md` | Difficulties from Tier B: A-01, B-03, C-02, and D-P-01 still open. |
+| `blind-20260907/` | **Claude rated 20 frames blind against the owner. Cohen's κ = 0.00** — agreement exactly at chance. One of two taste controls turned out to be invalid. |
 | `editorial-20260907.md` | **The first editorially accepted output.** 7 of 8 accepted at constitution v4; D-P-01 closed, D-P-02 opened. Two hypotheses about predicting the rejection, both falsified. |
 | `findings-20260907-scope.md` | **A-02: the renderer was rebuilt and was never under test.** Also A-03 (R1 encoded a completeness assumption the owner's editorial crops contradict), B-04, B-05, C-03. Supersedes the *interpretation* of the Tier B numbers, not the numbers. |
 
@@ -67,8 +68,9 @@ shader, compiled from its source file and driven directly.
 - **A rendered result has now been editorially accepted** (`editorial-20260907.md`),
   so D-P-01 is closed and the presentation column has a baseline. D-P-02, the one
   rejected frame, is open and unresolved.
-- **No global image statistic tested separates the owner's rejection.** AI
-  pre-screening of seeds is unsupported on the evidence so far; the owner's own
-  rating has no machine substitute.
+- **Claude's taste does not predict the owner's.** A pre-registered blind test
+  over 20 frames returned Cohen's κ = 0.00 (`blind-20260907/`). AI pre-screening
+  of seeds is unsupported, and the owner's rating in any control condition has
+  no machine substitute. Measured, not argued.
 - **A-01 and B-03 propose constitution changes that have not been made**, because
   changing the constitution requires the owner's approval.

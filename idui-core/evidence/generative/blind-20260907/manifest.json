@@ -1,0 +1,102 @@
+[
+  {
+    "file" : "b-01.png",
+    "kind" : "sample",
+    "seed" : 9321507314468953751
+  },
+  {
+    "file" : "b-02.png",
+    "kind" : "control-muddy",
+    "note" : "desaturated organism on a desaturated mid ground"
+  },
+  {
+    "file" : "b-03.png",
+    "kind" : "sample",
+    "seed" : 3015348342341856059
+  },
+  {
+    "file" : "b-04.png",
+    "kind" : "sample",
+    "seed" : 5559694521175207684
+  },
+  {
+    "file" : "b-05.png",
+    "kind" : "sample",
+    "seed" : 13991572234886228778
+  },
+  {
+    "file" : "b-06.png",
+    "kind" : "sample",
+    "seed" : 18236286341247516486
+  },
+  {
+    "file" : "b-07.png",
+    "kind" : "sample",
+    "seed" : 14778364874942388012
+  },
+  {
+    "file" : "b-08.png",
+    "kind" : "sample",
+    "seed" : 5766290584924827824
+  },
+  {
+    "file" : "b-09.png",
+    "kind" : "sample",
+    "seed" : 3096475537569472292
+  },
+  {
+    "file" : "b-10.png",
+    "kind" : "sample",
+    "seed" : 18369910385112570965
+  },
+  {
+    "file" : "b-11.png",
+    "kind" : "sample",
+    "seed" : 16097967185603460607
+  },
+  {
+    "file" : "b-12.png",
+    "kind" : "sample",
+    "seed" : 3907861975040018073
+  },
+  {
+    "file" : "b-13.png",
+    "kind" : "sample",
+    "seed" : 3766639702840172762
+  },
+  {
+    "file" : "b-14.png",
+    "kind" : "control-flat",
+    "note" : "near-empty frame on an almost flat mid grey"
+  },
+  {
+    "file" : "b-15.png",
+    "kind" : "sample",
+    "seed" : 799828193646991206
+  },
+  {
+    "file" : "b-16.png",
+    "kind" : "sample",
+    "seed" : 8347399902195199974
+  },
+  {
+    "file" : "b-17.png",
+    "kind" : "sample",
+    "seed" : 16354682675411587117
+  },
+  {
+    "file" : "b-18.png",
+    "kind" : "sample",
+    "seed" : 214262603086535646
+  },
+  {
+    "file" : "b-19.png",
+    "kind" : "sample",
+    "seed" : 255880431645060899
+  },
+  {
+    "file" : "b-20.png",
+    "kind" : "sample",
+    "seed" : 9599662737665180550
+  }
+]
