@@ -121,8 +121,15 @@ final class PreviewWindow: NSObject, NSApplicationDelegate {
     private var help: String {
         """
 
-        k / x          keep / reject, and advance   (review mode)
-        left / right   previous / next seed
+        JUDGING
+        k              keep this one
+        space  or  ⏎   no - move on (this counts as a reject)
+        u              undo the last verdict
+        s              save a 5120x2880 still of this frame
+        .              pause the motion
+        q              quit
+
+        left / right   previous / next seed   (browsing mode)
         [ / ]          previous / next composition
         space          pause
         r              reset phase to 0
@@ -138,7 +145,7 @@ final class PreviewWindow: NSObject, NSApplicationDelegate {
         if judging {
             // Deliberately silent about the arm.
             let rate = judged > 0 ? Int(Double(kept) / Double(judged) * 100) : 0
-            return "\(judged) judged · \(kept) kept · \(rate)%    —    K keep    X reject    ⏎ skip"
+            return "\(judged) judged · \(kept) kept · \(rate)%    —    K keep    ·    space = no    ·    U undo"
         }
         if !reviewSeeds.isEmpty {
             return "\(reviewIndex + 1) / \(reviewSeeds.count)   ·   K keep    X reject   ·   \(presence)  ·  membrane + \(parts)"
@@ -157,6 +164,21 @@ final class PreviewWindow: NSObject, NSApplicationDelegate {
         style = SeedSampler.generate(seed: seed, constitution: arm)
         compositionIndex = Int.random(in: 0..<compositionIds.count)
         phase = 0
+        window?.title = titleText()
+    }
+
+    /// Removes the last recorded verdict, for the inevitable mis-key.
+    private func undoLast() {
+        guard let log, judged > 0,
+              let text = try? String(contentsOf: log, encoding: .utf8) else { return }
+        var lines = text.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        while let last = lines.last, last.isEmpty { lines.removeLast() }
+        guard lines.count > 1 else { return }
+        let removed = lines.removeLast()
+        try? (lines.joined(separator: "\n") + "\n").write(to: log, atomically: true, encoding: .utf8)
+        judged -= 1
+        if removed.hasSuffix(",keep") { kept -= 1 }
+        print("undone: \(removed)")
         window?.title = titleText()
     }
 
@@ -235,15 +257,21 @@ final class PreviewWindow: NSObject, NSApplicationDelegate {
             judging ? appendLog("keep") : record("keep"); return true
         case 7:                                               // x
             judging ? appendLog("reject") : record("reject"); return true
-        case 36:                                              // return - skip
-            if judging { nextRandom() }; return true
+        case 36, 49:                                          // return / space
+            // Moving on IS the verdict. A designer flags the good ones and
+            // passes over the rest, so passing over has to count - otherwise
+            // only keeps are recorded and every arm scores 100%.
+            if judging { appendLog("reject") } else { paused.toggle() }
+            return true
+        case 32:                                              // u - undo
+            if judging { undoLast() }; return true
         case 33:                                             // [
             compositionIndex = (compositionIndex - 1 + compositionIds.count) % compositionIds.count
             window.title = titleText(); return true
         case 30:                                             // ]
             compositionIndex = (compositionIndex + 1) % compositionIds.count
             window.title = titleText(); return true
-        case 49: paused.toggle(); return true                 // space
+        case 47: if judging { paused.toggle() }; return true  // . pauses while judging
         case 15: phase = 0; return true                      // r
         case 1: saveStill(); return true                     // s
         case 12: NSApp.terminate(nil); return true           // q

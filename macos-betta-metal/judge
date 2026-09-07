@@ -4,8 +4,15 @@
 #   ./judge                    logs to judgements.csv here
 #   ./judge ~/Desktop/j.csv    logs somewhere else
 #
-#   K   keep        X   reject        return   skip
-#   space pause     s   save a 5120x2880 still     q   quit
+#   K              keep this one
+#   space  or  return   no - move on (counts as a reject)
+#   u              undo the last verdict
+#   s              save a 5120x2880 still of this frame
+#   .              pause the motion
+#   q              quit
+#
+# Moving on IS the verdict. Skipping without recording would leave keeps with
+# no denominator and every arm scoring 100%.
 #
 # Every frame is a fresh random seed drawn from one of three constitutions,
 # rotated silently and never shown. Judge the picture, not the arm.
