@@ -165,7 +165,8 @@ final class EngineRenderer {
         style: GeneratedStyle,
         surface: Surface,
         phase: Double,
-        composition: Composition
+        composition: Composition,
+        includeOrganism: Bool
     ) {
         guard let depth = makeDepth(width: target.width, height: target.height) else { return }
         let msaa = makeMultisampleColor(width: target.width, height: target.height)
@@ -194,6 +195,11 @@ final class EngineRenderer {
         encoder.setDepthStencilState(depthState)
         encoder.setFragmentBytes(&background, length: MemoryLayout<BackgroundUniforms>.stride, index: 0)
         encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
+
+        guard includeOrganism else {
+            encoder.endEncoding()
+            return
+        }
 
         encoder.setVertexBuffer(geometry.vertexBuffer, offset: 0, index: 0)
 
@@ -233,7 +239,8 @@ final class EngineRenderer {
         style: GeneratedStyle,
         surface: Surface,
         phase: Double,
-        composition: Composition = .neutralLandscape
+        composition: Composition = .neutralLandscape,
+        includeOrganism: Bool = true
     ) throws -> Frame {
         let d = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: pixelFormat, width: surface.width, height: surface.height, mipmapped: false
@@ -246,7 +253,8 @@ final class EngineRenderer {
         }
 
         encode(into: color, commandBuffer: commandBuffer, style: style,
-               surface: surface, phase: phase, composition: composition)
+               surface: surface, phase: phase, composition: composition,
+               includeOrganism: includeOrganism)
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
 
@@ -273,7 +281,8 @@ final class EngineRenderer {
     ) {
         guard let commandBuffer = queue.makeCommandBuffer() else { return }
         encode(into: drawable.texture, commandBuffer: commandBuffer, style: style,
-               surface: surface, phase: phase, composition: composition)
+               surface: surface, phase: phase, composition: composition,
+               includeOrganism: true)
         commandBuffer.present(drawable)
         commandBuffer.commit()
     }

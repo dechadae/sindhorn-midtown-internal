@@ -78,7 +78,10 @@ enum TierB {
                 for moment in moments {
                     let phase = EngineRenderer.phase(for: style, atSeconds: moment)
                     let frame = try renderer.render(style: style, surface: surface, phase: phase)
-                    let measurement = FrameChecks.measure(frame: frame, style: style)
+                    let ground = try renderer.render(
+                        style: style, surface: surface, phase: phase, includeOrganism: false
+                    )
+                    let measurement = FrameChecks.measure(frame: frame, ground: ground, style: style)
                     framesRendered += 1
 
                     if !measurement.violations.isEmpty {

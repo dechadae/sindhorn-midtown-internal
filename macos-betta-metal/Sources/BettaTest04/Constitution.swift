@@ -95,6 +95,23 @@ struct DetailRanges: Codable {
     let normalDetail: Bounds
 }
 
+/// How much of the frame the organism occupies.
+///
+/// The owner's rule, and it is not monotonic: oversized with part off screen is
+/// the best state; nearly absent works only when what remains is big and
+/// dramatic; a timid fragment between the two is the failure. So there are two
+/// legal bands and no middle - `absentScale` where the ground carries the
+/// picture, `dominantScale` where the organism does.
+///
+/// Every metric tried against the owner's judgement before this failed because
+/// each assumed more-is-better. A valley cannot be fitted with a threshold.
+struct PresenceRanges: Codable {
+    /// The organism is oversized in both modes. Only its position differs.
+    let scale: Bounds
+    /// How far out of frame a departed organism has travelled.
+    let exitDistance: Bounds
+}
+
 /// How the rigid parts assemble into one body. Scale is held subordinate to
 /// the membrane and orbit radius keeps parts near a shared axis: an organism
 /// has a body and appendages, not four equal blobs scattered in a frame.
@@ -131,15 +148,21 @@ struct Constitution: Codable {
     let detail: DetailRanges
     let layers: LayerRanges
     let shapes: ShapeRanges
+    let presence: PresenceRanges
 
     /// The shading modes the engine implements. A seed selects among declared
     /// modes; it never invents one.
     private let _morphModes: [Double]
     var morphModes: [Double] { _morphModes }
 
+    /// Declared presence modes. A seed selects one; it never invents one.
+    private let _presenceModes: [String]
+    var presenceModes: [String] { _presenceModes }
+
     enum CodingKeys: String, CodingKey {
-        case version, palette, ground, form, motion, material, grading, detail, layers, shapes
+        case version, palette, ground, form, motion, material, grading, detail, layers, shapes, presence
         case _morphModes = "_morphModes"
+        case _presenceModes = "_presenceModes"
     }
 
     static func load(from url: URL) throws -> Constitution {

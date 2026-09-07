@@ -66,6 +66,10 @@ enum NegativeControls {
         // against a 0.5 ground - genuinely distinguishable, and the check was
         // right to say so. Camouflage needs transmission=1 so the coefficient
         // sums to 1, and a near-zero depth so the fold term stops adding light.
+        // A fragment sized deliberately into the illegal middle band.
+        var timid = base
+        timid.presenceScale = 0.21   // ~6% coverage on THIS control surface; coverage is not composition-invariant
+
         var camouflaged = base
         camouflaged.saturation = 0.0
         camouflaged.lightness0 = 0.5
@@ -84,19 +88,16 @@ enum NegativeControls {
 
         return [
             Control(
-                name: "narrow-surface",
-                expected: .r1FormNotWhollyVisible,
-                style: base,
-                surface: narrowSurface,
-                rationale: "a 200x2400 surface is narrower than the form's fixed radius can fit; containment must fail"
-            ),
-            Control(
-                name: "invisible-form",
-                expected: .r1FormNotWhollyVisible,
-                style: invisible,
+                name: "timid-fragment",
+                expected: .r1TimidFragment,
+                style: timid,
                 surface: neutralSurface,
-                rationale: "opacity=0 draws nothing; the combined condition must fail on emptiness, not pass because a blank frame is trivially unclipped"
+                rationale: "scaled into the gap between absent and dominant - present but small, which is the owner's stated failure"
             ),
+            // An empty frame is no longer a violation: the owner accepts a frame
+            // the ground carries. The control that used to test emptiness has
+            // been retired rather than kept as a check that would now fire on a
+            // legal result.
             Control(
                 name: "camouflaged-form",
                 expected: .r2RenderedFigureGroundCollapse,

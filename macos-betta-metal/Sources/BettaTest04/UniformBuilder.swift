@@ -20,7 +20,11 @@ enum UniformBuilder {
 
         // The back layer sits slightly smaller and offset in depth; the overlap
         // between the two is where the engine's depth comes from.
+        // Presence scales the locked composition rather than replacing it: the
+        // owner's framing intent is preserved, and the constitution decides only
+        // how much of the frame the organism fills.
         var model = composition.modelMatrix()
+            * exitTranslation(style) * uniformScale(Float(style.presenceScale))
         if isBack {
             model = model * uniformScale(Float(style.backScale))
         }
@@ -124,6 +128,7 @@ enum UniformBuilder {
         rotation.columns.1 = SIMD4<Float>(-sn, c, 0, 0)
 
         u.modelMatrix = composition.modelMatrix()
+            * exitTranslation(style) * uniformScale(Float(style.presenceScale))
             * placement * rotation * uniformScale(Float(part.scale))
 
         // Parts sit behind the membrane and read quieter.
@@ -143,6 +148,20 @@ enum UniformBuilder {
         )
         b.transition = SIMD4<Float>(1, 0, 0, 0)
         return b
+    }
+
+    /// Carries a departed organism out of the frame along the composition's own
+    /// axis, at full size.
+    private static func exitTranslation(_ style: GeneratedStyle) -> simd_float4x4 {
+        guard style.exitDistance > 0 else { return matrix_identity_float4x4 }
+        let angle = Float(style.baseHueDeg) * .pi / 180
+        var m = matrix_identity_float4x4
+        m.columns.3 = SIMD4<Float>(
+            cos(angle) * Float(style.exitDistance),
+            sin(angle) * Float(style.exitDistance),
+            0, 1
+        )
+        return m
     }
 
     private static func uniformScale(_ s: Float) -> simd_float4x4 {

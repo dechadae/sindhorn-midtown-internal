@@ -4,10 +4,20 @@ import Foundation
 /// rejects a seed or asks for another. A failure is a finding about the
 /// constitution or the primitives, never a reason to redraw.
 enum FrameViolation: String {
-    /// Containment and non-emptiness are one condition on purpose. An empty
-    /// frame is trivially "not clipped", so a containment check on its own
-    /// would pass on a blank screen - a contract passing for the wrong reason.
-    case r1FormNotWhollyVisible = "R1_FORM_NOT_WHOLLY_VISIBLE"
+    /// The organism must be dominant or effectively absent, never a timid
+    /// fragment in between.
+    ///
+    /// This replaces a containment check that demanded the form be wholly in
+    /// frame - which would have rejected all eight of the owner's own locked
+    /// compositions, since every one is an editorial crop. The rule is the
+    /// owner's: oversized with part off screen is the best state; nearly absent
+    /// works when the ground carries the picture; a small fragment that does
+    /// neither is the failure.
+    ///
+    /// Note this contract is non-monotonic. Both extremes pass and the middle
+    /// fails, which is why every monotonic metric tried against the owner's
+    /// judgement scored at chance.
+    case r1TimidFragment = "R1_TIMID_FRAGMENT"
     case r2RenderedFigureGroundCollapse = "R2_RENDERED_FIGURE_GROUND_COLLAPSE"
     case r3RenderNotDeterministic = "R3_RENDER_NOT_DETERMINISTIC"
 }
@@ -30,20 +40,34 @@ struct FrameMeasurement {
 }
 
 enum FrameChecks {
-    /// A pixel counts as form if it differs from the ground beyond this. Sits
-    /// above 8-bit quantisation and dithering noise without being so high that
-    /// a faint membrane edge is discarded.
-    static let formDetectionEpsilon = 3.0 / 255.0
+    /// A pixel counts as form where the full render differs from a ground-only
+    /// render of the same style beyond this.
+    ///
+    /// The previous method compared each pixel to a single mean ground
+    /// luminance, which was adequate while the ground was a flat fill and
+    /// became nonsense the moment it became a gradient: almost every pixel
+    /// differs from a mean, so ~90% of every frame registered as organism
+    /// regardless of what was drawn. Differencing two renders is exact and
+    /// indifferent to how complicated the ground gets.
+    static let formDetectionEpsilon = 4.0 / 255.0
 
-    /// The form must cover at least this fraction of the frame to count as
-    /// drawn at all.
-    static let minimumFormCoverage = 0.005
+    /// Below this the organism is effectively absent and the ground is the
+    /// picture, which is a legal result.
+    static let absentCoverage = 0.02
+
+    /// At or above this the organism is dominant, which is the other legal
+    /// result. Between the two is the timid fragment.
+    static let dominantCoverage = 0.18
 
     /// Matches the Tier A ground-separation threshold, so the rendered check
     /// and the parameter check are asking the same question of the same number.
     static let minimumRenderedSeparation = 0.08
 
-    static func measure(frame: Frame, style: GeneratedStyle) -> FrameMeasurement {
+    static func measure(
+        frame: Frame,
+        ground: Frame,
+        style: GeneratedStyle
+    ) -> FrameMeasurement {
         let groundLuminance = EngineRenderer.groundLuminance(for: style)
 
         var formLuminances: [Double] = []
@@ -52,6 +76,7 @@ enum FrameChecks {
         var sumR = 0.0, sumG = 0.0, sumB = 0.0
 
         frame.pixels.withUnsafeBufferPointer { buffer in
+          ground.pixels.withUnsafeBufferPointer { bg in
             for y in 0..<frame.height {
                 let rowStart = y * frame.width * 4
                 let onVerticalEdge = (y == 0 || y == frame.height - 1)
@@ -59,7 +84,11 @@ enum FrameChecks {
                     let i = rowStart + x * 4
                     let r = buffer[i], g = buffer[i + 1], b = buffer[i + 2]
                     let l = luminance(r: r, g: g, b: b)
-                    guard abs(l - groundLuminance) > formDetectionEpsilon else { continue }
+                    // Against the ground-only render at this same pixel.
+                    let d = max(abs(Double(r) - Double(bg[i])),
+                                max(abs(Double(g) - Double(bg[i + 1])),
+                                    abs(Double(b) - Double(bg[i + 2])))) / 255.0
+                    guard d > formDetectionEpsilon else { continue }
                     formLuminances.append(l)
                     sumR += Double(r) / 255.0
                     sumG += Double(g) / 255.0
@@ -69,6 +98,7 @@ enum FrameChecks {
                     }
                 }
             }
+          }
         }
 
         let totalPixels = frame.width * frame.height
@@ -83,17 +113,17 @@ enum FrameChecks {
 
         var violations: [FrameViolation] = []
 
-        // One condition, evaluated together: the form must be drawn AND wholly
-        // inside the frame. Either failing is the same finding.
-        let drawn = coverage >= minimumFormCoverage
-        if !drawn || touchesBorder {
-            violations.append(.r1FormNotWhollyVisible)
+        // Dominant or absent, never in between. Touching the border is not a
+        // fault - it is the intent.
+        let absent = coverage <= absentCoverage
+        let dominant = coverage >= dominantCoverage
+        if !absent && !dominant {
+            violations.append(.r1TimidFragment)
         }
 
-        // Only meaningful if something was actually drawn; an empty frame is
-        // already reported by R1 and would otherwise report a second, bogus
-        // violation for the same underlying fact.
-        if drawn && abs(median - groundLuminance) < minimumRenderedSeparation {
+        // Only asked of a frame the organism actually carries. When the ground
+        // is the picture there is no figure to separate from it.
+        if dominant && abs(median - groundLuminance) < minimumRenderedSeparation {
             violations.append(.r2RenderedFigureGroundCollapse)
         }
 

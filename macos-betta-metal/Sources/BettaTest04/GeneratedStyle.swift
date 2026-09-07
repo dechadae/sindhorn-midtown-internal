@@ -88,6 +88,14 @@ struct GeneratedStyle: Equatable {
 
     var morphMode: Double
 
+    /// The organism is oversized in every case; this is how much.
+    var presenceScale: Double
+
+    /// How far out of frame the organism has travelled. Zero when it is
+    /// present. A departed organism is large and gone, never small and near -
+    /// shrinking produces the timid fragment the rule exists to forbid.
+    var exitDistance: Double
+
     /// The rigid parts accompanying the membrane. Never empty.
     var parts: [ShapePart]
 

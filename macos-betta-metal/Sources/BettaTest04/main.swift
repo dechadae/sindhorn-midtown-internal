@@ -109,7 +109,10 @@ func runNegativeControls() {
     for control in NegativeControls.all(constitution: constitution) {
         do {
             let frame = try renderer.render(style: control.style, surface: control.surface, phase: 0)
-            let measurement = FrameChecks.measure(frame: frame, style: control.style)
+            let ground = try renderer.render(
+                style: control.style, surface: control.surface, phase: 0, includeOrganism: false
+            )
+            let measurement = FrameChecks.measure(frame: frame, ground: ground, style: control.style)
             let fired = measurement.violations.contains(control.expected)
             let mark = fired ? "fires" : "DID NOT FIRE"
             print("  \(control.name): \(control.expected.rawValue) \(mark)")
@@ -291,6 +294,44 @@ case "--preview":
         preview.run()
     } catch {
         FileHandle.standardError.write("Preview failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
+case "--calibrate-presence":
+    // Measure what presence scale actually produces what coverage, instead of
+    // guessing the bands. The first attempt put "timid" at 0.55, which turned
+    // out to fill 95% of the frame.
+    let constitution = loadConstitution()
+    do {
+        let renderer = try EngineRenderer(rays: 160, segments: 144, sampleCount: 1)
+        let compositions = try LockedCompositions.load()
+        let ids = compositions.keys.sorted()
+        let surface = Surface(name: "cal", width: 1280, height: 720)
+        let seedsPath = "/Users/Graphic/Documents/sindhorn-midtown-internal-claude/idui-core/evidence/generative/seeds.json"
+        let seeds = (try? TierB.loadSeeds(path: seedsPath)) ?? [0]
+        print("scale   mean coverage across 8 compositions x 4 seeds")
+        for step in 0...16 {
+            let scale = 0.02 + Double(step) * 0.045
+            var total = 0.0, n = 0.0
+            for s in seeds.prefix(4) {
+                var style = SeedSampler.generate(seed: s, constitution: constitution)
+                style.presenceScale = scale
+                for id in ids {
+                    let comp = compositions[id] ?? .neutralLandscape
+                    let frame = try renderer.render(
+                        style: style, surface: surface, phase: 0, composition: comp
+                    )
+                    let bg = try renderer.render(
+                        style: style, surface: surface, phase: 0,
+                        composition: comp, includeOrganism: false
+                    )
+                    total += FrameChecks.measure(frame: frame, ground: bg, style: style).formCoverage
+                    n += 1
+                }
+            }
+            print(String(format: "%.3f   %.4f", scale, total / n))
+        }
+    } catch {
+        FileHandle.standardError.write("Calibration failed: \(error)\n".data(using: .utf8)!)
         exit(2)
     }
 case "--negative-controls":

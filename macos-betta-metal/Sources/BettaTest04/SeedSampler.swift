@@ -11,7 +11,7 @@ enum SeedSampler {
         var rng = SplitMix64(seed: seed)
         let p = c.palette, g = c.ground, f = c.form
         let m = c.motion, mat = c.material, gr = c.grading
-        let d = c.detail, l = c.layers, sh = c.shapes
+        let d = c.detail, l = c.layers, sh = c.shapes, pr = c.presence
 
         let baseHue = p.baseHueDeg.sample(&rng)
         let accentHue = (baseHue + p.accentHueOffsetDeg.sample(&rng))
@@ -42,6 +42,14 @@ enum SeedSampler {
                 phaseOffset: sh.phaseOffset.sample(&rng)
             ))
         }
+
+        // Presence: oversized either way, present or departed. Selected from
+        // the declared modes, never invented.
+        let presenceScale = pr.scale.sample(&rng)
+        let pModes = c.presenceModes
+        let departed = !pModes.isEmpty
+            && pModes[Int(rng.unit() * Double(pModes.count)) % pModes.count] == "departed"
+        let exitDistance = departed ? pr.exitDistance.sample(&rng) : 0
 
         // A mode is selected from the set the engine implements, never invented.
         let modes = c.morphModes
@@ -110,8 +118,28 @@ enum SeedSampler {
             seedOffset: l.seedOffset.sample(&rng),
 
             morphMode: modes.isEmpty ? 0 : modes[modeIndex],
+            presenceScale: presenceScale,
+            exitDistance: exitDistance,
             parts: parts
         )
+    }
+
+    /// Samples from two disjoint bands as if they were one range, in
+    /// proportion to their widths. The gap between them is not legal and is
+    /// never drawn, so nothing has to be rejected afterwards.
+    ///
+    /// This is how a non-monotonic rule becomes constitutional rather than a
+    /// contract that throws work away: the valley is removed from the space
+    /// before the seed ever reaches it.
+    private static func sampleUnion(
+        _ low: Bounds, _ high: Bounds, rng: inout SplitMix64
+    ) -> Double {
+        let lowWidth = low.max - low.min
+        let highWidth = high.max - high.min
+        let total = lowWidth + highWidth
+        guard total > 0 else { return low.min }
+        let t = rng.unit() * total
+        return t < lowWidth ? low.min + t : high.min + (t - lowWidth)
     }
 
     /// The second ground stop, sampled from the region at least
