@@ -2,15 +2,15 @@
 
 ## Purpose
 
-Today is an authenticated internal hotel business dashboard. Its canonical operational data is a versioned, approved Supabase publication assembled from the daily F&B workbook and Rooms pickup report supplied to ChatGPT.
+Today is an authenticated internal hotel business dashboard. Its canonical operational data is a versioned, approved Supabase publication assembled from the daily F&B workbook and Rooms pickup report supplied to Claude.
 
 The employee application is a reader only. There is no employee-facing report uploader in the initial architecture.
 
 ## Daily operating flow
 
-1. Attach the current F&B workbook and Rooms pickup PDF to ChatGPT.
-2. Ask ChatGPT to update the daily business data.
-3. ChatGPT identifies each source by report type, report date, file hash and structural metadata before parsing values.
+1. Attach the current F&B workbook and Rooms pickup PDF to Claude.
+2. Ask Claude to update the daily business data.
+3. Claude identifies each source by report type, report date, file hash and structural metadata before parsing values.
 4. Parse each source into the normalized business schema without changing source meaning or inventing missing values.
 5. Reconcile structural totals, subtotals, hierarchy relationships and source-date expectations.
 6. Create a new `business_report_runs` revision in a non-published state.
@@ -23,11 +23,35 @@ The employee application is a reader only. There is no employee-facing report up
 
 Publishing is the only operation that changes what employees see. Importing or validating a draft run does not.
 
+## Who runs this
+
+The whole pipeline runs in Claude - parsing, normalising, reconciling, loading
+and publishing - against the live Supabase project through its own tools. There
+is no separate parsing step somewhere else and no hand-off of a normalised
+extract between tools (r59a, 7 September 2026; the procedure formerly named
+ChatGPT at every step).
+
+That makes one standing rule of this codebase explicitly conditional: admin
+writes are exercised against the local mock and never the live project, **except
+this pipeline**, which is the owner-directed daily operation and writes to
+Sindhorn's own business tables only. The exception covers this runbook and
+nothing else.
+
+Two consequences worth stating, because the same agent now does every step:
+
+- **Parse before you decide anything.** Identify the source, its type, its date
+  and its hash first. An agent that reads values before establishing what it is
+  reading will reconcile against its own assumption.
+- **Show the owner the publication before publishing it.** The business date,
+  the headline figures, what validation passed, which warnings remain and why
+  they are acceptable, and how it compares with the currently published run.
+  A draft revision is reversible; publishing is what employees see.
+
 ## Source handling rules
 
 The original XLSX/PDF files and any private normalized working extract are internal business records. They must not be committed to the public GitHub repository or exposed through the static application.
 
-`source_report_files` records provenance such as source type, original filename, SHA-256 hash, byte size, detected report date, page/sheet count and parser metadata. Raw source bytes are not currently archived by this pipeline because the available ChatGPT/Supabase workflow does not provide a private Storage upload step. The source files therefore remain external source records unless a separate private archive is introduced later.
+`source_report_files` records provenance such as source type, original filename, SHA-256 hash, byte size, detected report date, page/sheet count and parser metadata. Raw source bytes are not currently archived by this pipeline because the workflow provides no private Storage upload step. The source files therefore remain external source records unless a separate private archive is introduced later.
 
 ## Duplicate handling
 
