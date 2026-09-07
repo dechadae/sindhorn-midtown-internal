@@ -128,6 +128,15 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-disclosure-button:active{opacity:.9}
 .app-disclosure-button:focus-visible{outline:2px solid var(--app-accent);outline-offset:-3px}
 .app-disclosure-head{min-width:0;display:grid;gap:0}
+/* A head sharing a row with its toggle takes the space that is left, and never
+   pushes the toggle to a second line. min-width:0 alone is not enough: a
+   wrapping row decides how many items fit from their content widths before any
+   shrinking happens, so a long title wrapped the chevron underneath itself and
+   left it sitting at the start of a line of its own. A flex-basis of zero means
+   the head never claims more than the line has, and the title wraps inside it
+   where it belongs. Visible from r61, when two columns halved the width a job
+   title had. */
+.app-row>.app-disclosure-head{flex:1 1 0}
 .app-disclosure-kicker{color:var(--app-accent);font-size:var(--type-small);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 .app-disclosure-title{margin:0;font-size:var(--type-lead);font-weight:var(--weight-regular);line-height:var(--leading-label)}
 .app-disclosure-copy{margin:4px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}

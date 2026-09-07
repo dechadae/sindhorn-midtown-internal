@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v140-jobs-two-up-r61';
+const VERSION='sindhorn-midtown-internal-pwa-v141-toggle-on-the-line-r62';
 // v85: sindhorn-midtown-internal-pwa-v85-metric-track-r4
 // v84: sindhorn-midtown-internal-pwa-v84-today-readability-r4
 // v83: sindhorn-midtown-internal-pwa-v83-sticky-footer-fix-r1
