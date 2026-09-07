@@ -60,6 +60,16 @@ let scanned = 0, surfaces = 0;
 for (const file of sheets) {
   const css = strip(readFileSync(path.join(root, file), 'utf8'));
   scanned++;
+  /* A sheet this cannot parse is a sheet it cannot judge, so structure is
+     checked before material. Twice in one day an edit left a stylesheet
+     malformed - once a selector list split in half, once a stray closing brace
+     from a removed @media - and both times every gate stayed green while the
+     browser quietly dropped rules. */
+  const open = (css.match(/{/g) || []).length, close = (css.match(/}/g) || []).length;
+  if (open !== close) findings.push(`${file}: ${open} "{" against ${close} "}" — the sheet does not close`);
+  let depth = 0, stray = 0;
+  for (const ch of css) { if (ch === '{') depth++; else if (ch === '}') { if (depth === 0) stray++; else depth--; } }
+  if (stray) findings.push(`${file}: ${stray} closing brace${stray === 1 ? '' : 's'} with nothing open — a rule was removed and its brace left behind`);
   for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     const selector = m[1].trim().replace(/\s+/g, ' ');
     if (selector.startsWith('@') || !isSurface(selector)) continue;

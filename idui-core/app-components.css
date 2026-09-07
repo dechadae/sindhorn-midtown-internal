@@ -387,10 +387,23 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    On the ground there is no edge to borrow and the rule stays. The even-count
    guard is the second column of a last row, which only exists while the grid
    resolves to two tracks - phone width, where these are read. */
-:where(.app-card,.app-surface) .app-metric-grid[data-rule="true"] .app-metric:last-child{border-bottom:0;padding-bottom:0}
-@media (max-width:520px){
-  :where(.app-card,.app-surface) .app-metric-grid[data-rule="true"]:has(>.app-metric:nth-child(even):last-child) .app-metric:nth-last-child(2){border-bottom:0;padding-bottom:0}
-}
+/* Only the last one. r59 suppressed the rule on every grid inside a card, which
+   is right for the grid at the bottom and wrong for one with another section
+   under it - there the hairline is the thing separating them. And it named only
+   .app-card and .app-surface, so a grid inside an open disclosure kept drawing a
+   second line above the panel's own edge, which is where the owner found it. */
+:where(.app-card,.app-surface,.app-disclosure-panel-inner)>:last-child .app-metric-grid[data-rule="true"] .app-metric:last-child,
+:where(.app-card,.app-surface,.app-disclosure-panel-inner)>.app-metric-grid[data-rule="true"]:last-child .app-metric:last-child{border-bottom:0;padding-bottom:0}
+/* The cells of the last row, not of the last viewport. A grid of two is two
+   tracks at every width, so guarding this on a breakpoint left the second-to-last
+   cell drawing a rule on a desktop and not on a phone. The count is what decides
+   it: a grid of exactly two is entirely its own last row, and an even count puts
+   its final pair there. */
+:where(.app-card,.app-surface,.app-disclosure-panel-inner)>:last-child .app-metric-grid[data-rule="true"]:has(>.app-metric:nth-child(2):last-child) .app-metric,
+:where(.app-card,.app-surface,.app-disclosure-panel-inner)>.app-metric-grid[data-rule="true"]:last-child:has(>.app-metric:nth-child(2):last-child) .app-metric,
+:where(.app-card,.app-surface,.app-disclosure-panel-inner)>:last-child .app-metric-grid[data-rule="true"]:has(>.app-metric:nth-child(even):last-child) .app-metric:nth-last-child(2),
+:where(.app-card,.app-surface,.app-disclosure-panel-inner)>.app-metric-grid[data-rule="true"]:last-child:has(>.app-metric:nth-child(even):last-child) .app-metric:nth-last-child(2){border-bottom:0;padding-bottom:0}
+
 .app-track{display:block;width:100%;height:10px;margin-top:6px;overflow:visible}
 .app-track-rail{fill:var(--app-line)}
 .app-track-mark{fill:var(--app-text);fill-opacity:.55}

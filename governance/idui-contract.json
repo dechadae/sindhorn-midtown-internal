@@ -230,8 +230,8 @@
     "seeded": "2026-09-07",
     "gates": {
       "scripts/material-authority-gate.mjs": {
-        "sha256": "9c321f72c9cc63b0",
-        "assertions": 3
+        "sha256": "5244a44ad06aae62",
+        "assertions": 5
       },
       "scripts/vocabulary-admission-gate.mjs": {
         "sha256": "43cdfa1a8b13a953",
