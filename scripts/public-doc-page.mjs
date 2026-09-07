@@ -5,7 +5,7 @@
    versions have one source), the live atmosphere stage, the masthead the
    share pages carry - the logo as a mark, no tools - and, since r43, the
    app's own fixed navbar listing the transfer tests.
-   /public-doc.js boots the atmosphere in sky mode. The document itself is
+   /public-doc.js boots the atmosphere and lets the runtime resolve its mode (r57). The document itself is
    library classes only; a build fails if a body carries CSS. */
 import fs from 'node:fs';
 import path from 'node:path';

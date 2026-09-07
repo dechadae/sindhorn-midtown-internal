@@ -229,7 +229,7 @@
   },
   "integrity": {
     "$comment": "Recorded state of the contracts. Changing any number here is the visible act of changing what the architecture enforces; scripts/contract-integrity.mjs fails until it is re-seeded, and re-seeding is a registry diff the owner reviews.",
-    "seeded": "2026-09-06",
+    "seeded": "2026-09-07",
     "gates": {
       "scripts/material-authority-gate.mjs": {
         "sha256": "9c321f72c9cc63b0",

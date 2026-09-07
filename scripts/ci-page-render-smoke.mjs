@@ -18,8 +18,8 @@
    r34: the public document pages (/idui and /evidence) render here too. They
    are built pages (scripts/build-idui.mjs, scripts/build-evidence.mjs) that
    carry only library classes, the share pages' masthead and the live
-   atmosphere forced to sky, so the gate checks exactly that: no page CSS,
-   no app chrome, an inert logo, no manifest, no service worker, sky mode on
+   the app's own atmosphere, so the gate checks exactly that: no page CSS,
+   no app chrome, an inert logo, no manifest, no service worker, a resolved
    the body, a real canvas, every image found, no horizontal overflow.
 
    r31: the public business card (/<slug>) is the same shell in card mode,
@@ -547,7 +547,7 @@ for (const doc of DOCS) {
     navCurrent: !!document.querySelector('.app-navbar [aria-current="page"]'),
     title: document.querySelector('.app-hero-title')?.textContent?.trim() || '', sections: document.querySelectorAll('main > .app-section').length,
     chips: document.querySelectorAll('.ci-index .app-chip').length,
-    bettaMode: document.body.dataset.bettaMode || '', canvas: (() => { const c = document.getElementById('environmentCanvas'); return c ? `${c.width}x${c.height}` : 'none'; })(),
+    bettaMode: document.body.dataset.bettaMode || '', bettaModeReason: document.body.dataset.bettaModeReason || '', canvas: (() => { const c = document.getElementById('environmentCanvas'); return c ? `${c.width}x${c.height}` : 'none'; })(),
     brokenImages: [...document.images].filter(img => img.complete && img.naturalWidth === 0).length, images: document.images.length,
     overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
   }));
@@ -566,7 +566,12 @@ for (const doc of DOCS) {
   if (seen.navbarHeight === '0px') failures.push(`${doc.route}: --app-navbar-height is 0px, so the navbar's height is not reserved`);
   if (seen.title !== doc.title) failures.push(`${doc.route}: hero title is "${seen.title}"`);
   if (seen.sections !== doc.sections || seen.chips !== doc.sections) failures.push(`${doc.route}: ${seen.sections} sections and ${seen.chips} index chips, expected ${doc.sections} of each`);
-  if (seen.bettaMode !== 'sky') failures.push(`${doc.route}: body[data-betta-mode] is "${seen.bettaMode}", expected sky`);
+  /* r57: a document is no longer forced to sky. It resolves the mode the app
+     resolves - betta by default, sky for reduced motion, a stored preference or
+     a low frame rate - so the gate checks that it resolved one and was not
+     asked for one. */
+  if (!['betta', 'sky'].includes(seen.bettaMode)) failures.push(`${doc.route}: body[data-betta-mode] is "${seen.bettaMode}"`);
+  if (seen.bettaModeReason === 'requested') failures.push(`${doc.route}: the atmosphere was forced, not resolved`);
   if (seen.canvas === 'none' || seen.canvas === '300x150') failures.push(`${doc.route}: atmosphere canvas ${seen.canvas}`);
   if (seen.brokenImages) failures.push(`${doc.route}: ${seen.brokenImages} of ${seen.images} images failed to load`);
   if (seen.overflow > 1) failures.push(`${doc.route}: horizontal overflow ${seen.overflow}px`);

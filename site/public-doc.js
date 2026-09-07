@@ -1,9 +1,14 @@
-/* A public document's bootstrap (/idui, /evidence; r34): the live atmosphere
-   in sky mode and nothing else. No service worker, no session, no inbox -
-   a document is not the app - and no fish: the sky is the atmosphere a
-   reader gets, whatever this device prefers for the app, because the
-   document is read, not glanced at, and the fish would be a distraction the
-   glass keeps re-sampling. */
+/* A public document's bootstrap (/idui, /evidence, /origarium): the live
+   atmosphere and nothing else. No service worker, no session, no inbox - a
+   document is not the app.
+
+   r34 forced sky mode here on the argument that a document is read rather than
+   glanced at and the fish would distract. r57 drops that: a document gets the
+   same atmosphere the app does, resolved the same way. The mode is no longer
+   requested, so the runtime decides it - full Betta by default, and sky where
+   the device asks for reduced motion, prefers it, or the frame governor finds
+   the hardware cannot hold the rate. A reader on a slow phone still gets sky;
+   nobody is now given it on the assumption that reading needs less. */
 
 /* The runtime's weather probe (api.open-meteo.com) is answered with a
    network error before it leaves the device, as shell.js does; the runtime
@@ -23,7 +28,6 @@
     // waits for a startup signal only the app shell sends.
     const betta = await import('/betta-runtime-full.js?v=1');
     await betta.initEnvironment();
-    window.SindhornEnvironment?.setBettaMode?.('sky');
     document.getElementById('environmentStage')?.setAttribute('data-ready', 'true');
   } catch (error) {
     console.warn('Atmosphere unavailable; the document renders over the flat ground.', error);
