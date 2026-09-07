@@ -1,0 +1,17 @@
+{
+  "predictor": "the written rule, applied mechanically",
+  "method": "The rendered contracts' own output on each seed. R1 fires -> predict reject. No taste is involved and nothing was looked at; this is the constitution's rule executed, not a judgement.",
+  "why_no_taste_control": "An eye-based arm was considered as a control and dropped as unnecessary. The mechanical predictor cannot have learned anything from earlier rounds, so there is no learning confound to control for.",
+  "constitution": 5,
+  "seeds": "indices 27-46 of the frozen seeds.json",
+  "committed": "2026-09-07, before the owner judged",
+  "predicted_reject": [
+    {"index": 1,  "seed": "16108363569103120905", "coverage": 0.0874, "violation": "R1_TIMID_FRAGMENT"},
+    {"index": 2,  "seed": "5780911581914393699",  "coverage": 0.0269, "violation": "R1_TIMID_FRAGMENT"},
+    {"index": 12, "seed": "5403193685267676482",  "coverage": 0.0573, "violation": "R1_TIMID_FRAGMENT"},
+    {"index": 13, "seed": "7928570574828640063",  "coverage": 0.1897, "violation": "R2_RENDERED_FIGURE_GROUND_COLLAPSE"}
+  ],
+  "predicted_keep_count": 16,
+  "base_rate_caveat": "4 rejects in 20 is a low base rate, which makes kappa noisy at this n. A result near zero would be weak evidence either way; a strong positive would not be.",
+  "known_leak": "Three of the four predicted rejects exist because the presence rule failed to depart the organism - exit travels along a hue-derived direction and the locked composition's own translation can cancel it. The constitution cannot see the composition, so it cannot guarantee departure. The frames were left in deliberately: they are the only negative cases, and the contract catches all three."
+}
