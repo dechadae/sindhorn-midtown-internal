@@ -21,7 +21,7 @@
   <div class="app-masthead-tools"><span class="app-badge" data-tone="quiet">Methodology · v0.1 · __SW__</span></div>
 </header>
 
-<main class="app-page is-shell" id="top">
+<main class="app-page is-shell">
 
 <section class="app-hero">
   <p class="app-hero-eyebrow">Sindhorn Midtown Internal · Design and development method</p>
@@ -62,6 +62,9 @@
   </div>
   <p class="app-note">The gates, by their short names: <em>ratchet</em> is <code>ui-centralization-budget.mjs</code>, <em>page audit</em> is <code>page-centralization-audit.mjs</code>, <em>nested-glass</em> is <code>nested-glass-smoke.mjs</code>, <em>shape audit</em> is <code>ui-shape-source-audit.mjs</code>, <em>font-architecture</em> is the typography test, <em>invariants</em> is <code>idui-invariants-smoke.mjs</code> (r32) and <em>render smoke</em> is <code>ci-page-render-smoke.mjs</code>. Section 06 lists them with what each refuses.</p>
   <p class="app-note">The foundation is seven files: <code>app-tokens.css</code> (values), <code>app-glass.css</code> (material), <code>app-components.css</code> (primitives), <code>app-compositions.css</code> (compositions, r32), <code>app-shell.css</code> (the frame), <code>fonts.css</code> (the face) and <code>ci-library.css</code> (the library page's own chrome). A composition is made of primitives and shaped by one page's content - the promotion card, the directory, the table, the business card; a primitive is vocabulary any page could use, whatever today's consumer count. When a second page adopts a composition it is not promoted; it is questioned. <code>/ci</code> labels each section by tier.</p>
+  <div class="app-utility-row">
+    <a class="app-utility-action" href="#top">Back to top</a>
+  </div>
 </section>
 
 <!-- ================================================================ 01 -->
@@ -252,6 +255,9 @@
       </div>
       <p class="app-note">In Sindhorn this order is literal: the library page came first (3 September), the ratchet froze duplication the same day, the glass rule replaced the registry, and pages landed one at a time on top — Today, F&amp;B, Brand, Messages, Settings, Jobs, Voice, Readability — each verified live before the next.</p>
     </article>
+  </div>
+  <div class="app-utility-row">
+    <a class="app-utility-action" href="#top">Back to top</a>
   </div>
 </section>
 
@@ -537,6 +543,9 @@
       </div>
     </article>
   </div>
+  <div class="app-utility-row">
+    <a class="app-utility-action" href="#top">Back to top</a>
+  </div>
 </section>
 
 <!-- ================================================================ 03 -->
@@ -579,6 +588,9 @@
       </div>
       </div>
     </article>
+  </div>
+  <div class="app-utility-row">
+    <a class="app-utility-action" href="#top">Back to top</a>
   </div>
 </section>
 
@@ -624,6 +636,9 @@
     <div class="app-metric"><p class="app-metric-label">Invariant maturity</p><p class="app-metric-value">2 · 11 · 1 of 14</p><p class="app-metric-note">Level 1 only: control height, action weight. Level 2: material surface, weight, nesting, token locality, type, tone (page side), motion, page presentation, format, library-first (partial), atmosphere mode (r30). Level 3: readability - at authoring, at the server (r29b) and at release (r29c).</p></div>
     <div class="app-metric"><p class="app-metric-label">Literal design values in pages</p><p class="app-metric-value">0</p><p class="app-metric-note">Audit, 5 Sep 2026.</p></div>
     <div class="app-metric"><p class="app-metric-label">Behavior duplicates</p><p class="app-metric-value">1</p><p class="app-metric-note">The clamp toggle in F&amp;B. The disclosure toggle's four copies became <code>app-disclosure.js</code> in r35; the clamp is the last one left.</p></div>
+  </div>
+  <div class="app-utility-row">
+    <a class="app-utility-action" href="#top">Back to top</a>
   </div>
 </section>
 
@@ -709,6 +724,9 @@
       <p class="app-surface-copy">The methodology-level name for this class of tool. In Sindhorn it is the Betta contract validator. The principle generalizes to whatever varies: responsive widths, long translated strings, extreme data values, dynamic imagery, focus order, animation budgets — generate the variation and prove the invariants survive it. Only the Sindhorn instance is observed; the generalization is a hypothesis (07). Its limits are also plain: the measurement itself is driven by a person at authoring time and runs on real WebGL, where a headless gate would be brittle; what release CI checks (r29c) is that every saved seed still draws the fish that was measured, not the reading itself.</p>
     </article>
   </div>
+  <div class="app-utility-row">
+    <a class="app-utility-action" href="#top">Back to top</a>
+  </div>
 </section>
 
 <!-- ================================================================ 06 -->
@@ -760,6 +778,9 @@
   </div>
 
   <p class="app-note">Every check above is <strong>enforced but not agent-closed</strong>. They live in the repository the builder writes to, so the builder can weaken them — what it cannot do is weaken them quietly, because <code>contract-integrity</code> forces every such change into a visible diff in <code>governance/idui-contract.json</code>. Closure needs an authority outside the builder: a branch ruleset requiring review on the governed paths. Until that exists this document says <em>enforced</em>, and does not say closed.</p>
+  <div class="app-utility-row">
+    <a class="app-utility-action" href="#top">Back to top</a>
+  </div>
 </section>
 
 <!-- ================================================================ 07 -->
@@ -800,7 +821,9 @@
       <p class="app-surface-copy">A developer or an agent receives a requirement for an unseen page and: determines the composition; selects existing primitives; declares the necessary tone and state; writes no page-specific appearance; obtains a UI consistent with the whole product; passes the automated checks; adds a primitive only for new behavior; adds an invariant only where the existing laws cannot express a reusable consequence. If that holds, the system is invariant-driven. If a catalog example is needed for every situation, it is still example-driven. The Readability Test — a page with no precedent, built from the rules in one release with one new swatch primitive that the material rule already explained — is the closest evidence so far.</p>
     </article>
   </div>
-
+  <div class="app-utility-row">
+    <a class="app-utility-action" href="#top">Back to top</a>
+  </div>
 </section>
 
 <!-- ================================================================ 08 -->
@@ -1128,6 +1151,9 @@ ENGINE
       <div class="app-card-section"><p class="app-surface-label">Not frozen</p>
         <p class="app-surface-copy">The constitution schema. The complete primitive vocabulary. Any renderer or compiler interface. The final material model. The generative test stressed these from a different direction — a constitution as JSON, a renderer as a shader — and the shape held while the material model took a lesson: two values a constitution holds apart can still meet on the rendered surface. The next interface test may still expose a missing distinction.</p></div>
     </div>
+  </div>
+  <div class="app-utility-row">
+    <a class="app-utility-action" href="#top">Back to top</a>
   </div>
 </section>
 
