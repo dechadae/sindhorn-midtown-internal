@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v150-card-wide-divider-r71';
+const VERSION='sindhorn-midtown-internal-pwa-v151-fnb-head-line-r72';
 // v85: sindhorn-midtown-internal-pwa-v85-metric-track-r4
 // v84: sindhorn-midtown-internal-pwa-v84-today-readability-r4
 // v83: sindhorn-midtown-internal-pwa-v83-sticky-footer-fix-r1

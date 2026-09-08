@@ -116,7 +116,8 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    runs the content's width. A card had shown both widths under its head, and
    the owner chose the whole width for the head alone (r71). The section
    reaches under the surface padding to draw the line and pads its content
-   back to where it was. */
+   back to where it was. The actionable card's progress line keeps to the
+   same rule in app-compositions.css (r72). */
 .app-card-section:first-child+.app-card-section{margin-inline:-16px;padding-inline:16px}
 .app-card-section>.app-surface-label+*{margin-top:12px}
 .app-card-section>.app-list>.app-list-row:first-child{padding-top:0}

@@ -25,8 +25,12 @@
 /* A card can carry one line of progress above its foot (label left, tally
    right, .app-track beneath) and a row of frameless secondary actions below
    the press surface. The actions sit outside the button so a tap on Share
-   never also opens the detail. */
-.app-action-card-meta{margin-top:12px;padding-top:11px;border-top:1px solid var(--app-line);display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-5);color:var(--app-muted);font-size:var(--type-small);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
+   never also opens the detail. The progress line closes the card's head
+   (status, title, outlets, when), so it runs the card's width like the head
+   hairline of a sectioned card (r71): it reaches under the button's 17px
+   padding and pads its content back. The actions row's edge already spans
+   the card - it is the foot bar's edge, not a divider (r72). */
+.app-action-card-meta{margin-top:12px;margin-inline:-17px;padding-top:11px;padding-inline:17px;border-top:1px solid var(--app-line);display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-5);color:var(--app-muted);font-size:var(--type-small);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 .app-action-card-meta b{color:var(--app-text);font-weight:var(--weight-regular);font-size:var(--type-body-s);text-transform:none;font-variant-numeric:tabular-nums}
 .app-action-card-actions{padding:6px 10px;display:flex;align-items:center;justify-content:flex-end;gap:var(--space-2);border-top:1px solid var(--app-line)}
 .app-action-card-actions>:first-child:not(:last-child){margin-right:auto}
