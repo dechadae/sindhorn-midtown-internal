@@ -20,7 +20,8 @@ const PAGES = [
   // scripts/build-idui.mjs and scripts/build-evidence.mjs, library classes only.
   { name: '/idui (Methodology)', files: ['site/idui.html', 'site/public-doc.js'], css: [...FOUNDATION, 'site/ci-library.css'] },
   { name: '/evidence (Rebuild test)', files: ['site/evidence.html'], css: [...FOUNDATION, 'site/ci-library.css'] },
-  { name: '/origarium (Test 02)', files: ['site/origarium.html'], css: [...FOUNDATION, 'site/ci-library.css'] }
+  { name: '/origarium (Test 02)', files: ['site/origarium.html'], css: [...FOUNDATION, 'site/ci-library.css'] },
+  { name: '/betta (Test 04, published as 03 Betta)', files: ['site/betta.html'], css: [...FOUNDATION, 'site/ci-library.css'] }
 ];
 // Classes that are state hooks or belong to a runtime the page only hosts.
 const ALLOW = new Set(['is-shell', 'is-single', 'is-open']);

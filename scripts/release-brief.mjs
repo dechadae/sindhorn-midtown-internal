@@ -46,7 +46,7 @@ const gateResults = GATES.map(g => ({gate: g, ...run('node', [`scripts/${g}.mjs`
    builder run before the VERSION bump leaves them stale and the deploy guard
    rejects the release. That happened in r61 and cost a red build; the brief
    checks it here, where it is a one-line fix rather than a failed deploy. */
-for (const b of ['build-idui', 'build-evidence', 'build-origarium'])
+for (const b of ['build-idui', 'build-evidence', 'build-origarium', 'build-betta'])
   gateResults.push({gate: `${b} --check`, ...run('node', [`scripts/${b}.mjs`, '--check'])});
 const broken = gateResults.filter(g => !g.ok);
 
@@ -56,7 +56,7 @@ let newVocabulary = [];
 try { newVocabulary = JSON.parse(vocab.out.slice(vocab.out.indexOf('{'))).stops || []; } catch {}
 
 /* ---- pixels ------------------------------------------------------------- */
-const ROUTES = ['/index.html', '/ci.html', '/voice.html', '/idui.html', '/evidence.html', '/origarium.html'];
+const ROUTES = ['/index.html', '/ci.html', '/voice.html', '/idui.html', '/evidence.html', '/origarium.html', '/betta.html'];
 /* Two widths. A change that only appears on a wide screen is invisible to a
    phone-only diff, and the brief would report "no pixels moved" about a page
    it had just rearranged. */

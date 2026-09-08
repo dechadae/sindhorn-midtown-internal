@@ -1,0 +1,48 @@
+{
+ "test": "IDUI Test 04 - the generative constitution test, published as 03 Betta",
+ "note": "Evidence is append-only by experimental state. This file is a manifest; it holds no measurements. Every number on the public page /betta is read by scripts/build-betta.mjs from a state listed here, and scripts/evidence-append-only.mjs proves none of them has moved. commit is the code that produced the state; blind-20260907/ is Markdown and is cited by the page, not read by it.",
+ "states": [
+  {
+   "state": "tier-a-20260907-metal",
+   "file": "tier-a-20260907-metal.json",
+   "commit": "eedd5f1",
+   "measuredAt": "2026-09-07",
+   "sha256": "3841bc6d1d1d372d3524db7423c0ac02b76b09fcf19eaa6eebba84aee714340f"
+  },
+  {
+   "state": "determinism-20260907",
+   "file": "determinism-20260907.json",
+   "commit": "eedd5f1",
+   "measuredAt": "2026-09-07",
+   "sha256": "61a64a85c7784a54a4a653dd90bdb6db68f055b89d2cc8c0de3aabc1baba053a"
+  },
+  {
+   "state": "tier-a-20260908-metal-v5",
+   "file": "tier-a-20260908-metal-v5.json",
+   "commit": "cbc6be1",
+   "measuredAt": "2026-09-08",
+   "sha256": "502c5c5b6c203fb98facea079e9de18fa06d693ebabf35171a90c210a79587b2"
+  },
+  {
+   "state": "variety-20260908",
+   "file": "variety-20260908.json",
+   "commit": "cbc6be1",
+   "measuredAt": "2026-09-08",
+   "sha256": "fc15f2df9332056659711ccb06c07c746dfbf5d75113c5dffb4a15f45aeb36f9"
+  },
+  {
+   "state": "keep-rate-20260908",
+   "file": "keep-rate-20260908.json",
+   "commit": "cbc6be1",
+   "measuredAt": "2026-09-08",
+   "sha256": "baf27b9c1e98e56f4242e5e59ac8daf7d9b2f57eb1c72c4015bbea5e8023ae56"
+  },
+  {
+   "state": "phone-verdicts-20260908",
+   "file": "phone-verdicts-20260908.json",
+   "commit": "897a42e",
+   "measuredAt": "2026-09-08",
+   "sha256": "632af6111101b2f16dbd71998f8c6674da2e28be26fbe1b73252181df2ecb000"
+  }
+ ]
+}

@@ -8,23 +8,23 @@ before implementation" is checkable rather than asserted.
 |---|---|---|---|---|
 | **01** | The Rebuild Test | Flipgazine, "Moving to Claude Code" | Done — published at `/evidence` | r33 |
 | **02** | Origarium Papers | An editorial archive and long-form reader | **Architecture Held With Nine Corrections; Editorial Parity Partial (~70%)** | `828ee41` |
-| **03** | Apple | Three modules of the homepage, no Apple imagery or type | Protocol frozen | `79d34cd` |
+| **03** | Betta | The Betta engine's generative constitution — a wallpaper from a seed, no CSS, no DOM | **Valid By Construction; Taste Not Guaranteed** — published at `/betta` | `93971ec` |
 
-Those three are the interface rebuilds, and they are what the `/idui` footer
-lists. One further test is **on hold** (owner, 6 Sep 2026):
+Those three are what the `/idui` footer lists (owner, 8 Sep 2026). Two further
+tests are **not in the published series**:
 
 | Test | Subject | State | Frozen at |
 |---|---|---|---|
-| Voice | Editorial voice transfer | On hold | — |
+| Apple | Three modules of the homepage, no Apple imagery or type | Protocol frozen, never run; withdrawn from the footer 8 Sep 2026 | `79d34cd` |
+| Voice | Editorial voice transfer | On hold (owner, 6 Sep 2026) | — |
 
-**04 Betta** resumed 7 September 2026 as a new, standalone Android native live
-wallpaper app — its own repository, no code shared with this one — testing the
-same claim frozen at `93971ec` on a platform with no CSS, no DOM and no
-stylesheet cascade. Its protocol's heading still reads "Test 03" from the
-numbering scheme before this one; that is deliberately left alone (the heading
-is not where the meaning lives, and the commit that froze its predictions is
-unedited) and the renumbering to 04 is recorded as amendment A3 in
-`idui-core/evidence/generative/PROTOCOL.md`, not as an edit to the frozen text.
+**Betta is "Test 04" in its own record.** It resumed 7 September 2026 while
+Apple held 03, and every state file it froze since says 04; a file hashed into
+a manifest cannot be renamed to say otherwise. So the footer counts what was
+published and the record counts what was frozen — amendment A4 in
+`idui-core/evidence/generative/PROTOCOL.md`, appended and not edited in. Its
+protocol's heading still reads "Test 03" from an earlier scheme, deliberately
+left alone for the same reason (A2, A3).
 
 Tests 02 and 03 were written under an earlier numbering, as "Test 03" and
 "Test 04", when the r32a specimen transfer counted as 01. Their headings were
@@ -46,9 +46,10 @@ test of its own.
   historical run**: re-running `measure.mjs` overwrites them and no longer
   reproduces them, because the core has grown since r33.
 - `origarium/` — Test 02.
-- `generative/` — Test 04's frozen protocol only. The resumed Android
-  implementation and its own evidence live in that app's own repository, not
-  here (see `PROTOCOL.md` amendment A3).
+- `generative/` — Test 04, published as 03 Betta. The frozen protocol with
+  its amendments, the state files, and `published.json`, the manifest behind
+  `/betta`. The Mac harness is `macos-betta-metal/` on the
+  `macos-betta-display-1.2` branch; the phone explorer is its own repository.
 
 ## Operational trials
 

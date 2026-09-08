@@ -1,0 +1,34 @@
+{
+  "state": "phone-verdicts-20260908",
+  "recorded": "2026-09-08",
+  "snapshot_at": "2026-09-08T06:55:00+07:00",
+  "test": "IDUI Test 04 (see PROTOCOL.md amendments A3 and A4)",
+  "tier": "C - the owner judging rendered frames on the phone. Not Tier A, not Tier B.",
+  "source": {
+    "table": "betta_verdicts",
+    "project": "ndzwypnjkhlpgxoqbiwx.supabase.co",
+    "query": "select device, arm, constitution, count(*), sum((verdict='keep')::int), sum((verdict='reject')::int), count(distinct seed), count(distinct framing), min(judged_at), max(judged_at) from betta_verdicts group by device, arm, constitution order by min(judged_at)",
+    "access": "publishable key, insert-only for anon under RLS, verdict constrained to keep or reject; rows are the owner's taps in the Betta Explorer WebView APK (~/Documents/betta-explorer-android, not part of this repository)",
+    "note": "Rows tagged android-webview/<build> are that APK's; the untagged first block is the pre-0.7 explorer before the device column carried a build. One emulator row (id 409, build 0.9) was deleted before the owner installed 0.9; the 0.10 emulator run left none."
+  },
+  "arm": "C",
+  "constitution": "v5",
+  "framing": "one per row: the phone's own portrait framing, not one of the eight locked landscape compositions",
+  "rows": [
+    {"device": "android-webview", "build": "pre-0.7", "n": 56, "keep": 18, "reject": 38, "seeds": 56, "first": "2026-09-07T13:37:17Z", "last": "2026-09-07T13:53:54Z", "counted": true},
+    {"device": "android-webview/0.7", "build": "0.7", "n": 317, "keep": 110, "reject": 207, "seeds": 317, "first": "2026-09-07T14:06:10Z", "last": "2026-09-07T16:21:46Z", "counted": true},
+    {"device": "android-webview/0.8", "build": "0.8", "n": 34, "keep": 0, "reject": 34, "seeds": 34, "first": "2026-09-07T17:00:46Z", "last": "2026-09-07T17:01:47Z", "counted": false, "excluded_because": "0.8 showed a black screen on the owner's device; the owner rejected 34 black frames in one minute and reported the build. These are verdicts on a bug, not on the constitution. Excluded on that ground before this snapshot was taken, not after seeing the rate."},
+    {"device": "android-webview/0.9", "build": "0.9", "n": 159, "keep": 50, "reject": 109, "seeds": 159, "first": "2026-09-07T23:03:34Z", "last": "2026-09-07T23:15:16Z", "counted": true},
+    {"device": "android-webview/0.10", "build": "0.10", "n": 67, "keep": 18, "reject": 49, "seeds": 67, "first": "2026-09-07T23:35:05Z", "last": "2026-09-07T23:38:11Z", "counted": true}
+  ],
+  "totals": {
+    "all_rows": 633,
+    "counted": {"n": 599, "keep": 196, "reject": 403},
+    "excluded": {"n": 34, "keep": 0, "reject": 34}
+  },
+  "reading": [
+    "The same arm C at the same constitution keeps at about a third on the phone against about a half on the Mac (keep-rate-20260908.json). Different framing, different pixel density, different pace of judging: render surface moves the number more than any arm did.",
+    "Every row is one seed; no seed was judged twice. Rejections are labelled by seed, so the set is a reject corpus the explorer keeps growing.",
+    "This is one judge's taste on one device. It is not evidence for or against the frozen claim, which is about validity."
+  ]
+}

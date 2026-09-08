@@ -227,7 +227,7 @@
   },
   "integrity": {
     "$comment": "Recorded state of the contracts. Changing any number here is the visible act of changing what the architecture enforces; scripts/contract-integrity.mjs fails until it is re-seeded, and re-seeding is a registry diff the owner reviews.",
-    "seeded": "2026-09-07",
+    "seeded": "2026-09-08",
     "gates": {
       "scripts/material-authority-gate.mjs": {
         "sha256": "5244a44ad06aae62",
@@ -242,11 +242,11 @@
         "assertions": 3
       },
       "scripts/no-horizontal-overflow.mjs": {
-        "sha256": "f5ab41cbeae90f96",
+        "sha256": "68293dfa5b6da2f3",
         "assertions": 2
       },
       "scripts/page-centralization-audit.mjs": {
-        "sha256": "6eed346bf287a329",
+        "sha256": "bd32a549410ae91e",
         "assertions": 12
       },
       "scripts/idui-constitution-completeness.mjs": {
@@ -270,7 +270,7 @@
         "assertions": 9
       },
       "scripts/release-brief.mjs": {
-        "sha256": "7563f5531df191ba",
+        "sha256": "ccbff734c15a577d",
         "assertions": 0
       },
       "scripts/contract-integrity.mjs": {

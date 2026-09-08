@@ -31,18 +31,25 @@ export function foundationLinks(){
    same material and the same band height, and it keeps the series reachable
    from anywhere in a long document. A tab is a link only when its page
    exists; the one you are on is aria-current and inert, as the app's own
-   current tab is (r43). */
+   current tab is (r43). Since r67 the tabs swap the document in place
+   (/public-doc.js), as the shell's own tabs do, so the masthead, the navbar
+   and the atmosphere stay put while the page beneath them changes.
+
+   03 was Apple, never run; the Betta test - "Test 04" in its own record, see
+   idui-core/evidence/generative/PROTOCOL.md A4 - was published third in its
+   place on 8 September 2026. */
 const TESTS=[
   {slug:'idui',label:'IDUI',href:'/idui',live:true},
   {slug:'evidence',label:'01 Flipgazine',href:'/evidence',live:true},
   {slug:'origarium',label:'02 Origarium',href:'/origarium',live:true},
-  {slug:'apple',label:'03 Apple',href:null,live:false},
+  {slug:'betta',label:'03 Betta',href:'/betta',live:true},
 ];
 const MARK={
   idui:'<path d="M4 6h16M4 12h10M4 18h13"/>',
   evidence:'<path d="M5 4h9l5 5v11H5z"/><path d="M14 4v5h5"/>',
   origarium:'<path d="M4 5h7v14H4z"/><path d="M13 5h7v14h-7z"/>',
-  apple:'<circle cx="12" cy="13" r="7"/><path d="M12 6V3"/>',
+  /* a seed: one point, and the ring of what it selects within */
+  betta:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="1.5"/>',
 };
 function testsNavbar(current){
   const tabs=TESTS.map(test=>{
@@ -70,6 +77,16 @@ export function publicMasthead(){
 
 export const STAGE='<div class="environment-stage" id="environmentStage" aria-hidden="true"><canvas class="environment-canvas" id="environmentCanvas"></canvas></div>';
 
+/* The release the page was built with, as sw.js names it. /public-doc.js
+   fetches the neighbouring documents under this stamp so the app's service
+   worker, where it controls the origin, caches each release's copy under its
+   own key and a redeploy is never answered from the last one. */
+export function release(){
+  const sw=fs.readFileSync(path.join(SITE,'sw.js'),'utf8').match(/const VERSION='([^']+)'/)?.[1];
+  if(!sw)throw new Error('sw.js: VERSION not found');
+  return sw.replace(/^sindhorn-midtown-internal-pwa-/,'');
+}
+
 export function docPage({title,description,slug,body,comment=''}){
   if(/<style[\s>]/.test(body)||/\sstyle=/.test(body))throw new Error(`${slug}: the document body carries CSS`);
   const url=`${ORIGIN}/${slug}`;
@@ -79,6 +96,7 @@ export function docPage({title,description,slug,body,comment=''}){
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#2E273B">
+<meta name="release" content="${esc(release())}">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${esc(url)}">

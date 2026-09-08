@@ -1,0 +1,214 @@
+{
+  "state": "keep-rate-20260908",
+  "recorded": "2026-09-08",
+  "test": "IDUI Test 04 (see PROTOCOL.md amendments A3 and A4)",
+  "tier": "C - the owner judging rendered frames. Not Tier A, not Tier B.",
+  "question": "Does the IDUI constitution (arm C) raise the owner's keep rate above an ungoverned generator (A) and above a curated allowlist (B)?",
+  "answer": "No, and the question turned out to be the wrong instrument. Keep rate describes the judge's taste; the claim under test is about validity. See conclusion.",
+  "judge": "The owner - who wrote the hypotheses, whose taste the engine is compiled from, and who can therefore not be blinded to an arm that differs enough to differ.",
+  "raw_files": [
+    {
+      "file": "judgements-r1-20260907.csv",
+      "sha256": "10649e06cb5eeac2f4d4c988c996c0faa703989809df4094096ce0356424f00e",
+      "rows": 244,
+      "columns": "arm,seed,composition,verdict",
+      "judged": "2026-09-07",
+      "source": "macos-betta-metal/judgements.csv, copied verbatim"
+    },
+    {
+      "file": "judgements-r2-20260907.csv",
+      "sha256": "a4afad2628936ad2f931471ffa56be819791dba4e7923140066e9e8c8ddab48f",
+      "rows": 240,
+      "columns": "arm,seed,composition,verdict",
+      "judged": "2026-09-07",
+      "source": "macos-betta-metal/judgements-r2.csv, copied verbatim"
+    }
+  ],
+  "instrument": {
+    "tool": "macos-betta-metal/judge (bash) driving BettaTest04 --judge; K keeps, space or return rejects, u undoes",
+    "renderer": "the production shader (Sources/BettaMetalLab/Shaders.metal) compiled at runtime, at 3840x2160, moving",
+    "arms": {
+      "A": {
+        "name": "raw random",
+        "constitution": "constitution-a.json",
+        "sha256": "d24ab114b1aceec5dfe9b2f84721083b57e14bc6fe58b5337b6baa6898fb4b49",
+        "description": "every parameter uniform across its full domain; nothing governs it"
+      },
+      "B": {
+        "name": "allowlist",
+        "constitution": "constitution-b.json",
+        "sha256": "a4128cb87efd650915e3cd10b9ca5320241f3f6a5a36126c670eb36ac77b9c8a",
+        "description": "bands enumerated from where the eight locked presets sit - a possibility library"
+      },
+      "C": {
+        "name": "IDUI exclusions",
+        "constitution": "constitution-c.json",
+        "sha256": "090be4bcf1ef074d50a7f7cdea893c00587402e418a641a3791b26798c272b7b",
+        "description": "the raw domains with only the exclusions that name a real failure"
+      }
+    },
+    "round1": "Arms A, B and C shuffled; every frame through one of the eight locked landscape compositions (column composition = its id). Constitution v5.",
+    "round2": "Four arms in shuffled blocks levelled at every boundary (verify-arms PASS): A and C-random on a seed-derived framing inside the envelope (composition = r), B and C-locked on the locked eight. The C pair shares one style per seed, so only the crop moves between them.",
+    "blinding": "The arm was hidden from the judge and revealed only in the log. The owner's own objection stands on record: any arm different enough to differ is recognisable on sight, so the comparison is blind only in the band where the arms look alike."
+  },
+  "round1": {
+    "by_arm": {
+      "A": {
+        "n": 83,
+        "keep": 51,
+        "reject": 32
+      },
+      "C": {
+        "n": 72,
+        "keep": 47,
+        "reject": 25
+      },
+      "B": {
+        "n": 89,
+        "keep": 59,
+        "reject": 30
+      }
+    },
+    "by_composition": {
+      "1": {
+        "n": 29,
+        "keep": 21,
+        "reject": 8
+      },
+      "2": {
+        "n": 34,
+        "keep": 24,
+        "reject": 10
+      },
+      "3": {
+        "n": 24,
+        "keep": 9,
+        "reject": 15
+      },
+      "4": {
+        "n": 37,
+        "keep": 29,
+        "reject": 8
+      },
+      "5": {
+        "n": 33,
+        "keep": 13,
+        "reject": 20
+      },
+      "6": {
+        "n": 20,
+        "keep": 8,
+        "reject": 12
+      },
+      "7": {
+        "n": 29,
+        "keep": 23,
+        "reject": 6
+      },
+      "8": {
+        "n": 38,
+        "keep": 30,
+        "reject": 8
+      }
+    }
+  },
+  "round2": {
+    "by_arm": {
+      "C-random": {
+        "n": 61,
+        "keep": 30,
+        "reject": 31
+      },
+      "A": {
+        "n": 61,
+        "keep": 31,
+        "reject": 30
+      },
+      "B": {
+        "n": 59,
+        "keep": 40,
+        "reject": 19
+      },
+      "C-locked": {
+        "n": 59,
+        "keep": 24,
+        "reject": 35
+      }
+    },
+    "by_composition_locked_arms": {
+      "1": {
+        "n": 15,
+        "keep": 7,
+        "reject": 8
+      },
+      "2": {
+        "n": 17,
+        "keep": 12,
+        "reject": 5
+      },
+      "3": {
+        "n": 19,
+        "keep": 8,
+        "reject": 11
+      },
+      "4": {
+        "n": 14,
+        "keep": 10,
+        "reject": 4
+      },
+      "5": {
+        "n": 14,
+        "keep": 5,
+        "reject": 9
+      },
+      "6": {
+        "n": 6,
+        "keep": 2,
+        "reject": 4
+      },
+      "7": {
+        "n": 17,
+        "keep": 14,
+        "reject": 3
+      },
+      "8": {
+        "n": 16,
+        "keep": 6,
+        "reject": 10
+      }
+    }
+  },
+  "pooled_note": "Pooled C is round one C plus round two C-locked: the same constitution on the same eight crops. C-random is reported on its own.",
+  "conclusion": [
+    "Arms A and C are indistinguishable at this n. Arm B sits above both, at about half of A and C's output variety (variety-20260908.json).",
+    "Composition and render fidelity move the rate more than the arm does: per-crop keep rates in round one span roughly forty points, and the same arm on the phone (phone-verdicts-20260908.json) keeps at about two thirds of its Mac rate.",
+    "A fifth, \"truly raw\" arm was proposed to widen the gap and the owner rejected it: it would be recognisable, so not blind. That closed the design.",
+    "Keep rate is therefore not an instrument for the frozen claim. The claim is about validity - every seed valid, on identity, no appearance decision in the generator - and validity is measured in tier-a-20260908-metal-v5.json and determinism-20260907.json, not here."
+  ],
+  "figures": [
+    {
+      "file": "figures/kept-c5-14295495308370936884.png",
+      "arm": "C",
+      "seed": "14295495308370936884",
+      "composition": 5,
+      "verdict": "keep",
+      "round": 1,
+      "note": "membrane + prism + diamond, presence present"
+    },
+    {
+      "file": "figures/rejected-c5-1495201387329293032.png",
+      "arm": "C",
+      "seed": "1495201387329293032",
+      "composition": 5,
+      "verdict": "reject",
+      "round": 1,
+      "note": "membrane + prism + ring, presence departed"
+    }
+  ],
+  "figures_note": "Two judged frames from round one, the same arm and the same crop, recovered by BettaTest04 --recall from their rows (the judgement records arm, seed and framing, and each reproduces exactly) and reduced from 5120x2880 to 960 wide for the page. Both pass every contract; the judge kept one. Rendered from the working tree at cbc6be1 with the uncommitted recall mode; the generator and constitution are the committed ones. Illustrations, not measurements.",
+  "not_measured": [
+    "a reject analysis by parameter (needs about ten times the verdicts)",
+    "editorial acceptance at v5 (the formal 7-of-8 acceptance is at v4, editorial-20260907.md)",
+    "the rule-prediction review in review-20260907/ - predictions committed, the owner's verdicts on those twenty seeds never pinned"
+  ]
+}

@@ -194,3 +194,23 @@ this file; Q01–Q05 remain frozen there and are read by the new work as
 background, not as a task list it executes. Evidence for the Android test is
 collected in the new app's own repository, under the same evidence-law
 discipline as Tests 01–03.
+
+### A4 — 8 September 2026: published third, as "03 Betta"; the record keeps 04
+
+The owner has replaced **03 Apple** in the `/idui` footer with this test. Apple
+was never run — its protocol was frozen at `79d34cd` and nothing followed — so
+the published series is now **01 Flipgazine, 02 Origarium, 03 Betta**, which is
+the A1 numbering restored, and the page is `/betta`.
+
+The evidence record is **not** renumbered. Every state file since A3 calls
+itself "IDUI Test 04", and a file that is hashed into a manifest cannot be
+edited to say otherwise. So the footer counts what was published, the record
+counts what was frozen, and the public page says both on its face. The name is
+the subject's, as the other two are: the test is about the Betta engine's
+generative constitution, and "Betta" is what the owner called it in A1.
+
+The result on that page is named by what held and what did not, as this
+protocol requires: **Valid By Construction; Taste Not Guaranteed.** "Valid by
+construction" is this file's own term and is claimed for the sampled 100,000
+seeds of a 64-bit space, not for the exhaustive 2²⁴ frozen above for the JS
+sequence that never ran. Q01–Q05 remain frozen in `93971ec` and were never run.

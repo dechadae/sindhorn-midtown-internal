@@ -1,0 +1,283 @@
+<main class="app-page is-shell" id="top">
+
+<section class="app-hero">
+  <p class="app-hero-eyebrow">Sindhorn Midtown Internal · IDUI evidence</p>
+  <h1 class="app-hero-title">Valid By Construction; Taste Not Guaranteed</h1>
+  <p class="app-hero-copy">The first IDUI test with no interface in it. A constitution — a JSON file of ranges and exclusions — governs a generator that turns a seed into a Betta wallpaper, drawn by the product's own shader. Every sampled seed came out valid without a retry. Whether the owner would keep it is a different question, and the test spent most of its verdicts learning that no constitution answers it.</p>
+  <p class="app-note">The claim was frozen in commit <code>{{claim.frozen}}</code> before any result was measured. Constitution v{{tierA.version}}, sha256 <code>{{tierA.sha8}}…</code>. Third in the published series; <strong>Test 04</strong> in the evidence record, where every state file already carries that number and none may be renamed (protocol amendment A4). Stamped {{sw}}.</p>
+  <div class="app-metric-grid" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Seeds generated</p><p class="app-metric-value">{{tierA.seeds}}</p><p class="app-metric-note">Every contract checked, no code path that retries</p></div>
+    <div class="app-metric"><p class="app-metric-label">Contract violations</p><p class="app-metric-value">{{tierA.violations}}</p><p class="app-metric-note">And {{tierA.collisions}} seed collisions, at v{{tierA.version}}</p></div>
+    <div class="app-metric"><p class="app-metric-label">Values identical across two languages</p><p class="app-metric-value">{{det.values}}</p><p class="app-metric-note">Swift and Kotlin, one constitution file, to the bit</p></div>
+    <div class="app-metric"><p class="app-metric-label">Claude&#39;s agreement with the owner</p><p class="app-metric-value">κ {{blind.kappa}}</p><p class="app-metric-note">Twenty frames rated blind — exactly chance</p></div>
+  </div>
+  <nav class="ci-index" aria-label="Sections">
+    <a class="app-chip app-control" href="#claim">00 Claim</a>
+    <a class="app-chip app-control" href="#validity">01 Validity</a>
+    <a class="app-chip app-control" href="#instrument">02 Instrument</a>
+    <a class="app-chip app-control" href="#arms">03 Three arms</a>
+    <a class="app-chip app-control" href="#moved">04 What moved</a>
+    <a class="app-chip app-control" href="#blind">05 Blind</a>
+    <a class="app-chip app-control" href="#findings">06 Findings</a>
+    <a class="app-chip app-control" href="#taught">07 What it taught</a>
+    <a class="app-chip app-control" href="#verdict">08 Verdict</a>
+    <a class="app-chip app-control" href="#files">09 Files</a>
+  </nav>
+</section>
+
+<!-- ================================================================ 00 -->
+<section class="app-section" id="claim">
+  <p class="app-section-kicker">00 · The claim under test</p>
+  <h2 class="app-section-title">Randomness As The Adversary</h2>
+  <p class="app-section-lede">Tests 01 and 02 put IDUI against other designers&#39; products. This one puts it against an author with no judgement at all: a seed. There are no pages here, no primitives that behave, no cascade. If the idea only works where CSS is, this is where it fails.</p>
+  <div class="app-card app-surface" data-mode="quote">
+    <p class="app-surface-label">Frozen at {{claim.frozen}}</p>
+    <p class="app-surface-copy">A constitution can constrain a generator so that every seed produces a valid, on-identity result, with zero appearance decisions left in the generator.</p>
+  </div>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p><strong>What corresponds to what.</strong> A page composes; here a scene composes — form, ground, framing. Primitives behave; here the form generators do — a radial membrane, prisms, diamonds, rings, ribbons, each with its own deformation and motion. Invariants style; here rules hold for every seed. Contracts validate; here checks reject an output. A page contributes zero appearance; <strong>a seed contributes zero appearance</strong> — it selects within a space the constitution defines.</p>
+      <p><strong>The result being tested is not &quot;the output we keep is valid&quot;.</strong> It is constructional validity: every sampled seed passes on first generation, without rejection, retry, resampling or repair. Contracts are diagnostic, never filtering. A rejected seed is a finding that the constitution failed to constrain the generator; any code path that quietly draws another seed invalidates the run.</p>
+      <p>Two tiers, reported separately and never merged: <strong>Tier A</strong> is pure arithmetic on the generated style, no renderer; <strong>Tier B</strong> is rendered and sampled. The protocol also froze a failure taxonomy of nine categories — non-finite, out of gamut, degenerate material, out of vocabulary, palette collapse, figure/ground collapse, seed collision, temporal, framing — so that no category could be invented later to flatter a result.</p>
+    </div>
+  </div>
+  <p class="app-note">The protocol was written for a JavaScript sequence inside the app, with Tier A over all 2²⁴ seeds as a proof. That sequence was never run. The test resumed on a new platform (amendment A3) with a 64-bit seed space, so Tier A here is a sample of {{tierA.seeds}}, not an exhaustion — a weaker statement, and stated as one.</p>
+</section>
+
+<!-- ================================================================ 01 -->
+<section class="app-section" id="validity">
+  <p class="app-section-kicker">01 · What held</p>
+  <h2 class="app-section-title">Validity, Measured Without A Judge</h2>
+  <p class="app-section-lede">Two things the claim needs, and both are measured by arithmetic rather than by anyone&#39;s opinion: no seed produces an invalid style, and the same seed produces the same style wherever the constitution is read.</p>
+  <div class="app-metric-grid" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Tier A, constitution v{{tierA.version}}</p><p class="app-metric-value">{{tierA.violations}}</p><p class="app-metric-note">Violations in {{tierA.seeds}} seeds, {{tierA.elapsed}}s, Swift</p></div>
+    <div class="app-metric"><p class="app-metric-label">Tier A, constitution v{{tierA1.version}}</p><p class="app-metric-value">{{tierA1.violations}}</p><p class="app-metric-note">The earlier pass over a smaller parameter set, kept as measured</p></div>
+    <div class="app-metric"><p class="app-metric-label">Determinism</p><p class="app-metric-value">{{det.differing}}</p><p class="app-metric-note">Differing values of {{det.values}}: {{det.seeds}} seeds × {{det.params}} parameters, Swift against Kotlin</p></div>
+    <div class="app-metric"><p class="app-metric-label">Seed collisions</p><p class="app-metric-value">{{tierA.collisions}}</p><p class="app-metric-note">Two seeds with one style would be a T7 failure</p></div>
+  </div>
+  <div class="app-card app-surface">
+    <div class="app-card-section"><p class="app-surface-label">How Tier A runs</p>
+      <p class="app-surface-copy">Every seed from 0 is generated, every contract evaluated, every violation counted. Nothing is discarded. The run exits non-zero on a single violation or collision; it exited zero.</p></div>
+    <div class="app-card-section"><p class="app-surface-label">Why determinism was not free</p>
+      <p class="app-surface-copy">The Mac engine&#39;s existing random store returns 32-bit floats; the web engine uses 64-bit numbers. Had the port followed the store, the raw seed stream would have matched while the derived values diverged in the low bits — and a value sitting on a contract boundary could pass on one platform and fail on the other. The precision the ranges are sampled in belongs to the constitution, and it was undeclared. Recorded as finding B-01.</p></div>
+    <div class="app-card-section"><p class="app-surface-label">What this does not say</p>
+      <p class="app-surface-copy">Tier A draws nothing. It cannot say whether any seed looks like anything, and it is not an audit that the generator holds no appearance decision — that is a reading of the code, still owed. The rendered contracts were last exercised at an earlier constitution against a renderer since deleted (02), so rendered validity at v{{tierA.version}} is not on record.</p></div>
+  </div>
+</section>
+
+<!-- ================================================================ 02 -->
+<section class="app-section" id="instrument">
+  <p class="app-section-kicker">02 · The instrument</p>
+  <h2 class="app-section-title">The Product Is The Instrument</h2>
+  <p class="app-section-lede">The first rendered results were measured on a renderer this test had built for itself. That was the wrong half of the system to build.</p>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p><strong>A-02.</strong> The claim is about the generator: constitution in, style out. The renderer belongs to the product — the same shader that draws the Sindhorn app&#39;s atmosphere and the Mac display&#39;s eight locked compositions. Test 04 had rebuilt that engine, then scored 30,000 frames of the rebuild. The numbers stand as measured, but what they were measuring was a renderer nobody ships. It was deleted, and from then on the test supplies the generator only; the frame is drawn by the production shader compiled from its own source file and driven directly.</p>
+      <p>Two surfaces then judged what that shader drew from the constitution&#39;s seeds. On the Mac, a judging tool shows one moving frame at 3840×2160 with the arm hidden: one key keeps, another rejects, another undoes, and the row written is <code>arm, seed, composition, verdict</code> — enough to recover any frame later, exactly. On the phone, a WebView explorer draws the same page the Sindhorn atmosphere runs, ✕ or ♥ writes one row to a table that accepts inserts only, and a kept frame becomes the live wallpaper.</p>
+      <p><strong>The eight locked compositions were read and never written.</strong> The owner locked them on the Mac before this test began; every Mac frame here is drawn through one of them, or through a seed-derived framing that the harness checks can never coincide with one.</p>
+    </div>
+  </div>
+  <div class="app-stack ci-stack">
+    <figure class="app-figure"><img src="/assets/betta/kept-c5-{{figures.kept.seed}}.png" alt="A kept frame from arm C: dark ribbons and a thin magenta edge sweep across an olive-green ground" width="960" height="540" loading="lazy"><figcaption>Kept. Arm C, seed {{figures.kept.seed}}, composition {{figures.kept.composition}}: membrane, prism and diamond, present in frame.</figcaption></figure>
+    <figure class="app-figure"><img src="/assets/betta/rejected-c5-{{figures.rejected.seed}}.png" alt="A rejected frame from arm C: a soft mint-to-blue gradient with a lime sliver of organism at the bottom-left corner" width="960" height="540" loading="lazy"><figcaption>Rejected. Arm C, seed {{figures.rejected.seed}}, the same composition: membrane, prism and ring, departed from frame.</figcaption></figure>
+  </div>
+  <p class="app-note">Both frames pass every contract; both were generated by the same constitution through the same crop. One was kept and one was not, and nothing in the constitution knows which. That gap is the whole of what follows.</p>
+</section>
+
+<!-- ================================================================ 03 -->
+<section class="app-section" id="arms">
+  <p class="app-section-kicker">03 · The comparison that closed itself</p>
+  <h2 class="app-section-title">Three Arms, One Judge, No Difference Where It Was Blind</h2>
+  <p class="app-section-lede">If a constitution buys anything a person can see, the owner should keep more of arm C than of arm A. So three constitutions were written for one engine and shown shuffled, the arm hidden until the log.</p>
+  <div class="app-table-wrap"><table class="app-table" data-mode="text">
+    <thead><tr><th>Arm</th><th>What governs it</th><th>Output variety</th></tr></thead>
+    <tbody>
+      <tr><th>A · raw</th><td>Every parameter uniform across its full domain. Nothing governs it.</td><td>{{variety.aPct}}</td></tr>
+      <tr><th>B · allowlist</th><td>Bands enumerated from where the eight locked presets sit — a possibility library, what the constitution was before subtraction.</td><td>{{variety.bPct}}</td></tr>
+      <tr><th>C · IDUI</th><td>The raw domains, minus only the exclusions that name a real failure: the ground may not be flat, the palette may not collapse, the organism may not be a timid fragment.</td><td>{{variety.cPct}}</td></tr>
+    </tbody>
+  </table></div>
+  <p class="app-note">Variety is the mean distance between two frames of the same arm in the {{variety.dims}}-dimensional parameter space the shader consumes, {{variety.seedsPerArm}} seeds per arm, each dimension normalised by the widest span any arm reaches; A is 100. Parameter distance is not perceptual distance, and this was added after round one to explain a gap, so it is descriptive.</p>
+
+  <h3 class="app-section-subhead">Round one — the locked eight crops</h3>
+  <div class="app-table-wrap"><table class="app-table" data-mode="text">
+    <thead><tr><th>Arm</th><th>Frames</th><th>Kept</th><th>Keep rate</th></tr></thead>
+    <tbody>
+      <tr><th>A · raw</th><td>{{r1.A.n}}</td><td>{{r1.A.keep}}</td><td>{{r1.A.rate}}</td></tr>
+      <tr><th>B · allowlist</th><td>{{r1.B.n}}</td><td>{{r1.B.keep}}</td><td>{{r1.B.rate}}</td></tr>
+      <tr><th>C · IDUI</th><td>{{r1.C.n}}</td><td>{{r1.C.keep}}</td><td>{{r1.C.rate}}</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="app-section-subhead">Round two — four arms, blocks levelled, the C pair split by crop</h3>
+  <p class="app-section-lede">Round one had let composition vary with arm. Round two shares one style per seed between the two C arms and moves only the crop, so the pair isolates framing; A and C-random take a seed-derived framing inside the envelope, checked never to land on a locked one.</p>
+  <div class="app-table-wrap"><table class="app-table" data-mode="text">
+    <thead><tr><th>Arm · framing</th><th>Frames</th><th>Kept</th><th>Keep rate</th></tr></thead>
+    <tbody>
+      <tr><th>A · raw · seed-derived</th><td>{{r2.A.n}}</td><td>{{r2.A.keep}}</td><td>{{r2.A.rate}}</td></tr>
+      <tr><th>B · allowlist · locked eight</th><td>{{r2.B.n}}</td><td>{{r2.B.keep}}</td><td>{{r2.B.rate}}</td></tr>
+      <tr><th>C · IDUI · locked eight</th><td>{{r2.Clocked.n}}</td><td>{{r2.Clocked.keep}}</td><td>{{r2.Clocked.rate}}</td></tr>
+      <tr><th>C · IDUI · seed-derived</th><td>{{r2.Crandom.n}}</td><td>{{r2.Crandom.keep}}</td><td>{{r2.Crandom.rate}}</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 class="app-section-subhead">Pooled, {{pooled.total}} Mac verdicts</h3>
+  <div class="app-metric-grid" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">A · raw</p><p class="app-metric-value">{{pooled.A.rate}}</p><p class="app-metric-note">{{pooled.A.keep}} of {{pooled.A.n}}</p></div>
+    <div class="app-metric"><p class="app-metric-label">B · allowlist</p><p class="app-metric-value">{{pooled.B.rate}}</p><p class="app-metric-note">{{pooled.B.keep}} of {{pooled.B.n}}</p></div>
+    <div class="app-metric"><p class="app-metric-label">C · IDUI on the locked crops</p><p class="app-metric-value">{{pooled.C.rate}}</p><p class="app-metric-note">{{pooled.C.keep}} of {{pooled.C.n}}</p></div>
+    <div class="app-metric"><p class="app-metric-label">B over C, in standard errors</p><p class="app-metric-value">{{z.bVsC}}</p><p class="app-metric-note">A over C: {{z.aVsC}}. Neither comparison was pre-registered.</p></div>
+  </div>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p><strong>A and C are indistinguishable.</strong> The exclusions that define arm C — and that Tier A proves it always honours — did not move the owner&#39;s hand. <strong>B sits above both</strong>, at about half their variety: a curated list of what already worked keeps more often, and shows less. That is the trade the subtractive principle was meant to avoid, and here the judge preferred the other side of it.</p>
+      <p><strong>Then the design closed.</strong> A fifth arm was proposed — a truly ungoverned generator, wide enough that the gap would have to show. The owner refused it, correctly: <em>an arm different enough to differ is recognisable on sight, so it cannot be blind.</em> The judge wrote the hypotheses; the engine is compiled from the judge&#39;s taste; neither can be removed. Only the band where arms look alike is blind, and in that band they do not differ. Keep rate is a description of one person&#39;s taste. It is not an instrument for the claim.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 04 -->
+<section class="app-section" id="moved">
+  <p class="app-section-kicker">04 · What did move the number</p>
+  <h2 class="app-section-title">Crop And Surface Outweigh The Constitution</h2>
+  <p class="app-section-lede">Two variables the arms did not control carried more of the result than the arms did. Both are recorded because they say where a constitution&#39;s authority ends.</p>
+  <h3 class="app-section-subhead">Composition, round one, all arms pooled</h3>
+  <div class="app-table-wrap"><table class="app-table" data-mode="text">
+    <thead><tr><th>Locked crop</th><th>Frames</th><th>Kept</th><th>Keep rate</th></tr></thead>
+    <tbody>
+      <tr><th>1</th><td>{{comp.1.n}}</td><td>{{comp.1.keep}}</td><td>{{comp.1.rate}}</td></tr>
+      <tr><th>2</th><td>{{comp.2.n}}</td><td>{{comp.2.keep}}</td><td>{{comp.2.rate}}</td></tr>
+      <tr><th>3</th><td>{{comp.3.n}}</td><td>{{comp.3.keep}}</td><td>{{comp.3.rate}}</td></tr>
+      <tr><th>4</th><td>{{comp.4.n}}</td><td>{{comp.4.keep}}</td><td>{{comp.4.rate}}</td></tr>
+      <tr><th>5</th><td>{{comp.5.n}}</td><td>{{comp.5.keep}}</td><td>{{comp.5.rate}}</td></tr>
+      <tr><th>6</th><td>{{comp.6.n}}</td><td>{{comp.6.keep}}</td><td>{{comp.6.rate}}</td></tr>
+      <tr><th>7</th><td>{{comp.7.n}}</td><td>{{comp.7.keep}}</td><td>{{comp.7.rate}}</td></tr>
+      <tr><th>8</th><td>{{comp.8.n}}</td><td>{{comp.8.keep}}</td><td>{{comp.8.rate}}</td></tr>
+    </tbody>
+  </table></div>
+  <p class="app-note">From {{comp.min.rate}} on crop {{comp.min.id}} to {{comp.max.rate}} on crop {{comp.max.id}} — a span of {{comp.span}} points against the {{pooled.span}} between the pooled arms. The framing is the owner&#39;s, locked before the test and held read-only through it; it is the one appearance decision the constitution was never given, and it decided more than the constitution did.</p>
+
+  <h3 class="app-section-subhead">Render surface — the same arm C on the phone</h3>
+  <div class="app-table-wrap"><table class="app-table" data-mode="text">
+    <thead><tr><th>Explorer build</th><th>Frames</th><th>Kept</th><th>Keep rate</th></tr></thead>
+    <tbody>
+      <tr><th>{{phone.b0.label}}</th><td>{{phone.b0.n}}</td><td>{{phone.b0.keep}}</td><td>{{phone.b0.rate}}</td></tr>
+      <tr><th>{{phone.b1.label}}</th><td>{{phone.b1.n}}</td><td>{{phone.b1.keep}}</td><td>{{phone.b1.rate}}</td></tr>
+      <tr><th>{{phone.b2.label}}</th><td>{{phone.b2.n}}</td><td>{{phone.b2.keep}}</td><td>{{phone.b2.rate}}</td></tr>
+      <tr><th>{{phone.b3.label}}</th><td>{{phone.b3.n}}</td><td>{{phone.b3.keep}}</td><td>{{phone.b3.rate}}</td></tr>
+      <tr><th>{{phone.b4.label}}</th><td>{{phone.b4.n}}</td><td>{{phone.b4.keep}}</td><td>{{phone.b4.rate}}</td></tr>
+    </tbody>
+  </table></div>
+  <div class="app-metric-grid" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Phone, arm C</p><p class="app-metric-value">{{phone.rate}}</p><p class="app-metric-note">{{phone.keep}} of {{phone.n}} counted verdicts, portrait, the phone&#39;s own framing</p></div>
+    <div class="app-metric"><p class="app-metric-label">Mac, arm C</p><p class="app-metric-value">{{pooled.C.rate}}</p><p class="app-metric-note">{{pooled.C.keep}} of {{pooled.C.n}}, 3840×2160, the locked crops</p></div>
+    <div class="app-metric"><p class="app-metric-label">Excluded</p><p class="app-metric-value">{{phone.excluded}}</p><p class="app-metric-note">Build {{phone.b2.build}} showed a black screen; its rejections are verdicts on a bug</p></div>
+    <div class="app-metric"><p class="app-metric-label">Rows in all</p><p class="app-metric-value">{{phone.total}}</p><p class="app-metric-note">One seed per row, no seed judged twice, inserts only</p></div>
+  </div>
+  <p class="app-note">Same constitution, same arm, same judge: a third on the phone against a half on the Mac. The surface — density, framing, the pace of a thumb against a keyboard — is not in the constitution&#39;s vocabulary, and it moved the rate further than any arm did. The excluded build was excluded when it was reported, before this snapshot was taken.</p>
+</section>
+
+<!-- ================================================================ 05 -->
+<section class="app-section" id="blind">
+  <p class="app-section-kicker">05 · Can a machine stand in for the judge</p>
+  <h2 class="app-section-title">Claude Against The Owner, Blind: Chance</h2>
+  <p class="app-section-lede">If a model could predict the owner&#39;s verdict, it could pre-screen seeds and the judge could be removed from the loop. Twenty frames, two degraded controls hidden among them, Claude&#39;s ratings committed before the owner&#39;s were given, the manifest opened only after both were locked.</p>
+  <div class="app-table-wrap"><table class="app-table" data-mode="text">
+    <thead><tr><th></th><th>Owner accepts</th><th>Owner rejects</th></tr></thead>
+    <tbody>
+      <tr><th>Claude accepts (≥3 of 5)</th><td>{{blind.aa}}</td><td>{{blind.ar}}</td></tr>
+      <tr><th>Claude rejects (≤2 of 5)</th><td>{{blind.ra}}</td><td>{{blind.rr}}</td></tr>
+    </tbody>
+  </table></div>
+  <div class="app-metric-grid" data-mode="text" data-rule="true">
+    <div class="app-metric"><p class="app-metric-label">Observed agreement</p><p class="app-metric-value">{{blind.po}}</p><p class="app-metric-note">{{blind.agree}} of {{blind.n}}</p></div>
+    <div class="app-metric"><p class="app-metric-label">Expected by chance</p><p class="app-metric-value">{{blind.pe}}</p><p class="app-metric-note">From the two accept rates, {{blind.claudeAccept}} and {{blind.ownerAccept}}</p></div>
+    <div class="app-metric"><p class="app-metric-label">Cohen&#39;s κ</p><p class="app-metric-value">{{blind.kappa}}</p><p class="app-metric-note">At the stricter cut (≥4 accepts): {{blind.kappaStrict}}, chosen after seeing the answers, so shown and not relied on</p></div>
+    <div class="app-metric"><p class="app-metric-label">Controls that worked</p><p class="app-metric-value">1 of 2</p><p class="app-metric-note">The owner kept the near-empty one</p></div>
+  </div>
+  <div class="app-card app-surface">
+    <div class="app-prose">
+      <p><strong>Not noise — a systematic miss.</strong> Claude is the harsher rater and specifically harsh about quiet frames; its single strongest disagreement was a frame it scored five that the owner rejected. A rater who was merely noisy would not do that.</p>
+      <p><strong>One control was mis-designed, and that is the finding.</strong> The near-empty frame on an almost flat ground was built to be obviously degraded. The owner kept it, having already said that a gradient good enough to be a wallpaper survives review with no organism in it. Any future control has to be built from frames the owner actually rejected, not from what a model imagines a bad frame looks like.</p>
+      <p>A hypothesis, explicitly not a finding: every rejection except the control has a small fragment stranded in a corner — <em>commit to the gradient or commit to the organism</em>. Two earlier hypotheses about this owner&#39;s judgement had already been falsified by measurement, so this one is recorded to be killed, not believed.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================ 06 -->
+<section class="app-section" id="findings">
+  <p class="app-section-kicker">06 · Findings on the constitution</p>
+  <h2 class="app-section-title">Where The Constitution Could Not See</h2>
+  <p class="app-section-lede">Classified under the frozen scheme: A, the constitution cannot express something it must; B, it expresses it but the generator or renderer does not honour the separation; C, the measurement itself; D-P, presentation. None was fixed by changing the constitution, because that is the owner&#39;s decision and not the implementer&#39;s.</p>
+  <div class="app-list">
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">A-01 · The primitive owns the form&#39;s extent</span><span class="app-list-row-meta">A form&#39;s reach in world units is decided inside the primitive; the constitution declares a framing it cannot see the form against. The most substantial finding of Tier B.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">A-02 · The renderer was rebuilt and was never under test</span><span class="app-list-row-meta">Supersedes the interpretation of the Tier B numbers, not the numbers. The product&#39;s shader is the instrument from then on.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">A-03 · R1 encoded a programmer&#39;s assumption about images</span><span class="app-list-row-meta">The rule against a timid fragment assumed a frame must contain its organism. The owner&#39;s editorial crops push it offscreen on purpose. Replaced in intent by presence — something is in frame and it has form — not yet re-frozen.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">B-01 · Sampling precision is undeclared</span><span class="app-list-row-meta">Float against double would have agreed on the seed stream and diverged at contract boundaries. It belongs in the constitution.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">B-03 · Parameter separation is not rendered separation</span><span class="app-list-row-meta">Two palette colours the constitution holds apart can still meet on the surface once material, grading and light are applied.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">B-04, B-05 · Families missing, the ground one number</span><span class="app-list-row-meta">Three parameter families the product owns were absent from v1, and each showed; the ground was a scalar where the product has a place. Both are why v1&#39;s Tier A could not be cited for v5.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">C-02, C-03 · No shared definition across platforms</span><span class="app-list-row-meta">The rendered contracts have no cross-platform definition, and composition data is not portable without its frustum.</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">D-P-02 · One editorial rejection, open</span><span class="app-list-row-meta">{{editorial.accepted}} of {{editorial.shown}} frames at v4 were the first the owner accepted editorially; the eighth is open. Two hypotheses about why — tonal range, commitment to an extreme — were measured and falsified.</span></div></div>
+  </div>
+  <p class="app-note">A D-P count stands only against a result the owner has editorially accepted; until v4 there was none, so the presentation column had nothing to measure against. The acceptance is at v4; nothing has been formally accepted at v5.</p>
+</section>
+
+<!-- ================================================================ 07 -->
+<section class="app-section" id="taught">
+  <p class="app-section-kicker">07 · What it taught IDUI</p>
+  <h2 class="app-section-title">Validity By Subtraction; Taste Left With The Judge</h2>
+  <p class="app-section-lede">The findings above are about this constitution. These are about the method, and they bound what any IDUI constitution can promise.</p>
+  <div class="app-card app-surface">
+    <div class="app-card-section"><p class="app-surface-label">A constitution rules out; it does not select</p>
+      <p class="app-surface-copy">Arm C never produced a flat ground, a collapsed palette or a timid fragment, across {{tierA.seeds}} seeds, without once retrying. That is what narrowing the declared space buys, and it is real. What it does not buy is a frame the owner wants. Validity is guaranteed by removing the possibilities that are wrong; beauty is not a possibility that can be removed toward.</p></div>
+    <div class="app-card-section"><p class="app-surface-label">Randomness is the exploration, not the product</p>
+      <p class="app-surface-copy">The owner&#39;s own reading of the test: it let him explore more of the artwork that matches his taste, through randomness, than he would have composed by hand. A generator under a constitution is a discovery instrument for a taste, and its worth is the distinct results per glance, not the keep rate. Optimising the keep rate is what arm B did, and it halved the field.</p></div>
+    <div class="app-card-section"><p class="app-surface-label">The judge cannot be removed</p>
+      <p class="app-surface-copy">Not by a model (05), not by a rule (two hypotheses falsified, a third waiting to be), not by blinding (03). Where the target is one person&#39;s eye, the person is part of the instrument, and a method that pretends otherwise measures something else.</p></div>
+    <div class="app-card-section"><p class="app-surface-label">Some decisions are not the constitution&#39;s</p>
+      <p class="app-surface-copy">The eight compositions moved the rate by {{comp.span}} points and the render surface by {{surface.span}}; the pooled arms moved it by {{pooled.span}}. A constitution governs the space a seed selects from. Framing and surface are decisions above it, made once by a person, and the test is clearer for having kept them locked than it would have been for absorbing them.</p></div>
+    <div class="app-card-section"><p class="app-surface-label">This transfers</p>
+      <p class="app-surface-copy">Nothing here is CSS: a JSON constitution, two generators in two languages agreeing to the bit, a shader as the renderer. The IDUI shape — declare the space, exclude what fails, contracts that diagnose and never filter — held outside the interface. What it holds is validity. Taste was never inside it, and the honest scope of the method is the difference.</p></div>
+  </div>
+</section>
+
+<!-- ================================================================ 08 -->
+<section class="app-section" id="verdict">
+  <p class="app-section-kicker">08 · Verdict</p>
+  <h2 class="app-section-title">Valid By Construction; Taste Not Guaranteed</h2>
+  <p class="app-section-lede">Named by what held and what did not, as the protocol requires. The constitution constrained the generator: every sampled seed valid on first generation, deterministic across two implementations, no retry anywhere. The claim&#39;s third clause — zero appearance decisions left in the generator — is unaudited at v5 and is not claimed. And the instrument this test spent most of its verdicts on could not test the claim at all.</p>
+  <div class="app-list">
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Held</span><span class="app-list-row-meta">Constructional validity at v{{tierA.version}} over {{tierA.seeds}} seeds; bit-level determinism over {{det.values}} values; the arms and the C pair verified level and deterministic</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Did not hold</span><span class="app-list-row-meta">Keep rate as an instrument. A and C indistinguishable; a curated allowlist keeps more at half the variety; the judge cannot be blinded to an arm wide enough to differ</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Measured, and negative</span><span class="app-list-row-meta">κ {{blind.kappa}}: a model&#39;s taste does not predict the owner&#39;s. AI pre-screening of seeds is unsupported</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Not claimed</span><span class="app-list-row-meta">The exhaustive 2²⁴ Tier A the protocol froze; rendered validity at v5; a generator free of appearance decisions; anything about what the owner will keep</span></div></div>
+  </div>
+  <h3 class="app-section-subhead">Open, and deliberately left so</h3>
+  <div class="app-list">
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">Tier B at v5 through the production shader</span><span class="app-list-row-meta">With predictions re-frozen first; the frozen P1–P5 belong to the deleted renderer</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">The D-P audit of the v5 sampler</span><span class="app-list-row-meta">A reading of the generator&#39;s code for any decision that is not the constitution&#39;s</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">A-01, A-03 and B-03 as constitution changes</span><span class="app-list-row-meta">Proposed, not made; the constitution is the owner&#39;s to change</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title">The reject corpus</span><span class="app-list-row-meta">{{phone.reject}} labelled phone rejections and counting; a reject analysis by parameter needs about ten times as many</span></div></div>
+  </div>
+</section>
+
+<!-- ================================================================ 09 -->
+<section class="app-section" id="files">
+  <p class="app-section-kicker">09 · The run</p>
+  <h2 class="app-section-title">Everything Here Is In The Repository</h2>
+  <div class="app-list">
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>idui-core/evidence/generative/PROTOCOL.md</code></span><span class="app-list-row-meta">The claim, the tiers, the taxonomy and four amendments, appended and never edited in</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>published.json</code></span><span class="app-list-row-meta">The manifest with no measurements in it: every number on this page is read from a state it names by hash, and <code>scripts/evidence-append-only.mjs</code> proves none has moved</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>tier-a-20260908-metal-v5.json</code>, <code>tier-a-20260907-metal.json</code>, <code>determinism-20260907.json</code></span><span class="app-list-row-meta">Section 01. The v1 pass is kept beside the v5 pass, not replaced by it</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>judgements-r1-20260907.csv</code>, <code>judgements-r2-20260907.csv</code>, <code>keep-rate-20260908.json</code>, <code>variety-20260908.json</code></span><span class="app-list-row-meta">Sections 03 and 04. The raw rows verbatim; the build recomputes every rate from them and refuses if the summary disagrees</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>phone-verdicts-20260908.json</code></span><span class="app-list-row-meta">The explorer&#39;s table by build, with the query and the exclusion stated</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>blind-20260907/</code></span><span class="app-list-row-meta">Both raters&#39; files as committed; κ is recomputed from them at build time and their hashes are pinned in the build</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>findings-20260907*.md</code>, <code>editorial-20260907.md</code>, <code>negative-controls-20260907.md</code></span><span class="app-list-row-meta">Section 06, and the first editorial acceptance</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><code>macos-betta-metal/Sources/BettaTest04/</code></span><span class="app-list-row-meta">On branch <code>macos-betta-display-1.2</code>: the generator, the contracts, the three arm constitutions, the judge, beside the Mac lab and never importing it</span></div></div>
+    <div class="app-list-row"><div class="app-list-row-main"><span class="app-list-row-title"><a href="/idui#transfer">The methodology</a></span><span class="app-list-row-meta">Section 08 there carries what this test changed in the document</span></div></div>
+  </div>
+  <div class="app-utility-row"><a class="app-utility-action" href="#top">Back to top</a></div>
+  <p class="app-note">IDUI Test 04 · Betta · this copy stamped {{sw}}. Composed from the app&#39;s own library and declaring no presentation of its own. The eight locked compositions were read and never written.</p>
+</section>
+
+</main>

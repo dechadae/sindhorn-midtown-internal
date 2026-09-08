@@ -19,7 +19,7 @@ import {chromium} from 'playwright';
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const site = path.join(root, 'site');
-const ROUTES = ['/index.html', '/ci.html', '/voice.html', '/idui.html', '/evidence.html', '/origarium.html'];
+const ROUTES = ['/index.html', '/ci.html', '/voice.html', '/idui.html', '/evidence.html', '/origarium.html', '/betta.html'];
 const types = {'.html':'text/html','.css':'text/css','.js':'text/javascript','.json':'application/json','.woff2':'font/woff2','.svg':'image/svg+xml','.png':'image/png','.webmanifest':'application/manifest+json'};
 const server = createServer((req, res) => {
   let name = decodeURIComponent(req.url.split('?')[0]); if (name === '/') name = '/index.html';

@@ -1,0 +1,40 @@
+{
+  "state": "variety-20260908",
+  "recorded": "2026-09-08",
+  "test": "IDUI Test 04 (see PROTOCOL.md amendments A3 and A4)",
+  "tier": "A",
+  "measures": "How far apart two frames from the same arm are in the parameter space the shader consumes. Keep rate cannot tell a wide space that lands well apart from a narrow space that only ever makes one picture; this measures the second thing directly.",
+  "method": {
+    "sample": "400 seeds per arm from one fixed SplitMix64 stream (0x0AC71E700000001), 53 numeric dimensions of GeneratedStyle",
+    "distance": "mean pairwise Euclidean distance, each dimension normalised by the widest span any arm reaches in it",
+    "normalisation_reason": "Normalising by one arm's own span is wrong: arm A pins exitDistance at 0, so that dimension had no denominator and C's 7-13 world units entered raw. That alone once reported C at 236% of A."
+  },
+  "implementation": {
+    "language": "Swift",
+    "target": "BettaTest04",
+    "repository": "dechadae/sindhorn-midtown-internal",
+    "branch": "macos-betta-display-1.2",
+    "commit": "cbc6be1",
+    "command": ".build/release/BettaTest04 --variety"
+  },
+  "arms": {
+    "a": {"name": "raw random", "constitution_sha256": "d24ab114b1aceec5dfe9b2f84721083b57e14bc6fe58b5337b6baa6898fb4b49", "mean_pairwise_distance": 2.9367, "relative_to_a": 1.0},
+    "b": {"name": "allowlist", "constitution_sha256": "a4128cb87efd650915e3cd10b9ca5320241f3f6a5a36126c670eb36ac77b9c8a", "mean_pairwise_distance": 1.5375, "relative_to_a": 0.524},
+    "c": {"name": "IDUI exclusions", "constitution_sha256": "090be4bcf1ef074d50a7f7cdea893c00587402e418a641a3791b26798c272b7b", "mean_pairwise_distance": 2.9985, "relative_to_a": 1.021}
+  },
+  "verify_arms": {
+    "command": ".build/release/BettaTest04 --verify-arms",
+    "trials": 20000,
+    "checks": {
+      "style identical across the C pair": "PASS",
+      "randomised framing is deterministic": "PASS",
+      "randomised framing inside the envelope": "PASS",
+      "randomised never hits a locked crop": "PASS",
+      "arms level at every block boundary": "PASS"
+    }
+  },
+  "caveats": [
+    "Parameter distance is not perceptual distance. Two frames far apart here can look alike, and the reverse.",
+    "This was not a pre-registered measure. It was added after round one to explain a keep-rate gap, so it is descriptive, not a tested prediction."
+  ]
+}

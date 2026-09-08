@@ -142,6 +142,7 @@ const server = http.createServer((req, res) => {
   if (p === '/idui') p = '/idui.html';
   if (p === '/evidence') p = '/evidence.html';
   if (p === '/origarium') p = '/origarium.html';
+  if (p === '/betta') p = '/betta.html';
   if (p === '/') p = '/index.html';
   // Cloudflare Pages serves /share/fnb from share/fnb.html and
   // /share/fnb/<id> from share/fnb/<id>.html; mirror that here.
@@ -523,7 +524,8 @@ else {
 const DOCS = [
   { route: '/idui', title: 'Invariant-Driven UI', sections: 10 },
   { route: '/evidence', title: 'The Rebuild Test', sections: 10 },
-  { route: '/origarium', title: 'Architecture Held With Nine Corrections; Editorial Parity Partial', sections: 10 }
+  { route: '/origarium', title: 'Architecture Held With Nine Corrections; Editorial Parity Partial', sections: 10 },
+  { route: '/betta', title: 'Valid By Construction; Taste Not Guaranteed', sections: 10 }
 ];
 const docReport = {};
 for (const doc of DOCS) {
@@ -591,6 +593,48 @@ for (const doc of DOCS) {
   if (seen.overflow > 1) failures.push(`${doc.route}: horizontal overflow ${seen.overflow}px`);
   if (docErrors.length) failures.push(`${doc.route}: page errors: ${docErrors.join(' | ')}`);
   docReport[doc.route] = { sections: seen.sections, images: seen.images, canvas: seen.canvas, mode: seen.bettaMode };
+  await tab.close();
+}
+
+/* r67: the footer's tabs swap the document in place, as the shell's tabs swap
+   a page - one host, a cut, the top. The masthead, the navbar's frame and the
+   atmosphere canvas stay; the document, the title and the address change;
+   back restores the first document without a load. */
+{
+  const [from, to] = DOCS;
+  const tab = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const swapErrors = [];
+  tab.on('pageerror', error => swapErrors.push(error.message));
+  await tab.route('**/api/betta-satellite**', route => route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+  await tab.goto(`http://127.0.0.1:${port}${from.route}`, { waitUntil: 'load' });
+  await tab.waitForFunction(() => document.getElementById('environmentStage')?.dataset.ready === 'true', null, { timeout: 30000 }).catch(() => {});
+  const before = await tab.evaluate(() => { window.__swapMark = document.getElementById('environmentCanvas'); scrollTo(0, 1200); return { title: document.title, scrollY: Math.round(scrollY) }; });
+  let loads = 0;
+  tab.on('load', () => loads++);
+  await tab.click(`.app-navbar a[href="${to.route}"]`);
+  await tab.waitForFunction(route => location.pathname === route && document.querySelector('.app-hero-title'), to.route, { timeout: 10000 }).catch(() => failures.push(`${from.route} → ${to.route}: the tab did not swap the document in place`));
+  await tab.waitForTimeout(200);
+  const after = await tab.evaluate(() => ({
+    path: location.pathname, title: document.title, hero: document.querySelector('.app-hero-title')?.textContent?.trim(),
+    current: document.querySelector('.app-navbar [aria-current="page"] span')?.textContent?.trim(),
+    canonical: document.querySelector('link[rel="canonical"]')?.href, scrollY: Math.round(scrollY),
+    canvasKept: window.__swapMark === document.getElementById('environmentCanvas'), mains: document.querySelectorAll('main.app-page').length, navbars: document.querySelectorAll('nav.app-navbar').length
+  }));
+  if (loads) failures.push(`${from.route} → ${to.route}: the tab caused a full page load`);
+  if (after.hero !== to.title) failures.push(`${from.route} → ${to.route}: hero is "${after.hero}" after the swap`);
+  if (after.title === before.title || !after.title) failures.push(`${from.route} → ${to.route}: document.title did not change`);
+  if (!after.canonical?.endsWith(to.route)) failures.push(`${from.route} → ${to.route}: canonical is ${after.canonical}`);
+  if (!after.current || after.current === 'IDUI') failures.push(`${from.route} → ${to.route}: aria-current is on "${after.current}"`);
+  if (before.scrollY === 0 || after.scrollY !== 0) failures.push(`${from.route} → ${to.route}: scrolled to ${after.scrollY} after the swap (was ${before.scrollY})`);
+  if (!after.canvasKept) failures.push(`${from.route} → ${to.route}: the atmosphere canvas was replaced`);
+  if (after.mains !== 1 || after.navbars !== 1) failures.push(`${from.route} → ${to.route}: ${after.mains} documents and ${after.navbars} navbars after the swap`);
+  await tab.goBack({ waitUntil: 'commit' }).catch(() => {});
+  await tab.waitForFunction(title => document.querySelector('.app-hero-title')?.textContent?.trim() === title, from.title, { timeout: 10000 }).catch(() => failures.push(`${to.route} → back: ${from.route} did not return`));
+  const back = await tab.evaluate(() => ({ path: location.pathname, current: document.querySelector('.app-navbar [aria-current="page"] span')?.textContent?.trim() }));
+  if (loads) failures.push(`${to.route} → back: a full page load`);
+  if (back.path !== from.route || back.current !== 'IDUI') failures.push(`${to.route} → back: at ${back.path} with "${back.current}" current`);
+  if (swapErrors.length) failures.push(`swap: page errors: ${swapErrors.join(' | ')}`);
+  docReport.swap = { from: from.route, to: to.route, loads };
   await tab.close();
 }
 

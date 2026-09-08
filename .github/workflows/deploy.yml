@@ -250,6 +250,7 @@ jobs:
           node scripts/build-idui.mjs --check
           node scripts/build-evidence.mjs --check
           node scripts/build-origarium.mjs --check
+          node scripts/build-betta.mjs --check
           node scripts/evidence-append-only.mjs
           node scripts/material-authority-gate.mjs
           node scripts/vocabulary-admission-gate.mjs
