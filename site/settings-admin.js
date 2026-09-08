@@ -17,7 +17,7 @@ import { openDialog, dialogHead, confirmDialog } from './app-dialog.js';
 import { qrStyledSvg } from './qr-v6.js';
 import { showToast } from './app-toast.js';
 import { formatDateTime, formatCount } from './app-format.js';
-import { esc, state } from './app-html.js';
+import { esc, retryRow, state } from './app-html.js';
 
 const SEARCH_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5"/><path d="M13.2 13.2L17 17"/></svg>';
 const CLEAR_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>';
@@ -89,7 +89,7 @@ export async function mountAdmin(stack, { manifest, signal }) {
       users = result.users || []; departments = result.departments || []; actor = result.actor || null;
       paintList();
     } catch (error) {
-      if (alive) list.innerHTML = state('Error', 'Couldn\'t load the directory', explain(error), 'error') + '<div class="app-utility-row"><button class="app-utility-action" type="button" data-admin-retry>Try again</button></div>';
+      if (alive) list.innerHTML = state('Error', 'Couldn\'t load the directory', explain(error), 'error') + retryRow('data-admin-retry');
     }
   }
 

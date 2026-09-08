@@ -11,7 +11,7 @@ import { signOut } from './auth-client.js';
 import { loadSettingsAuthority, hasCapability } from './capabilities.js';
 import { confirmDialog } from './app-dialog.js';
 import { appSelect, bindAppSelects } from './app-select.js';
-import { esc, state } from './app-html.js';
+import { esc, metric, retryRow, skeletonCard, state } from './app-html.js';
 
 const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
 const LOGOUT_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8 3H5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h3M13 6l4 4-4 4M17 10H8"/></svg>';
@@ -28,8 +28,7 @@ const tabOf = () => { const tab = (location.hash.match(/^#settings\/([a-z]+)/) |
    one utility sits beside the eyebrow rather than at the foot of the page. */
 const signOutButton = () => `<button class="app-utility-action" type="button" data-settings-signout>${LOGOUT_ICON}Sign out</button>`;
 const hero = tab => `<header class="app-hero"><div class="app-hero-head"><p class="app-hero-eyebrow">${esc(TABS[tab].eyebrow)}</p>${tab === 'me' ? signOutButton() : ''}</div><h1 class="app-hero-title">${esc(TABS[tab].title)}</h1><p class="app-hero-copy">${esc(TABS[tab].copy)}</p></header>`;
-const fact = (label, value) => `<div class="app-metric"><span class="app-metric-label">${esc(label)}</span><span class="app-metric-value">${esc(value || '—')}</span></div>`;
-const skeleton = () => `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;
+const fact = (label, value) => metric(label, value || '—');
 
 function systemMarkup(manifest, version) {
   /* The libraries and the Readability Test open for the developer account
@@ -104,12 +103,12 @@ export async function mountSettings(host) {
   async function render() {
     tab = tabOf();
     disposeTab();
-    paint(skeleton());
+    paint(skeletonCard());
     let manifest;
     try { manifest = await loadSettingsAuthority(); }
     catch (error) {
       if (!alive) return;
-      paint(state('Error', 'Couldn\'t load Settings', 'Check the connection and try again.', 'error') + `<div class="app-utility-row"><button class="app-utility-action" type="button" data-settings-retry>Try again</button></div>`);
+      paint(state('Error', 'Couldn\'t load Settings', 'Check the connection and try again.', 'error') + retryRow('data-settings-retry'));
       return;
     }
     if (!alive || tab !== tabOf()) return;
@@ -131,7 +130,7 @@ export async function mountSettings(host) {
   async function mountTab(which, manifest) {
     let module;
     try { module = which === 'me' ? await import('./settings-me.js') : which === 'admin' ? await import('./settings-admin.js') : await import('./settings-broadcast.js'); }
-    catch (_) { paint(state('Error', 'Couldn\'t load this tab', 'Check the connection and try again.', 'error') + `<div class="app-utility-row"><button class="app-utility-action" type="button" data-settings-retry>Try again</button></div>`); return; }
+    catch (_) { paint(state('Error', 'Couldn\'t load this tab', 'Check the connection and try again.', 'error') + retryRow('data-settings-retry')); return; }
     if (!alive || which !== tabOf()) return;
     paint('');
     tabController = new AbortController();

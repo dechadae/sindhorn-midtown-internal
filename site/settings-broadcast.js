@@ -18,7 +18,7 @@ import { openDialog, dialogHead, confirmDialog } from './app-dialog.js';
 import { showToast } from './app-toast.js';
 import { categoryLabel, priorityLabel, categoryOptions, priorityOptions } from './broadcast-inbox.js';
 import { formatDateTime } from './app-format.js';
-import { esc, state } from './app-html.js';
+import { esc, retryRow, state } from './app-html.js';
 
 
 const ROLES = [['employee', 'Employees'], ['supervisor', 'Supervisors'], ['manager', 'Managers'], ['admin', 'Admins'], ['super_admin', 'Super admins']];
@@ -100,7 +100,7 @@ export async function mountBroadcast(stack, { manifest, signal }) {
       broadcasts = result.broadcasts || []; departments = result.departments || []; groups = result.groups || [];
       paintList();
     } catch (error) {
-      if (alive) list.innerHTML = state('Error', 'Couldn\'t load broadcasts', explain(error), 'error') + '<div class="app-utility-row"><button class="app-utility-action" type="button" data-broadcast-retry>Try again</button></div>';
+      if (alive) list.innerHTML = state('Error', 'Couldn\'t load broadcasts', explain(error), 'error') + retryRow('data-broadcast-retry');
     }
   }
 

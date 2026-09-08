@@ -18,7 +18,7 @@ import { loadBusinessDashboard, readCachedDashboard } from './business-dashboard
 import { initAuth } from './auth-client.js';
 import { toggleDisclosure } from './app-disclosure.js';
 import { formatMoney as money, formatInteger as integer, formatPercent as percent, formatDate, formatDateTime } from './app-format.js';
-import { esc } from './app-html.js';
+import { esc, disclosure } from './app-html.js';
 
 const num = value => Number.isFinite(Number(value)) ? Number(value) : null;
 const directionOf = delta => delta === null || delta === undefined || Number.isNaN(delta) ? null : delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat';
@@ -57,9 +57,6 @@ function comparisonRow(label, actual, reference, { kind = 'money', referenceLabe
   const f = kind === 'percent' ? v => percent(v) : kind === 'integer' ? v => integer(v) : v => money(v, { compact: true });
   const delta = diff === null ? '—' : kind === 'percent' ? `${diff >= 0 ? '+' : '−'}${Math.abs(diff * 100).toFixed(1)} pp` : kind === 'integer' ? integer(diff, { signed: true }) : money(diff, { compact: true, signed: true });
   return `<div class="app-list-row"><span class="app-list-row-main"><span class="app-list-row-title">${esc(label)}: ${esc(f(a))}</span><span class="app-list-row-meta">${esc(referenceLabel)} ${esc(f(r))}</span></span><span class="app-list-row-end">${esc(delta)}</span></div>`;
-}
-function disclosure({ kicker, title, copy = '', body }) {
-  return `<article class="app-disclosure" data-disclosure><button class="app-disclosure-button" type="button" aria-expanded="false"><span class="app-disclosure-head"><span class="app-disclosure-kicker">${esc(kicker)}</span><span class="app-disclosure-title">${esc(title)}</span>${copy ? `<span class="app-disclosure-copy">${esc(copy)}</span>` : ''}</span><svg class="app-disclosure-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5l5 5-5 5"/></svg></button><div class="app-disclosure-panel"><div class="app-disclosure-panel-inner"><div>${body}</div></div></div></article>`;
 }
 
 /* What the page says while it is showing the copy it kept. It names the copy,

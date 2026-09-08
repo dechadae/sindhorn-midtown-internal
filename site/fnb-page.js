@@ -19,7 +19,7 @@ import { formatDate, formatDateTime } from './app-format.js';
 import { loadFnbPromotions, readArtworkStatus, writeArtworkStatus, isArtworkEditor, readLocalLinks, writeLocalLinks, safeFolderUrl, parseUpdated } from './fnb-read-model.js';
 import { OUTLET_ORDER, artworkCopy } from './fnb-artwork-copy.js';
 import { toggleDisclosure } from './app-disclosure.js';
-import { esc, skeletonLine } from './app-html.js';
+import { esc, metric, skeletonLine } from './app-html.js';
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const SECTIONS = [['overview', 'Overview'], ['brief', 'Brief'], ['copy', 'Copy'], ['artwork-copy', 'Artwork copy'], ['artwork', 'Artwork']];
@@ -89,10 +89,6 @@ function select(kind, label, options, selected) {
     <div class="app-select-menu app-overlay" role="listbox">${options.map(o => `<button class="app-select-option" type="button" role="option" aria-selected="${o.value === selected}" data-value="${esc(o.value)}">${esc(o.label)}</button>`).join('')}</div>
   </div>`;
 }
-function metric(label, value) {
-  return `<div class="app-metric"><span class="app-metric-label">${esc(label)}</span><span class="app-metric-value">${esc(value)}</span></div>`;
-}
-const fact = metric;
 function shareButton(kind, id = '') {
   return `<button class="app-utility-action" type="button" data-share="${kind}"${id ? ` data-id="${esc(id)}"` : ''} aria-label="${kind === 'page' ? 'Share F&amp;B promotions' : 'Share this promotion'}">${SHARE_ICON}Share</button>`;
 }
@@ -280,7 +276,7 @@ export async function mountFnb(host, { public: isPublic = false } = {}) {
     </header>
     <nav class="app-rail" aria-label="Promotion sections">${SECTIONS.map(([id, label], i) => `<button class="app-chip app-control${i === 0 ? ' is-active' : ''}" type="button" data-section="${id}"${i === 0 ? ' aria-current="true"' : ''}>${label}</button>`).join('')}</nav>
     <section class="app-section" id="overview">
-      <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${fact('Outlet', outletsOf(campaign))}${fact('Time', time)}${fact('IHG One Rewards', discount)}${updated ? fact('Updated', updated) : ''}</div>
+      <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${metric('Outlet', outletsOf(campaign))}${metric('Time', time)}${metric('IHG One Rewards', discount)}${updated ? metric('Updated', updated) : ''}</div>
     </section>
     <section class="app-section" id="brief"><p class="app-section-kicker">01 · Promotion brief</p><div class="app-stack">${briefMarkup(campaign)}</div></section>
     <section class="app-section" id="copy"><p class="app-section-kicker">02 · Copy</p>${copyMarkup(campaign)}</section>

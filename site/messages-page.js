@@ -10,11 +10,10 @@ import { listMessages, markAllRead, clearAll, kindLabel } from './notification-i
 import { loadInbox, cachedInbox, markBroadcastsRead, categoryLabel, priorityLabel, preferredText, otherText, preferredLang, otherLang } from './broadcast-inbox.js';
 import { formatDateTime } from './app-format.js';
 import { openDialog, dialogHead } from './app-dialog.js';
-import { esc } from './app-html.js';
+import { esc, skeletonCard } from './app-html.js';
 
 
 const hero = `<header class="app-hero"><p class="app-hero-eyebrow">Messages</p><h1 class="app-hero-title">Inbox</h1><p class="app-hero-copy">Broadcasts from the hotel and alerts delivered to this device.</p></header>`;
-const skeleton = `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;
 /* Thai is marked as Thai, as F&B marks it, so fonts.css typesets it; English
    inherits the document's own language and carries nothing. */
 const langAttr = lang => lang === 'th' ? ' lang="th"' : '';
@@ -122,7 +121,7 @@ export async function mountMessages(host) {
   navigator.serviceWorker?.addEventListener?.('message', event => { if (event.data?.type === 'SINDHORN_NOTIFICATION_STORED') render({ fresh: event.data.kind === 'broadcast' }); }, { signal });
   addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') render(); }, { signal });
 
-  host.innerHTML = `${hero}<section class="app-section">${skeleton}</section>`;
+  host.innerHTML = `${hero}<section class="app-section">${skeletonCard()}</section>`;
   await render();
   return () => { alive = false; controller.abort(); if (dialog) dialog.close(''); };
 }

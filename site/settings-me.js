@@ -19,7 +19,7 @@ import { businessCardUrl } from './business-card-core.js';
 import { businessCardMarkup, publicView, shareCard } from './business-card-page.js';
 import { showToast } from './app-toast.js';
 import { openDialog, dialogHead } from './app-dialog.js';
-import { esc, state } from './app-html.js';
+import { esc, metric, state } from './app-html.js';
 
 const ROLE_LABEL = { super_admin: 'Super admin', admin: 'Admin', manager: 'Manager', supervisor: 'Supervisor', editor: 'Editor', employee: 'Employee' };
 const LANGUAGE_LABEL = { en: 'English', th: 'Thai' };
@@ -36,7 +36,7 @@ const VISIBLE_FIELDS = [
   ['hotelWebsite', 'Hotel website', 'p_show_hotel_website']
 ];
 
-const fact = (label, value) => `<div class="app-metric"><span class="app-metric-label">${esc(label)}</span><span class="app-metric-value">${esc(value || '—')}</span></div>`;
+const fact = (label, value) => metric(label, value || '—');
 const check = (name, label, checked) => `<label class="app-check" data-mode="option"><input type="checkbox" name="${esc(name)}"${checked ? ' checked' : ''}><span class="app-check-box"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7"/></svg></span><span class="app-check-label">${esc(label)}</span></label>`;
 
 export function factsMarkup(manifest) {

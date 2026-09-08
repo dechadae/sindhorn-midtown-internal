@@ -126,14 +126,22 @@ vertical midpoint alone, meaningless in two columns. Jobs is ordered by received
 date; `sindhorn_jobs.sort_order` and `sindhorn_jobs_reorder_v1` are untouched
 so a different gesture could take the job later without a migration.
 
-### 5.2 `app-html.js` helper refactor — next, as r70
-Agreed, no visual change. The "Today cache" half of this entry was the saved
-copy r38 shipped (`sindhorn.today.dashboard.v1`) and is done; only the helper
-remains. Reads: `site/today.js`, `site/shell.js`. Goal is one HTML-fragment
-helper for the metric / disclosure / error / skeleton fragments the pages
-build by hand (`field()` and `skeleton()` stay page-local on purpose). Proof
-is the release brief's own pixel diff reading clean — it was kept out of r69
-so that proof is not muddied by r69's intended moves.
+### 5.2 `app-html.js` helper refactor — done as r70
+Shipped 8 Sep 2026 (SW v149), no visual change. `site/app-html.js` now also
+holds `metric` (F&B, Brand, Me, System — Brand's optional note defaults away;
+the two Settings pages keep their `'—'` for a blank at their own call sites,
+because a zero is a value on F&B), `disclosure` (Today and Brand — `id`,
+`open` and a `stack` flag for the panel's inner wrapper: Brand's bodies are
+loose blocks, Today's rule themselves with card sections), `skeletonCard`
+(Messages and System; the business card keeps its own with the square QR
+line) and `retryRow` (the four Settings retry rows; F&B's has an icon and
+Today's is a primary control, so those stay). `field()`, the page loading
+compositions, the heroes and Today's delta metric stay page-local — not the
+same composition twice. Proof: a scratchpad DOM diff rendered twelve routes
+from HEAD and the tree on one origin and found identical markup once the
+whitespace between tags is folded (Brand's disclosure lost indentation that
+no box drew); each helper was also checked against the literal it replaced;
+the release brief's pixel diff read clean apart from the version stamps.
 
 ### 5.3 Inbox-run scope — answered
 Owner, 8 Sep 2026: an inbox run updates **only the Sindhorn app**. The spec
@@ -163,6 +171,7 @@ Readability Test. **That one is done and working: leave it be** (owner,
 
 ## 6. Recent history you should know (newest first)
 
+- **r70** (SW v149, 8 Sep): the `app-html.js` helper refactor (§5.2). Four more fragments moved on the r40 evidence — the same markup in two or more modules — `metric`, `disclosure`, `skeletonCard`, `retryRow`; Brand's `DISCLOSURE_CHEVRON` went with the disclosure. Nothing else changed: no CSS, no gate, no document body; twelve routes rendered identical markup from HEAD and the tree, and the brief's pixel diff moved nothing but the version stamps.
 - **r69** (SW v148, 8 Sep): the owner's "fix these first" batch from four phone screenshots. (1) A captioned figure is one object: `.app-figure:has(figcaption)` takes the inset well (`--app-inset-fill`, caption `10px 12px` inside it) and joins the glass membership like every other fill, nested drops in `app-glass.css`; an uncaptioned figure stays bare — the `/ci` ground specimen lost its caption so the render smoke's `.app-figure` BARE read still holds, and a `.app-card .app-figure:has(figcaption)` WELL expectation was added. (2) The disclosure head hairline is back for every panel — the r65 `:has(.app-metric-grid[data-rule])` exception is deleted; the owner reads the head as its own group (Today's outlet cards were headless). (3) Two ruled grids side by side keep the 18px row gap (`.app-metric-grid[data-rule]+.app-metric-grid[data-rule]`). (4) F&B card head and detail eyebrow say when — `relative()` in the status slot (LIVE NOW / STARTS IN 5 DAYS / ENDED); `.app-action-card-date` and `statusLabel` deleted, the skeleton head is one line, the smoke's small-text list dropped the class. (5) Audit 17: `.app-utility-action{min-width:24px;justify-content:center}` (Call was 22 wide) and the public card's name is an `h1` (`businessCardMarkup(..., { heading })`, Settings keeps `h2`). Invariant 2 in `docs/idui/idui-body.html` carries the r69 sentence. Verified on the tree with the scratchpad `verify-r69.mjs` (fixtures) and on production after Deploy.
 - **r68** (SW v147, 8 Sep): the UI audit fixes. `.app-field input:where(:not([type="range"]))` so `.app-search input` wins by sheet order (the glyph sat on the placeholder from r37 to r66); `data-locked="true"` / `data-run="true"` are valued, admitted attributes (registry 20/64); every navbar and masthead specimen on `/ci` sits in a `.ci-shell-frame` (fixed chrome outside one pins itself to the foot of the page - the render smoke now refuses that); Messages and `/voice` mark Thai `lang="th"`; the Messages dialog has only its head close. `build-idui` reads invariant 7 back from the registry and the Enforcement table back from `deploy.yml` and refuses drift. `ci-library-coverage` excepts `data-run=true` like `data-view=push`. The brief's pixel diff covers the nine signed-in routes from synthetic fixtures, both sides on one origin with service workers blocked (the card's QR encodes `location.origin`). Not fixed, by decision: audit items 15-20 (see the r67 fix-plan artifact in the owner's memory).
 - **r67** (SW v146, 8 Sep, another session): the Betta generative test published at `/betta` (`scripts/build-betta.mjs`, `docs/idui/betta-body.html`), footer swapping documents in place (`site/public-doc.js`).

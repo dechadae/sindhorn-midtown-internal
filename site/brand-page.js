@@ -10,10 +10,9 @@ import { IHG_HISTORY_PERIODS, IHG_HISTORY_SOURCE } from './ihg-history-data.js';
 import { HOTEL_FACTSHEET, HOTEL_FACTSHEET_IMAGES, HOTEL_FACTSHEET_SOURCES, HOTEL_FACTSHEET_SOURCE_NOTES } from './hotel-factsheet-data.js';
 import { formatDate, formatClock } from './app-format.js';
 import { toggleDisclosure } from './app-disclosure.js';
-import { esc } from './app-html.js';
+import { esc, metric, disclosure as sharedDisclosure } from './app-html.js';
 
 const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
-const DISCLOSURE_CHEVRON = '<svg class="app-disclosure-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M7 5l5 5-5 5"/></svg>';
 const LINK_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 11.5l3-3M7 13l-1.5 1.5a2.5 2.5 0 0 1-3.5-3.5L4.5 8.5a2.5 2.5 0 0 1 3.5 0M13 7l1.5-1.5a2.5 2.5 0 0 1 3.5 3.5L15.5 11.5a2.5 2.5 0 0 1-3.5 0"/></svg>';
 const TOP_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15V5M5 9l5-5 5 5"/></svg>';
 const BACK = '<button class="app-back-control app-control" type="button" data-back aria-label="Back to Brand"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button>';
@@ -34,18 +33,8 @@ const HISTORY_IMAGES = {
 const HISTORY_IMAGE_BASE = 'https://www.ihgplc.com/~/media/Images/I/Ihg-Plc/images/about-us/our-history/history-images/';
 
 /* ---- shared markup ------------------------------------------------------ */
-function fact(label, value, note = '') {
-  return `<div class="app-metric"><span class="app-metric-label">${esc(label)}</span><span class="app-metric-value">${esc(value)}</span>${note ? `<span class="app-metric-note">${esc(note)}</span>` : ''}</div>`;
-}
-function disclosure({ id = '', kicker = '', title, copy = '', body, open = false }) {
-  return `<article class="app-disclosure" data-disclosure${id ? ` data-item="${esc(id)}"` : ''}${open ? ' data-open="true"' : ''}>
-    <button class="app-disclosure-button" type="button" aria-expanded="${open}">
-      <span class="app-disclosure-head">${kicker ? `<span class="app-disclosure-kicker">${esc(kicker)}</span>` : ''}<span class="app-disclosure-title">${esc(title)}</span>${copy ? `<span class="app-disclosure-copy">${esc(copy)}</span>` : ''}</span>
-      ${DISCLOSURE_CHEVRON}
-    </button>
-    <div class="app-disclosure-panel"><div class="app-disclosure-panel-inner"><div class="app-stack">${body}</div></div></div>
-  </article>`;
-}
+/* Brand's disclosure bodies are loose blocks, so the panel is a stack (r70). */
+const disclosure = options => sharedDisclosure({ ...options, stack: true });
 function figure(src, alt, caption, { width = 0, height = 0 } = {}) {
   return `<figure class="app-figure"><img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async" referrerpolicy="no-referrer-when-downgrade"${width ? ` width="${width}" height="${height}"` : ''}>${caption ? `<figcaption>${esc(caption)}</figcaption>` : ''}</figure>`;
 }
@@ -69,7 +58,7 @@ function indexMarkup() {
   </article>`;
   return `<header class="app-hero"><p class="app-hero-eyebrow">Brand</p><h1 class="app-hero-title">Know Our Hotel</h1><p class="app-hero-copy">History, identity and essential hotel knowledge.</p></header>
   <section class="app-section">
-    <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${fact('Hotel', 'Sindhorn Midtown')}${fact('Collection', 'Vignette Collection by IHG')}</div>
+    <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${metric('Hotel', 'Sindhorn Midtown')}${metric('Collection', 'Vignette Collection by IHG')}</div>
     <h3 class="app-section-subhead">Reference</h3>
     <div class="app-stack" data-columns="2">
       ${card('history', '01 · IHG Hotels & Resorts', 'Our History', 'From the origins of Bass in 1777 to today’s global IHG portfolio.', `${milestones} milestones`)}
@@ -93,7 +82,7 @@ function historyMarkup() {
   };
   return `<header class="app-hero"><div class="app-hero-head">${BACK}</div><p class="app-hero-eyebrow">IHG Hotels &amp; Resorts</p><h1 class="app-hero-title">Our History</h1><p class="app-hero-copy">From a Burton-on-Trent brewery in 1777 to a global hospitality group.</p></header>
   <section class="app-section">
-    <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">${fact('Story begins', '1777')}${fact('IHG is born', '2003')}${fact('Latest milestone', latest)}</div>
+    <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">${metric('Story begins', '1777')}${metric('IHG is born', '2003')}${metric('Latest milestone', latest)}</div>
   </section>
   <section class="app-section" id="periods"><p class="app-section-kicker">01 · Periods</p><h2 class="app-section-title">Ten Chapters</h2>
     <div class="app-stack">${IHG_HISTORY_PERIODS.map(period).join('')}</div>
@@ -119,7 +108,7 @@ function factsheetMarkup() {
   ${rail}
   <section class="app-section" id="overview">
     ${figure(I.overview.src, I.overview.alt, '')}
-    <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">${fact('Rooms & suites', h.roomsAndSuites)}${fact('Room types', h.roomTypes)}${fact('Dining venues', h.diningVenues)}${fact('Meetings', `Up to ${h.meetingMaxGuests}`)}${fact('Check-in', formatClock(h.checkIn))}${fact('Check-out', formatClock(h.checkOut))}</div>
+    <div class="app-metric-grid" data-columns="3" data-mode="text" data-rule="true">${metric('Rooms & suites', h.roomsAndSuites)}${metric('Room types', h.roomTypes)}${metric('Dining venues', h.diningVenues)}${metric('Meetings', `Up to ${h.meetingMaxGuests}`)}${metric('Check-in', formatClock(h.checkIn))}${metric('Check-out', formatClock(h.checkOut))}</div>
     <div class="app-card app-surface"><div class="app-list">
       ${listRow(h.name, h.positioning)}
       ${listRow('Owner and operator', h.ownerOperator)}
@@ -153,13 +142,13 @@ function factsheetMarkup() {
       <tbody>${D.meetings.spaces.map(space).join('')}</tbody>
     </table></div>
     <h3 class="app-section-subhead">Private events</h3>
-    <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${D.meetings.privateEvents.map(item => fact(item.name, item.capacity)).join('')}</div>
+    <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${D.meetings.privateEvents.map(item => metric(item.name, item.capacity)).join('')}</div>
     <div class="app-card app-surface"><p class="app-surface-label">Included</p><div class="app-prose"><ul>${D.meetings.included.map(item => `<li>${esc(item)}</li>`).join('')}</ul></div></div>
     <div class="app-card app-surface"><div class="app-list">${listLink(`mailto:${h.commercialEmail}`, 'Meetings & events', h.commercialEmail)}</div></div>
     ${utilityRow(externalLink(S.meetings, 'Meeting source'), externalLink(S.privateEvents, 'Venues source'))}
   </section>
   <section class="app-section" id="access"><p class="app-section-kicker">05 · Access</p><h2 class="app-section-title">Getting Here</h2>
-    <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${D.access.bts.map(item => fact(`${item.distance} · ${item.walk}`, item.station, item.exit)).join('')}</div>
+    <div class="app-metric-grid" data-columns="2" data-mode="text" data-rule="true">${D.access.bts.map(item => metric(`${item.distance} · ${item.walk}`, item.station, item.exit)).join('')}</div>
     <div class="app-card app-surface"><p class="app-surface-label">Nearby destinations</p><div class="app-row">${D.access.nearby.map(item => `<span class="app-badge" data-tone="quiet">${esc(item)}</span>`).join('')}</div></div>
     ${utilityRow(externalLink(S.location, 'Location source'))}
   </section>

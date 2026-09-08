@@ -1,4 +1,4 @@
-const VERSION='sindhorn-midtown-internal-pwa-v148-frame-and-hairline-r69';
+const VERSION='sindhorn-midtown-internal-pwa-v149-shared-fragments-r70';
 // v85: sindhorn-midtown-internal-pwa-v85-metric-track-r4
 // v84: sindhorn-midtown-internal-pwa-v84-today-readability-r4
 // v83: sindhorn-midtown-internal-pwa-v83-sticky-footer-fix-r1
