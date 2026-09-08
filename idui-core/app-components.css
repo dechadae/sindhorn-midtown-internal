@@ -110,6 +110,14 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    with the same hairline the list uses, so a card never needs a nested card
    to separate its parts. */
 .app-card-section+.app-card-section{margin-top:16px;padding-top:16px;border-top:1px solid var(--app-line)}
+/* The first section is the card's head, and the hairline that closes it runs
+   the card's width, the way the head of an open disclosure closes over its
+   panel; every hairline after it - later sections, list rows, ruled metrics -
+   runs the content's width. A card had shown both widths under its head, and
+   the owner chose the whole width for the head alone (r71). The section
+   reaches under the surface padding to draw the line and pads its content
+   back to where it was. */
+.app-card-section:first-child+.app-card-section{margin-inline:-16px;padding-inline:16px}
 .app-card-section>.app-surface-label+*{margin-top:12px}
 .app-card-section>.app-list>.app-list-row:first-child{padding-top:0}
 .app-card-section>.app-list>.app-list-row:last-child{padding-bottom:0}
