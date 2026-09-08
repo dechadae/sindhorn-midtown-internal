@@ -195,7 +195,7 @@
         <div class="ci-specimen-label"><span>.app-action-card</span><span>whole face is the button</span></div>
         <article class="app-action-card">
           <button class="app-action-card-button" type="button">
-            <span class="app-action-card-head"><span class="app-action-card-status">Upcoming</span><span class="app-action-card-date">Starts soon</span></span>
+            <span class="app-action-card-head"><span class="app-action-card-status">Starts in 5 days</span></span>
             <span class="app-action-card-title">Actionable Card</span>
             <span class="app-action-card-copy">The whole surface opens a detail or a route.</span>
             <span class="app-action-card-foot"><span>Open detail</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></span>
@@ -206,7 +206,7 @@
         <div class="ci-specimen-label"><span>.app-action-card-meta / -actions</span><span>progress inside · actions outside the button</span></div>
         <article class="app-action-card" data-tone="success">
           <button class="app-action-card-button" type="button">
-            <span class="app-action-card-head"><span class="app-action-card-status" data-tone="success">Live</span><span class="app-action-card-date">Live now</span></span>
+            <span class="app-action-card-head"><span class="app-action-card-status" data-tone="success">Live now</span></span>
             <span class="app-action-card-title">Negroni Week</span>
             <span class="app-action-card-copy">ANJU + The Lobby Lounge</span>
             <span class="app-action-card-when">21 – 27 September 2026</span>
@@ -601,7 +601,7 @@
           <div class="app-metric"><p class="app-metric-label">Outlet</p><p class="app-metric-value">The Lobby Lounge + Sip &amp; Co.</p></div>
           <div class="app-metric"><p class="app-metric-label">Time</p><p class="app-metric-value">TBC</p></div>
         </div>
-        <p class="app-note">Fixed columns keep a strip on one line at phone width; <code>data-mode="text"</code> scales the value to lead so the grid can carry facts as well as figures; <code>data-rule</code> closes each cell with the list hairline. The strip sits on the ground — it draws no edge, so it takes no material.</p>
+        <p class="app-note">Fixed columns keep a strip on one line at phone width; <code>data-mode="text"</code> scales the value to lead so the grid can carry facts as well as figures; <code>data-rule</code> closes each cell with the list hairline, and two ruled grids in a row keep the row gap between them, so the pair reads as one grid. The strip sits on the ground — it draws no edge, so it takes no material.</p>
       </div>
       <div class="ci-specimen">
         <div class="ci-specimen-label"><span>.app-track</span><span>actual against a reference</span></div>
@@ -984,18 +984,17 @@ Ask the team about the pairing board: three small plates built for the three dri
   <section class="app-section" id="figure">
     <p class="app-section-kicker">18 · Figure<span class="app-section-kicker-end">Primitive</span></p>
     <h2 class="app-section-title">Official Imagery Keeps Its Ratio</h2>
-    <p class="app-section-lede">A figure crops to an intentional ratio and labels its provenance. It draws no edge, so by the rule it takes no material — the image is the content.</p>
+    <p class="app-section-lede">A figure crops to an intentional ratio. Alone, it draws no edge and takes no material — the image is the content. A caption frames it: the photo and its provenance become one object, an inset well with the image flush at the top and the caption inside the well's padding.</p>
     <div class="ci-stack is-single">
       <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-figure</span><span>no material</span></div>
+        <div class="ci-specimen-label"><span>.app-figure</span><span>the image alone · no material</span></div>
         <figure class="app-figure">
           <img src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection wordmark">
-          <figcaption>Sindhorn Midtown Hotel Bangkok — Vignette Collection wordmark</figcaption>
         </figure>
         <p class="app-note">Property and outlet photography is not shipped in this repo — Rule 6 loads it from Supabase at runtime, into a figure already laid out like this one.</p>
       </div>
       <div class="ci-specimen">
-        <div class="ci-specimen-label"><span>.app-card .app-figure</span><span>inset radius · caption on the text column</span></div>
+        <div class="ci-specimen-label"><span>.app-card .app-figure + figcaption</span><span>one inset well · inset radius</span></div>
         <div class="app-card app-surface">
           <p class="app-surface-label">Inside material</p>
           <div class="app-stack">
@@ -1003,7 +1002,7 @@ Ask the team about the pairing board: three small plates built for the three dri
               <img src="/assets/brand/sindhorn-midtown-vignette-white.png" alt="Sindhorn Midtown Hotel Bangkok, Vignette Collection wordmark">
               <figcaption>Sindhorn Midtown Hotel Bangkok — Vignette Collection wordmark</figcaption>
             </figure>
-            <div class="app-surface-copy">A figure inside a card or disclosure is an inset: it takes the inset radius and its caption aligns with the copy around it.</div>
+            <div class="app-surface-copy">A captioned figure is one object wherever it sits: the well holds the photo and its caption together. Inside a card or disclosure it takes the inset radius.</div>
           </div>
         </div>
       </div>
@@ -1070,7 +1069,7 @@ Ask the team about the pairing board: three small plates built for the three dri
         <h3 class="app-section-subhead">Promotions</h3>
         <div class="app-stack">
         <article class="app-action-card"><div class="app-skeleton" data-compact="true">
-          <div class="app-action-card-head"><div class="app-skeleton-line" data-width="tiny"></div><div class="app-skeleton-line" data-width="tiny"></div></div>
+          <div class="app-action-card-head"><div class="app-skeleton-line" data-width="tiny"></div></div>
           <div class="app-skeleton-line" data-width="medium" data-size="lead"></div><div class="app-skeleton-line" data-width="half"></div><div class="app-skeleton-line" data-width="short"></div>
           <div class="app-action-card-meta"><div class="app-skeleton-line" data-width="tiny"></div><div class="app-skeleton-line" data-width="tiny"></div></div>
           <div class="app-skeleton-line" data-size="track"></div><div class="app-skeleton-line"></div>

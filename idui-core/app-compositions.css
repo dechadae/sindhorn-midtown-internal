@@ -15,10 +15,10 @@
 */
 
 /* ---- Promotion card (F&B) --------------------------------------------------
-   The actionable card as the F&B list uses it: a date beside the status, a
+   The actionable card as the F&B list uses it: one status that says when
+   (Live now, Starts in 5 days - r69 folded the date slot into it), a
    when-line under the title, one line of progress above the foot and a row
    of frameless secondary actions below the press surface. */
-.app-action-card-date{color:var(--app-muted);font-size:var(--type-small);white-space:nowrap}
 .app-action-card-when{display:block;margin:6px 0 0;color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body);font-variant-numeric:tabular-nums}
 /* A live card's when-line takes the success tone with its title. */
 .app-action-card[data-tone="success"] .app-action-card-when{color:var(--app-success)}

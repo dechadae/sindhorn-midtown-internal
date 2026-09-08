@@ -169,18 +169,22 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-disclosure-toggle:focus-visible{outline:2px solid var(--app-accent);outline-offset:2px}
 /* The open content sits under one hairline, so the head reads as a row of
    its own; the hairline is inside the clipped panel, so a closed disclosure
-   shows none. */
+   shows none. The head is a group of its own whatever the panel holds: r65
+   dropped this hairline above a ruled grid as a second divider, and the
+   outlet cards read as headless - it is back for every panel (r69). */
 .app-disclosure>.app-disclosure-panel .app-disclosure-panel-inner>*{padding:14px 16px 16px;border-top:1px solid var(--app-line)}
-/* One divider or the other, never both. A group of text closed by its own
-   hairline does not also need a line drawn across the whole card above it -
+/* One divider or the other, never both. A group closed by its own hairline
+   does not also need a section divider drawn across the whole card above it -
    that is the card dividing itself twice, and it reads as a bug even when
    every line is deliberate. Where a section rules its own groups, the section
-   divider goes and the hairlines do the work. */
-.app-disclosure>.app-disclosure-panel .app-disclosure-panel-inner>:has(.app-metric-grid[data-rule="true"]){border-top:0}
-/* And the room made for the divider goes with it: the seam after a ruled
+   divider goes and the room made for it goes with it: the seam after a ruled
    section is the grid's own row gap, so two ruled sections read as one grid
    and a list under one hangs from its last hairline (r66). */
 .app-card-section:has(.app-metric-grid[data-rule="true"])+.app-card-section{border-top:0;margin-top:0;padding-top:18px}
+/* The same seam between two ruled grids that sit side by side with no
+   section around them: the row gap, so the pair reads as one grid instead of
+   the second's first row hanging from the first's last hairline (r69). */
+.app-metric-grid[data-rule="true"]+.app-metric-grid[data-rule="true"]{margin-top:18px}
 .app-disclosure-detail{color:var(--app-muted);font-size:var(--type-body-s);line-height:var(--leading-body)}
 .app-disclosure-detail span{display:block;margin-bottom:6px;color:var(--app-accent);font-size:var(--type-small);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 .app-disclosure-detail ul{margin:0;padding-left:18px;display:grid;gap:var(--space-2)}
@@ -336,10 +340,12 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
    Text and an optional icon. No frame, no border, no material: Sign out, Share
    and Back to top are actions, not surfaces. app-controls.css carries the same
    intent behind a pile of cascade overrides, and is not loaded outside the app
-   shell — which is why these rendered as bare browser buttons here. */
+   shell — which is why these rendered as bare browser buttons here. A word
+   as short as Call is narrower than a finger, so the action keeps a 24px
+   minimum target with the word centred in it - a target, not a frame (r69). */
 .app-utility-action{
-  min-height:var(--control-inline);padding:0;
-  display:inline-flex;align-items:center;gap:var(--space-3);
+  min-height:var(--control-inline);min-width:24px;padding:0;
+  display:inline-flex;align-items:center;justify-content:center;gap:var(--space-3);
   border:0;background:transparent;
   color:var(--app-muted);font:inherit;font-size:var(--type-body-s);line-height:1;
   text-decoration:none;
@@ -997,11 +1003,15 @@ body[data-public] .app-masthead-home:active{transform:none}
 
 .app-figure{margin:0;overflow:hidden;border-radius:var(--radius-surface)}
 .app-figure img{display:block;width:100%;height:auto}
-.app-figure figcaption{padding:10px 14px;color:var(--app-muted);font-size:var(--type-small)}
-/* Inside a card or disclosure the figure is an inset: it takes the inset
-   radius and its caption sits on the text column. */
+/* A caption frames the figure. The photo and its provenance are one object,
+   so a captioned figure is an inset well - the image flush at the top, the
+   caption inside the well's padding, the same well a field draws. A caption
+   set loose under the image read as two things (r69). An uncaptioned figure
+   is the image alone and draws nothing. */
+.app-figure:has(figcaption){background:var(--app-inset-fill)}
+.app-figure figcaption{padding:10px 12px;color:var(--app-muted);font-size:var(--type-small)}
+/* Inside a card or disclosure the figure takes the inset radius. */
 :where(.app-card,.app-disclosure) .app-figure{border-radius:var(--radius-inset)}
-:where(.app-card,.app-disclosure) .app-figure figcaption{padding-inline:0}
 
 @media(prefers-reduced-motion:reduce){
   .app-skeleton-line,.app-skeleton-block{animation:none}

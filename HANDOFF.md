@@ -126,14 +126,28 @@ vertical midpoint alone, meaningless in two columns. Jobs is ordered by received
 date; `sindhorn_jobs.sort_order` and `sindhorn_jobs_reorder_v1` are untouched
 so a different gesture could take the job later without a migration.
 
-### 5.2 Today cache / `app-html.js` refactor
-Agreed, unscheduled, no visual change. Reads: `site/today.js`, `site/shell.js`. Goal is one HTML-fragment helper instead of per-page string building. Pixel-diff `/` before and after (the scratchpad `visual-diff.mjs` pattern: render HEAD's `site/` and the working tree's on two local servers, compare screenshots per route).
+### 5.2 `app-html.js` helper refactor — next, as r70
+Agreed, no visual change. The "Today cache" half of this entry was the saved
+copy r38 shipped (`sindhorn.today.dashboard.v1`) and is done; only the helper
+remains. Reads: `site/today.js`, `site/shell.js`. Goal is one HTML-fragment
+helper for the metric / disclosure / error / skeleton fragments the pages
+build by hand (`field()` and `skeleton()` stay page-local on purpose). Proof
+is the release brief's own pixel diff reading clean — it was kept out of r69
+so that proof is not muddied by r69's intended moves.
 
-### 5.3 Inbox-run scope
-Open question *to* the owner: what should an "inbox run" cover now that every run also inserts into `sindhorn_jobs` (since 5 Sep, source `inbox-run`, Decha's row)? The spec is Flipgazine's `.claude/jobscan.md`, not `AGENTS.md`.
+### 5.3 Inbox-run scope — answered
+Owner, 8 Sep 2026: an inbox run updates **only the Sindhorn app**. The spec
+stays Flipgazine's `.claude/jobscan.md`, not `AGENTS.md`.
 
 ### 5.4 Broadcast push provisioning
 On the owner. Runbook: `docs/BROADCAST-PUSH-RUNBOOK.md`. Never handle the bridge values.
+
+### 5.5 Parked by the owner (8 Sep 2026)
+- **Language switch (Thai/English UI):** held indefinitely "until everything
+  is stable" — do not start it; when the queue above is empty, remind the
+  owner it is parked rather than starting it.
+- **The IDUI starter-kit randomizer** (below) comes after every open
+  question above is closed, not before.
 
 ### Not in this queue: the IDUI starter-kit randomizer
 The owner's "randomizer" is a **starter-kit** tool for IDUI — not a Sindhorn
@@ -149,6 +163,7 @@ Readability Test. **That one is done and working: leave it be** (owner,
 
 ## 6. Recent history you should know (newest first)
 
+- **r69** (SW v148, 8 Sep): the owner's "fix these first" batch from four phone screenshots. (1) A captioned figure is one object: `.app-figure:has(figcaption)` takes the inset well (`--app-inset-fill`, caption `10px 12px` inside it) and joins the glass membership like every other fill, nested drops in `app-glass.css`; an uncaptioned figure stays bare — the `/ci` ground specimen lost its caption so the render smoke's `.app-figure` BARE read still holds, and a `.app-card .app-figure:has(figcaption)` WELL expectation was added. (2) The disclosure head hairline is back for every panel — the r65 `:has(.app-metric-grid[data-rule])` exception is deleted; the owner reads the head as its own group (Today's outlet cards were headless). (3) Two ruled grids side by side keep the 18px row gap (`.app-metric-grid[data-rule]+.app-metric-grid[data-rule]`). (4) F&B card head and detail eyebrow say when — `relative()` in the status slot (LIVE NOW / STARTS IN 5 DAYS / ENDED); `.app-action-card-date` and `statusLabel` deleted, the skeleton head is one line, the smoke's small-text list dropped the class. (5) Audit 17: `.app-utility-action{min-width:24px;justify-content:center}` (Call was 22 wide) and the public card's name is an `h1` (`businessCardMarkup(..., { heading })`, Settings keeps `h2`). Invariant 2 in `docs/idui/idui-body.html` carries the r69 sentence. Verified on the tree with the scratchpad `verify-r69.mjs` (fixtures) and on production after Deploy.
 - **r68** (SW v147, 8 Sep): the UI audit fixes. `.app-field input:where(:not([type="range"]))` so `.app-search input` wins by sheet order (the glyph sat on the placeholder from r37 to r66); `data-locked="true"` / `data-run="true"` are valued, admitted attributes (registry 20/64); every navbar and masthead specimen on `/ci` sits in a `.ci-shell-frame` (fixed chrome outside one pins itself to the foot of the page - the render smoke now refuses that); Messages and `/voice` mark Thai `lang="th"`; the Messages dialog has only its head close. `build-idui` reads invariant 7 back from the registry and the Enforcement table back from `deploy.yml` and refuses drift. `ci-library-coverage` excepts `data-run=true` like `data-view=push`. The brief's pixel diff covers the nine signed-in routes from synthetic fixtures, both sides on one origin with service workers blocked (the card's QR encodes `location.origin`). Not fixed, by decision: audit items 15-20 (see the r67 fix-plan artifact in the owner's memory).
 - **r67** (SW v146, 8 Sep, another session): the Betta generative test published at `/betta` (`scripts/build-betta.mjs`, `docs/idui/betta-body.html`), footer swapping documents in place (`site/public-doc.js`).
 - **r35-r66** (6-7 Sep): Jobs compact cards and two-up layout, fixed navbar (r36), Betta composition sliders and the vignette playground (r37-r38), precache navigations and the 308 rebuild (r39), shell-before-auth (r40), sky mode on the documents, the Origarium transfer at `/origarium` (r4x), ruled seams (r64-r66). Details in the owner's memory index and `git log`.

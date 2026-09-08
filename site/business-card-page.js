@@ -13,7 +13,9 @@
    .app-business-card, the QR is an .app-figure, the details are a text
    metric grid, the public actions are one utility row - Add to contacts is
    the /<slug>.vcf the worker serves, Call and Email are the phone's own
-   handlers, Share is the share sheet or the clipboard and the toast. */
+   handlers, Share is the share sheet or the clipboard and the toast. The
+   name is the page's H1 here - no hero stands above it - and an H2 under
+   Settings, where the page already has its title (r69). */
 import { businessCardUrl, businessCardVcfUrl, primaryPhone } from './business-card-core.js';
 import { qrStyledSvg } from './qr-v6.js';
 import { showToast } from './app-toast.js';
@@ -78,7 +80,7 @@ function detail(label, value, href = '', text = value) {
 
 /* The card body, shared by Settings › Me, its presenting dialog and the
    public page. */
-export function businessCardMarkup(view, { url, qr = true, actions = '' } = {}) {
+export function businessCardMarkup(view, { url, qr = true, actions = '', heading = 'h2' } = {}) {
   let figure = '';
   if (qr && view.published && url) {
     try { figure = `<figure class="app-figure" data-card-qr>${qrStyledSvg(url)}</figure>`; } catch (_) { figure = ''; }
@@ -94,7 +96,7 @@ export function businessCardMarkup(view, { url, qr = true, actions = '' } = {}) 
   return `<div class="app-business-card">
       <div>
         <p class="app-business-card-kicker">Digital business card</p>
-        <h2 class="app-business-card-name">${esc(view.displayName)}</h2>
+        <${heading} class="app-business-card-name">${esc(view.displayName)}</${heading}>
         ${view.positionTitle ? `<p class="app-business-card-position">${esc(view.positionTitle)}</p>` : ''}
         <p class="app-business-card-hotel">${esc(view.hotelName)}</p>
       </div>
@@ -154,7 +156,7 @@ export async function mountCard(host) {
       ${view.workEmail ? `<a class="app-utility-action" href="mailto:${esc(encodeURIComponent(view.workEmail))}">Email</a>` : ''}
       <button class="app-utility-action" type="button" data-card-share>Share</button>
     </div>`;
-  host.innerHTML = `<section class="app-section"><div class="app-card app-surface">${businessCardMarkup(view, { url, qr: true, actions })}</div></section>`;
+  host.innerHTML = `<section class="app-section"><div class="app-card app-surface">${businessCardMarkup(view, { url, qr: true, actions, heading: 'h1' })}</div></section>`;
   const clicks = new AbortController();
   host.addEventListener('click', event => { if (event.target.closest('[data-card-share]')) shareCard(view, url); }, { signal: clicks.signal });
   return () => { alive = false; clicks.abort(); };

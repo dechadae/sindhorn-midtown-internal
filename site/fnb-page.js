@@ -45,7 +45,6 @@ function relative(campaign, today) {
   if (days === 0) return 'Starts today';
   return today <= new Date(`${campaign.end}T23:59:59+07:00`) ? 'Live now' : 'Ended';
 }
-const statusLabel = value => value === 'live' ? 'Live' : value === 'ended' ? 'Ended' : 'Upcoming';
 const statusTone = value => value === 'live' ? 'success' : value === 'ended' ? 'quiet' : null;
 const toneAttr = value => statusTone(value) ? ` data-tone="${statusTone(value)}"` : '';
 const outletsOf = campaign => { const seen = new Set(campaign.activations.map(a => a.outlet)); return [...OUTLET_ORDER.filter(o => seen.has(o)), ...[...seen].filter(o => !OUTLET_ORDER.includes(o))].join(' + '); };
@@ -111,7 +110,7 @@ function heroMarkup(copy, { action = '', note = '' } = {}) {
    filters and card anatomy, so nothing moves when the data lands. */
 function skeletonCard() {
   return `<article class="app-action-card"><div class="app-skeleton" data-compact="true">
-    <div class="app-action-card-head">${skeletonLine('tiny')}${skeletonLine('tiny')}</div>
+    <div class="app-action-card-head">${skeletonLine('tiny')}</div>
     ${skeletonLine('medium', 'lead')}${skeletonLine('half')}${skeletonLine('short')}
     <div class="app-action-card-meta">${skeletonLine('tiny')}${skeletonLine('tiny')}</div>${skeletonLine('', 'track')}${skeletonLine('')}
   </div><div class="app-action-card-actions">${skeletonLine('short')}${skeletonLine('tiny')}</div></article>`;
@@ -196,7 +195,7 @@ export async function mountFnb(host, { public: isPublic = false } = {}) {
       : folders.length ? `<button class="app-utility-action" type="button" data-folders="${esc(campaign.id)}">${FOLDER_ICON}Artwork folders</button>` : '';
     return `<article class="app-action-card"${toneAttr(s)}>
       <button class="app-action-card-button" type="button" data-promotion="${esc(campaign.id)}">
-        <span class="app-action-card-head"><span class="app-action-card-status"${toneAttr(s)}>${statusLabel(s)}</span><span class="app-action-card-date">${esc(relative(campaign, today))}</span></span>
+        <span class="app-action-card-head"><span class="app-action-card-status"${toneAttr(s)}>${esc(relative(campaign, today))}</span></span>
         <span class="app-action-card-title">${esc(campaign.title)}</span>
         <span class="app-action-card-copy">${esc(outletsOf(campaign))}</span>
         <span class="app-action-card-when">${esc(campaign.dateLabel)}</span>
@@ -275,7 +274,7 @@ export async function mountFnb(host, { public: isPublic = false } = {}) {
     const updated = updatedLabel(campaign.updatedAt, { withTime: false });
     return `<header class="app-hero">
       <div class="app-hero-head"><button class="app-back-control app-control" type="button" data-back aria-label="Back to promotions"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M12 4l-6 6 6 6"/></svg></button>${shareButton('promotion', campaign.id)}</div>
-      <p class="app-hero-eyebrow"${toneAttr(s)}>${statusLabel(s)}</p>
+      <p class="app-hero-eyebrow"${toneAttr(s)}>${esc(relative(campaign, today))}</p>
       <h1 class="app-hero-title">${esc(campaign.title)}</h1>
       <p class="app-hero-copy">${esc(campaign.dateLabel)}</p>
     </header>

@@ -90,7 +90,7 @@
 }
 .app-overlay{border:1px solid var(--app-glass-border)}
 
-/* A badge, a form well and a code block each draw a fill, so the glass
+/* A badge, a form well, a code block and a captioned figure each draw a fill, so the glass
    membership rule applies to them too - but each keeps its own tint (accent, inset) rather
    than either weight above, so only the blur is shared here. Their fill and
    border stay declared with the rest of the component in app-components.css;
@@ -100,6 +100,7 @@
 .app-badge,
 .app-avatar,
 .app-code-block,
+.app-figure:has(figcaption),
 .app-field input,
 .app-field textarea,
 .app-field select{
@@ -118,6 +119,8 @@
 .app-card .app-control,
 .app-card .app-badge,
 .app-card .app-avatar,
+.app-card .app-figure:has(figcaption),
+.app-disclosure .app-figure:has(figcaption),
 .app-card .app-field input,
 .app-card .app-field textarea,
 .app-card .app-field select,
@@ -133,6 +136,7 @@
 .app-overlay .app-control,
 .app-overlay .app-badge,
 .app-overlay .app-avatar,
+.app-overlay .app-figure:has(figcaption),
 .app-overlay .app-overlay,
 .app-overlay .app-field input,
 .app-overlay .app-field textarea,
