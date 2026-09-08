@@ -6,3 +6,9 @@ node_modules/
 
 # release-brief pixel-diff masks: scratch output, never tracked (two slipped in at r58)
 .brief-*.png
+
+# The daily business reports the owner drops here for the Today ingest are
+# internal hotel records (docs/DAILY-BUSINESS-DATA-INGEST-RUNBOOK.md,
+# "Source handling rules"). Two were committed by r60 on 7 Sep 2026 and purged
+# from history on 8 Sep; the folder is ignored so it cannot happen again.
+/today-update/
