@@ -1,6 +1,7 @@
 # Handoff — Sindhorn Midtown Internal
 
-Written 6 September 2026 after r34a (SW v116) for whichever session continues
+Written 6 September 2026 after r34a (SW v116), revised 8 September after r68
+(SW v147), for whichever session continues
 this work. `AGENTS.md` is the law; this file is the map. When they disagree,
 `AGENTS.md` wins and this file is stale — fix it.
 
@@ -55,10 +56,18 @@ All of these are in `AGENTS.md` with their history. The short form:
 # 1. edit core first, then mirror
 cp idui-core/app-components.css site/app-components.css   # etc.
 
-# 2. bump site/sw.js VERSION, rebuild the docs
-node scripts/build-idui.mjs && node scripts/build-evidence.mjs
+# 2. bump site/sw.js VERSION, then rebuild the docs (they stamp the VERSION - rebuild AFTER the bump)
+node scripts/build-idui.mjs && node scripts/build-evidence.mjs && node scripts/build-origarium.mjs && node scripts/build-betta.mjs
 
-# 3. local gates (all must pass; run before any push touching shared UI)
+# 3. the release brief runs every gate below, the four --check builders and a pixel diff
+#    of 15 routes (HEAD vs working tree, 390 + 1280; the nine signed-in routes render from the
+#    synthetic fixtures in scripts/release-brief-fixtures.mjs). ~6 min. Exit 0 clear, 10 ask
+#    the owner with the question popup (registry, workflows, moved pixels), 1 broken. It never
+#    pushes. If a recorded gate script changed, `node scripts/contract-integrity.mjs --seed`
+#    (owner's act) before it can pass.
+node scripts/release-brief.mjs
+
+# 3b. the gates one by one (what the brief runs)
 node scripts/ui-centralization-budget.mjs          # ratchet: 11 metrics may only fall
 node scripts/page-centralization-audit.mjs         # 0 findings on 5 pages
 node scripts/ci-page-render-smoke.mjs              # Playwright; includes /idui, /evidence
@@ -73,7 +82,10 @@ node .github/tests/font-architecture.test.mjs
 # next-signin-smoke.mjs needs BASE_URL — it is the post-deploy smoke, CI only
 
 # 4. commit, push, then watch ALL workflows for the SHA — never `gh run list --limit 1`
-git push origin land-baseline:main
+git push origin land-baseline:main    # or <your-branch>:main - two worktrees ship to main now
+#   (sindhorn-midtown-internal-claude on land-baseline, sindhorn-midtown-internal-r67 on
+#   r67-audit-fixes); the loser of a push race rebases onto origin/main, resolves sw.js
+#   VERSION to the next number, rebuilds the four docs, re-runs the brief, and pushes again
 gh run list --limit 10 --json headSha,name,status,conclusion \
   --jq '.[]|select(.headSha[0:7]=="<sha>")|"\(.status) \(.conclusion) \(.name)"'
 
@@ -134,6 +146,9 @@ Readability Test. **That one is done and working: leave it be** (owner,
 
 ## 6. Recent history you should know (newest first)
 
+- **r68** (SW v147, 8 Sep): the UI audit fixes. `.app-field input:where(:not([type="range"]))` so `.app-search input` wins by sheet order (the glyph sat on the placeholder from r37 to r66); `data-locked="true"` / `data-run="true"` are valued, admitted attributes (registry 20/64); every navbar and masthead specimen on `/ci` sits in a `.ci-shell-frame` (fixed chrome outside one pins itself to the foot of the page - the render smoke now refuses that); Messages and `/voice` mark Thai `lang="th"`; the Messages dialog has only its head close. `build-idui` reads invariant 7 back from the registry and the Enforcement table back from `deploy.yml` and refuses drift. `ci-library-coverage` excepts `data-run=true` like `data-view=push`. The brief's pixel diff covers the nine signed-in routes from synthetic fixtures, both sides on one origin with service workers blocked (the card's QR encodes `location.origin`). Not fixed, by decision: audit items 15-20 (see the r67 fix-plan artifact in the owner's memory).
+- **r67** (SW v146, 8 Sep, another session): the Betta generative test published at `/betta` (`scripts/build-betta.mjs`, `docs/idui/betta-body.html`), footer swapping documents in place (`site/public-doc.js`).
+- **r35-r66** (6-7 Sep): Jobs compact cards and two-up layout, fixed navbar (r36), Betta composition sliders and the vignette playground (r37-r38), precache navigations and the 308 rebuild (r39), shell-before-auth (r40), sky mode on the documents, the Origarium transfer at `/origarium` (r4x), ruled seams (r64-r66). Details in the owner's memory index and `git log`.
 - **r34a** (SW v116, 6 Sep): IDUI doc metric grids as open strips (`data-rule="true"`, no card). Two follow-ups fixed the font gates: the Typography Gate workflow had its own raw-text search that flagged "Poppins" in doc prose; both gates' `font-family` regex skipped quoted values (a real hole, now closed).
 - **r34** (SW v115): `/idui` and `/evidence` as public pages — `scripts/public-doc-page.mjs` shell, `site/public-doc.js` boots Betta in sky mode, share masthead, no footer, `body[data-public="doc"]`. Page audit treats text inside `<code>` as quotation.
 - **r33** (SW v114): the rebuild test. Flipgazine's "Moving to Claude Code" rebuilt through its own constitution on the core. Nine core assumptions falsified and moved to constitutions. Results (wins *and* losses) published at `/evidence`; raw run in `idui-core/evidence/rebuild/`.
@@ -150,3 +165,4 @@ Everything before that is in `AGENTS.md` and `docs/`.
 - Evidence figures are `loading="lazy"`; `img.complete` is false until scrolled near.
 - The `shots/*-full-dom.png` under `idui-core/evidence/rebuild/` are gitignored on purpose (~17 MB).
 - Three-column `.app-table`s overflow at 390 by library design (`thead th` is nowrap); the audit allows overflow ≤ 1 element.
+- Launch Hardening fails with "CI service-employee sign-in did not reach the app · Sign-in didn't complete" and a console 403 in the same minute the Deploy run's `next-signin-smoke` passed (r68, 8 Sep): both workflows sign in with the one CI account, the second `sindhorn_pin_login` replaces the first's token hash and the loser's `/auth/v1/verify` is refused. Nothing in the release is wrong; `gh run rerun <id> --failed` once Deploy has finished. A real fix means a workflow edit (governed - ask): make the Launch Hardening poll also wait for the Deploy run of the same SHA to conclude.
