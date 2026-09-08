@@ -187,7 +187,13 @@ function renderRooms(data) {
           ${comparisonRow('Room Nights', o.rns, f.rns, { kind: 'integer' })}
         </div></div>
       </div>
-      ${disclosure({ kicker: 'Reference', title: 'Benchmarks', copy: 'Budget, STLY, last year and 24-hour pickup', body: `
+      ${renderPace(room)}
+      ${disclosure({ kicker: 'Reference', title: 'Benchmarks', copy: 'STLY, budget, last year and 24-hour pickup', body: `
+        <div class="app-card-section"><div class="app-list">
+          ${comparisonRow('Revenue', o.revenue, s.revenue, { referenceLabel: 'STLY' })}
+          ${comparisonRow('Room Nights', o.rns, s.rns, { kind: 'integer', referenceLabel: 'STLY' })}
+          ${comparisonRow('ADR', o.adr, s.adr, { referenceLabel: 'STLY' })}
+        </div></div>
         <div class="app-card-section"><div class="app-metric-grid" data-rule="true">
           ${metric({ label: 'Budget revenue', value: money(b.revenue, { compact: true }) })}
           ${metric({ label: 'STLY revenue', value: money(s.revenue, { compact: true }) })}
@@ -198,6 +204,34 @@ function renderRooms(data) {
         </div></div>` })}
     </div>
   </section>`;
+}
+/* The pickup report's own pace figures (r73): what the month still has to
+   pick up to reach its forecast, what that is per remaining day, and what
+   last year actually picked up per day over the same stretch. The track
+   reads as everywhere else on the page - the bar is the evidence (last
+   year's pace), the mark is the reference (the need) - so a bar that reaches
+   the mark says last year's pace would get there. Nothing is derived here:
+   the per-day figures are the report's, and a month whose forecast is not
+   loaded has no need to show, so it shows nothing. */
+function renderPace(room) {
+  const need = room.forecastRemaining || {}, pace = room.historicalRemainingToActualLy || {};
+  const forecastLoaded = (num(room.forecast?.rns) || 0) > 0 || (num(room.forecast?.revenue) || 0) > 0;
+  const perDay = num(need.revenuePerDay), lyPerDay = pace.revenuePerDay == null ? null : num(pace.revenuePerDay);
+  if (!forecastLoaded || perDay === null) return '';
+  const reached = perDay <= 0;
+  return `<div class="app-card app-surface">
+    <div class="app-card-section"><p class="app-surface-label">Pace to Forecast</p></div>
+    <div class="app-card-section"><div class="app-metric-grid" data-rule="true">
+      ${metric({ label: 'Left to forecast', value: money(need.revenue, { compact: true }), meta: `${integer(need.rns)} room nights` })}
+      ${metric({
+        label: 'Needed per day',
+        value: money(perDay, { compact: true }),
+        comparison: reached ? 'Forecast already on the books' : lyPerDay === null ? 'No last-year pace' : `${money(lyPerDay, { compact: true })} a day last year`,
+        direction: reached ? 'up' : lyPerDay === null ? null : directionOf(lyPerDay - perDay),
+        track: reached || lyPerDay === null ? '' : track(lyPerDay, perDay, 5)
+      })}
+    </div></div>
+  </div>`;
 }
 function renderOutlook(data) {
   const current = String(data.businessDate).slice(0, 7);
