@@ -118,10 +118,13 @@ Compact cards shipped: the card keeps the received label, title, Sent by /
 Deadline, the status selector and Update on its face and folds **only the
 description** behind a `.app-disclosure-toggle` at the top right (the owner's
 correction to a first version that had moved more off the face). No
-description means no arrow. Press and hold reorders the list through
-`site/app-drag-sort.js` and the pre-existing `sindhorn_jobs_reorder_v1`.
-`site/app-disclosure.js` is now the single disclosure toggle. Swipe gestures
-were deliberately **not** ported. Left undone: no keyboard path for reordering.
+description means no arrow. `site/app-disclosure.js` is now the single
+disclosure toggle. Swipe gestures were deliberately **not** ported. The press-
+and-hold reorder (`app-drag-sort.js`) shipped in r35 and was **removed in r61**
+(7 Sep) when the list went two-up above 700px: it computed the drop from the
+vertical midpoint alone, meaningless in two columns. Jobs is ordered by received
+date; `sindhorn_jobs.sort_order` and `sindhorn_jobs_reorder_v1` are untouched
+so a different gesture could take the job later without a migration.
 
 ### 5.2 Today cache / `app-html.js` refactor
 Agreed, unscheduled, no visual change. Reads: `site/today.js`, `site/shell.js`. Goal is one HTML-fragment helper instead of per-page string building. Pixel-diff `/` before and after (the scratchpad `visual-diff.mjs` pattern: render HEAD's `site/` and the working tree's on two local servers, compare screenshots per route).
