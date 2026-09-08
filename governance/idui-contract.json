@@ -274,7 +274,7 @@
         "assertions": 9
       },
       "scripts/release-brief.mjs": {
-        "sha256": "533a7f3bf2285687",
+        "sha256": "45b85c5d34fd184b",
         "assertions": 0
       },
       "scripts/contract-integrity.mjs": {

@@ -162,7 +162,14 @@ async function measurePixels() {
       const [x, y] = [await shot('head', route, width), await shot('tree', route, width)];
       if (x.width !== y.width || x.height !== y.height) { pixels[key] = {size: [x.width, x.height, y.width, y.height]}; continue; }
       const diff = new PNG({width: x.width, height: x.height});
-      pixels[key] = {differing: pixelmatch(x.data, y.data, diff.data, x.width, x.height, {threshold: 0.1}), of: x.width * x.height};
+      /* 0.05, not pixelmatch's 0.1: a --app-line hairline is 9% white over the
+         dark ground and falls under 0.1 - r71 widened the head hairline of
+         every sectioned card and the brief reported zero moved pixels on
+         Today and Jobs. Measured 8 Sep 2026 on this same shot path: the same
+         tree shot twice differs by zero pixels at every threshold down to 0,
+         so the lower number adds no noise; r70 against r71 at 0.05 shows
+         exactly the widened lines and nothing else. Owner-approved. */
+      pixels[key] = {differing: pixelmatch(x.data, y.data, diff.data, x.width, x.height, {threshold: 0.05}), of: x.width * x.height};
       if (pixels[key].differing) writeFileSync(path.join(root, `.brief-${key.replace(/\W/g, '_')}.png`), PNG.sync.write(diff));
     } catch (e) { pixels[key] = {error: String(e.message).slice(0, 60)}; }
   }

@@ -25,6 +25,7 @@ on:
 
 permissions:
   contents: read
+  actions: read # the browser smoke reads the Deploy and Launch Hardening runs for this commit
 
 concurrency:
   group: line-seed-typography-${{ github.ref }}
@@ -82,7 +83,7 @@ jobs:
     if: github.event_name != 'pull_request'
     needs: architecture
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v6
       - name: Install browser test dependency
@@ -149,7 +150,34 @@ jobs:
           TYPOGRAPHY_BASE_URL: ${{ env.BASE_URL }}
           CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
           CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
-        run: node .github/tests/typography-browser-smoke.mjs
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Deploy and Launch Hardening sign into the live shell with the same
+          # CI account this smoke uses, and Supabase keeps one token hash per
+          # user: the smoke's tablet pass on r71 signed in inside Deploy's
+          # sign-in window and its own /auth/v1/logout came back 403 while
+          # every other run was green. Launch Hardening already waits for the
+          # Deploy run of its commit; this step waits for both, so the three
+          # consumers of the one account sign in one after another. A commit
+          # that triggers neither - this file alone - has no run to wait for
+          # and goes straight on.
+          misses=0
+          for attempt in $(seq 1 120); do
+            if open=$(gh run list --workflow deploy.yml --commit "${GITHUB_SHA}" --json status \
+                --jq '[.[]|select(.status!="completed")]|length') \
+              && open_lh=$(gh run list --workflow launch-hardening.yml --commit "${GITHUB_SHA}" --json status \
+                --jq '[.[]|select(.status!="completed")]|length'); then
+              misses=0
+              [ "${open}" = "0" ] && [ "${open_lh}" = "0" ] && break
+            else
+              # three straight API misses: sign in anyway rather than sit out the cap
+              misses=$((misses + 1)); [ "${misses}" -ge 3 ] && break
+            fi
+            sleep 10
+          done
+          node .github/tests/typography-browser-smoke.mjs
       - name: Upload visual evidence
         if: always()
         uses: actions/upload-artifact@v4
