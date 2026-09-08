@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  actions: read # the sign-in step reads the Deploy run for this commit
 
 concurrency:
   group: sindhorn-midtown-launch-hardening-${{ github.ref_name }}
@@ -128,6 +129,7 @@ jobs:
         env:
           CI_SMOKE_EMPLOYEE_NUMBER: ${{ secrets.CI_SMOKE_EMPLOYEE_NUMBER }}
           CI_SMOKE_PIN: ${{ secrets.CI_SMOKE_PIN }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
@@ -152,6 +154,25 @@ jobs:
             sleep 10
           done
           test "$ready" = true
+          # Deploy signs into the live shell with the same CI account
+          # (next-signin-smoke, then the glass guard). Supabase keeps one token
+          # hash per user, so two sign-ins in the same minute leave the loser
+          # with a 403 on /auth/v1/verify - r68's Launch Hardening failed that
+          # way while Deploy passed. Wait until the Deploy run for this commit
+          # has concluded before signing in. A commit that triggers no Deploy
+          # (docs only) has no run to wait for and goes straight on.
+          misses=0
+          for attempt in $(seq 1 90); do
+            if open=$(gh run list --workflow deploy.yml --commit "${GITHUB_SHA}" --json status \
+                --jq '[.[]|select(.status!="completed")]|length'); then
+              misses=0
+              [ "${open}" = "0" ] && break
+            else
+              # three straight API misses: sign in anyway rather than sit out the cap
+              misses=$((misses + 1)); [ "${misses}" -ge 3 ] && break
+            fi
+            sleep 10
+          done
           node site/phase8-2-browser-smoke.mjs
 
       - name: Verify production shell and Environmental Alerts Worker
