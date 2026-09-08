@@ -61,7 +61,8 @@ export function openDialog(markup, { onClose } = {}) {
 
 const CLOSE_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>';
 
-/* The head every page dialog shares: kicker, title and the close control. */
-export function dialogHead(kicker, title) {
-  return `<div class="app-dialog-head"><div>${kicker ? `<p class="app-dialog-kicker">${text(kicker)}</p>` : ''}<h2 class="app-dialog-title">${text(title)}</h2></div><button class="app-close-control app-control" type="button" data-dialog-close aria-label="Close">${CLOSE_ICON}</button></div>`;
+/* The head every page dialog shares: kicker, title and the close control. A
+   title in the other language carries lang, so Thai is typeset as Thai. */
+export function dialogHead(kicker, title, { lang = '' } = {}) {
+  return `<div class="app-dialog-head"><div>${kicker ? `<p class="app-dialog-kicker">${text(kicker)}</p>` : ''}<h2 class="app-dialog-title"${lang ? ` lang="${text(lang)}"` : ''}>${text(title)}</h2></div><button class="app-close-control app-control" type="button" data-dialog-close aria-label="Close">${CLOSE_ICON}</button></div>`;
 }

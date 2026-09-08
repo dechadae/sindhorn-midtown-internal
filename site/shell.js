@@ -187,7 +187,7 @@ function paintNavbar(name) {
   const mode = name === 'settings' || DEVELOPER_ROUTES.has(name) ? 'settings' : 'app';
   const full = DEVELOPER_ROUTES.has(name) ? 'settings/system' : viewOf(name);
   navbar.dataset.mode = mode;
-  if (locked) navbar.dataset.locked = ''; else delete navbar.dataset.locked;
+  if (locked) navbar.dataset.locked = 'true'; else delete navbar.dataset.locked;
   for (const set of navbar.querySelectorAll('.app-navbar-set')) set.inert = set.dataset.set !== mode;
   for (const button of navbar.querySelectorAll('[data-route]')) {
     button.disabled = locked;

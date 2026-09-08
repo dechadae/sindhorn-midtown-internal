@@ -29,6 +29,8 @@ const EXCEPTIONS = [
   { key: 'data-view=pop', since: '2026-09-07', reason: 'As data-view=push.' },
   { key: 'data-view=cover', since: '2026-09-07', reason: 'As data-view=push.' },
   { key: 'data-view=dismiss', since: '2026-09-07', reason: 'As data-view=push.' },
+  { key: 'data-run=true', since: '2026-09-08',
+    reason: 'As data-view=push. app-view.js stamps run while the movement plays and removes it once the page has landed, so /ci shows it only mid-move in its transition specimen, and a static capture cannot.' },
   { key: 'data-betta-mode', since: '2026-09-06',
     reason: 'The atmosphere runtime stamps the period on <body>; the renderer is not a library component.' },
 ];

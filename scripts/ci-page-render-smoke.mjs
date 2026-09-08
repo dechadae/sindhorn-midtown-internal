@@ -83,7 +83,7 @@ const EXPECT = [
   // navbar sets are layout, the unread count is a badge on the masthead, and
   // a code well is a field well.
   ['.app-masthead-home', BARE], ['.app-masthead-account', CONTROL_ON_MASTHEAD], ['.app-masthead-action', CONTROL_ON_MASTHEAD], ['.app-masthead-tools', BARE], ['.app-navbar-set', BARE],
-  ['.app-masthead-badge', BADGE_ON_MASTHEAD], ['.app-code input', FROSTED_WELL], ['.app-navbar[data-locked]', CARD],
+  ['.app-masthead-badge', BADGE_ON_MASTHEAD], ['.app-code input', FROSTED_WELL], ['.app-navbar[data-locked="true"]', CARD],
   ['.app-sheet', OVERLAY], ['.app-toast', OVERLAY],
   ['.app-list-row', BARE], ['.app-metric', BARE], ['.app-figure', BARE],
   ['.app-card-section', BARE], ['.app-section-subhead', BARE],
@@ -262,6 +262,21 @@ const chip=report.measured.find(e=>e.selector==='.app-chip');
 if (chip && norm(chip.borderColor) !== 'rgba(250, 247, 245, 0.14)') failures.push(`.app-chip: border-color ${chip.borderColor}, expected the glass border token rgba(250, 247, 245, 0.14) from .app-control`);
 if (report.overflow > 1) failures.push(`horizontal overflow ${report.overflow}px`);
 
+// Shell chrome is fixed to the viewport (r36), so a navbar or masthead
+// specimen outside a .ci-shell-frame (contain:paint) escapes its specimen and
+// pins itself to the foot of the reference page - the locked navbar did
+// exactly that from r36 to r66 while its material read correctly above.
+// Every piece of shell chrome sits in a frame, and nothing at the foot of the
+// viewport is chrome that escaped one.
+const chrome = await page.evaluate(() => {
+  const name = node => `${node.className.split(' ')[0]}[aria-label="${node.getAttribute('aria-label') || ''}"]`;
+  const loose = [...document.querySelectorAll('.app-navbar, .app-masthead')].filter(node => !node.closest('.ci-shell-frame')).map(name);
+  const foot = document.elementFromPoint(Math.round(innerWidth / 2), innerHeight - 8)?.closest('.app-navbar, .app-masthead');
+  return { loose, foot: foot && !foot.closest('.ci-shell-frame') ? name(foot) : '' };
+});
+for (const selector of chrome.loose) failures.push(`${selector}: shell chrome outside a .ci-shell-frame pins itself to the viewport`);
+if (chrome.foot) failures.push(`${chrome.foot}: sits at the foot of the viewport, a specimen that escaped its frame`);
+
 // View transitions: tap F&B in the specimen frame and read the host mid-move.
 // The host must be running the push-in keyframes over --motion-view on the
 // plain ease-in-out curve, and may not carry opacity, filter or clip-path -
@@ -277,7 +292,7 @@ const view = await (async () => {
   const token = await page.evaluate(() => ({ view: getComputedStyle(document.documentElement).getPropertyValue('--motion-view').trim(), travel: getComputedStyle(document.documentElement).getPropertyValue('--motion-view-travel').trim() }));
   await page.addStyleTag({ content: '[data-view-demo]{--motion-view:8s}' });
   await frame.locator('[data-demo-route="fnb"]').click();
-  await page.waitForFunction(() => document.querySelector('[data-view-demo] > [data-view-host][data-run]'), null, { timeout: 2000 }).catch(() => {});
+  await page.waitForFunction(() => document.querySelector('[data-view-demo] > [data-view-host][data-run="true"]'), null, { timeout: 2000 }).catch(() => {});
   return page.evaluate(() => {
     const host = document.querySelector('[data-view-demo] > [data-view-host]');
     const read = node => { if (!node) return null; const s = getComputedStyle(node); return { name: s.animationName, duration: s.animationDuration, timing: s.animationTimingFunction, play: s.animationPlayState, visibility: s.visibility, opacity: s.opacity, filter: s.filter, clip: s.clipPath, transform: s.transform }; };

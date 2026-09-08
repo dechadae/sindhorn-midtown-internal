@@ -194,7 +194,10 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
 .app-field{display:grid;gap:6px;min-width:0}
 .app-field label{color:var(--app-muted);font-size:var(--type-small);font-weight:var(--weight-label);letter-spacing:var(--tracking-label);text-transform:uppercase}
 .app-field label span{opacity:.72;text-transform:none}
-.app-field input:not([type="range"]),.app-field textarea,.app-field select{
+/* The range exclusion sits in :where() so it adds no weight: .app-search
+   input in app-compositions.css refines this well by sheet order alone, and a
+   bare :not() (r37) outweighed it and took the well's padding for two days. */
+.app-field input:where(:not([type="range"])),.app-field textarea,.app-field select{
   width:100%;min-height:var(--control-row);padding:10px 12px;
   border:1px solid var(--app-line);border-radius:var(--radius-inset);
   background:var(--app-inset-fill);
@@ -202,7 +205,7 @@ a,button,summary,[role="button"],input,select,textarea,label{-webkit-tap-highlig
   outline:none;
   transition:border-color var(--motion-ms) ease,box-shadow var(--motion-ms) var(--motion-ease);
 }
-.app-field input:not([type="range"]):focus,.app-field textarea:focus,.app-field select:focus{
+.app-field input:where(:not([type="range"])):focus,.app-field textarea:focus,.app-field select:focus{
   border-color:rgba(var(--app-accent-rgb),.55);
   box-shadow:0 0 0 3px rgba(var(--app-accent-rgb),.08);
 }
@@ -839,8 +842,8 @@ body[data-public] .app-masthead-home:active{transform:none}
 /* A destination that does not exist yet is not a link, so it cannot be
    disabled the way a button is; aria-disabled says the same thing about a
    span and reads the same (r43). */
-.app-navbar-button:disabled,.app-navbar-button[aria-disabled="true"],.app-navbar[data-locked] .app-navbar-button{color:var(--app-muted);opacity:.4;cursor:default}
-.app-navbar-button:disabled:active,.app-navbar-button[aria-disabled="true"]:active,.app-navbar[data-locked] .app-navbar-button:active{transform:none}
+.app-navbar-button:disabled,.app-navbar-button[aria-disabled="true"],.app-navbar[data-locked="true"] .app-navbar-button{color:var(--app-muted);opacity:.4;cursor:default}
+.app-navbar-button:disabled:active,.app-navbar-button[aria-disabled="true"]:active,.app-navbar[data-locked="true"] .app-navbar-button:active{transform:none}
 
 /* A page inside the shell reserves room for the sticky footer. */
 /* flex:1 0 auto is the other half of the sticky-footer fix in app-shell.css:
@@ -1024,7 +1027,7 @@ body[data-public] .app-masthead-home:active{transform:none}
    Attribute selectors only: the shell's host and the library's specimen host
    share these without sharing a class. */
 [data-view]{visibility:hidden;animation:var(--motion-view) var(--motion-ease-inout) both paused}
-[data-view][data-run]{visibility:visible;animation-play-state:running}
+[data-view][data-run="true"]{visibility:visible;animation-play-state:running}
 [data-view="push"]{animation-name:app-view-push-in}
 [data-view="pop"]{animation-name:app-view-pop-in}
 [data-view="cover"]{animation-name:app-view-cover-in}

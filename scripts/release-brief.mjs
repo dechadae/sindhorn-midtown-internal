@@ -23,6 +23,7 @@ import {mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync} from 'node
 import {createServer} from 'node:http';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
+import {RPC} from './release-brief-fixtures.mjs';
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const run = (cmd, args) => { try { return {ok: true, out: execFileSync(cmd, args, {cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']})}; }
@@ -56,7 +57,15 @@ let newVocabulary = [];
 try { newVocabulary = JSON.parse(vocab.out.slice(vocab.out.indexOf('{'))).stops || []; } catch {}
 
 /* ---- pixels ------------------------------------------------------------- */
-const ROUTES = ['/index.html', '/ci.html', '/voice.html', '/idui.html', '/evidence.html', '/origarium.html', '/betta.html'];
+/* Every page, signed in. The shell answers its RPCs from the synthetic read
+   models in release-brief-fixtures.mjs, so Today, F&B, Jobs, Messages and
+   the four Settings pages render their populated compositions - the ones the
+   search-well regression (r37 to r66) lived in while the six static routes
+   diffed clean. The shell's hash routes are one document; the diff names
+   them by hash. */
+const ROUTES = ['/index.html', '/index.html#fnb', '/index.html#jobs', '/index.html#messages', '/index.html#brand',
+  '/index.html#settings/me', '/index.html#settings/admin', '/index.html#settings/broadcast', '/index.html#settings/system',
+  '/ci.html', '/voice.html', '/idui.html', '/evidence.html', '/origarium.html', '/betta.html'];
 /* Two widths. A change that only appears on a wide screen is invisible to a
    phone-only diff, and the brief would report "no pixels moved" about a page
    it had just rearranged. */
@@ -87,26 +96,39 @@ async function measurePixels() {
   if (!pixelmatch || !PNG) { pixelError = 'pixelmatch/pngjs did not load'; return; }
   const base = mkdtempSync(path.join(tmpdir(), 'brief-'));
   execSync(`git archive HEAD site | tar -x -C ${base}`, {cwd: root, shell: '/bin/bash'});
-  const serve = dir => new Promise(res => { const s = createServer((req, r) => {
+  /* One server for both sides, its root switched per shot, so the page has
+     the same origin on each side: the business card prints location.origin
+     in its URL line and inside its QR, and two ports made Settings › Me
+     differ by a port number on every release (r67). Service workers are
+     blocked in these contexts so one side's precache can never answer the
+     other side's navigation on the shared origin, and nothing is cached
+     between shots. */
+  const sides = {head: path.join(base, 'site'), tree: path.join(root, 'site')};
+  let dir = sides.head;
+  const server = await new Promise(res => { const s = createServer((req, r) => {
       let n = decodeURIComponent(req.url.split('?')[0]); if (n === '/') n = '/index.html';
       const types = {'.html':'text/html','.css':'text/css','.js':'text/javascript','.json':'application/json','.woff2':'font/woff2','.svg':'image/svg+xml','.png':'image/png','.webmanifest':'application/manifest+json'};
       let body = null; const f = path.join(dir, n);
       try { body = readFileSync(f); } catch { r.writeHead(404); return r.end(); }
-      r.writeHead(200, {'content-type': types[path.extname(f)] || 'application/octet-stream'}); r.end(body);
+      r.writeHead(200, {'content-type': types[path.extname(f)] || 'application/octet-stream', 'cache-control': 'no-store'}); r.end(body);
     }); s.listen(0, '127.0.0.1', () => res({port: s.address().port, close: () => s.close()})); });
-  const a = await serve(path.join(base, 'site')), b = await serve(path.join(root, 'site'));
   const browser = await chromium.launch().catch(() => chromium.launch({channel: 'chrome'}));
   const contexts = {};
-  for (const w of WIDTHS) contexts[w] = await browser.newContext({viewport: {width: w, height: 844}, deviceScaleFactor: 1, reducedMotion: 'reduce'});
+  for (const w of WIDTHS) contexts[w] = await browser.newContext({viewport: {width: w, height: 844}, deviceScaleFactor: 1, reducedMotion: 'reduce', serviceWorkers: 'block'});
   const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
   const token = `${b64({alg:'none',typ:'JWT'})}.${b64({sub:'00000000-0000-0000-0000-000000000001',role:'authenticated',exp:Math.floor(Date.now()/1000)+86400})}.brief`;
-  const shot = async (server, route, width) => {
+  const shot = async (side, route, width) => {
+    dir = sides[side];
     const page = await contexts[width].newPage();
     await page.addInitScript(t => localStorage.setItem('sindhorn-midtown-auth-session-v1', JSON.stringify(
       {access_token: t, refresh_token: 'brief', expires_at: Math.floor(Date.now()/1000)+86400, token_type: 'bearer', user: null})), token);
-    await page.route('**/rest/v1/rpc/sindhorn_current_employee_profile', r => r.fulfill({status: 200, contentType: 'application/json',
-      body: JSON.stringify({id:'00000000-0000-0000-0000-000000000001', employee_number:'10639', display_name:'CI Developer', role:'super_admin', account_type:'developer', work_email:null, pin_configured_at:new Date().toISOString(), active:true})}));
-    await page.route(/supabase\.co\/rest\/v1\/(?!rpc\/sindhorn_current_employee_profile)/, r => r.fulfill({status: 200, contentType: 'application/json', body: '[]'}));
+    /* The session above is the fixtures' developer; each read model answers
+       from the fixtures by RPC name, and anything unnamed - every write, the
+       atmosphere periods - answers [] as it always did. */
+    await page.route(/supabase\.co\/rest\/v1\//, r => {
+      const name = r.request().url().match(/\/rpc\/([a-z0-9_]+)/)?.[1];
+      return r.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify(RPC[name]?.() ?? [])});
+    });
     await page.goto(`http://127.0.0.1:${server.port}${route}`, {waitUntil: 'networkidle'});
     await page.addStyleTag({content: '.environment-stage,#glCanvas,.environment-canvas,canvas{visibility:hidden!important}*{animation:none!important;transition:none!important}'});
     /* Pin the atmosphere. Since r57 the document pages run the live Betta, and
@@ -137,14 +159,14 @@ async function measurePixels() {
   for (const width of WIDTHS) for (const route of ROUTES) {
     const key = `${route} @${width}`;
     try {
-      const [x, y] = [await shot(a, route, width), await shot(b, route, width)];
+      const [x, y] = [await shot('head', route, width), await shot('tree', route, width)];
       if (x.width !== y.width || x.height !== y.height) { pixels[key] = {size: [x.width, x.height, y.width, y.height]}; continue; }
       const diff = new PNG({width: x.width, height: x.height});
       pixels[key] = {differing: pixelmatch(x.data, y.data, diff.data, x.width, x.height, {threshold: 0.1}), of: x.width * x.height};
       if (pixels[key].differing) writeFileSync(path.join(root, `.brief-${key.replace(/\W/g, '_')}.png`), PNG.sync.write(diff));
     } catch (e) { pixels[key] = {error: String(e.message).slice(0, 60)}; }
   }
-  await browser.close(); a.close(); b.close(); rmSync(base, {recursive: true, force: true});
+  await browser.close(); server.close(); rmSync(base, {recursive: true, force: true});
 }
 await measurePixels();
 

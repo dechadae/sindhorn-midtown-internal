@@ -96,6 +96,18 @@ export function otherText(broadcast, key) {
   if (!th || !en) return '';
   return getProfile()?.preferred_language === 'th' ? en : th;
 }
+/* The language of the text those two chose, so a page can mark Thai as Thai
+   (lang="th") and the Thai typography in fonts.css reaches it. Same branches,
+   same fallbacks: preferredText falls back to whichever text exists. */
+export function preferredLang(broadcast, key) {
+  const th = broadcast?.[`${key}Th`], en = broadcast?.[`${key}En`];
+  return (getProfile()?.preferred_language === 'th' && th) ? 'th' : (en ? 'en' : th ? 'th' : '');
+}
+export function otherLang(broadcast, key) {
+  const th = broadcast?.[`${key}Th`], en = broadcast?.[`${key}En`];
+  if (!th || !en) return '';
+  return getProfile()?.preferred_language === 'th' ? 'en' : 'th';
+}
 
 
 document.addEventListener('sindhorn:auth-changed', event => { if (event.detail?.authenticated === false) clearInbox(); });

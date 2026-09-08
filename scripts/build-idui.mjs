@@ -50,6 +50,29 @@ const logo=dataUri(path.join(SITE,'assets/brand/sindhorn-midtown-vignette-white.
 const body=read(SRC).replace('__LOGO__',logo).replaceAll('__SW__',swShort);
 if(body.includes('__'+'LOGO__')||/__[A-Z]+__/.test(body.replace(/data:[^"']+/g,''))){console.error('idui-body.html: unresolved placeholder');process.exit(1)}
 
+/* The body says what the repository does, so two of its claims are read back
+   from their sources before either page is built (r67). Invariant 7 lists
+   the admitted variant attributes: its two <code> lists together are the
+   registry's variantAttributes, no more and no fewer. The Enforcement table
+   names every check: each scripts/*.mjs the deploy workflow runs has a row
+   (its generate-* steps make assets and refuse nothing), and each name in a
+   row is a script that exists. Both claims drifted for a week - two removed
+   attributes still listed, two checks unlisted - before this read existed. */
+const claims=[];
+const source=read(SRC);
+const admitted=JSON.parse(read(path.join(ROOT,'governance/idui-contract.json'))).core.vocabulary.variantAttributes;
+const invariant7=source.match(/7 · Variants are attributes, not classes<\/span><span class="app-list-row-meta">([\s\S]*?)<\/span>/)?.[1]||'';
+const listed=[...invariant7.matchAll(/<code>data-([^<]+)<\/code>/g)].flatMap(m=>m[1].trim().split(/\s+/));
+for(const name of admitted)if(!listed.includes(name))claims.push(`invariant 7 does not list the admitted attribute data-${name}`);
+for(const name of listed)if(!admitted.includes(name))claims.push(`invariant 7 lists data-${name}, which the registry does not admit`);
+const deploy=read(path.join(ROOT,'.github/workflows/deploy.yml'));
+const runs=[...new Set([...deploy.matchAll(/node scripts\/([a-z0-9-]+)\.mjs/g)].map(m=>m[1]))].filter(name=>!name.startsWith('generate-'));
+const table=source.match(/<h2 class="app-section-title">Rules That Run<\/h2>[\s\S]*?<\/table>/)?.[0]||'';
+const rows=[...new Set([...table.matchAll(/<th scope="row">([\s\S]*?)<\/th>/g)].flatMap(m=>[...m[1].matchAll(/<code>([a-z0-9-]+)<\/code>/g)].map(c=>c[1])))];
+for(const name of runs)if(!rows.includes(name))claims.push(`the Enforcement table has no row for scripts/${name}.mjs, which deploy.yml runs`);
+for(const name of rows)if(!fs.existsSync(path.join(ROOT,'scripts',`${name}.mjs`))&&!fs.existsSync(path.join(ROOT,'.github/tests',`${name}.test.mjs`)))claims.push(`the Enforcement table names ${name}, which is not a script in scripts/ or .github/tests/`);
+if(claims.length){console.error('idui-body.html says what the repository does not:\n  '+claims.join('\n  '));process.exit(1)}
+
 const html=`<!doctype html>
 <html lang="en">
 <head>

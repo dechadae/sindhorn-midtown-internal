@@ -62,7 +62,7 @@ export async function transitionView(host, kind, swap, { within = null } = {}) {
   await swap();
   if (mine !== run) return;
 
-  host.dataset.run = '';
+  host.dataset.run = 'true';
   await finished(host);
   /* A later call owns the host now; leave its pose alone. */
   if (mine !== run) return;

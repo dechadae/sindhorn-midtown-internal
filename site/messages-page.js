@@ -7,7 +7,7 @@
    route did. Offline, the last inbox saved on this phone is shown and the
    utility note says so. The navbar badge follows both counts. */
 import { listMessages, markAllRead, clearAll, kindLabel } from './notification-inbox.js';
-import { loadInbox, cachedInbox, markBroadcastsRead, categoryLabel, priorityLabel, preferredText, otherText } from './broadcast-inbox.js';
+import { loadInbox, cachedInbox, markBroadcastsRead, categoryLabel, priorityLabel, preferredText, otherText, preferredLang, otherLang } from './broadcast-inbox.js';
 import { formatDateTime } from './app-format.js';
 import { openDialog, dialogHead } from './app-dialog.js';
 import { esc } from './app-html.js';
@@ -15,13 +15,16 @@ import { esc } from './app-html.js';
 
 const hero = `<header class="app-hero"><p class="app-hero-eyebrow">Messages</p><h1 class="app-hero-title">Inbox</h1><p class="app-hero-copy">Broadcasts from the hotel and alerts delivered to this device.</p></header>`;
 const skeleton = `<div class="app-card app-surface"><div class="app-skeleton"><div class="app-skeleton-line" data-width="short"></div><div class="app-skeleton-line"></div><div class="app-skeleton-line" data-width="medium"></div></div></div>`;
+/* Thai is marked as Thai, as F&B marks it, so fonts.css typesets it; English
+   inherits the document's own language and carries nothing. */
+const langAttr = lang => lang === 'th' ? ' lang="th"' : '';
 const hashFor = route => { const r = String(route || ''); return r.startsWith('/fnb') ? '#fnb' : r.startsWith('/brand') ? '#brand' : ''; };
 
 function broadcastRow(b) {
   const meta = [categoryLabel(b.category), b.priority === 'urgent' || b.priority === 'high' ? priorityLabel(b.priority) : '', formatDateTime(b.publishAt)].filter(Boolean).join(' · ');
   const copy = b.sensitive ? '' : preferredText(b, 'body');
   return `<button class="app-list-row" type="button" data-broadcast-open="${esc(b.id)}"${b.readAt ? '' : ' data-unread'}>
-    <span class="app-list-row-main"><span class="app-list-row-title">${esc(preferredText(b, 'title'))}</span><span class="app-list-row-meta">${esc(meta)}</span>${copy ? `<span class="app-list-row-copy">${esc(copy)}</span>` : ''}</span>
+    <span class="app-list-row-main"><span class="app-list-row-title"${langAttr(preferredLang(b, 'title'))}>${esc(preferredText(b, 'title'))}</span><span class="app-list-row-meta">${esc(meta)}</span>${copy ? `<span class="app-list-row-copy"${langAttr(preferredLang(b, 'body'))}>${esc(copy)}</span>` : ''}</span>
     <span class="app-list-row-end">${b.pinned ? '<span class="app-badge" data-tone="quiet">Pinned</span>' : ''}${b.readAt ? '' : '<span class="app-badge">New</span>'}</span>
   </button>`;
 }
@@ -57,15 +60,15 @@ function markup(broadcasts, alerts, inbox) {
 /* The whole broadcast: the employee's language first, the other below. */
 function detail(b) {
   const lead = preferredText(b, 'body'), other = otherText(b, 'body'), otherTitle = otherText(b, 'title');
+  const leadLang = langAttr(preferredLang(b, 'body')), otherBodyLang = langAttr(otherLang(b, 'body'));
   const meta = [categoryLabel(b.category), b.priority !== 'normal' ? priorityLabel(b.priority) : '', formatDateTime(b.publishAt)].filter(Boolean).join(' · ');
   return `<div class="app-dialog-body">
-    ${dialogHead(meta, preferredText(b, 'title'))}
+    ${dialogHead(meta, preferredText(b, 'title'), { lang: preferredLang(b, 'title') === 'th' ? 'th' : '' })}
     <div class="app-dialog-grid">
-      <div class="app-prose" data-width="full" data-mode="verbatim"><p>${esc(lead)}</p></div>
-      ${other ? `<div class="app-dialog-section"><span>${esc(otherTitle || preferredText(b, 'title'))}</span></div><div class="app-prose" data-width="full" data-mode="verbatim"><p>${esc(other)}</p></div>` : ''}
+      <div class="app-prose" data-width="full" data-mode="verbatim"${leadLang}><p>${esc(lead)}</p></div>
+      ${other ? `<div class="app-dialog-section"><span${otherTitle ? langAttr(otherLang(b, 'title')) : langAttr(preferredLang(b, 'title'))}>${esc(otherTitle || preferredText(b, 'title'))}</span></div><div class="app-prose" data-width="full" data-mode="verbatim"${otherBodyLang}><p>${esc(other)}</p></div>` : ''}
     </div>
     ${b.expiresAt ? `<p class="app-dialog-status">Shown until ${esc(formatDateTime(b.expiresAt))}</p>` : ''}
-    <div class="app-dialog-actions"><button class="app-primary app-control" type="button" data-dialog-close>Close</button></div>
   </div>`;
 }
 

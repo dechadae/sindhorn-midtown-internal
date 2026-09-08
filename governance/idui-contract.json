@@ -1,7 +1,7 @@
 {
   "$comment": "The governed registry. It governs Core; it is not Core. Core defines the grammar of authority and never owns the product-specific authorities themselves. Changing this file is an owner decision, not a build step: CODEOWNERS covers it, and the architectural gates read it rather than deciding for themselves.",
   "version": 1,
-  "updated": "2026-09-06",
+  "updated": "2026-09-08",
   "core": {
     "$comment": "Generic mechanics only. These sheets may declare structure, geometry, typography and state. They may not author material treatment for a surface role.",
     "sheets": [
@@ -110,11 +110,13 @@
         "context",
         "direction",
         "icon",
+        "locked",
         "mode",
         "open",
         "public",
         "ready",
         "rule",
+        "run",
         "set",
         "size",
         "split",
@@ -136,6 +138,7 @@
         "icon=messages",
         "icon=off",
         "icon=on",
+        "locked=true",
         "mode=close",
         "mode=contents",
         "mode=floating",
@@ -151,6 +154,7 @@
         "public=doc",
         "ready=true",
         "rule=true",
+        "run=true",
         "set=app",
         "set=settings",
         "size=caption",
@@ -238,7 +242,7 @@
         "assertions": 4
       },
       "scripts/ci-library-coverage.mjs": {
-        "sha256": "69561bc9e5de4b3e",
+        "sha256": "ae29b8d0c94bf47e",
         "assertions": 3
       },
       "scripts/no-horizontal-overflow.mjs": {
@@ -270,7 +274,7 @@
         "assertions": 9
       },
       "scripts/release-brief.mjs": {
-        "sha256": "ccbff734c15a577d",
+        "sha256": "533a7f3bf2285687",
         "assertions": 0
       },
       "scripts/contract-integrity.mjs": {
@@ -293,11 +297,11 @@
     ],
     "limits": {
       "admittedRoots": 50,
-      "variantValues": 62,
-      "variantAttributes": 18,
+      "variantValues": 64,
+      "variantAttributes": 20,
       "exceptions": {
         "scripts/page-centralization-audit.mjs": 2,
-        "scripts/ci-library-coverage.mjs": 6
+        "scripts/ci-library-coverage.mjs": 7
       }
     }
   }
