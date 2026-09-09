@@ -590,9 +590,18 @@ button.app-list-row[aria-pressed="true"] .app-list-row-end{color:var(--app-accen
    the size and the vocabulary already had the word (r41). */
 .app-prose[data-size="caption"] p,.app-prose[data-size="caption"] li{font-size:var(--type-caption)}
 .app-prose strong,.app-prose b{font-weight:var(--weight-medium)}
-/* A link in running text or in a note is the accent; nothing else in the
-   library lets the UA's blue through (r34). */
-.app-prose a,.app-note a{color:var(--app-accent);text-underline-offset:3px}
+/* A link is the accent wherever a page puts it - running text, a note, a table
+   cell, a row's title. Until r75 only prose and notes were covered, so the
+   route links inside /idui's gate table and the titles on the transfer rows
+   came out in the user agent's blue at 1.3:1 on the atmosphere: the one place
+   left where a browser default could reach a reader (r34's comment said as
+   much, and was wrong by omission).
+   The condition is the absence of a class, not a list of the places a link may
+   sit: a link that belongs to a composition names itself - a row that is
+   itself a link, the card's link line - and keeps the ink that composition
+   gave it. :where() holds this at one class of specificity so those rules
+   still win, and the navbar and masthead are outside .app-page entirely. */
+.app-prose a,.app-note a,.app-page a:where(:not([class])){color:var(--app-accent);text-underline-offset:3px}
 .app-prose[data-mode="verbatim"]{white-space:pre-line}
 /* A ruled prose closes each entry with the list hairline, so a run of
    heading + paragraph pairs reads as a list, not one long column. */

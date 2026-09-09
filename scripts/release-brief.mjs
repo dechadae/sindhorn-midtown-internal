@@ -117,7 +117,7 @@ async function measurePixels() {
   for (const w of WIDTHS) contexts[w] = await browser.newContext({viewport: {width: w, height: 844}, deviceScaleFactor: 1, reducedMotion: 'reduce', serviceWorkers: 'block'});
   const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
   const token = `${b64({alg:'none',typ:'JWT'})}.${b64({sub:'00000000-0000-0000-0000-000000000001',role:'authenticated',exp:Math.floor(Date.now()/1000)+86400})}.brief`;
-  const shot = async (side, route, width) => {
+  const open = async (side, route, width) => {
     dir = sides[side];
     const page = await contexts[width].newPage();
     await page.addInitScript(t => localStorage.setItem('sindhorn-midtown-auth-session-v1', JSON.stringify(
@@ -152,16 +152,38 @@ async function measurePixels() {
     await page.evaluate(() => document.fonts.ready);
     await page.waitForTimeout(2500);
     await page.evaluate(() => { const c = document.querySelector('.environment-canvas'); if (c) c.remove(); });
-    const png = PNG.sync.read(await page.screenshot({fullPage: true, animations: 'disabled'}));
-    await page.close(); return png;
+    return page;
+  };
+  /* A document taller than the compositor's surface limit cannot be captured
+     with fullPage. Chromium returns an image of the right size whose content
+     past the limit is not this render: measured 9 September 2026, two builds
+     of /idui came back byte-identical while five links on the page had changed
+     colour - the same region clipped in the viewport differed by 370 pixels,
+     and the older side's capture held no blue pixel although three of its
+     links were blue in the DOM. Every route under the limit diffed correctly
+     (/origarium at 15,516px), so the brief was silently blind to exactly one
+     page, the longest one it has. Above the limit the page is read a viewport
+     at a time and each slice is compared as it is taken, which also keeps a
+     61,000px document out of a 96MB buffer.
+     The fixed chrome is hidden for those slices: it would otherwise repeat at
+     every scroll position and hide the band of content behind it. The navbar
+     and masthead are the same on the three short document routes, which are
+     compared whole. */
+  const SURFACE_LIMIT = 16000;
+  const metrics = page => page.evaluate(() => ({w: document.scrollingElement.clientWidth, h: document.scrollingElement.scrollHeight}));
+  const slice = async (page, top, y, w, h) => {
+    await page.evaluate(t => scrollTo(0, t), top);
+    await page.waitForTimeout(60);
+    return PNG.sync.read(await page.screenshot({clip: {x: 0, y, width: w, height: h}, animations: 'disabled'}));
   };
   pixels = {};
   for (const width of WIDTHS) for (const route of ROUTES) {
     const key = `${route} @${width}`;
+    let a = null, b = null;
     try {
-      const [x, y] = [await shot('head', route, width), await shot('tree', route, width)];
-      if (x.width !== y.width || x.height !== y.height) { pixels[key] = {size: [x.width, x.height, y.width, y.height]}; continue; }
-      const diff = new PNG({width: x.width, height: x.height});
+      a = await open('head', route, width); b = await open('tree', route, width);
+      const [ma, mb] = [await metrics(a), await metrics(b)];
+      if (ma.w !== mb.w || ma.h !== mb.h) { pixels[key] = {size: [ma.w, ma.h, mb.w, mb.h]}; continue; }
       /* 0.05, not pixelmatch's 0.1: a --app-line hairline is 9% white over the
          dark ground and falls under 0.1 - r71 widened the head hairline of
          every sectioned card and the brief reported zero moved pixels on
@@ -169,9 +191,37 @@ async function measurePixels() {
          tree shot twice differs by zero pixels at every threshold down to 0,
          so the lower number adds no noise; r70 against r71 at 0.05 shows
          exactly the widened lines and nothing else. Owner-approved. */
-      pixels[key] = {differing: pixelmatch(x.data, y.data, diff.data, x.width, x.height, {threshold: 0.05}), of: x.width * x.height};
-      if (pixels[key].differing) writeFileSync(path.join(root, `.brief-${key.replace(/\W/g, '_')}.png`), PNG.sync.write(diff));
+      const match = (x, y, w, h, out) => pixelmatch(x.data, y.data, out.data, w, h, {threshold: 0.05});
+      if (ma.h <= SURFACE_LIMIT) {
+        const [x, y] = [PNG.sync.read(await a.screenshot({fullPage: true, animations: 'disabled'})), PNG.sync.read(await b.screenshot({fullPage: true, animations: 'disabled'}))];
+        if (x.width !== y.width || x.height !== y.height) { pixels[key] = {size: [x.width, x.height, y.width, y.height]}; continue; }
+        const diff = new PNG({width: x.width, height: x.height});
+        pixels[key] = {differing: match(x, y, x.width, x.height, diff), of: x.width * x.height};
+        if (pixels[key].differing) writeFileSync(path.join(root, `.brief-${key.replace(/\W/g, '_')}.png`), PNG.sync.write(diff));
+      } else {
+        const hide = () => { for (const el of document.querySelectorAll('.app-navbar,.app-masthead')) el.style.visibility = 'hidden'; };
+        await a.evaluate(hide); await b.evaluate(hide);
+        const vh = a.viewportSize().height;
+        let differing = 0; const bands = [];
+        for (let y = 0; y < ma.h; y += vh) {
+          const h = Math.min(vh, ma.h - y), top = Math.min(y, ma.h - vh);
+          const [x1, y1] = [await slice(a, top, y - top, ma.w, h), await slice(b, top, y - top, ma.w, h)];
+          const d = new PNG({width: ma.w, height: h});
+          const n = match(x1, y1, ma.w, h, d);
+          if (n) { differing += n; bands.push({y, h, png: d}); }
+        }
+        pixels[key] = {differing, of: ma.w * ma.h, slices: Math.ceil(ma.h / vh), bands: bands.map(x => x.y)};
+        if (bands.length) {
+          /* Only the slices that differ are written, stacked, each labelled by
+             the scroll position it was read at in the result. */
+          const out = new PNG({width: ma.w, height: bands.reduce((n, x) => n + x.h, 0)});
+          let at = 0;
+          for (const band of bands) { band.png.bitblt(out, 0, 0, ma.w, band.h, 0, at); at += band.h; }
+          writeFileSync(path.join(root, `.brief-${key.replace(/\W/g, '_')}.png`), PNG.sync.write(out));
+        }
+      }
     } catch (e) { pixels[key] = {error: String(e.message).slice(0, 60)}; }
+    finally { if (a) await a.close().catch(() => {}); if (b) await b.close().catch(() => {}); }
   }
   await browser.close(); server.close(); rmSync(base, {recursive: true, force: true});
 }
