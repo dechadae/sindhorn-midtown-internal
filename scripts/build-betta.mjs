@@ -170,7 +170,7 @@ if(missing.length)fail('betta-body.html: unknown placeholders '+[...new Set(miss
 
 const html=docPage({
   title:'Valid By Construction; Taste Not Guaranteed | Sindhorn Midtown',
-  description:'IDUI Test 04, published as 03 Betta: a constitution governing a wallpaper generator. Every sampled seed valid on first generation and deterministic across two languages; the owner’s keep rate unmoved by the constitution, and a model’s taste at chance against the owner’s.',
+  description:'IDUI Test 04, published as 03 Betta: a constitution governing a wallpaper generator. Every sampled seed valid on first generation; keep rate is not an instrument.',
   slug:'betta',
   body:body.trim(),
   comment:`  IDUI Test 04 - Betta, published as 03 Betta, built by scripts/build-betta.mjs from\n  docs/idui/betta-body.html and the states published.json pins, with ${sw}. Library classes only.`,

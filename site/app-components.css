@@ -533,6 +533,11 @@ a.app-list-row{color:inherit;text-decoration:none}
 button.app-list-row{width:100%;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
 button.app-list-row:active{opacity:.9}
 button.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
+/* A row that is a link is the same row: it takes the same ring rather than the
+   user agent's, which arrives in a different colour and geometry on the same
+   shape. Reaches the artwork links in F&B, the Brand links and the document
+   pages' row links (r76). */
+a.app-list-row:focus-visible{outline:2px solid var(--app-accent);outline-offset:-2px}
 /* A picker row (the status sheet): the chosen row carries the accent and a
    check at its end; the others stay the text color. */
 button.app-list-row[aria-pressed="true"]{color:var(--app-accent)}

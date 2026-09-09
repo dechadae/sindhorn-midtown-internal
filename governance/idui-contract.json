@@ -139,6 +139,7 @@
         "icon=off",
         "icon=on",
         "locked=true",
+        "mode=app",
         "mode=close",
         "mode=contents",
         "mode=floating",
@@ -274,7 +275,7 @@
         "assertions": 9
       },
       "scripts/release-brief.mjs": {
-        "sha256": "24cb53f4047853d6",
+        "sha256": "b72183fd51bd5a66",
         "assertions": 0
       },
       "scripts/contract-integrity.mjs": {
@@ -297,7 +298,7 @@
     ],
     "limits": {
       "admittedRoots": 50,
-      "variantValues": 64,
+      "variantValues": 65,
       "variantAttributes": 20,
       "exceptions": {
         "scripts/page-centralization-audit.mjs": 2,

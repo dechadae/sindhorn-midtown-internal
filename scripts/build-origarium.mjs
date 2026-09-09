@@ -84,7 +84,7 @@ const body=read(SRC).replace(/\{\{([\w.]+)\}\}/g,(_m,key)=>{const v=lookup(key);
 if(missing.length){console.error('origarium-body.html: unknown placeholders '+[...new Set(missing)].join(', '));process.exit(1)}
 
 const html=docPage({
-  title:'Architecture Held With Nine Corrections; Editorial Parity Partial | Sindhorn Midtown',
+  title:'Architecture Held; Editorial Parity Partial | Sindhorn Midtown',
   description:'IDUI Test 02: an editorial archive and long-form reader rebuilt on the core. Structural conformance complete, editorial parity partial at seventy per cent, with both scale runs and the rejected candidate kept.',
   slug:'origarium',
   body:body.trim(),

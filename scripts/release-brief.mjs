@@ -141,9 +141,13 @@ async function measurePixels() {
        was built with, twice, so a release that changes nothing else still
        reports a few hundred differing pixels and the number stops meaning
        anything. Hidden on both sides, so a real change to that line would still
-       change the layout around it. */
+       change the layout around it.
+       The badge is masked for a second reason: /idui prints the stamp in its
+       masthead badge, and a slug of a different length changed the page's
+       height, which short-circuits the pixel compare into a size line. The
+       longest route reported nothing but its own height for two releases. */
     await page.evaluate(() => {
-      for (const el of document.querySelectorAll('code, .app-note, .app-metric-value')) {
+      for (const el of document.querySelectorAll('code, .app-note, .app-metric-value, .app-badge')) {
         /* Both forms: the full worker name, and the short v137-slug-r58 that
            build-origarium stamps. */
         if (/(sindhorn-midtown-internal-pwa-)?v\d+-[a-z0-9-]*r\d+/.test(el.textContent || '')) el.style.visibility = 'hidden';
