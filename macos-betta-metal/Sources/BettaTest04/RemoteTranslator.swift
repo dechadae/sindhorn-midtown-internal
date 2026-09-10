@@ -16,6 +16,7 @@ import Security
 /// which is rule two: stop rather than invent.
 struct RemoteTranslator: Translator {
     let name = "studio"
+    let canSee = true
     let endpoint: URL
     let token: String
     let glossaryVersion: Int
@@ -30,16 +31,16 @@ struct RemoteTranslator: Translator {
         let unread: [String]?
     }
 
-    func translate(prompt: String, style: GeneratedStyle) throws -> Turn {
+    func translate(prompt: String, style: GeneratedStyle, frame: Data? = nil) throws -> Turn {
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
-        request.timeoutInterval = timeout
+        request.timeoutInterval = frame == nil ? timeout : timeout * 2
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue(token, forHTTPHeaderField: "X-Studio-Token")
 
         var numbers: [String: Double] = [:]
         for (field, value) in Studio.values(of: style) { numbers[field] = value }
-        let body: [String: Any] = [
+        var body: [String: Any] = [
             "prompt": prompt,
             "style": numbers,
             "parts": style.parts.map { [
@@ -49,6 +50,12 @@ struct RemoteTranslator: Translator {
             ] },
             "glossary": glossaryVersion,
         ]
+        // The frame the owner is looking at. Sent only when asked for: a
+        // picture costs more than a sentence, and the difference is the
+        // owner's to spend.
+        if let frame {
+            body["image"] = frame.base64EncodedString()
+        }
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         // The room is a conversation: a turn is answered before the next one

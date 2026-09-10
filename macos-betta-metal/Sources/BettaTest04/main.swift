@@ -752,9 +752,23 @@ case "--studio-ping":
     let style = SeedSampler.generate(seed: seed, constitution: constitution)
     let remote = RemoteTranslator(endpoint: StudioToken.endpoint, token: token,
                                   glossaryVersion: constitution.version)
+    // --see sends the frame as well as the sentence, the way the room does
+    // when the owner has turned sight on.
+    var eyes: Data? = nil
+    if arguments.contains("--see") {
+        let shot = try? EngineRenderer(rays: 320, segments: 288, sampleCount: 4)
+        let locked = (try? LockedCompositions.load()) ?? [:]
+        let crop = arguments.dropFirst(3).first.flatMap { Int($0) }.flatMap { locked[$0] }
+            ?? locked[8] ?? .neutralLandscape
+        if let rendered = try? shot?.render(
+            style: style, surface: Surface(name: "eye", width: 1280, height: 720),
+            phase: 0, composition: crop
+        ) { eyes = jpegData(rendered) }
+        print("seeing   \(eyes.map { "\($0.count / 1024) KB frame attached" } ?? "frame render failed")")
+    }
     do {
         let started = Date()
-        let turn = try remote.translate(prompt: sentence, style: style)
+        let turn = try remote.translate(prompt: sentence, style: style, frame: eyes)
         print("studio   \(String(format: "%.1fs", Date().timeIntervalSince(started)))  \(turn.note)")
         for name in turn.patch.keys.sorted() {
             let was = Studio.fields[name].map { String(format: "%g", style[keyPath: $0]) } ?? "—"

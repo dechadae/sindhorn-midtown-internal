@@ -27,7 +27,18 @@ enum TranslationError: LocalizedError {
 /// model can replace the local parser without the room noticing.
 protocol Translator {
     var name: String { get }
-    func translate(prompt: String, style: GeneratedStyle) throws -> Turn
+    /// `frame` is the picture on screen, as JPEG, when the owner has asked the
+    /// studio to look. A translator that cannot see ignores it.
+    func translate(prompt: String, style: GeneratedStyle, frame: Data?) throws -> Turn
+    /// Whether sending a frame changes anything for this translator, so the
+    /// room can say plainly when looking is not on offer.
+    var canSee: Bool { get }
+}
+
+extension Translator {
+    func translate(prompt: String, style: GeneratedStyle) throws -> Turn {
+        try translate(prompt: prompt, style: style, frame: nil)
+    }
 }
 
 /// The translator that needs no key, no network and no model.
@@ -44,6 +55,8 @@ protocol Translator {
 /// works when the network does not.
 struct LocalTranslator: Translator {
     let name = "local"
+    /// It reads words, not pictures.
+    let canSee = false
 
     /// Each phrase, the fields it moves, and how. A multiplier scales what is
     /// there; an offset adds; a target sets. Every entry is one line of taste
@@ -88,7 +101,7 @@ struct LocalTranslator: Translator {
     /// `saturation` with a stray prefix.
     private static let fieldNames: [String] = Studio.fields.keys.sorted { $0.count > $1.count }
 
-    func translate(prompt: String, style: GeneratedStyle) throws -> Turn {
+    func translate(prompt: String, style: GeneratedStyle, frame: Data? = nil) throws -> Turn {
         let text = prompt.lowercased()
         var patch: [String: Double] = [:]
         var said: [String] = []
