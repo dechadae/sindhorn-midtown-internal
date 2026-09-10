@@ -1,0 +1,10 @@
+# Build output.
+.build/
+dist/
+
+# Frames and recalls written beside the binary by the command line. The app's
+# own files live in Application Support; anything here is a scratch render.
+recall-*.json
+recall-*.png
+seed-*.png
+studio-*.png
