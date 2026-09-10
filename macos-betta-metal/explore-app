@@ -1,0 +1,59 @@
+#!/bin/bash
+# Builds Betta Explorer.app into dist/ - the `./explore` binary in a bundle
+# you can open from Finder, keep in the Dock, or copy to Applications.
+#
+# The app is whole on its own: constitution-c.json, locked-compositions.json
+# and the engine's Shaders.metal are copied into Contents/Resources and found
+# there first (Packaged.swift), so moving the checkout does not break it. It
+# reads and writes the same folder as the command line:
+#   ~/Library/Application Support/Betta Explorer/
+#
+# Locked compositions are copied, never edited. Ad-hoc signed: built here,
+# for this Mac; it is not notarised and is not meant to be sent anywhere.
+set -euo pipefail
+cd "$(dirname "$0")"
+
+NAME="Betta Explorer"
+APP="dist/$NAME.app"
+ID="com.sindhorn-midtown.betta-explorer"
+SHORT="1.0"                      # matches VerdictStore.build, the `device` column
+BUILD="$(date -u +%Y%m%d%H%M)"
+SHA="$(git rev-parse --short HEAD 2>/dev/null || echo local)"
+
+swift build -c release --product BettaTest04 >/dev/null
+BIN="$(swift build -c release --show-bin-path)/BettaTest04"
+RES="$(swift build -c release --show-bin-path)/BettaMetalLab_BettaTest04.bundle"
+
+rm -rf "$APP"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+cp "$BIN" "$APP/Contents/MacOS/$NAME"
+cp "$RES"/constitution*.json "$RES"/locked-compositions.json "$APP/Contents/Resources/"
+cp Sources/BettaMetalLab/Shaders.metal "$APP/Contents/Resources/"
+
+cat > "$APP/Contents/Info.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleDevelopmentRegion</key><string>en</string>
+  <key>CFBundleExecutable</key><string>$NAME</string>
+  <key>CFBundleIdentifier</key><string>$ID</string>
+  <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+  <key>CFBundleName</key><string>$NAME</string>
+  <key>CFBundleDisplayName</key><string>$NAME</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleShortVersionString</key><string>$SHORT</string>
+  <key>CFBundleVersion</key><string>$BUILD.$SHA</string>
+  <key>LSMinimumSystemVersion</key><string>13.0</string>
+  <key>LSApplicationCategoryType</key><string>public.app-category.graphics-design</string>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSHumanReadableCopyright</key><string>Sindhorn Midtown · Betta</string>
+</dict>
+</plist>
+PLIST
+
+printf 'APPL????' > "$APP/Contents/PkgInfo"
+codesign --force --sign - --identifier "$ID" "$APP" >/dev/null 2>&1
+
+echo "built  $PWD/$APP"
+echo "       $SHORT ($BUILD.$SHA) · $(du -sh "$APP" | cut -f1)"

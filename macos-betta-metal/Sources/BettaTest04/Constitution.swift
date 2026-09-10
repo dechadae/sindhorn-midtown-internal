@@ -183,9 +183,7 @@ struct Constitution: Codable {
 
     /// Loads one arm by name, from beside the default constitution.
     static func loadArm(_ arm: String) throws -> Constitution {
-        guard let url = Bundle.module.url(
-            forResource: "constitution-\(arm.lowercased())", withExtension: "json"
-        ) else {
+        guard let url = Packaged.url("constitution-\(arm.lowercased())", "json") else {
             throw NSError(domain: "BettaTest04", code: 5, userInfo: [
                 NSLocalizedDescriptionKey: "constitution-\(arm).json missing from the bundle"
             ])
@@ -194,7 +192,7 @@ struct Constitution: Codable {
     }
 
     static func loadBundled() throws -> Constitution {
-        guard let url = Bundle.module.url(forResource: "constitution", withExtension: "json") else {
+        guard let url = Packaged.url("constitution", "json") else {
             throw NSError(
                 domain: "BettaTest04",
                 code: 1,

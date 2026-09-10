@@ -29,11 +29,15 @@ final class PreviewWindow: NSObject, NSApplicationDelegate {
     /// so the frames judged are exactly the frames predicted against.
     private var reviewSeeds: [UInt64] = []
     /// Judging mode: each frame is a fresh random seed drawn from one of the
-    /// three arms, rotated silently. The arm is never shown - the judgement has
-    /// to be on the picture, not on which constitution made it.
+    /// arms, rotated silently. The arm is never shown - the judgement has to be
+    /// on the picture, not on which constitution or framing made it.
     private var judging = false
-    private var arms: [Constitution] = []
+    private var rotation: ArmRotation?
     private var currentArm = ""
+    /// Set only while judging. In the locked arms this is one of the owner's
+    /// eight; in a randomised arm it is derived from the seed.
+    private var currentComposition: Composition?
+    private var currentCompositionLabel = ""
     private var judged = 0
     private var kept = 0
     private var log: URL?
@@ -55,10 +59,10 @@ final class PreviewWindow: NSObject, NSApplicationDelegate {
         self.verdictPath = path
     }
 
-    convenience init(judgingWith arms: [Constitution], log: URL, constitution: Constitution) throws {
+    convenience init(judgingWith arms: [JudgeArm], log: URL, constitution: Constitution) throws {
         try self.init(seed: 0, compositionId: nil, constitution: constitution)
         self.judging = true
-        self.arms = arms
+        self.rotation = ArmRotation(arms)
         self.log = log
         nextRandom()
     }
@@ -153,18 +157,36 @@ final class PreviewWindow: NSObject, NSApplicationDelegate {
         return "seed \(seed)  ·  composition \(compositionIds[compositionIndex])  ·  \(presence)  ·  membrane + \(parts)"
     }
 
-    /// A fresh seed from a randomly chosen arm.
+    /// A fresh seed and the next arm in the rotation.
     private func nextRandom() {
-        guard !arms.isEmpty else { return }
+        guard let arm = rotation?.next() else { return }
         var bytes: UInt64 = 0
         _ = withUnsafeMutableBytes(of: &bytes) { SecRandomCopyBytes(kSecRandomDefault, 8, $0.baseAddress!) }
         seed = bytes
-        let arm = arms[Int.random(in: 0..<arms.count)]
-        currentArm = arm.armName
-        style = SeedSampler.generate(seed: seed, constitution: arm)
-        compositionIndex = Int.random(in: 0..<compositionIds.count)
+        currentArm = arm.name
+        style = SeedSampler.generate(seed: seed, constitution: arm.constitution)
+
+        switch arm.framing {
+        case .locked:
+            compositionIndex = Int.random(in: 0..<compositionIds.count)
+            let id = compositionIds[compositionIndex]
+            currentComposition = compositions[id] ?? .neutralLandscape
+            currentCompositionLabel = String(id)
+        case .randomised:
+            // Derived from the seed, so the row reproduces the frame exactly.
+            currentComposition = .randomised(seed: seed)
+            currentCompositionLabel = "r"
+        }
+
         phase = 0
         window?.title = titleText()
+    }
+
+    /// The composition in force. Judging resolves it per arm; browsing and
+    /// review keep walking the locked list.
+    private var activeComposition: Composition {
+        if let currentComposition, judging { return currentComposition }
+        return compositions[compositionIds[compositionIndex]] ?? .neutralLandscape
     }
 
     /// Removes the last recorded verdict, for the inevitable mis-key.
@@ -186,7 +208,7 @@ final class PreviewWindow: NSObject, NSApplicationDelegate {
         guard let log else { return }
         judged += 1
         if verdict == "keep" { kept += 1 }
-        let line = "\(currentArm),\(seed),\(compositionIds[compositionIndex]),\(verdict)\n"
+        let line = "\(currentArm),\(seed),\(currentCompositionLabel),\(verdict)\n"
         if let handle = try? FileHandle(forWritingTo: log) {
             handle.seekToEndOfFile()
             handle.write(line.data(using: .utf8)!)
@@ -281,13 +303,14 @@ final class PreviewWindow: NSObject, NSApplicationDelegate {
 
     private func saveStill() {
         let surface = Surface(name: "still", width: 5120, height: 2880)
-        let composition = compositions[compositionIds[compositionIndex]] ?? .neutralLandscape
+        let composition = activeComposition
         do {
             let still = try EngineRenderer(rays: 640, segments: 576, sampleCount: 4)
             let frame = try still.render(
                 style: style, surface: surface, phase: phase, composition: composition
             )
-            let name = "seed-\(seed)-comp-\(compositionIds[compositionIndex]).png"
+            let label = judging ? currentCompositionLabel : String(compositionIds[compositionIndex])
+            let name = "seed-\(seed)-comp-\(label).png"
             let url = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
                 .appendingPathComponent(name)
             try writePNG(frame, to: url)
@@ -315,10 +338,9 @@ final class PreviewWindow: NSObject, NSApplicationDelegate {
             width: drawable.texture.width,
             height: drawable.texture.height
         )
-        let composition = compositions[compositionIds[compositionIndex]] ?? .neutralLandscape
         renderer.present(
             style: style, surface: surface, phase: phase,
-            composition: composition, drawable: drawable
+            composition: activeComposition, drawable: drawable
         )
     }
 }

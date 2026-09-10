@@ -62,7 +62,7 @@ struct Composition: Codable, Equatable {
 enum LockedCompositions {
     /// Keyed 1...8, matching the reference ids in BettaMetalLab.
     static func load() throws -> [Int: Composition] {
-        guard let url = Bundle.module.url(forResource: "locked-compositions", withExtension: "json") else {
+        guard let url = Packaged.url("locked-compositions", "json") else {
             throw NSError(domain: "BettaTest04", code: 4, userInfo: [
                 NSLocalizedDescriptionKey: "locked-compositions.json missing from the bundle"
             ])

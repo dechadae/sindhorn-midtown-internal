@@ -138,7 +138,7 @@ T04_SHAPE_VERTEX(t04RibbonVertex, t04_ribbonPosition)
 
 /// The five form primitives. The membrane is the engine's; the other four are
 /// Test 04's, and each is a distinct topology rather than a deformation.
-enum FormPrimitive: String, CaseIterable {
+enum FormPrimitive: String, CaseIterable, Codable {
     case membrane
     case prism
     case diamond

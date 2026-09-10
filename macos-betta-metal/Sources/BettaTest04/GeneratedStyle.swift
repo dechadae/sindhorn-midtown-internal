@@ -4,7 +4,7 @@ import simd
 /// One rigid part of the organism: which topology, and where it sits on the
 /// shared body axis. Scale is subordinate to the membrane by construction -
 /// the constitution's partScale never reaches 1.
-struct ShapePart: Equatable {
+struct ShapePart: Equatable, Codable {
     var primitive: FormPrimitive
     var scale: Double
     var orbitRadius: Double
@@ -17,7 +17,12 @@ struct ShapePart: Equatable {
 ///
 /// Framing is deliberately absent - it comes from the owner's eight locked
 /// compositions, and a seed may never move the frame.
-struct GeneratedStyle: Equatable {
+/// A style is `Codable` because a studio style cannot be rebuilt from its
+/// seed: the seed gives the starting point, the patch gives the intent, and
+/// only the resolved numbers are the picture. Written to disk, they are what
+/// lets a patched style be kept, set live and reopened months later - see
+/// `StyleStore`.
+struct GeneratedStyle: Equatable, Codable {
     var seed: UInt64
 
     // Palette: two hue families, four stops.

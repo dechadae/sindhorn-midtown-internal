@@ -1,7 +1,7 @@
 #!/bin/bash
 # Randomize, glance, keep or reject.
 #
-#   ./judge                    logs to judgements.csv here
+#   ./judge                    logs to judgements-r2.csv here
 #   ./judge ~/Desktop/j.csv    logs somewhere else
 #
 #   K              keep this one
@@ -14,9 +14,14 @@
 # Moving on IS the verdict. Skipping without recording would leave keeps with
 # no denominator and every arm scoring 100%.
 #
-# Every frame is a fresh random seed drawn from one of three constitutions,
-# rotated silently and never shown. Judge the picture, not the arm.
+# Round two: four arms, rotated silently in shuffled blocks of four and never
+# shown. Both the constitution and the framing vary now - round one held the
+# framing constant across every arm, which is why it could not see that the
+# framing was the largest effect in the experiment. Judge the picture.
+#
+# The default log is deliberately NOT judgements.csv: round one's 244 rows are
+# a different experimental state and must not be appended to.
 set -euo pipefail
 cd "$(dirname "$0")"
 swift build -c release --product BettaTest04 >/dev/null
-exec "$(swift build -c release --show-bin-path)/BettaTest04" --judge "${1:-judgements.csv}"
+exec "$(swift build -c release --show-bin-path)/BettaTest04" --judge "${1:-judgements-r2.csv}"

@@ -1,0 +1,26 @@
+#!/bin/bash
+# Randomize, glance, keep or no - and make the desktop out of the one in front.
+#
+#   ./explore
+#
+#   K              keep this one
+#   space  or  return   no - move on (counts as a reject)
+#   u              undo the last verdict and bring the frame back
+#   s              save a 5120x2880 still
+#   w              set as the desktop picture on this display   (shift-W: all displays)
+#   l              set live on the desktop                      (shift-L: stop)
+#   a              wallpapers you've used
+#   .              pause the motion
+#   q              quit - a live desktop comes back at the next launch
+#
+# This is the phone's Betta Explorer on the Mac. Verdicts go to the same
+# server table as the phone's (device macos-metal/<build>), queued locally
+# until the server has them; files live in
+# ~/Library/Application Support/Betta Explorer/.
+#
+# Not the judge: the judging experiment is closed and judgements.csv and
+# judgements-r2.csv here are frozen states this never writes to.
+set -euo pipefail
+cd "$(dirname "$0")"
+swift build -c release --product BettaTest04 >/dev/null
+exec "$(swift build -c release --show-bin-path)/BettaTest04" --explore

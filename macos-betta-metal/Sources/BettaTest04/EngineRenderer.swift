@@ -26,11 +26,14 @@ final class EngineRenderer {
     let pixelFormat: MTLPixelFormat
 
     /// The engine's shader source, beside this target rather than inside it.
+    /// Betta Explorer.app carries a copy in Contents/Resources, so the app
+    /// runs without the checkout.
     static var shaderURL: URL {
-        URL(fileURLWithPath: #filePath)
-            .deletingLastPathComponent()      // BettaTest04
-            .deletingLastPathComponent()      // Sources
-            .appendingPathComponent("BettaMetalLab/Shaders.metal")
+        Bundle.main.url(forResource: "Shaders", withExtension: "metal")
+            ?? URL(fileURLWithPath: #filePath)
+                .deletingLastPathComponent()      // BettaTest04
+                .deletingLastPathComponent()      // Sources
+                .appendingPathComponent("BettaMetalLab/Shaders.metal")
     }
 
     /// `rays`/`segments` set mesh density, `sampleCount` is MSAA. The offscreen
@@ -134,7 +137,15 @@ final class EngineRenderer {
 
     // MARK: - Encoding, shared by the offscreen and live paths
 
+    /// The depth and multisample attachments are neither read back nor kept,
+    /// so one of each per size is enough; the live paths ask for the same size
+    /// sixty times a second and a private allocation per frame is what made
+    /// the desktop wait on the GPU. Same pixels either way.
+    private var depthCache: [String: MTLTexture] = [:]
+    private var msaaCache: [String: MTLTexture] = [:]
+
     private func makeDepth(width: Int, height: Int) -> MTLTexture? {
+        if let cached = depthCache["\(width)x\(height)"] { return cached }
         let d = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: .depth32Float, width: width, height: height, mipmapped: false
         )
@@ -144,11 +155,14 @@ final class EngineRenderer {
             d.textureType = .type2DMultisample
             d.sampleCount = sampleCount
         }
-        return device.makeTexture(descriptor: d)
+        let texture = device.makeTexture(descriptor: d)
+        if let texture { depthCache["\(width)x\(height)"] = texture }
+        return texture
     }
 
     private func makeMultisampleColor(width: Int, height: Int) -> MTLTexture? {
         guard sampleCount > 1 else { return nil }
+        if let cached = msaaCache["\(width)x\(height)"] { return cached }
         let d = MTLTextureDescriptor.texture2DDescriptor(
             pixelFormat: pixelFormat, width: width, height: height, mipmapped: false
         )
@@ -156,7 +170,9 @@ final class EngineRenderer {
         d.sampleCount = sampleCount
         d.usage = [.renderTarget]
         d.storageMode = .private
-        return device.makeTexture(descriptor: d)
+        let texture = device.makeTexture(descriptor: d)
+        if let texture { msaaCache["\(width)x\(height)"] = texture }
+        return texture
     }
 
     private func encode(
@@ -257,6 +273,9 @@ final class EngineRenderer {
                includeOrganism: includeOrganism)
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
+        // Offscreen renders are one-shot, often at still size; nothing to keep.
+        depthCache.removeAll()
+        msaaCache.removeAll()
 
         var pixels = [UInt8](repeating: 0, count: surface.width * surface.height * 4)
         pixels.withUnsafeMutableBytes { raw in
@@ -277,13 +296,17 @@ final class EngineRenderer {
         surface: Surface,
         phase: Double,
         composition: Composition,
-        drawable: CAMetalDrawable
+        drawable: CAMetalDrawable,
+        completion: (() -> Void)? = nil
     ) {
-        guard let commandBuffer = queue.makeCommandBuffer() else { return }
+        guard let commandBuffer = queue.makeCommandBuffer() else { completion?(); return }
         encode(into: drawable.texture, commandBuffer: commandBuffer, style: style,
                surface: surface, phase: phase, composition: composition,
                includeOrganism: true)
         commandBuffer.present(drawable)
+        if let completion {
+            commandBuffer.addCompletedHandler { _ in DispatchQueue.main.async(execute: completion) }
+        }
         commandBuffer.commit()
     }
 }
