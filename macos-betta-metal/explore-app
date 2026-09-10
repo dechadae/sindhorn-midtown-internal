@@ -29,6 +29,10 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/$NAME"
 cp "$RES"/constitution*.json "$RES"/locked-compositions.json "$APP/Contents/Resources/"
 cp Sources/BettaMetalLab/Shaders.metal "$APP/Contents/Resources/"
+# The icon is a frame from this engine, not a drawing: icon/icon.json is the
+# patch that makes it, rendered through locked composition 8 and framed so the
+# organism grows off the plate's edge. Regenerate with icon/README.
+cp icon/BettaExplorer.icns "$APP/Contents/Resources/AppIcon.icns"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -38,6 +42,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
   <key>CFBundleDevelopmentRegion</key><string>en</string>
   <key>CFBundleExecutable</key><string>$NAME</string>
   <key>CFBundleIdentifier</key><string>$ID</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
   <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
   <key>CFBundleName</key><string>$NAME</string>
   <key>CFBundleDisplayName</key><string>$NAME</string>
