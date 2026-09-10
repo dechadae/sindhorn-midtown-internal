@@ -48,6 +48,10 @@ final class StudioWindow: NSObject, NSApplicationDelegate, NSTextFieldDelegate {
 
     private var phase: Double = 0
     private var paused = false
+    /// Whether the studio is shown the frame as well as told about it. Off by
+    /// default: a picture costs more than a sentence, and the difference is
+    /// the owner's to spend. Remembered between sittings.
+    private var seeing = UserDefaults.standard.bool(forKey: "studio.seeing")
     private var lastTick = CFAbsoluteTimeGetCurrent()
     private var inFlight = false
 
@@ -84,11 +88,25 @@ final class StudioWindow: NSObject, NSApplicationDelegate, NSTextFieldDelegate {
         )]
     }
 
+    /// Told when a style is kept, so the explorer can jump to it and put it
+    /// on the desktop without the owner going looking.
+    var onKeep: ((StyleRecord) -> Void)?
+
+    /// Runs the studio as the whole application - the command line's path.
     func run() {
         let app = NSApplication.shared
         app.setActivationPolicy(.regular)
         app.delegate = self
         app.run()
+    }
+
+    /// Opens the studio inside an app that is already running - the explorer's
+    /// path. Same window, same keys; it simply does not own the process.
+    func present() {
+        build()
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeFirstResponder(input)
     }
 
     private var composition: Composition {
@@ -98,6 +116,10 @@ final class StudioWindow: NSObject, NSApplicationDelegate, NSTextFieldDelegate {
     // MARK: - Building the room
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        present()
+    }
+
+    private func build() {
         let rect = NSRect(x: 0, y: 0, width: 1500, height: 760)
         window = NSWindow(
             contentRect: rect,
@@ -125,9 +147,6 @@ final class StudioWindow: NSObject, NSApplicationDelegate, NSTextFieldDelegate {
         root.addSubview(stage)
         root.addSubview(rail)
         window.contentView = root
-        window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
-        window.makeFirstResponder(input)
 
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             self?.handle(event) == true ? nil : event
@@ -141,7 +160,7 @@ final class StudioWindow: NSObject, NSApplicationDelegate, NSTextFieldDelegate {
         STUDIO  \(openingPrompt ?? seed)   ·   translator: \(translator.name)
         Type into the rail: "more translucent", "slower", or a field by name - "opacity .42".
         Click any earlier turn to go back to it.
-        ⌘[ ⌘]  crops     ⌘K  keep this style     ⌘S  5K still     ⌘.  pause
+        ⌘[ ⌘]  crops   ⌘K  keep   ⌘S  5K still   ⌘I  let it see the frame   ⌘.  pause
 
         """)
     }
@@ -235,7 +254,8 @@ final class StudioWindow: NSObject, NSApplicationDelegate, NSTextFieldDelegate {
         // A turn always starts from what is on screen, so going back to an
         // earlier turn and asking again branches from there.
         do {
-            let turn = try translator.translate(prompt: prompt, style: current.style)
+            let turn = try translator.translate(prompt: prompt, style: current.style,
+                                                frame: currentFrameImage())
             let applied = Studio.apply(patch: turn.patch, to: current.style)
             let contracts = Contracts.evaluate(style: applied.style, constitution: constitution)
             var detail = "\(applied.changed.count) field\(applied.changed.count == 1 ? "" : "s") · \(turn.note)"
@@ -330,15 +350,18 @@ final class StudioWindow: NSObject, NSApplicationDelegate, NSTextFieldDelegate {
 
     private func updateTitle() {
         let parts = current.style.parts.map(\.primitive.rawValue).joined(separator: " + ")
-        window.title = "studio · \(current.label) · membrane + \(parts)"
+        let eye = seeing && translator.canSee ? " · seeing" : ""
+        window.title = "studio · \(current.label) · membrane + \(parts)\(eye)"
     }
 
     // MARK: - Keys
 
     private func handle(_ event: NSEvent) -> Bool {
         // The rail owns plain typing; the room's keys all take command, so a
-        // sentence with the letter s in it does not save a still.
-        guard event.modifierFlags.contains(.command) else { return false }
+        // sentence with the letter s in it does not save a still. And they
+        // only count while the room is the window in front: the explorer is
+        // listening for its own keys in the same process.
+        guard window?.isKeyWindow == true, event.modifierFlags.contains(.command) else { return false }
         switch event.charactersIgnoringModifiers {
         case "[":
             compositionIndex = (compositionIndex + lockedIds.count - 1) % lockedIds.count
@@ -350,7 +373,41 @@ final class StudioWindow: NSObject, NSApplicationDelegate, NSTextFieldDelegate {
         case "r": phase = 0; return true
         case "s": saveStill(); return true
         case "k": keepStyle(); return true
+        case "i": toggleSeeing(); return true
         default: return false
+        }
+    }
+
+    /// Lets the studio look at the frame, or stops it.
+    private func toggleSeeing() {
+        guard translator.canSee else {
+            note("The local translator reads words, not pictures.")
+            return
+        }
+        seeing.toggle()
+        UserDefaults.standard.set(seeing, forKey: "studio.seeing")
+        footer.stringValue = seeing
+            ? "the studio can see the frame — costs more per turn (⌘I)"
+            : "the studio is told, not shown (⌘I)"
+        updateTitle()
+    }
+
+    /// The frame as the owner sees it: same style, same crop, same moment.
+    /// Rendered fresh rather than reusing the drawable, because the drawable
+    /// belongs to the screen and a JPEG of it would be a screenshot of a
+    /// window rather than a picture of the work.
+    private func currentFrameImage() -> Data? {
+        guard seeing, translator.canSee else { return nil }
+        do {
+            let shot = try EngineRenderer(rays: 320, segments: 288, sampleCount: 4)
+            let rendered = try shot.render(
+                style: current.style,
+                surface: Surface(name: "studio-eye", width: 1280, height: 720),
+                phase: phase, composition: composition
+            )
+            return jpegData(rendered)
+        } catch {
+            return nil
         }
     }
 
@@ -364,6 +421,7 @@ final class StudioWindow: NSObject, NSApplicationDelegate, NSTextFieldDelegate {
         )
         footer.stringValue = "kept as \(record.id) · Betta Explorer › Explore › Studio Styles"
         print("kept style \(record.id)  \(record.prompt)")
+        onKeep?(record)
         StyleStore.upload(record) { [weak self] ok in
             DispatchQueue.main.async {
             guard let self else { return }

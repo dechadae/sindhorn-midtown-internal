@@ -33,6 +33,8 @@ final class Explorer: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var statusMenu = NSMenu()
     /// Filled on open, so a style kept a minute ago is already in the list.
     private var stylesMenu = NSMenu(title: "Studio Styles")
+    /// The studio, while it is open. Held here or it would deallocate.
+    private var studio: StudioWindow?
 
     private var frame = FrameRef(seed: "0", composition: "r")
     private var style: GeneratedStyle
@@ -123,6 +125,7 @@ final class Explorer: NSObject, NSApplicationDelegate, NSMenuDelegate {
         s              save a 5120x2880 still to Application Support/Betta Explorer/stills
         w              set this frame as the desktop picture on this display   (⇧W all displays)
         l              set this frame live on the desktop                      (⇧L stop live)
+        ⌘N             open this frame in the studio and ask for a change
         g              go to a seed or a studio style  (⌘G; [ ] then walk the crops)
         a              wallpapers you've used
         .              pause the motion
@@ -193,6 +196,7 @@ final class Explorer: NSObject, NSApplicationDelegate, NSMenuDelegate {
         explore.addItem(item("Set Live on Desktop", #selector(setLive), "l"))
         explore.addItem(item("Stop Live", #selector(stopLive), "L", .shift))
         explore.addItem(.separator())
+        explore.addItem(item("Open in Studio…", #selector(openStudio), "n", .command))
         explore.addItem(item("Go to Seed or Style…", #selector(goToSeed), "g", .command))
         let styles = NSMenuItem(title: "Studio Styles", action: nil, keyEquivalent: "")
         stylesMenu.delegate = self
@@ -247,7 +251,8 @@ final class Explorer: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         menu.addItem(.separator())
         menu.addItem(item("Show Explorer", #selector(showExplorer), ""))
-        menu.addItem(item("Go to Seed…", #selector(goToSeed), ""))
+        menu.addItem(item("Open in Studio…", #selector(openStudio), ""))
+        menu.addItem(item("Go to Seed or Style…", #selector(goToSeed), ""))
         if live.isOn { menu.addItem(item("Stop Live", #selector(stopLive), "")) }
         menu.addItem(item("Wallpapers You've Used…", #selector(showArchive), ""))
         menu.addItem(.separator())
@@ -264,6 +269,45 @@ final class Explorer: NSObject, NSApplicationDelegate, NSMenuDelegate {
         composition = f.resolveComposition(locked: locked)
         phase = 0
         updateTitle()
+    }
+
+    /// Opens the studio on the frame currently on screen.
+    ///
+    /// The explorer finds; the studio asks. Handing it the frame rather than a
+    /// blank page is the point: a seed the owner has just looked at and liked
+    /// is exactly what they want to change one thing about.
+    @objc private func openStudio() {
+        if let studio {
+            studio.present()
+            return
+        }
+        do {
+            let room = try StudioWindow(
+                applied: Studio.Applied(
+                    name: frame.identity,
+                    prompt: frame.style.flatMap { StyleStore.load(id: $0)?.prompt }
+                        ?? "seed \(frame.seed)",
+                    style: style, changed: [], unknown: [],
+                    contracts: Contracts.evaluate(style: style, constitution: constitution)
+                ),
+                compositionId: Int(frame.composition),
+                stillDirectory: ExplorerStorage.root.appendingPathComponent("stills", isDirectory: true),
+                constitution: constitution,
+                seed: frame.seedValue ?? 0
+            )
+            // A kept style comes straight back to the explorer, so W and L
+            // work on it without going looking for it in a menu.
+            room.onKeep = { [weak self] record in
+                guard let self else { return }
+                self.show(FrameRef(seed: record.seed, composition: self.frame.composition,
+                                   style: record.id), lookedUp: true)
+                self.say("Kept — W for the desktop, L for live")
+            }
+            studio = room
+            room.present()
+        } catch {
+            say("The studio could not open: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Going to a seed
@@ -403,9 +447,10 @@ final class Explorer: NSObject, NSApplicationDelegate, NSMenuDelegate {
         updateTitle()
     }
 
-    /// Verdict keys do not count while the archive is the window in front:
-    /// a key pressed there must not judge a frame no one is looking at.
-    private var explorerIsKey: Bool { !(archiveWindow?.isKeyWindow ?? false) }
+    /// Verdict keys count only while the explorer is the window in front. A
+    /// key pressed in the archive, or typed into the studio's rail, must not
+    /// judge a frame no one is looking at.
+    private var explorerIsKey: Bool { window?.isKeyWindow == true }
 
     // MARK: - The desktop
 
