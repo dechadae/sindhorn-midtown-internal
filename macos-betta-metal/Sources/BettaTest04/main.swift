@@ -152,7 +152,9 @@ func runNegativeControls() {
 }
 
 let arguments = CommandLine.arguments.dropFirst()
-let mode = arguments.first ?? "--tier-a"
+// Betta Explorer.app is this binary launched from Finder, which passes no
+// mode; the command line keeps its Tier A default.
+let mode = arguments.first ?? (Packaged.isApp ? "--explore" : "--tier-a")
 let requestedCount = arguments.dropFirst().first.flatMap { UInt64($0) }
 
 switch mode {
@@ -279,21 +281,557 @@ case "--blind-set":
         FileHandle.standardError.write("Blind set failed: \(error)\n".data(using: .utf8)!)
         exit(2)
     }
+case "--recall":
+    // Recover one judged frame from its row. A judgement records the arm, the
+    // seed and the framing, and every one of those reproduces exactly - so a
+    // frame the owner liked is recoverable months later without having had the
+    // presence of mind to press `s` at the time.
+    //
+    //   --recall <arm> <seed> [composition]
+    //
+    // `composition` is the id for a locked arm and is ignored for a randomised
+    // one, where the framing comes from the seed.
+    let args = Array(arguments.dropFirst())
+    guard args.count >= 2, let recallSeed = UInt64(args[1]) else {
+        FileHandle.standardError.write(
+            "usage: --recall <arm> <seed> [composition]\n".data(using: .utf8)!)
+        exit(2)
+    }
+    do {
+        let armName = args[0]
+        let resolved = try Recall.resolve(
+            arm: armName, seed: recallSeed,
+            compositionId: args.count >= 3 ? Int(args[2]) : nil
+        )
+        let recalled = resolved.style
+        let composition = resolved.composition
+        let framingNote = resolved.framingNote
+
+        print("""
+        arm \(armName)   seed \(recallSeed)
+        framing: \(framingNote)
+
+          scale      \(String(format: "%8.4f", composition.scale))
+          x          \(String(format: "%8.4f", composition.x))
+          y          \(String(format: "%8.4f", composition.y))
+          z          \(String(format: "%8.4f", composition.z))
+          rotationX  \(String(format: "%8.4f", composition.rotationX))
+          rotationY  \(String(format: "%8.4f", composition.rotationY))
+          rotationZ  \(String(format: "%8.4f", composition.rotationZ))
+
+        organism: membrane + \(recalled.parts.map(\.primitive.rawValue).joined(separator: " + "))
+        presence: \(recalled.exitDistance > 0 ? "departed" : "present")   \
+        motion speed \(String(format: "%.3f", recalled.motionSpeed))
+        """)
+
+        // JSON beside the still, in the same shape as locked-compositions.json
+        // so it can be pasted straight into the editor if it earns a slot.
+        let json = """
+        {
+          "arm": "\(armName)",
+          "seed": "\(recallSeed)",
+          "framing": "\(framingNote)",
+          "composition": {
+            "scale": \(composition.scale),
+            "x": \(composition.x),
+            "y": \(composition.y),
+            "z": \(composition.z),
+            "rotationX": \(composition.rotationX),
+            "rotationY": \(composition.rotationY),
+            "rotationZ": \(composition.rotationZ)
+          }
+        }
+        """
+        let base = "recall-\(recallSeed)"
+        try json.write(toFile: "\(base).json", atomically: true, encoding: .utf8)
+
+        let still = try EngineRenderer(rays: 640, segments: 576, sampleCount: 4)
+        let frame = try still.render(
+            style: recalled,
+            surface: Surface(name: "recall", width: 5120, height: 2880),
+            phase: 0, composition: composition
+        )
+        try writePNG(frame, to: URL(fileURLWithPath: "\(base).png"))
+        print("\nwrote \(base).png and \(base).json")
+    } catch {
+        FileHandle.standardError.write("recall failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
+
+case "--keep":
+    // Keeps a judged frame's composition as a named candidate.
+    //
+    //   --keep <arm> <seed> <name> [composition] [note]
+    //
+    // Writes to kept-compositions.json only. The locked eight are never
+    // touched; promoting one of these into that set is the owner's call, made
+    // in the composition editor.
+    let keepArgs = Array(arguments.dropFirst())
+    guard keepArgs.count >= 3, let keptSeed = UInt64(keepArgs[1]) else {
+        FileHandle.standardError.write(
+            "usage: --keep <arm> <seed> <name> [composition] [note]\n".data(using: .utf8)!)
+        exit(2)
+    }
+    do {
+        let compositionId = keepArgs.count >= 4 ? Int(keepArgs[3]) : nil
+        let resolved = try Recall.resolve(
+            arm: keepArgs[0], seed: keptSeed, compositionId: compositionId
+        )
+        var store = KeptCompositions.load()
+        let existing = store.kept.contains { $0.seed == String(keptSeed) }
+        store.add(KeptComposition(
+            name: keepArgs[2],
+            seed: String(keptSeed),
+            arm: keepArgs[0],
+            framing: resolved.framingNote,
+            keptOn: Recall.today,
+            note: keepArgs.count >= 5 ? keepArgs[4] : nil,
+            composition: resolved.composition
+        ))
+        try store.save()
+        print("""
+        \(existing ? "updated" : "kept") "\(keepArgs[2])"  ·  seed \(keptSeed)  ·  \(resolved.framingNote)
+        \(store.kept.count) composition\(store.kept.count == 1 ? "" : "s") in \(KeptCompositions.url.lastPathComponent)
+        """)
+    } catch {
+        FileHandle.standardError.write("keep failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
+
+case "--dump-arm":
+    // `name=<IEEE-754 bits>` for every numeric field of a given arm's styles.
+    //
+    // Keyed by name rather than positional, because the JS port this is checked
+    // against builds its object in the initialiser's order while Mirror walks
+    // the declaration's - a positional diff would report a field ordering as an
+    // arithmetic divergence. Bits, not decimals, for the reason dumpSeeds gives.
+    do {
+        let dumpArgs = Array(arguments.dropFirst())
+        let constitution = try Constitution.loadArm(dumpArgs.first ?? "c")
+        let howMany = dumpArgs.count > 1 ? (UInt64(dumpArgs[1]) ?? 200) : 200
+        for seed in 0..<howMany {
+            let style = SeedSampler.generate(seed: seed, constitution: constitution)
+            var fields: [String] = []
+            for child in Mirror(reflecting: style).children {
+                guard let label = child.label else { continue }
+                if let d = child.value as? Double {
+                    fields.append("\(label)=\(String(format: "%016llx", d.bitPattern))")
+                }
+            }
+            // The parts array is a topology decision, so it is checked too.
+            for (i, part) in style.parts.enumerated() {
+                fields.append("part\(i).primitive=\(part.primitive.rawValue)")
+                for (name, value) in [
+                    ("scale", part.scale), ("orbitRadius", part.orbitRadius),
+                    ("orbitAngleDeg", part.orbitAngleDeg), ("tiltDeg", part.tiltDeg),
+                    ("phaseOffset", part.phaseOffset),
+                ] {
+                    fields.append("part\(i).\(name)=\(String(format: "%016llx", value.bitPattern))")
+                }
+            }
+            print("\(seed) " + fields.sorted().joined(separator: " "))
+        }
+    } catch {
+        FileHandle.standardError.write("dump-arm failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
+
+case "--variety":
+    // Keeper rate cannot tell a wide space that lands well apart from a narrow
+    // space that only ever makes one picture. This measures the second thing
+    // directly: how far apart two frames from the same arm actually are, in
+    // the parameter space the shader consumes.
+    //
+    // Tier A - pure arithmetic, no GPU, no rating. Reported separately from
+    // anything rendered, per the protocol.
+    do {
+        func vector(_ style: GeneratedStyle) -> [Double] {
+            Mirror(reflecting: style).children.compactMap { child in
+                if let d = child.value as? Double { return d }
+                if let f = child.value as? Float { return Double(f) }
+                if let i = child.value as? Int { return Double(i) }
+                return nil
+            }
+        }
+
+        let sampleSize = 400
+        var vectors: [String: [[Double]]] = [:]
+        for name in ["a", "b", "c"] {
+            let constitution = try Constitution.loadArm(name)
+            var rng = SplitMix64(seed: 0x0AC7_1E70_0000_0001)
+            vectors[name] = (0..<sampleSize).map { _ in
+                vector(SeedSampler.generate(seed: rng.nextRaw(), constitution: constitution))
+            }
+        }
+
+        // Normalise each dimension by the widest span ANY arm reaches in it.
+        //
+        // Normalising by one arm's span is wrong: arm A pins exitDistance at 0,
+        // so that dimension had no denominator and C's 7-13 world units entered
+        // the distance raw, dwarfing the parameters that live in [0,1]. That
+        // alone reported C at 236% of A. Per-dimension max makes every axis a
+        // fraction of itself and comparable to every other.
+        let width = vectors["a"]!.first!.indices.map { i -> Double in
+            let span = ["a", "b", "c"].map { arm -> Double in
+                let column = vectors[arm]!.map { $0[i] }
+                return (column.max() ?? 0) - (column.min() ?? 0)
+            }.max() ?? 0
+            return span > 0 ? span : 1
+        }
+
+        print("output variety, \(sampleSize) seeds per arm, \(width.count) dimensions\n")
+        print("  arm   mean pairwise distance   relative to the widest")
+        var reference = 0.0
+        for name in ["a", "b", "c"] {
+            let v = vectors[name]!
+            var total = 0.0, pairs = 0
+            for i in 0..<v.count {
+                for j in (i + 1)..<v.count {
+                    var sum = 0.0
+                    for d in v[i].indices {
+                        let delta = (v[i][d] - v[j][d]) / width[d]
+                        sum += delta * delta
+                    }
+                    total += sum.squareRoot(); pairs += 1
+                }
+            }
+            let mean = total / Double(pairs)
+            if name == "a" { reference = mean }
+            print(String(format: "  %@     %18.4f   %20.1f%%",
+                         name.uppercased(), mean, mean / reference * 100))
+        }
+    } catch {
+        FileHandle.standardError.write("variety failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
+
+case "--verify-arms":
+    // The C pair is only a clean comparison if the organism is identical in
+    // both and only the crop moves. Round one shipped a comparison that was
+    // measuring something other than what it claimed, so this is checked
+    // rather than asserted.
+    do {
+        let c = try Constitution.loadArm("c")
+        var rng = SplitMix64(seed: 0x5EED_0F_A2)
+        var styleMismatch = 0, outOfBox = 0, nondeterministic = 0
+        let trials = 20_000
+        for _ in 0..<trials {
+            let seed = rng.nextRaw()
+            // Both C arms name the same constitution, so the style must not
+            // depend on which framing the arm asked for.
+            if SeedSampler.generate(seed: seed, constitution: c)
+                != SeedSampler.generate(seed: seed, constitution: c) { styleMismatch += 1 }
+
+            let f = Composition.randomised(seed: seed)
+            if Composition.randomised(seed: seed) != f { nondeterministic += 1 }
+
+            let inBox =
+                Composition.Envelope.scale.contains(Double(f.scale)) &&
+                Composition.Envelope.x.contains(Double(f.x)) &&
+                Composition.Envelope.y.contains(Double(f.y)) &&
+                Composition.Envelope.z.contains(Double(f.z)) &&
+                Composition.Envelope.rotationX.contains(Double(f.rotationX)) &&
+                Composition.Envelope.rotationY.contains(Double(f.rotationY)) &&
+                Composition.Envelope.rotationZ.contains(Double(f.rotationZ))
+            if !inBox { outOfBox += 1 }
+        }
+
+        // A locked composition must never be reachable by the randomised arm,
+        // or the two C arms would sometimes be the same experiment.
+        let locked = try LockedCompositions.load()
+        var collisions = 0
+        for _ in 0..<trials {
+            let f = Composition.randomised(seed: rng.nextRaw())
+            if locked.values.contains(f) { collisions += 1 }
+        }
+
+        var rotation = ArmRotation([
+            JudgeArm(name: "A", constitution: c, framing: .randomised),
+            JudgeArm(name: "B", constitution: c, framing: .locked),
+            JudgeArm(name: "C-locked", constitution: c, framing: .locked),
+            JudgeArm(name: "C-random", constitution: c, framing: .randomised)
+        ])
+        var counts: [String: Int] = [:]
+        var worstBlockSkew = 0
+        for block in 0..<50 {
+            for _ in 0..<4 { counts[rotation.next()!.name, default: 0] += 1 }
+            let expected = block + 1
+            worstBlockSkew = max(worstBlockSkew, counts.values.map { abs($0 - expected) }.max() ?? 0)
+        }
+
+        print("""
+        arm verification, \(trials) trials
+
+          style identical across the C pair      \(styleMismatch == 0 ? "PASS" : "FAIL \(styleMismatch)")
+          randomised framing is deterministic    \(nondeterministic == 0 ? "PASS" : "FAIL \(nondeterministic)")
+          randomised framing inside the envelope \(outOfBox == 0 ? "PASS" : "FAIL \(outOfBox)")
+          randomised never hits a locked crop    \(collisions == 0 ? "PASS" : "FAIL \(collisions)")
+          arms level at every block boundary     \(worstBlockSkew == 0 ? "PASS" : "FAIL skew \(worstBlockSkew)")
+
+          after 200 frames: \(counts.sorted { $0.key < $1.key }.map { "\($0.key) \($0.value)" }.joined(separator: "   "))
+        """)
+        exit(styleMismatch + nondeterministic + outOfBox + collisions + worstBlockSkew == 0 ? 0 : 1)
+    } catch {
+        FileHandle.standardError.write("verify failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
+
 case "--judge":
     // The product and the instrument are the same thing: randomize, glance,
     // keep or reject. Frames are drawn from the three arms in silent rotation,
     // so the comparison accumulates as a byproduct of ordinary use.
-    let logPath = arguments.dropFirst().first ?? "judgements.csv"
+    // Round two. Framing is now a factor rather than a constant, because in
+    // round one it was the largest effect in the experiment and nothing was
+    // set up to measure it. Each pair of arms differs in exactly one thing:
+    //
+    //   A         vs  C-random   constitution, framing randomised in both
+    //   B         vs  C-locked   allowlist against exclusions, framing locked
+    //   C-locked  vs  C-random   framing, constitution held constant
+    //
+    // A new log: this is a different experimental state and the round-one rows
+    // are not comparable to it.
+    let logPath = arguments.dropFirst().first ?? "judgements-r2.csv"
     do {
-        let arms = try ["a", "b", "c"].map { try Constitution.loadArm($0) }
+        let a = try Constitution.loadArm("a")
+        let b = try Constitution.loadArm("b")
+        let c = try Constitution.loadArm("c")
+        let arms = [
+            JudgeArm(name: "A", constitution: a, framing: .randomised),
+            JudgeArm(name: "B", constitution: b, framing: .locked),
+            JudgeArm(name: "C-locked", constitution: c, framing: .locked),
+            JudgeArm(name: "C-random", constitution: c, framing: .randomised)
+        ]
         let judge = try PreviewWindow(
             judgingWith: arms,
             log: URL(fileURLWithPath: logPath),
-            constitution: arms[0]
+            constitution: c
         )
         judge.run()
     } catch {
         FileHandle.standardError.write("Judge failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
+case "--explore":
+    // The phone's explorer on the Mac: randomize, keep or no, and the frame
+    // in front becomes the desktop - still or live - with one key. Verdicts
+    // go to the same server table as the phone's, device `macos-metal/*`.
+    // Arm C only; the judging experiment is closed and its logs are frozen.
+    setvbuf(stdout, nil, _IOLBF, 0)
+    do {
+        let explorer = try Explorer(constitution: try Constitution.loadArm("c"))
+        explorer.run()
+    } catch {
+        FileHandle.standardError.write("Explorer failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
+case "--studio":
+    // Words translated to numbers, laid over a seed's style, judged by the same
+    // contracts and drawn by the same engine. The still goes beside the patch;
+    // the window then shows the same style moving.
+    //   --studio <patch.json> [seed] [composition] [--still-only]
+    setvbuf(stdout, nil, _IOLBF, 0)
+    let patchPath = arguments.dropFirst().first ?? "studio.json"
+    let seed = arguments.dropFirst(2).first.flatMap { UInt64($0) } ?? 0
+    let compArg = arguments.dropFirst(3).first.flatMap { Int($0) }
+    let stillOnly = arguments.contains("--still-only")
+    let constitution = loadConstitution()
+    do {
+        let patchURL = URL(fileURLWithPath: patchPath)
+        let applied = try Studio.apply(patchAt: patchURL, seed: seed, constitution: constitution)
+        let locked = try LockedCompositions.load()
+        let composition = compArg.flatMap { locked[$0] } ?? locked[locked.keys.sorted()[0]] ?? .neutralLandscape
+        let stillURL = patchURL.deletingPathExtension().appendingPathExtension("png")
+        // The window's `s` key saves at 5120x2880; a patch that has earned a
+        // wallpaper deserves the same from the command line.
+        let big = arguments.contains("--5k")
+        try Studio.still(applied, composition: composition, to: stillURL,
+                         width: big ? 5120 : 2560, height: big ? 2880 : 1440)
+        let parts = applied.style.parts.map(\.primitive.rawValue).joined(separator: "+")
+        print("studio   \(applied.name)  over seed \(seed)  composition \(compArg ?? locked.keys.sorted()[0])")
+        print("set      \(applied.changed.count) fields  membrane+\(parts)")
+        if !applied.unknown.isEmpty { print("unknown  \(applied.unknown.joined(separator: ", "))") }
+        print("judge    \(applied.contracts.isValid ? "T1-T6 pass" : applied.contracts.violations.map(\.rawValue).joined(separator: " "))")
+        // T4 only says a number left the constitution. The studio is allowed to
+        // leave it - the words are the brief, not the sampler - so name every
+        // departure and let the owner weigh it.
+        let departures = Studio.departures(of: applied.style, from: constitution)
+        if !departures.isEmpty {
+            print("outside  \(departures.count) of 44 numbers are outside the explorer's constitution:")
+            for line in departures { print("         \(line)") }
+        }
+        if arguments.contains("--values") {
+            // What the style holds now, patch-ready. A studio turn starts from
+            // these numbers, so they are printed in the shape a patch takes.
+            for (name, value) in Studio.values(of: applied.style) {
+                let mark = applied.changed.contains(name) ? "*" : " "
+                print("  \(mark) \"\(name)\": \(String(format: "%g", value)),")
+            }
+            let parts = applied.style.parts.map {
+                "\($0.primitive.rawValue) scale \(String(format: "%g", $0.scale)) r \(String(format: "%g", $0.orbitRadius)) angle \(String(format: "%g", $0.orbitAngleDeg)) tilt \(String(format: "%g", $0.tiltDeg))"
+            }
+            for part in parts { print("    part: \(part)") }
+        }
+        print("still    \(stillURL.path)")
+        if arguments.contains("--keep") {
+            // The style joins the app: kept by its own numbers, so it can be
+            // set live and reopened without this patch file or this command.
+            let record = StyleStore.save(
+                style: applied.style, seed: String(seed),
+                prompt: applied.prompt ?? applied.name,
+                constitution: constitution.version,
+                patch: (try? String(contentsOf: patchURL, encoding: .utf8)) ?? ""
+            )
+            print("kept     style \(record.id)  ·  Betta Explorer › Explore › Studio Styles")
+            // The file on disk is the record; this is the copy the phone can
+            // reach. A style that does not arrive is not lost.
+            let waiting = DispatchSemaphore(value: 0)
+            StyleStore.upload(record) { ok in
+                print(ok ? "synced   betta_styles" : "not synced  (the file is kept; try again later)")
+                waiting.signal()
+            }
+            _ = waiting.wait(timeout: .now() + 25)
+        }
+        if !stillOnly {
+            let window = try StudioWindow(
+                applied: applied, compositionId: compArg,
+                stillDirectory: patchURL.deletingLastPathComponent(),
+                constitution: constitution, seed: seed
+            )
+            window.run()
+        }
+    } catch {
+        FileHandle.standardError.write("Studio failed: \(error)\n".data(using: .utf8)!)
+        exit(2)
+    }
+case "--glossary":
+    // The model's brief, generated from the constitution so it cannot go
+    // stale. Written beside the sources for review; the app builds its own
+    // copy at run time.
+    //   --glossary [path]
+    let constitution = loadConstitution()
+    let brief = Glossary.build(constitution: constitution)
+    let data = try! JSONSerialization.data(withJSONObject: brief, options: [.prettyPrinted, .sortedKeys])
+    if let path = arguments.dropFirst().first, !path.hasPrefix("--") {
+        try? data.write(to: URL(fileURLWithPath: path))
+        print("glossary v\(constitution.version) · \(Studio.fields.count) fields · \(path)")
+    } else {
+        print(String(data: data, encoding: .utf8)!)
+    }
+case "--studio-token":
+    // The shared secret the Mac sends to the Edge Function, kept in the
+    // Keychain rather than in a file beside the app.
+    //   --studio-token <value>     store it
+    //   --studio-token --forget    remove it
+    //   --studio-token             say whether one is there
+    let value = arguments.dropFirst().first
+    if value == "--forget" {
+        StudioToken.write("")
+        print("studio token removed · the room falls back to the local translator")
+    } else if let value, !value.isEmpty {
+        let ok = StudioToken.write(value)
+        print(ok
+              ? "studio token stored in the Keychain · the room will use \(StudioToken.endpoint.lastPathComponent)"
+              : "could not write to the Keychain")
+        if !ok { exit(2) }
+    } else {
+        print(StudioToken.read() == nil
+              ? "no studio token · the room uses the local translator"
+              : "studio token present · the room uses \(StudioToken.endpoint.absoluteString)")
+    }
+case "--studio-ping":
+    // One turn through the Edge Function, printed - how the deployment is
+    // checked without opening the room.
+    //   --studio-ping "<sentence>" [seed]
+    let sentence = arguments.dropFirst().first ?? "more translucent"
+    let seed = arguments.dropFirst(2).first.flatMap { UInt64($0) } ?? 0
+    let constitution = loadConstitution()
+    guard let token = StudioToken.read() else {
+        print("no studio token · run --studio-token <value> first")
+        exit(2)
+    }
+    let style = SeedSampler.generate(seed: seed, constitution: constitution)
+    let remote = RemoteTranslator(endpoint: StudioToken.endpoint, token: token,
+                                  glossaryVersion: constitution.version)
+    do {
+        let started = Date()
+        let turn = try remote.translate(prompt: sentence, style: style)
+        print("studio   \(String(format: "%.1fs", Date().timeIntervalSince(started)))  \(turn.note)")
+        for name in turn.patch.keys.sorted() {
+            let was = Studio.fields[name].map { String(format: "%g", style[keyPath: $0]) } ?? "—"
+            print("  \(name): \(was) → \(String(format: "%g", turn.patch[name]!))")
+        }
+        if !turn.unread.isEmpty { print("refused  \(turn.unread.joined(separator: ", "))") }
+        let applied = Studio.apply(patch: turn.patch, to: style)
+        let result = Contracts.evaluate(style: applied.style, constitution: constitution)
+        print("judge    \(result.isValid ? "T1-T6 pass" : result.violations.map(\.rawValue).joined(separator: " "))")
+    } catch {
+        print("no       \(error.localizedDescription)")
+        exit(1)
+    }
+case "--translate":
+    // Words to numbers, printed - the room's first half without the room.
+    //   --translate "<sentence>" [seed]
+    let sentence = arguments.dropFirst().first ?? ""
+    let seed = arguments.dropFirst(2).first.flatMap { UInt64($0) } ?? 0
+    let constitution = loadConstitution()
+    let style = SeedSampler.generate(seed: seed, constitution: constitution)
+    do {
+        let turn = try LocalTranslator().translate(prompt: sentence, style: style)
+        print("said     \(turn.note)")
+        for name in turn.patch.keys.sorted() {
+            let was = Studio.fields[name].map { style[keyPath: $0] }
+            let from = was.map { String(format: "%g", $0) } ?? "—"
+            print("  \(name): \(from) → \(String(format: "%g", turn.patch[name]!))")
+        }
+        if !turn.unread.isEmpty { print("unread   \(turn.unread.joined(separator: ", "))") }
+        let applied = Studio.apply(patch: turn.patch, to: style)
+        let result = Contracts.evaluate(style: applied.style, constitution: constitution)
+        print("judge    \(result.isValid ? "T1-T6 pass" : result.violations.map(\.rawValue).joined(separator: " "))")
+    } catch {
+        print("no       \(error.localizedDescription)")
+    }
+case "--style":
+    // A kept style, drawn from the store rather than from a patch: the proof
+    // that a studio picture survives without the file that made it.
+    //   --style <id> [composition] [--still-only] [--5k]
+    setvbuf(stdout, nil, _IOLBF, 0)
+    let styleId = arguments.dropFirst().first ?? ""
+    let compArg = arguments.dropFirst(2).first.flatMap { Int($0) }
+    guard let record = StyleStore.load(id: styleId) else {
+        FileHandle.standardError.write("No style \(styleId)\n".data(using: .utf8)!)
+        let kept = StyleStore.all()
+        if !kept.isEmpty {
+            print("kept styles:")
+            for r in kept { print("  \(r.id)  \(r.prompt)") }
+        }
+        exit(2)
+    }
+    do {
+        let locked = try LockedCompositions.load()
+        let composition = compArg.flatMap { locked[$0] } ?? locked[8] ?? .neutralLandscape
+        let applied = Studio.Applied(
+            name: record.id, prompt: record.prompt, style: record.style,
+            changed: [], unknown: [],
+            contracts: Contracts.evaluate(style: record.style, constitution: loadConstitution())
+        )
+        let out = URL(fileURLWithPath: arguments.dropFirst(3).first(where: { !$0.hasPrefix("--") })
+                      ?? StyleStore.url(for: record.id).deletingPathExtension().appendingPathExtension("png").path)
+        let big = arguments.contains("--5k")
+        try Studio.still(applied, composition: composition, to: out,
+                         width: big ? 5120 : 2560, height: big ? 2880 : 1440)
+        print("style    \(record.id)  \(record.prompt)")
+        print("from     seed \(record.seed) · constitution v\(record.constitution) · kept \(record.createdAt)")
+        print("still    \(out.path)")
+        if !arguments.contains("--still-only") {
+            let window = try StudioWindow(
+                applied: applied, compositionId: compArg,
+                stillDirectory: out.deletingLastPathComponent(),
+                constitution: loadConstitution(), seed: UInt64(record.seed) ?? 0
+            )
+            window.run()
+        }
+    } catch {
+        FileHandle.standardError.write("Style failed: \(error)\n".data(using: .utf8)!)
         exit(2)
     }
 case "--review":
@@ -494,6 +1032,7 @@ default:
       BettaTest04 --dump-seeds [count]    emit styles as CSV for cross-platform diffing
       BettaTest04 --negative-controls     prove each rendered contract can fail
       BettaTest04 --preview [seed] [1-8]  live window; watch the motion
+      BettaTest04 --explore               randomize, keep or no, set the desktop still or live
     """)
     exit(64)
 }

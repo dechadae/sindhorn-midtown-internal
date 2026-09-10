@@ -1,0 +1,429 @@
+{
+  "_" : "Typical ranges are what the explorer's constitution samples. They are NOT limits. A studio patch may leave them; it may never leave the gamut.",
+  "contracts" : {
+    "T1" : "every number finite",
+    "T2" : "hues 0-360; saturations and lightnesses 0-1",
+    "T3" : "opacity and transmission strictly inside (0,1)",
+    "T4" : "outside the constitution - reported, not refused",
+    "T5" : "palette lightness spread at least 0.08",
+    "T6" : "ground lightness difference at least 0.05"
+  },
+  "fields" : [
+    {
+      "does" : "Hue of the last two stops, 0-360. The organism reads as two hue families meeting; the distance between this and baseHueDeg is how far apart they read.",
+      "name" : "accentHueDeg"
+    },
+    {
+      "does" : "Multiplies saturation for the accent stops, 0-1. Below 1 the accent is the quieter half.",
+      "name" : "accentSaturationScale",
+      "typical" : [
+        0.55000000000000004,
+        1
+      ]
+    },
+    {
+      "does" : "Opacity of the back membrane, 0-1. Raising it toward frontAlpha makes the two read as separate sheets.",
+      "name" : "backAlpha",
+      "typical" : [
+        0.20000000000000001,
+        0.55000000000000004
+      ]
+    },
+    {
+      "does" : "Size of the second membrane relative to the front one, 0-1.5.",
+      "name" : "backScale",
+      "typical" : [
+        0.78000000000000003,
+        0.97999999999999998
+      ]
+    },
+    {
+      "does" : "Hue of the organism's first two palette stops, 0-360. 0 red, 120 green, 210 blue, 280 violet, 330 pink.",
+      "name" : "baseHueDeg"
+    },
+    {
+      "does" : "A soft warm glow added at the lit edges, 0-1.",
+      "name" : "bloom",
+      "typical" : [
+        0.32000000000000001,
+        0.44
+      ]
+    },
+    {
+      "does" : "Exposure of the finished image, 0-3. Above about 1.8 pale palettes blow out to white.",
+      "name" : "brightness",
+      "typical" : [
+        1.6399999999999999,
+        1.8799999999999999
+      ]
+    },
+    {
+      "does" : "Curl along the sheet's length, about -2 to 2.",
+      "name" : "curl",
+      "typical" : [
+        0.20000000000000001,
+        1.1000000000000001
+      ]
+    },
+    {
+      "does" : "A steady directional drift, 0-1, so the motion has a direction to come from.",
+      "name" : "currentStrength",
+      "typical" : [
+        0.14000000000000001,
+        0.23999999999999999
+      ]
+    },
+    {
+      "does" : "How far the sheet extends away from the viewer, 0-1.5.",
+      "name" : "depth",
+      "typical" : [
+        0.47999999999999998,
+        0.81999999999999995
+      ]
+    },
+    {
+      "does" : "Low-frequency waviness of the outer edge, 0-0.5.",
+      "name" : "edgeFlutter",
+      "typical" : [
+        0.040000000000000001,
+        0.17999999999999999
+      ]
+    },
+    {
+      "does" : "High-frequency frilling of the outer edge, 0-1. Zero is a smooth hem.",
+      "name" : "edgeRuffle",
+      "typical" : [
+        0.20000000000000001,
+        0.80000000000000004
+      ]
+    },
+    {
+      "does" : "How far out of frame the organism has travelled. 0 is present; 7-13 is gone, leaving the ground as the picture.",
+      "name" : "exitDistance"
+    },
+    {
+      "does" : "Fine flutter along the edge, 0-1.",
+      "name" : "fineFlutter",
+      "typical" : [
+        0.14999999999999999,
+        0.69999999999999996
+      ]
+    },
+    {
+      "does" : "Number of folds across the sheet. More folds means more of the sheet crossing itself, which deepens colour where it overlaps.",
+      "name" : "foldDensity",
+      "typical" : [
+        8,
+        12
+      ]
+    },
+    {
+      "does" : "Light gathering along folds, 0-3. This is what reads as sheen on cloth.",
+      "name" : "foldHighlight",
+      "typical" : [
+        1.04,
+        1.3400000000000001
+      ]
+    },
+    {
+      "does" : "Opacity of the front membrane, 0-1.",
+      "name" : "frontAlpha",
+      "typical" : [
+        0.88,
+        1
+      ]
+    },
+    {
+      "does" : "Shifts where the palette sits across the form, about -0.5 to 0.5.",
+      "name" : "gradientPosition",
+      "typical" : [
+        -0.10000000000000001,
+        0.059999999999999998
+      ]
+    },
+    {
+      "does" : "Saturation applied to the finished image, 0-3.",
+      "name" : "gradingSaturation",
+      "typical" : [
+        1.1799999999999999,
+        1.46
+      ]
+    },
+    {
+      "does" : "Horizontal centre of the ground gradient, 0-1.",
+      "name" : "groundCenterX",
+      "typical" : [
+        0.14999999999999999,
+        0.84999999999999998
+      ]
+    },
+    {
+      "does" : "Vertical centre of the ground gradient, 0-1.",
+      "name" : "groundCenterY",
+      "typical" : [
+        0.14999999999999999,
+        0.84999999999999998
+      ]
+    },
+    {
+      "does" : "Hue of the ground's middle stop, 0-360. The ground is three stops: this minus half the spread, this, this plus half the spread.",
+      "name" : "groundHueDeg"
+    },
+    {
+      "does" : "How far the ground's two end stops sit either side of the middle hue. Small is one colour; 150+ crosses the wheel.",
+      "name" : "groundHueSpreadDeg",
+      "typical" : [
+        5,
+        90
+      ]
+    },
+    {
+      "does" : "Lightness of the first ground stop, 0-1. The deeper of the two ends wins the frame.",
+      "name" : "groundLightnessA"
+    },
+    {
+      "does" : "Lightness of the last ground stop, 0-1.",
+      "name" : "groundLightnessB"
+    },
+    {
+      "does" : "Where the middle stop's lightness sits between A and B, 0-1. Hue is unaffected.",
+      "name" : "groundMidBias",
+      "typical" : [
+        0.14999999999999999,
+        0.84999999999999998
+      ]
+    },
+    {
+      "does" : "Colour strength of the ground, 0-1. Under about 0.2 the ground reads as paper.",
+      "name" : "groundSaturation",
+      "typical" : [
+        0,
+        0.80000000000000004
+      ]
+    },
+    {
+      "does" : "Direction the ground gradient runs, 0-360.",
+      "name" : "groundSweepAngleDeg"
+    },
+    {
+      "does" : "Darkening toward the corners, 0-1. Small values read photographic.",
+      "name" : "groundVignette",
+      "typical" : [
+        0,
+        0.40000000000000002
+      ]
+    },
+    {
+      "does" : "Colour-channel rotation at edges and folds, 0-1. At 1 the edges go rainbow.",
+      "name" : "iridescence",
+      "typical" : [
+        0.050000000000000003,
+        0.40000000000000002
+      ]
+    },
+    {
+      "does" : "Darkest palette stop, 0-1. Where folds fall to.",
+      "name" : "lightness0",
+      "typical" : [
+        0.02,
+        0.22
+      ]
+    },
+    {
+      "does" : "Second stop, 0-1.",
+      "name" : "lightness1",
+      "typical" : [
+        0.14999999999999999,
+        0.5
+      ]
+    },
+    {
+      "does" : "Third stop, 0-1.",
+      "name" : "lightness2",
+      "typical" : [
+        0.40000000000000002,
+        0.71999999999999997
+      ]
+    },
+    {
+      "does" : "Lightest stop, 0-1. Where the light catches, and what metallic mode mixes toward.",
+      "name" : "lightness3",
+      "typical" : [
+        0.59999999999999998,
+        0.96999999999999997
+      ]
+    },
+    {
+      "does" : "Fine grain across the surface, 0-1.",
+      "name" : "membraneGrain",
+      "typical" : [
+        0.10000000000000001,
+        0.55000000000000004
+      ]
+    },
+    {
+      "does" : "Fine folding on top of the main folds, 0-1.",
+      "name" : "microFold",
+      "typical" : [
+        0.25,
+        0.84999999999999998
+      ]
+    },
+    {
+      "does" : "Which colour treatment the shader uses: 0 plain, 1 koi, 2 pearl-red, 3 alternate gradient, 4 ridge tint (sheen along folds), 5 metallic (mixes toward lightness3 by fresnel).",
+      "name" : "morphMode"
+    },
+    {
+      "does" : "How far the sheet travels as it moves, 0-1.",
+      "name" : "motionAmplitude",
+      "typical" : [
+        0.29999999999999999,
+        0.45000000000000001
+      ]
+    },
+    {
+      "does" : "Speed of the whole animation, 0-1. Slow means low speed with high amplitude - one long travelling wave.",
+      "name" : "motionSpeed",
+      "typical" : [
+        0.26000000000000001,
+        0.40000000000000002
+      ]
+    },
+    {
+      "does" : "How much the surface's fine relief catches light, 0-1.",
+      "name" : "normalDetail",
+      "typical" : [
+        0.29999999999999999,
+        0.90000000000000002
+      ]
+    },
+    {
+      "does" : "How much of the surface is there at all, strictly between 0 and 1. This is the main translucency dial.",
+      "name" : "opacity",
+      "typical" : [
+        0.47999999999999998,
+        0.69999999999999996
+      ]
+    },
+    {
+      "does" : "How far out of step the two membranes are, 0-60. Large values stop them reading as one doubled edge.",
+      "name" : "phaseOffset",
+      "typical" : [
+        8,
+        40
+      ]
+    },
+    {
+      "does" : "How oversized the organism is. The rule is dominant or departed: it should fill the frame and leave it, never sit small in the middle.",
+      "name" : "presenceScale"
+    },
+    {
+      "does" : "How many rays the membrane is built from. Low counts leave visible teeth along a silhouette; high counts read as a fine hem.",
+      "name" : "rayCount",
+      "typical" : [
+        68,
+        82
+      ]
+    },
+    {
+      "does" : "How distinct each ray is, 0-1.",
+      "name" : "rayDefinition",
+      "typical" : [
+        0.45000000000000001,
+        1
+      ]
+    },
+    {
+      "does" : "Light gathering along edges, 0-3.",
+      "name" : "rimStrength",
+      "typical" : [
+        1.02,
+        1.28
+      ]
+    },
+    {
+      "does" : "Colour strength of the base stops, 0-1. Note it has little authority where transmission is high.",
+      "name" : "saturation",
+      "typical" : [
+        0.29999999999999999,
+        1
+      ]
+    },
+    {
+      "does" : "How differently the second membrane is shaped, 0-20.",
+      "name" : "seedOffset",
+      "typical" : [
+        2,
+        9
+      ]
+    },
+    {
+      "does" : "How far the membrane fans open, in radians up to about 2pi. Wide values reach both edges of the frame.",
+      "name" : "spread",
+      "typical" : [
+        2.5499999999999998,
+        3.5
+      ]
+    },
+    {
+      "does" : "How much light passes through, strictly between 0 and 1. High transmission means the ground behind drives the colour.",
+      "name" : "transmission",
+      "typical" : [
+        0.64000000000000001,
+        0.92000000000000004
+      ]
+    },
+    {
+      "does" : "Irregularity of the motion, 0-1. Wind is a little irregular; water is not.",
+      "name" : "turbulence",
+      "typical" : [
+        0.10000000000000001,
+        0.29999999999999999
+      ]
+    },
+    {
+      "does" : "Twist about the body axis, about -2 to 2.",
+      "name" : "twist",
+      "typical" : [
+        -0.5,
+        0.5
+      ]
+    },
+    {
+      "does" : "Visible veining through the membrane, 0-1. Veins read as living tissue rather than cloth.",
+      "name" : "veinStrength",
+      "typical" : [
+        0.20000000000000001,
+        0.75
+      ]
+    }
+  ],
+  "notes" : [
+    "A patch sets only the fields it names. An omitted field keeps the value the seed gave it - there is no way to say 'none', only a value.",
+    "Where transmission is high, palette saturation has very little authority: the visible colour is mostly the ground seen through the sheet. To deepen a translucent colour, raise foldDensity so the sheet overlaps itself more, or darken the ground.",
+    "A silhouette seen nearly edge-on shows the ray tips as teeth. edgeRuffle, edgeFlutter and fineFlutter do not remove them; raising rayCount well past the constitution's range makes them fine enough to read as a hem.",
+    "opacity and transmission must both stay strictly inside 0 and 1 or contract T3 fails: fully opaque or fully invisible is a broken picture, not a style.",
+    "The four palette lightness stops must span at least 0.08 (T5), and the two ground lightnesses at least 0.05 (T6).",
+    "The crop is never yours to set. The eight locked compositions belong to the owner and the studio only chooses among them.",
+    "A patch may leave the constitution's typical ranges - that is the studio's purpose - but every value must stay in gamut: hues 0-360, all saturations and lightnesses 0-1."
+  ],
+  "parts" : {
+    "_" : "Optional. Replaces the rigid parts accompanying the membrane.",
+    "keys" : [
+      "primitive",
+      "scale",
+      "orbitRadius",
+      "orbitAngleDeg",
+      "tiltDeg",
+      "phaseOffset"
+    ],
+    "primitives" : [
+      "membrane",
+      "prism",
+      "diamond",
+      "ring",
+      "ribbon"
+    ]
+  },
+  "version" : 5
+}
